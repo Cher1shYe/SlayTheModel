@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
+  </ItemGroup>
+</Project>

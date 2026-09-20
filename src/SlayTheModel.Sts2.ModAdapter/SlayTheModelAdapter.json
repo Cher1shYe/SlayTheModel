@@ -1,0 +1,12 @@
+{
+  "id": "SlayTheModelAdapter",
+  "name": "SlayTheModel Omniscient Adapter",
+  "author": "SlayTheModel",
+  "description": "Exports filtered combat decisions and provides an opt-in live-control integration test.",
+  "version": "0.2.0",
+  "has_pck": false,
+  "has_dll": true,
+  "min_game_version": "0.111.0",
+  "dependencies": [],
+  "affects_gameplay": true
+}

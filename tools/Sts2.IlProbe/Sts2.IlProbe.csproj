@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Small read-only IL disassembler for targeted inspection of STS2 methods.</Description>
+  </PropertyGroup>
+</Project>

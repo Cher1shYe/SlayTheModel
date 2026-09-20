@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Validates and summarizes combat decision captures emitted by the STS2 mod adapter.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
+  </ItemGroup>
+</Project>

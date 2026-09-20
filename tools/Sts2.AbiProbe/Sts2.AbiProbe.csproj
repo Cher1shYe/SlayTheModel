@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Read-only metadata probe for the locally installed Slay the Spire 2 assembly.</Description>
+  </PropertyGroup>
+</Project>
