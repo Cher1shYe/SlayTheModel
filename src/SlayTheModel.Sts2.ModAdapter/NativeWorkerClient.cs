@@ -7,24 +7,31 @@ internal sealed class NativeWorkerClient : IDisposable
 {
     private Process? _process;
     private string _directory = "";
+    private long _requestSequence;
 
     public async Task<NativeMctsResponse> SearchAsync(NativeMctsRequest request, CancellationToken cancellation)
     {
         EnsureStarted();
-        var input = Path.Combine(_directory, "request.json");
+        var sequence = Interlocked.Increment(ref _requestSequence);
+        var input = Path.Combine(_directory, $"{sequence:D20}-{request.Id:N}.request.json");
         File.WriteAllText(input + ".tmp", JsonSerializer.Serialize(request));
-        File.Move(input + ".tmp", input, true);
+        File.Move(input + ".tmp", input);
         var output = Path.Combine(_directory, $"{request.Id}.json");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         timeout.CancelAfter(TimeSpan.FromSeconds(15));
-        while (!File.Exists(output))
+        NativeMctsResponse? response = null;
+        while (response == null)
         {
             if (_process == null || _process.HasExited) throw new IOException("Native worker exited. See its logs.");
+            if (File.Exists(output))
+            {
+                try { response = JsonSerializer.Deserialize<NativeMctsResponse>(File.ReadAllText(output)); }
+                catch (IOException) { /* Retry transient Windows file sharing conflicts. */ }
+            }
+            if (response != null) break;
             await Task.Delay(20, timeout.Token);
         }
         cancellation.ThrowIfCancellationRequested();
-        var response = JsonSerializer.Deserialize<NativeMctsResponse>(File.ReadAllText(output))
-            ?? throw new InvalidDataException("Empty worker response.");
         if (response.Id != request.Id) throw new InvalidDataException("Stale worker response.");
         if (response.Error != null) throw new InvalidOperationException(response.Error);
         return response;
@@ -45,6 +52,7 @@ internal sealed class NativeWorkerClient : IDisposable
             WorkingDirectory = Path.GetDirectoryName(exe)!,
             RedirectStandardOutput = true, RedirectStandardError = true,
         };
+        NativeWorkerLaunch.IsolateFromGameProcess(start);
         start.ArgumentList.Add("--headless");
         start.ArgumentList.Add("--path");
         start.ArgumentList.Add(project);

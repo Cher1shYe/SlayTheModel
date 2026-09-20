@@ -59,8 +59,10 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     {
         _activeCancellation = cancellation;
         cancellation.ThrowIfCancellationRequested();
-        _choice?.TrySetCanceled();
+        var pendingChoice = _choice;
         _choice = null;
+        pendingChoice?.TrySetCanceled();
+        await DrainActiveActionAsync();
         _selector?.Dispose();
         RunManager.Instance.CleanUp(false);
         LocalContext.NetId = 1;
@@ -90,6 +92,24 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
         await SettleAsync(cancellation);
+    }
+
+    private async Task DrainActiveActionAsync()
+    {
+        if (_action != null)
+            await ObserveCleanupAsync(_action.CompletionTask, "Native action did not stop during reconstruction.");
+        var executor = RunManager.Instance.ActionExecutor;
+        if (executor != null)
+            await ObserveCleanupAsync(executor.FinishedExecutingActions(), "Native action queue did not stop during reconstruction.");
+        _action = null;
+    }
+
+    private static async Task ObserveCleanupAsync(Task task, string timeoutMessage)
+    {
+        try { await task.WaitAsync(TimeSpan.FromSeconds(3)); }
+        catch (TimeoutException) { throw new TimeoutException(timeoutMessage); }
+        catch (OperationCanceledException) { }
+        catch { /* An interrupted rollout may fault; completion, not success, is required here. */ }
     }
 
     private async Task RestoreCheckpointAsync(NativeCombatCheckpoint checkpoint)
@@ -177,7 +197,15 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
-        await SettleAsync(cancellation);
+        try { await SettleAsync(cancellation); }
+        catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
+        {
+            var pendingChoice = _choice;
+            _choice = null;
+            pendingChoice?.TrySetCanceled(cancellation);
+            await DrainActiveActionAsync();
+            throw;
+        }
     }
 
     private async Task SettleAsync(CancellationToken cancellation)
@@ -249,7 +277,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         _options = options.ToArray();
         _min = minSelect;
         _max = maxSelect;
-        _choice = new TaskCompletionSource<IEnumerable<CardModel>>();
+        _choice = new TaskCompletionSource<IEnumerable<CardModel>>(TaskCreationOptions.RunContinuationsAsynchronously);
         return _choice.Task;
     }
 

@@ -11,6 +11,7 @@
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="Bridge/NativeCombatCheckpoint.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs" Link="Bridge/NativeMctsMessages.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs" Link="Bridge/NativeWorkerClient.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="Bridge/NativeWorkerLaunch.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatCaptureService.cs" Link="Bridge/CombatCaptureService.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatActionExecutor.cs" Link="Bridge/CombatActionExecutor.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="Bridge/NativeActionCompletion.cs" />

@@ -22,7 +22,9 @@ internal sealed class MctsCombatController : ICardSelector
     private static readonly MctsCombatController Instance = new();
     private readonly List<SearchAction> _prefix = [];
     private readonly NativeWorkerClient _worker = new();
+    private readonly PonderResultCache<NativeMctsResponse> _ponderResults = new();
     private CancellationTokenSource _generation = new();
+    private CancellationTokenSource? _ponderGeneration;
     private CombatState? _state;
     private bool _busy;
     private bool _paused;
@@ -34,6 +36,10 @@ internal sealed class MctsCombatController : ICardSelector
     private static bool _configured;
     private int _searches;
     private bool _faulted;
+    private string? _ponderStateKey;
+
+    private const int InitialSearchMilliseconds = 5000;
+    private const int PonderSliceMilliseconds = 500;
 
     internal static AiControlStatus GetStatus()
     {
@@ -82,7 +88,7 @@ internal sealed class MctsCombatController : ICardSelector
             tree.ProcessFrame += Instance.Tick;
             tree.Root.TreeExiting += Instance.End;
         }).CallDeferred();
-        Console.WriteLine("[SlayTheModel] experimental MCTS enabled; F8 pauses/resumes; first/rebuilt search=5s, continued=1s");
+        Console.WriteLine("[SlayTheModel] experimental MCTS enabled; F8 pauses/resumes; first/rebuilt search=5s, continuous ponder slices=500ms");
     }
 
     private void Begin(CombatState state)
@@ -105,6 +111,7 @@ internal sealed class MctsCombatController : ICardSelector
 
     private void End()
     {
+        StopPondering();
         _generation.Cancel();
         _generation.Dispose();
         _generation = new CancellationTokenSource();
@@ -146,17 +153,20 @@ internal sealed class MctsCombatController : ICardSelector
         _ = DecideAsync(_generation.Token);
     }
 
-    private async Task<NativeMctsResponse> SearchAsync(string stateKey, CancellationToken token)
+    private async Task<NativeMctsResponse> SearchAsync(string stateKey, IReadOnlyList<SearchAction> prefix,
+        SearchAction? previousAction, int budgetMilliseconds, CancellationToken token, bool log = true)
     {
         var checkpoint = NativeCombatCheckpoint.Latest ?? throw new InvalidOperationException("No combat-entry checkpoint; enter a new battle.");
         NativeMctsResponse result;
-        _searches++;
+        Interlocked.Increment(ref _searches);
         try
         {
-            result = await _worker.SearchAsync(new NativeMctsRequest(Guid.NewGuid(), checkpoint, _prefix.ToArray(), stateKey, _entryHp), token);
+            result = await _worker.SearchAsync(new NativeMctsRequest(Guid.NewGuid(), checkpoint, prefix,
+                stateKey, _entryHp, previousAction, budgetMilliseconds), token);
         }
-        finally { _searches--; }
-        Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
+        finally { Interlocked.Decrement(ref _searches); }
+        if (log)
+            Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
         return result;
     }
 
@@ -166,7 +176,19 @@ internal sealed class MctsCombatController : ICardSelector
         try
         {
             var key = NativeCombatCheckpoint.StateKey() + ":play";
-            var result = await SearchAsync(key, token);
+            NativeMctsResponse result;
+            if (_ponderStateKey == key)
+            {
+                result = _ponderResults.TryGet(key, out var ready)
+                    ? ready!
+                    : await _ponderResults.WaitForFirstAsync(key, token);
+                Console.WriteLine($"[SlayTheModel] using pondered MCTS result retained={result.RetainedVisits} action={result.Action?.Key}");
+            }
+            else
+            {
+                StopPondering();
+                result = await SearchAsync(key, _prefix.ToArray(), null, InitialSearchMilliseconds, token);
+            }
             token.ThrowIfCancellationRequested();
             if (_paused || _state == null) return;
             if (key != NativeCombatCheckpoint.StateKey() + ":play")
@@ -175,19 +197,71 @@ internal sealed class MctsCombatController : ICardSelector
                 Console.WriteLine("[SlayTheModel] actual state changed; discarding search and rebuilding.");
                 return;
             }
+            StopPondering();
             var action = result.Action?.Combat ?? throw new InvalidDataException("Worker returned no combat action.");
             if (!CombatCaptureService.GetLegalActions(_state).Contains(action)) throw new InvalidDataException("Worker action is no longer legal.");
-            await CombatActionExecutor.ExecuteAsync(_state, action);
+            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
+            var predictedPrefix = _prefix.ToList();
+            if (predictedPrefix.Count == 0 || predictedPrefix[^1] != result.Action)
+                predictedPrefix.Add(result.Action!);
+            if (result.NextStateKey != null)
+                StartPondering(result.NextStateKey, predictedPrefix, result.Action!, token);
+            try { await execution; }
+            catch
+            {
+                StopPondering();
+                throw;
+            }
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception exception) { Pause(exception.ToString()); }
         finally { _busy = false; }
     }
 
+    private void StartPondering(string stateKey, IReadOnlyList<SearchAction> prefix,
+        SearchAction previousAction, CancellationToken token)
+    {
+        StopPondering();
+        _ponderStateKey = stateKey;
+        _ponderResults.Begin(stateKey);
+        _ponderGeneration = CancellationTokenSource.CreateLinkedTokenSource(token);
+        _ = PonderAsync(stateKey, prefix.ToArray(), previousAction, _ponderGeneration.Token);
+    }
+
+    private async Task PonderAsync(string stateKey, IReadOnlyList<SearchAction> prefix,
+        SearchAction previousAction, CancellationToken token)
+    {
+        SearchAction? advance = previousAction;
+        try
+        {
+            while (true)
+            {
+                var result = await SearchAsync(stateKey, prefix, advance, PonderSliceMilliseconds, token, log: false);
+                advance = null;
+                if (!_ponderResults.Publish(stateKey, result)) return;
+            }
+        }
+        catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+        catch (Exception exception)
+        {
+            if (!token.IsCancellationRequested) Pause(exception.ToString());
+        }
+    }
+
+    private void StopPondering()
+    {
+        _ponderGeneration?.Cancel();
+        _ponderGeneration?.Dispose();
+        _ponderGeneration = null;
+        _ponderStateKey = null;
+        _ponderResults.Clear();
+    }
+
     private void Pause(string reason, bool faulted = true)
     {
         _paused = true;
         _faulted = faulted;
+        StopPondering();
         _generation.Cancel();
         _generation.Dispose();
         _generation = new CancellationTokenSource();
@@ -206,12 +280,27 @@ internal sealed class MctsCombatController : ICardSelector
                 try
                 {
                     var key = NativeCombatCheckpoint.StateKey() + $":choice:{minSelect}:{maxSelect}:" + string.Join(",", cards.Select(card => card.Id.Entry));
-                    var response = await SearchAsync(key, _generation.Token);
+                    NativeMctsResponse response;
+                    if (_ponderStateKey == key)
+                    {
+                        response = _ponderResults.TryGet(key, out var ready)
+                            ? ready!
+                            : await _ponderResults.WaitForFirstAsync(key, _generation.Token);
+                    }
+                    else
+                    {
+                        StopPondering();
+                        response = await SearchAsync(key, _prefix.ToArray(), null,
+                            InitialSearchMilliseconds, _generation.Token);
+                    }
+                    StopPondering();
                     var indices = response.Action?.Selection ?? throw new InvalidDataException("Worker returned no selection.");
                     if (indices.Distinct().Count() != indices.Length || indices.Any(i => i < 0 || i >= cards.Length)
                         || indices.Length < Math.Min(minSelect, cards.Length) || indices.Length > maxSelect)
                         throw new InvalidDataException("Worker returned an invalid selection.");
                     _prefix.Add(response.Action!);
+                    if (response.NextStateKey != null)
+                        StartPondering(response.NextStateKey, _prefix.ToArray(), response.Action!, _generation.Token);
                     return indices.Select(i => cards[i]).ToArray();
                 }
                 catch (OperationCanceledException) when (_paused || _state == null) { }

@@ -40,10 +40,17 @@ try {
         $env:STS2_WORKER_MODE = $Mode
         $env:STS2_BENCHMARK_OUT = Join-Path $stage 'benchmark.json'
         $process = Start-Process -FilePath (Join-Path $stage 'NativeWorker.exe') -ArgumentList @('--headless', '--path', ('"' + $project + '"')) -WindowStyle Hidden -RedirectStandardOutput (Join-Path $stage 'stdout.txt') -RedirectStandardError (Join-Path $stage 'stderr.txt') -PassThru
+        # Windows PowerShell must open the process handle before the process exits
+        # or ExitCode can remain unavailable on the returned Process object.
+        $process.Handle | Out-Null
         if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
             Stop-Process -Id $process.Id
             throw "Worker exceeded $TimeoutSeconds seconds; its isolated process was stopped. See artifacts/native-host logs."
         }
+        # Drain redirected streams and refresh the process handle before reading
+        # ExitCode; otherwise PowerShell can observe $null just after Godot exits.
+        $process.WaitForExit()
+        $process.Refresh()
         Get-Content -LiteralPath (Join-Path $stage 'stdout.txt') -Tail 12
         Get-Content -LiteralPath (Join-Path $stage 'stderr.txt') -Tail 20
         if ($process.ExitCode -ne 0) { throw "Worker failed with exit $($process.ExitCode)." }
