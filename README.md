@@ -4,7 +4,7 @@
 
 项目短期目标是实现一个可复现的全局 MCTS：游戏适配器负责读取并复制完整状态，局内搜索负责出牌、选目标和结束回合，局外搜索负责地图、奖励、商店、休息点与事件，最终由分层控制器完成整局决策。
 
-项目的长期目标是训练一个杀戮尖塔2专用的神经网络，希望能适配各个版本，结合安东尼的更新频率和更新效率，目前想先在各个版本中跑通基本MCTS，再在不同版本下测试神经网络的可行性
+项目的长期目标是训练一个杀戮尖塔2专用的神经网络，希望能适配各个版本。结合安东尼现在的更新频率和更新效率，目前想先在各个版本中跑通基本MCTS，再在不同版本下测试神经网络的可行性
 
 > 当前仓库仍处于基础设施阶段。已经打通“读取战斗状态 → 抽象决策状态 → 生成合法动作 → 校验状态指纹 → 把动作送回游戏”的闭环；游戏内的 `first-legal` 只是联调策略，并不是 MCTS，也不代表模型强度。
 
@@ -29,6 +29,8 @@
 - Steam 版《杀戮尖塔 2》；
 - 游戏版本 `v0.111.0`；
 - .NET SDK `9.0.306`。`global.json` 允许滚动到同一 SDK 的更新 feature band。
+
+Windows 操作说明根据当前游戏目录结构整理，但尚未在 Windows 机器上实际测试。遇到问题请在 Issue 中附上游戏版本、安装路径和完整日志。
 
 先确认 .NET：
 
@@ -88,7 +90,7 @@ SlayTheModelAdapter/
 
 协议类型已经编译进主 DLL，不需要另外复制 `SlayTheModel.Sts2.Protocol.dll`。更新 Mod 时，退出游戏、重新构建并覆盖上述两个文件即可。
 
-## 启动方式一：只采集状态，不自动打牌
+## macOS 启动方式一：只采集状态，不自动打牌
 
 先启动 Steam 客户端，但不要从 Steam 启动游戏。确认没有已经运行的游戏进程，然后在仓库根目录执行：
 
@@ -115,7 +117,7 @@ artifacts/live-capture/latest-combat-decision.json
 
 `SLAY_THE_MODEL_CAPTURE_HISTORY=1` 会额外保存每个不同决策点；不需要历史记录时，可以从启动命令中删除这一行。
 
-## 启动方式二：让联调策略自动接管战斗
+## macOS 启动方式二：让联调策略自动接管战斗
 
 同样需要先完全退出当前游戏，再用下面的命令启动新进程：
 
@@ -136,7 +138,79 @@ SteamGameId=2868840 \
 
 之后仍然需要玩家手动操作主菜单、选择单人游戏、角色、初始选项、地图节点和奖励。当前适配器只在进入战斗并轮到玩家行动时接管；它不会自动开启新游戏，也不会处理地图与奖励页面。如果同时安装了 SpeedX 一类自动推进 Mod，战斗外的自动操作来自那些 Mod，而不是 SlayTheModel。
 
-### 测试用策略: first-legal
+## Windows 操作说明（未经测试）
+
+> **注意：以下流程尚未经过 Windows 实机验证。** 路径和启动方式可能随 Steam 库位置、游戏版本或 Mod 加载器变化。建议先备份存档，并优先使用测试存档验证。
+
+以下命令需要在 **PowerShell** 中执行。先在 Steam 中右键游戏，选择“属性 → 已安装文件 → 浏览”，找到包含 `SlayTheSpire2.exe` 的游戏根目录。默认目录通常是：
+
+```text
+C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2
+```
+
+如果 Steam 库位于其他磁盘，请修改下面的 `$GameDir`：
+
+```powershell
+$GameDir = "C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2"
+$ManagedDir = Join-Path $GameDir "data_sts2_windows_x86_64"
+
+Test-Path (Join-Path $GameDir "SlayTheSpire2.exe")
+Test-Path (Join-Path $ManagedDir "sts2.dll")
+```
+
+两个 `Test-Path` 都应返回 `True`。完全退出游戏后，在仓库根目录构建 Mod：
+
+```powershell
+dotnet build src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj `
+  -c Release `
+  "-p:Sts2ManagedDir=$ManagedDir"
+```
+
+安装到游戏根目录下的 `mods` 文件夹：
+
+```powershell
+$ModDir = Join-Path $GameDir "mods\SlayTheModelAdapter"
+
+New-Item -ItemType Directory -Force -Path $ModDir | Out-Null
+Copy-Item "src\SlayTheModel.Sts2.ModAdapter\bin\Release\net9.0\SlayTheModelAdapter.dll" `
+  -Destination $ModDir -Force
+Copy-Item "src\SlayTheModel.Sts2.ModAdapter\SlayTheModelAdapter.json" `
+  -Destination $ModDir -Force
+```
+
+只采集状态、不自动打牌：
+
+```powershell
+$env:SLAY_THE_MODEL_EXPORT_DIR = Join-Path (Get-Location) "artifacts\live-capture"
+$env:SLAY_THE_MODEL_CAPTURE_HISTORY = "1"
+$env:SteamAppId = "2868840"
+$env:SteamGameId = "2868840"
+Remove-Item Env:SLAY_THE_MODEL_LIVE_POLICY -ErrorAction SilentlyContinue
+
+& (Join-Path $GameDir "SlayTheSpire2.exe")
+```
+
+启用 `first-legal` 自动战斗联调策略：
+
+```powershell
+$env:SLAY_THE_MODEL_LIVE_POLICY = "first-legal"
+$env:SLAY_THE_MODEL_EXPORT_DIR = Join-Path (Get-Location) "artifacts\live-capture"
+$env:SLAY_THE_MODEL_CAPTURE_HISTORY = "1"
+$env:SteamAppId = "2868840"
+$env:SteamGameId = "2868840"
+
+& (Join-Path $GameDir "SlayTheSpire2.exe")
+```
+
+如果游戏首次启动时询问是否加载 Mod，请选择启用 Mod 的启动方式。与 macOS 一样，当前适配器只接管战斗，主菜单、角色、地图和奖励仍需手动操作。
+
+Windows 日志通常位于：
+
+```text
+%APPDATA%\Godot\app_userdata\Slay the Spire 2\logs\godot.log
+```
+
+## 测试用策略：`first-legal`
 
 这个名字表示“合法动作列表的第一项”，不是“画面中最左边的第一张牌”。每次决策时它会：
 
