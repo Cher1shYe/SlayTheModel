@@ -10,8 +10,8 @@ namespace SlayTheModel.Sts2.ModAdapter;
 
 /// <summary>
 /// Converts protocol actions back into the game's deterministic player-input actions.
-/// It deliberately does not handle mid-action player choices yet; those require a
-/// BranchingPlayerChoiceContext in the simulation worker.
+/// Waits through mid-action choices. The caller supplies a scoped live card selector
+/// or leaves native manual selection active; headless branching is a separate concern.
 /// </summary>
 public static class CombatActionExecutor
 {
@@ -49,7 +49,14 @@ public static class CombatActionExecutor
             ?? throw new InvalidOperationException("The run action executor is unavailable.");
 
         queue.EnqueueWithoutSynchronizing(gameAction);
-        await executor.FinishedExecutingActions().ConfigureAwait(false);
+        // Queue idle also means "paused for a player choice". It does not mean
+        // the card finished. Keep the live controller busy until the action really
+        // completes, then wait for queue bookkeeping on the game's main context.
+        await NativeActionCompletion.WaitAsync(gameAction.CompletionTask, executor.FinishedExecutingActions);
+        if (gameAction.Exception is { } exception)
+        {
+            throw new InvalidOperationException("The native game action failed.", exception);
+        }
     }
 
     private static PlayCardAction CreatePlayCardAction(

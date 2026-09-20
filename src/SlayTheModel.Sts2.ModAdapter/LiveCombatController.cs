@@ -1,4 +1,7 @@
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
+using Godot;
+using Environment = System.Environment;
 using SlayTheModel.Sts2.Protocol;
 
 namespace SlayTheModel.Sts2.ModAdapter;
@@ -67,9 +70,9 @@ internal static class LiveCombatController
                 return;
             }
 
-            _executing = true;
             generation = _combatGeneration;
             searchPoint = CombatCaptureService.BuildSearchPoint(state, _decisionIndex++);
+            _executing = true;
         }
 
         var action = SelectAction(searchPoint.Decision);
@@ -110,7 +113,12 @@ internal static class LiveCombatController
             Console.WriteLine(
                 $"[SlayTheModel] live decision={searchPoint.Decision.DecisionIndex} "
                 + $"action={Describe(action)} fingerprint={request.ExpectedStateFingerprint[..12]}");
-            await CombatActionExecutor.ExecuteAsync(state, action);
+            // This game's selector is global: scope it to this single-player action,
+            // including any choices it triggers, and restore it before continuing.
+            using (CardSelectCmd.PushSelector(new FirstLegalCardSelector()))
+            {
+                await CombatActionExecutor.ExecuteAsync(state, action);
+            }
         }
         catch (StaleCombatStateException exception)
         {
@@ -118,7 +126,9 @@ internal static class LiveCombatController
         }
         catch (Exception exception)
         {
+            _enabled = false;
             Console.Error.WriteLine($"[SlayTheModel] live decision failed: {exception}");
+            Console.Error.WriteLine("[SlayTheModel] live policy disabled after failure; restart to retry.");
         }
         finally
         {
@@ -131,7 +141,14 @@ internal static class LiveCombatController
 
             if (shouldContinue)
             {
-                TrySchedule(state);
+                // Never recursively enqueue on the same stack when an action
+                // completes synchronously or is rejected by the game's queue.
+                var loop = Engine.GetMainLoop();
+                await loop.ToSignal(loop, SceneTree.SignalName.ProcessFrame);
+                if (generation == _combatGeneration)
+                {
+                    TrySchedule(state);
+                }
             }
         }
     }
@@ -140,6 +157,7 @@ internal static class LiveCombatController
     {
         var manager = CombatManager.Instance;
         return manager.IsInProgress
+            && state.Players.Count == 1
             && !manager.IsOverOrEnding
             && !manager.PlayerActionsDisabled
             && state.CurrentSide == MegaCrit.Sts2.Core.Combat.CombatSide.Player

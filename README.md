@@ -19,7 +19,7 @@
 - 无头 smoke test 与采集文件检查工具；
 - 可选的 `first-legal` 游戏内自动操作，用于验证整个闭环。
 
-目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水以及卡牌执行过程中的弃牌、发现等异步选择还没有完整接入。MCTS 核心也尚未替换游戏内的 `first-legal` 联调策略。
+目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。MCTS 核心也尚未替换游戏内的 `first-legal` 联调策略。
 
 ## 环境要求
 
@@ -30,7 +30,7 @@
 - 游戏版本 `v0.111.0`；
 - .NET SDK `9.0.306`。`global.json` 允许滚动到同一 SDK 的更新 feature band。
 
-Windows 操作说明根据当前游戏目录结构整理，但尚未在 Windows 机器上实际测试。遇到问题请在 Issue 中附上游戏版本、安装路径和完整日志。
+Windows x64 已通过本机 v0.111.0 的 Release 构建、搜索/协议 smoke 测试和 ABI 契约检查；游戏内加载和自动战斗仍需交互验证。
 
 先确认 .NET：
 
@@ -138,77 +138,36 @@ SteamGameId=2868840 \
 
 之后仍然需要玩家手动操作主菜单、选择单人游戏、角色、初始选项、地图节点和奖励。当前适配器只在进入战斗并轮到玩家行动时接管；它不会自动开启新游戏，也不会处理地图与奖励页面。如果同时安装了 SpeedX 一类自动推进 Mod，战斗外的自动操作来自那些 Mod，而不是 SlayTheModel。
 
-## Windows 操作说明（未经测试）
+## Windows 操作说明
 
-> **注意：以下流程尚未经过 Windows 实机验证。** 路径和启动方式可能随 Steam 库位置、游戏版本或 Mod 加载器变化。建议先备份存档，并优先使用测试存档验证。
-
-以下命令需要在 **PowerShell** 中执行。先在 Steam 中右键游戏，选择“属性 → 已安装文件 → 浏览”，找到包含 `SlayTheSpire2.exe` 的游戏根目录。默认目录通常是：
-
-```text
-C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2
-```
-
-如果 Steam 库位于其他磁盘，请修改下面的 `$GameDir`：
+在仓库根目录用 PowerShell 5.1 或更高版本运行。安装 .NET 9 SDK（9.0.306 或更高的 9.0 feature band），先打开 Steam 客户端。脚本通过 Steam 注册表和 `libraryfolders.vdf` 查找游戏，支持其他磁盘的 Steam 库和带空格的路径。
 
 ```powershell
-$GameDir = "C:\Program Files (x86)\Steam\steamapps\common\Slay the Spire 2"
-$ManagedDir = Join-Path $GameDir "data_sts2_windows_x86_64"
-
-Test-Path (Join-Path $GameDir "SlayTheSpire2.exe")
-Test-Path (Join-Path $ManagedDir "sts2.dll")
+# 检查游戏路径、三个依赖程序集和 SDK
+./scripts/windows.ps1 -Action Check
+# 无需安装游戏的搜索与协议测试
+./scripts/windows.ps1 -Action Test
+# 核对 Windows v0.111.0 的程序集哈希、版本和必需接口
+./scripts/windows.ps1 -Action Probe
+# 完全退出游戏后，构建并安装 DLL 和 manifest
+./scripts/windows.ps1 -Action Install
+# 只采集状态
+./scripts/windows.ps1 -Action Launch -CaptureHistory
+# 或退出游戏后启用 first-legal 自动战斗
+./scripts/windows.ps1 -Action Launch -Policy first-legal -CaptureHistory
 ```
 
-两个 `Test-Path` 都应返回 `True`。完全退出游戏后，在仓库根目录构建 Mod：
+只构建不安装时使用 `-Action Build`。自动发现失败时指定 `-GameDir 'D:\SteamLibrary\steamapps\common\Slay the Spire 2'`，也可设置 `STS2_GAME_DIR` 环境变量。非标准程序集位置可用 `-ManagedDir` 指定。直接使用 `dotnet build` 时，Windows 默认查找标准 Steam 目录，支持 `STS2_GAME_DIR` 或 `-p:Sts2ManagedDir=...`；其他 Steam 库请优先使用脚本。
 
-```powershell
-dotnet build src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj `
-  -c Release `
-  "-p:Sts2ManagedDir=$ManagedDir"
-```
+脚本优先使用 `%LOCALAPPDATA%\SlayTheModel\dotnet\dotnet.exe`（若存在），否则使用 PATH 上的 `dotnet`。本机验证使用前者安装的 SDK 9.0.306。
 
-安装到游戏根目录下的 `mods` 文件夹：
+启动默认输出到仓库的 `artifacts/live-capture`，可用 `-ExportDir` 修改。环境变量仅传给新启动的游戏，随后恢复当前 PowerShell 环境；默认 capture 模式会清除继承的自动操作设置。启动前需退出已有游戏，安装也会拒绝在游戏运行时覆盖 DLL。
 
-```powershell
-$ModDir = Join-Path $GameDir "mods\SlayTheModelAdapter"
+首次启动如提示 Mod，请启用。当前自动操作仅支持单人战斗，主菜单、角色、地图、奖励和未实现的特殊选择仍需手动处理。环境变量不支持游戏运行时切换。
 
-New-Item -ItemType Directory -Force -Path $ModDir | Out-Null
-Copy-Item "src\SlayTheModel.Sts2.ModAdapter\bin\Release\net9.0\SlayTheModelAdapter.dll" `
-  -Destination $ModDir -Force
-Copy-Item "src\SlayTheModel.Sts2.ModAdapter\SlayTheModelAdapter.json" `
-  -Destination $ModDir -Force
-```
+Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本机 v0.111.0、commit `41cef1ea`；macOS 契约保持独立。Windows 已验证构建和静态 ABI，尚未验证游戏内战斗。ABI 通过不等同于完整运行时兼容性。
 
-只采集状态、不自动打牌：
-
-```powershell
-$env:SLAY_THE_MODEL_EXPORT_DIR = Join-Path (Get-Location) "artifacts\live-capture"
-$env:SLAY_THE_MODEL_CAPTURE_HISTORY = "1"
-$env:SteamAppId = "2868840"
-$env:SteamGameId = "2868840"
-Remove-Item Env:SLAY_THE_MODEL_LIVE_POLICY -ErrorAction SilentlyContinue
-
-& (Join-Path $GameDir "SlayTheSpire2.exe")
-```
-
-启用 `first-legal` 自动战斗联调策略：
-
-```powershell
-$env:SLAY_THE_MODEL_LIVE_POLICY = "first-legal"
-$env:SLAY_THE_MODEL_EXPORT_DIR = Join-Path (Get-Location) "artifacts\live-capture"
-$env:SLAY_THE_MODEL_CAPTURE_HISTORY = "1"
-$env:SteamAppId = "2868840"
-$env:SteamGameId = "2868840"
-
-& (Join-Path $GameDir "SlayTheSpire2.exe")
-```
-
-如果游戏首次启动时询问是否加载 Mod，请选择启用 Mod 的启动方式。与 macOS 一样，当前适配器只接管战斗，主菜单、角色、地图和奖励仍需手动操作。
-
-Windows 日志通常位于：
-
-```text
-%APPDATA%\Godot\app_userdata\Slay the Spire 2\logs\godot.log
-```
+本机 Windows 日志位于 `%APPDATA%\SlayTheSpire2\logs\godot.log`。采集文件仍可用后文的 CaptureCheck 工具检查。
 
 ## 测试用策略：`first-legal`
 
@@ -219,6 +178,8 @@ Windows 日志通常位于：
 3. 按玩家 ID、动作类型、卡牌内部 `CombatCardIndex` 和目标 ID 稳定排序；
 4. 执行排序后的第一项；
 5. 状态变化后重新枚举；没有可出的牌时结束回合。
+
+动作内的原生选牌按候选列表顺序选取最低要求数量：响指选择第一张符合条件的手牌；洁净允许选 0 张，所以直接跳过可选消耗。选牌器只在当前自动动作执行期间生效，结束后恢复原有选择器，不接管战斗奖励。调度等待动作真正完成及队列清理，并在下一帧继续，避免选牌暂停被误判为完成而反复调度。发生执行异常时停用自动策略，避免持续重试。
 
 它不会阅读卡牌文本、计算伤害或进行策略评估；这是一个确定性的端到端联调工具。
 

@@ -173,6 +173,22 @@ internal sealed record ProbeOptions(
             return Path.GetFullPath(configured);
         }
 
+        var managedDir = Environment.GetEnvironmentVariable("Sts2ManagedDir");
+        if (!string.IsNullOrWhiteSpace(managedDir))
+        {
+            return Path.GetFullPath(Path.Combine(managedDir, "sts2.dll"));
+        }
+
+        if (OperatingSystem.IsWindows())
+        {
+            var gameDir = Environment.GetEnvironmentVariable("STS2_GAME_DIR");
+            gameDir = string.IsNullOrWhiteSpace(gameDir)
+                ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
+                    "Steam", "steamapps", "common", "Slay the Spire 2")
+                : gameDir;
+            return Path.GetFullPath(Path.Combine(gameDir, "data_sts2_windows_x86_64", "sts2.dll"));
+        }
+
         var userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         var macPath = Path.Combine(
             userProfile,
@@ -207,7 +223,8 @@ internal sealed record ProbeOptions(
             """
             Usage: dotnet run --project tools/Sts2.AbiProbe -- [options]
 
-              --assembly <path>  Path to sts2.dll. Defaults to STS2_ASSEMBLY_PATH or the macOS Steam path.
+              --assembly <path>  Path to sts2.dll. Defaults to STS2_ASSEMBLY_PATH, Sts2ManagedDir,
+                                 or the platform Steam path (Windows also accepts STS2_GAME_DIR).
               --out <path>       Write JSON to this file instead of stdout.
               --contract <path>  Validate required types and members from a JSON ABI contract.
               --prefix <name>    Include a namespace/type prefix. May be repeated.

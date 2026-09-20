@@ -4,12 +4,16 @@
     <AssemblyName>SlayTheModelAdapter</AssemblyName>
     <RootNamespace>SlayTheModel.Sts2.ModAdapter</RootNamespace>
     <UserProfileDir>$([System.Environment]::GetFolderPath(System.Environment+SpecialFolder.UserProfile))</UserProfileDir>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == '' and '$(STS2_GAME_DIR)' != '' and $([MSBuild]::IsOSPlatform('Windows'))">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">$(MSBuildProgramFiles32)/Steam/steamapps/common/Slay the Spire 2/data_sts2_windows_x86_64</Sts2ManagedDir>
     <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == '' and $([MSBuild]::IsOSPlatform('OSX'))">$(UserProfileDir)/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64</Sts2ManagedDir>
   </PropertyGroup>
 
   <Target Name="ValidateSts2ManagedDir" BeforeTargets="ResolveReferences">
     <Error Condition="!Exists('$(Sts2ManagedDir)/sts2.dll')"
            Text="STS2 managed assembly not found. Pass -p:Sts2ManagedDir=/path/to/the/game/managed/directory." />
+    <Error Condition="!Exists('$(Sts2ManagedDir)/GodotSharp.dll')" Text="GodotSharp.dll not found in Sts2ManagedDir=$(Sts2ManagedDir)." />
+    <Error Condition="!Exists('$(Sts2ManagedDir)/0Harmony.dll')" Text="0Harmony.dll not found in Sts2ManagedDir=$(Sts2ManagedDir)." />
   </Target>
 
   <ItemGroup>
