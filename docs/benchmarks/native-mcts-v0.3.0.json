@@ -1,0 +1,568 @@
+{
+  "format_version": 1,
+  "game_version": "v0.111.0",
+  "assembly_sha256": "0861BFA1DF347538D932F22D580E75420F08082792EB914E53B4882764ACDBE9",
+  "cpu": "Intel(R) Core(TM) Ultra X7 358H",
+  "memory_gb": 31.5,
+  "encounter": "CULTISTS_NORMAL",
+  "character": "IRONCLAD",
+  "ascension": 0,
+  "deck": "native starting deck",
+  "entry_hp": 80,
+  "potions": false,
+  "first_budget_seconds": 5,
+  "continuation_budget_seconds": 1,
+  "max_rollout_actions": 200,
+  "rollout": "50% defense-priority heuristic, 50% attack-first at each rollout action; optional selections choose minimum",
+  "value": "loss=-1; unresolved=-0.5; win=0.5+atan((final_hp-entry_hp)/20)/pi",
+  "tree_seed": 1,
+  "notes": "Three unseen seeds after pilot development, one encounter only. No claim of statistical significance or live-window equivalence. Time-limited results may vary across runs.",
+  "results": [
+    {
+      "seed": "STM-HOLDOUT-v1-1",
+      "policy": "first-legal",
+      "terminal": true,
+      "won": true,
+      "hp": 42,
+      "netHpLoss": 38,
+      "rounds": 7,
+      "actions": 23,
+      "elapsedSeconds": 0.0582149,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-1",
+      "policy": "heuristic",
+      "terminal": true,
+      "won": false,
+      "hp": 0,
+      "netHpLoss": 80,
+      "rounds": 9,
+      "actions": 35,
+      "elapsedSeconds": 0.0674326,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-1",
+      "policy": "attack-first",
+      "terminal": true,
+      "won": true,
+      "hp": 48,
+      "netHpLoss": 32,
+      "rounds": 6,
+      "actions": 20,
+      "elapsedSeconds": 0.0401012,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-1",
+      "policy": "mcts",
+      "terminal": true,
+      "won": true,
+      "hp": 48,
+      "netHpLoss": 32,
+      "rounds": 6,
+      "actions": 20,
+      "elapsedSeconds": 24.5565464,
+      "decisions": [
+        {
+          "Key": "PlayCard:1:1",
+          "CompletedSimulations": 88,
+          "RetainedVisits": 0,
+          "ElapsedMilliseconds": 5018.3652,
+          "Rebuilt": true
+        },
+        {
+          "Key": "PlayCard:0:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 13,
+          "ElapsedMilliseconds": 1014.5468,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1002.2669,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:7:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 22,
+          "ElapsedMilliseconds": 1010.2242,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:2",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 10,
+          "ElapsedMilliseconds": 1013.1396,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:8:",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1010.5459,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1004.9028,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:0:1",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 24,
+          "ElapsedMilliseconds": 1001.1786,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:1",
+          "CompletedSimulations": 19,
+          "RetainedVisits": 11,
+          "ElapsedMilliseconds": 1013.4537,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 19,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1012.616,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:1:2",
+          "CompletedSimulations": 19,
+          "RetainedVisits": 25,
+          "ElapsedMilliseconds": 1014.459,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:2",
+          "CompletedSimulations": 19,
+          "RetainedVisits": 10,
+          "ElapsedMilliseconds": 1007.7562,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:4:2",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1013.0199,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1000.9629,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:1:2",
+          "CompletedSimulations": 21,
+          "RetainedVisits": 27,
+          "ElapsedMilliseconds": 1000.5373,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:2",
+          "CompletedSimulations": 21,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1012.5881,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:2",
+          "CompletedSimulations": 21,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1012.6787,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 22,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1013.3613,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:4:2",
+          "CompletedSimulations": 22,
+          "RetainedVisits": 29,
+          "ElapsedMilliseconds": 1011.5482,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:0:2",
+          "CompletedSimulations": 23,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1013.207,
+          "Rebuilt": false
+        }
+      ]
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-2",
+      "policy": "first-legal",
+      "terminal": true,
+      "won": false,
+      "hp": 0,
+      "netHpLoss": 80,
+      "rounds": 8,
+      "actions": 32,
+      "elapsedSeconds": 0.0544451,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-2",
+      "policy": "heuristic",
+      "terminal": true,
+      "won": false,
+      "hp": 0,
+      "netHpLoss": 80,
+      "rounds": 9,
+      "actions": 34,
+      "elapsedSeconds": 0.073373,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-2",
+      "policy": "attack-first",
+      "terminal": true,
+      "won": true,
+      "hp": 27,
+      "netHpLoss": 53,
+      "rounds": 7,
+      "actions": 24,
+      "elapsedSeconds": 0.0447799,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-2",
+      "policy": "mcts",
+      "terminal": true,
+      "won": true,
+      "hp": 73,
+      "netHpLoss": 7,
+      "rounds": 5,
+      "actions": 17,
+      "elapsedSeconds": 21.3884609,
+      "decisions": [
+        {
+          "Key": "PlayCard:4:1",
+          "CompletedSimulations": 86,
+          "RetainedVisits": 0,
+          "ElapsedMilliseconds": 5011.1634,
+          "Rebuilt": true
+        },
+        {
+          "Key": "PlayCard:2:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 20,
+          "ElapsedMilliseconds": 1004.1816,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1000.9229,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:9:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 26,
+          "ElapsedMilliseconds": 1003.6761,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1013.5544,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:5:1",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 4,
+          "ElapsedMilliseconds": 1010.8451,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 5,
+          "ElapsedMilliseconds": 1011.8312,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:4:2",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 22,
+          "ElapsedMilliseconds": 1014.0706,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:2",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1015.3754,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1003.5113,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:2",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 26,
+          "ElapsedMilliseconds": 1001.2288,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:5:2",
+          "CompletedSimulations": 22,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1014.4026,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:0:",
+          "CompletedSimulations": 25,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1011.3981,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 24,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1014.6581,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:5:2",
+          "CompletedSimulations": 24,
+          "RetainedVisits": 31,
+          "ElapsedMilliseconds": 1006.1375,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:9:2",
+          "CompletedSimulations": 25,
+          "RetainedVisits": 10,
+          "ElapsedMilliseconds": 1002.3819,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:2",
+          "CompletedSimulations": 26,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1002.0735,
+          "Rebuilt": false
+        }
+      ]
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-3",
+      "policy": "first-legal",
+      "terminal": true,
+      "won": true,
+      "hp": 15,
+      "netHpLoss": 65,
+      "rounds": 8,
+      "actions": 30,
+      "elapsedSeconds": 0.0439828,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-3",
+      "policy": "heuristic",
+      "terminal": true,
+      "won": false,
+      "hp": 0,
+      "netHpLoss": 80,
+      "rounds": 9,
+      "actions": 36,
+      "elapsedSeconds": 0.0714132,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-3",
+      "policy": "attack-first",
+      "terminal": true,
+      "won": true,
+      "hp": 43,
+      "netHpLoss": 37,
+      "rounds": 6,
+      "actions": 19,
+      "elapsedSeconds": 0.0310513,
+      "decisions": []
+    },
+    {
+      "seed": "STM-HOLDOUT-v1-3",
+      "policy": "mcts",
+      "terminal": true,
+      "won": true,
+      "hp": 49,
+      "netHpLoss": 31,
+      "rounds": 6,
+      "actions": 20,
+      "elapsedSeconds": 24.5333087,
+      "decisions": [
+        {
+          "Key": "PlayCard:0:1",
+          "CompletedSimulations": 85,
+          "RetainedVisits": 0,
+          "ElapsedMilliseconds": 5010.2022,
+          "Rebuilt": true
+        },
+        {
+          "Key": "PlayCard:1:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 15,
+          "ElapsedMilliseconds": 1014.4986,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1014.019,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1013.7703,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:8:1",
+          "CompletedSimulations": 16,
+          "RetainedVisits": 23,
+          "ElapsedMilliseconds": 1010.7367,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1000.9179,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1014.2555,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:8:1",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 22,
+          "ElapsedMilliseconds": 1012.9951,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:2:",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1014.101,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:5:",
+          "CompletedSimulations": 16,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1014.4459,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1014.6296,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:1:2",
+          "CompletedSimulations": 16,
+          "RetainedVisits": 24,
+          "ElapsedMilliseconds": 1010.1682,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:0:2",
+          "CompletedSimulations": 17,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1014.3459,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:2",
+          "CompletedSimulations": 16,
+          "RetainedVisits": 6,
+          "ElapsedMilliseconds": 1003.5288,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 8,
+          "ElapsedMilliseconds": 1006.658,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:6:2",
+          "CompletedSimulations": 18,
+          "RetainedVisits": 25,
+          "ElapsedMilliseconds": 1010.7221,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:0:2",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 12,
+          "ElapsedMilliseconds": 1012.1965,
+          "Rebuilt": false
+        },
+        {
+          "Key": "EndTurn::",
+          "CompletedSimulations": 20,
+          "RetainedVisits": 7,
+          "ElapsedMilliseconds": 1002.4714,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:1:2",
+          "CompletedSimulations": 23,
+          "RetainedVisits": 26,
+          "ElapsedMilliseconds": 1003.4211,
+          "Rebuilt": false
+        },
+        {
+          "Key": "PlayCard:3:2",
+          "CompletedSimulations": 23,
+          "RetainedVisits": 9,
+          "ElapsedMilliseconds": 1001.6889,
+          "Rebuilt": false
+        }
+      ]
+    }
+  ]
+}

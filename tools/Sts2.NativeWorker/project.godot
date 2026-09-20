@@ -1,0 +1,15 @@
+config_version=5
+_custom_features="dotnet"
+
+[application]
+config/name="SlayTheModel Native Worker"
+config/features=PackedStringArray("4.5", "C#")
+run/main_scene="res://Worker.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="SlayTheModelWorker"
+
+[dotnet]
+project/assembly_name="NativeWorker"
+
+[rendering]
+renderer/rendering_method="gl_compatibility"

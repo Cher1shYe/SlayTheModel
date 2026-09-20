@@ -19,7 +19,7 @@
 - 无头 smoke test 与采集文件检查工具；
 - 可选的 `first-legal` 游戏内自动操作，用于验证整个闭环。
 
-目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。MCTS 核心也尚未替换游戏内的 `first-legal` 联调策略。
+目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker；`first-legal` 仍是独立联调策略。
 
 ## 环境要求
 
@@ -168,6 +168,20 @@ SteamGameId=2868840 \
 Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本机 v0.111.0、commit `41cef1ea`；macOS 契约保持独立。Windows 已验证构建和静态 ABI，尚未验证游戏内战斗。ABI 通过不等同于完整运行时兼容性。
 
 本机 Windows 日志位于 `%APPDATA%\SlayTheSpire2\logs\godot.log`。采集文件仍可用后文的 CaptureCheck 工具检查。
+
+## 实验性 MCTS（Windows，v0.3.0）
+
+已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒／后续 1 秒搜索、搜索树复用，以及 F8 暂停／恢复。首版仅面向单人铁甲战士，不使用药水，战斗外手动操作。
+
+游戏右上角显示 MCTS 状态按钮：绿色开启、蓝色思考中、黄色暂停、灰色未开启或不支持。战斗中可点击暂停／恢复，悬停查看说明。
+
+```powershell
+./scripts/native-worker.ps1 -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
+./scripts/windows.ps1 -Action Install
+./scripts/windows.ps1 -Action Launch -Policy mcts -CaptureHistory
+```
+
+原生重放、后续选牌和跨进程状态校验已经通过；实际游戏窗口和广泛卡牌组合仍需验证。3 个固定遭遇测试中 MCTS 获胜 3/3，但不能据此推断整局强度。详见 [使用说明、测试结果与限制](docs/native-mcts-v0.3.0.md) 和 [设计方案](docs/combat-mcts-v1-plan.md)。
 
 ## 测试用策略：`first-legal`
 

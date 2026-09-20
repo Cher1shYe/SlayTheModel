@@ -1,0 +1,19 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <AssemblyName>NativeWorker</AssemblyName>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Search/SlayTheModel.Search.csproj" />
+    <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
+    <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="Bridge/NativeCombatCheckpoint.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs" Link="Bridge/NativeMctsMessages.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs" Link="Bridge/NativeWorkerClient.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatCaptureService.cs" Link="Bridge/CombatCaptureService.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatActionExecutor.cs" Link="Bridge/CombatActionExecutor.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="Bridge/NativeActionCompletion.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.Protocol/*.cs" Link="Protocol/%(Filename)%(Extension)" />
+  </ItemGroup>
+</Project>

@@ -17,7 +17,9 @@ public static class AdapterBootstrap
         }
 
         _initialized = true;
+        MctsCombatController.Initialize();
         LiveCombatController.Initialize();
+        AiStatusOverlay.Initialize();
         var manager = CombatManager.Instance;
         manager.CombatBegan += OnCombatBegan;
         manager.CombatEnded += _ => ResetCombatServices();

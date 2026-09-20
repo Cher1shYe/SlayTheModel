@@ -5,7 +5,7 @@ param(
     [string]$Action = 'Check',
     [string]$GameDir = $env:STS2_GAME_DIR,
     [string]$ManagedDir = $env:Sts2ManagedDir,
-    [ValidateSet('capture', 'first-legal')][string]$Policy = 'capture',
+    [ValidateSet('capture', 'first-legal', 'mcts')][string]$Policy = 'capture',
     [string]$ExportDir,
     [switch]$CaptureHistory
 )
@@ -61,10 +61,16 @@ try {
         $settings = @{
             SLAY_THE_MODEL_EXPORT_DIR = $ExportDir
             SLAY_THE_MODEL_CAPTURE_HISTORY = $(if ($CaptureHistory) { '1' } else { $null })
-            SLAY_THE_MODEL_LIVE_POLICY = $(if ($Policy -eq 'first-legal') { 'first-legal' } else { $null })
+            SLAY_THE_MODEL_LIVE_POLICY = $(if ($Policy -ne 'capture') { $Policy } else { $null })
+            SLAY_THE_MODEL_WORKER_EXE = (Join-Path $repo 'artifacts/native-host/NativeWorker.exe')
+            SLAY_THE_MODEL_WORKER_PROJECT = (Join-Path $repo 'tools/Sts2.NativeWorker')
+            STS2_GAME_PACK = (Join-Path $GameDir 'SlayTheSpire2.pck')
             SLAY_THE_MODEL_AUTOSLAY_SEED = $null
             SteamAppId = '2868840'
             SteamGameId = '2868840'
+        }
+        if ($Policy -eq 'mcts' -and -not (Test-Path -LiteralPath $settings.SLAY_THE_MODEL_WORKER_EXE)) {
+            throw 'Build and verify the native worker with scripts/native-worker.ps1 -GameDir <game path> first.'
         }
         $previous = @{}
         try {
@@ -84,7 +90,7 @@ try {
     Invoke-Dotnet @('--version')
     if ($Action -eq 'Check') { return }
     if ($Action -eq 'Test') {
-        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Action.Smoke')) {
+        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
             Invoke-Dotnet @('run', '--project', "smoke/$project/$project.csproj", '-c', 'Release')
         }
         return
