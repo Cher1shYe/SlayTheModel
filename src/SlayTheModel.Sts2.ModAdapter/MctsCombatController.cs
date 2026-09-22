@@ -12,7 +12,6 @@ using MegaCrit.Sts2.Core.Nodes.Screens.Overlays;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.TestSupport;
 using SlayTheModel.Sts2.Protocol;
-using Environment = System.Environment;
 using ICardSelector = MegaCrit.Sts2.Core.TestSupport.ICardSelector;
 
 namespace SlayTheModel.Sts2.ModAdapter;
@@ -34,6 +33,7 @@ internal sealed class MctsCombatController : ICardSelector
     private IDisposable? _selector;
     private ActionExecutor? _executor;
     private static bool _configured;
+    private static CombatPolicyKind _combatPolicy;
     private int _searches;
     private bool _faulted;
     private string? _ponderStateKey;
@@ -45,9 +45,9 @@ internal sealed class MctsCombatController : ICardSelector
     {
         if (!_configured)
         {
-            var firstLegal = string.Equals(Environment.GetEnvironmentVariable("SLAY_THE_MODEL_LIVE_POLICY"), "first-legal", StringComparison.OrdinalIgnoreCase);
+            var firstLegal = _combatPolicy == CombatPolicyKind.FirstLegal;
             return new(firstLegal ? "MCTS · 未开启（联调）" : "MCTS · 未开启",
-                firstLegal ? "当前运行 first-legal 联调策略。使用 -Policy mcts 启动以启用 MCTS。" : "当前没有启用 MCTS。使用 -Policy mcts 启动游戏。", "#8793a3", false);
+                firstLegal ? "当前运行 first-legal 联调策略。使用 -CombatPolicy mcts 启动以启用 MCTS。" : "当前没有启用 MCTS。使用 -CombatPolicy mcts 启动游戏。", "#8793a3", false);
         }
         if (Instance._state == null)
         {
@@ -75,9 +75,13 @@ internal sealed class MctsCombatController : ICardSelector
         }
     }
 
-    public static void Initialize()
+    public static void Initialize(AdapterConfiguration configuration)
     {
-        if (!string.Equals(Environment.GetEnvironmentVariable("SLAY_THE_MODEL_LIVE_POLICY"), "mcts", StringComparison.OrdinalIgnoreCase)) return;
+        _combatPolicy = configuration.RunMode == AdapterRunMode.Play
+            ? configuration.CombatPolicy
+            : CombatPolicyKind.Manual;
+        if (configuration.RunMode != AdapterRunMode.Play
+            || configuration.CombatPolicy != CombatPolicyKind.Mcts) return;
         _configured = true;
         NativeCombatCheckpoint.EnableCapture();
         CombatManager.Instance.CombatBegan += Instance.Begin;

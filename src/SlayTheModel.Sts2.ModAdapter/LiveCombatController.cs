@@ -1,7 +1,6 @@
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Commands;
 using Godot;
-using Environment = System.Environment;
 using SlayTheModel.Sts2.Protocol;
 
 namespace SlayTheModel.Sts2.ModAdapter;
@@ -13,32 +12,19 @@ namespace SlayTheModel.Sts2.ModAdapter;
 /// </summary>
 internal static class LiveCombatController
 {
-    private const string PolicyVariable = "SLAY_THE_MODEL_LIVE_POLICY";
-    private const string FirstLegalPolicy = "first-legal";
     private static readonly object Gate = new();
     private static bool _enabled;
     private static bool _executing;
     private static long _decisionIndex;
     private static long _combatGeneration;
 
-    public static void Initialize()
+    public static void Initialize(AdapterConfiguration configuration)
     {
-        var configuredPolicy = Environment.GetEnvironmentVariable(PolicyVariable);
-        if (string.Equals(configuredPolicy, "mcts", StringComparison.OrdinalIgnoreCase)) return;
-        if (string.IsNullOrWhiteSpace(configuredPolicy))
+        if (configuration.RunMode != AdapterRunMode.Play
+            || configuration.CombatPolicy != CombatPolicyKind.FirstLegal)
         {
-            Console.WriteLine(
-                $"[SlayTheModel] live policy disabled; set {PolicyVariable}={FirstLegalPolicy} to enable it");
             return;
         }
-
-        if (!string.Equals(configuredPolicy, FirstLegalPolicy, StringComparison.OrdinalIgnoreCase))
-        {
-            Console.Error.WriteLine(
-                $"[SlayTheModel] unknown live policy '{configuredPolicy}'; expected '{FirstLegalPolicy}'");
-            return;
-        }
-
         _enabled = true;
         Console.WriteLine(
             "[SlayTheModel] LIVE CONTROL ENABLED policy=first-legal; "

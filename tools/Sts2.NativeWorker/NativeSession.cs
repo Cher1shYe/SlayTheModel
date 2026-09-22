@@ -204,6 +204,13 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             _choice = null;
             pendingChoice?.TrySetCanceled(cancellation);
             await DrainActiveActionAsync();
+            // Completion tasks can schedule additional continuations onto
+            // Godot's synchronization context. Flush them before a later
+            // reconstruction reuses the process, otherwise an old cancelled
+            // choice can mutate the newly restored combat on slower hosts.
+            await host.ToSignal(host.GetTree(), SceneTree.SignalName.ProcessFrame);
+            await host.ToSignal(host.GetTree(), SceneTree.SignalName.ProcessFrame);
+            await DrainActiveActionAsync();
             throw;
         }
     }

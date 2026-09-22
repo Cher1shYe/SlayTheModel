@@ -5,7 +5,10 @@
     <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../../src/SlayTheModel.Search/SlayTheModel.Search.csproj" />
+    <!-- Keep the native worker self-contained from the managed loader's point
+         of view. Godot loads one project assembly; compile the small search
+         core into it just like the protocol and bridge sources below. -->
+    <Compile Include="../../src/SlayTheModel.Search/*.cs" Link="Search/%(Filename)%(Extension)" />
     <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
     <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="Bridge/NativeCombatCheckpoint.cs" />

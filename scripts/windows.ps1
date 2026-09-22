@@ -5,13 +5,24 @@ param(
     [string]$Action = 'Check',
     [string]$GameDir = $env:STS2_GAME_DIR,
     [string]$ManagedDir = $env:Sts2ManagedDir,
-    [ValidateSet('capture', 'first-legal', 'mcts')][string]$Policy = 'capture',
+    [ValidateSet('play', 'train')][string]$RunMode = 'play',
+    [ValidateSet('manual', 'first-legal', 'mcts')][string]$CombatPolicy = 'manual',
+    [ValidateSet('manual', 'first-legal')][string]$OutsideCombatPolicy = 'manual',
+    [ValidateSet('capture', 'first-legal', 'mcts')][string]$Policy,
     [string]$ExportDir,
     [switch]$CaptureHistory
 )
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repo = Split-Path $PSScriptRoot -Parent
+
+if ($PSBoundParameters.ContainsKey('Policy')) {
+    if ($PSBoundParameters.ContainsKey('CombatPolicy')) {
+        throw 'Use either -CombatPolicy or the deprecated -Policy parameter, not both.'
+    }
+    $CombatPolicy = if ($Policy -eq 'capture') { 'manual' } else { $Policy }
+    Write-Warning '-Policy is deprecated; use -CombatPolicy instead.'
+}
 
 function Find-Game {
     $roots = @()
@@ -61,7 +72,10 @@ try {
         $settings = @{
             SLAY_THE_MODEL_EXPORT_DIR = $ExportDir
             SLAY_THE_MODEL_CAPTURE_HISTORY = $(if ($CaptureHistory) { '1' } else { $null })
-            SLAY_THE_MODEL_LIVE_POLICY = $(if ($Policy -ne 'capture') { $Policy } else { $null })
+            SLAY_THE_MODEL_RUN_MODE = $RunMode
+            SLAY_THE_MODEL_COMBAT_POLICY = $CombatPolicy
+            SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY = $OutsideCombatPolicy
+            SLAY_THE_MODEL_LIVE_POLICY = $null
             SLAY_THE_MODEL_WORKER_EXE = (Join-Path $repo 'artifacts/native-host/NativeWorker.exe')
             SLAY_THE_MODEL_WORKER_PROJECT = (Join-Path $repo 'tools/Sts2.NativeWorker')
             STS2_GAME_PACK = (Join-Path $GameDir 'SlayTheSpire2.pck')
@@ -69,7 +83,7 @@ try {
             SteamAppId = '2868840'
             SteamGameId = '2868840'
         }
-        if ($Policy -eq 'mcts' -and -not (Test-Path -LiteralPath $settings.SLAY_THE_MODEL_WORKER_EXE)) {
+        if ($RunMode -eq 'play' -and $CombatPolicy -eq 'mcts' -and -not (Test-Path -LiteralPath $settings.SLAY_THE_MODEL_WORKER_EXE)) {
             throw 'Build and verify the native worker with scripts/native-worker.ps1 -GameDir <game path> first.'
         }
         $previous = @{}
@@ -79,7 +93,7 @@ try {
                 [Environment]::SetEnvironmentVariable($key, $settings[$key], 'Process')
             }
             Start-Process -FilePath $exe -WorkingDirectory $GameDir
-            Write-Host "Started policy=$Policy; captures=$ExportDir"
+            Write-Host "Started runMode=$RunMode; combatPolicy=$CombatPolicy; outsideCombatPolicy=$OutsideCombatPolicy; captures=$ExportDir"
         } finally {
             foreach ($key in $previous.Keys) { [Environment]::SetEnvironmentVariable($key, $previous[$key], 'Process') }
         }

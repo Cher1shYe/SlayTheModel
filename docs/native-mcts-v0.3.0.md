@@ -1,6 +1,6 @@
 # 原生战斗 MCTS v0.3.0 实验版
 
-本版已实现 Windows 上的隔离原生模拟、限时 UCT、搜索树复用和可选的游戏内控制入口。它是可试用原型，不是全卡牌兼容或整局通关版本。
+本版已实现 Windows 和 macOS ARM64 上的隔离原生模拟、限时 UCT、搜索树复用和可选的游戏内控制入口。它是可试用原型，不是全卡牌兼容或整局通关版本。
 
 ## 本机直接试用
 
@@ -8,14 +8,23 @@
 
 ```powershell
 cd C:\Users\15808\Desktop\github\sts2
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows.ps1 -Action Launch -Policy mcts -CaptureHistory
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows.ps1 -Action Launch -RunMode play -CombatPolicy mcts -OutsideCombatPolicy manual -CaptureHistory
+```
+
+macOS ARM64 首次使用：
+
+```bash
+./scripts/native-worker-macos.sh --mode verify
+./scripts/macos.sh --action install
+./scripts/macos.sh --action launch --run-mode play \
+  --combat-policy mcts --outside-combat-policy manual --capture-history
 ```
 
 选择单人铁甲战士，进入一场新战斗。其他玩法 Mod 不在验证范围内。战斗外仍手动操作，不要在自动搜索期间使用药水。当前 `first-legal` 模式仍可独立使用。
 
 - 首次搜索约 5 秒；提交动作后立即预测下一决策状态，并在动作、动画和敌方回合期间以 500 毫秒时间片持续扩展匹配子树。到达决策点时使用状态指纹完全匹配的最新结果。
 - F8 暂停／恢复。暂停停止提交新动作，已提交动作继续结算；待选择的卡牌通过原生网格界面交还玩家。
-- 右上角小按钮显示 MCTS 的实际状态：绿色开启／待命、蓝色思考中、黄色暂停、灰色未开启或当前战斗不支持。战斗中点击按钮也可暂停／恢复，与 F8 共用同一逻辑。悬停查看说明；未通过 `-Policy mcts` 启动时只显示状态，不能点击启用。
+- 右上角小按钮显示 MCTS 的实际状态：绿色开启／待命、蓝色思考中、黄色暂停、灰色未开启或当前战斗不支持。战斗中点击按钮也可暂停／恢复，与 F8 共用同一逻辑。悬停查看说明；未通过 `-CombatPolicy mcts` 启动时只显示状态，不能点击启用。
 - 恢复、实际局面改变或树不匹配时，重新搜索 5 秒。手动出牌和选牌会记录进重放前缀。
 - 无法重建实际状态、未支持的动作或持续模拟异常会暂停，日志保留原因；不会绕过状态校验直接执行猜测动作。
 - 对中途加载的战斗，如果没有捕获到有效入口，可能无法搜索；进入新战斗重试。
@@ -32,6 +41,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\windows.ps1 -A
 ```
 
 worker 构建需要 .NET 9 SDK，并通过 NuGet 获取 Godot.NET.Sdk 4.5.1。脚本只接受契约中的 Windows v0.111.0 程序集哈希。引擎可执行文件和依赖从本机合法安装复制到被 Git 忽略的 `artifacts/native-host`；原生资源包只读加载，仓库不分发游戏二进制。
+
+macOS 脚本固定校验 ARM64 v0.111.0 程序集，并复用游戏附带的自包含 .NET runtime、依赖清单和 MegaDot 可执行文件，不额外下载或混用另一套运行时。
 
 独立 worker 使用最小 Godot 项目和 `SlayTheModelWorker` 用户数据目录，不启动游戏主场景、不初始化 Steam、不开启游戏存档写入。使用原生 TestMode 和 NonInteractiveMode 跳过表现。GodotSharp 必须使用游戏附带的定制版本；仅使用同版本 NuGet DLL 不足以保证 MegaDot 的原生 ABI 匹配。
 

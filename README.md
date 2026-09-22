@@ -6,7 +6,13 @@
 
 项目的长期目标是训练一个杀戮尖塔2专用的神经网络，希望能适配各个版本。结合安东尼现在的更新频率和更新效率，目前想先在各个版本中跑通基本MCTS，再在不同版本下测试神经网络的可行性
 
-> 当前仓库仍处于基础设施阶段。已经打通“读取战斗状态 → 抽象决策状态 → 生成合法动作 → 校验状态指纹 → 把动作送回游戏”的闭环；游戏内的 `first-legal` 只是联调策略，并不是 MCTS，也不代表模型强度。
+## 开发进度（2026-09-22）
+
+- 新增局外决策系统，将局内出牌与地图、奖励、事件、商店、休息点和宝箱等局外操作分离；
+- 完成第一版局内、局外 `first-legal`，已经能够作为确定性的整局自动化基线；
+- 打通“读取状态 → 抽象决策状态 → 生成合法动作 → 执行动作 → 等待游戏同步 → 继续决策”的局内外闭环。
+
+> 当前仓库仍处于早期开发阶段。`first-legal` 主要用于接口联调和大规模自动化测试，不是 MCTS，也不代表最终模型强度。
 
 ## 当前实现
 
@@ -17,9 +23,29 @@
 - 游戏内只读状态采集，可导出稳定决策点和原生校验和；
 - 带状态指纹校验的动作桥，可执行出牌、选择目标和结束回合；
 - 无头 smoke test 与采集文件检查工具；
-- 可选的 `first-legal` 游戏内自动操作，用于验证整个闭环。
+- 第一版局内与局外 `first-legal` 自动操作，用于验证整局控制闭环并运行自动化基线。
 
 目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker；`first-legal` 仍是独立联调策略。
+
+## 启动配置接口
+
+运行目的、局内算法和局外算法是三个互相独立的配置维度：
+
+| 配置 | 当前值 | 含义 |
+|---|---|---|
+| `RunMode` | `play`、`train` | 运行游戏或训练；`train` 已预留，但训练器尚未接入 |
+| `CombatPolicy` | `manual`、`first-legal`、`mcts` | 玩家手动、局内联调策略或局内 MCTS |
+| `OutsideCombatPolicy` | `manual`、`first-legal` | 局外手动，或在地图、事件、休息点、奖励、商店、宝箱及原生选择界面执行第一个合法选项 |
+
+macOS 启动脚本使用 `--run-mode`、`--combat-policy` 和 `--outside-combat-policy`；Windows 对应使用 `-RunMode`、`-CombatPolicy` 和 `-OutsideCombatPolicy`。底层稳定环境变量分别为：
+
+```text
+SLAY_THE_MODEL_RUN_MODE
+SLAY_THE_MODEL_COMBAT_POLICY
+SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY
+```
+
+默认配置是 `play / manual / manual`，即保持状态采集，但不自动操作。旧的 `-Policy` 参数和 `SLAY_THE_MODEL_LIVE_POLICY` 环境变量暂时兼容，后续新代码应使用上面的显式接口。无效配置会安全退回到手动操作。
 
 ## 环境要求
 
@@ -64,7 +90,15 @@ dotnet run --project tools/Sts2.AbiProbe/Sts2.AbiProbe.csproj -- \
 
 ## 编译并安装 Mod（macOS）
 
-开始前请完全退出游戏。先构建 Release 版本：
+开始前请完全退出游戏。推荐直接使用统一脚本：
+
+```bash
+./scripts/macos.sh --action check
+./scripts/macos.sh --action test
+./scripts/macos.sh --action install
+```
+
+手动构建 Release 版本也可以：
 
 ```bash
 dotnet build src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj -c Release
@@ -95,8 +129,18 @@ SlayTheModelAdapter/
 先启动 Steam 客户端，但不要从 Steam 启动游戏。确认没有已经运行的游戏进程，然后在仓库根目录执行：
 
 ```bash
+./scripts/macos.sh --action launch --run-mode play \
+  --combat-policy manual --outside-combat-policy manual --capture-history
+```
+
+对应的底层环境变量启动方式为：
+
+```bash
 SLAY_THE_MODEL_EXPORT_DIR="$PWD/artifacts/live-capture" \
 SLAY_THE_MODEL_CAPTURE_HISTORY=1 \
+SLAY_THE_MODEL_RUN_MODE=play \
+SLAY_THE_MODEL_COMBAT_POLICY=manual \
+SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY=manual \
 SteamAppId=2868840 \
 SteamGameId=2868840 \
 "$HOME/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/MacOS/Slay the Spire 2"
@@ -105,7 +149,7 @@ SteamGameId=2868840 \
 此模式下，Mod 只在稳定的玩家决策点读取和导出状态，不会替玩家出牌。终端应出现：
 
 ```text
-[SlayTheModel] live policy disabled; set SLAY_THE_MODEL_LIVE_POLICY=first-legal to enable it
+[SlayTheModel] configuration run_mode=play combat_policy=manual outside_combat_policy=manual
 [SlayTheModel] omniscient combat capture adapter initialized
 ```
 
@@ -117,12 +161,21 @@ artifacts/live-capture/latest-combat-decision.json
 
 `SLAY_THE_MODEL_CAPTURE_HISTORY=1` 会额外保存每个不同决策点；不需要历史记录时，可以从启动命令中删除这一行。
 
-## macOS 启动方式二：让联调策略自动接管战斗
+## macOS 启动方式二：让联调策略自动接管
 
 同样需要先完全退出当前游戏，再用下面的命令启动新进程：
 
 ```bash
-SLAY_THE_MODEL_LIVE_POLICY=first-legal \
+./scripts/macos.sh --action launch --run-mode play \
+  --combat-policy first-legal --outside-combat-policy manual --capture-history
+```
+
+对应的底层环境变量启动方式为：
+
+```bash
+SLAY_THE_MODEL_RUN_MODE=play \
+SLAY_THE_MODEL_COMBAT_POLICY=first-legal \
+SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY=manual \
 SLAY_THE_MODEL_EXPORT_DIR="$PWD/artifacts/live-capture" \
 SLAY_THE_MODEL_CAPTURE_HISTORY=1 \
 SteamAppId=2868840 \
@@ -136,7 +189,14 @@ SteamGameId=2868840 \
 [SlayTheModel] LIVE CONTROL ENABLED policy=first-legal; the adapter will play cards and end turns automatically
 ```
 
-之后仍然需要玩家手动操作主菜单、选择单人游戏、角色、初始选项、地图节点和奖励。当前适配器只在进入战斗并轮到玩家行动时接管；它不会自动开启新游戏，也不会处理地图与奖励页面。如果同时安装了 SpeedX 一类自动推进 Mod，战斗外的自动操作来自那些 Mod，而不是 SlayTheModel。
+上面的命令只接管战斗。若要同时启用局外 `first-legal`，使用：
+
+```bash
+./scripts/macos.sh --action launch --run-mode play \
+  --combat-policy first-legal --outside-combat-policy first-legal --capture-history
+```
+
+局外策略通过游戏原生控件选取第一个合法选项，不使用屏幕坐标。它会处理地图、事件、休息点、奖励、商店、宝箱以及这些操作打开的卡牌/遗物选择界面；药水栏满时跳过药水奖励。商店当前只尝试删牌，优先删除打击，其次删除防御，再按卡牌 ID 删除最小项；付不起删牌费用时直接离开。主菜单、单人游戏、角色选择等开局流程仍需手动完成，当前只面向单人模式。
 
 ## Windows 操作说明
 
@@ -151,10 +211,10 @@ SteamGameId=2868840 \
 ./scripts/windows.ps1 -Action Probe
 # 完全退出游戏后，构建并安装 DLL 和 manifest
 ./scripts/windows.ps1 -Action Install
-# 只采集状态
-./scripts/windows.ps1 -Action Launch -CaptureHistory
-# 或退出游戏后启用 first-legal 自动战斗
-./scripts/windows.ps1 -Action Launch -Policy first-legal -CaptureHistory
+# 只采集状态，局内外均由玩家操作
+./scripts/windows.ps1 -Action Launch -RunMode play -CombatPolicy manual -OutsideCombatPolicy manual -CaptureHistory
+# 或退出游戏后启用局内、局外 first-legal
+./scripts/windows.ps1 -Action Launch -RunMode play -CombatPolicy first-legal -OutsideCombatPolicy first-legal -CaptureHistory
 ```
 
 只构建不安装时使用 `-Action Build`。自动发现失败时指定 `-GameDir 'D:\SteamLibrary\steamapps\common\Slay the Spire 2'`，也可设置 `STS2_GAME_DIR` 环境变量。非标准程序集位置可用 `-ManagedDir` 指定。直接使用 `dotnet build` 时，Windows 默认查找标准 Steam 目录，支持 `STS2_GAME_DIR` 或 `-p:Sts2ManagedDir=...`；其他 Steam 库请优先使用脚本。
@@ -163,13 +223,13 @@ SteamGameId=2868840 \
 
 启动默认输出到仓库的 `artifacts/live-capture`，可用 `-ExportDir` 修改。环境变量仅传给新启动的游戏，随后恢复当前 PowerShell 环境；默认 capture 模式会清除继承的自动操作设置。启动前需退出已有游戏，安装也会拒绝在游戏运行时覆盖 DLL。
 
-首次启动如提示 Mod，请启用。当前自动操作仅支持单人战斗，主菜单、角色、地图、奖励和未实现的特殊选择仍需手动处理。环境变量不支持游戏运行时切换。
+首次启动如提示 Mod，请启用。自动操作仅支持单人模式，主菜单和角色选择仍需手动处理；部分特殊事件还需要进一步游戏内验证。环境变量不支持游戏运行时切换。
 
 Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本机 v0.111.0、commit `41cef1ea`；macOS 契约保持独立。Windows 已验证构建和静态 ABI，尚未验证游戏内战斗。ABI 通过不等同于完整运行时兼容性。
 
 本机 Windows 日志位于 `%APPDATA%\SlayTheSpire2\logs\godot.log`。采集文件仍可用后文的 CaptureCheck 工具检查。
 
-## 实验性 MCTS（Windows，v0.3.0）
+## 实验性 MCTS（Windows / macOS ARM64，v0.3.0）
 
 已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒搜索、动作与动画期间以 500 毫秒时间片持续思考、搜索树复用，以及 F8 暂停／恢复。决策点只采用与实际完整状态指纹匹配的最新结果。首版仅面向单人铁甲战士，不使用药水，战斗外手动操作。
 
@@ -178,12 +238,23 @@ Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本�
 ```powershell
 ./scripts/native-worker.ps1 -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
 ./scripts/windows.ps1 -Action Install
-./scripts/windows.ps1 -Action Launch -Policy mcts -CaptureHistory
+./scripts/windows.ps1 -Action Launch -RunMode play -CombatPolicy mcts -OutsideCombatPolicy manual -CaptureHistory
 ```
 
-原生重放、后续选牌和跨进程状态校验已经通过；实际游戏窗口和广泛卡牌组合仍需验证。3 个固定遭遇测试中 MCTS 获胜 3/3，但不能据此推断整局强度。详见 [使用说明、测试结果与限制](docs/native-mcts-v0.3.0.md) 和 [设计方案](docs/combat-mcts-v1-plan.md)。
+macOS ARM64：
+
+```bash
+./scripts/native-worker-macos.sh --mode verify
+./scripts/macos.sh --action install
+./scripts/macos.sh --action launch --run-mode play \
+  --combat-policy mcts --outside-combat-policy manual --capture-history
+```
+
+Windows 和 macOS ARM64 的原生重放、后续选牌和跨进程状态校验已经通过；实际游戏窗口和广泛卡牌组合仍需验证。3 个固定遭遇测试中 MCTS 获胜 3/3，但不能据此推断整局强度。详见 [使用说明、测试结果与限制](docs/native-mcts-v0.3.0.md) 和 [设计方案](docs/combat-mcts-v1-plan.md)。
 
 ## 测试用策略：`first-legal`
+
+### 局内
 
 这个名字表示“合法动作列表的第一项”，不是“画面中最左边的第一张牌”。每次决策时它会：
 
@@ -202,6 +273,12 @@ Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本�
 ```text
 [SlayTheModel] live decision=0 action=play_card:0:target:2 fingerprint=0123456789ab
 ```
+
+### 局外
+
+局外 `first-legal` 只在一局已经开始后工作。每当受支持的界面出现时，它按游戏节点的稳定顺序找到第一个可见且已启用的原生控件，并调用游戏自己的点击接口。事件会跳过锁定、禁用或已经选择过的选项；奖励和其他选牌操作完成后，控制器会等待界面稳定，再选择第一个合法路线节点，避免选卡与地图并行出现时发生同步卡死。
+
+商店采用一个暂定的确定性特例：只使用删牌服务，优先删除打击，其次删除防御，如果两者都不存在则删除卡牌 ID 最小的一张；金币不足时跳过商店。除该特例外，它不评估路线、卡牌、遗物或商店价值，只负责提供第一版可复现的整局自动化基线。
 
 ## 检查导出的决策文件
 
@@ -232,11 +309,11 @@ dotnet run --project tools/SlayTheModel.CaptureCheck -- \
 
 ### Mod 读取状态，但不自动出牌
 
-这是默认且更安全的行为。只有在启动游戏前设置了精确的 `SLAY_THE_MODEL_LIVE_POLICY=first-legal`，自动操作才会启用。
+这是默认且更安全的行为。只有在启动游戏前设置了精确的 `SLAY_THE_MODEL_COMBAT_POLICY=first-legal` 或 `mcts`，相应的局内自动操作才会启用。
 
 ### 如何立即停止自动操作
 
-退出游戏，然后不带 `SLAY_THE_MODEL_LIVE_POLICY` 重新启动。当前版本不会在游戏运行中动态切换策略。
+退出游戏，然后使用 `SLAY_THE_MODEL_COMBAT_POLICY=manual` 重新启动。当前版本不会在游戏运行中动态切换策略。
 
 ### 游戏更新后构建或启动失败
 
