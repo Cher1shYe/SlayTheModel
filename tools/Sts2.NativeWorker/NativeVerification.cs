@@ -59,6 +59,7 @@ public static class NativeVerification
     {
         session.Checkpoint = null;
         session.ChoiceFixture = true;
+        session.EncounterId = "CULTISTS_NORMAL";
         await session.ResetAsync("SOLVER-CHOICE-FIXTURE", cancellation);
         using var environment = new CombatSolverReplayEnvironment();
         environment.Capture(session.CombatStateForSimulation, session.EntryHp);
@@ -68,18 +69,101 @@ public static class NativeVerification
         var choices = environment.LegalActions();
         if (choices.Count != 15 || choices.Any(action => action.Native.ChoiceKey == null))
             throw new InvalidDataException($"Combat Solver Purity should expose 15 independent choice nodes, observed {choices.Count}.");
+        environment.Promote(purity);
+        await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
+        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true))
+            throw new InvalidDataException("Combat Solver pending-choice root differs from native Purity choice state.");
         var selected = choices.First(action => action.Native.SelectedCards?.Count == 3);
         await environment.ApplyAsync(selected, cancellation);
         string predicted = environment.CurrentContinuationKey;
-
-        await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
         await session.StepAsync(session.ToLiveSearchAction(selected), cancellation);
         string actual = CombatSolver.Api.NativeMctsSimulationApi
             .CaptureLiveContinuationKey(session.CombatStateForSimulation);
         if (predicted != actual)
             throw new InvalidDataException($"Combat Solver choice continuation differs from native execution. predicted={predicted} actual={actual}");
         session.ChoiceFixture = false;
+        session.EncounterId = "CULTISTS_NORMAL";
         Godot.GD.Print("SLAY_WORKER_COMBAT_SOLVER_CHOICES_MATCH purity=15 independent nodes; continuation matched native");
+        await BurningPactChoiceAsync(session, cancellation);
+        await DarkEmbraceUppercutAsync(session, cancellation);
+    }
+
+    private static async Task DarkEmbraceUppercutAsync(NativeSession session, CancellationToken cancellation)
+    {
+        session.Checkpoint = null;
+        session.ChoiceFixture = true;
+        session.EncounterId = "OVICOPTER_NORMAL";
+        session.ChoiceFixtureCards =
+            ["DARK_EMBRACE", "BLOODLETTING", "UPPERCUT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
+        session.ChoiceFixtureUpgradedCards = ["UPPERCUT"];
+        await session.ResetAsync("DARK-EMBRACE-UPPERCUT", cancellation);
+        using var environment = new CombatSolverReplayEnvironment();
+        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        foreach (string cardId in new[] { "DARK_EMBRACE", "BLOODLETTING", "UPPERCUT" })
+        {
+            var action = environment.LegalActions().First(candidate => candidate.Native.CardId == cardId);
+            var predicted = environment.PredictSuccessor(action);
+            await session.ApplyAsync(session.ToLiveSearchAction(action), cancellation);
+            string actual = CombatSolver.Api.NativeMctsSimulationApi
+                .CaptureLiveContinuationKey(session.CombatStateForSimulation);
+            if (predicted.ContinuationKey != actual)
+            {
+                string expectedText = environment.PredictSuccessorStateText(action);
+                string actualText = CombatSolver.Api.NativeMctsSimulationApi
+                    .CaptureLiveContinuationStateText(session.CombatStateForSimulation);
+                throw new InvalidDataException($"{cardId} continuation differs. " + FirstDifference(expectedText, actualText));
+            }
+            environment.Promote(action);
+        }
+        session.ChoiceFixtureUpgradedCards.Clear();
+        session.ChoiceFixtureCards =
+            ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
+        session.ChoiceFixture = false;
+        session.EncounterId = "CULTISTS_NORMAL";
+        Godot.GD.Print("SLAY_WORKER_DARK_EMBRACE_UPPERCUT_MATCH three-card continuation matched native");
+    }
+
+    private static string FirstDifference(string expected, string actual)
+    {
+        int length = Math.Min(expected.Length, actual.Length);
+        int index = 0;
+        while (index < length && expected[index] == actual[index]) index++;
+        int start = Math.Max(0, index - 120);
+        return $"index={index} expected={expected.Substring(start, Math.Min(300, expected.Length - start))} "
+            + $"actual={actual.Substring(start, Math.Min(300, actual.Length - start))}";
+    }
+
+    private static async Task BurningPactChoiceAsync(NativeSession session, CancellationToken cancellation)
+    {
+        session.Checkpoint = null;
+        session.ChoiceFixture = true;
+        session.ChoiceFixtureCards =
+            ["BURNING_PACT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD", "BASH", "HEADBUTT"];
+        await session.ResetAsync("BURNING-PACT-CHOICE", cancellation);
+        using var environment = new CombatSolverReplayEnvironment();
+        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        await environment.RestoreAsync([], cancellation);
+        var play = environment.LegalActions().Single(action => action.Native.CardId == "BURNING_PACT");
+        await environment.ApplyAsync(play, cancellation);
+        var choices = environment.LegalActions();
+        if (choices.Count == 0 || choices.Any(action => action.Native.ChoiceKey == null))
+            throw new InvalidDataException("Burning Pact did not expose native MCTS selection nodes.");
+        environment.Promote(play);
+        await session.StepAsync(session.ToLiveSearchAction(play), cancellation);
+        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true))
+            throw new InvalidDataException("Burning Pact pending-choice roots differ.");
+        var selected = choices[0];
+        await environment.ApplyAsync(selected, cancellation);
+        string predicted = environment.CurrentContinuationKey;
+        await session.StepAsync(session.ToLiveSearchAction(selected), cancellation);
+        string actual = CombatSolver.Api.NativeMctsSimulationApi
+            .CaptureLiveContinuationKey(session.CombatStateForSimulation);
+        if (predicted != actual)
+            throw new InvalidDataException("Burning Pact choice continuation differs from native execution.");
+        session.ChoiceFixtureCards =
+            ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
+        session.ChoiceFixture = false;
+        Godot.GD.Print("SLAY_WORKER_BURNING_PACT_CHOICE_MATCH pending root and continuation matched native");
     }
 
     public static async Task IpcAsync(NativeSession session, NativeCombatCheckpoint checkpoint, CancellationToken cancellation)
@@ -118,4 +202,5 @@ public static class NativeVerification
             nextSimulations = second.Simulations, nextRetained = second.RetainedVisits }));
         session.Checkpoint = null;
     }
+
 }

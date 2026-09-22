@@ -12,7 +12,14 @@ $combatSolverRoot = [System.IO.Path]::GetFullPath((Join-Path $repo 'combat'))
 if (-not (Test-Path -LiteralPath (Join-Path $combatSolverRoot 'CombatSolver.csproj'))) {
     throw "Combat Solver source is required at $combatSolverRoot."
 }
-$combatSolverCommit = (& git -C $combatSolverRoot rev-parse HEAD).Trim()
+$sourceCommitPath = Join-Path $combatSolverRoot '.source-commit'
+$combatSolverCommit = if (Test-Path -LiteralPath (Join-Path $combatSolverRoot '.git')) {
+    (& git -C $combatSolverRoot rev-parse HEAD).Trim()
+} elseif (Test-Path -LiteralPath $sourceCommitPath) {
+    (Get-Content -LiteralPath $sourceCommitPath -Raw).Trim()
+} else {
+    ''
+}
 if ($combatSolverCommit -ne '8826a333a6d48e05f0e368ee2db5d4a15092382e') {
     throw "Combat Solver must be based on verified commit 8826a333; found $combatSolverCommit."
 }

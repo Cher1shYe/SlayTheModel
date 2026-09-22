@@ -33,6 +33,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public NativeCombatCheckpoint? Checkpoint { get; set; }
     public int EntryHp { get; set; } = 80;
     public bool ChoiceFixture { get; set; }
+    public string[] ChoiceFixtureCards { get; set; } =
+        ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
+    public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
     private Player _player = null!;
@@ -87,6 +90,11 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         return new SearchAction(predicted.Key, play);
     }
 
+    public void ValidateSimulationActions(IReadOnlyList<CombatSolverMctsAction> actions)
+    {
+        foreach (var action in actions) _ = ToLiveSearchAction(action);
+    }
+
     public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
@@ -109,11 +117,15 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             if (ChoiceFixture)
             {
                 _player.Deck.Clear();
-                foreach (var canonical in new CardModel[] { ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Purity>(),
-                    ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Armaments>(), ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Headbutt>(),
-                    ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.StrikeIronclad>(), ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.DefendIronclad>() })
+                foreach (string entry in ChoiceFixtureCards)
                 {
+                    var canonical = ModelDb.AllCards.Single(card => card.Id.Entry == entry);
                     var card = canonical.ToMutable();
+                    if (ChoiceFixtureUpgradedCards.Contains(entry))
+                    {
+                        HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
+                        HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);
+                    }
                     _player.Deck.AddInternal(card);
                 }
             }
@@ -222,9 +234,13 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     {
         _activeCancellation = cancellation;
         cancellation.ThrowIfCancellationRequested();
-        if (!Actions().Any(action => action.Combat == input.Combat
+        var legal = Actions();
+        if (!legal.Any(action => action.Combat == input.Combat
             && (action.Selection ?? []).Order().SequenceEqual((input.Selection ?? []).Order())))
-            throw new InvalidOperationException("Illegal replay action " + input.Key);
+            throw new InvalidOperationException("Illegal replay action " + input.Key
+                + $" selection=[{string.Join(',', input.Selection ?? [])}]"
+                + $" pending={_choice != null} min={_min} max={_max} options={_options.Length}"
+                + $" legal=[{string.Join(';', legal.Select(action => string.Join(',', action.Selection ?? [])))}]");
         Transitions++;
         if (input.Selection is { } indices)
         {

@@ -132,8 +132,23 @@ internal sealed class MctsCombatController : ICardSelector
             EndPlayerTurnAction end => new(CombatActionKind.EndTurn, end.OwnerId),
             _ => null,
         };
-        if (descriptor != null) _prefix.Add(new SearchAction($"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.TargetCreatureId}", descriptor));
+        if (descriptor != null)
+            AppendPrefix(new SearchAction($"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.TargetCreatureId}", descriptor));
         else if (action is UsePotionAction) Pause("Manual potion use is outside the v1 replay action set.");
+    }
+
+    private void AppendPrefix(SearchAction action)
+    {
+        if (_prefix.Count > 0 && SameAction(_prefix[^1], action)) return;
+        _prefix.Add(action);
+    }
+
+    private static bool SameAction(SearchAction left, SearchAction right)
+    {
+        // Choice callbacks are sequential input events. Two adjacent callbacks may
+        // legally select the same option indices in different nested choice contexts.
+        if (left.Selection != null || right.Selection != null) return false;
+        return left.Combat == right.Combat;
     }
 
     private void Tick()
@@ -299,13 +314,28 @@ internal sealed class MctsCombatController : ICardSelector
                     if (indices.Distinct().Count() != indices.Length || indices.Any(i => i < 0 || i >= cards.Length)
                         || indices.Length < Math.Min(minSelect, cards.Length) || indices.Length > maxSelect)
                         throw new InvalidDataException("Worker returned an invalid selection.");
-                    _prefix.Add(response.Action!);
+                    AppendPrefix(response.Action!);
                     if (response.NextStateKey != null)
                         StartPondering(response.NextStateKey, _prefix.ToArray(), response.Action!, _generation.Token);
                     return indices.Select(i => cards[i]).ToArray();
                 }
                 catch (OperationCanceledException) when (_paused || _state == null) { }
-                catch (Exception exception) { Pause(exception.ToString()); }
+                catch (Exception exception)
+                {
+                    StopPondering();
+                    _worker.Dispose();
+                    int count = Math.Min(Math.Max(0, minSelect), cards.Length);
+                    int[] fallback = Enumerable.Range(0, count).ToArray();
+                    var fallbackAction = new SearchAction(
+                        "native-choice-fallback:" + NativeCombatCheckpoint.StateKey()
+                        + $":{minSelect}:{maxSelect}:" + string.Join(',', fallback),
+                        Selection: fallback);
+                    AppendPrefix(fallbackAction);
+                    Console.Error.WriteLine("[SlayTheModel] MCTS choice unsupported; "
+                        + "using a deterministic native selection and rebuilding after the choice: "
+                        + exception.Message);
+                    return fallback.Select(index => cards[index]).ToArray();
+                }
             }
             if (_state == null || CombatManager.Instance.IsOverOrEnding) return [];
             // Retain a usable native UI when search is paused or a choice cannot be simulated.
@@ -314,7 +344,7 @@ internal sealed class MctsCombatController : ICardSelector
             (NOverlayStack.Instance ?? throw new InvalidOperationException("Manual selection UI unavailable.")).Push(screen);
             var selected = (await screen.CardsSelected()).ToArray();
             var selectedIndices = selected.Select(card => Array.IndexOf(cards, card)).ToArray();
-            _prefix.Add(new SearchAction("choose:" + string.Join(",", selectedIndices), Selection: selectedIndices));
+            AppendPrefix(new SearchAction("choose:" + string.Join(",", selectedIndices), Selection: selectedIndices));
             return selected;
         }
         finally { _choosing = false; }

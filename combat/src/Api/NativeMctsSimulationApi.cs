@@ -131,6 +131,20 @@ public sealed class NativeMctsSimulationSession : IDisposable
         }
     }
 
+    public string ContinuationStateText
+    {
+        get
+        {
+            var simulator = (CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator)current.Simulator;
+            return ContinuationStamp.CapturePredicted(
+                capturedRoot.PlayerIdentity,
+                simulator,
+                current.Turn,
+                capturedRoot.Forecast,
+                capturedRoot.StartTurnNumber).StateText;
+        }
+    }
+
     private NativeMctsState BuildPendingDescription()
     {
         var actions = pendingChoices!.Select(pair =>
@@ -230,4 +244,7 @@ public static class NativeMctsSimulationApi
     public static string CaptureLiveContinuationKey(CombatState state)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             ContinuationStamp.CaptureLive(state).StateText)));
+
+    public static string CaptureLiveContinuationStateText(CombatState state)
+        => ContinuationStamp.CaptureLive(state).StateText;
 }

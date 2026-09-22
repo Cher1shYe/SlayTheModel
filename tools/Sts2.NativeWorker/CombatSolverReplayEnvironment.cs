@@ -32,6 +32,16 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     public long Transitions => transitions;
     public string CurrentContinuationKey
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
+    public string CurrentContinuationStateText
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationStateText;
+
+    public bool MatchesLiveRoot(MegaCrit.Sts2.Core.Combat.CombatState combat, bool livePendingChoice)
+    {
+        RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
+        if (livePendingChoice) return state.PendingChoice;
+        if (state.PendingChoice) return false;
+        return CurrentContinuationKey == NativeMctsSimulationApi.CaptureLiveContinuationKey(combat);
+    }
 
     public void Promote(CombatSolverMctsAction action)
     {
@@ -47,6 +57,15 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
         var predicted = (state.Key, (session ?? throw new InvalidOperationException()).ContinuationKey);
         RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
         return predicted;
+    }
+
+    public string PredictSuccessorStateText(CombatSolverMctsAction action)
+    {
+        RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
+        ApplyAsync(action, CancellationToken.None).GetAwaiter().GetResult();
+        string text = CurrentContinuationStateText;
+        RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
+        return text;
     }
 
     public Task RestoreAsync(IReadOnlyList<CombatSolverMctsAction> prefix, CancellationToken cancellation)

@@ -56,17 +56,31 @@ public static class WorkerServer
                 if (session.StateKey() != request.StateKey)
                     throw new InvalidDataException("Native reconstruction differs from the requested root state.");
 
-                if (request.PreviousAction != null
-                    && returnedActions.TryGetValue(request.PreviousAction.Key, out var previous))
+                bool reused = false;
+                if (returnedActions.Count > 0)
+                    reused = simulation.MatchesLiveRoot(
+                        session.CombatStateForSimulation, session.HasPendingChoice);
+                SearchAction? previousRequest = request.PreviousAction ?? request.Prefix.LastOrDefault();
+                if (!reused && previousRequest != null
+                    && returnedActions.TryGetValue(previousRequest.Key, out var previous))
                 {
                     simulation.Promote(previous);
                     tree.Advance(previous);
+                    reused = simulation.MatchesLiveRoot(
+                        session.CombatStateForSimulation, session.HasPendingChoice);
                 }
-                else if (request.PreviousAction != null || returnedActions.Count == 0)
+                if (!reused)
                 {
+                    if (session.HasPendingChoice)
+                        throw new InvalidDataException(
+                            "Cannot align the Combat Solver tree with the restored native choice boundary.");
+                    // A request without PreviousAction may be a native choice boundary whose
+                    // ponder key did not match. The restored session is authoritative; never
+                    // search the previous play-state root at a new choice boundary.
                     simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
                     tree.Reset();
                 }
+                session.ValidateSimulationActions(simulation.LegalActions());
 
                 var budget = TimeSpan.FromMilliseconds(request.BudgetMilliseconds);
                 long transitionsBefore = simulation.Transitions;
@@ -76,17 +90,25 @@ public static class WorkerServer
                 returnedActions[selectedAction.Key] = result.Action;
                 await session.ApplyAsync(selectedAction, CancellationToken.None);
                 var nextStateKey = session.Terminal ? null : session.StateKey();
+                bool predictionMatched = true;
                 if (!session.Terminal && !session.HasPendingChoice)
                 {
                     string actualContinuation = CombatSolver.Api.NativeMctsSimulationApi
                         .CaptureLiveContinuationKey(session.CombatStateForSimulation);
                     if (actualContinuation != predictedSimulation.ContinuationKey)
-                        throw new InvalidDataException(
-                            $"Combat Solver prediction differs from native execution. predicted={predictedSimulation.ContinuationKey} actual={actualContinuation}");
+                    {
+                        predictionMatched = false;
+                        Console.Error.WriteLine(
+                            $"[SlayTheModel] Combat Solver continuation mismatch; rebuilding from native state. "
+                            + $"predicted={predictedSimulation.ContinuationKey} actual={actualContinuation}");
+                        simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+                        tree.Reset();
+                        returnedActions.Clear();
+                    }
                 }
                 response = new NativeMctsResponse(request.Id, selectedAction, null,
                     result.CompletedSimulations, result.RetainedVisits, result.ElapsedMilliseconds,
-                    result.Rebuilt, nextStateKey,
+                    result.Rebuilt || !predictionMatched, nextStateKey,
                     simulation.Transitions - transitionsBefore,
                     simulation.Transitions - transitionsBefore,
                     "combat_solver");
