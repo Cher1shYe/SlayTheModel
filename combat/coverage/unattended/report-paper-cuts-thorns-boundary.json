@@ -1,0 +1,14 @@
+[
+  {
+    "monsterId": "ScrollOfBiting",
+    "moveId": "CHEW",
+    "enemyHpBefore": 3,
+    "playerHpBefore": 50,
+    "clearAllPowersBeforeMove": true,
+    "clearPlayerPilesBeforeMove": true,
+    "powersBeforeMove": [
+      { "powerId": "PAPER_CUTS_POWER", "target": "CheckedEnemy", "amount": 2 },
+      { "powerId": "THORNS_POWER", "target": "Player", "amount": 3 }
+    ]
+  }
+]

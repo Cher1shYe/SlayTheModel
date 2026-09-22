@@ -23,6 +23,7 @@ using SlayTheModel.Sts2.Protocol;
 using SlayTheModel.Search;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using CombatSolver.Api;
 
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
@@ -33,6 +34,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public int EntryHp { get; set; } = 80;
     public bool ChoiceFixture { get; set; }
     public string Seed { get; set; } = "SLAYMODEL1";
+    public string EncounterId { get; set; } = "CULTISTS_NORMAL";
     private Player _player = null!;
     private CombatState _state = null!;
     private TaskCompletionSource<IEnumerable<CardModel>>? _choice;
@@ -47,10 +49,44 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
     public long Transitions { get; private set; }
+    public CombatState CombatStateForSimulation => _state;
+    public bool HasPendingChoice => _choice != null;
     public Task RestoreAsync(IReadOnlyList<SearchAction> prefix, CancellationToken cancellation) => RestoreAsync(Seed, prefix, cancellation);
     public Task ApplyAsync(SearchAction action, CancellationToken cancellation) => StepAsync(action, cancellation);
     public IReadOnlyList<SearchAction> LegalActions() => Actions();
     public string StateKey() => Fingerprint();
+
+    public SearchAction ToLiveSearchAction(CombatSolverMctsAction action)
+    {
+        NativeMctsAction predicted = action.Native;
+        if (predicted.ChoiceKey != null)
+        {
+            int[] indices = NativeMctsSimulationApi.ResolveLiveSelection(_options, predicted);
+            return new SearchAction(predicted.Key, Selection: indices);
+        }
+        if (predicted.Kind == "EndTurn")
+        {
+            var end = new CombatActionDescriptor(CombatActionKind.EndTurn, _player.NetId);
+            return new SearchAction(predicted.Key, end);
+        }
+        if (predicted.Kind != "PlayCard")
+            throw new InvalidOperationException($"Unsupported prediction action {predicted.Kind}.");
+        var card = NativeMctsSimulationApi.ResolveLiveCard(_state, predicted);
+        var play = new CombatActionDescriptor(
+            CombatActionKind.PlayCard,
+            _player.NetId,
+            NetCombatCard.FromModel(card).CombatCardIndex,
+            TargetCreatureId: predicted.TargetCombatId);
+        if (!card.CanPlay()) throw new InvalidOperationException($"Predicted card {predicted.CardId} is no longer playable.");
+        if (predicted.TargetCombatId is uint targetId)
+        {
+            var target = _state.Creatures.Single(creature => creature.CombatId == targetId);
+            if (!card.CanPlayTargeting(target))
+                throw new InvalidOperationException($"Predicted target {targetId} is no longer legal.");
+        }
+        return new SearchAction(predicted.Key, play);
+    }
+
     public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
@@ -84,7 +120,10 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             var run = RunState.CreateForTest([_player], seed: seed);
             RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
             _selector = CardSelectCmd.PushSelector(this);
-            await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: ModelDb.Encounter<CultistsNormal>().ToMutable());
+            var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
+                candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
+                || candidate.GetType().Name.Equals(EncounterId, StringComparison.OrdinalIgnoreCase));
+            await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
         }
         else
         {
@@ -183,7 +222,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     {
         _activeCancellation = cancellation;
         cancellation.ThrowIfCancellationRequested();
-        if (!Actions().Any(action => action.Key == input.Key)) throw new InvalidOperationException("Illegal replay action " + input.Key);
+        if (!Actions().Any(action => action.Combat == input.Combat
+            && (action.Selection ?? []).Order().SequenceEqual((input.Selection ?? []).Order())))
+            throw new InvalidOperationException("Illegal replay action " + input.Key);
         Transitions++;
         if (input.Selection is { } indices)
         {

@@ -3,15 +3,25 @@
     <AssemblyName>NativeWorker</AssemblyName>
     <EnableDynamicLoading>true</EnableDynamicLoading>
     <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+    <CombatSolverRoot Condition="'$(CombatSolverRoot)' == ''">$(MSBuildProjectDirectory)/../../combat</CombatSolverRoot>
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
+    <RitsuLibRoot Condition="'$(RitsuLibRoot)' == ''">D:/Steam/steamapps/workshop/content/2868840/3747602295</RitsuLibRoot>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/SlayTheModel.Search/SlayTheModel.Search.csproj" />
+    <ProjectReference Include="$(CombatSolverRoot)/CombatSolver.csproj" Condition="Exists('$(CombatSolverRoot)/CombatSolver.csproj')" />
+    <Reference Include="STS2-RitsuLib.Runtime" HintPath="$(RitsuLibRoot)/compat/0.111.0/STS2-RitsuLib.Runtime.dll" Private="true" />
+    <Reference Include="STS2-RitsuLib" HintPath="$(RitsuLibRoot)/compat/0.111.0/STS2-RitsuLib.dll" Private="true" />
+    <Reference Include="STS2-RitsuLib.Shared" HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Shared.dll" Private="true" />
+    <Reference Include="STS2-RitsuLib.Ui" HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Ui.dll" Private="true" />
+    <Reference Include="STS2-RitsuLib.Settings" HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Settings.dll" Private="true" />
     <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
     <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="Bridge/NativeCombatCheckpoint.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs" Link="Bridge/NativeMctsMessages.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs" Link="Bridge/NativeWorkerClient.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="Bridge/NativeWorkerLaunch.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs" Link="Bridge/RuntimeConfiguration.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatCaptureService.cs" Link="Bridge/CombatCaptureService.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatActionExecutor.cs" Link="Bridge/CombatActionExecutor.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="Bridge/NativeActionCompletion.cs" />

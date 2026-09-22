@@ -1,0 +1,2018 @@
+{
+  "schemaVersion": 2,
+  "baselineCommit": "11d278a",
+  "scope": "Normal VeryHigh headless first result. All eight interleaved samples; >=30% mean elapsed reduction, unchanged fixed work and route. Two elapsed-derived phase labels reclassified with original comparison retained.",
+  "units": {
+    "time": "milliseconds in raw metrics; seconds in summary",
+    "bytes": "decimal bytes; GB=1e9",
+    "rss": "whole-process sampled peak, 100 ms, includes warmup"
+  },
+  "experimentPlan": {
+    "objective": "At least 30% lower mean normal VeryHigh search elapsed relative to 11d278a; no prior gains included.",
+    "sequence": [
+      [
+        "final2-b1",
+        "../admitted-jobs-20260908/primary-batched-artifact"
+      ],
+      [
+        "final2-c1",
+        "effective-prefix-artifact"
+      ],
+      [
+        "final2-c2",
+        "effective-prefix-artifact"
+      ],
+      [
+        "final2-b2",
+        "../admitted-jobs-20260908/primary-batched-artifact"
+      ],
+      [
+        "final2-b3",
+        "../admitted-jobs-20260908/primary-batched-artifact"
+      ],
+      [
+        "final2-c3",
+        "effective-prefix-artifact"
+      ],
+      [
+        "final2-c4",
+        "effective-prefix-artifact"
+      ],
+      [
+        "final2-b4",
+        "../admitted-jobs-20260908/primary-batched-artifact"
+      ]
+    ],
+    "protocol": "ABBA ABBA, four fresh processes per source; each one Short warmup then one measured normal Deep result. DOP8, configured NoGC16GB, detailed/incremental off, first result stop, 120 seconds per request. Existing host exclusive lease; exclude startup and wait-to-lease from solver elapsed.",
+    "fixedSource": "Candidate adds immutable listener segments and retained effective/active prefixes, fixed view counts, eager per-group rank summaries, and exact native enum comparisons. The unsuccessful thread-local Ritsu cache was withdrawn before this sequence. Frozen artifact; no production edits during measurements.",
+    "acceptance": "All eight samples; >=30% mean elapsed reduction, all90 work fields (including seven deferred-round diagnostics) and64 actions exact. Inspect ranges, drift,GC,alloc,RSS,CPU timelines. No outlier removal.",
+    "remainingCorrectness": "Final affected Mirror55/1670 and Fork contracts passed on effective-prefix source. Final DeepStandPat1000-node DOP1/2/cancel/failure/root-reuse plus new normalDeep1GB baseline/candidate and independentKnights Short sentinel remain.",
+    "candidateStatus": "ready",
+    "pilotDecision": {
+      "runId": "b9da3e33953140f6b9bd234c53256843",
+      "seconds": 26.464617,
+      "allocatedBytes": 29566926440,
+      "qualityFieldsEqual": 90,
+      "actionsEqual": 64,
+      "reason": "Additional339MB allocation reduction and correct preserved-prefix reuse; standalone elapsed gain below observed GC drift. Run the preplanned full interleaved sequence for the complete candidate; do not claim30percent from this pilot or exclude any subsequent sample."
+    }
+  },
+  "summary": {
+    "b": {
+      "n": 4,
+      "seconds": [
+        37.8515181,
+        37.526707300000005,
+        37.5996255,
+        37.792800199999995
+      ],
+      "meanSeconds": 37.692662775,
+      "rangeSeconds": [
+        37.526707300000005,
+        37.8515181
+      ],
+      "sampleStddevSeconds": 0.15433693918219354,
+      "firstToLastDriftPercent": -0.15512693531836153,
+      "meanAllocatedBytes": 35681756318,
+      "meanPeakRssBytes": 19566460928,
+      "peakRssRangeBytes": [
+        19252133888,
+        19924766720
+      ]
+    },
+    "c": {
+      "n": 4,
+      "seconds": [
+        25.9024648,
+        24.976439600000003,
+        26.116200099999997,
+        24.975210899999997
+      ],
+      "meanSeconds": 25.49257885,
+      "rangeSeconds": [
+        24.975210899999997,
+        26.116200099999997
+      ],
+      "sampleStddevSeconds": 0.6030420871262434,
+      "firstToLastDriftPercent": -3.5797902136325055,
+      "meanAllocatedBytes": 29566602402,
+      "meanPeakRssBytes": 16416732160,
+      "peakRssRangeBytes": [
+        15056359424,
+        16970649600
+      ]
+    },
+    "elapsedReductionPercent": 32.36726467914019,
+    "throughputIncreasePercent": 47.85739409412477,
+    "allocationReductionPercent": 17.138040688078892,
+    "meanPeakRssChangePercent": -16.097590563721585,
+    "preplanned90FieldAcceptance": false,
+    "elapsedTargetMet": true,
+    "nonTimingWorkAndActionsEqual": true,
+    "nonTimingFieldsCompared": 88,
+    "actionLinesCompared": 64,
+    "meanSearchRelatedThreadCores": {
+      "b": 3.6559421390896203,
+      "c": 4.588322744701056
+    }
+  },
+  "samples": [
+    {
+      "label": "final2-b1-full",
+      "runId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:05:43.1042599+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 37851.5181,
+        "totalWorkerAllocatedBytes": 35695104720,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 74.445,
+        "maxGcPauseMilliseconds": 28.6,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 4,
+          "noGcStarts": 4,
+          "noGcEndAttempts": 3,
+          "noGcEnds": 3,
+          "noGcRestarts": 3,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 13518836679,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 19924766720,
+      "cacheDiagnostics": [],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-c1-full",
+      "runId": "405653b57fd94d3884bdb5b0aac0cac7",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:08:28.9215585+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 25902.4648,
+        "totalWorkerAllocatedBytes": 29568328128,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 2118.822,
+        "maxGcPauseMilliseconds": 2079.399,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 3,
+          "noGcStarts": 3,
+          "noGcEndAttempts": 2,
+          "noGcEnds": 2,
+          "noGcRestarts": 2,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 16000000000,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 16809324544,
+      "cacheDiagnostics": [
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=88503 hits=976094 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=138284 prefix_builds=52448 split_builds=260796 whole_builds=0 effective_prefix_reuses=137900 effective_prefix_builds=122896",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215456 misses=23024 collisions=20948 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=23884 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=301406 hits=3322748 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=431154 prefix_builds=214154 split_builds=916738 whole_builds=0 effective_prefix_reuses=428339 effective_prefix_builds=488399",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895810 misses=70770 collisions=68662 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533210 probes=2 bypasses=2",
+        "POTION_POLICY_LOOKUP hits=123247 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=83675 hits=922077 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=579589 prefix_builds=259380 split_builds=1198992 whole_builds=0 effective_prefix_reuses=576163 effective_prefix_builds=622829",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1152778 misses=98569 collisions=96461 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623668 probes=2 bypasses=2",
+        "POTION_POLICY_LOOKUP hits=19085 misses=2 entries=2"
+      ],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-c2-full",
+      "runId": "4b32af4decdf483fba2cb259a1b90416",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:10:58.5495351+00:00",
+      "metrics": {
+        "phase": "Short",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 24976.4396,
+        "totalWorkerAllocatedBytes": 29559196232,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 1785.037,
+        "maxGcPauseMilliseconds": 1753.381,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 3,
+          "noGcStarts": 3,
+          "noGcEndAttempts": 2,
+          "noGcEnds": 2,
+          "noGcRestarts": 2,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 16000000000,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 15056359424,
+      "cacheDiagnostics": [
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=88503 hits=976094 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=138284 prefix_builds=52448 split_builds=260796 whole_builds=0 effective_prefix_reuses=137900 effective_prefix_builds=122896",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215349 misses=23133 collisions=21062 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=24584 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=301406 hits=3322748 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=431154 prefix_builds=214154 split_builds=916738 whole_builds=0 effective_prefix_reuses=428339 effective_prefix_builds=488399",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=894945 misses=71772 collisions=69665 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=111822 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=83675 hits=922077 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=579589 prefix_builds=259380 split_builds=1198992 whole_builds=0 effective_prefix_reuses=576163 effective_prefix_builds=622829",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1152013 misses=99575 collisions=97468 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=19653 misses=2 entries=2"
+      ],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {
+          "deep_triggered": [
+            "True",
+            "False"
+          ],
+          "phase": [
+            "Deep",
+            "Short"
+          ]
+        },
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-b2-full",
+      "runId": "6a15f31b7fb94b20b3479aab1655865f",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:13:27.6529482+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 37526.7073,
+        "totalWorkerAllocatedBytes": 35671614136,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 69.488,
+        "maxGcPauseMilliseconds": 27.744,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 4,
+          "noGcStarts": 4,
+          "noGcEndAttempts": 3,
+          "noGcEnds": 3,
+          "noGcRestarts": 3,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 13518836679,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 19252133888,
+      "cacheDiagnostics": [],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-b3-full",
+      "runId": "5ba15cb6d4794ff39cda480b2706beec",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:17:17.7442454+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 37599.6255,
+        "totalWorkerAllocatedBytes": 35662831840,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 69.286,
+        "maxGcPauseMilliseconds": 26.585,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 4,
+          "noGcStarts": 4,
+          "noGcEndAttempts": 3,
+          "noGcEnds": 3,
+          "noGcRestarts": 3,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 13518836679,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 19591696384,
+      "cacheDiagnostics": [],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-c3-full",
+      "runId": "3bd0e67b62a649039e1198b70d20f8f2",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:19:48.9754142+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 26116.2001,
+        "totalWorkerAllocatedBytes": 29573493728,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 2134.792,
+        "maxGcPauseMilliseconds": 2096.87,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 3,
+          "noGcStarts": 3,
+          "noGcEndAttempts": 2,
+          "noGcEnds": 2,
+          "noGcRestarts": 2,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 16000000000,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 16830595072,
+      "cacheDiagnostics": [
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=88503 hits=976094 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=138284 prefix_builds=52448 split_builds=260796 whole_builds=0 effective_prefix_reuses=137900 effective_prefix_builds=122896",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215365 misses=23114 collisions=21030 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=23399 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=301406 hits=3322748 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=431154 prefix_builds=214154 split_builds=916738 whole_builds=0 effective_prefix_reuses=428339 effective_prefix_builds=488399",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895339 misses=71395 collisions=69285 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=123491 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=83675 hits=922077 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=579589 prefix_builds=259380 split_builds=1198992 whole_builds=0 effective_prefix_reuses=576163 effective_prefix_builds=622829",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1152044 misses=99352 collisions=97242 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=19163 misses=2 entries=2"
+      ],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-c4-full",
+      "runId": "d2be25dafc814c6c9a7a0f467fc2fa2c",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:22:06.4761672+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 24975.2109,
+        "totalWorkerAllocatedBytes": 29565391520,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 47.605,
+        "maxGcPauseMilliseconds": 29.293,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 3,
+          "noGcStarts": 3,
+          "noGcEndAttempts": 2,
+          "noGcEnds": 2,
+          "noGcRestarts": 2,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 14776402887,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 16970649600,
+      "cacheDiagnostics": [
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=88503 hits=976094 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=138284 prefix_builds=52448 split_builds=260796 whole_builds=0 effective_prefix_reuses=137900 effective_prefix_builds=122896",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215605 misses=22865 collisions=20780 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=24113 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=301406 hits=3322748 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=431154 prefix_builds=214154 split_builds=916738 whole_builds=0 effective_prefix_reuses=428339 effective_prefix_builds=488399",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895536 misses=71312 collisions=69222 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=121926 misses=2 entries=2",
+        "ROUTING_CHOICE_SUMMARIES scope=solver builds=83675 hits=922077 bypasses=0",
+        "HOOK_LISTENER_SEGMENTS scope=root_cumulative prefix_reuses=579589 prefix_builds=259380 split_builds=1198992 whole_builds=0 effective_prefix_reuses=576163 effective_prefix_builds=622829",
+        "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1152531 misses=99087 collisions=96997 bypasses=0",
+        "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+        "POTION_POLICY_LOOKUP hits=19713 misses=2 entries=2"
+      ],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    },
+    {
+      "label": "final2-b4-full",
+      "runId": "30b746fa3c364baaa79789e4eae0b58f",
+      "status": "Passed",
+      "startedAtUtc": "2026-09-08T20:24:38.753804+00:00",
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 37792.8002,
+        "totalWorkerAllocatedBytes": 35697474576,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 72.46,
+        "maxGcPauseMilliseconds": 30.51,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 4,
+          "noGcStarts": 4,
+          "noGcEndAttempts": 3,
+          "noGcEnds": 3,
+          "noGcRestarts": 3,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 13518836679,
+        "maxParallelConcurrency": 8
+      },
+      "peakRssBytes": 19497246720,
+      "cacheDiagnostics": [],
+      "comparison": {
+        "referenceRunId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "fieldsCompared": 90,
+        "differences": {},
+        "actionCount": 64,
+        "actionsEqual": true
+      }
+    }
+  ],
+  "referenceWorkFields": {
+    "phase": "Deep",
+    "deep_triggered": "True",
+    "deep_improved": "False",
+    "reused": "False",
+    "reused_from_turn": "-",
+    "expanded": "34239",
+    "total_expanded": "46239",
+    "dominance_pruned": "855",
+    "top_queue_dropped": "0",
+    "duplicate_cards_pruned": "7275",
+    "choice_branches": "342306",
+    "total_choice_branches": "431140",
+    "choice_replay_attempts": "342306",
+    "choice_replay_budget_exhaustions": "0",
+    "choice_branches_dropped_by_budget": "0",
+    "shuffle_branches_pruned": "0",
+    "sold_hp_branches_pruned": "7661",
+    "replays": "2",
+    "forks": "493066",
+    "transitions": "493066",
+    "total_transitions": "636428",
+    "cache_hits": "0",
+    "stand_pat": "20363",
+    "snapshot_reuses": "34780",
+    "transposition_pruned": "10742",
+    "repeatable_no_progress_pruned": "0",
+    "cycle_shapes": "3375",
+    "cycle_probe_continuations": "0",
+    "cycle_candidates_protected": "0",
+    "cycle_continuations_stopped": "0",
+    "cycle_regions": "1452",
+    "cycle_region_considered": "3292",
+    "cycle_region_admitted": "3039",
+    "cycle_region_dropped": "253",
+    "cycle_region_progress_epochs": "1451",
+    "cycle_region_probe_admitted": "0",
+    "cycle_region_progress_admitted": "1419",
+    "cycle_region_max_action_families": "1",
+    "ordered_admitted": "2048",
+    "ordered_lease_expired_budget": "3037",
+    "ordered_ordinary_fallback": "335",
+    "cold_atomic_committed": "134",
+    "cold_atomic_rejected": "1409",
+    "cross_turn_candidates_protected": "31",
+    "cross_turn_continuations_stopped": "0",
+    "primary_incumbent_pruned": "0",
+    "primary_incumbent_updates": "0",
+    "stand_pat_probes": "20363",
+    "node_limit_snapshots_released": "0",
+    "transition_cache_hits": "0",
+    "searched_turns": "10",
+    "boundary": "None",
+    "shuffles_crossed": "1",
+    "unavoidable_hp_lost": "8",
+    "sold_hp": "1",
+    "future_sold_hp": "1",
+    "sold_hp_threshold": "15",
+    "battle_hp_lost_so_far": "0",
+    "projected_battle_hp_lost": "9",
+    "recovered_hp": "0",
+    "relic_heal": "0",
+    "death_save_relic_hp": "0",
+    "long_term_resource": "0",
+    "anger_copies": "0",
+    "battle_potions_used_so_far": "0",
+    "potion_count": "1",
+    "potion_hp_saved": "8",
+    "potion_hp_required": "0",
+    "potion_branches_rejected": "0",
+    "theft_policy": "-",
+    "outstanding_stolen_resource": "0",
+    "score": "-1000004236064",
+    "final_hp": "0",
+    "final_block": "4",
+    "final_enemy_hp": "385",
+    "combat_ended_turn": "-",
+    "death_turn": "10",
+    "only_death_routes": "True",
+    "act_ending_boss": "False",
+    "boss_hp_relief": "None",
+    "engine_risk": "False",
+    "unsupported_intent": "False",
+    "modeled_damage_exact": "True",
+    "deferred_round_choice_actions": "11970",
+    "deferred_round_choice_width_total": "134576",
+    "deferred_round_choice_max_width": "28",
+    "deferred_round_choice_finite_fallbacks": "30",
+    "deferred_round_choice_finite_fallback_scope": "pending_only",
+    "deferred_round_choice_finite_primary_layers": "11940",
+    "deferred_round_choice_finite_pending_fallbacks": "30"
+  },
+  "originalComparisonExclusions": "Milliseconds, allocation/GC/memory/frame counters, physical parallel scheduling counters and worker yields; all 90 remaining RESULT fields, including all deferred-round diagnostics and all 64 ACTION lines compared exactly.",
+  "phaseLabelAudit": {
+    "classificationCorrection": "After C2, source inspection showed phase/deep_triggered are elapsed-derived labels, not profile selection or fixed-work counters. Original 90-field comparison and failed strict acceptance are preserved. Reclassify only these two fields; do not change timing samples, >=30% threshold, budgets, remaining 88 fields or actions.",
+    "sourceEvidence": {
+      "path": "src/Search/CombatSearchCoordinator.cs",
+      "sameAsBaselineCommit": "11d278a",
+      "anchors": [
+        "SolverSearchProfile deepProfile = policy.DeepProfile;",
+        "bool deepTriggered = result.Elapsed.TotalMilliseconds > shortProfile.SoftTimeBudgetMilliseconds;",
+        "result.SearchPhase = deepTriggered ? SolverSearchPhase.Deep : SolverSearchPhase.Short;",
+        "result.DeepSearchTriggered = deepTriggered;"
+      ],
+      "workAttributionPath": "src/Search/CombatBeamSolver.Phases.cs:RecordRequestWork",
+      "checkpointMilliseconds": 20000,
+      "normalProfile": "Deep from the beginning, including samples labeled Short"
+    },
+    "originalAll90Accepted": false,
+    "elapsedReductionPercent": 32.36726467914019,
+    "accepted": true,
+    "observations": [
+      {
+        "label": "final2-b1-full",
+        "runId": "1ea7add2135a4a39b4d816d5e2dbfd90",
+        "mainElapsedMillisecondsRounded": 28589.0,
+        "totalElapsedMillisecondsRounded": 37852.0,
+        "timeBeyondCheckpointMillisecondsRounded": 8590.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-c1-full",
+        "runId": "405653b57fd94d3884bdb5b0aac0cac7",
+        "mainElapsedMillisecondsRounded": 20994.0,
+        "totalElapsedMillisecondsRounded": 25902.0,
+        "timeBeyondCheckpointMillisecondsRounded": 995.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-c2-full",
+        "runId": "4b32af4decdf483fba2cb259a1b90416",
+        "mainElapsedMillisecondsRounded": 19973.0,
+        "totalElapsedMillisecondsRounded": 24976.0,
+        "timeBeyondCheckpointMillisecondsRounded": 0.0,
+        "phase": "Short",
+        "deepTriggered": false,
+        "raw90FieldDifferences": {
+          "deep_triggered": [
+            "True",
+            "False"
+          ],
+          "phase": [
+            "Deep",
+            "Short"
+          ]
+        },
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-b2-full",
+        "runId": "6a15f31b7fb94b20b3479aab1655865f",
+        "mainElapsedMillisecondsRounded": 28277.0,
+        "totalElapsedMillisecondsRounded": 37527.0,
+        "timeBeyondCheckpointMillisecondsRounded": 8278.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-b3-full",
+        "runId": "5ba15cb6d4794ff39cda480b2706beec",
+        "mainElapsedMillisecondsRounded": 28564.0,
+        "totalElapsedMillisecondsRounded": 37600.0,
+        "timeBeyondCheckpointMillisecondsRounded": 8564.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-c3-full",
+        "runId": "3bd0e67b62a649039e1198b70d20f8f2",
+        "mainElapsedMillisecondsRounded": 21136.0,
+        "totalElapsedMillisecondsRounded": 26116.0,
+        "timeBeyondCheckpointMillisecondsRounded": 1136.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-c4-full",
+        "runId": "d2be25dafc814c6c9a7a0f467fc2fa2c",
+        "mainElapsedMillisecondsRounded": 20026.0,
+        "totalElapsedMillisecondsRounded": 24975.0,
+        "timeBeyondCheckpointMillisecondsRounded": 28.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      },
+      {
+        "label": "final2-b4-full",
+        "runId": "30b746fa3c364baaa79789e4eae0b58f",
+        "mainElapsedMillisecondsRounded": 28450.0,
+        "totalElapsedMillisecondsRounded": 37793.0,
+        "timeBeyondCheckpointMillisecondsRounded": 8452.0,
+        "phase": "Deep",
+        "deepTriggered": true,
+        "raw90FieldDifferences": {},
+        "nonTimingFieldsCompared": 88,
+        "nonTimingDifferences": {},
+        "actionsEqual": true
+      }
+    ]
+  },
+  "threadTimelineSummary": {
+    "final2-b1-full": {
+      "solverSeconds": 37.8515181,
+      "observedSearchWindowSeconds": 37.88543349097017,
+      "sampleWindowSeconds": 37.937768180971034,
+      "threadCpuSeconds": {
+        "other": 21.463434959999955,
+        "gc": 3.902540126000001,
+        "threadpool": 19.618431446000038,
+        "lane": 119.61862836000022
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.25751903800000003,
+        "gc": 0.0005919420000000001,
+        "threadpool": 0.06778086600000001,
+        "lane": 0.9710550700000005
+      },
+      "searchMeanCores": 3.670143671652232,
+      "processMeanCores": 4.338764318101411,
+      "laneMeanCores": 3.1530222808414696,
+      "threadpoolMeanCores": 0.5171213908107627
+    },
+    "final2-b2-full": {
+      "solverSeconds": 37.526707300000005,
+      "observedSearchWindowSeconds": 37.54626345192082,
+      "sampleWindowSeconds": 37.59713387093507,
+      "threadCpuSeconds": {
+        "other": 20.567309467000033,
+        "gc": 3.9433341689999994,
+        "threadpool": 19.236033277999972,
+        "lane": 118.99485086200015
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.18659341000000018,
+        "gc": 0.000520875,
+        "threadpool": 0.0778111659999999,
+        "lane": 1.1006871849999997
+      },
+      "searchMeanCores": 3.676633559742202,
+      "processMeanCores": 4.328562074297092,
+      "laneMeanCores": 3.1649979296424666,
+      "threadpoolMeanCores": 0.5116356300997356
+    },
+    "final2-b3-full": {
+      "solverSeconds": 37.5996255,
+      "observedSearchWindowSeconds": 37.58987048198469,
+      "sampleWindowSeconds": 37.64092462498229,
+      "threadCpuSeconds": {
+        "other": 20.80393710199999,
+        "gc": 4.132811336,
+        "threadpool": 19.387257076,
+        "lane": 117.7151016939998
+      },
+      "threadRunqueueSeconds": {
+        "other": 2.014738265999999,
+        "gc": 0.018488094999999996,
+        "threadpool": 0.1228520069999998,
+        "lane": 1.0695446550000014
+      },
+      "searchMeanCores": 3.6423748921142316,
+      "processMeanCores": 4.304865218439783,
+      "laneMeanCores": 3.127316952673162,
+      "threadpoolMeanCores": 0.5150579394410698
+    },
+    "final2-b4-full": {
+      "solverSeconds": 37.792800199999995,
+      "observedSearchWindowSeconds": 37.82182806706987,
+      "sampleWindowSeconds": 37.87430380296428,
+      "threadCpuSeconds": {
+        "other": 20.832047516999957,
+        "gc": 4.030204817000001,
+        "threadpool": 19.690096789999988,
+        "lane": 117.96847019500021
+      },
+      "threadRunqueueSeconds": {
+        "other": 5.755888038,
+        "gc": 0.000271462,
+        "threadpool": 0.07312432599999999,
+        "lane": 0.9268544019999994
+      },
+      "searchMeanCores": 3.6346164328498145,
+      "processMeanCores": 4.2910576037117885,
+      "laneMeanCores": 3.114736334394806,
+      "threadpoolMeanCores": 0.5198800984550089
+    },
+    "final2-c1-full": {
+      "solverSeconds": 25.9024648,
+      "observedSearchWindowSeconds": 25.94364706799388,
+      "sampleWindowSeconds": 25.99529889097903,
+      "threadCpuSeconds": {
+        "other": 14.394765468999973,
+        "gc": 1.2799786880000001,
+        "threadpool": 11.643463804000003,
+        "lane": 106.10262332999989
+      },
+      "threadRunqueueSeconds": {
+        "other": 5.4480207140000045,
+        "gc": 0.00015292599999999998,
+        "threadpool": 0.07545397999999999,
+        "lane": 0.9643445180000012
+      },
+      "searchMeanCores": 4.529514649083743,
+      "processMeanCores": 5.132498450991075,
+      "laneMeanCores": 4.0816081313387,
+      "threadpoolMeanCores": 0.4479065177450433
+    },
+    "final2-c2-full": {
+      "solverSeconds": 24.976439600000003,
+      "observedSearchWindowSeconds": 24.98171106004156,
+      "sampleWindowSeconds": 25.034397806040943,
+      "threadCpuSeconds": {
+        "other": 13.893711434999961,
+        "gc": 1.266170998,
+        "threadpool": 10.905854774000009,
+        "lane": 105.73935616399983
+      },
+      "threadRunqueueSeconds": {
+        "other": 1.5838538439999992,
+        "gc": 0.000181331,
+        "threadpool": 0.0666067500000001,
+        "lane": 0.874125839000002
+      },
+      "searchMeanCores": 4.659397515439843,
+      "processMeanCores": 5.264959612457484,
+      "laneMeanCores": 4.223762719728146,
+      "threadpoolMeanCores": 0.4356347957116973
+    },
+    "final2-c3-full": {
+      "solverSeconds": 26.116200099999997,
+      "observedSearchWindowSeconds": 26.14716769300867,
+      "sampleWindowSeconds": 26.199071859009564,
+      "threadCpuSeconds": {
+        "other": 14.210031139,
+        "gc": 1.287745451,
+        "threadpool": 11.794344918999991,
+        "lane": 106.48885374299978
+      },
+      "threadRunqueueSeconds": {
+        "other": 11.294025545000002,
+        "gc": 0.000146997,
+        "threadpool": 0.08539975799999992,
+        "lane": 1.047265166999998
+      },
+      "searchMeanCores": 4.514785840450433,
+      "processMeanCores": 5.106324986317941,
+      "laneMeanCores": 4.064604056054737,
+      "threadpoolMeanCores": 0.45018178439569606
+    },
+    "final2-c4-full": {
+      "solverSeconds": 24.975210899999997,
+      "observedSearchWindowSeconds": 24.987363741034642,
+      "sampleWindowSeconds": 25.039315496920608,
+      "threadCpuSeconds": {
+        "other": 14.394575057,
+        "gc": 2.3942869950000003,
+        "threadpool": 9.466631940999997,
+        "lane": 106.9559934629998
+      },
+      "threadRunqueueSeconds": {
+        "other": 7.207417645999998,
+        "gc": 0.00013214,
+        "threadpool": 0.07552087700000004,
+        "lane": 0.8027519310000004
+      },
+      "searchMeanCores": 4.649592973830204,
+      "processMeanCores": 5.320093014219276,
+      "laneMeanCores": 4.271522257713214,
+      "threadpoolMeanCores": 0.3780707161169891
+    }
+  },
+  "correctnessEvidence": [
+    {
+      "label": "effective-prefix-contract",
+      "runId": "5d194a22bcc8496c998ba396f9873e83",
+      "scope": "Final behavior source: MirroredHookFilter55/1670, segments/no-anchor/effective-prefix/Fork ownership.",
+      "status": "Passed",
+      "elapsedMilliseconds": 27182.0004,
+      "completedChecks": [
+        "MirroredHookFilter:Methods=55:Models=1670:OrderDuplicatesExternalForkInvalidationPatchRefreshSharedLayoutsSegmentsNoAnchorEffectivePrefixReuse",
+        "ForkBoundaries"
+      ]
+    },
+    {
+      "label": "final2-policy",
+      "runId": "8effcf7a2e804c52867335cf32e636aa",
+      "scope": "Final candidate: SearchPolicySnapshot and DeepStandPat1000-node DOP1/2, cancellation/failure drain and root reuse.",
+      "status": "Passed",
+      "elapsedMilliseconds": 56986.2693,
+      "completedChecks": [
+        "SearchPolicySnapshot"
+      ],
+      "contractMarker": "STAND_PAT_BATCH_CONTRACT probes=641 expanded=1000 cancellation=True failure=True reuse=True"
+    },
+    {
+      "label": "final2-sentinel",
+      "runId": "9664c01a18084c92afe111f9d47ce7e8",
+      "scope": "Independent Knights Short sentinel; compare baseline 11d278a from preceding task.",
+      "status": "Passed",
+      "elapsedMilliseconds": 27556.3794,
+      "completedChecks": [
+        "PerformancePreset:VeryHigh:20000/300000ms:Beam=54/135:Nodes=10000/50000:Branches=45/72:NoGC=True/16000000000",
+        "NoGcConfigurationApplied:Configured=True/16000000000:Established=16000000000:Actual=True/16000000000:Latency=NoGCRegion",
+        "InitialWorldlineSummary",
+        "InitialPolicy:SoldHp=16/10;Potion=0,Saved=0/0,Rejected=0;Theft=-,Outstanding=0;Turns=3;Shuffles=0;Unmirrored=0;HpLost=24;ProjectedBattleHpLost=80;Block=0/16;Pruned=41;Phase=Short;Deep=False/False;Total=2121.0ms/533735808B;Gc=0.0ms/0.0msMax;Frame=849.5msMax/4Over50;CacheHits=0;ChoiceBranches=0;Actions=3;OnlyDeath=True;CombatEndedTurn=-;DeathTurn=3;ActEndingBoss=False;BossHpRelief=None"
+      ],
+      "metrics": {
+        "phase": "Short",
+        "boundary": "None",
+        "selectedExpanded": 1052,
+        "selectedTransitions": 4014,
+        "selectedChoiceBranches": 0,
+        "totalExpanded": 3448,
+        "totalTransitions": 8796,
+        "totalChoiceBranches": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 2121.0464,
+        "totalWorkerAllocatedBytes": 533735808,
+        "projectedBattleHpLost": 80,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 3,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "noGcRegionBudgetBytes": 16000000000,
+        "maxParallelConcurrency": 8
+      }
+    },
+    {
+      "label": "final2-pressure-b",
+      "runId": "591767d49821417d90d7134ce000d764",
+      "scope": "New baseline normal Deep profile, configured 1GB NoGC, first-result stop.",
+      "status": "Passed",
+      "elapsedMilliseconds": 81803.3959,
+      "completedChecks": [
+        "PerformancePreset:VeryHigh:20000/300000ms:Beam=54/135:Nodes=10000/50000:Branches=45/72:NoGC=True/1000000000",
+        "NoGcConfigurationApplied:Configured=True/1000000000:Established=1000000000:Actual=True/1000000000:Latency=NoGCRegion",
+        "InitialWorldlineSummary",
+        "InitialPolicy:SoldHp=1/15;Potion=1,Saved=8/0,Rejected=0;Theft=-,Outstanding=0;Turns=10;Shuffles=1;Unmirrored=0;HpLost=9;ProjectedBattleHpLost=9;Block=5/5;Pruned=7661;Phase=Deep;Deep=True/False;Total=56996.8ms/36124395104B;Gc=395.8ms/125.7msMax;Frame=803.6msMax/212Over50;CacheHits=0;ChoiceBranches=342306;Actions=2;OnlyDeath=True;CombatEndedTurn=-;DeathTurn=10;ActEndingBoss=False;BossHpRelief=None"
+      ],
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 56996.7508,
+        "totalWorkerAllocatedBytes": 36124395104,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 395.782,
+        "maxGcPauseMilliseconds": 125.724,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 64,
+          "noGcStarts": 64,
+          "noGcEndAttempts": 63,
+          "noGcEnds": 63,
+          "noGcRestarts": 63,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 1000000000,
+        "noGcRegionBudgetBytes": 1000000000,
+        "maxParallelConcurrency": 8
+      }
+    },
+    {
+      "label": "final2-pressure-c",
+      "runId": "2345c8785fac4c8fb6d9b81e72aa43ae",
+      "scope": "Final candidate normal Deep profile, configured 1GB NoGC, first-result stop.",
+      "status": "Passed",
+      "elapsedMilliseconds": 67330.8479,
+      "completedChecks": [
+        "PerformancePreset:VeryHigh:20000/300000ms:Beam=54/135:Nodes=10000/50000:Branches=45/72:NoGC=True/1000000000",
+        "NoGcConfigurationApplied:Configured=True/1000000000:Established=1000000000:Actual=True/1000000000:Latency=NoGCRegion",
+        "InitialWorldlineSummary",
+        "InitialPolicy:SoldHp=1/15;Potion=1,Saved=8/0,Rejected=0;Theft=-,Outstanding=0;Turns=10;Shuffles=1;Unmirrored=0;HpLost=9;ProjectedBattleHpLost=9;Block=5/5;Pruned=7661;Phase=Deep;Deep=True/False;Total=42492.0ms/29799197424B;Gc=319.7ms/104.7msMax;Frame=873.4msMax/149Over50;CacheHits=0;ChoiceBranches=342306;Actions=2;OnlyDeath=True;CombatEndedTurn=-;DeathTurn=10;ActEndingBoss=False;BossHpRelief=None"
+      ],
+      "metrics": {
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "choiceBranchesDroppedByBudget": 0,
+        "totalElapsedMilliseconds": 42491.992,
+        "totalWorkerAllocatedBytes": 29799197424,
+        "projectedBattleHpLost": 9,
+        "onlyDeathRoutes": true,
+        "combatEndedTurn": null,
+        "searchedTurns": 10,
+        "totalGcPauseMilliseconds": 319.731,
+        "maxGcPauseMilliseconds": 104.682,
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 53,
+          "noGcStarts": 53,
+          "noGcEndAttempts": 52,
+          "noGcEnds": 52,
+          "noGcRestarts": 52,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "configuredNoGcRegionBudgetBytes": 1000000000,
+        "noGcRegionBudgetBytes": 1000000000,
+        "maxParallelConcurrency": 8
+      }
+    },
+    {
+      "tool": "RitsuTargetTypeLookupChecks",
+      "checks": 23,
+      "passed": true,
+      "scope": "Actual production callbacks, metadata lifetime, invalidation, weak ownership; unchanged after passing."
+    },
+    {
+      "tool": "PowerAmountComparisonChecks",
+      "checks": 8,
+      "passed": true,
+      "nativeInputCombinations": 1568,
+      "allocationProbeCalls": 100000,
+      "allocatedBytesBefore": 9600000,
+      "allocatedBytesAfter": 0
+    },
+    {
+      "command": "dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false",
+      "passed": true,
+      "warnings": 0,
+      "errors": 0,
+      "seconds": 4.07,
+      "sourceBoundary": "effective-prefix frozen candidate"
+    }
+  ],
+  "validationQualityComparisons": [
+    {
+      "label": "final2-sentinel",
+      "baselineRunId": "a4683db7ba964e259533372424f94250",
+      "candidateRunId": "9664c01a18084c92afe111f9d47ce7e8",
+      "nonTimingFieldsCompared": 88,
+      "nonTimingDifferences": {},
+      "actionsCompared": 9,
+      "actionLinesEqual": true,
+      "raw83FieldDifferences": {},
+      "phaseClassification": "See final2-phase-label-audit.json; elapsed-derived phase/deep_triggered are reported separately."
+    },
+    {
+      "label": "final2-pressure-c",
+      "baselineRunId": "591767d49821417d90d7134ce000d764",
+      "candidateRunId": "2345c8785fac4c8fb6d9b81e72aa43ae",
+      "nonTimingFieldsCompared": 88,
+      "nonTimingDifferences": {},
+      "actionsCompared": 64,
+      "actionLinesEqual": true,
+      "raw83FieldDifferences": {},
+      "phaseClassification": "See final2-phase-label-audit.json; elapsed-derived phase/deep_triggered are reported separately."
+    }
+  ],
+  "structureGates": [
+    {
+      "command": [
+        "./tools/verify-refactor-boundaries.sh"
+      ],
+      "exitCode": 0,
+      "evidence": "REFACTOR_BOUNDARIES_OK search_files=82"
+    },
+    {
+      "command": [
+        "pwsh",
+        "-NoProfile",
+        "-File",
+        "tools/verify-refactor-boundaries.ps1"
+      ],
+      "exitCode": 0,
+      "evidence": "REFACTOR_BOUNDARIES_OK search_files=82"
+    }
+  ],
+  "previousAttempt": {
+    "baselineCommit": "11d278a",
+    "experimentPlan": {
+      "objective": "At least 30% lower mean normal VeryHigh search elapsed relative to 11d278a; no prior gains included.",
+      "sequence": [
+        [
+          "final-b1",
+          "../admitted-jobs-20260908/primary-batched-artifact"
+        ],
+        [
+          "final-c1",
+          "final-artifact"
+        ],
+        [
+          "final-c2",
+          "final-artifact"
+        ],
+        [
+          "final-b2",
+          "../admitted-jobs-20260908/primary-batched-artifact"
+        ],
+        [
+          "final-b3",
+          "../admitted-jobs-20260908/primary-batched-artifact"
+        ],
+        [
+          "final-c3",
+          "final-artifact"
+        ],
+        [
+          "final-c4",
+          "final-artifact"
+        ],
+        [
+          "final-b4",
+          "../admitted-jobs-20260908/primary-batched-artifact"
+        ]
+      ],
+      "protocol": "ABBA ABBA, four fresh processes per source; each one Short warmup then one measured normal Deep result. DOP8, configured NoGC16GB, detailed/incremental off, first result stop, 120 seconds per request. Existing host exclusive lease; exclude startup and wait-to-lease from solver elapsed.",
+      "fixedSource": "Retained changes through layout capacity; final adds only cumulative target-type-cache diagnostics. No further production edits during final measurements.",
+      "acceptance": "Compare every sample, arithmetic means and ranges; >=30% mean elapsed reduction, 83 work fields / 64 actions exact, inspect GC/alloc/RSS and CPU timelines. Record all samples without dropping outliers.",
+      "remainingCorrectness": "Final Deep StandPat+SearchPolicy+DOP1/2+Fork+failure/cancel/root reuse contract; 1GB NoGC normal Deep baseline/candidate boundary; independent Knights short sentinel compared with unchanged 11d278a direct evidence from previous task."
+    },
+    "summary": {
+      "b": {
+        "n": 4,
+        "seconds": [
+          37.361798799999995,
+          37.3845484,
+          37.3942598,
+          37.8501345
+        ],
+        "meanSeconds": 37.497685375,
+        "rangeSeconds": [
+          37.361798799999995,
+          37.8501345
+        ],
+        "sampleStddevSeconds": 0.23535956297739474,
+        "firstToLastDriftPercent": 1.30704547341014,
+        "meanAllocatedBytes": 35678162244,
+        "meanPeakRssBytes": 18171610112,
+        "peakRssRangeBytes": [
+          17030553600,
+          20561883136
+        ]
+      },
+      "c": {
+        "n": 4,
+        "seconds": [
+          28.3750606,
+          28.0250511,
+          26.9142516,
+          29.5710708
+        ],
+        "meanSeconds": 28.221358525,
+        "rangeSeconds": [
+          26.9142516,
+          29.5710708
+        ],
+        "sampleStddevSeconds": 1.0942901308821276,
+        "firstToLastDriftPercent": 4.215004918791254,
+        "meanAllocatedBytes": 31577265234,
+        "meanPeakRssBytes": 17190967296,
+        "peakRssRangeBytes": [
+          17039634432,
+          17355333632
+        ]
+      },
+      "elapsedReductionPercent": 24.738398536419005,
+      "throughputIncreasePercent": 32.86988059693348,
+      "allocationReductionPercent": 11.494137455719567,
+      "meanPeakRssChangePercent": -5.396565356376493,
+      "accepted": false
+    },
+    "samples": [
+      {
+        "label": "final-b1-full",
+        "runId": "2fba2f4669644e85b54e885589824e67",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:31:54.5212826+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 37361.7988,
+          "totalWorkerAllocatedBytes": 35663604632,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 1843.718,
+          "maxGcPauseMilliseconds": 1782.233,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 14776402887,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17469739008,
+        "cacheDiagnostics": [],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-c1-full",
+        "runId": "2cbdb7056fcc4847a437c732b6af6ce2",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:34:24.3524877+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 28375.0606,
+          "totalWorkerAllocatedBytes": 31580696024,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 82.692,
+          "maxGcPauseMilliseconds": 31.589,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 12890053575,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17224679424,
+        "cacheDiagnostics": [
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215619 misses=22892 collisions=20823 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=23953 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=894882 misses=71870 collisions=69772 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533210 probes=2 bypasses=2",
+          "POTION_POLICY_LOOKUP hits=127776 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1151525 misses=99931 collisions=97833 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623668 probes=2 bypasses=2",
+          "POTION_POLICY_LOOKUP hits=20395 misses=2 entries=2"
+        ],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-c2-full",
+        "runId": "45f7c33bf21241b080ad3d348d7b78bb",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:36:43.2902552+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 28025.0511,
+          "totalWorkerAllocatedBytes": 31576839000,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 71.507,
+          "maxGcPauseMilliseconds": 28.078,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 12890053575,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17355333632,
+        "cacheDiagnostics": [
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215565 misses=22949 collisions=20874 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=24139 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895076 misses=71714 collisions=69619 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=123708 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1151933 misses=99754 collisions=97659 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=20449 misses=2 entries=2"
+        ],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-b2-full",
+        "runId": "dd60bcf8d84645fb8bbb02249aa2ea08",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:39:05.3102834+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 37384.5484,
+          "totalWorkerAllocatedBytes": 35690296424,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 64.447,
+          "maxGcPauseMilliseconds": 24.444,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 12890053575,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 20561883136,
+        "cacheDiagnostics": [],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-b3-full",
+        "runId": "ce8354f566e44f84aadbe32cbf5a3714",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:41:35.6356051+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 37394.2598,
+          "totalWorkerAllocatedBytes": 35665327888,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 2158.017,
+          "maxGcPauseMilliseconds": 2091.619,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 15405185991,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17030553600,
+        "cacheDiagnostics": [],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-c3-full",
+        "runId": "876d7ac0387b47bb993a202c1e1e2e2c",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:43:13.9520985+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 26914.2516,
+          "totalWorkerAllocatedBytes": 31568220808,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 1699.466,
+          "maxGcPauseMilliseconds": 1670.929,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 3,
+            "noGcStarts": 3,
+            "noGcEndAttempts": 2,
+            "noGcEnds": 2,
+            "noGcRestarts": 2,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 16000000000,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17039634432,
+        "cacheDiagnostics": [
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215578 misses=22911 collisions=20842 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=24305 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895222 misses=71545 collisions=69441 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=123124 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1152049 misses=99479 collisions=97375 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=21807 misses=2 entries=2"
+        ],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-c4-full",
+        "runId": "b75d2615989343a29c6c476d78215b52",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:45:19.9834246+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 29571.0708,
+          "totalWorkerAllocatedBytes": 31583305104,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 74.859,
+          "maxGcPauseMilliseconds": 30.304,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 12890053575,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17144221696,
+        "cacheDiagnostics": [
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=215649 misses=22880 collisions=20798 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=104899 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=24388 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=895010 misses=71835 collisions=69737 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=533211 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=130800 misses=2 entries=2",
+          "HOOK_LAYOUT_CACHE scope=root_cumulative hits=1151596 misses=100215 collisions=98117 bypasses=0",
+          "TARGET_TYPE_ABSENCE_CACHE scope=process_cumulative hits=623669 probes=1 bypasses=1",
+          "POTION_POLICY_LOOKUP hits=21097 misses=2 entries=2"
+        ],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      },
+      {
+        "label": "final-b4-full",
+        "runId": "ee4261a25c70453abe5ad743e18f4add",
+        "status": "Passed",
+        "startedAtUtc": "2026-09-08T18:53:25.340421+00:00",
+        "metrics": {
+          "phase": "Deep",
+          "boundary": "None",
+          "selectedExpanded": 34239,
+          "selectedTransitions": 493066,
+          "selectedChoiceBranches": 342306,
+          "totalExpanded": 46239,
+          "totalTransitions": 636428,
+          "totalChoiceBranches": 431140,
+          "choiceBranchesDroppedByBudget": 0,
+          "totalElapsedMilliseconds": 37850.1345,
+          "totalWorkerAllocatedBytes": 35693420032,
+          "projectedBattleHpLost": 9,
+          "onlyDeathRoutes": true,
+          "combatEndedTurn": null,
+          "searchedTurns": 10,
+          "totalGcPauseMilliseconds": 1907.135,
+          "maxGcPauseMilliseconds": 1854.561,
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 4,
+            "noGcStarts": 4,
+            "noGcEndAttempts": 3,
+            "noGcEnds": 3,
+            "noGcRestarts": 3,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "noGcRegionBudgetBytes": 14776402887,
+          "maxParallelConcurrency": 8
+        },
+        "peakRssBytes": 17624264704,
+        "cacheDiagnostics": [],
+        "comparison": {
+          "referenceRunId": "2fba2f4669644e85b54e885589824e67",
+          "fieldsCompared": 83,
+          "differences": {},
+          "actionCount": 64,
+          "actionsEqual": true
+        }
+      }
+    ],
+    "referenceWorkFields": {
+      "phase": "Deep",
+      "deep_triggered": "True",
+      "deep_improved": "False",
+      "reused": "False",
+      "reused_from_turn": "-",
+      "expanded": "34239",
+      "total_expanded": "46239",
+      "dominance_pruned": "855",
+      "top_queue_dropped": "0",
+      "duplicate_cards_pruned": "7275",
+      "choice_branches": "342306",
+      "total_choice_branches": "431140",
+      "choice_replay_attempts": "342306",
+      "choice_replay_budget_exhaustions": "0",
+      "choice_branches_dropped_by_budget": "0",
+      "shuffle_branches_pruned": "0",
+      "sold_hp_branches_pruned": "7661",
+      "replays": "2",
+      "forks": "493066",
+      "transitions": "493066",
+      "total_transitions": "636428",
+      "cache_hits": "0",
+      "stand_pat": "20363",
+      "snapshot_reuses": "34780",
+      "transposition_pruned": "10742",
+      "repeatable_no_progress_pruned": "0",
+      "cycle_shapes": "3375",
+      "cycle_probe_continuations": "0",
+      "cycle_candidates_protected": "0",
+      "cycle_continuations_stopped": "0",
+      "cycle_regions": "1452",
+      "cycle_region_considered": "3292",
+      "cycle_region_admitted": "3039",
+      "cycle_region_dropped": "253",
+      "cycle_region_progress_epochs": "1451",
+      "cycle_region_probe_admitted": "0",
+      "cycle_region_progress_admitted": "1419",
+      "cycle_region_max_action_families": "1",
+      "ordered_admitted": "2048",
+      "ordered_lease_expired_budget": "3037",
+      "ordered_ordinary_fallback": "335",
+      "cold_atomic_committed": "134",
+      "cold_atomic_rejected": "1409",
+      "cross_turn_candidates_protected": "31",
+      "cross_turn_continuations_stopped": "0",
+      "primary_incumbent_pruned": "0",
+      "primary_incumbent_updates": "0",
+      "stand_pat_probes": "20363",
+      "node_limit_snapshots_released": "0",
+      "transition_cache_hits": "0",
+      "searched_turns": "10",
+      "boundary": "None",
+      "shuffles_crossed": "1",
+      "unavoidable_hp_lost": "8",
+      "sold_hp": "1",
+      "future_sold_hp": "1",
+      "sold_hp_threshold": "15",
+      "battle_hp_lost_so_far": "0",
+      "projected_battle_hp_lost": "9",
+      "recovered_hp": "0",
+      "relic_heal": "0",
+      "death_save_relic_hp": "0",
+      "long_term_resource": "0",
+      "anger_copies": "0",
+      "battle_potions_used_so_far": "0",
+      "potion_count": "1",
+      "potion_hp_saved": "8",
+      "potion_hp_required": "0",
+      "potion_branches_rejected": "0",
+      "theft_policy": "-",
+      "outstanding_stolen_resource": "0",
+      "score": "-1000004236064",
+      "final_hp": "0",
+      "final_block": "4",
+      "final_enemy_hp": "385",
+      "combat_ended_turn": "-",
+      "death_turn": "10",
+      "only_death_routes": "True",
+      "act_ending_boss": "False",
+      "boss_hp_relief": "None",
+      "engine_risk": "False",
+      "unsupported_intent": "False",
+      "modeled_damage_exact": "True"
+    },
+    "comparisonExclusions": "Milliseconds, allocation/GC/memory/frame counters, physical parallel/deferred-round scheduling counters and worker yields; all 83 remaining RESULT fields and all 64 ACTION lines compared exactly.",
+    "schemaVersion": 1,
+    "scope": "VeryHigh normal headless first result; first final-candidate attempt does not meet the >=30% elapsed reduction goal.",
+    "units": {
+      "time": "milliseconds in raw metrics; seconds in summary",
+      "bytes": "decimal bytes; GB=1e9",
+      "rss": "whole-process sampled peak, 100 ms, includes warmup"
+    },
+    "admissionInterruption": {
+      "slot": "final-b4",
+      "stage": "before process launch, no warmup or measured result",
+      "reason": "headless exclusive lease queue timeout",
+      "evidence": "final-b4-admission-failed.log",
+      "retry": "same slot, artifact, input, settings and one warmup; wait for an idle host without extending the 120-second request or admission timeout",
+      "completedFormalSamplesRetained": 7
+    },
+    "threadTimelineSummary": {
+      "final-b1-full": {
+        "solverSeconds": 37.361798799999995,
+        "observedSearchWindowSeconds": 37.36421549494844,
+        "sampleWindowSeconds": 37.41670959908515,
+        "threadCpuSeconds": {
+          "other": 19.80303028700002,
+          "gc": 2.692752671,
+          "threadpool": 20.470012057,
+          "lane": 116.84834475699962
+        },
+        "threadRunqueueSeconds": {
+          "other": 10.988293102000007,
+          "gc": 0.00036583200000000007,
+          "threadpool": 0.06825354399999999,
+          "lane": 1.0105439000000007
+        },
+        "searchMeanCores": 3.6699741448499013,
+        "processMeanCores": 4.271197052984775,
+        "laneMeanCores": 3.1228920449984354,
+        "threadpoolMeanCores": 0.5470820998514658
+      },
+      "final-b2-full": {
+        "solverSeconds": 37.3845484,
+        "observedSearchWindowSeconds": 37.43135687801987,
+        "sampleWindowSeconds": 37.485574256046675,
+        "threadCpuSeconds": {
+          "other": 20.75500697600002,
+          "gc": 3.853165438,
+          "threadpool": 19.23047740600001,
+          "lane": 117.83344626099989
+        },
+        "threadRunqueueSeconds": {
+          "other": 9.450399387000004,
+          "gc": 0.00032886699999999994,
+          "threadpool": 0.07547639900000001,
+          "lane": 1.0439366840000015
+        },
+        "searchMeanCores": 3.656444549329281,
+        "processMeanCores": 4.312915015698903,
+        "laneMeanCores": 3.1434344704481236,
+        "threadpoolMeanCores": 0.513010078881158
+      },
+      "final-b3-full": {
+        "solverSeconds": 37.3942598,
+        "observedSearchWindowSeconds": 37.37890780798625,
+        "sampleWindowSeconds": 37.43083890900016,
+        "threadCpuSeconds": {
+          "other": 20.672899003,
+          "gc": 2.4727728710000005,
+          "threadpool": 21.011962689000004,
+          "lane": 114.81978723099999
+        },
+        "threadRunqueueSeconds": {
+          "other": 8.325578925999956,
+          "gc": 0.0017086209999999998,
+          "threadpool": 0.09685917000000004,
+          "lane": 1.0489491340000001
+        },
+        "searchMeanCores": 3.628872712423754,
+        "processMeanCores": 4.24723106475111,
+        "laneMeanCores": 3.0675184040128967,
+        "threadpoolMeanCores": 0.5613543084108576
+      },
+      "final-b4-full": {
+        "solverSeconds": 37.8501345,
+        "observedSearchWindowSeconds": 37.868539370945655,
+        "sampleWindowSeconds": 37.9204332230147,
+        "threadCpuSeconds": {
+          "other": 19.837285192999975,
+          "gc": 2.9090667279999995,
+          "threadpool": 20.78377904700001,
+          "lane": 117.31299327699983
+        },
+        "threadRunqueueSeconds": {
+          "other": 1.2951412700000013,
+          "gc": 0.000236321,
+          "threadpool": 0.06905661000000007,
+          "lane": 1.0268924559999981
+        },
+        "searchMeanCores": 3.6417509133357173,
+        "processMeanCores": 4.241595113090132,
+        "laneMeanCores": 3.0936617360637153,
+        "threadpoolMeanCores": 0.5480891772720018
+      },
+      "final-c1-full": {
+        "solverSeconds": 28.3750606,
+        "observedSearchWindowSeconds": 28.41306167305447,
+        "sampleWindowSeconds": 28.46531654393766,
+        "threadCpuSeconds": {
+          "other": 16.600565543999988,
+          "gc": 3.6246933849999987,
+          "threadpool": 10.220625934999997,
+          "lane": 117.68226313000007
+        },
+        "threadRunqueueSeconds": {
+          "other": 2.1569270749999983,
+          "gc": 0.001554578,
+          "threadpool": 0.07579342799999997,
+          "lane": 0.9219619410000011
+        },
+        "searchMeanCores": 4.493288836875411,
+        "processMeanCores": 5.203811725239617,
+        "laneMeanCores": 4.134233425732383,
+        "threadpoolMeanCores": 0.35905541114302886
+      },
+      "final-c2-full": {
+        "solverSeconds": 28.0250511,
+        "observedSearchWindowSeconds": 28.026704323012382,
+        "sampleWindowSeconds": 28.080418318044394,
+        "threadCpuSeconds": {
+          "other": 16.711812553999984,
+          "gc": 3.4969456239999994,
+          "threadpool": 9.733077193999993,
+          "lane": 117.44984756900033
+        },
+        "threadRunqueueSeconds": {
+          "other": 1.3279299009999994,
+          "gc": 0.001110682,
+          "threadpool": 0.10110246900000007,
+          "lane": 1.3154523230000004
+        },
+        "searchMeanCores": 4.529238963697095,
+        "processMeanCores": 5.248913362743134,
+        "laneMeanCores": 4.182624569147796,
+        "threadpoolMeanCores": 0.34661439454929865
+      },
+      "final-c3-full": {
+        "solverSeconds": 26.9142516,
+        "observedSearchWindowSeconds": 26.92524290899746,
+        "sampleWindowSeconds": 26.977611116017215,
+        "threadCpuSeconds": {
+          "other": 15.041487990999999,
+          "gc": 1.2925944379999998,
+          "threadpool": 11.31235005100001,
+          "lane": 116.00056038599992
+        },
+        "threadRunqueueSeconds": {
+          "other": 3.1292014650000013,
+          "gc": 0.0014465290000000002,
+          "threadpool": 0.10916539000000007,
+          "lane": 1.3375334420000031
+        },
+        "searchMeanCores": 4.719206229546818,
+        "processMeanCores": 5.324674310421558,
+        "laneMeanCores": 4.299882591054468,
+        "threadpoolMeanCores": 0.41932363849235016
+      },
+      "final-c4-full": {
+        "solverSeconds": 29.5710708,
+        "observedSearchWindowSeconds": 29.542624718975276,
+        "sampleWindowSeconds": 29.594726587994955,
+        "threadCpuSeconds": {
+          "other": 18.311473333,
+          "gc": 3.356125854999999,
+          "threadpool": 10.472914871000013,
+          "lane": 122.48268092199984
+        },
+        "threadRunqueueSeconds": {
+          "other": 2.4449130389999993,
+          "gc": 0.006579925,
+          "threadpool": 0.4116253009999999,
+          "lane": 3.0006311380000072
+        },
+        "searchMeanCores": 4.4925434738408105,
+        "processMeanCores": 5.22468739561603,
+        "laneMeanCores": 4.138665736877756,
+        "threadpoolMeanCores": 0.35387773696305513
+      }
+    },
+    "correctnessEvidence": [
+      {
+        "runId": "4e20e956484c4bfe8b1a991c77e28f49",
+        "checks": [
+          "SearchPolicySnapshot",
+          "ForkBoundaries",
+          "DeepStandPatDOP1DOP2CancellationFailureRootReuse"
+        ],
+        "passed": true
+      },
+      {
+        "runId": "1424338c0a8e4ade8429d4611543f766",
+        "checks": [
+          "MirroredHookFilter55Methods1670Models",
+          "SharedLayoutCollisionAndParallelOwnership",
+          "NativeKeywordSetsAndPatchRefresh"
+        ],
+        "passed": true
+      },
+      {
+        "tool": "RitsuTargetTypeLookupChecks",
+        "checks": 23,
+        "passed": true
+      }
+    ],
+    "limitations": [
+      "The 30% elapsed reduction goal is not met by this attempt.",
+      "User deferred visible Steam; this is headless evidence only.",
+      "Selected route remains death-only; no new win or whole-combat deployment claim.",
+      "No final candidate sentinel/1GB Deep boundary yet; no incremental performance or Windows game test.",
+      "CPU profile and allocation trace have their own source boundaries; they are not normal timing samples."
+    ]
+  },
+  "limitations": [
+    "User deferred visible Steam; headless evidence for this fixed workload only, not a global speedup claim.",
+    "Selected route remains death-only with projected HP loss9; no new win or whole-combat deployment claim.",
+    "No new whole-combat native deployment, per-transition incremental search or Windows game result.",
+    "Candidate max observed GC pause29.293..2096.870ms versus baseline26.585..30.510ms; elapsed gain does not establish a frame-latency improvement.",
+    "NoGC configured16GB is an upper bound; Runtime used13.5188GB for all four baselines and16/16/16/14.7764GB for candidates, without policy/config changes.",
+    "Thread CPU groups include runtime work, may miss threads that exit between samples, and are not precise pure-search CPU.",
+    "Original90-field equality failed for C2 phase/deep_triggered. Unchanged source proves elapsed-derived classification; raw mismatch preserved and remaining88 fields/actions equal.",
+    "CPU and allocation profiles have their own source boundaries and are not normal timing samples."
+  ]
+}

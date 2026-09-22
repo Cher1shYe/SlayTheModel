@@ -45,7 +45,7 @@ internal sealed class MctsCombatController : ICardSelector
     {
         if (!_configured)
         {
-            var firstLegal = string.Equals(Environment.GetEnvironmentVariable("SLAY_THE_MODEL_LIVE_POLICY"), "first-legal", StringComparison.OrdinalIgnoreCase);
+            var firstLegal = string.Equals(RuntimeConfiguration.Get("SLAY_THE_MODEL_LIVE_POLICY"), "first-legal", StringComparison.OrdinalIgnoreCase);
             return new(firstLegal ? "MCTS · 未开启（联调）" : "MCTS · 未开启",
                 firstLegal ? "当前运行 first-legal 联调策略。使用 -Policy mcts 启动以启用 MCTS。" : "当前没有启用 MCTS。使用 -Policy mcts 启动游戏。", "#8793a3", false);
         }
@@ -77,7 +77,7 @@ internal sealed class MctsCombatController : ICardSelector
 
     public static void Initialize()
     {
-        if (!string.Equals(Environment.GetEnvironmentVariable("SLAY_THE_MODEL_LIVE_POLICY"), "mcts", StringComparison.OrdinalIgnoreCase)) return;
+        if (!string.Equals(RuntimeConfiguration.Get("SLAY_THE_MODEL_LIVE_POLICY"), "mcts", StringComparison.OrdinalIgnoreCase)) return;
         _configured = true;
         NativeCombatCheckpoint.EnableCapture();
         CombatManager.Instance.CombatBegan += Instance.Begin;
@@ -166,7 +166,9 @@ internal sealed class MctsCombatController : ICardSelector
         }
         finally { Interlocked.Decrement(ref _searches); }
         if (log)
-            Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
+            Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} "
+                + $"transitions={result.StateTransitions} backend={result.SimulatorBackend} "
+                + $"ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
         return result;
     }
 
@@ -200,10 +202,9 @@ internal sealed class MctsCombatController : ICardSelector
             StopPondering();
             var action = result.Action?.Combat ?? throw new InvalidDataException("Worker returned no combat action.");
             if (!CombatCaptureService.GetLegalActions(_state).Contains(action)) throw new InvalidDataException("Worker action is no longer legal.");
-            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             var predictedPrefix = _prefix.ToList();
-            if (predictedPrefix.Count == 0 || predictedPrefix[^1] != result.Action)
-                predictedPrefix.Add(result.Action!);
+            predictedPrefix.Add(result.Action!);
+            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             if (result.NextStateKey != null)
                 StartPondering(result.NextStateKey, predictedPrefix, result.Action!, token);
             try { await execution; }

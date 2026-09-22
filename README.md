@@ -248,3 +248,59 @@ dotnet run --project tools/SlayTheModel.CaptureCheck -- \
 - [STS2 v0.111.0 接口说明](docs/sts2-v0.111.0-abi.md)
 
 本项目要求使用者自行拥有合法安装的游戏，仓库不分发游戏程序集或游戏资源。
+
+## Combat Solver MCTS 后端（当前 Windows 集成）
+
+当前分支把 Combat Solver 源码放在仓库内的 `combat/` 目录中。它只负责提供可复制的无头战斗模拟；出牌策略仍然是本项目自己的 `ReplayMcts`/UCT，Combat Solver 的 Beam Search 不会接管决策。
+
+集成边界如下：
+
+- `tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs` 将 Combat Solver 的 root snapshot、fork 和动作展开适配为 MCTS 模拟环境；
+- 游戏适配器负责捕获战斗 checkpoint、执行真实动作，并校验预测 continuation；
+- 当前固定使用 Combat Solver commit `8826a333a6d48e05f0e368ee2db5d4a15092382e`；
+- 只保证原版卡牌/敌人以及 Combat Solver 已登记适配的内容；药水不进入搜索；
+- 不支持的动态选择或效果会显式报告错误，不会静默使用不一致的状态。
+
+Combat Solver 的桥接源码位于 `combat/src/Api/NativeMctsSimulationApi.cs` 和 `combat/src/Search/CombatBeamSolver.NativeMcts.cs`。该目录保留独立仓库的原始未提交桥接修改，但主仓库提交会把源码作为普通文件纳入，而不是 Git submodule。
+
+### Windows 构建与验证
+
+在仓库根目录执行：
+
+```powershell
+& '.\scripts\native-worker.ps1' `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2' `
+  -Mode verify
+```
+
+验证会重新构建 `combat/` 和 `tools/Sts2.NativeWorker`，并检查：原生 EndTurn 状态一致性、Purity 等选牌分支、IPC、连续思考和跨动作子树复用。性能基准使用：
+
+```powershell
+& '.\scripts\native-worker.ps1' `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2' `
+  -Mode solver-mcts-benchmark
+```
+
+### Steam 已运行时启动 MCTS
+
+安装会生成：
+
+```text
+D:\Steam\steamapps\common\Slay the Spire 2\mods\SlayTheModelAdapter\SlayTheModelAdapter.runtime.json
+```
+
+该文件保存 worker、项目、游戏包和导出目录。适配器优先读取进程环境变量，缺失时读取这个持久配置，因此不需要退出 Steam：
+
+```powershell
+& '.\scripts\windows.ps1' `
+  -Action Install `
+  -Policy mcts `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
+
+& '.\scripts\windows.ps1' `
+  -Action Launch `
+  -Policy mcts `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
+```
+
+启动前只需要确保游戏进程已经退出；Steam 客户端可以继续运行。脚本通过 `steam.exe -applaunch 2868840` 启动游戏，游戏内 MCTS 仍使用独立 NativeWorker。不要同时启用 Combat Solver 自带的自动出牌控制器。

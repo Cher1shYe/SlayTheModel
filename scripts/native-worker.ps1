@@ -3,11 +3,19 @@
 param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
+$combatSolverRoot = [System.IO.Path]::GetFullPath((Join-Path $repo 'combat'))
+if (-not (Test-Path -LiteralPath (Join-Path $combatSolverRoot 'CombatSolver.csproj'))) {
+    throw "Combat Solver source is required at $combatSolverRoot."
+}
+$combatSolverCommit = (& git -C $combatSolverRoot rev-parse HEAD).Trim()
+if ($combatSolverCommit -ne '8826a333a6d48e05f0e368ee2db5d4a15092382e') {
+    throw "Combat Solver must be based on verified commit 8826a333; found $combatSolverCommit."
+}
 $game = (Resolve-Path -LiteralPath $GameDir).Path
 $managed = Join-Path $game 'data_sts2_windows_x86_64'
 $contract = Get-Content -LiteralPath (Join-Path $repo 'contracts/sts2-v0.111.0-windows.json') -Raw | ConvertFrom-Json
@@ -25,7 +33,7 @@ if (-not (Test-Path -LiteralPath $dotnet)) { $dotnet = 'dotnet' }
 Push-Location $repo
 try {
     if (-not $SkipBuild) {
-        & $dotnet publish $project -c ExportRelease -r win-x64 --self-contained true "-p:Sts2ManagedDir=$managed" -o $output
+        & $dotnet publish $project -c ExportRelease -r win-x64 --self-contained true "-p:Sts2ManagedDir=$managed" "-p:CombatSolverRoot=$combatSolverRoot" -o $output
         if ($LASTEXITCODE -ne 0) { throw 'Worker build failed.' }
         # MegaDot uses a customized managed/native API; keep its matching GodotSharp.
         Copy-Item -LiteralPath (Join-Path $managed 'GodotSharp.dll') -Destination $output -Force

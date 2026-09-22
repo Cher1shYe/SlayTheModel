@@ -1,0 +1,56 @@
+[
+  {
+    "cardId": "STRIKE_IRONCLAD",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFEND_IRONCLAD",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "WHIRLWIND",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "STARDUST",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "FALLING_STAR",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DAZED",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "GRAND_FINALE",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "CLASH",
+    "pile": "Hand",
+    "count": 1,
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "STRIKE_IRONCLAD",
+    "pile": "Draw",
+    "count": 1,
+    "upgradeLevels": 0
+  }
+]

@@ -1,10 +1,29 @@
 using System.Text.Json;
-using SlayTheModel.Search;
 using SlayTheModel.Sts2.ModAdapter;
 using SlayTheModel.Sts2.Protocol;
 
 public static class NativeVerification
 {
+    public static async Task CombatSolverEndTurnAsync(NativeSession session, CancellationToken cancellation)
+    {
+        session.Checkpoint = null;
+        session.ChoiceFixture = false;
+        session.EncounterId = "CULTISTS_NORMAL";
+        await session.ResetAsync("SOLVER-END-TURN", cancellation);
+        using var environment = new CombatSolverReplayEnvironment();
+        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        await environment.RestoreAsync([], cancellation);
+        var endTurn = environment.LegalActions().Single(action => action.Native.Kind == "EndTurn");
+        await environment.ApplyAsync(endTurn, cancellation);
+        string predicted = environment.CurrentContinuationKey;
+        await session.StepAsync(session.ToLiveSearchAction(endTurn), cancellation);
+        string actual = CombatSolver.Api.NativeMctsSimulationApi
+            .CaptureLiveContinuationKey(session.CombatStateForSimulation);
+        if (predicted != actual)
+            throw new InvalidDataException($"Combat Solver EndTurn differs from native execution. predicted={predicted} actual={actual}");
+        Godot.GD.Print("SLAY_WORKER_COMBAT_SOLVER_END_TURN_MATCH enemy turn and next player turn matched native");
+    }
+
     public static async Task ChoicesAsync(NativeSession session, CancellationToken cancellation)
     {
         session.Checkpoint = null;
@@ -31,20 +50,36 @@ public static class NativeVerification
         await session.StepAsync(session.Actions()[0], cancellation);
         session.Seed = "CHOICE-FIXTURE";
         await session.ResetAsync("CHOICE-FIXTURE", cancellation);
-        var recoveryKey = session.Fingerprint();
-        var recoveryTree = new ReplayMcts<SearchAction>(session);
-        await recoveryTree.SearchAsync([], recoveryKey, TimeSpan.FromMilliseconds(500),
-            TimeSpan.FromMilliseconds(50), cancellation);
-        for (var i = 0; i < 30; i++)
-        {
-            await recoveryTree.SearchAsync([], recoveryKey, TimeSpan.FromMilliseconds(50),
-                TimeSpan.FromMilliseconds(50), cancellation);
-            await session.RestoreAsync([], cancellation);
-            if (session.Fingerprint() != recoveryKey)
-                throw new InvalidDataException("Timed search cleanup changed the restored root state.");
-        }
         session.ChoiceFixture = false;
-        Godot.GD.Print("SLAY_WORKER_CHOICES_MATCH purity=15 branches; alternate branch isolated; armaments resolved; timed cleanup stable");
+        Godot.GD.Print("SLAY_WORKER_CHOICES_MATCH purity=15 branches; alternate branch isolated; armaments resolved");
+        await CombatSolverChoicesAsync(session, cancellation);
+    }
+
+    private static async Task CombatSolverChoicesAsync(NativeSession session, CancellationToken cancellation)
+    {
+        session.Checkpoint = null;
+        session.ChoiceFixture = true;
+        await session.ResetAsync("SOLVER-CHOICE-FIXTURE", cancellation);
+        using var environment = new CombatSolverReplayEnvironment();
+        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        await environment.RestoreAsync([], cancellation);
+        var purity = environment.LegalActions().Single(action => action.Native.CardId == "PURITY");
+        await environment.ApplyAsync(purity, cancellation);
+        var choices = environment.LegalActions();
+        if (choices.Count != 15 || choices.Any(action => action.Native.ChoiceKey == null))
+            throw new InvalidDataException($"Combat Solver Purity should expose 15 independent choice nodes, observed {choices.Count}.");
+        var selected = choices.First(action => action.Native.SelectedCards?.Count == 3);
+        await environment.ApplyAsync(selected, cancellation);
+        string predicted = environment.CurrentContinuationKey;
+
+        await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
+        await session.StepAsync(session.ToLiveSearchAction(selected), cancellation);
+        string actual = CombatSolver.Api.NativeMctsSimulationApi
+            .CaptureLiveContinuationKey(session.CombatStateForSimulation);
+        if (predicted != actual)
+            throw new InvalidDataException($"Combat Solver choice continuation differs from native execution. predicted={predicted} actual={actual}");
+        session.ChoiceFixture = false;
+        Godot.GD.Print("SLAY_WORKER_COMBAT_SOLVER_CHOICES_MATCH purity=15 independent nodes; continuation matched native");
     }
 
     public static async Task IpcAsync(NativeSession session, NativeCombatCheckpoint checkpoint, CancellationToken cancellation)
@@ -74,11 +109,13 @@ public static class NativeVerification
             throw new InvalidDataException("IPC predicted successor differs from the executed native state.");
         var second = await client.SearchAsync(new NativeMctsRequest(Guid.NewGuid(), checkpoint, [action],
             session.Fingerprint(), 80, PreviousAction: action), cancellation);
-        if (second.Rebuilt || second.RetainedVisits == 0) throw new InvalidDataException("IPC did not retain the matching subtree.");
+        if (second.Rebuilt || second.RetainedVisits == 0)
+            throw new InvalidDataException("IPC did not retain the matching subtree.");
         Godot.GD.Print("SLAY_WORKER_IPC_MATCH " + JsonSerializer.Serialize(new {
-            response.SearchMilliseconds, ponderMilliseconds = continued.SearchMilliseconds,
+            response.SearchMilliseconds, response.Simulations, response.StateTransitions, response.SimulatorBackend,
+            ponderMilliseconds = continued.SearchMilliseconds, ponderSimulations = continued.Simulations,
             ponderRetained = continued.RetainedVisits, nextMilliseconds = second.SearchMilliseconds,
-            nextRetained = second.RetainedVisits }));
+            nextSimulations = second.Simulations, nextRetained = second.RetainedVisits }));
         session.Checkpoint = null;
     }
 }

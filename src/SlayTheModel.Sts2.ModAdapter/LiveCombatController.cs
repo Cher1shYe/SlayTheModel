@@ -23,7 +23,7 @@ internal static class LiveCombatController
 
     public static void Initialize()
     {
-        var configuredPolicy = Environment.GetEnvironmentVariable(PolicyVariable);
+        var configuredPolicy = RuntimeConfiguration.Get(PolicyVariable);
         if (string.Equals(configuredPolicy, "mcts", StringComparison.OrdinalIgnoreCase)) return;
         if (string.IsNullOrWhiteSpace(configuredPolicy))
         {
