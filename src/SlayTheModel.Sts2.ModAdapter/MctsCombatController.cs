@@ -37,6 +37,7 @@ internal sealed class MctsCombatController : ICardSelector
     private int _searches;
     private bool _faulted;
     private string? _ponderStateKey;
+    private SearchAction? _choiceTriggerAction;
 
     private const int InitialSearchMilliseconds = 5000;
     private const int PonderSliceMilliseconds = 500;
@@ -121,6 +122,7 @@ internal sealed class MctsCombatController : ICardSelector
         if (_executor != null) _executor.BeforeActionExecuted -= Record;
         _executor = null;
         _state = null;
+        _choiceTriggerAction = null;
     }
 
     private void Record(GameAction action)
@@ -219,9 +221,13 @@ internal sealed class MctsCombatController : ICardSelector
             if (!CombatCaptureService.GetLegalActions(_state).Contains(action)) throw new InvalidDataException("Worker action is no longer legal.");
             var predictedPrefix = _prefix.ToList();
             predictedPrefix.Add(result.Action!);
-            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             if (result.NextStateKey != null)
                 StartPondering(result.NextStateKey, predictedPrefix, result.Action!, token);
+            // Publish the successor search context before invoking the live
+            // action. Cards such as Burning Pact can synchronously open a
+            // choice from inside ExecuteAsync.
+            _choiceTriggerAction = result.Action!;
+            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             try { await execution; }
             catch
             {
@@ -306,7 +312,7 @@ internal sealed class MctsCombatController : ICardSelector
                     else
                     {
                         StopPondering();
-                        response = await SearchAsync(key, _prefix.ToArray(), null,
+                        response = await SearchAsync(key, _prefix.ToArray(), _choiceTriggerAction,
                             InitialSearchMilliseconds, _generation.Token);
                     }
                     StopPondering();
@@ -324,17 +330,8 @@ internal sealed class MctsCombatController : ICardSelector
                 {
                     StopPondering();
                     _worker.Dispose();
-                    int count = Math.Min(Math.Max(0, minSelect), cards.Length);
-                    int[] fallback = Enumerable.Range(0, count).ToArray();
-                    var fallbackAction = new SearchAction(
-                        "native-choice-fallback:" + NativeCombatCheckpoint.StateKey()
-                        + $":{minSelect}:{maxSelect}:" + string.Join(',', fallback),
-                        Selection: fallback);
-                    AppendPrefix(fallbackAction);
-                    Console.Error.WriteLine("[SlayTheModel] MCTS choice unsupported; "
-                        + "using a deterministic native selection and rebuilding after the choice: "
-                        + exception.Message);
-                    return fallback.Select(index => cards[index]).ToArray();
+                    Pause(exception.ToString());
+                    throw;
                 }
             }
             if (_state == null || CombatManager.Instance.IsOverOrEnding) return [];

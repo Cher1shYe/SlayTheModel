@@ -54,6 +54,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
     public bool HasPendingChoice => _choice != null;
+    public string ChoiceSignature => _choice == null
+        ? ""
+        : $"{_min}:{_max}:{string.Join(',', _options.Select(card => card.Id.Entry).Order())}";
     public Task RestoreAsync(IReadOnlyList<SearchAction> prefix, CancellationToken cancellation) => RestoreAsync(Seed, prefix, cancellation);
     public Task ApplyAsync(SearchAction action, CancellationToken cancellation) => StepAsync(action, cancellation);
     public IReadOnlyList<SearchAction> LegalActions() => Actions();

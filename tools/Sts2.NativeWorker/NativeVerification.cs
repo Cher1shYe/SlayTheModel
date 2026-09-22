@@ -71,7 +71,8 @@ public static class NativeVerification
             throw new InvalidDataException($"Combat Solver Purity should expose 15 independent choice nodes, observed {choices.Count}.");
         environment.Promote(purity);
         await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
-        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true))
+        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true,
+                session.ChoiceSignature))
             throw new InvalidDataException("Combat Solver pending-choice root differs from native Purity choice state.");
         var selected = choices.First(action => action.Native.SelectedCards?.Count == 3);
         await environment.ApplyAsync(selected, cancellation);
@@ -150,7 +151,8 @@ public static class NativeVerification
             throw new InvalidDataException("Burning Pact did not expose native MCTS selection nodes.");
         environment.Promote(play);
         await session.StepAsync(session.ToLiveSearchAction(play), cancellation);
-        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true))
+        if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true,
+                session.ChoiceSignature))
             throw new InvalidDataException("Burning Pact pending-choice roots differ.");
         var selected = choices[0];
         await environment.ApplyAsync(selected, cancellation);

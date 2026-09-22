@@ -177,11 +177,11 @@ internal static class NativeMctsSimulation
 
     internal static NativeMctsAction ToPublicAction(PlanAction action, string? key = null,
         string cardType = "", bool gainsBlock = false, decimal damage = 0,
-        int? targetHp = null, string? choiceKey = null) => new(
+        int? targetHp = null, string? choiceKey = null, int choiceIndex = 0) => new(
         key ?? ActionKey(action), action.Kind.ToString(), action.CardId, action.CardOccurrence,
         action.CardStateKey, action.CardStateOccurrence, action.CardUpgradeLevel,
         action.CardEnchantmentId, action.TargetCombatId, cardType, gainsBlock, damage, targetHp, choiceKey,
-        action.Choice?.Cards.Select(card => new NativeMctsSelectedCard(
+        action.GetActionChoicesInExecutionOrder().ElementAtOrDefault(choiceIndex)?.Cards.Select(card => new NativeMctsSelectedCard(
             card.CardId, card.UpgradeLevel, card.StateKey, card.OptionOccurrence)).ToArray());
 
     internal static string ActionKey(PlanAction action) => string.Join(':',
@@ -189,8 +189,15 @@ internal static class NativeMctsSimulation
         action.CardStateOccurrence, action.CardUpgradeLevel, action.CardEnchantmentId,
         action.TargetCombatId?.ToString() ?? "-");
 
-    internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved)
+    internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1)
     {
+        var choices = resolved.GetActionChoicesInExecutionOrder();
+        if (choiceIndex >= 0 && choiceIndex < choices.Count)
+        {
+            string step = System.Text.Json.JsonSerializer.Serialize(choices[choiceIndex]);
+            return $"choice:{ActionKey(baseAction)}:{choiceIndex}:"
+                + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(step)));
+        }
         string payload = System.Text.Json.JsonSerializer.Serialize(new
         {
             resolved.Choice,

@@ -30,6 +30,7 @@ public partial class Worker : Node
             MegaCrit.Sts2.Core.Saves.SaveManager.Instance.InitProfileId();
             OneTimeInitialization.ExecuteEssential();
             MegaCrit.Sts2.Core.Saves.SaveManager.Instance.InitProgressData();
+            NativeReplayCompatibilityPatches.Install();
             NativeMctsSimulationApi.Initialize();
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));

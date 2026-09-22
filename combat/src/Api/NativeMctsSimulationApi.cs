@@ -42,7 +42,9 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private readonly NativeMctsState rootDescription;
     private NativeMctsState currentDescription;
     private readonly List<SimulationSnapshot> transient = [];
-    private Dictionary<string, (PlanAction Action, SimulationSnapshot Snapshot)>? pendingChoices;
+    private sealed record PendingChoiceBranch(PlanAction Action, SimulationSnapshot Snapshot);
+    private sealed record PendingChoiceGroup(IReadOnlyList<PendingChoiceBranch> Branches, int ChoiceIndex);
+    private Dictionary<string, PendingChoiceGroup>? pendingChoices;
     private int actionCount;
     private bool disposed;
 
@@ -73,15 +75,33 @@ public sealed class NativeMctsSimulationSession : IDisposable
         ArgumentNullException.ThrowIfNull(action);
         if (pendingChoices != null)
         {
-            if (!pendingChoices.TryGetValue(action.Key, out var selected))
+            if (!pendingChoices.TryGetValue(action.Key, out var selectedGroup))
                 throw new InvalidOperationException($"Unknown prediction choice action {action.Key}.");
-            foreach (var candidate in pendingChoices.Values)
-            {
-                if (!ReferenceEquals(candidate.Snapshot, selected.Snapshot))
-                    candidate.Snapshot.ReleaseSimulator();
-            }
+            foreach (var group in pendingChoices.Values.Where(group => !ReferenceEquals(group, selectedGroup)))
+                ReleaseBranches(group.Branches);
             pendingChoices = null;
-            current = selected.Snapshot;
+
+            int nextIndex = selectedGroup.ChoiceIndex + 1;
+            var withMoreChoices = selectedGroup.Branches
+                .Where(branch => ChoiceCount(branch.Action) > nextIndex)
+                .GroupBy(branch => NativeMctsSimulation.ChoiceKey(
+                    branch.Action, branch.Action, nextIndex), StringComparer.Ordinal)
+                .ToDictionary(group => group.Key,
+                    group => new PendingChoiceGroup(group.ToArray(), nextIndex),
+                    StringComparer.Ordinal);
+            if (withMoreChoices.Count > 0)
+            {
+                ReleaseBranches(selectedGroup.Branches
+                    .Where(branch => ChoiceCount(branch.Action) <= nextIndex));
+                pendingChoices = withMoreChoices;
+                currentDescription = BuildPendingDescription();
+                return currentDescription;
+            }
+
+            PendingChoiceBranch final = selectedGroup.Branches
+                .Single(branch => ChoiceCount(branch.Action) == nextIndex);
+            ReleaseBranches(selectedGroup.Branches.Where(branch => !ReferenceEquals(branch, final)));
+            current = final.Snapshot;
             transient.Add(current);
             currentDescription = driver.NativeMctsDescribe(current, actionCount);
             return currentDescription;
@@ -101,10 +121,15 @@ public sealed class NativeMctsSimulationSession : IDisposable
             return currentDescription;
         }
 
-        pendingChoices = expansion.Resolved.ToDictionary(
-            item => NativeMctsSimulation.ChoiceKey(expansion.BaseAction, item.Action),
-            item => item,
-            StringComparer.Ordinal);
+        var branches = expansion.Resolved
+            .Select(item => new PendingChoiceBranch(item.Action, item.Snapshot))
+            .ToArray();
+        pendingChoices = branches
+            .GroupBy(branch => NativeMctsSimulation.ChoiceKey(
+                expansion.BaseAction, branch.Action, 0), StringComparer.Ordinal)
+            .ToDictionary(group => group.Key,
+                group => new PendingChoiceGroup(group.ToArray(), 0),
+                StringComparer.Ordinal);
         actionCount++;
         currentDescription = BuildPendingDescription();
         return currentDescription;
@@ -148,7 +173,11 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private NativeMctsState BuildPendingDescription()
     {
         var actions = pendingChoices!.Select(pair =>
-            NativeMctsSimulation.ToPublicAction(pair.Value.Action, pair.Key, choiceKey: pair.Key)).ToArray();
+        {
+            PendingChoiceBranch branch = pair.Value.Branches[0];
+            return NativeMctsSimulation.ToPublicAction(branch.Action, pair.Key,
+                choiceKey: pair.Key, choiceIndex: pair.Value.ChoiceIndex);
+        }).ToArray();
         return new NativeMctsState(
             NativeMctsSimulation.PendingStateKey(current.StateKey, actions),
             false, false, current.PlayerHp, 0, true, actions);
@@ -175,10 +204,21 @@ public sealed class NativeMctsSimulationSession : IDisposable
     {
         if (pendingChoices == null) return;
         HashSet<SimulationSnapshot> unique = new(
-            pendingChoices.Values.Select(candidate => candidate.Snapshot),
+            pendingChoices.Values.SelectMany(candidate => candidate.Branches).Select(candidate => candidate.Snapshot),
             ReferenceEqualityComparer.Instance);
         foreach (var snapshot in unique) snapshot.ReleaseSimulator();
         pendingChoices = null;
+    }
+
+    private static int ChoiceCount(PlanAction action)
+        => action.GetActionChoicesInExecutionOrder().Count;
+
+    private static void ReleaseBranches(IEnumerable<PendingChoiceBranch> branches)
+    {
+        var unique = new HashSet<SimulationSnapshot>(
+            branches.Select(branch => branch.Snapshot), ReferenceEqualityComparer.Instance);
+        foreach (SimulationSnapshot snapshot in unique)
+            snapshot.ReleaseSimulator();
     }
 
     private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(disposed, this);

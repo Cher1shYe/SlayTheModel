@@ -59,7 +59,8 @@ public static class WorkerServer
                 bool reused = false;
                 if (returnedActions.Count > 0)
                     reused = simulation.MatchesLiveRoot(
-                        session.CombatStateForSimulation, session.HasPendingChoice);
+                        session.CombatStateForSimulation, session.HasPendingChoice,
+                        session.ChoiceSignature);
                 SearchAction? previousRequest = request.PreviousAction ?? request.Prefix.LastOrDefault();
                 if (!reused && previousRequest != null
                     && returnedActions.TryGetValue(previousRequest.Key, out var previous))
@@ -67,7 +68,8 @@ public static class WorkerServer
                     simulation.Promote(previous);
                     tree.Advance(previous);
                     reused = simulation.MatchesLiveRoot(
-                        session.CombatStateForSimulation, session.HasPendingChoice);
+                        session.CombatStateForSimulation, session.HasPendingChoice,
+                        session.ChoiceSignature);
                 }
                 if (!reused)
                 {
@@ -87,7 +89,11 @@ public static class WorkerServer
                 var result = await tree.SearchAsync([], simulation.RootKey, budget, budget);
                 var predictedSimulation = simulation.PredictSuccessor(result.Action);
                 var selectedAction = session.ToLiveSearchAction(result.Action);
+                // Keep both transport identities. The live controller records
+                // a compact descriptor key, while pondered results carry the
+                // immutable full card identity key.
                 returnedActions[selectedAction.Key] = result.Action;
+                returnedActions[result.Action.Key] = result.Action;
                 await session.ApplyAsync(selectedAction, CancellationToken.None);
                 var nextStateKey = session.Terminal ? null : session.StateKey();
                 bool predictionMatched = true;
@@ -124,4 +130,5 @@ public static class WorkerServer
             File.Move(output + ".tmp", output, true);
         }
     }
+
 }

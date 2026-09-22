@@ -35,13 +35,24 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     public string CurrentContinuationStateText
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationStateText;
 
-    public bool MatchesLiveRoot(MegaCrit.Sts2.Core.Combat.CombatState combat, bool livePendingChoice)
+    public bool MatchesLiveRoot(MegaCrit.Sts2.Core.Combat.CombatState combat,
+        bool livePendingChoice, string liveChoiceSignature = "")
     {
         RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
-        if (livePendingChoice) return state.PendingChoice;
+        if (livePendingChoice)
+            return state.PendingChoice && PendingChoiceSignature() == liveChoiceSignature;
         if (state.PendingChoice) return false;
         return CurrentContinuationKey == NativeMctsSimulationApi.CaptureLiveContinuationKey(combat);
     }
+
+    private string PendingChoiceSignature()
+        => state.PendingChoice
+            ? $"{state.LegalActions.Min(action => action.SelectedCards?.Count ?? 0)}:"
+                + $"{state.LegalActions.Max(action => action.SelectedCards?.Count ?? 0)}:"
+                + string.Join(',', state.LegalActions
+                    .SelectMany(action => action.SelectedCards ?? [])
+                    .Select(card => card.CardId).Distinct().Order())
+            : "";
 
     public void Promote(CombatSolverMctsAction action)
     {
