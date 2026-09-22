@@ -2,7 +2,9 @@ using SlayTheModel.Search;
 
 var environment = new ReplayToy();
 var tree = new ReplayMcts<int>(environment);
-var budget = TimeSpan.FromMilliseconds(80);
+// Leave enough room for first-run JIT on slower or heavily loaded machines.
+// The environment itself is deterministic; this is not a throughput benchmark.
+var budget = TimeSpan.FromMilliseconds(250);
 var first = await tree.SearchAsync([], "0", budget, budget);
 if (first.CompletedSimulations == 0 || !first.Rebuilt || first.Action != 1)
     throw new Exception("Expected completed search choosing the high-value branch.");

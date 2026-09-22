@@ -1,5 +1,28 @@
 using SlayTheModel.Sts2.ModAdapter;
 
+var defaults = AdapterConfiguration.Load(_ => null);
+if (defaults != AdapterConfiguration.Default)
+    throw new Exception("Missing launch settings must select safe play/manual/manual defaults.");
+var settings = new Dictionary<string, string?>
+{
+    [AdapterConfiguration.RunModeVariable] = "train",
+    [AdapterConfiguration.CombatPolicyVariable] = "MCTS",
+    [AdapterConfiguration.OutsideCombatPolicyVariable] = "first_legal",
+};
+var configured = AdapterConfiguration.Load(name => settings.GetValueOrDefault(name));
+if (configured.RunMode != AdapterRunMode.Train || configured.CombatPolicy != CombatPolicyKind.Mcts
+    || configured.OutsideCombatPolicy != OutsideCombatPolicyKind.FirstLegal)
+    throw new Exception("Explicit launch settings were not parsed correctly.");
+var legacy = AdapterConfiguration.Load(name => name == AdapterConfiguration.LegacyCombatPolicyVariable ? "first-legal" : null);
+if (!legacy.UsedLegacyCombatPolicy || legacy.CombatPolicy != CombatPolicyKind.FirstLegal)
+    throw new Exception("The deprecated combat policy variable must remain compatible.");
+try
+{
+    AdapterConfiguration.Load(name => name == AdapterConfiguration.RunModeVariable ? "invalid" : null);
+    throw new Exception("Unknown launch modes must be rejected.");
+}
+catch (ArgumentException) { }
+
 var ponder = new PonderResultCache<string>();
 ponder.Begin("predicted");
 if (ponder.Publish("different", "stale") || ponder.TryGet("predicted", out _))
@@ -59,4 +82,4 @@ try
 catch (OperationCanceledException) { }
 if (afterCancellation) throw new Exception("Cancelled actions must not wait for idle.");
 await NativeActionCompletion.WaitAsync(Task.CompletedTask, () => Task.CompletedTask);
-Console.WriteLine("action completion: ponder cache, worker isolation, paused choice, queue cleanup, cancellation, synchronous completion passed");
+Console.WriteLine("action completion: launch configuration, ponder cache, worker isolation, paused choice, queue cleanup, cancellation, synchronous completion passed");

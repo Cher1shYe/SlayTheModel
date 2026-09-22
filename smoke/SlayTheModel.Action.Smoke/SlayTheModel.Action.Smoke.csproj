@@ -6,5 +6,6 @@
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="NativeActionCompletion.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PonderResultCache.cs" Link="PonderResultCache.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="NativeWorkerLaunch.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/AdapterConfiguration.cs" Link="AdapterConfiguration.cs" />
   </ItemGroup>
 </Project>

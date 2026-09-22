@@ -32,7 +32,10 @@ internal static class AiStatusOverlay
         button.OffsetRight = -20;
         button.OffsetTop = 100;
         button.OffsetBottom = 142;
-        button.AddThemeFontOverride("font", new SystemFont { FontNames = ["Microsoft YaHei", "Noto Sans CJK SC", "sans-serif"] });
+        var statusFont = LoadStatusFont();
+        if (statusFont is not null)
+            button.AddThemeFontOverride("font", statusFont);
+        GD.Print($"[SlayTheModel] status overlay attached font={(statusFont is null ? "game-default" : statusFont.GetType().Name)}");
         button.AddThemeFontSizeOverride("font_size", 17);
         button.AddThemeStyleboxOverride("normal", Style("#15202beF"));
         button.AddThemeStyleboxOverride("disabled", Style("#15202beF"));
@@ -56,6 +59,44 @@ internal static class AiStatusOverlay
         layer.TreeExiting += () => tree.ProcessFrame -= Refresh;
         Refresh();
         return button;
+    }
+
+    private static Font? LoadStatusFont()
+    {
+        if (OperatingSystem.IsMacOS())
+        {
+            // SystemFont resolves some macOS TTC families to an empty file in the
+            // game's Godot build. Loading the actual file avoids zero font metrics,
+            // which made the complete status button disappear.
+            string[] paths =
+            [
+                "/System/Library/Fonts/Hiragino Sans GB.ttc",
+                "/System/Library/Fonts/STHeiti Medium.ttc",
+            ];
+            foreach (var path in paths)
+            {
+                if (!File.Exists(path)) continue;
+                try
+                {
+                    // Supplying bytes avoids a Godot 4.5 macOS path-resolution
+                    // issue where LoadDynamicFont reports success but later asks
+                    // FreeType to open an empty filename.
+                    var font = new FontFile { Data = File.ReadAllBytes(path) };
+                    GD.Print($"[SlayTheModel] loaded status font {path}");
+                    return font;
+                }
+                catch (Exception exception)
+                {
+                    GD.PushWarning($"[SlayTheModel] could not load status font {path}: {exception.Message}");
+                }
+            }
+
+            // Keeping the game theme font is preferable to installing a broken
+            // override: the button remains visible even if Chinese glyphs are absent.
+            return null;
+        }
+
+        return new SystemFont { FontNames = ["Microsoft YaHei", "Noto Sans CJK SC"] };
     }
 
     private static StyleBoxFlat Style(string background) => new()

@@ -17,8 +17,28 @@ public static class AdapterBootstrap
         }
 
         _initialized = true;
-        MctsCombatController.Initialize();
-        LiveCombatController.Initialize();
+        AdapterConfiguration configuration;
+        try
+        {
+            configuration = AdapterConfiguration.LoadFromEnvironment();
+        }
+        catch (ArgumentException exception)
+        {
+            configuration = AdapterConfiguration.Default;
+            Console.Error.WriteLine($"[SlayTheModel] invalid launch configuration; automation disabled: {exception.Message}");
+        }
+
+        Console.WriteLine($"[SlayTheModel] configuration {configuration.Describe()}");
+        if (configuration.UsedLegacyCombatPolicy)
+        {
+            Console.WriteLine(
+                $"[SlayTheModel] {AdapterConfiguration.LegacyCombatPolicyVariable} is deprecated; "
+                + $"use {AdapterConfiguration.CombatPolicyVariable} instead");
+        }
+
+        MctsCombatController.Initialize(configuration);
+        LiveCombatController.Initialize(configuration);
+        OutsideCombatController.Initialize(configuration);
         AiStatusOverlay.Initialize();
         var manager = CombatManager.Instance;
         manager.CombatBegan += OnCombatBegan;
