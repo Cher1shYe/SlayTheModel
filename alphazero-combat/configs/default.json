@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "project": "alphazero-combat",
+  "gameVersion": "v0.111.0",
+  "contentPolicy": {
+    "catalog": "../combat/coverage/combat-hooks.json",
+    "admitOnlyRegistered": true,
+    "requireEffectiveStatus": ["Exact", "Covered", "SolverCompensation", "NativeRuntimeState"],
+    "rejectUnknownByDefault": true,
+    "singlePlayer": true,
+    "excludeRooms": ["Event", "Shop", "RestSite"]
+  },
+  "observation": {
+    "schemaVersion": 1,
+    "allowlistModule": "src/azcombat/schema.py",
+    "includeRng": false,
+    "includeFutureDraws": false,
+    "includeFutureIntent": false,
+    "includeNativePayload": false
+  },
+  "actionAbi": {
+    "schemaVersion": 1,
+    "hierarchical": true,
+    "rootActions": ["PlayCard", "UsePotion", "EndTurn"],
+    "choiceKinds": ["Target", "Option", "CardSubset", "CardOrder", "NestedChoice"],
+    "maskIllegalActions": true
+  },
+  "model": {
+    "encoder": "DeepSets",
+    "entityEmbeddingDim": 128,
+    "setHiddenDim": 256,
+    "globalMlpLayers": [256, 256],
+    "policyHead": "hierarchical_candidate_scorer",
+    "valueHead": "scalar",
+    "trainingFramework": "Python",
+    "exportFormat": "ONNX",
+    "inferenceHost": "NativeWorker"
+  },
+  "search": {
+    "style": "AlphaZero",
+    "initialData": "existing-mcts-traces",
+    "selfPlayAfterWarmStart": true,
+    "minimumEffectiveSimulationsPerSecond": 100,
+    "minimumWallClockMillisecondsPerLiveDecision": 1000
+  },
+  "starts": ["full_combat", "mid_combat_verified"],
+  "promotionGates": {
+    "unseenSeedEvaluation": true,
+    "illegalActionRateMaximum": 0.0,
+    "nestedChoiceRegression": true,
+    "deathSettlementRegression": true,
+    "bothStartTypesRequired": true,
+    "minimumEffectiveSimulationsPerSecond": 100,
+    "minimumWallClockMillisecondsPerLiveDecision": 1000
+  }
+}
