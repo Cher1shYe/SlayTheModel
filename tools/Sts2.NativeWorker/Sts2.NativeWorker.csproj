@@ -2,22 +2,79 @@
   <PropertyGroup>
     <AssemblyName>NativeWorker</AssemblyName>
     <EnableDynamicLoading>true</EnableDynamicLoading>
+
+    <!--
+      Keep path-valued properties on one line. MSBuild preserves whitespace in
+      element content, so an indented multi-line value becomes a path containing
+      newlines and silently makes Exists(...) conditions fail.
+
+      The platform scripts pass explicit resolved paths. These defaults keep
+      direct Windows builds and STS2_RITSULIB_DIR-based builds convenient.
+    -->
     <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+    <CombatSolverRoot Condition="'$(CombatSolverRoot)' == ''">$(MSBuildProjectDirectory)/../../combat</CombatSolverRoot>
+    <RitsuLibRoot Condition="'$(RitsuLibRoot)' == ''">$(STS2_RITSULIB_DIR)</RitsuLibRoot>
+
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
+
   <ItemGroup>
-    <!-- Keep the native worker self-contained from the managed loader's point
-         of view. Godot loads one project assembly; compile the small search
-         core into it just like the protocol and bridge sources below. -->
-    <Compile Include="../../src/SlayTheModel.Search/*.cs" Link="Search/%(Filename)%(Extension)" />
-    <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
-    <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="Bridge/NativeCombatCheckpoint.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs" Link="Bridge/NativeMctsMessages.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs" Link="Bridge/NativeWorkerClient.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="Bridge/NativeWorkerLaunch.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatCaptureService.cs" Link="Bridge/CombatCaptureService.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatActionExecutor.cs" Link="Bridge/CombatActionExecutor.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="Bridge/NativeActionCompletion.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.Protocol/*.cs" Link="Protocol/%(Filename)%(Extension)" />
+    <ProjectReference
+      Include="../../src/SlayTheModel.Search/SlayTheModel.Search.csproj" />
+
+    <ProjectReference
+      Include="$(CombatSolverRoot)/CombatSolver.csproj"
+      Condition="Exists('$(CombatSolverRoot)/CombatSolver.csproj')" />
+
+    <Reference Include="STS2-RitsuLib.Runtime"
+               HintPath="$(RitsuLibRoot)/compat/0.111.0/STS2-RitsuLib.Runtime.dll"
+               Private="true" />
+    <Reference Include="STS2-RitsuLib"
+               HintPath="$(RitsuLibRoot)/compat/0.111.0/STS2-RitsuLib.dll"
+               Private="true" />
+    <Reference Include="STS2-RitsuLib.Shared"
+               HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Shared.dll"
+               Private="true" />
+    <Reference Include="STS2-RitsuLib.Ui"
+               HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Ui.dll"
+               Private="true" />
+    <Reference Include="STS2-RitsuLib.Settings"
+               HintPath="$(RitsuLibRoot)/shared/STS2-RitsuLib.Settings.dll"
+               Private="true" />
+
+    <Reference Include="sts2"
+               HintPath="$(Sts2ManagedDir)/sts2.dll" />
+    <Reference Include="0Harmony"
+               HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
+
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs"
+             Link="Bridge/NativeCombatCheckpoint.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs"
+             Link="Bridge/NativeMctsMessages.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs"
+             Link="Bridge/NativeWorkerClient.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs"
+             Link="Bridge/NativeWorkerLaunch.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs"
+             Link="Bridge/RuntimeConfiguration.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatCaptureService.cs"
+             Link="Bridge/CombatCaptureService.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/CombatActionExecutor.cs"
+             Link="Bridge/CombatActionExecutor.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs"
+             Link="Bridge/NativeActionCompletion.cs" />
+
+    <Compile Include="../../src/SlayTheModel.Sts2.Protocol/*.cs"
+             Link="Protocol/%(Filename)%(Extension)" />
   </ItemGroup>
+
+  <!-- Fail early with actionable messages instead of producing many missing-type errors. -->
+  <Target Name="ValidateNativeWorkerInputs" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(CombatSolverRoot)/CombatSolver.csproj')"
+           Text="Combat Solver source not found at $(CombatSolverRoot). Pass -p:CombatSolverRoot=/path/to/combat." />
+    <Error Condition="!Exists('$(Sts2ManagedDir)/sts2.dll')"
+           Text="STS2 managed assemblies not found at $(Sts2ManagedDir). Pass -p:Sts2ManagedDir=/path/to/data_sts2_* directory." />
+    <Error Condition="!Exists('$(RitsuLibRoot)/compat/0.111.0/STS2-RitsuLib.dll')"
+           Text="RitsuLib v0.111.0 not found at $(RitsuLibRoot). Set STS2_RITSULIB_DIR or pass -p:RitsuLibRoot=/path/to/workshop/3747602295." />
+  </Target>
 </Project>

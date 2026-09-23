@@ -40,10 +40,10 @@ internal sealed class NativeWorkerClient : IDisposable
     private void EnsureStarted()
     {
         if (_process is { HasExited: false }) return;
-        var exe = Environment.GetEnvironmentVariable("SLAY_THE_MODEL_WORKER_EXE")
-            ?? throw new InvalidOperationException("Launch mcts through scripts/windows.ps1 after building the native worker.");
-        var project = Environment.GetEnvironmentVariable("SLAY_THE_MODEL_WORKER_PROJECT")
-            ?? throw new InvalidOperationException("Missing worker project path.");
+        var exe = RuntimeConfiguration.Get("SLAY_THE_MODEL_WORKER_EXE")
+            ?? throw new InvalidOperationException("MCTS worker path is not configured. Run the platform install/launch script first.");
+        var project = RuntimeConfiguration.Get("SLAY_THE_MODEL_WORKER_PROJECT")
+            ?? throw new InvalidOperationException("MCTS worker project path is not configured. Run the platform install/launch script first.");
         _directory = Path.Combine(CombatCaptureService.GetOutputDirectory(), "search", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(_directory);
         var start = new ProcessStartInfo(exe)
@@ -56,10 +56,15 @@ internal sealed class NativeWorkerClient : IDisposable
         start.ArgumentList.Add("--headless");
         start.ArgumentList.Add("--path");
         start.ArgumentList.Add(project);
+        // Every worker gets its own Godot log. Reusing user://logs can make two
+        // overlapping worker processes race while Godot rotates the same file;
+        // on macOS that can terminate the child before managed startup runs.
+        start.ArgumentList.Add("--log-file");
+        start.ArgumentList.Add(Path.Combine(_directory, "godot.log"));
         start.Environment["STS2_WORKER_MODE"] = "serve";
         start.Environment["STS2_WORKER_INBOX"] = _directory;
         start.Environment["STS2_WORKER_PARENT"] = Environment.ProcessId.ToString();
-        start.Environment["STS2_GAME_PACK"] = Environment.GetEnvironmentVariable("STS2_GAME_PACK")
+        start.Environment["STS2_GAME_PACK"] = RuntimeConfiguration.Get("STS2_GAME_PACK")
             ?? Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "SlayTheSpire2.pck");
         _process = new Process { StartInfo = start };
         var directory = _directory;

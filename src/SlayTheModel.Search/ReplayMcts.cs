@@ -62,7 +62,8 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                 deadline.Token.ThrowIfCancellationRequested();
                 await environment.RestoreAsync(prefix, deadline.Token);
                 if (environment.StateKey() != expectedStateKey)
-                    throw new InvalidDataException("Native reconstruction differs from the requested root state.");
+                    throw new InvalidDataException(
+                        $"Native reconstruction differs from the requested root state. expected={expectedStateKey} actual={environment.StateKey()}");
                 if (environment.Terminal) throw new InvalidOperationException("Cannot search a terminal state.");
                 _root ??= new Node(expectedStateKey, environment.LegalActions());
                 var node = _root;

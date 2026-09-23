@@ -10,6 +10,7 @@ using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Rooms;
+using CombatSolver.Api;
 
 public partial class Worker : Node
 {
@@ -29,9 +30,22 @@ public partial class Worker : Node
             MegaCrit.Sts2.Core.Saves.SaveManager.Instance.InitProfileId();
             OneTimeInitialization.ExecuteEssential();
             MegaCrit.Sts2.Core.Saves.SaveManager.Instance.InitProgressData();
+            NativeReplayCompatibilityPatches.Install();
+            NativeMctsSimulationApi.Initialize();
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-benchmark")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                foreach (var type in Enum.GetValues<MegaCrit.Sts2.Core.Logging.LogType>())
+                    MegaCrit.Sts2.Core.Logging.Logger.SetLogLevelForType(type, MegaCrit.Sts2.Core.Logging.LogLevel.Warn);
+                await CombatSolverMctsBenchmark.RunAsync(session,
+                    System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT") ?? "solver-mcts-benchmark.json",
+                    timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "serve")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
@@ -69,6 +83,7 @@ public partial class Worker : Node
             MegaCrit.Sts2.Core.Logging.Logger.GlobalLogLevel = MegaCrit.Sts2.Core.Logging.LogLevel.Warn;
             foreach (var logType in Enum.GetValues<MegaCrit.Sts2.Core.Logging.LogType>())
                 MegaCrit.Sts2.Core.Logging.Logger.SetLogLevelForType(logType, MegaCrit.Sts2.Core.Logging.LogLevel.Warn);
+            await NativeVerification.CombatSolverEndTurnAsync(session, timeout.Token);
             await NativeVerification.ChoicesAsync(session, timeout.Token);
             await NativeVerification.IpcAsync(session, checkpoint, timeout.Token);
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "benchmark")

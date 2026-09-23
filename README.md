@@ -10,6 +10,7 @@
 
 - 新增局外决策系统，将局内出牌与地图、奖励、事件、商店、休息点和宝箱等局外操作分离；
 - 完成第一版局内、局外 `first-legal`，已经能够作为确定性的整局自动化基线；
+- 接入 Combat Solver 无头模拟后端，由独立 NativeWorker 为本项目的 ReplayMcts/UCT 提供可复制战斗状态；
 - 打通“读取状态 → 抽象决策状态 → 生成合法动作 → 执行动作 → 等待游戏同步 → 继续决策”的局内外闭环。
 
 > 当前仓库仍处于早期开发阶段。`first-legal` 主要用于接口联调和大规模自动化测试，不是 MCTS，也不代表最终模型强度。
@@ -25,7 +26,7 @@
 - 无头 smoke test 与采集文件检查工具；
 - 第一版局内与局外 `first-legal` 自动操作，用于验证整局控制闭环并运行自动化基线。
 
-目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker；`first-legal` 仍是独立联调策略。
+目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker 和 Combat Solver 模拟后端；`first-legal` 仍是独立联调策略。
 
 ## 启动配置接口
 
@@ -47,6 +48,8 @@ SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY
 
 默认配置是 `play / manual / manual`，即保持状态采集，但不自动操作。旧的 `-Policy` 参数和 `SLAY_THE_MODEL_LIVE_POLICY` 环境变量暂时兼容，后续新代码应使用上面的显式接口。无效配置会安全退回到手动操作。
 
+Mod 通过两层配置读取启动参数：`RuntimeConfiguration` 先读取当前游戏进程的环境变量，若对应值不存在，再读取 Mod 目录中的 `SlayTheModelAdapter.runtime.json`；`AdapterConfiguration` 随后把字符串统一解析成上表的三组枚举。Windows 安装脚本会写入该 JSON，解决 Steam 已经运行时不一定继承临时 PowerShell 环境的问题。局内、局外控制器只接收解析后的 `AdapterConfiguration`，不会各自解释环境变量。
+
 ## 环境要求
 
 当前安装与启动流程已在以下环境验证：
@@ -54,6 +57,8 @@ SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY
 - macOS；
 - Steam 版《杀戮尖塔 2》；
 - 游戏版本 `v0.111.0`；
+- 构建 MCTS NativeWorker 时，需要安装 Steam Workshop 中的 STS2-RitsuLib（Workshop ID `3747602295`）；
+- macOS 的 NativeWorker 打包脚本使用系统 `jq` 合并 MegaDot 自包含运行时与 worker 依赖清单；
 - .NET SDK `9.0.306`。`global.json` 允许滚动到同一 SDK 的更新 feature band。
 
 Windows x64 已通过本机 v0.111.0 的 Release 构建、搜索/协议 smoke 测试和 ABI 契约检查；游戏内加载和自动战斗仍需交互验证。
@@ -71,14 +76,10 @@ dotnet --version
 在仓库根目录执行：
 
 ```bash
-dotnet build smoke/SlayTheModel.Search.Smoke/SlayTheModel.Search.Smoke.csproj
-dotnet run --project smoke/SlayTheModel.Search.Smoke/SlayTheModel.Search.Smoke.csproj
-
-dotnet build smoke/SlayTheModel.Protocol.Smoke/SlayTheModel.Protocol.Smoke.csproj
-dotnet run --project smoke/SlayTheModel.Protocol.Smoke/SlayTheModel.Protocol.Smoke.csproj
+./scripts/macos.sh --action test
 ```
 
-这些测试不需要启动游戏。它们验证通用搜索器、协议、状态哈希和决策信息隔离，但不会凭空创建一场真实 STS2 战斗。
+该命令依次运行 Search、Protocol、Action 和 ReplaySearch 四组 smoke 测试，不需要启动游戏。它们验证通用搜索器、协议、状态哈希、配置解析、动作完成和决策信息隔离，但不会凭空创建一场真实 STS2 战斗。
 
 读取本机游戏程序集的 ABI 信息时，工具只读取元数据，不加载或执行游戏代码：
 
@@ -114,7 +115,7 @@ cp src/SlayTheModel.Sts2.ModAdapter/bin/Release/net9.0/SlayTheModelAdapter.dll "
 cp src/SlayTheModel.Sts2.ModAdapter/SlayTheModelAdapter.json "$STS2_MOD_DIR/"
 ```
 
-安装目录最终只需要这两个文件：
+macOS 安装目录最终只需要这两个文件：
 
 ```text
 SlayTheModelAdapter/
@@ -123,6 +124,8 @@ SlayTheModelAdapter/
 ```
 
 协议类型已经编译进主 DLL，不需要另外复制 `SlayTheModel.Sts2.Protocol.dll`。更新 Mod 时，退出游戏、重新构建并覆盖上述两个文件即可。
+
+Windows 安装脚本还会在同一目录生成 `SlayTheModelAdapter.runtime.json`。它只保存本机启动配置和路径，不包含模型或游戏数据，也不应作为另一台电脑的通用配置提交。
 
 ## macOS 启动方式一：只采集状态，不自动打牌
 
@@ -231,7 +234,7 @@ Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本�
 
 ## 实验性 MCTS（Windows / macOS ARM64，v0.3.0）
 
-已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒搜索、动作与动画期间以 500 毫秒时间片持续思考、搜索树复用，以及 F8 暂停／恢复。决策点只采用与实际完整状态指纹匹配的最新结果。首版仅面向单人铁甲战士，不使用药水，战斗外手动操作。
+已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒搜索、动作与动画期间以 500 毫秒时间片持续思考、搜索树复用，以及 F8 暂停／恢复。决策点只采用与实际完整状态指纹匹配的最新结果。首版仅面向单人铁甲战士且不使用药水；局外既可以保持 `manual`，也可以独立启用 `first-legal`。
 
 游戏右上角显示 MCTS 状态按钮：绿色开启、蓝色思考中、黄色暂停、灰色未开启或不支持。战斗中可点击暂停／恢复，悬停查看说明。
 
@@ -248,6 +251,13 @@ macOS ARM64：
 ./scripts/macos.sh --action install
 ./scripts/macos.sh --action launch --run-mode play \
   --combat-policy mcts --outside-combat-policy manual --capture-history
+```
+
+脚本默认在 Steam 的标准 Workshop 目录查找 RitsuLib。如果 Workshop 位于其他 Steam 库，使用：
+
+```bash
+./scripts/native-worker-macos.sh --mode verify \
+  --ritsu-lib-root "/实际路径/steamapps/workshop/content/2868840/3747602295"
 ```
 
 Windows 和 macOS ARM64 的原生重放、后续选牌和跨进程状态校验已经通过；实际游戏窗口和广泛卡牌组合仍需验证。3 个固定遭遇测试中 MCTS 获胜 3/3，但不能据此推断整局强度。详见 [使用说明、测试结果与限制](docs/native-mcts-v0.3.0.md) 和 [设计方案](docs/combat-mcts-v1-plan.md)。
@@ -325,3 +335,67 @@ dotnet run --project tools/SlayTheModel.CaptureCheck -- \
 - [STS2 v0.111.0 接口说明](docs/sts2-v0.111.0-abi.md)
 
 本项目要求使用者自行拥有合法安装的游戏，仓库不分发游戏程序集或游戏资源。
+
+## Combat Solver MCTS 后端（Windows / macOS ARM64）
+
+当前分支把 Combat Solver 源码放在仓库内的 `combat/` 目录中。它只负责提供可复制的无头战斗模拟；出牌策略仍然是本项目自己的 `ReplayMcts`/UCT，Combat Solver 的 Beam Search 不会接管决策。
+
+集成边界如下：
+
+- `tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs` 将 Combat Solver 的 root snapshot、fork 和动作展开适配为 MCTS 模拟环境；
+- 游戏适配器负责捕获战斗 checkpoint、执行真实动作，并校验预测 continuation；
+- 当前固定使用 Combat Solver commit `8826a333a6d48e05f0e368ee2db5d4a15092382e`；
+- 只保证原版卡牌/敌人以及 Combat Solver 已登记适配的内容；药水不进入搜索；
+- 不支持的动态选择或效果会显式报告错误，不会静默使用不一致的状态。
+
+Combat Solver 的桥接源码位于 `combat/src/Api/NativeMctsSimulationApi.cs` 和 `combat/src/Search/CombatBeamSolver.NativeMcts.cs`。该目录保留独立仓库的原始未提交桥接修改，但主仓库提交会把源码作为普通文件纳入，而不是 Git submodule。
+
+### Windows 构建与验证
+
+在仓库根目录执行：
+
+```powershell
+& '.\scripts\native-worker.ps1' `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2' `
+  -Mode verify
+```
+
+脚本默认从游戏所在 Steam 库的 `steamapps\workshop` 目录查找 RitsuLib。如果 Workshop 位于其他库，额外传入 `-RitsuLibRoot 'D:\其他库\steamapps\workshop\content\2868840\3747602295'`，或设置 `STS2_RITSULIB_DIR`。
+
+验证会重新构建 `combat/` 和 `tools/Sts2.NativeWorker`，并检查：原生 EndTurn 状态一致性、Purity 等选牌分支、IPC、连续思考和跨动作子树复用。性能基准使用：
+
+```powershell
+& '.\scripts\native-worker.ps1' `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2' `
+  -Mode solver-mcts-benchmark
+```
+
+### Steam 已运行时启动 MCTS
+
+安装会生成：
+
+```text
+D:\Steam\steamapps\common\Slay the Spire 2\mods\SlayTheModelAdapter\SlayTheModelAdapter.runtime.json
+```
+
+该文件保存三类运行模式以及 worker、项目、游戏包和导出目录。适配器优先读取进程环境变量，缺失时读取这个持久配置，因此不需要退出 Steam：
+
+```powershell
+& '.\scripts\windows.ps1' `
+  -Action Install `
+  -RunMode play `
+  -CombatPolicy mcts `
+  -OutsideCombatPolicy manual `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
+
+& '.\scripts\windows.ps1' `
+  -Action Launch `
+  -RunMode play `
+  -CombatPolicy mcts `
+  -OutsideCombatPolicy manual `
+  -GameDir 'D:\Steam\steamapps\common\Slay the Spire 2'
+```
+
+启动前只需要确保游戏进程已经退出；Steam 客户端可以继续运行。脚本通过 `steam.exe -applaunch 2868840` 启动游戏，游戏内 MCTS 仍使用独立 NativeWorker。不要同时启用 Combat Solver 自带的自动出牌控制器。
+
+更详细的桥接关系、状态推进方式和已知限制见 [Combat Solver MCTS 后端说明](docs/combat-solver-mcts-backend.md)。

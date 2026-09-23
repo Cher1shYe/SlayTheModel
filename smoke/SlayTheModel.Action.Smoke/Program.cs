@@ -39,6 +39,21 @@ ponder.Begin("next");
 if (ponder.TryGet("predicted", out _))
     throw new Exception("Changing roots must invalidate the previous prediction.");
 
+var failedPonder = ponder.WaitForFirstAsync("next", CancellationToken.None);
+ponder.Fail("next", new InvalidOperationException("replay diverged"));
+try
+{
+    await failedPonder;
+    throw new Exception("A failed first ponder slice must wake the waiting decision.");
+}
+catch (PonderSearchFailedException exception) when (exception.InnerException?.Message == "replay diverged") { }
+
+ponder.Begin("usable-before-failure");
+ponder.Publish("usable-before-failure", "last-good");
+ponder.Fail("usable-before-failure", new InvalidOperationException("later slice failed"));
+if (!ponder.TryGet("usable-before-failure", out var lastGood) || lastGood != "last-good")
+    throw new Exception("A later ponder failure must not discard an already usable result.");
+
 var workerStart = new System.Diagnostics.ProcessStartInfo();
 workerStart.Environment[NativeWorkerLaunch.SentryGodotLibraryPath] = "inherited-game-extension";
 workerStart.Environment["SLAY_THE_MODEL_SENTINEL"] = "keep";

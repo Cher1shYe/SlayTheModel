@@ -23,6 +23,7 @@ using SlayTheModel.Sts2.Protocol;
 using SlayTheModel.Search;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using CombatSolver.Api;
 
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
@@ -32,7 +33,11 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public NativeCombatCheckpoint? Checkpoint { get; set; }
     public int EntryHp { get; set; } = 80;
     public bool ChoiceFixture { get; set; }
+    public string[] ChoiceFixtureCards { get; set; } =
+        ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
+    public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
+    public string EncounterId { get; set; } = "CULTISTS_NORMAL";
     private Player _player = null!;
     private CombatState _state = null!;
     private TaskCompletionSource<IEnumerable<CardModel>>? _choice;
@@ -47,10 +52,61 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
     public long Transitions { get; private set; }
+    public CombatState CombatStateForSimulation => _state;
+    public bool HasPendingChoice => _choice != null;
+    public string ChoiceSignature => _choice == null
+        ? ""
+        // The native selector may retain its requested maximum even when fewer
+        // cards exist. Search exposes only realizable subsets, so compare the
+        // effective bounds and distinct model IDs on both sides. For example,
+        // Neow's Fury requests 0-2 cards but a one-card discard pile permits 0-1.
+        : FormatChoiceSignature(_min, _max, _options);
     public Task RestoreAsync(IReadOnlyList<SearchAction> prefix, CancellationToken cancellation) => RestoreAsync(Seed, prefix, cancellation);
     public Task ApplyAsync(SearchAction action, CancellationToken cancellation) => StepAsync(action, cancellation);
     public IReadOnlyList<SearchAction> LegalActions() => Actions();
     public string StateKey() => Fingerprint();
+
+    internal static string FormatChoiceSignature(
+        int minSelect, int maxSelect, IReadOnlyCollection<CardModel> options)
+        => $"{Math.Min(minSelect, options.Count)}:{Math.Min(maxSelect, options.Count)}:"
+            + string.Join(',', options.Select(card => card.Id.Entry).Distinct().Order());
+
+    public SearchAction ToLiveSearchAction(CombatSolverMctsAction action)
+    {
+        NativeMctsAction predicted = action.Native;
+        if (predicted.ChoiceKey != null)
+        {
+            int[] indices = NativeMctsSimulationApi.ResolveLiveSelection(_options, predicted);
+            return new SearchAction(predicted.Key, Selection: indices);
+        }
+        if (predicted.Kind == "EndTurn")
+        {
+            var end = new CombatActionDescriptor(CombatActionKind.EndTurn, _player.NetId);
+            return new SearchAction(predicted.Key, end);
+        }
+        if (predicted.Kind != "PlayCard")
+            throw new InvalidOperationException($"Unsupported prediction action {predicted.Kind}.");
+        var card = NativeMctsSimulationApi.ResolveLiveCard(_state, predicted);
+        var play = new CombatActionDescriptor(
+            CombatActionKind.PlayCard,
+            _player.NetId,
+            NetCombatCard.FromModel(card).CombatCardIndex,
+            TargetCreatureId: predicted.TargetCombatId);
+        if (!card.CanPlay()) throw new InvalidOperationException($"Predicted card {predicted.CardId} is no longer playable.");
+        if (predicted.TargetCombatId is uint targetId)
+        {
+            var target = _state.Creatures.Single(creature => creature.CombatId == targetId);
+            if (!card.CanPlayTargeting(target))
+                throw new InvalidOperationException($"Predicted target {targetId} is no longer legal.");
+        }
+        return new SearchAction(predicted.Key, play);
+    }
+
+    public void ValidateSimulationActions(IReadOnlyList<CombatSolverMctsAction> actions)
+    {
+        foreach (var action in actions) _ = ToLiveSearchAction(action);
+    }
+
     public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
@@ -73,18 +129,25 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             if (ChoiceFixture)
             {
                 _player.Deck.Clear();
-                foreach (var canonical in new CardModel[] { ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Purity>(),
-                    ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Armaments>(), ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.Headbutt>(),
-                    ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.StrikeIronclad>(), ModelDb.Card<MegaCrit.Sts2.Core.Models.Cards.DefendIronclad>() })
+                foreach (string entry in ChoiceFixtureCards)
                 {
+                    var canonical = ModelDb.AllCards.Single(card => card.Id.Entry == entry);
                     var card = canonical.ToMutable();
+                    if (ChoiceFixtureUpgradedCards.Contains(entry))
+                    {
+                        HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
+                        HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);
+                    }
                     _player.Deck.AddInternal(card);
                 }
             }
             var run = RunState.CreateForTest([_player], seed: seed);
             RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
             _selector = CardSelectCmd.PushSelector(this);
-            await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: ModelDb.Encounter<CultistsNormal>().ToMutable());
+            var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
+                candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
+                || candidate.GetType().Name.Equals(EncounterId, StringComparison.OrdinalIgnoreCase));
+            await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
         }
         else
         {
@@ -183,7 +246,13 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     {
         _activeCancellation = cancellation;
         cancellation.ThrowIfCancellationRequested();
-        if (!Actions().Any(action => action.Key == input.Key)) throw new InvalidOperationException("Illegal replay action " + input.Key);
+        var legal = Actions();
+        if (!legal.Any(action => action.Combat == input.Combat
+            && (action.Selection ?? []).Order().SequenceEqual((input.Selection ?? []).Order())))
+            throw new InvalidOperationException("Illegal replay action " + input.Key
+                + $" selection=[{string.Join(',', input.Selection ?? [])}]"
+                + $" pending={_choice != null} min={_min} max={_max} options={_options.Length}"
+                + $" legal=[{string.Join(';', legal.Select(DescribeAction))}]");
         Transitions++;
         if (input.Selection is { } indices)
         {
@@ -213,6 +282,15 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             await DrainActiveActionAsync();
             throw;
         }
+    }
+
+    private static string DescribeAction(SearchAction action)
+    {
+        if (action.Selection is { } selection)
+            return $"choice:[{string.Join(',', selection)}]";
+        if (action.Combat is not { } combat) return action.Key;
+        return $"{combat.Kind}:player={combat.ActorPlayerId}:card={combat.CombatCardIndex?.ToString() ?? "-"}"
+            + $":target={combat.TargetCreatureId?.ToString() ?? "-"}:potion={combat.PotionIndex?.ToString() ?? "-"}";
     }
 
     private async Task SettleAsync(CancellationToken cancellation)

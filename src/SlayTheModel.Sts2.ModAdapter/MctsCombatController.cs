@@ -37,6 +37,7 @@ internal sealed class MctsCombatController : ICardSelector
     private int _searches;
     private bool _faulted;
     private string? _ponderStateKey;
+    private SearchAction? _choiceTriggerAction;
 
     private const int InitialSearchMilliseconds = 5000;
     private const int PonderSliceMilliseconds = 500;
@@ -47,7 +48,7 @@ internal sealed class MctsCombatController : ICardSelector
         {
             var firstLegal = _combatPolicy == CombatPolicyKind.FirstLegal;
             return new(firstLegal ? "MCTS · 未开启（联调）" : "MCTS · 未开启",
-                firstLegal ? "当前运行 first-legal 联调策略。使用 -CombatPolicy mcts 启动以启用 MCTS。" : "当前没有启用 MCTS。使用 -CombatPolicy mcts 启动游戏。", "#8793a3", false);
+                firstLegal ? "当前运行 first-legal 联调策略。将 CombatPolicy 设为 mcts 可启用 MCTS。" : "当前没有启用 MCTS。将 CombatPolicy 设为 mcts 后重新启动游戏。", "#8793a3", false);
         }
         if (Instance._state == null)
         {
@@ -125,6 +126,7 @@ internal sealed class MctsCombatController : ICardSelector
         if (_executor != null) _executor.BeforeActionExecuted -= Record;
         _executor = null;
         _state = null;
+        _choiceTriggerAction = null;
     }
 
     private void Record(GameAction action)
@@ -136,8 +138,32 @@ internal sealed class MctsCombatController : ICardSelector
             EndPlayerTurnAction end => new(CombatActionKind.EndTurn, end.OwnerId),
             _ => null,
         };
-        if (descriptor != null) _prefix.Add(new SearchAction($"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.TargetCreatureId}", descriptor));
+        if (descriptor != null)
+            AppendPrefix(new SearchAction($"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.TargetCreatureId}", descriptor));
         else if (action is UsePotionAction) Pause("Manual potion use is outside the v1 replay action set.");
+    }
+
+    private void AppendPrefix(SearchAction action)
+    {
+        if (_prefix.Count > 0 && SameAction(_prefix[^1], action)) return;
+        _prefix.Add(action);
+    }
+
+    private static bool SameAction(SearchAction left, SearchAction right)
+    {
+        // Choice callbacks are sequential input events. Two adjacent callbacks may
+        // legally select the same option indices in different nested choice contexts.
+        if (left.Selection != null || right.Selection != null) return false;
+
+        // EndTurn has no per-instance identity, so two different rounds produce the
+        // exact same descriptor. They are both required to reconstruct the combat.
+        // This happened against The Insatiable when MCTS ended two consecutive turns:
+        // dropping the second EndTurn made replay attempt the following Tremble one
+        // round too early. Card actions retain duplicate suppression because native
+        // effects can enqueue an automatic second PlayCardAction for the same card.
+        if (left.Combat?.Kind == CombatActionKind.EndTurn
+            || right.Combat?.Kind == CombatActionKind.EndTurn) return false;
+        return left.Combat == right.Combat;
     }
 
     private void Tick()
@@ -170,7 +196,9 @@ internal sealed class MctsCombatController : ICardSelector
         }
         finally { Interlocked.Decrement(ref _searches); }
         if (log)
-            Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
+            Console.WriteLine($"[SlayTheModel] MCTS simulations={result.Simulations} retained={result.RetainedVisits} "
+                + $"transitions={result.StateTransitions} backend={result.SimulatorBackend} "
+                + $"ms={result.SearchMilliseconds:F0} rebuilt={result.Rebuilt} action={result.Action?.Key}");
         return result;
     }
 
@@ -183,10 +211,25 @@ internal sealed class MctsCombatController : ICardSelector
             NativeMctsResponse result;
             if (_ponderStateKey == key)
             {
-                result = _ponderResults.TryGet(key, out var ready)
-                    ? ready!
-                    : await _ponderResults.WaitForFirstAsync(key, token);
-                Console.WriteLine($"[SlayTheModel] using pondered MCTS result retained={result.RetainedVisits} action={result.Action?.Key}");
+                try
+                {
+                    result = _ponderResults.TryGet(key, out var ready)
+                        ? ready!
+                        : await _ponderResults.WaitForFirstAsync(key, token);
+                    Console.WriteLine($"[SlayTheModel] using pondered MCTS result retained={result.RetainedVisits} action={result.Action?.Key}");
+                }
+                catch (PonderSearchFailedException exception)
+                {
+                    // The live state is still authoritative. Restart the isolated
+                    // worker and retry once without relying on the failed ponder tree.
+                    StopPondering();
+                    _worker.Dispose();
+                    Console.Error.WriteLine(
+                        "[SlayTheModel] ponder result unavailable; rebuilding from live state: "
+                        + exception.InnerException?.Message);
+                    result = await SearchAsync(key, _prefix.ToArray(), null,
+                        InitialSearchMilliseconds, token);
+                }
             }
             else
             {
@@ -204,12 +247,15 @@ internal sealed class MctsCombatController : ICardSelector
             StopPondering();
             var action = result.Action?.Combat ?? throw new InvalidDataException("Worker returned no combat action.");
             if (!CombatCaptureService.GetLegalActions(_state).Contains(action)) throw new InvalidDataException("Worker action is no longer legal.");
-            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             var predictedPrefix = _prefix.ToList();
-            if (predictedPrefix.Count == 0 || predictedPrefix[^1] != result.Action)
-                predictedPrefix.Add(result.Action!);
+            predictedPrefix.Add(result.Action!);
             if (result.NextStateKey != null)
                 StartPondering(result.NextStateKey, predictedPrefix, result.Action!, token);
+            // Publish the successor search context before invoking the live
+            // action. Cards such as Burning Pact can synchronously open a
+            // choice from inside ExecuteAsync.
+            _choiceTriggerAction = result.Action!;
+            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
             try { await execution; }
             catch
             {
@@ -248,7 +294,16 @@ internal sealed class MctsCombatController : ICardSelector
         catch (OperationCanceledException) when (token.IsCancellationRequested) { }
         catch (Exception exception)
         {
-            if (!token.IsCancellationRequested) Pause(exception.ToString());
+            if (!token.IsCancellationRequested)
+            {
+                // Pondering is speculative. Keep an already published result usable;
+                // otherwise wake the decision waiter so it can retry as a normal root
+                // search. A speculative failure must not pause live control by itself.
+                _ponderResults.Fail(stateKey, exception);
+                Console.Error.WriteLine(
+                    "[SlayTheModel] MCTS pondering failed; discarding speculative search: "
+                    + exception);
+            }
         }
     }
 
@@ -294,7 +349,7 @@ internal sealed class MctsCombatController : ICardSelector
                     else
                     {
                         StopPondering();
-                        response = await SearchAsync(key, _prefix.ToArray(), null,
+                        response = await SearchAsync(key, _prefix.ToArray(), _choiceTriggerAction,
                             InitialSearchMilliseconds, _generation.Token);
                     }
                     StopPondering();
@@ -302,13 +357,18 @@ internal sealed class MctsCombatController : ICardSelector
                     if (indices.Distinct().Count() != indices.Length || indices.Any(i => i < 0 || i >= cards.Length)
                         || indices.Length < Math.Min(minSelect, cards.Length) || indices.Length > maxSelect)
                         throw new InvalidDataException("Worker returned an invalid selection.");
-                    _prefix.Add(response.Action!);
+                    AppendPrefix(response.Action!);
                     if (response.NextStateKey != null)
                         StartPondering(response.NextStateKey, _prefix.ToArray(), response.Action!, _generation.Token);
                     return indices.Select(i => cards[i]).ToArray();
                 }
                 catch (OperationCanceledException) when (_paused || _state == null) { }
-                catch (Exception exception) { Pause(exception.ToString()); }
+                catch (Exception exception)
+                {
+                    StopPondering();
+                    _worker.Dispose();
+                    Pause(exception.ToString());
+                }
             }
             if (_state == null || CombatManager.Instance.IsOverOrEnding) return [];
             // Retain a usable native UI when search is paused or a choice cannot be simulated.
@@ -317,7 +377,7 @@ internal sealed class MctsCombatController : ICardSelector
             (NOverlayStack.Instance ?? throw new InvalidOperationException("Manual selection UI unavailable.")).Push(screen);
             var selected = (await screen.CardsSelected()).ToArray();
             var selectedIndices = selected.Select(card => Array.IndexOf(cards, card)).ToArray();
-            _prefix.Add(new SearchAction("choose:" + string.Join(",", selectedIndices), Selection: selectedIndices));
+            AppendPrefix(new SearchAction("choose:" + string.Join(",", selectedIndices), Selection: selectedIndices));
             return selected;
         }
         finally { _choosing = false; }

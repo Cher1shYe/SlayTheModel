@@ -6,6 +6,8 @@
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs" Link="NativeActionCompletion.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PonderResultCache.cs" Link="PonderResultCache.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="NativeWorkerLaunch.cs" />
+    <!-- AdapterConfiguration now delegates raw value lookup to this shared reader. -->
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/AdapterConfiguration.cs" Link="AdapterConfiguration.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs" Link="RuntimeConfiguration.cs" />
   </ItemGroup>
 </Project>

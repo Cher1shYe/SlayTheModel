@@ -349,7 +349,7 @@ public static class CombatCaptureService
         File.Move(temporaryPath, latestPath, overwrite: true);
 
         if (string.Equals(
-                Environment.GetEnvironmentVariable("SLAY_THE_MODEL_CAPTURE_HISTORY"),
+                RuntimeConfiguration.Get("SLAY_THE_MODEL_CAPTURE_HISTORY"),
                 "1",
                 StringComparison.Ordinal))
         {
@@ -368,7 +368,7 @@ public static class CombatCaptureService
 
     public static string GetOutputDirectory()
     {
-        var configured = Environment.GetEnvironmentVariable("SLAY_THE_MODEL_EXPORT_DIR");
+        var configured = RuntimeConfiguration.Get("SLAY_THE_MODEL_EXPORT_DIR");
         return string.IsNullOrWhiteSpace(configured)
             ? Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),

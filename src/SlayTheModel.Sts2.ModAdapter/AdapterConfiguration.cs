@@ -40,8 +40,11 @@ internal sealed record AdapterConfiguration(
         CombatPolicyKind.Manual,
         OutsideCombatPolicyKind.Manual);
 
+    // RuntimeConfiguration gives process environment variables priority and
+    // falls back to the JSON written beside the installed mod. Parsing remains
+    // centralized here so controllers never interpret raw launch strings.
     internal static AdapterConfiguration LoadFromEnvironment() =>
-        Load(Environment.GetEnvironmentVariable);
+        Load(RuntimeConfiguration.Get);
 
     internal static AdapterConfiguration Load(Func<string, string?> read)
     {

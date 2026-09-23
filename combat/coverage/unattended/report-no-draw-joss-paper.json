@@ -1,0 +1,22 @@
+[
+  {
+    "monsterId": "BigDummy",
+    "moveId": "NOTHING",
+    "enemyHpBefore": 999,
+    "clearAllRelicsBeforeMove": true,
+    "relicsBeforeMove": [
+      { "relicId": "JOSS_PAPER", "integerMembers": { "CardsExhausted": 4 } }
+    ],
+    "clearAllPowersBeforeMove": true,
+    "clearPlayerPilesBeforeMove": true,
+    "powersBeforeMove": [
+      { "powerId": "NO_DRAW_POWER", "target": "Player", "amount": 1 }
+    ],
+    "cardsBeforeMove": [
+      { "cardId": "DAZED", "pile": "Hand" },
+      { "cardId": "DEFEND_IRONCLAD", "pile": "Draw", "count": 6 }
+    ],
+    "triggerPlayerTurnEndAfterMove": true,
+    "triggerPlayerSetupAfterMove": true
+  }
+]

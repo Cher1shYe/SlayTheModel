@@ -46,7 +46,7 @@ public static class AdapterBootstrap
         manager.StateTracker.CombatStateChanged += OnCombatStateChanged;
         Console.WriteLine("[SlayTheModel] omniscient combat capture adapter initialized");
 
-        var autoSlaySeed = Environment.GetEnvironmentVariable("SLAY_THE_MODEL_AUTOSLAY_SEED");
+        var autoSlaySeed = RuntimeConfiguration.Get("SLAY_THE_MODEL_AUTOSLAY_SEED");
         if (!string.IsNullOrWhiteSpace(autoSlaySeed))
         {
             var outputDirectory = CombatCaptureService.GetOutputDirectory();

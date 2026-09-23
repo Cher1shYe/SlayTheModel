@@ -1,0 +1,6 @@
+{
+  "potionId": "GamblersBrew",
+  "target": "Player",
+  "cards": [{ "cardId": "RICOCHET", "pile": "Hand" }],
+  "choiceCardIds": ["RICOCHET"]
+}

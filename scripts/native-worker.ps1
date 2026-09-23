@@ -2,14 +2,42 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$GameDir,
+    [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
 $repo = Split-Path $PSScriptRoot -Parent
+$combatSolverRoot = [System.IO.Path]::GetFullPath((Join-Path $repo 'combat'))
+if (-not (Test-Path -LiteralPath (Join-Path $combatSolverRoot 'CombatSolver.csproj'))) {
+    throw "Combat Solver source is required at $combatSolverRoot."
+}
+$sourceCommitPath = Join-Path $combatSolverRoot '.source-commit'
+$combatSolverCommit = if (Test-Path -LiteralPath (Join-Path $combatSolverRoot '.git')) {
+    (& git -C $combatSolverRoot rev-parse HEAD).Trim()
+} elseif (Test-Path -LiteralPath $sourceCommitPath) {
+    (Get-Content -LiteralPath $sourceCommitPath -Raw).Trim()
+} else {
+    ''
+}
+if ($combatSolverCommit -ne '8826a333a6d48e05f0e368ee2db5d4a15092382e') {
+    throw "Combat Solver must be based on verified commit 8826a333; found $combatSolverCommit."
+}
 $game = (Resolve-Path -LiteralPath $GameDir).Path
 $managed = Join-Path $game 'data_sts2_windows_x86_64'
+# Steam normally stores Workshop content beside the library's common/ folder.
+# A separate Workshop library can be selected with -RitsuLibRoot or the
+# STS2_RITSULIB_DIR environment variable.
+if (-not $RitsuLibRoot) {
+    $steamApps = Split-Path (Split-Path $game -Parent) -Parent
+    $RitsuLibRoot = Join-Path $steamApps 'workshop/content/2868840/3747602295'
+}
+$RitsuLibRoot = [System.IO.Path]::GetFullPath($RitsuLibRoot)
+$ritsuCompat = Join-Path $RitsuLibRoot 'compat/0.111.0'
+if (-not (Test-Path -LiteralPath (Join-Path $ritsuCompat 'STS2-RitsuLib.dll'))) {
+    throw "RitsuLib v0.111.0 not found at $RitsuLibRoot. Pass -RitsuLibRoot or set STS2_RITSULIB_DIR."
+}
 $contract = Get-Content -LiteralPath (Join-Path $repo 'contracts/sts2-v0.111.0-windows.json') -Raw | ConvertFrom-Json
 if ((Get-FileHash -LiteralPath (Join-Path $managed 'sts2.dll') -Algorithm SHA256).Hash -ne $contract.sha256) {
     throw 'The native worker is pinned to the verified Windows v0.111.0 assembly. Revalidate before using another build.'
@@ -25,7 +53,17 @@ if (-not (Test-Path -LiteralPath $dotnet)) { $dotnet = 'dotnet' }
 Push-Location $repo
 try {
     if (-not $SkipBuild) {
-        & $dotnet publish $project -c ExportRelease -r win-x64 --self-contained true "-p:Sts2ManagedDir=$managed" -o $output
+        # Pass all platform paths explicitly. CombatSolver otherwise falls back
+        # to its own Steam layout, which may point at another library or disk.
+        & $dotnet publish $project -c ExportRelease -r win-x64 --self-contained true `
+            "-p:Sts2ManagedDir=$managed" `
+            "-p:Sts2DataDir=$managed" `
+            "-p:CombatSolverRoot=$combatSolverRoot" `
+            "-p:RitsuLibRoot=$RitsuLibRoot" `
+            "-p:RitsuWorkshopRoot=$RitsuLibRoot" `
+            "-p:RitsuLibDir=$ritsuCompat" `
+            '-p:CopyModOnBuild=false' `
+            -o $output
         if ($LASTEXITCODE -ne 0) { throw 'Worker build failed.' }
         # MegaDot uses a customized managed/native API; keep its matching GodotSharp.
         Copy-Item -LiteralPath (Join-Path $managed 'GodotSharp.dll') -Destination $output -Force

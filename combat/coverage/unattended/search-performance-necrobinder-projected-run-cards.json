@@ -1,0 +1,156 @@
+[
+  {
+    "cardId": "STRIKE_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFEND_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFEND_NECROBINDER",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "DEFEND_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFEND_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "BODYGUARD",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "UNLEASH",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "ASCENDERS_BANE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "STRIKE_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFEND_NECROBINDER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "CAPTURE_SPIRIT",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "GRAVEBLAST",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "AFTERLIFE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DIRGE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFILE",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "SPIRIT_OF_ASH",
+    "upgradeLevels": 0,
+    "enchantmentId": "SWIFT",
+    "enchantmentAmount": 2
+  },
+  {
+    "cardId": "DEFY",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "SCULPTING_STRIKE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "FINESSE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "WISP",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DEFY",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "HANG",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "SNAP",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "BORROWED_TIME",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "LETHALITY",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "DANSE_MACABRE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "PAGESTORM",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "SHARED_FATE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "GRAVEBLAST",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "GRAVEBLAST",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "PANACHE",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "CALL_OF_THE_VOID",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "CLEANSE",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "VEILPIERCER",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "GRAVEBLAST",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "NEUROSURGE",
+    "upgradeLevels": 1
+  },
+  {
+    "cardId": "LETHALITY",
+    "upgradeLevels": 0
+  },
+  {
+    "cardId": "CLEANSE",
+    "upgradeLevels": 0
+  }
+]

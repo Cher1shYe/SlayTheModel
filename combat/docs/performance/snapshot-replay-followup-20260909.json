@@ -1,0 +1,2839 @@
+{
+  "schemaVersion": 1,
+  "decision": "Withdraw projected-shuffle comparison prototype: no stable new benefit; prepare existing validated performance branch for pull request.",
+  "screen": {
+    "plan": {
+      "baselineCommit": "3f2ac26",
+      "baselineArtifact": "../perf2-integration-20260909/candidate-artifact",
+      "candidate": "Use the original PredictedCard.CompareTo via an explicit static comparison in the private projected-shuffle list. No cached card keys or change to comparison semantics, RNG, profile or budgets.",
+      "costEvidence": {
+        "sourceCommit": "a85f3e7",
+        "source": ".local/perf2-integration-20260909/cpu-baseline/cpu-jit.data",
+        "event": "cpu-clock:u",
+        "frequencyHz": 199,
+        "searchSamples": 21965,
+        "projectedShuffleInclusiveSamples": 904,
+        "sortInclusiveSamples": 440,
+        "scope": "Existing replay/snapshot bodies are unchanged between profiling source and baseline 3f2ac26; proportions only guide screening, not current gain."
+      },
+      "screenSequence": [
+        [
+          "b1",
+          "baseline"
+        ],
+        [
+          "c1",
+          "candidate"
+        ],
+        [
+          "c2",
+          "candidate"
+        ],
+        [
+          "b2",
+          "baseline"
+        ]
+      ],
+      "method": "Fresh process each sample, unmeasured Short warmup then measured Short and normal; fixed VeryHigh DOP8, 16,000,000,000 byte NoGC configuration, first result, each request <=120s. Preserve every sample; compare 88 non-timing RESULT fields and complete actions, separately retain phase/deep_triggered.",
+      "decision": "Only retain a repeatable benefit exceeding baseline drift; otherwise restore the production source and open PR for the already validated branch. Additional formal validation only if the prototype survives screening."
+    },
+    "modes": {
+      "short": {
+        "reference90Fields": {
+          "phase": "Short",
+          "deep_triggered": "False",
+          "deep_improved": "n/a_single_session",
+          "reused": "False",
+          "reused_from_turn": "-",
+          "expanded": "10000",
+          "total_expanded": "10000",
+          "dominance_pruned": "120",
+          "top_queue_dropped": "0",
+          "duplicate_cards_pruned": "1755",
+          "choice_branches": "101808",
+          "total_choice_branches": "101808",
+          "choice_replay_attempts": "101808",
+          "choice_replay_budget_exhaustions": "0",
+          "choice_branches_dropped_by_budget": "0",
+          "shuffle_branches_pruned": "0",
+          "sold_hp_branches_pruned": "1248",
+          "replays": "2",
+          "forks": "144368",
+          "transitions": "144368",
+          "total_transitions": "144368",
+          "cache_hits": "0",
+          "stand_pat": "0",
+          "snapshot_reuses": "10216",
+          "transposition_pruned": "1763",
+          "repeatable_no_progress_pruned": "0",
+          "cycle_shapes": "968",
+          "cycle_probe_continuations": "0",
+          "cycle_candidates_protected": "112",
+          "cycle_continuations_stopped": "0",
+          "cycle_regions": "359",
+          "cycle_region_considered": "1081",
+          "cycle_region_admitted": "878",
+          "cycle_region_dropped": "203",
+          "cycle_region_progress_epochs": "421",
+          "cycle_region_probe_admitted": "38",
+          "cycle_region_progress_admitted": "370",
+          "cycle_region_max_action_families": "22",
+          "ordered_admitted": "2048",
+          "ordered_lease_expired_budget": "2330",
+          "ordered_ordinary_fallback": "158",
+          "cold_atomic_committed": "76",
+          "cold_atomic_rejected": "1110",
+          "cross_turn_candidates_protected": "21",
+          "cross_turn_continuations_stopped": "0",
+          "primary_incumbent_pruned": "0",
+          "primary_incumbent_updates": "0",
+          "stand_pat_probes": "0",
+          "deferred_round_choice_actions": "4584",
+          "deferred_round_choice_width_total": "49188",
+          "deferred_round_choice_max_width": "27",
+          "deferred_round_choice_finite_fallbacks": "26",
+          "deferred_round_choice_finite_fallback_scope": "pending_only",
+          "deferred_round_choice_finite_primary_layers": "4558",
+          "deferred_round_choice_finite_pending_fallbacks": "26",
+          "node_limit_snapshots_released": "28",
+          "transition_cache_hits": "0",
+          "searched_turns": "8",
+          "boundary": "NodeLimit",
+          "shuffles_crossed": "1",
+          "unavoidable_hp_lost": "3",
+          "sold_hp": "0",
+          "future_sold_hp": "0",
+          "sold_hp_threshold": "15",
+          "battle_hp_lost_so_far": "0",
+          "projected_battle_hp_lost": "3",
+          "recovered_hp": "0",
+          "relic_heal": "0",
+          "death_save_relic_hp": "0",
+          "long_term_resource": "0",
+          "anger_copies": "0",
+          "battle_potions_used_so_far": "0",
+          "potion_count": "1",
+          "potion_hp_saved": "26",
+          "potion_hp_required": "9",
+          "potion_branches_rejected": "0",
+          "theft_policy": "-",
+          "outstanding_stolen_resource": "0",
+          "score": "-3246059",
+          "final_hp": "38",
+          "final_block": "0",
+          "final_enemy_hp": "420",
+          "combat_ended_turn": "-",
+          "death_turn": "-",
+          "only_death_routes": "False",
+          "act_ending_boss": "False",
+          "boss_hp_relief": "None",
+          "engine_risk": "False",
+          "unsupported_intent": "False",
+          "modeled_damage_exact": "True"
+        },
+        "referenceActions": [
+          "[CombatSolver/Test] ACTION turn=1 kind=UsePotion potion_id=GAMBLERS_BREW slot=0 title=赌徒特酿 target_index=-1 target_combat_id=- target=- choice_effect=DiscardAndDraw choice_cards=WISP+0#src0/opt0,DEFEND_NECROBINDER+0#src0/opt0,HANG+0#src0/opt0,DEFILE+1#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=ASCENDERS_BANE+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CALL_OF_THE_VOID occurrence=0 title=虚空之唤 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SPIRIT_OF_ASH occurrence=0 title=灰烬之灵 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=LETHALITY occurrence=0 title=致死性 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFILE+1#src0/opt0 relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=UNLEASH occurrence=0 title=出击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=STRIKE_NECROBINDER occurrence=0 title=打击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SNAP occurrence=0 title=响指 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=ApplyRetain choice_cards=GRAVEBLAST+1#src1/opt1 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=CLEANSE+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=HANG+0#src0/opt0 relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=HANG occurrence=0 title=吊杀 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=NEUROSURGE occurrence=0 title=精神过载+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BODYGUARD occurrence=0 title=护卫+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=CLEANSE+1#src0/opt0 relic_effects=JOSS_PAPER:：抽1 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=GRAVE_WARDEN occurrence=0 title=守墓人 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=AFTERLIFE occurrence=0 title=来生 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=PANACHE occurrence=0 title=神气制胜 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SHARED_FATE occurrence=0 title=命运同担 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=UNDEATH occurrence=0 title=不死 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DIRGE occurrence=0 title=挽歌 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- relic_effects=JOSS_PAPER:：抽1 kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=UNDEATH occurrence=0 title=不死 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=GRAVE_WARDEN occurrence=0 title=守墓人 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=INVOKE occurrence=0 title=唤起 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=FINESSE+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=UNDEATH occurrence=0 title=不死 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SENTRY_MODE occurrence=0 title=哨卫模式 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SNAP occurrence=0 title=响指 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=ApplyRetain choice_cards=WITHER+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=SWEEPING_GAZE occurrence=0 title=扫荡凝视 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=WITHER+0#src0/opt0 relic_effects=JOSS_PAPER:：抽1 kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=COUNTDOWN occurrence=0 title=倒数计时 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=EndTurn"
+        ],
+        "normalizedCommand": [
+          "./tools/run-unattended-test.sh",
+          "--character-id",
+          "NECROBINDER",
+          "--seed",
+          "SEARCH_PERF_NECROBINDER_POTION",
+          "--encounter-id",
+          "AEONGLASS_BOSS",
+          "--ascension",
+          "10",
+          "--act-index-for-test",
+          "2",
+          "--enemy-current-hp",
+          "526",
+          "--initial-player-hp",
+          "41",
+          "--initial-player-max-hp",
+          "76",
+          "--clear-run-deck",
+          "--run-cards-path",
+          "coverage/unattended/search-performance-necrobinder-projected-run-cards.json",
+          "--relics-path",
+          "coverage/unattended/search-performance-necrobinder-projected-relics.json",
+          "--potions-path",
+          "coverage/unattended/search-performance-necrobinder-projected-potions.json",
+          "--cards-json",
+          "[]",
+          "--potion-policy-for-test",
+          "RequireAtLeastOne",
+          "--performance-preset-for-test",
+          "VeryHigh",
+          "--search-max-degree-of-parallelism-for-test",
+          "8",
+          "--enable-no-gc-region-for-test",
+          "1",
+          "--no-gc-region-budget-gigabytes-for-test",
+          "16",
+          "--enable-detailed-diagnostic-logs-for-test",
+          "0",
+          "--stop-after-initial-solver-result-assertion",
+          "--timeout-seconds",
+          "120",
+          "--keep-game-open",
+          "--force-short-search-only"
+        ],
+        "samples": [
+          {
+            "label": "b1-short",
+            "runId": "0a22b381d10f4c97b347370616c6081f",
+            "status": "Passed",
+            "requestMilliseconds": 8085.01,
+            "elapsedMilliseconds": 4418.3078,
+            "allocatedBytes": 6409636928,
+            "sampledPeakRssBytes": 8273805312,
+            "gcPauseMilliseconds": 0,
+            "observedMaxGcPauseMilliseconds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0,
+            "group": "baseline",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 59
+            }
+          },
+          {
+            "label": "c1-short",
+            "runId": "aa6da3a29bbc4e3887c80d5930742993",
+            "status": "Passed",
+            "requestMilliseconds": 8110.9518,
+            "elapsedMilliseconds": 4455.9365,
+            "allocatedBytes": 6408416184,
+            "sampledPeakRssBytes": 8252203008,
+            "gcPauseMilliseconds": 0,
+            "observedMaxGcPauseMilliseconds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0,
+            "group": "candidate",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 59
+            }
+          },
+          {
+            "label": "c2-short",
+            "runId": "554f43c9e1fb4faaa772da7f7e906de9",
+            "status": "Passed",
+            "requestMilliseconds": 8124.8261,
+            "elapsedMilliseconds": 4488.6035,
+            "allocatedBytes": 6408555688,
+            "sampledPeakRssBytes": 8273985536,
+            "gcPauseMilliseconds": 0,
+            "observedMaxGcPauseMilliseconds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0,
+            "group": "candidate",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 59
+            }
+          },
+          {
+            "label": "b2-short",
+            "runId": "1d662e465745410c9be31de52f1c0526",
+            "status": "Passed",
+            "requestMilliseconds": 8137.2431,
+            "elapsedMilliseconds": 4497.5965,
+            "allocatedBytes": 6407018688,
+            "sampledPeakRssBytes": 8259694592,
+            "gcPauseMilliseconds": 0,
+            "observedMaxGcPauseMilliseconds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0,
+            "group": "baseline",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 59
+            }
+          }
+        ],
+        "statistics": {
+          "baseline": {
+            "elapsedMilliseconds": {
+              "mean": 4457.952149999999,
+              "min": 4418.3078,
+              "max": 4497.5965
+            },
+            "allocatedBytes": {
+              "mean": 6408327808,
+              "min": 6407018688,
+              "max": 6409636928
+            },
+            "sampledPeakRssBytes": {
+              "mean": 8266749952,
+              "min": 8259694592,
+              "max": 8273805312
+            }
+          },
+          "candidate": {
+            "elapsedMilliseconds": {
+              "mean": 4472.27,
+              "min": 4455.9365,
+              "max": 4488.6035
+            },
+            "allocatedBytes": {
+              "mean": 6408485936,
+              "min": 6408416184,
+              "max": 6408555688
+            },
+            "sampledPeakRssBytes": {
+              "mean": 8263094272,
+              "min": 8252203008,
+              "max": 8273985536
+            }
+          }
+        },
+        "elapsedReductionPercent": -0.3211754975880776,
+        "baselineFirstToLastDriftPercent": 1.7945490352663906
+      },
+      "full": {
+        "reference90Fields": {
+          "phase": "Short",
+          "deep_triggered": "False",
+          "deep_improved": "False",
+          "reused": "False",
+          "reused_from_turn": "-",
+          "expanded": "34239",
+          "total_expanded": "46239",
+          "dominance_pruned": "855",
+          "top_queue_dropped": "0",
+          "duplicate_cards_pruned": "7275",
+          "choice_branches": "342306",
+          "total_choice_branches": "431140",
+          "choice_replay_attempts": "342306",
+          "choice_replay_budget_exhaustions": "0",
+          "choice_branches_dropped_by_budget": "0",
+          "shuffle_branches_pruned": "0",
+          "sold_hp_branches_pruned": "7661",
+          "replays": "2",
+          "forks": "493066",
+          "transitions": "493066",
+          "total_transitions": "636428",
+          "cache_hits": "0",
+          "stand_pat": "20363",
+          "snapshot_reuses": "34780",
+          "transposition_pruned": "10742",
+          "repeatable_no_progress_pruned": "0",
+          "cycle_shapes": "3375",
+          "cycle_probe_continuations": "0",
+          "cycle_candidates_protected": "0",
+          "cycle_continuations_stopped": "0",
+          "cycle_regions": "1452",
+          "cycle_region_considered": "3292",
+          "cycle_region_admitted": "3039",
+          "cycle_region_dropped": "253",
+          "cycle_region_progress_epochs": "1451",
+          "cycle_region_probe_admitted": "0",
+          "cycle_region_progress_admitted": "1419",
+          "cycle_region_max_action_families": "1",
+          "ordered_admitted": "2048",
+          "ordered_lease_expired_budget": "3037",
+          "ordered_ordinary_fallback": "335",
+          "cold_atomic_committed": "134",
+          "cold_atomic_rejected": "1409",
+          "cross_turn_candidates_protected": "31",
+          "cross_turn_continuations_stopped": "0",
+          "primary_incumbent_pruned": "0",
+          "primary_incumbent_updates": "0",
+          "stand_pat_probes": "20363",
+          "deferred_round_choice_actions": "11970",
+          "deferred_round_choice_width_total": "134576",
+          "deferred_round_choice_max_width": "28",
+          "deferred_round_choice_finite_fallbacks": "30",
+          "deferred_round_choice_finite_fallback_scope": "pending_only",
+          "deferred_round_choice_finite_primary_layers": "11940",
+          "deferred_round_choice_finite_pending_fallbacks": "30",
+          "node_limit_snapshots_released": "0",
+          "transition_cache_hits": "0",
+          "searched_turns": "10",
+          "boundary": "None",
+          "shuffles_crossed": "1",
+          "unavoidable_hp_lost": "8",
+          "sold_hp": "1",
+          "future_sold_hp": "1",
+          "sold_hp_threshold": "15",
+          "battle_hp_lost_so_far": "0",
+          "projected_battle_hp_lost": "9",
+          "recovered_hp": "0",
+          "relic_heal": "0",
+          "death_save_relic_hp": "0",
+          "long_term_resource": "0",
+          "anger_copies": "0",
+          "battle_potions_used_so_far": "0",
+          "potion_count": "1",
+          "potion_hp_saved": "8",
+          "potion_hp_required": "0",
+          "potion_branches_rejected": "0",
+          "theft_policy": "-",
+          "outstanding_stolen_resource": "0",
+          "score": "-1000004236064",
+          "final_hp": "0",
+          "final_block": "4",
+          "final_enemy_hp": "385",
+          "combat_ended_turn": "-",
+          "death_turn": "10",
+          "only_death_routes": "True",
+          "act_ending_boss": "False",
+          "boss_hp_relief": "None",
+          "engine_risk": "False",
+          "unsupported_intent": "False",
+          "modeled_damage_exact": "True"
+        },
+        "referenceActions": [
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CAPTURE_SPIRIT occurrence=0 title=捕捉灵魂 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=GRAVEBLAST+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SPIRIT_OF_ASH occurrence=0 title=灰烬之灵 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=LETHALITY occurrence=0 title=致死性 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=CALL_OF_THE_VOID occurrence=0 title=虚空之唤 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=CLEANSE+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=SNAP+0#src0/opt0 relic_effects=JOSS_PAPER:：抽1 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=NEUROSURGE occurrence=0 title=精神过载+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=BORROWED_TIME+1#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BODYGUARD occurrence=0 title=护卫+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=AFTERLIFE occurrence=0 title=来生 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=3 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=GRAVEBLAST+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SHARED_FATE occurrence=0 title=命运同担 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DANSE_MACABRE occurrence=0 title=死亡之舞 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=4 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DIRGE occurrence=0 title=挽歌 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=WISP occurrence=0 title=鬼火 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- relic_effects=JOSS_PAPER:：抽1 kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=GRAVE_WARDEN occurrence=0 title=守墓人 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=5 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=WITHER+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=UNDEATH occurrence=0 title=不死 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=UsePotion potion_id=COLORLESS_POTION slot=1 title=无色药水 target_index=-1 target_combat_id=- target=- choice_effect=GenerateToHand choice_cards=JACKPOT+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=JACKPOT occurrence=0 title=大奖 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=NEUROSURGE occurrence=0 title=精神过载 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=SCULPTING_STRIKE occurrence=0 title=雕琢打击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=ApplyEthereal choice_cards=WITHER+0#src3/opt3 kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=MISERY occurrence=0 title=苦难 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+          "[CombatSolver/Test] ACTION turn=6 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=FLATTEN occurrence=0 title=重压 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=STRIKE_NECROBINDER occurrence=0 title=打击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=7 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFY+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=BODYGUARD occurrence=0 title=护卫+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=REAP occurrence=0 title=收割 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+          "[CombatSolver/Test] ACTION turn=8 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=UNLEASH occurrence=0 title=出击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=CLEANSE+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=WITHER+0#src0/opt0 kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=REAPER_FORM occurrence=0 title=死神形态 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=9 kind=EndTurn",
+          "[CombatSolver/Test] ACTION turn=10 kind=PlayCard card_id=PANACHE occurrence=0 title=神气制胜 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=10 kind=PlayCard card_id=HANG occurrence=0 title=吊杀 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+          "[CombatSolver/Test] ACTION turn=10 kind=EndTurn"
+        ],
+        "normalizedCommand": [
+          "./tools/run-unattended-test.sh",
+          "--character-id",
+          "NECROBINDER",
+          "--seed",
+          "SEARCH_PERF_NECROBINDER_POTION",
+          "--encounter-id",
+          "AEONGLASS_BOSS",
+          "--ascension",
+          "10",
+          "--act-index-for-test",
+          "2",
+          "--enemy-current-hp",
+          "526",
+          "--initial-player-hp",
+          "41",
+          "--initial-player-max-hp",
+          "76",
+          "--clear-run-deck",
+          "--run-cards-path",
+          "coverage/unattended/search-performance-necrobinder-projected-run-cards.json",
+          "--relics-path",
+          "coverage/unattended/search-performance-necrobinder-projected-relics.json",
+          "--potions-path",
+          "coverage/unattended/search-performance-necrobinder-projected-potions.json",
+          "--cards-json",
+          "[]",
+          "--potion-policy-for-test",
+          "RequireAtLeastOne",
+          "--performance-preset-for-test",
+          "VeryHigh",
+          "--search-max-degree-of-parallelism-for-test",
+          "8",
+          "--enable-no-gc-region-for-test",
+          "1",
+          "--no-gc-region-budget-gigabytes-for-test",
+          "16",
+          "--enable-detailed-diagnostic-logs-for-test",
+          "0",
+          "--stop-after-initial-solver-result-assertion",
+          "--timeout-seconds",
+          "120",
+          "--keep-game-open"
+        ],
+        "samples": [
+          {
+            "label": "b1-full",
+            "runId": "a705c365195748ddbac62e64ade7a3e3",
+            "status": "Passed",
+            "requestMilliseconds": 26488.4816,
+            "elapsedMilliseconds": 22844.1252,
+            "allocatedBytes": 29600414416,
+            "sampledPeakRssBytes": 17240584192,
+            "gcPauseMilliseconds": 46.786,
+            "observedMaxGcPauseMilliseconds": 29.596,
+            "noGcRestarts": 2,
+            "noGcLosses": 0,
+            "group": "baseline",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 64
+            }
+          },
+          {
+            "label": "c1-full",
+            "runId": "3a29e9f61562445eac92f3bae88e144e",
+            "status": "Passed",
+            "requestMilliseconds": 26745.1422,
+            "elapsedMilliseconds": 23127.072,
+            "allocatedBytes": 29597110600,
+            "sampledPeakRssBytes": 15127818240,
+            "gcPauseMilliseconds": 1743.356,
+            "observedMaxGcPauseMilliseconds": 1712.572,
+            "noGcRestarts": 2,
+            "noGcLosses": 0,
+            "group": "candidate",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 64
+            }
+          },
+          {
+            "label": "c2-full",
+            "runId": "b2517de8ac9e40669e44419255ab92d5",
+            "status": "Passed",
+            "requestMilliseconds": 26881.0517,
+            "elapsedMilliseconds": 23189.8077,
+            "allocatedBytes": 29598694792,
+            "sampledPeakRssBytes": 15125184512,
+            "gcPauseMilliseconds": 1735.93,
+            "observedMaxGcPauseMilliseconds": 1704.921,
+            "noGcRestarts": 2,
+            "noGcLosses": 0,
+            "group": "candidate",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 64
+            }
+          },
+          {
+            "label": "b2-full",
+            "runId": "a521e02a4d9444a59e3ca84cfad2d227",
+            "status": "Passed",
+            "requestMilliseconds": 27296.3128,
+            "elapsedMilliseconds": 23572.9658,
+            "allocatedBytes": 29599131840,
+            "sampledPeakRssBytes": 15113396224,
+            "gcPauseMilliseconds": 1817.792,
+            "observedMaxGcPauseMilliseconds": 1782.546,
+            "noGcRestarts": 2,
+            "noGcLosses": 0,
+            "group": "baseline",
+            "comparison": {
+              "raw90Differences": {},
+              "nonTimingFieldsCompared": 88,
+              "actionsEqual": true,
+              "actionCount": 64
+            }
+          }
+        ],
+        "statistics": {
+          "baseline": {
+            "elapsedMilliseconds": {
+              "mean": 23208.5455,
+              "min": 22844.1252,
+              "max": 23572.9658
+            },
+            "allocatedBytes": {
+              "mean": 29599773128,
+              "min": 29599131840,
+              "max": 29600414416
+            },
+            "sampledPeakRssBytes": {
+              "mean": 16176990208,
+              "min": 15113396224,
+              "max": 17240584192
+            }
+          },
+          "candidate": {
+            "elapsedMilliseconds": {
+              "mean": 23158.439850000002,
+              "min": 23127.072,
+              "max": 23189.8077
+            },
+            "allocatedBytes": {
+              "mean": 29597902696,
+              "min": 29597110600,
+              "max": 29598694792
+            },
+            "sampledPeakRssBytes": {
+              "mean": 15126501376,
+              "min": 15125184512,
+              "max": 15127818240
+            }
+          }
+        },
+        "elapsedReductionPercent": 0.21589310713158172,
+        "baselineFirstToLastDriftPercent": 3.1904946835084047
+      }
+    },
+    "hotspotBreakdown": {
+      "source": "../perf2-integration-20260909/cpu-baseline/cpu-jit.data",
+      "sourceCommit": "a85f3e7",
+      "currentBaselineCommit": "3f2ac26",
+      "searchSamples": 21965,
+      "scope": "Unchanged snapshot/replay method bodies; sample proportions guide a new screen and are not a measured new speedup. Inlining can hide individual function frames. Inclusive regions overlap.",
+      "regions": {
+        "BuildProjectedShuffleOrder": {
+          "inclusiveSamples": 904,
+          "shareOfSearchPercent": 4.115638515820624,
+          "descendants": [
+            [
+              "System.Collections.Generic.List`1[System.__Canon]::Sort",
+              440
+            ],
+            [
+              "System.Array::Sort",
+              436
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::Sort",
+              434
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::IntroSort",
+              433
+            ],
+            [
+              "MegaCrit.Sts2.Core.Models.CardModel::CompareTo",
+              193
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+              178
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::PickPivotAndPartition",
+              174
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::InsertionSort",
+              166
+            ],
+            [
+              "CombatSolver.CardChoiceSupport::DynamicVarBaseValue",
+              109
+            ],
+            [
+              "System.String::CompareOrdinalHelper",
+              72
+            ],
+            [
+              "CombatSolver.Engine.Common.PredictedCard::CompareTo",
+              44
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              34
+            ],
+            [
+              "stub<5421> GenerateDispatchStub<GenerateDispatchStub>",
+              34
+            ],
+            [
+              "stub<3> GenerateDispatchStub<GenerateDispatchStub>",
+              31
+            ],
+            [
+              "System.String::GetNonRandomizedHashCode",
+              29
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::ChkCastClass",
+              9
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef",
+              7
+            ],
+            [
+              "MegaCrit.Sts2.Core.Models.CardModel::get_DynamicVars",
+              5
+            ],
+            [
+              "stub<5418> GenerateDispatchStub<GenerateDispatchStub>",
+              2
+            ],
+            [
+              "System.Collections.Generic.ArraySortHelper`1[System.__Canon]::get_Default",
+              2
+            ]
+          ],
+          "self": [
+            [
+              "CombatSolver.CombatBeamSolver::BuildProjectedShuffleOrder",
+              218
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+              153
+            ],
+            [
+              "MegaCrit.Sts2.Core.Models.CardModel::CompareTo",
+              142
+            ],
+            [
+              "System.String::CompareOrdinalHelper",
+              72
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::InsertionSort",
+              55
+            ],
+            [
+              "CombatSolver.Engine.Common.PredictedCard::CompareTo",
+              44
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::PickPivotAndPartition",
+              37
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              34
+            ],
+            [
+              "stub<5421> GenerateDispatchStub<GenerateDispatchStub>",
+              34
+            ],
+            [
+              "stub<3> GenerateDispatchStub<GenerateDispatchStub>",
+              31
+            ],
+            [
+              "System.String::GetNonRandomizedHashCode",
+              29
+            ],
+            [
+              "CombatSolver.CardChoiceSupport::DynamicVarBaseValue",
+              17
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::ChkCastClass",
+              9
+            ],
+            [
+              "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::IntroSort",
+              9
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef",
+              7
+            ]
+          ]
+        },
+        "BuildStateKey": {
+          "inclusiveSamples": 1423,
+          "shareOfSearchPercent": 6.4784885044388805,
+          "descendants": [
+            [
+              "CombatSolver.SimulatedCombatState::AppendFingerprint",
+              943
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::AppendPile",
+              230
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::GetPowerFingerprint",
+              192
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::CaptureCardStateFingerprintForTesting",
+              178
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendStatefulRelicFingerprint",
+              128
+            ],
+            [
+              "MegaCrit.Sts2.Core.Models.CardModel::GetKeywordsWithSources",
+              101
+            ],
+            [
+              "dynamicClass::MegaCrit.Sts2.Core.Models.CardModel.get_Pile_Patch2",
+              98
+            ],
+            [
+              "CombatSolver.SimulationCardPileLookupPatch::Prefix",
+              90
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::CombatSolver.Engine.Common.ICombatPredictionCreatureSemantics.IsHittable",
+              84
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AddCreatureIntMap",
+              83
+            ],
+            [
+              "CombatSolver.SimulationCardPileLookupFastPath::Find",
+              71
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendMonsterAiFingerprint",
+              69
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AddCreatureTypeSet",
+              68
+            ],
+            [
+              "System.Collections.Generic.List`1[System.__Canon]::Contains",
+              67
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              65
+            ],
+            [
+              "CombatSolver.StateFingerprintBuilder::Add",
+              56
+            ],
+            [
+              "System.Array::IndexOf",
+              55
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendTrackedAttack",
+              50
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendCardLifecycleFingerprint",
+              45
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              39
+            ]
+          ],
+          "self": [
+            [
+              "CombatSolver.SimulatedCombatState::GetPowerFingerprint",
+              176
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AddCreatureIntMap",
+              83
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              59
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendMonsterAiFingerprint",
+              57
+            ],
+            [
+              "CombatSolver.StateFingerprintBuilder::Add",
+              56
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::CombatSolver.Engine.Common.ICombatPredictionCreatureSemantics.IsHittable",
+              48
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendStatefulRelicFingerprint",
+              47
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::AppendPile",
+              40
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              39
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendCardLifecycleFingerprint",
+              30
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::IndexOf",
+              30
+            ],
+            [
+              "CombatSolver.SimulatedCombatState+ConcatenatedListenerView+<GetEnumerator>d__13::MoveNext",
+              28
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::AppendTrackedAttack",
+              27
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::BuildStateKey",
+              25
+            ],
+            [
+              "[unknown] perf-646250.map",
+              24
+            ]
+          ]
+        },
+        "CalculateReachableHandPotential": {
+          "inclusiveSamples": 964,
+          "shareOfSearchPercent": 4.388800364215798,
+          "descendants": [
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::CanPlay",
+              785
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictedCardExtensions::GetEnergyCostValueWithModifiers",
+              402
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::ModifyEnergyCostInCombat",
+              375
+            ],
+            [
+              "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`3[System.__Canon,System.__Canon,System.Decimal]::TryInvokeRegistered",
+              116
+            ],
+            [
+              "MegaCrit.Sts2.Core.Hooks.Hook::ShouldPayExcessEnergyCostWithStars",
+              111
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::IsCombatEnding",
+              109
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+              78
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              75
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::IsCardPlayPrevented",
+              73
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictedCardExtensions::HasKeyword",
+              68
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Mirrors.Hooks.Card.ModifyEnergyCostInCombatMirrors::HandleBrilliantScarf",
+              61
+            ],
+            [
+              "MegaCrit.Sts2.Core.Hooks.Hook+<IterateCombatHookListeners>d__0::MoveNext",
+              56
+            ],
+            [
+              "CombatSolver.Engine.Common.PredictionStateStore::Get",
+              42
+            ],
+            [
+              "System.Linq.Enumerable::Any",
+              40
+            ],
+            [
+              "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`3[System.__Canon,System.__Canon,System.Boolean]::Invoke",
+              39
+            ],
+            [
+              "dynamicClass::MegaCrit.Sts2.Core.Models.CardModel.get_CurrentStarCost_Patch1",
+              36
+            ],
+            [
+              "CombatSolver.RitsuEmptyCapabilityFastPath::CanSkip",
+              34
+            ],
+            [
+              "CombatSolver.Engine.Common.MirroredHookListenerFilter::Filter",
+              32
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfInterface",
+              31
+            ],
+            [
+              "dynamicClass::STS2RitsuLib.Models.Capabilities.CardModelCapabilityHost.ApplyStarCost_Patch1",
+              28
+            ]
+          ],
+          "self": [
+            [
+              "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::ModifyEnergyCostInCombat",
+              93
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::IsCombatEnding",
+              84
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              71
+            ],
+            [
+              "MegaCrit.Sts2.Core.Hooks.Hook::ShouldPayExcessEnergyCostWithStars",
+              46
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+              41
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfInterface",
+              31
+            ],
+            [
+              "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::CanPlay",
+              28
+            ],
+            [
+              "CombatSolver.SimulatedCombatState+ConcatenatedListenerView+<GetEnumerator>d__13::MoveNext",
+              28
+            ],
+            [
+              "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`3[System.__Canon,System.__Canon,System.Boolean]::Lookup",
+              26
+            ],
+            [
+              "CombatSolver.RitsuEmptyCapabilityFastPath::CanSkip",
+              23
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::CalculateReachableHandPotential",
+              22
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              20
+            ],
+            [
+              "MegaCrit.Sts2.Core.Hooks.Hook+<IterateCombatHookListeners>d__0::MoveNext",
+              19
+            ],
+            [
+              "MegaCrit.Sts2.Core.Models.AbstractModel::ShouldPayExcessEnergyCostWithStars",
+              19
+            ],
+            [
+              "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`3[System.__Canon,System.__Canon,System.Decimal]::TryInvokeRegistered",
+              17
+            ]
+          ]
+        },
+        "NormalizePowerAfflictions": {
+          "inclusiveSamples": 593,
+          "shareOfSearchPercent": 2.6997496016389713,
+          "descendants": [
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              237
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::EffectivePowers",
+              108
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              100
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+              87
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::BuildEffectiveHookListeners",
+              78
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::AddIfNotPresent",
+              63
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              42
+            ],
+            [
+              "System.Object::Equals",
+              24
+            ],
+            [
+              "stub<2845> GenerateResolveStub<GenerateResolveStub>",
+              23
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              21
+            ],
+            [
+              "System.Object::GetHashCode",
+              17
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper",
+              16
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+              13
+            ],
+            [
+              "stub<2856> GenerateDispatchStub<GenerateDispatchStub>",
+              12
+            ],
+            [
+              "stub<5785> GenerateDispatchStub<GenerateDispatchStub>",
+              9
+            ],
+            [
+              "[unknown] perf-646250.map",
+              9
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::TryGetValue",
+              7
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              5
+            ],
+            [
+              "stub<5813> GenerateDispatchStub<GenerateDispatchStub>",
+              5
+            ],
+            [
+              "System.Collections.Generic.GenericEqualityComparer`1[System.ValueTuple`2[System.__Canon,System.__Canon]]::Equals",
+              4
+            ]
+          ],
+          "self": [
+            [
+              "CombatSolver.SimulatedCombatState::NormalizePowerAfflictions",
+              108
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              99
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              99
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              42
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::AddIfNotPresent",
+              42
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::BuildEffectiveHookListeners",
+              25
+            ],
+            [
+              "System.Object::Equals",
+              24
+            ],
+            [
+              "stub<2845> GenerateResolveStub<GenerateResolveStub>",
+              23
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              20
+            ],
+            [
+              "System.Object::GetHashCode",
+              17
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper",
+              16
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+              13
+            ],
+            [
+              "stub<2856> GenerateDispatchStub<GenerateDispatchStub>",
+              12
+            ],
+            [
+              "stub<5785> GenerateDispatchStub<GenerateDispatchStub>",
+              9
+            ],
+            [
+              "[unknown] perf-646250.map",
+              9
+            ]
+          ]
+        },
+        "NormalizeCardAfflictions": {
+          "inclusiveSamples": 836,
+          "shareOfSearchPercent": 3.8060550876394266,
+          "descendants": [
+            [
+              "CombatSolver.SimulatedCombatState::NormalizePowerAfflictions",
+              591
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              269
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::EffectivePowers",
+              109
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              101
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+              87
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::BuildEffectiveHookListeners",
+              78
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::AddIfNotPresent",
+              64
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::NormalizeGhostSeedCards",
+              52
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              42
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              38
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              32
+            ],
+            [
+              "System.Object::Equals",
+              28
+            ],
+            [
+              "stub<2845> GenerateResolveStub<GenerateResolveStub>",
+              23
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::ApplyPhantomBladesRetain",
+              20
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::NormalizeSwordSageReplays",
+              18
+            ],
+            [
+              "[unknown] perf-646250.map",
+              18
+            ],
+            [
+              "System.Object::GetHashCode",
+              17
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper",
+              16
+            ],
+            [
+              "CombatSolver.SimulatedCombatState+<>c::<NormalizeGhostSeedCards>b__636_0",
+              15
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+              14
+            ]
+          ],
+          "self": [
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              125
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::NormalizePowerAfflictions",
+              106
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              100
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::NormalizeCardAfflictions",
+              61
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::AddIfNotPresent",
+              43
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+              42
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              31
+            ],
+            [
+              "System.Object::Equals",
+              28
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::BuildEffectiveHookListeners",
+              25
+            ],
+            [
+              "stub<2845> GenerateResolveStub<GenerateResolveStub>",
+              23
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              22
+            ],
+            [
+              "[unknown] perf-646250.map",
+              18
+            ],
+            [
+              "System.Object::GetHashCode",
+              17
+            ],
+            [
+              "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper",
+              16
+            ],
+            [
+              "CombatSolver.SimulatedCombatState+<>c::<NormalizeGhostSeedCards>b__636_0",
+              15
+            ]
+          ]
+        },
+        "FreeCardOpportunityValue": {
+          "inclusiveSamples": 38,
+          "shareOfSearchPercent": 0.17300250398361028,
+          "descendants": [
+            [
+              "CombatSolver.SimulatedCombatState::GetAmount",
+              31
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              16
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              10
+            ],
+            [
+              "System.ValueTuple`2[System.__Canon,System.__Canon]::GetHashCode",
+              9
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              6
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::FreeCardOpportunityValue",
+              2
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              1
+            ],
+            [
+              "__tls_get_addr",
+              1
+            ]
+          ],
+          "self": [
+            [
+              "System.ValueTuple`2[System.__Canon,System.__Canon]::GetHashCode",
+              9
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              9
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              6
+            ],
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              6
+            ],
+            [
+              "CombatSolver.CombatBeamSolver::FreeCardOpportunityValue",
+              5
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+              1
+            ],
+            [
+              "CombatSolver.SimulatedCombatState::GetAmount",
+              1
+            ],
+            [
+              "__tls_get_addr",
+              1
+            ]
+          ]
+        },
+        "VoidFormOpportunityValue": {
+          "inclusiveSamples": 10,
+          "shareOfSearchPercent": 0.04552697473252902,
+          "descendants": [
+            [
+              "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+              3
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              3
+            ],
+            [
+              "System.ValueTuple`2[System.__Canon,System.__Canon]::GetHashCode",
+              2
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              2
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+              1
+            ]
+          ],
+          "self": [
+            [
+              "CombatSolver.CombatBeamSolver::VoidFormOpportunityValue",
+              3
+            ],
+            [
+              "[unknown] libcoreclr.so",
+              3
+            ],
+            [
+              "System.ValueTuple`2[System.__Canon,System.__Canon]::GetHashCode",
+              2
+            ],
+            [
+              "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+              1
+            ],
+            [
+              "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+              1
+            ]
+          ]
+        }
+      }
+    },
+    "prototypePatch": "diff --git a/src/Search/CombatBeamSolver.StateEvaluation.cs b/src/Search/CombatBeamSolver.StateEvaluation.cs\nindex 8e1cad2..0840d94 100644\n--- a/src/Search/CombatBeamSolver.StateEvaluation.cs\n+++ b/src/Search/CombatBeamSolver.StateEvaluation.cs\n@@ -768,7 +768,9 @@ internal sealed partial class CombatBeamSolver\n         List<PredictedCard> cards,\n         MegaCrit.Sts2.Core.Random.Rng rng)\n     {\n-        cards.Sort();\n+        cards.Sort(static (left, right) => left is null\n+            ? right is null ? 0 : -1\n+            : left.CompareTo(right));\n         cards.UnstableShuffle(rng);\n     }\n \n"
+  },
+  "merge": {
+    "upstreamCommit": "7ac005e",
+    "performanceHeadBeforeMerge": "3f2ac26",
+    "conflicts": [
+      "docs/DEVELOPMENT_NOTES.md",
+      "docs/TEST_MATRIX.md",
+      "src/UI/SolverSettingsPanel.Performance.cs"
+    ],
+    "releaseBuildPassed": true,
+    "buildWarnings": 0,
+    "buildErrors": 0,
+    "boundaryChecks": {
+      "bash": "REFACTOR_BOUNDARIES_OK search_files=84",
+      "powershell": "REFACTOR_BOUNDARIES_OK search_files=84"
+    },
+    "translation": {
+      "passed": true,
+      "scope": "Only the conflict-resolved parallelism tooltip: localized lookup, all CPU/DOP tiers, and no added interpolation placeholders. No UI runtime or layout conclusion.",
+      "sourceKey": "关闭时使用单线程搜索；2–16 是并行上限，实际并发还会受可独立分支数和内存安全准入限制，因此 CPU 不一定满载。提高可能加快大型搜索，也会增加 CPU、峰值内存和帧率压力；超过物理核心数通常只有小幅收益。默认按可用逻辑处理器选择：16 个及以上用 8 线程，4–15 个用 4 线程，2–3 个用 2 线程，其余用单线程；遇到疑似并行问题时请先上传问题包，再切换为关闭。",
+      "english": "Off uses one thread. Values 2–16 cap parallel workers; actual concurrency depends on independent branches and safe memory capacity, so CPU usage may stay below 100%. Higher values may speed up large searches but increase CPU, memory and frame pressure. Gains above physical core count are usually small. Defaults to 8 threads with 16 or more available logical processors, 4 with 4–15, 2 with 2–3, and 1 otherwise. If parallel search seems faulty, upload a report before switching it off."
+    },
+    "validation": [
+      {
+        "label": "merged-policy",
+        "runId": "4286e80ab6b145ca8e778c03ddb3a7e5",
+        "status": "Passed",
+        "processExitCode": 0,
+        "elapsedMilliseconds": 57405.2286,
+        "completedChecks": [
+          "SearchPolicySnapshot"
+        ],
+        "solverMetrics": null,
+        "error": null,
+        "journalRecords": 645
+      },
+      {
+        "label": "merged-normality",
+        "runId": "4c8a33fd786144e5aa57f6d56185d646",
+        "status": "Passed",
+        "processExitCode": 0,
+        "elapsedMilliseconds": 5772.1365,
+        "completedChecks": [
+          "NormalityCascadeNative:RepeatedFirstCard:FullState",
+          "Normality:StartedHistory:ForkIsolation:TurnReset:BlockedPile:CurseLeftHand"
+        ],
+        "solverMetrics": null,
+        "error": null,
+        "journalRecords": 0
+      },
+      {
+        "label": "merged-slow",
+        "runId": "f876d91c61a04a54aeaa7cb7a2f89157",
+        "status": "Passed",
+        "processExitCode": 0,
+        "elapsedMilliseconds": 3912.1226,
+        "completedChecks": [
+          "SLOW-TURN-RESET-FORK"
+        ],
+        "solverMetrics": null,
+        "error": null,
+        "journalRecords": 0
+      },
+      {
+        "label": "merged-short",
+        "runId": "3404f8a1ddab413d944b6c93fb3e749c",
+        "status": "Passed",
+        "processExitCode": 0,
+        "elapsedMilliseconds": 24208.5189,
+        "completedChecks": [
+          "PerformancePreset:VeryHigh:20000/300000ms:Beam=54/135:Nodes=10000/50000:Branches=45/72:NoGC=True/16000000000",
+          "NoGcConfigurationApplied:Configured=True/16000000000:Established=16000000000:Actual=True/16000000000:Latency=NoGCRegion",
+          "InitialWorldlineSummary",
+          "InitialPolicy:SoldHp=0/15;Potion=2,Saved=21/18,Rejected=0;Theft=-,Outstanding=0;Turns=8;Shuffles=1;Unmirrored=0;HpLost=3;ProjectedBattleHpLost=4;Block=8/8;Pruned=1167;Phase=Short;Deep=False/False;Total=19986.8ms/22216243064B;Gc=1551.3ms/1531.5msMax;Frame=1538.4msMax/70Over50;CacheHits=0;ChoiceBranches=101420;Actions=5;OnlyDeath=False;CombatEndedTurn=-;DeathTurn=-;ActEndingBoss=False;BossHpRelief=None"
+        ],
+        "solverMetrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 3,
+            "noGcStarts": 3,
+            "noGcEndAttempts": 2,
+            "noGcEnds": 2,
+            "noGcRestarts": 2,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "phase": "Short",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 10000,
+          "selectedTransitions": 144276,
+          "selectedChoiceBranches": 101420,
+          "choiceReplayAttempts": 101420,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 325,
+          "cycleRegionCandidatesConsidered": 906,
+          "cycleRegionCandidatesAdmitted": 801,
+          "cycleRegionCandidatesDropped": 105,
+          "cycleRegionProgressEpochs": 434,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 431,
+          "cycleRegionMaxActionFamilies": 1,
+          "orderedMutationCandidatesAdmitted": 2048,
+          "orderedMutationLeaseExpiredBudget": 1632,
+          "orderedMutationOrdinaryFallbacks": 121,
+          "orderedMutationColdAtomicCommitted": 67,
+          "orderedMutationColdAtomicRejected": 766,
+          "totalExpanded": 42228,
+          "totalTransitions": 462748,
+          "totalChoiceBranches": 293759,
+          "elapsedMilliseconds": 5048.8077,
+          "totalElapsedMilliseconds": 19986.7918,
+          "workerAllocatedBytes": 6415865424,
+          "totalWorkerAllocatedBytes": 22216243064,
+          "totalGen0Collections": 5,
+          "totalGen1Collections": 5,
+          "totalGen2Collections": 4,
+          "totalGcPauseMilliseconds": 1551.298,
+          "maxGcPauseMilliseconds": 1531.514,
+          "maxParallelConcurrency": 8,
+          "parallelActionReplayWaves": 661,
+          "parallelActionReplayWorkItems": 30918,
+          "maxParallelActionReplayConcurrency": 8,
+          "deferredRoundChoiceActions": 4131,
+          "deferredRoundChoiceLayerWidthTotal": 43621,
+          "maxDeferredRoundChoiceLayerWidth": 27,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 13,
+          "deferredRoundChoiceFinitePrimaryLayers": 4118,
+          "deferredRoundChoiceFinitePendingFallbacks": 13,
+          "parallelRoundChoiceReplayWaves": 555,
+          "parallelRoundChoiceReplayWorkItems": 73205,
+          "maxParallelRoundChoiceReplayConcurrency": 8,
+          "searchedTurns": 8,
+          "shufflesCrossed": 1,
+          "score": -2570057,
+          "projectedBattleHpLost": 4,
+          "potionCount": 2,
+          "potionUses": [
+            {
+              "id": "GAMBLERS_BREW",
+              "title": "赌徒特酿",
+              "turn": 1,
+              "slot": 0
+            },
+            {
+              "id": "COLORLESS_POTION",
+              "title": "无色药水",
+              "turn": 2,
+              "slot": 1
+            }
+          ],
+          "onlyDeathRoutes": false,
+          "finalHp": 37,
+          "finalEnemyHp": 348,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 24115.8841,
+          "managedLiveBytes": 7035507944,
+          "managedHeapBytes": 11058467960,
+          "managedFragmentedBytes": 5181367592,
+          "workingSetBytes": 12720062464,
+          "privateMemoryBytes": 29896826880,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "error": null,
+        "journalRecords": 699
+      },
+      {
+        "label": "merged-sentinel",
+        "runId": "5fe36f290f8147ddbb4b756a521876b5",
+        "status": "Passed",
+        "processExitCode": 0,
+        "elapsedMilliseconds": 4863.3547,
+        "completedChecks": [
+          "PerformancePreset:VeryHigh:20000/300000ms:Beam=54/135:Nodes=10000/50000:Branches=45/72:NoGC=True/16000000000",
+          "NoGcConfigurationApplied:Configured=True/16000000000:Established=16000000000:Actual=True/16000000000:Latency=NoGCRegion",
+          "InitialWorldlineSummary",
+          "InitialPolicy:SoldHp=16/10;Potion=0,Saved=0/0,Rejected=0;Theft=-,Outstanding=0;Turns=3;Shuffles=0;Unmirrored=0;HpLost=24;ProjectedBattleHpLost=80;Block=0/16;Pruned=41;Phase=Short;Deep=False/False;Total=619.2ms/505482904B;Gc=0.0ms/0.0msMax;Frame=74.2msMax/1Over50;CacheHits=0;ChoiceBranches=0;Actions=3;OnlyDeath=True;CombatEndedTurn=-;DeathTurn=3;ActEndingBoss=False;BossHpRelief=None"
+        ],
+        "solverMetrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 1,
+            "noGcStarts": 1,
+            "noGcEndAttempts": 0,
+            "noGcEnds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "phase": "Short",
+          "boundary": "None",
+          "selectedExpanded": 1044,
+          "selectedTransitions": 3995,
+          "selectedChoiceBranches": 0,
+          "choiceReplayAttempts": 0,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 3437,
+          "totalTransitions": 8783,
+          "totalChoiceBranches": 0,
+          "elapsedMilliseconds": 189.3763,
+          "totalElapsedMilliseconds": 619.1655,
+          "workerAllocatedBytes": 227798440,
+          "totalWorkerAllocatedBytes": 505482904,
+          "totalGen0Collections": 0,
+          "totalGen1Collections": 0,
+          "totalGen2Collections": 0,
+          "totalGcPauseMilliseconds": 0,
+          "maxGcPauseMilliseconds": 0,
+          "maxParallelConcurrency": 8,
+          "parallelActionReplayWaves": 60,
+          "parallelActionReplayWorkItems": 2951,
+          "maxParallelActionReplayConcurrency": 8,
+          "deferredRoundChoiceActions": 0,
+          "deferredRoundChoiceLayerWidthTotal": 0,
+          "maxDeferredRoundChoiceLayerWidth": 0,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 0,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 0,
+          "parallelRoundChoiceReplayWorkItems": 0,
+          "maxParallelRoundChoiceReplayConcurrency": 0,
+          "searchedTurns": 3,
+          "shufflesCrossed": 0,
+          "score": -1000004760009,
+          "projectedBattleHpLost": 80,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": true,
+          "finalHp": 0,
+          "finalEnemyHp": 204,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 4777.8802,
+          "managedLiveBytes": 598068840,
+          "managedHeapBytes": 120930888,
+          "managedFragmentedBytes": 43885896,
+          "workingSetBytes": 12945412096,
+          "privateMemoryBytes": 28444692480,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "error": null,
+        "journalRecords": 0
+      }
+    ],
+    "upstreamComparison": {
+      "upstreamCommit": "7ac005e",
+      "candidateSource": "3f2ac26 merged with 7ac005e; only documentation and the localized parallelism tooltip required conflict resolution.",
+      "scope": "Current-upstream merge correctness, not a fixed-work performance A/B. Each version uses a new process. Original 20s Short request-wide deadline also covers required-potion audits; total work can vary with elapsed time. A root-only request retires buffered logs without source modifications.",
+      "cases": [
+        {
+          "case": "short",
+          "baseline": {
+            "label": "compare2-control-short",
+            "runId": "bdf47f6589014329997f292485c07025",
+            "status": "Passed",
+            "elapsedMilliseconds": 44653.5321,
+            "metrics": {
+              "gcLifecycle": {
+                "forcedCollections": 0,
+                "noGcStartAttempts": 1,
+                "noGcStarts": 1,
+                "noGcEndAttempts": 0,
+                "noGcEnds": 0,
+                "noGcRestarts": 0,
+                "noGcLosses": 0
+              },
+              "gcLifecycleAttribution": "ExclusiveSearchScope",
+              "phase": "Short",
+              "boundary": "NodeLimit",
+              "selectedExpanded": 10000,
+              "selectedTransitions": 144276,
+              "selectedChoiceBranches": 101420,
+              "choiceReplayAttempts": 101420,
+              "choiceReplayBudgetExhaustions": 0,
+              "choiceBranchesDroppedByBudget": 0,
+              "cycleRegionsDetected": 325,
+              "cycleRegionCandidatesConsidered": 906,
+              "cycleRegionCandidatesAdmitted": 801,
+              "cycleRegionCandidatesDropped": 105,
+              "cycleRegionProgressEpochs": 434,
+              "cycleRegionProbeCandidatesAdmitted": 0,
+              "cycleRegionProgressCandidatesAdmitted": 431,
+              "cycleRegionMaxActionFamilies": 1,
+              "orderedMutationCandidatesAdmitted": 2048,
+              "orderedMutationLeaseExpiredBudget": 1632,
+              "orderedMutationOrdinaryFallbacks": 121,
+              "orderedMutationColdAtomicCommitted": 67,
+              "orderedMutationColdAtomicRejected": 766,
+              "totalExpanded": 13307,
+              "totalTransitions": 172189,
+              "totalChoiceBranches": 116125,
+              "elapsedMilliseconds": 17657.3352,
+              "totalElapsedMilliseconds": 19994.3303,
+              "workerAllocatedBytes": 7400046112,
+              "totalWorkerAllocatedBytes": 8830541040,
+              "totalGen0Collections": 0,
+              "totalGen1Collections": 0,
+              "totalGen2Collections": 0,
+              "totalGcPauseMilliseconds": 0,
+              "maxGcPauseMilliseconds": 0,
+              "maxParallelConcurrency": 8,
+              "parallelActionReplayWaves": 11,
+              "parallelActionReplayWorkItems": 50,
+              "maxParallelActionReplayConcurrency": 7,
+              "deferredRoundChoiceActions": 7,
+              "deferredRoundChoiceLayerWidthTotal": 88,
+              "maxDeferredRoundChoiceLayerWidth": 15,
+              "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+              "deferredRoundChoiceFinitePrimaryLayers": 7,
+              "deferredRoundChoiceFinitePendingFallbacks": 0,
+              "parallelRoundChoiceReplayWaves": 0,
+              "parallelRoundChoiceReplayWorkItems": 0,
+              "maxParallelRoundChoiceReplayConcurrency": 0,
+              "searchedTurns": 8,
+              "shufflesCrossed": 1,
+              "score": -2570057,
+              "projectedBattleHpLost": 4,
+              "potionCount": 2,
+              "potionUses": [
+                {
+                  "id": "GAMBLERS_BREW",
+                  "title": "赌徒特酿",
+                  "turn": 1,
+                  "slot": 0
+                },
+                {
+                  "id": "COLORLESS_POTION",
+                  "title": "无色药水",
+                  "turn": 2,
+                  "slot": 1
+                }
+              ],
+              "onlyDeathRoutes": false,
+              "finalHp": 37,
+              "finalEnemyHp": 348,
+              "combatEndedTurn": null,
+              "capturedAtElapsedMilliseconds": 44527.6529,
+              "managedLiveBytes": 8939067832,
+              "managedHeapBytes": 79782144,
+              "managedFragmentedBytes": 13294080,
+              "workingSetBytes": 10463416320,
+              "privateMemoryBytes": 18599264256,
+              "configuredNoGcRegionEnabled": true,
+              "configuredNoGcRegionBudgetBytes": 16000000000,
+              "gcLatencyMode": "NoGCRegion",
+              "noGcRegionActive": true,
+              "noGcRegionBudgetBytes": 16000000000,
+              "noGcRegionRolloverCount": 0
+            },
+            "raw90Fields": {
+              "phase": "Short",
+              "deep_triggered": "False",
+              "deep_improved": "False",
+              "reused": "False",
+              "reused_from_turn": "-",
+              "expanded": "10000",
+              "total_expanded": "13307",
+              "dominance_pruned": "428",
+              "top_queue_dropped": "0",
+              "duplicate_cards_pruned": "1845",
+              "choice_branches": "101420",
+              "total_choice_branches": "116125",
+              "choice_replay_attempts": "101420",
+              "choice_replay_budget_exhaustions": "0",
+              "choice_branches_dropped_by_budget": "0",
+              "shuffle_branches_pruned": "0",
+              "sold_hp_branches_pruned": "1167",
+              "replays": "2",
+              "forks": "144276",
+              "transitions": "144276",
+              "total_transitions": "172189",
+              "cache_hits": "0",
+              "stand_pat": "0",
+              "snapshot_reuses": "10216",
+              "transposition_pruned": "1732",
+              "repeatable_no_progress_pruned": "0",
+              "cycle_shapes": "916",
+              "cycle_probe_continuations": "0",
+              "cycle_candidates_protected": "0",
+              "cycle_continuations_stopped": "0",
+              "cycle_regions": "325",
+              "cycle_region_considered": "906",
+              "cycle_region_admitted": "801",
+              "cycle_region_dropped": "105",
+              "cycle_region_progress_epochs": "434",
+              "cycle_region_probe_admitted": "0",
+              "cycle_region_progress_admitted": "431",
+              "cycle_region_max_action_families": "1",
+              "ordered_admitted": "2048",
+              "ordered_lease_expired_budget": "1632",
+              "ordered_ordinary_fallback": "121",
+              "cold_atomic_committed": "67",
+              "cold_atomic_rejected": "766",
+              "cross_turn_candidates_protected": "20",
+              "cross_turn_continuations_stopped": "0",
+              "primary_incumbent_pruned": "0",
+              "primary_incumbent_updates": "0",
+              "stand_pat_probes": "0",
+              "deferred_round_choice_actions": "7",
+              "deferred_round_choice_width_total": "88",
+              "deferred_round_choice_max_width": "15",
+              "deferred_round_choice_finite_fallbacks": "0",
+              "deferred_round_choice_finite_fallback_scope": "pending_only",
+              "deferred_round_choice_finite_primary_layers": "7",
+              "deferred_round_choice_finite_pending_fallbacks": "0",
+              "node_limit_snapshots_released": "80",
+              "transition_cache_hits": "0",
+              "searched_turns": "8",
+              "boundary": "NodeLimit",
+              "shuffles_crossed": "1",
+              "unavoidable_hp_lost": "4",
+              "sold_hp": "0",
+              "future_sold_hp": "0",
+              "sold_hp_threshold": "15",
+              "battle_hp_lost_so_far": "0",
+              "projected_battle_hp_lost": "4",
+              "recovered_hp": "0",
+              "relic_heal": "0",
+              "death_save_relic_hp": "0",
+              "long_term_resource": "0",
+              "anger_copies": "0",
+              "battle_potions_used_so_far": "0",
+              "potion_count": "2",
+              "potion_hp_saved": "21",
+              "potion_hp_required": "18",
+              "potion_branches_rejected": "0",
+              "theft_policy": "-",
+              "outstanding_stolen_resource": "0",
+              "score": "-2570057",
+              "final_hp": "37",
+              "final_block": "0",
+              "final_enemy_hp": "348",
+              "combat_ended_turn": "-",
+              "death_turn": "-",
+              "only_death_routes": "False",
+              "act_ending_boss": "False",
+              "boss_hp_relief": "None",
+              "engine_risk": "False",
+              "unsupported_intent": "False",
+              "modeled_damage_exact": "True"
+            },
+            "actions": [
+              "[CombatSolver/Test] ACTION turn=1 kind=UsePotion potion_id=GAMBLERS_BREW slot=0 title=赌徒特酿 target_index=-1 target_combat_id=- target=- choice_effect=DiscardAndDraw choice_cards=WISP+0#src0/opt0,DEFEND_NECROBINDER+0#src0/opt0,HANG+0#src0/opt0,DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=ASCENDERS_BANE+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CALL_OF_THE_VOID occurrence=0 title=虚空之唤 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SPIRIT_OF_ASH occurrence=0 title=灰烬之灵 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=LETHALITY occurrence=0 title=致死性 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=UNLEASH occurrence=0 title=出击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=UsePotion potion_id=COLORLESS_POTION slot=1 title=无色药水 target_index=-1 target_combat_id=- target=- choice_effect=GenerateToHand choice_cards=MIND_BLAST+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=MIND_BLAST occurrence=0 title=心灵震慑 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SNAP occurrence=0 title=响指 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=ApplyRetain choice_cards=GRAVEBLAST+1#src1/opt1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=VEILPIERCER+0#src1/opt1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=AFTERLIFE occurrence=0 title=来生 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=NEUROSURGE occurrence=0 title=精神过载+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- relic_effects=JOSS_PAPER:：抽1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BODYGUARD occurrence=0 title=护卫+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SCOURGE occurrence=0 title=鞭打 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=PANACHE occurrence=0 title=神气制胜 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SHARED_FATE occurrence=0 title=命运同担 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=LETHALITY+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DIRGE occurrence=0 title=挽歌 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=FETCH occurrence=0 title=取回 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=SOOT+0#src0/opt0 relic_effects=JOSS_PAPER:：抽1 kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=WISP occurrence=0 title=鬼火 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SIC_EM occurrence=0 title=紧追不放 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SCOURGE occurrence=0 title=鞭打 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=WITHER+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=8 kind=EndTurn"
+            ]
+          },
+          "candidate": {
+            "label": "compare2-current-short",
+            "runId": "ebb2fce7ed124f79a13cd14ad798ec39",
+            "status": "Passed",
+            "elapsedMilliseconds": 44719.0516,
+            "metrics": {
+              "gcLifecycle": {
+                "forcedCollections": 0,
+                "noGcStartAttempts": 2,
+                "noGcStarts": 2,
+                "noGcEndAttempts": 1,
+                "noGcEnds": 1,
+                "noGcRestarts": 1,
+                "noGcLosses": 0
+              },
+              "gcLifecycleAttribution": "ExclusiveSearchScope",
+              "phase": "Short",
+              "boundary": "NodeLimit",
+              "selectedExpanded": 10000,
+              "selectedTransitions": 144276,
+              "selectedChoiceBranches": 101420,
+              "choiceReplayAttempts": 101420,
+              "choiceReplayBudgetExhaustions": 0,
+              "choiceBranchesDroppedByBudget": 0,
+              "cycleRegionsDetected": 325,
+              "cycleRegionCandidatesConsidered": 906,
+              "cycleRegionCandidatesAdmitted": 801,
+              "cycleRegionCandidatesDropped": 105,
+              "cycleRegionProgressEpochs": 434,
+              "cycleRegionProbeCandidatesAdmitted": 0,
+              "cycleRegionProgressCandidatesAdmitted": 431,
+              "cycleRegionMaxActionFamilies": 1,
+              "orderedMutationCandidatesAdmitted": 2048,
+              "orderedMutationLeaseExpiredBudget": 1632,
+              "orderedMutationOrdinaryFallbacks": 121,
+              "orderedMutationColdAtomicCommitted": 67,
+              "orderedMutationColdAtomicRejected": 766,
+              "totalExpanded": 34770,
+              "totalTransitions": 374539,
+              "totalChoiceBranches": 234661,
+              "elapsedMilliseconds": 9911.1184,
+              "totalElapsedMilliseconds": 19979.3134,
+              "workerAllocatedBytes": 6622651376,
+              "totalWorkerAllocatedBytes": 17985668800,
+              "totalGen0Collections": 2,
+              "totalGen1Collections": 2,
+              "totalGen2Collections": 2,
+              "totalGcPauseMilliseconds": 22.115,
+              "maxGcPauseMilliseconds": 20.004,
+              "maxParallelConcurrency": 8,
+              "parallelActionReplayWaves": 661,
+              "parallelActionReplayWorkItems": 30918,
+              "maxParallelActionReplayConcurrency": 8,
+              "deferredRoundChoiceActions": 4131,
+              "deferredRoundChoiceLayerWidthTotal": 43621,
+              "maxDeferredRoundChoiceLayerWidth": 27,
+              "deferredRoundChoiceFiniteQuotaFallbacks": 13,
+              "deferredRoundChoiceFinitePrimaryLayers": 4118,
+              "deferredRoundChoiceFinitePendingFallbacks": 13,
+              "parallelRoundChoiceReplayWaves": 555,
+              "parallelRoundChoiceReplayWorkItems": 73205,
+              "maxParallelRoundChoiceReplayConcurrency": 8,
+              "searchedTurns": 8,
+              "shufflesCrossed": 1,
+              "score": -2570057,
+              "projectedBattleHpLost": 4,
+              "potionCount": 2,
+              "potionUses": [
+                {
+                  "id": "GAMBLERS_BREW",
+                  "title": "赌徒特酿",
+                  "turn": 1,
+                  "slot": 0
+                },
+                {
+                  "id": "COLORLESS_POTION",
+                  "title": "无色药水",
+                  "turn": 2,
+                  "slot": 1
+                }
+              ],
+              "onlyDeathRoutes": false,
+              "finalHp": 37,
+              "finalEnemyHp": 348,
+              "combatEndedTurn": null,
+              "capturedAtElapsedMilliseconds": 44585.4819,
+              "managedLiveBytes": 13528254096,
+              "managedHeapBytes": 10767346080,
+              "managedFragmentedBytes": 4730361584,
+              "workingSetBytes": 15118503936,
+              "privateMemoryBytes": 29391450112,
+              "configuredNoGcRegionEnabled": true,
+              "configuredNoGcRegionBudgetBytes": 16000000000,
+              "gcLatencyMode": "NoGCRegion",
+              "noGcRegionActive": true,
+              "noGcRegionBudgetBytes": 16000000000,
+              "noGcRegionRolloverCount": 0
+            },
+            "raw90Fields": {
+              "phase": "Short",
+              "deep_triggered": "False",
+              "deep_improved": "False",
+              "reused": "False",
+              "reused_from_turn": "-",
+              "expanded": "10000",
+              "total_expanded": "34770",
+              "dominance_pruned": "428",
+              "top_queue_dropped": "0",
+              "duplicate_cards_pruned": "1845",
+              "choice_branches": "101420",
+              "total_choice_branches": "234661",
+              "choice_replay_attempts": "101420",
+              "choice_replay_budget_exhaustions": "0",
+              "choice_branches_dropped_by_budget": "0",
+              "shuffle_branches_pruned": "0",
+              "sold_hp_branches_pruned": "1167",
+              "replays": "2",
+              "forks": "144276",
+              "transitions": "144276",
+              "total_transitions": "374539",
+              "cache_hits": "0",
+              "stand_pat": "0",
+              "snapshot_reuses": "10216",
+              "transposition_pruned": "1732",
+              "repeatable_no_progress_pruned": "0",
+              "cycle_shapes": "916",
+              "cycle_probe_continuations": "0",
+              "cycle_candidates_protected": "0",
+              "cycle_continuations_stopped": "0",
+              "cycle_regions": "325",
+              "cycle_region_considered": "906",
+              "cycle_region_admitted": "801",
+              "cycle_region_dropped": "105",
+              "cycle_region_progress_epochs": "434",
+              "cycle_region_probe_admitted": "0",
+              "cycle_region_progress_admitted": "431",
+              "cycle_region_max_action_families": "1",
+              "ordered_admitted": "2048",
+              "ordered_lease_expired_budget": "1632",
+              "ordered_ordinary_fallback": "121",
+              "cold_atomic_committed": "67",
+              "cold_atomic_rejected": "766",
+              "cross_turn_candidates_protected": "20",
+              "cross_turn_continuations_stopped": "0",
+              "primary_incumbent_pruned": "0",
+              "primary_incumbent_updates": "0",
+              "stand_pat_probes": "0",
+              "deferred_round_choice_actions": "4131",
+              "deferred_round_choice_width_total": "43621",
+              "deferred_round_choice_max_width": "27",
+              "deferred_round_choice_finite_fallbacks": "13",
+              "deferred_round_choice_finite_fallback_scope": "pending_only",
+              "deferred_round_choice_finite_primary_layers": "4118",
+              "deferred_round_choice_finite_pending_fallbacks": "13",
+              "node_limit_snapshots_released": "80",
+              "transition_cache_hits": "0",
+              "searched_turns": "8",
+              "boundary": "NodeLimit",
+              "shuffles_crossed": "1",
+              "unavoidable_hp_lost": "4",
+              "sold_hp": "0",
+              "future_sold_hp": "0",
+              "sold_hp_threshold": "15",
+              "battle_hp_lost_so_far": "0",
+              "projected_battle_hp_lost": "4",
+              "recovered_hp": "0",
+              "relic_heal": "0",
+              "death_save_relic_hp": "0",
+              "long_term_resource": "0",
+              "anger_copies": "0",
+              "battle_potions_used_so_far": "0",
+              "potion_count": "2",
+              "potion_hp_saved": "21",
+              "potion_hp_required": "18",
+              "potion_branches_rejected": "0",
+              "theft_policy": "-",
+              "outstanding_stolen_resource": "0",
+              "score": "-2570057",
+              "final_hp": "37",
+              "final_block": "0",
+              "final_enemy_hp": "348",
+              "combat_ended_turn": "-",
+              "death_turn": "-",
+              "only_death_routes": "False",
+              "act_ending_boss": "False",
+              "boss_hp_relief": "None",
+              "engine_risk": "False",
+              "unsupported_intent": "False",
+              "modeled_damage_exact": "True"
+            },
+            "actions": [
+              "[CombatSolver/Test] ACTION turn=1 kind=UsePotion potion_id=GAMBLERS_BREW slot=0 title=赌徒特酿 target_index=-1 target_combat_id=- target=- choice_effect=DiscardAndDraw choice_cards=WISP+0#src0/opt0,DEFEND_NECROBINDER+0#src0/opt0,HANG+0#src0/opt0,DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=ASCENDERS_BANE+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=CALL_OF_THE_VOID occurrence=0 title=虚空之唤 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=SPIRIT_OF_ASH occurrence=0 title=灰烬之灵 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=LETHALITY occurrence=0 title=致死性 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=FINESSE occurrence=0 title=妙计 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=UNLEASH occurrence=0 title=出击 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=UsePotion potion_id=COLORLESS_POTION slot=1 title=无色药水 target_index=-1 target_combat_id=- target=- choice_effect=GenerateToHand choice_cards=MIND_BLAST+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=MIND_BLAST occurrence=0 title=心灵震慑 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SNAP occurrence=0 title=响指 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=ApplyRetain choice_cards=GRAVEBLAST+1#src1/opt1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=VEILPIERCER+0#src1/opt1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=AFTERLIFE occurrence=0 title=来生 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=NEUROSURGE occurrence=0 title=精神过载+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=GRAVEBLAST+1#src0/opt0 relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=GRAVEBLAST occurrence=0 title=坟冢爆射+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=MoveToHand choice_cards=DEFILE+1#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- relic_effects=JOSS_PAPER:：抽1 kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=BODYGUARD occurrence=0 title=护卫+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SCOURGE occurrence=0 title=鞭打 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=PANACHE occurrence=0 title=神气制胜 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=SHARED_FATE occurrence=0 title=命运同担 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=LETHALITY+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=4 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=BORROWED_TIME occurrence=0 title=预借时间+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=PlayCard card_id=DIRGE occurrence=0 title=挽歌 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=5 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=DEFILE occurrence=0 title=玷污+ target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=VEILPIERCER occurrence=0 title=刺破帷幕 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=FETCH occurrence=0 title=取回 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- relic_effects=ORNAMENTAL_FAN:：格挡+4 kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净+ target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=SOOT+0#src0/opt0 relic_effects=JOSS_PAPER:：抽1 kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=PlayCard card_id=WISP occurrence=0 title=鬼火 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=6 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SIC_EM occurrence=0 title=紧追不放 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=DEFEND_NECROBINDER occurrence=0 title=防御 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SOUL occurrence=0 title=灵魂 target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=PlayCard card_id=SCOURGE occurrence=0 title=鞭打 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=7 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=DEFY occurrence=0 title=违逆 target_index=0 target_combat_id=1 target=永世沙漏 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=8 kind=PlayCard card_id=CLEANSE occurrence=0 title=洁净 target_index=-1 target_combat_id=- target=- choice_effect=Exhaust choice_cards=WITHER+0#src0/opt0 kills=-",
+              "[CombatSolver/Test] ACTION turn=8 kind=EndTurn"
+            ]
+          },
+          "raw90Differences": {
+            "deferred_round_choice_width_total": [
+              "88",
+              "43621"
+            ],
+            "deferred_round_choice_finite_fallbacks": [
+              "0",
+              "13"
+            ],
+            "deferred_round_choice_finite_pending_fallbacks": [
+              "0",
+              "13"
+            ],
+            "total_transitions": [
+              "172189",
+              "374539"
+            ],
+            "total_choice_branches": [
+              "116125",
+              "234661"
+            ],
+            "deferred_round_choice_finite_primary_layers": [
+              "7",
+              "4118"
+            ],
+            "deferred_round_choice_actions": [
+              "7",
+              "4131"
+            ],
+            "deferred_round_choice_max_width": [
+              "15",
+              "27"
+            ],
+            "total_expanded": [
+              "13307",
+              "34770"
+            ]
+          },
+          "actionsEqual": true,
+          "actionCount": 57,
+          "differenceClassification": {
+            "schedulingDiagnostics": [
+              "deferred_round_choice_width_total",
+              "deferred_round_choice_finite_fallbacks",
+              "deferred_round_choice_finite_pending_fallbacks",
+              "deferred_round_choice_finite_primary_layers",
+              "deferred_round_choice_actions",
+              "deferred_round_choice_max_width"
+            ],
+            "sharedDeadlineTotals": [
+              "total_transitions",
+              "total_choice_branches",
+              "total_expanded"
+            ],
+            "otherDifferences": {},
+            "rawFieldsEqual": 81
+          }
+        },
+        {
+          "case": "sentinel",
+          "baseline": {
+            "label": "compare2-control-sentinel",
+            "runId": "c065f7cf7b9847da967e022940036c0d",
+            "status": "Passed",
+            "elapsedMilliseconds": 5573.9416,
+            "metrics": {
+              "gcLifecycle": {
+                "forcedCollections": 0,
+                "noGcStartAttempts": 1,
+                "noGcStarts": 1,
+                "noGcEndAttempts": 0,
+                "noGcEnds": 0,
+                "noGcRestarts": 0,
+                "noGcLosses": 0
+              },
+              "gcLifecycleAttribution": "ExclusiveSearchScope",
+              "phase": "Short",
+              "boundary": "None",
+              "selectedExpanded": 1044,
+              "selectedTransitions": 3995,
+              "selectedChoiceBranches": 0,
+              "choiceReplayAttempts": 0,
+              "choiceReplayBudgetExhaustions": 0,
+              "choiceBranchesDroppedByBudget": 0,
+              "cycleRegionsDetected": 0,
+              "cycleRegionCandidatesConsidered": 0,
+              "cycleRegionCandidatesAdmitted": 0,
+              "cycleRegionCandidatesDropped": 0,
+              "cycleRegionProgressEpochs": 0,
+              "cycleRegionProbeCandidatesAdmitted": 0,
+              "cycleRegionProgressCandidatesAdmitted": 0,
+              "cycleRegionMaxActionFamilies": 0,
+              "orderedMutationCandidatesAdmitted": 0,
+              "orderedMutationLeaseExpiredBudget": 0,
+              "orderedMutationOrdinaryFallbacks": 0,
+              "orderedMutationColdAtomicCommitted": 0,
+              "orderedMutationColdAtomicRejected": 0,
+              "totalExpanded": 3437,
+              "totalTransitions": 8783,
+              "totalChoiceBranches": 0,
+              "elapsedMilliseconds": 385.7244,
+              "totalElapsedMilliseconds": 1299.2571,
+              "workerAllocatedBytes": 262861496,
+              "totalWorkerAllocatedBytes": 590070792,
+              "totalGen0Collections": 0,
+              "totalGen1Collections": 0,
+              "totalGen2Collections": 0,
+              "totalGcPauseMilliseconds": 0,
+              "maxGcPauseMilliseconds": 0,
+              "maxParallelConcurrency": 8,
+              "parallelActionReplayWaves": 3,
+              "parallelActionReplayWorkItems": 8,
+              "maxParallelActionReplayConcurrency": 3,
+              "deferredRoundChoiceActions": 0,
+              "deferredRoundChoiceLayerWidthTotal": 0,
+              "maxDeferredRoundChoiceLayerWidth": 0,
+              "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+              "deferredRoundChoiceFinitePrimaryLayers": 0,
+              "deferredRoundChoiceFinitePendingFallbacks": 0,
+              "parallelRoundChoiceReplayWaves": 0,
+              "parallelRoundChoiceReplayWorkItems": 0,
+              "maxParallelRoundChoiceReplayConcurrency": 0,
+              "searchedTurns": 3,
+              "shufflesCrossed": 0,
+              "score": -1000004760009,
+              "projectedBattleHpLost": 80,
+              "potionCount": 0,
+              "potionUses": [],
+              "onlyDeathRoutes": true,
+              "finalHp": 0,
+              "finalEnemyHp": 204,
+              "combatEndedTurn": null,
+              "capturedAtElapsedMilliseconds": 5487.9111,
+              "managedLiveBytes": 682074016,
+              "managedHeapBytes": 146086448,
+              "managedFragmentedBytes": 69707856,
+              "workingSetBytes": 7694036992,
+              "privateMemoryBytes": 18837360640,
+              "configuredNoGcRegionEnabled": true,
+              "configuredNoGcRegionBudgetBytes": 16000000000,
+              "gcLatencyMode": "NoGCRegion",
+              "noGcRegionActive": true,
+              "noGcRegionBudgetBytes": 16000000000,
+              "noGcRegionRolloverCount": 0
+            },
+            "raw90Fields": {
+              "phase": "Short",
+              "deep_triggered": "False",
+              "deep_improved": "False",
+              "reused": "False",
+              "reused_from_turn": "-",
+              "expanded": "1044",
+              "total_expanded": "3437",
+              "dominance_pruned": "0",
+              "top_queue_dropped": "0",
+              "duplicate_cards_pruned": "1636",
+              "choice_branches": "0",
+              "total_choice_branches": "0",
+              "choice_replay_attempts": "0",
+              "choice_replay_budget_exhaustions": "0",
+              "choice_branches_dropped_by_budget": "0",
+              "shuffle_branches_pruned": "0",
+              "sold_hp_branches_pruned": "41",
+              "replays": "2",
+              "forks": "3995",
+              "transitions": "3995",
+              "total_transitions": "8783",
+              "cache_hits": "0",
+              "stand_pat": "0",
+              "snapshot_reuses": "1260",
+              "transposition_pruned": "458",
+              "repeatable_no_progress_pruned": "0",
+              "cycle_shapes": "0",
+              "cycle_probe_continuations": "0",
+              "cycle_candidates_protected": "0",
+              "cycle_continuations_stopped": "0",
+              "cycle_regions": "0",
+              "cycle_region_considered": "0",
+              "cycle_region_admitted": "0",
+              "cycle_region_dropped": "0",
+              "cycle_region_progress_epochs": "0",
+              "cycle_region_probe_admitted": "0",
+              "cycle_region_progress_admitted": "0",
+              "cycle_region_max_action_families": "0",
+              "ordered_admitted": "0",
+              "ordered_lease_expired_budget": "0",
+              "ordered_ordinary_fallback": "0",
+              "cold_atomic_committed": "0",
+              "cold_atomic_rejected": "0",
+              "cross_turn_candidates_protected": "7",
+              "cross_turn_continuations_stopped": "0",
+              "primary_incumbent_pruned": "0",
+              "primary_incumbent_updates": "0",
+              "stand_pat_probes": "0",
+              "deferred_round_choice_actions": "0",
+              "deferred_round_choice_width_total": "0",
+              "deferred_round_choice_max_width": "0",
+              "deferred_round_choice_finite_fallbacks": "0",
+              "deferred_round_choice_finite_fallback_scope": "pending_only",
+              "deferred_round_choice_finite_primary_layers": "0",
+              "deferred_round_choice_finite_pending_fallbacks": "0",
+              "node_limit_snapshots_released": "0",
+              "transition_cache_hits": "0",
+              "searched_turns": "3",
+              "boundary": "None",
+              "shuffles_crossed": "0",
+              "unavoidable_hp_lost": "64",
+              "sold_hp": "16",
+              "future_sold_hp": "16",
+              "sold_hp_threshold": "10",
+              "battle_hp_lost_so_far": "0",
+              "projected_battle_hp_lost": "80",
+              "recovered_hp": "0",
+              "relic_heal": "0",
+              "death_save_relic_hp": "0",
+              "long_term_resource": "0",
+              "anger_copies": "0",
+              "battle_potions_used_so_far": "0",
+              "potion_count": "0",
+              "potion_hp_saved": "0",
+              "potion_hp_required": "0",
+              "potion_branches_rejected": "0",
+              "theft_policy": "-",
+              "outstanding_stolen_resource": "0",
+              "score": "-1000004760009",
+              "final_hp": "0",
+              "final_block": "0",
+              "final_enemy_hp": "204",
+              "combat_ended_turn": "-",
+              "death_turn": "3",
+              "only_death_routes": "True",
+              "act_ending_boss": "False",
+              "boss_hp_relief": "None",
+              "engine_risk": "False",
+              "unsupported_intent": "False",
+              "modeled_damage_exact": "True"
+            },
+            "actions": [
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=INFERNAL_BLADE occurrence=0 title=地狱之刃+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=STOKE occurrence=0 title=添柴+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=RUPTURE occurrence=0 title=撕裂+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=1 target_combat_id=2 target=幽灵骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=2 target_combat_id=3 target=魔法骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=0 target_combat_id=1 target=连枷骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=EndTurn"
+            ]
+          },
+          "candidate": {
+            "label": "compare2-current-sentinel",
+            "runId": "d8437a044f4242909b42cf20328d6b9f",
+            "status": "Passed",
+            "elapsedMilliseconds": 4822.044,
+            "metrics": {
+              "gcLifecycle": {
+                "forcedCollections": 0,
+                "noGcStartAttempts": 1,
+                "noGcStarts": 1,
+                "noGcEndAttempts": 0,
+                "noGcEnds": 0,
+                "noGcRestarts": 0,
+                "noGcLosses": 0
+              },
+              "gcLifecycleAttribution": "ExclusiveSearchScope",
+              "phase": "Short",
+              "boundary": "None",
+              "selectedExpanded": 1044,
+              "selectedTransitions": 3995,
+              "selectedChoiceBranches": 0,
+              "choiceReplayAttempts": 0,
+              "choiceReplayBudgetExhaustions": 0,
+              "choiceBranchesDroppedByBudget": 0,
+              "cycleRegionsDetected": 0,
+              "cycleRegionCandidatesConsidered": 0,
+              "cycleRegionCandidatesAdmitted": 0,
+              "cycleRegionCandidatesDropped": 0,
+              "cycleRegionProgressEpochs": 0,
+              "cycleRegionProbeCandidatesAdmitted": 0,
+              "cycleRegionProgressCandidatesAdmitted": 0,
+              "cycleRegionMaxActionFamilies": 0,
+              "orderedMutationCandidatesAdmitted": 0,
+              "orderedMutationLeaseExpiredBudget": 0,
+              "orderedMutationOrdinaryFallbacks": 0,
+              "orderedMutationColdAtomicCommitted": 0,
+              "orderedMutationColdAtomicRejected": 0,
+              "totalExpanded": 3437,
+              "totalTransitions": 8783,
+              "totalChoiceBranches": 0,
+              "elapsedMilliseconds": 168.4404,
+              "totalElapsedMilliseconds": 562.5593,
+              "workerAllocatedBytes": 228239520,
+              "totalWorkerAllocatedBytes": 505795592,
+              "totalGen0Collections": 0,
+              "totalGen1Collections": 0,
+              "totalGen2Collections": 0,
+              "totalGcPauseMilliseconds": 0,
+              "maxGcPauseMilliseconds": 0,
+              "maxParallelConcurrency": 8,
+              "parallelActionReplayWaves": 60,
+              "parallelActionReplayWorkItems": 2951,
+              "maxParallelActionReplayConcurrency": 8,
+              "deferredRoundChoiceActions": 0,
+              "deferredRoundChoiceLayerWidthTotal": 0,
+              "maxDeferredRoundChoiceLayerWidth": 0,
+              "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+              "deferredRoundChoiceFinitePrimaryLayers": 0,
+              "deferredRoundChoiceFinitePendingFallbacks": 0,
+              "parallelRoundChoiceReplayWaves": 0,
+              "parallelRoundChoiceReplayWorkItems": 0,
+              "maxParallelRoundChoiceReplayConcurrency": 0,
+              "searchedTurns": 3,
+              "shufflesCrossed": 0,
+              "score": -1000004760009,
+              "projectedBattleHpLost": 80,
+              "potionCount": 0,
+              "potionUses": [],
+              "onlyDeathRoutes": true,
+              "finalHp": 0,
+              "finalEnemyHp": 204,
+              "combatEndedTurn": null,
+              "capturedAtElapsedMilliseconds": 4733.7235,
+              "managedLiveBytes": 597368320,
+              "managedHeapBytes": 168159800,
+              "managedFragmentedBytes": 92954696,
+              "workingSetBytes": 12896985088,
+              "privateMemoryBytes": 27153108992,
+              "configuredNoGcRegionEnabled": true,
+              "configuredNoGcRegionBudgetBytes": 16000000000,
+              "gcLatencyMode": "NoGCRegion",
+              "noGcRegionActive": true,
+              "noGcRegionBudgetBytes": 16000000000,
+              "noGcRegionRolloverCount": 0
+            },
+            "raw90Fields": {
+              "phase": "Short",
+              "deep_triggered": "False",
+              "deep_improved": "False",
+              "reused": "False",
+              "reused_from_turn": "-",
+              "expanded": "1044",
+              "total_expanded": "3437",
+              "dominance_pruned": "0",
+              "top_queue_dropped": "0",
+              "duplicate_cards_pruned": "1636",
+              "choice_branches": "0",
+              "total_choice_branches": "0",
+              "choice_replay_attempts": "0",
+              "choice_replay_budget_exhaustions": "0",
+              "choice_branches_dropped_by_budget": "0",
+              "shuffle_branches_pruned": "0",
+              "sold_hp_branches_pruned": "41",
+              "replays": "2",
+              "forks": "3995",
+              "transitions": "3995",
+              "total_transitions": "8783",
+              "cache_hits": "0",
+              "stand_pat": "0",
+              "snapshot_reuses": "1260",
+              "transposition_pruned": "458",
+              "repeatable_no_progress_pruned": "0",
+              "cycle_shapes": "0",
+              "cycle_probe_continuations": "0",
+              "cycle_candidates_protected": "0",
+              "cycle_continuations_stopped": "0",
+              "cycle_regions": "0",
+              "cycle_region_considered": "0",
+              "cycle_region_admitted": "0",
+              "cycle_region_dropped": "0",
+              "cycle_region_progress_epochs": "0",
+              "cycle_region_probe_admitted": "0",
+              "cycle_region_progress_admitted": "0",
+              "cycle_region_max_action_families": "0",
+              "ordered_admitted": "0",
+              "ordered_lease_expired_budget": "0",
+              "ordered_ordinary_fallback": "0",
+              "cold_atomic_committed": "0",
+              "cold_atomic_rejected": "0",
+              "cross_turn_candidates_protected": "7",
+              "cross_turn_continuations_stopped": "0",
+              "primary_incumbent_pruned": "0",
+              "primary_incumbent_updates": "0",
+              "stand_pat_probes": "0",
+              "deferred_round_choice_actions": "0",
+              "deferred_round_choice_width_total": "0",
+              "deferred_round_choice_max_width": "0",
+              "deferred_round_choice_finite_fallbacks": "0",
+              "deferred_round_choice_finite_fallback_scope": "pending_only",
+              "deferred_round_choice_finite_primary_layers": "0",
+              "deferred_round_choice_finite_pending_fallbacks": "0",
+              "node_limit_snapshots_released": "0",
+              "transition_cache_hits": "0",
+              "searched_turns": "3",
+              "boundary": "None",
+              "shuffles_crossed": "0",
+              "unavoidable_hp_lost": "64",
+              "sold_hp": "16",
+              "future_sold_hp": "16",
+              "sold_hp_threshold": "10",
+              "battle_hp_lost_so_far": "0",
+              "projected_battle_hp_lost": "80",
+              "recovered_hp": "0",
+              "relic_heal": "0",
+              "death_save_relic_hp": "0",
+              "long_term_resource": "0",
+              "anger_copies": "0",
+              "battle_potions_used_so_far": "0",
+              "potion_count": "0",
+              "potion_hp_saved": "0",
+              "potion_hp_required": "0",
+              "potion_branches_rejected": "0",
+              "theft_policy": "-",
+              "outstanding_stolen_resource": "0",
+              "score": "-1000004760009",
+              "final_hp": "0",
+              "final_block": "0",
+              "final_enemy_hp": "204",
+              "combat_ended_turn": "-",
+              "death_turn": "3",
+              "only_death_routes": "True",
+              "act_ending_boss": "False",
+              "boss_hp_relief": "None",
+              "engine_risk": "False",
+              "unsupported_intent": "False",
+              "modeled_damage_exact": "True"
+            },
+            "actions": [
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=INFERNAL_BLADE occurrence=0 title=地狱之刃+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=STOKE occurrence=0 title=添柴+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=PlayCard card_id=RUPTURE occurrence=0 title=撕裂+ target_index=-1 target_combat_id=- target=- choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=1 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=2 kind=EndTurn",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=1 target_combat_id=2 target=幽灵骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=2 target_combat_id=3 target=魔法骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=PlayCard card_id=ASHEN_STRIKE occurrence=0 title=灰烬打击 target_index=0 target_combat_id=1 target=连枷骑士 choice_effect=- choice_cards=- kills=-",
+              "[CombatSolver/Test] ACTION turn=3 kind=EndTurn"
+            ]
+          },
+          "raw90Differences": {},
+          "actionsEqual": true,
+          "actionCount": 9,
+          "differenceClassification": {
+            "schedulingDiagnostics": [],
+            "sharedDeadlineTotals": [],
+            "otherDifferences": {},
+            "rawFieldsEqual": 90
+          }
+        }
+      ],
+      "classificationEvidence": {
+        "path": "src/Search/CombatSearchCoordinator.cs",
+        "method": "RunSupplementalAudits",
+        "rule": "remainingMilliseconds = profile.SoftTimeBudgetMilliseconds - requestClock.ElapsedMilliseconds; deadline.CancelAfter remaining time; same configured 20s deadline, total physical work is time-dependent. All raw differences retained.",
+        "scheduling": "AdmittedExpansion splits already admitted actions/choices; deferred_round_choice_* was already classified as scheduling evidence in admitted-expansion-jobs-20260908.md."
+      }
+    },
+    "unsuccessfulLogExportAttempt": {
+      "upstream": "7ac005e",
+      "controlRunId": "45f433b9306e4545b22ed18af4a0951d",
+      "controlRequestStatus": "Failed",
+      "controlFailureStage": "export_bug_report_after_combat",
+      "controlFailure": "Recent replay archive is unavailable after this first-result fixture. The completed search is recorded separately, not marked as a passed request.",
+      "candidateRunId": "3404f8a1ddab413d944b6c93fb3e749c",
+      "selectedFieldsCompared": [
+        "selectedExpanded",
+        "selectedTransitions",
+        "selectedChoiceBranches",
+        "score",
+        "projectedBattleHpLost",
+        "potionCount",
+        "potionUses",
+        "finalHp",
+        "finalEnemyHp",
+        "searchedTurns",
+        "shufflesCrossed",
+        "onlyDeathRoutes"
+      ],
+      "selectedFieldsEqual": true,
+      "reference": {
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144276,
+        "selectedChoiceBranches": 101420,
+        "score": -2570057,
+        "projectedBattleHpLost": 4,
+        "potionCount": 2,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          },
+          {
+            "id": "COLORLESS_POTION",
+            "title": "无色药水",
+            "turn": 2,
+            "slot": 1
+          }
+        ],
+        "finalHp": 37,
+        "finalEnemyHp": 348,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "onlyDeathRoutes": false
+      },
+      "scope": "Not a complete action comparison or fixed-work performance comparison. Replaced by the supported journal-retirement collection for final merge evidence."
+    }
+  },
+  "scope": "No new visible Steam, Windows game, complete native deployment, release ZIP or workshop upload. Older performance conclusions retain their own source commits. Raw profiler, build, archive and full logs remain ignored."
+}

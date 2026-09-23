@@ -1,5 +1,8 @@
 namespace SlayTheModel.Sts2.ModAdapter;
 
+internal sealed class PonderSearchFailedException(string stateKey, Exception innerException)
+    : Exception($"Pondering failed before producing a result for state {stateKey}.", innerException);
+
 internal sealed class PonderResultCache<T> where T : class
 {
     private readonly object _gate = new();
@@ -37,6 +40,24 @@ internal sealed class PonderResultCache<T> where T : class
             value = _stateKey == stateKey ? _latest : null;
             return value != null;
         }
+    }
+
+    /// <summary>
+    /// Reports a failed speculative search. If an earlier slice already published a
+    /// valid result, that result remains available. Otherwise the waiting decision is
+    /// woken with a typed exception so it can fall back to a normal root search.
+    /// </summary>
+    public bool Fail(string stateKey, Exception exception)
+    {
+        TaskCompletionSource<T>? first;
+        lock (_gate)
+        {
+            if (_stateKey != stateKey) return false;
+            if (_latest != null) return true;
+            first = _first;
+        }
+        first?.TrySetException(new PonderSearchFailedException(stateKey, exception));
+        return true;
     }
 
     public Task<T> WaitForFirstAsync(string stateKey, CancellationToken cancellation)
