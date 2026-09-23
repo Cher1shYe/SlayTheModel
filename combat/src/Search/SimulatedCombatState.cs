@@ -208,6 +208,7 @@ internal sealed partial class SimulatedCombatState
     private ForkableSet<Creature>? _doomAppliersThisTurn;
     private ForkableSet<Creature>? _unblockedDamageThisTurn;
     private ForkableDictionary<Creature, int>? _cumulativeHpLost;
+    private ForkableDictionary<Creature, int>? _mctsCumulativeEnemyHpLost;
     private ForkableDictionary<Creature, int>? _recoveredHp;
     private ForkableDictionary<(Creature Dealer, Creature Receiver), int>? _poweredAttackHitsThisTurn;
     private ForkableDictionary<Creature, int>? _cardsDiscardedThisTurn;

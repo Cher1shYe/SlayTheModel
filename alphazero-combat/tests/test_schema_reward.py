@@ -1,9 +1,12 @@
 from __future__ import annotations
+from pathlib import Path
+from tempfile import TemporaryDirectory
 
 import unittest
 
 from azcombat.reward import Outcome, TerminalResult, score_result
 from azcombat.schema import ActionNode, ObservationError, validate_observation
+from azcombat.samples import TrainingSample, read_jsonl, write_jsonl
 
 
 def observation():
@@ -85,6 +88,33 @@ class RewardTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             score_result(TerminalResult(Outcome.INVALID, 80, 0, 0, 30))
 
+
+class SampleTests(unittest.TestCase):
+    def test_round_trip_requires_every_hierarchical_policy_id(self):
+        actions = (
+            ActionNode("PlayCard", "play:3", children=(
+                ActionNode("Target", "target:9", children=(
+                    ActionNode("CardSubset", "cards:1,2", terminal=True),
+                )),
+            )),
+            ActionNode("EndTurn", "end", terminal=True),
+        )
+        sample = TrainingSample(
+            "seed-a", "full_combat", observation(), actions,
+            {"play:3": 2, "target:9": 1, "cards:1,2": 1, "end": 1},
+            -0.25, "unresolved",
+        )
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "samples.jsonl"
+            self.assertEqual(write_jsonl([sample], path), 1)
+            loaded = read_jsonl(path)
+        self.assertEqual(loaded[0].to_dict(), sample.to_dict())
+
+    def test_rejects_policy_action_not_in_tree(self):
+        action = ActionNode("EndTurn", "end", terminal=True)
+        sample = TrainingSample("seed-a", "mid_combat_verified", observation(), (action,), {"other": 1}, 0, "loss")
+        with self.assertRaises(ValueError):
+            sample.validate()
 
 if __name__ == "__main__":
     unittest.main()

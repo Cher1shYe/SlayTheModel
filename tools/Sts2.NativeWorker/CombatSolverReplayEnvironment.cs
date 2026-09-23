@@ -12,7 +12,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     private int entryHp;
     private NativeMctsState state = null!;
     private string rootKey = "";
-    private string rootActions = "";
+    private IReadOnlyList<CombatSolverMctsAction> rootActions = [];
     private readonly List<CombatSolverMctsAction> promotedPrefix = [];
     private long transitions;
 
@@ -23,8 +23,9 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
         session = NativeMctsSimulationApi.Capture(combat);
         state = session.RestoreRoot();
         rootKey = state.Key;
-        rootActions = string.Join(" | ", state.LegalActions.Select(action => action.Key));
+        rootActions = SnapshotActions(state.LegalActions);
         promotedPrefix.Clear();
+        transitions = 0;
     }
 
     public string RootKey => rootKey;
@@ -34,11 +35,14 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
     public string CurrentContinuationStateText
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationStateText;
-    public string ChoiceSignature => PendingChoiceSignature();
     public string ChoiceDiagnostics
         => session == null || session.ChoiceDiagnostics.Count == 0
             ? "<none>"
             : string.Join(" | ", session.ChoiceDiagnostics);
+    public NativeMctsState State => state;
+    public IReadOnlyList<CombatSolverMctsAction> RootActions
+        => rootActions;
+    public string ChoiceSignature => PendingChoiceSignature();
 
     public bool MatchesLiveRoot(MegaCrit.Sts2.Core.Combat.CombatState combat,
         bool livePendingChoice, string liveChoiceSignature = "")
@@ -64,6 +68,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
         promotedPrefix.Add(action);
         RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
         rootKey = state.Key;
+        rootActions = SnapshotActions(state.LegalActions);
     }
 
     public (string StateKey, string ContinuationKey) PredictSuccessor(CombatSolverMctsAction action)
@@ -100,7 +105,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
             state = active.Apply(action.Native);
         }
         if (prefix.Count == 0 && promotedPrefix.Count == 0 && rootKey.Length > 0 && state.Key != rootKey)
-            throw new InvalidDataException($"Combat Solver root action set changed. expected={rootKey} actual={state.Key} expectedActions={rootActions} actualActions={string.Join(" | ", state.LegalActions.Select(action => action.Key))}");
+            throw new InvalidDataException($"Combat Solver root action set changed. expected={rootKey} actual={state.Key} expectedActions={string.Join(" | ", rootActions.Select(action => action.Key))} actualActions={string.Join(" | ", state.LegalActions.Select(action => action.Key))}");
         return Task.CompletedTask;
     }
 
@@ -119,7 +124,16 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     public string StateKey() => state.Key;
 
     public double EvaluateTerminal()
-        => state.Won ? 0.5 + Math.Atan((state.PlayerHp - entryHp) / 20.0) / Math.PI : -1;
+        => state.Resolved
+            ? state.Won
+                ? 0.5 + Math.Atan((state.PlayerHp - entryHp) / 20.0) / Math.PI
+                : -1.0 + 0.25 * EnemyDamageProgress
+            : -0.5 + 0.25 * EnemyDamageProgress;
+
+    public double EvaluateUnresolved() => -0.5 + 0.25 * EnemyDamageProgress;
+
+    private double EnemyDamageProgress => Math.Clamp(
+        state.EnemyHpLost / (double)Math.Max(state.EnemyHpTotal, 1), 0.0, 1.0);
 
     public CombatSolverMctsAction RolloutAction(
         IReadOnlyList<CombatSolverMctsAction> actions,
@@ -145,4 +159,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
             : action.Native.CardType == "Attack" ? 0 : 1).First();
 
     public void Dispose() => session?.Dispose();
+
+    private static IReadOnlyList<CombatSolverMctsAction> SnapshotActions(IReadOnlyList<NativeMctsAction> actions)
+        => actions.Select(static action => new CombatSolverMctsAction(action)).ToArray();
 }

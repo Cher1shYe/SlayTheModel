@@ -37,6 +37,7 @@ internal sealed partial class SimulatedCombatState
             _doomAppliersThisTurn = _doomAppliersThisTurn?.Fork(),
             _unblockedDamageThisTurn = _unblockedDamageThisTurn?.Fork(),
             _cumulativeHpLost = _cumulativeHpLost?.Fork(),
+            _mctsCumulativeEnemyHpLost = _mctsCumulativeEnemyHpLost?.Fork(),
             _recoveredHp = _recoveredHp?.Fork(),
             _poweredAttackHitsThisTurn = _poweredAttackHitsThisTurn?.Fork(),
             _cardsDiscardedThisTurn = _cardsDiscardedThisTurn?.Fork(),

@@ -32,6 +32,8 @@ internal sealed class CombatRootSnapshot
     public int TotalFloor { get; }
     public int InitialPlayerHp { get; }
     public int InitialPlayerMaxHp { get; }
+    public int InitialEnemyHp { get; }
+    public int InitialEnemyEffectiveHp { get; }
     public int InitialBrightestFlameMaxHpSpent
         => ((SimulatedCombatState)_rootSimulator.State.CombatState).BrightestFlameMaxHpSpent;
     public int PotionSlotCount { get; }
@@ -74,6 +76,8 @@ internal sealed class CombatRootSnapshot
         int totalFloor,
         int initialPlayerHp,
         int initialPlayerMaxHp,
+        int initialEnemyHp,
+        int initialEnemyEffectiveHp,
         int potionSlotCount,
         IReadOnlyList<SearchablePotionSlotSnapshot> searchablePotions,
         ulong initialAliveEnemyMask,
@@ -105,6 +109,8 @@ internal sealed class CombatRootSnapshot
         TotalFloor = totalFloor;
         InitialPlayerHp = initialPlayerHp;
         InitialPlayerMaxHp = initialPlayerMaxHp;
+        InitialEnemyHp = initialEnemyHp;
+        InitialEnemyEffectiveHp = initialEnemyEffectiveHp;
         PotionSlotCount = potionSlotCount;
         SearchablePotions = searchablePotions;
         SearchablePotionCount = searchablePotions.Count;
@@ -241,6 +247,9 @@ internal sealed class CombatRootSnapshot
             state.RunState.TotalFloor,
             player.Creature.CurrentHp,
             player.Creature.MaxHp,
+            state.Enemies.Sum(enemy => Math.Max(0, enemy.CurrentHp)),
+            state.Enemies.Sum(enemy => Math.Max(0, simulatedCombat.EffectiveEnemyHp(
+                enemy, simulator.State.GetCreature(enemy)))),
             player.PotionSlots.Count,
             Array.AsReadOnly(searchablePotions),
             aliveEnemyMask,

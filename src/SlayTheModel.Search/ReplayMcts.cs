@@ -11,6 +11,7 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
     string StateKey();
     bool Terminal { get; }
     double EvaluateTerminal();
+    double EvaluateUnresolved() => -0.5;
     TAction RolloutAction(IReadOnlyList<TAction> actions, Random random);
 }
 
@@ -49,6 +50,11 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
             throw new ArgumentOutOfRangeException(nameof(initialBudget));
         var rebuilt = _root?.Key != expectedStateKey;
         if (rebuilt) _root = null;
+        await environment.RestoreAsync(prefix, cancellation);
+        if (environment.StateKey() != expectedStateKey)
+            throw new InvalidDataException(
+                $"Native reconstruction differs from the requested root state. expected={expectedStateKey} actual={environment.StateKey()}");
+        _root ??= new Node(expectedStateKey, environment.LegalActions());
         var watch = Stopwatch.StartNew();
         var budget = rebuilt ? initialBudget : continuationBudget;
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
@@ -65,8 +71,7 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     throw new InvalidDataException(
                         $"Native reconstruction differs from the requested root state. expected={expectedStateKey} actual={environment.StateKey()}");
                 if (environment.Terminal) throw new InvalidOperationException("Cannot search a terminal state.");
-                _root ??= new Node(expectedStateKey, environment.LegalActions());
-                var node = _root;
+                var node = _root ?? throw new InvalidOperationException("MCTS root was not initialized.");
                 var path = new List<Node> { node };
                 var depth = 0;
                 while (!environment.Terminal && depth < maxDepth)
@@ -104,7 +109,9 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                 }
                 deadline.Token.ThrowIfCancellationRequested();
                 // Depth-limited rollouts are unresolved, never a zero-loss victory.
-                var value = environment.Terminal ? environment.EvaluateTerminal() : -0.5;
+                var value = environment.Terminal
+                    ? environment.EvaluateTerminal()
+                    : environment.EvaluateUnresolved();
                 if (!double.IsFinite(value) || value < -1 || value > 1)
                     throw new InvalidDataException("Expected a finite utility in [-1, 1].");
                 foreach (var visited in path)
@@ -118,6 +125,10 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && deadline.IsCancellationRequested) { }
         cancellation.ThrowIfCancellationRequested();
+        // Only direct children of the requested root are policy targets. The
+        // environment may be left at a deep rollout state when cancellation
+        // interrupts a simulation; never derive root policy from that mutable
+        // state or from descendant action objects.
         var stats = _root?.Children.Where(pair => pair.Value.Visits > 0)
             .OrderByDescending(pair => pair.Value.Visits).ThenByDescending(pair => pair.Value.Mean)
             .Select(pair => new RootActionStatistics<TAction>(pair.Key, pair.Value.Visits, pair.Value.Mean, pair.Value.Best)).ToArray() ?? [];

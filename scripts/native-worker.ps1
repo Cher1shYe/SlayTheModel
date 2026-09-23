@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'verify-choices', 'benchmark', 'solver-mcts-benchmark', 'solver-mcts-export')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -73,6 +73,10 @@ try {
     $savedPack = $env:STS2_GAME_PACK
     $savedMode = $env:STS2_WORKER_MODE
     $savedOutput = $env:STS2_BENCHMARK_OUT
+    $savedExportOut = $env:STS2_MCTS_EXPORT_OUT
+    $savedExportSeed = $env:STS2_MCTS_EXPORT_SEED
+    $savedExportEncounter = $env:STS2_MCTS_EXPORT_ENCOUNTER
+    $savedExportBudget = $env:STS2_MCTS_EXPORT_BUDGET_MS
     try {
         $env:STS2_GAME_PACK = Join-Path $game 'SlayTheSpire2.pck'
         $env:STS2_WORKER_MODE = $Mode
@@ -96,5 +100,9 @@ try {
         $env:STS2_GAME_PACK = $savedPack
         $env:STS2_WORKER_MODE = $savedMode
         $env:STS2_BENCHMARK_OUT = $savedOutput
+        $env:STS2_MCTS_EXPORT_OUT = $savedExportOut
+        $env:STS2_MCTS_EXPORT_SEED = $savedExportSeed
+        $env:STS2_MCTS_EXPORT_ENCOUNTER = $savedExportEncounter
+        $env:STS2_MCTS_EXPORT_BUDGET_MS = $savedExportBudget
     }
 } finally { Pop-Location }

@@ -18,11 +18,16 @@ internal sealed partial class CombatBeamSolver
 
     internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
 
+    internal int NativeMctsInitialEnemyHp => root.InitialEnemyEffectiveHp;
+
     internal NativeMctsState NativeMctsDescribe(SimulationSnapshot snapshot, int actionCount)
     {
+        // Explicit choices are described by NativeMctsSimulationSession from the
+        // resolved branch groups, not by treating a suspended probe as a terminal.
+        if (snapshot.BoundaryReason == SearchBoundaryReason.PendingChoice)
+            throw new InvalidOperationException("Unresolved choice probe escaped Native MCTS branch expansion.");
         if (snapshot.BoundaryReason is SearchBoundaryReason.UnsupportedEffect
-            or SearchBoundaryReason.DynamicResolution
-            or SearchBoundaryReason.PendingChoice)
+            or SearchBoundaryReason.DynamicResolution)
         {
             throw new PredictionUnsupportedException(
                 $"Native MCTS reached unsupported prediction boundary {snapshot.BoundaryReason}.");
@@ -30,14 +35,18 @@ internal sealed partial class CombatBeamSolver
         bool terminal = snapshot.PlayerDead || snapshot.AllEnemiesDead
             || snapshot.BoundaryReason != SearchBoundaryReason.None;
         int incomingDamage = 0;
-        NativeMctsAction[] actions = terminal
-            ? []
-            : NativeMctsPreparedPublicActions(snapshot, actionCount, out incomingDamage);
+        NativeMctsAction[] actions = terminal ? [] : NativeMctsPreparedPublicActions(snapshot, actionCount, out incomingDamage);
         return new NativeMctsState(
             NativeMctsSimulation.DecisionStateKey(snapshot.StateKey, actions),
             terminal,
-            snapshot.AllEnemiesDead && !snapshot.PlayerDead,
+            snapshot.TerminalStamp is { Outcome: CombatTerminalOutcome.Victory },
+            snapshot.TerminalStamp is { Outcome: CombatTerminalOutcome.Defeat },
+            snapshot.TerminalStamp.HasValue,
             snapshot.PlayerHp,
+            ((SimulatedCombatState)((CombatPredictionSimulator)snapshot.Simulator).State.CombatState)
+                .KnownEnemies.Sum(enemy => ((SimulatedCombatState)((CombatPredictionSimulator)snapshot.Simulator)
+                    .State.CombatState).GetMctsCumulativeEnemyHpLost(enemy)),
+            NativeMctsInitialEnemyHp,
             incomingDamage,
             false,
             actions);

@@ -11,6 +11,8 @@ using MegaCrit.Sts2.Core.Multiplayer;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Rooms;
 using CombatSolver.Api;
+using System.Reflection;
+using System.Security.Cryptography;
 
 public partial class Worker : Node
 {
@@ -33,8 +35,39 @@ public partial class Worker : Node
             NativeReplayCompatibilityPatches.Install();
             NativeMctsSimulationApi.Initialize();
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
+            PrintAssemblyIdentity("NativeWorker", typeof(Worker).Assembly);
+            PrintAssemblyIdentity("Search", typeof(SlayTheModel.Search.ReplayMcts<>).Assembly);
+            PrintAssemblyIdentity("CombatSolver", typeof(NativeMctsSimulationApi).Assembly);
+            GD.Print("SLAY_WORKER_EXPORT_OUT="
+                + (System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_OUT") ?? "<unset>"));
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "verify-choices")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await NativeVerification.ChoicesAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-export")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                var exportPath = System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_OUT")
+                    ?? throw new InvalidOperationException("STS2_MCTS_EXPORT_OUT is required.");
+                var exportSeed = System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_SEED") ?? "AZ-TRAIN-000";
+                session.Seed = exportSeed;
+                session.EncounterId = System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_ENCOUNTER") ?? "CULTISTS_NORMAL";
+                session.ChoiceFixture = string.Equals(
+                    System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_CHOICE_FIXTURE"), "1",
+                    StringComparison.Ordinal);
+                if (session.ChoiceFixture && System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_FIXTURE_CARDS") is { Length: > 0 } fixtureCards)
+                    session.ChoiceFixtureCards = fixtureCards.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+                await session.ResetAsync(exportSeed, timeout.Token);
+                var exportBudget = int.TryParse(System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_BUDGET_MS"), out var parsedBudget) ? parsedBudget : 1000;
+                await CombatSolverMctsBenchmark.ExportTrajectoryAsync(session, exportPath, exportBudget, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-benchmark")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
@@ -95,5 +128,14 @@ public partial class Worker : Node
             GD.PrintErr("SLAY_WORKER_FAILED " + exception);
             GetTree().Quit(1);
         }
+    }
+
+    private static void PrintAssemblyIdentity(string label, Assembly assembly)
+    {
+        string path = assembly.Location;
+        string hash = File.Exists(path)
+            ? Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)))
+            : "<missing>";
+        GD.Print($"SLAY_WORKER_ASSEMBLY label={label} path={path} mvid={assembly.ManifestModule.ModuleVersionId:D} sha256={hash}");
     }
 }

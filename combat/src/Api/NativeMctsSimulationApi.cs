@@ -1,4 +1,5 @@
 using MegaCrit.Sts2.Core.Combat;
+using CombatSolver.Engine.InCombat.Simulation;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -27,7 +28,11 @@ public sealed record NativeMctsState(
     string Key,
     bool Terminal,
     bool Won,
+    bool Defeated,
+    bool Resolved,
     int PlayerHp,
+    int EnemyHpLost,
+    int EnemyHpTotal,
     int IncomingDamage,
     bool PendingChoice,
     IReadOnlyList<NativeMctsAction> LegalActions);
@@ -47,12 +52,14 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private Dictionary<string, PendingChoiceGroup>? pendingChoices;
     private IReadOnlyList<string> choiceDiagnostics = [];
     private int actionCount;
+    private readonly int initialEnemyHp;
     private bool disposed;
 
     internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot)
     {
         this.capturedRoot = capturedRoot;
         driver = NativeMctsSimulation.CreateDriver(capturedRoot);
+        initialEnemyHp = capturedRoot.InitialEnemyEffectiveHp;
         root = driver.NativeMctsCreateRoot();
         current = root;
         rootDescription = driver.NativeMctsDescribe(root, 0);
@@ -66,15 +73,10 @@ public sealed class NativeMctsSimulationSession : IDisposable
         ReleaseTransient();
         current = root;
         actionCount = 0;
-        choiceDiagnostics = [];
         currentDescription = rootDescription;
         return currentDescription;
     }
 
-    /// <summary>
-    /// Diagnostics for the expansion that produced the current pending choice. The native worker
-    /// reads this only when its real selector disagrees with the predicted choice boundary.
-    /// </summary>
     public IReadOnlyList<string> ChoiceDiagnostics => choiceDiagnostics;
 
     public NativeMctsState Apply(NativeMctsAction action)
@@ -187,9 +189,12 @@ public sealed class NativeMctsSimulationSession : IDisposable
             return NativeMctsSimulation.ToPublicAction(branch.Action, pair.Key,
                 choiceKey: pair.Key, choiceIndex: pair.Value.ChoiceIndex);
         }).ToArray();
+        var combatState = (SimulatedCombatState)((CombatPredictionSimulator)current.Simulator).State.CombatState;
+        int enemyHpLost = combatState.KnownEnemies.Sum(combatState.GetMctsCumulativeEnemyHpLost);
         return new NativeMctsState(
             NativeMctsSimulation.PendingStateKey(current.StateKey, actions),
-            false, false, current.PlayerHp, 0, true, actions);
+            false, false, false, false, current.PlayerHp, enemyHpLost,
+            initialEnemyHp, 0, true, actions);
     }
 
     public void Dispose()

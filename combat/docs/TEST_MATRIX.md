@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## Native MCTS 选择导出（2026-09-24）
+
+- 父仓库 scripts/native-worker.ps1 新增 -Mode verify-choices：运行真实 selector、净化 15 分支重放隔离、燃烧契约选择续接和既有三牌续接合同；本轮完整 ExportRelease 后通过。
+- solver-mcts-export：STS2_MCTS_EXPORT_CHOICE_FIXTURE=1 保留原夹具，STS2_MCTS_EXPORT_FIXTURE_CARDS 可指定逗号分隔卡组。五张 BURNING_PACT、MAX_DECISIONS=2、BUDGET_MS=1000 本轮生成 3 条样本，其中 1 条真实选牌决策；原版自动选择不伪造成决策样本。
+- 原 ChoiceFixture（12 个父决策）生成 15 条/3 条选择；普通出牌上限 5 生成 5 条；另一组完整胜利轨迹生成 16 条。四份最终 JSONL 均通过严格 schema、合法 policy、正访问量、provenance 与一致终局回填检查；Python 11/11。
+- 核心边界：禁止 live pending 时重新 Capture，必须沿同一父动作预测前缀推进。未覆盖任意深度嵌套选择和真实死亡场景；回归样本不自动加入训练集。
+
 ## 0.43.3：余像路线与战后掉药预测
 
 - 药水奖励机会成本：更新纯合同，概率 100%/40% 但结果未知的满栏情形额度均为 0；确定掉药按预测药水档位抵扣一次，确定不掉、药栏未满和禁用获得药水时额度为 0。UI 本地化合同新增搜索刚开始即显示预测掉药/不掉药，关闭预测时清空；英/简/繁分别核对。本地 Release 构建 0 警告、0 错误，自动部署的 DLL 与构建 DLL SHA256 一致。没有运行无人游戏合同或可见实机。结构门禁本次失败：`CombatBeamSolver.BlockPotionInsertion.cs` 缺少脚本硬编码的 `ReplayInsertedRoute(`，但当前 HEAD 的该文件原本就命名为 `ReplayAdjustedRoute(`，本次未改动该文件；不把门禁当作通过。

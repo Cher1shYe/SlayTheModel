@@ -1,5 +1,13 @@
 # CombatSolver 开发笔记与未来构想
 
+## Native MCTS 选择导出修复（2026-09-24，本地未发布）
+
+- M1 导出器曾在真实卡牌挂起选择后重新 Capture，丢失父动作的预测分支上下文。现在从原稳定根 Promote 已执行父动作，逐层搜索/提交选择；选择 observation 在搜索前冻结，写入 Observation 本身而非 DecisionPoint 包装。
+- 真实选择前核对候选签名，并逐个验证预测动作到原生候选实例的映射。原生已隐式完成的唯一选择只在预测侧推进，非终局随后校验 ContinuationKey；不向 live 重复提交父牌，不将此类隐式步骤导出为玩家决策。
+- 显式选择由 NativeMctsSimulationSession 的分支组描述。NativeMctsDescribe 若收到未展开的 PendingChoice probe 则明确失败，禁止将它当作 unresolved 终局；未修改 ReplayMcts 动作身份或 Python 校验。
+- 验证：完整 ExportRelease 发布；verify-choices 中净化 15 分支正/逆序重放一致、净化与燃烧契约后继原生状态对账通过；ChoiceFixture 15 条（3 条选择）、燃烧契约专用夹具 3 条（1 条选择）、普通出牌 5 条、胜利轨迹 16 条均严格回读。Python 11 项通过。数据与日志在父仓库 artifacts/alphazero/m1-regression-20260924，均为回归数据。
+- 未验证任意深度嵌套选择、真实死亡轨迹、可见游戏控制器；不据此宣布整个 M1 完成或奖励累计语义全覆盖。
+
 ## 0.43.3：余像路线与战后掉药预测（2026-09-20）
 
 - 玩家可感知的变化见 [0.43.3 更新日志](releases/0.43.3-RELEASE_NOTES.md)。本版本仍处于未发布状态，未创建版本标签或上传发布渠道。

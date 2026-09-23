@@ -74,6 +74,7 @@ public static class NativeVerification
         if (choices.Count != 15 || choices.Any(action => action.Native.ChoiceKey == null))
             throw new InvalidDataException($"Combat Solver Purity should expose 15 independent choice nodes, observed {choices.Count}.");
         environment.Promote(purity);
+        await VerifyChoiceReplayAsync(environment, cancellation);
         await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
         if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true,
                 session.ChoiceSignature))
@@ -91,6 +92,30 @@ public static class NativeVerification
         Godot.GD.Print("SLAY_WORKER_COMBAT_SOLVER_CHOICES_MATCH purity=15 independent nodes; continuation matched native");
         await BurningPactChoiceAsync(session, cancellation);
         await DarkEmbraceUppercutAsync(session, cancellation);
+    }
+
+    private static async Task VerifyChoiceReplayAsync(CombatSolverReplayEnvironment environment, CancellationToken cancellation)
+    {
+        string rootKey = environment.RootKey;
+        var actions = environment.RootActions.ToArray();
+        if (!environment.State.PendingChoice || actions.Select(action => action.Key).Distinct().Count() != actions.Length)
+            throw new InvalidDataException("Expected a unique explicit choice root.");
+        var successors = new Dictionary<string, string>();
+        foreach (var action in actions.Concat(actions.Reverse()))
+        {
+            await environment.RestoreAsync([], cancellation);
+            if (environment.StateKey() != rootKey)
+                throw new InvalidDataException("Restored choice root changed.");
+            await environment.ApplyAsync(action, cancellation);
+            if (environment.State.PendingChoice || environment.StateKey() == rootKey)
+                throw new InvalidDataException("Single-layer choice failed to advance.");
+            string signature = environment.StateKey() + environment.CurrentContinuationKey;
+            if (successors.TryGetValue(action.Key, out var previous) && previous != signature)
+                throw new InvalidDataException("Choice sibling replay polluted a successor.");
+            successors[action.Key] = signature;
+        }
+        await environment.RestoreAsync([], cancellation);
+        Godot.GD.Print($"SLAY_WORKER_CHOICE_REPLAY_MATCH branches={actions.Length} forward/reverse restore matched");
     }
 
     private static async Task DarkEmbraceUppercutAsync(NativeSession session, CancellationToken cancellation)

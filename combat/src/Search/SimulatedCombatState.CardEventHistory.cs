@@ -184,6 +184,11 @@ internal sealed partial class SimulatedCombatState
             (_unblockedDamageThisTurn ??= []).Add(receiver);
             (_cumulativeHpLost ??= [])[receiver] =
                 GetCumulativeHpLost(receiver) + result.UnblockedDamage;
+            if (receiver.Side == CombatSide.Enemy)
+            {
+                (_mctsCumulativeEnemyHpLost ??= [])[receiver] =
+                    GetMctsCumulativeEnemyHpLost(receiver) + result.UnblockedDamage;
+            }
         }
         if (dealer == null || !result.Props.IsPoweredAttack())
             return;
@@ -209,6 +214,9 @@ internal sealed partial class SimulatedCombatState
 
     public int GetCumulativeHpLost(Creature receiver)
         => _cumulativeHpLost?.GetValueOrDefault(receiver) ?? 0;
+
+    public int GetMctsCumulativeEnemyHpLost(Creature receiver)
+        => _mctsCumulativeEnemyHpLost?.GetValueOrDefault(receiver) ?? 0;
 
     public int GetRecoveredHp(Creature receiver)
         => _recoveredHp?.GetValueOrDefault(receiver) ?? 0;

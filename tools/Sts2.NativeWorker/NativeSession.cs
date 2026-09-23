@@ -51,6 +51,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public int Round => _state.RoundNumber;
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
+    public int InitialEnemyEffectiveHp { get; private set; }
+    public int EnemyDamageLost { get; private set; }
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
     public bool HasPendingChoice => _choice != null;
@@ -70,15 +72,29 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         int minSelect, int maxSelect, IReadOnlyCollection<CardModel> options)
         => $"{Math.Min(minSelect, options.Count)}:{Math.Min(maxSelect, options.Count)}:"
             + string.Join(',', options.Select(card => card.Id.Entry).Distinct().Order());
+    public IReadOnlyList<string> ActionsForDiagnostics()
+        => Actions().Select(DescribeAction).ToArray();
 
     public SearchAction ToLiveSearchAction(CombatSolverMctsAction action)
     {
         NativeMctsAction predicted = action.Native;
-        if (predicted.ChoiceKey != null)
+        // A live selector is already pending after the trigger card has been
+        // executed. The MCTS result at this point is the choice-layer action,
+        // not another PlayCard transition. Prefer the live pending state and
+        // require a concrete selected-card payload so nested choice paths are
+        // never silently converted into a duplicate card play.
+        if (_choice != null)
         {
+            if (predicted.SelectedCards is null)
+                throw new InvalidDataException($"Pending live choice action lacks selected-card payload: {predicted.Key}");
             int[] indices = NativeMctsSimulationApi.ResolveLiveSelection(_options, predicted);
+            if (indices.Length < Math.Min(_min, _options.Length)
+                || indices.Length > Math.Min(_max, _options.Length))
+                throw new InvalidDataException($"Pending live choice action selected {indices.Length} cards, expected {_min}..{_max}: {predicted.Key}");
             return new SearchAction(predicted.Key, Selection: indices);
         }
+        if (predicted.ChoiceKey != null)
+            throw new InvalidDataException($"Choice action was supplied without a live pending selector: {predicted.Key}");
         if (predicted.Kind == "EndTurn")
         {
             var end = new CombatActionDescriptor(CombatActionKind.EndTurn, _player.NetId);
@@ -107,7 +123,11 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         foreach (var action in actions) _ = ToLiveSearchAction(action);
     }
 
-    public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
+    public double EvaluateTerminal() => Won
+        ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI
+        : -1.0 + 0.25 * Math.Clamp(EnemyDamageLost / (double)Math.Max(InitialEnemyEffectiveHp, 1), 0, 1);
+    public double EvaluateUnresolved() => -0.5
+        + 0.25 * Math.Clamp(EnemyDamageLost / (double)Math.Max(InitialEnemyEffectiveHp, 1), 0, 1);
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
 
@@ -154,6 +174,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             await RestoreCheckpointAsync(Checkpoint);
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
+        InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        EnemyDamageLost = 0;
         await SettleAsync(cancellation);
     }
 
@@ -266,6 +288,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
+        int enemyHpBefore = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         try { await SettleAsync(cancellation); }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
@@ -282,6 +305,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             await DrainActiveActionAsync();
             throw;
         }
+        int enemyHpAfter = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        EnemyDamageLost += Math.Max(0, enemyHpBefore - enemyHpAfter);
     }
 
     private static string DescribeAction(SearchAction action)
