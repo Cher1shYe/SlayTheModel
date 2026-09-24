@@ -22,6 +22,25 @@ public static class ProtocolJson
         return Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
     }
 
+    public static string ComputeOutsideStateFingerprint(
+        BuildIdentity build,
+        OutsideCombatObservation observation,
+        IReadOnlyList<OutsideCombatActionDescriptor> legalActions)
+    {
+        ArgumentNullException.ThrowIfNull(build);
+        ArgumentNullException.ThrowIfNull(observation);
+        ArgumentNullException.ThrowIfNull(legalActions);
+        observation.Validate();
+        foreach (var action in legalActions)
+        {
+            action.Validate();
+        }
+
+        var semanticState = new OutsideFingerprintState(build, observation, legalActions);
+        var bytes = JsonSerializer.SerializeToUtf8Bytes(semanticState, Options);
+        return Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+    }
+
     public static void ValidateFingerprint(string fingerprint)
     {
         if (fingerprint.Length != 64 || fingerprint.Any(character => !Uri.IsHexDigit(character)))
@@ -41,4 +60,9 @@ public static class ProtocolJson
         options.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.SnakeCaseLower));
         return options;
     }
+
+    private sealed record OutsideFingerprintState(
+        BuildIdentity Build,
+        OutsideCombatObservation Observation,
+        IReadOnlyList<OutsideCombatActionDescriptor> LegalActions);
 }

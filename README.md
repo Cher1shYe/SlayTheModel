@@ -6,12 +6,13 @@
 
 项目的长期目标是训练一个杀戮尖塔2专用的神经网络，希望能适配各个版本。结合安东尼现在的更新频率和更新效率，目前想先在各个版本中跑通基本MCTS，再在不同版本下测试神经网络的可行性
 
-## 开发进度（2026-09-22）
+## 开发进度（2026-09-24）
 
 - 新增局外决策系统，将局内出牌与地图、奖励、事件、商店、休息点和宝箱等局外操作分离；
 - 完成第一版局内、局外 `first-legal`，已经能够作为确定性的整局自动化基线；
 - 接入 Combat Solver 无头模拟后端，由独立 NativeWorker 为本项目的 ReplayMcts/UCT 提供可复制战斗状态；
 - 打通“读取状态 → 抽象决策状态 → 生成合法动作 → 执行动作 → 等待游戏同步 → 继续决策”的局内外闭环。
+- 完成 SpireFormer 第一版离线训练工程：统一局内/局外轨迹，提供 Tiny、Small、Medium、Large 四档模型、BF16、DDP、checkpoint/resume 与版本化 tensor shard。
 
 > 当前仓库仍处于早期开发阶段。`first-legal` 主要用于接口联调和大规模自动化测试，不是 MCTS，也不代表最终模型强度。
 
@@ -24,9 +25,65 @@
 - 游戏内只读状态采集，可导出稳定决策点和原生校验和；
 - 带状态指纹校验的动作桥，可执行出牌、选择目标和结束回合；
 - 无头 smoke test 与采集文件检查工具；
-- 第一版局内与局外 `first-legal` 自动操作，用于验证整局控制闭环并运行自动化基线。
+- 第一版局内与局外 `first-legal` 自动操作，用于验证整局控制闭环并运行自动化基线；
+- [SpireFormer](model/spireformer/README.md) 离线模型与训练栈，以及先 live、后 headless 的[训练数据 v1 规划](docs/spireformer-training-data-v1-plan.md)。
 
-目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker 和 Combat Solver 模拟后端；`first-legal` 仍是独立联调策略。
+目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker 和 Combat Solver 模拟后端；`first-legal` 仍是独立联调策略。SpireFormer 当前能够离线训练，但尚未接入游戏实时策略参数；`RunMode=train` 仍只是 Mod 侧的预留入口。
+
+## SpireFormer 运行规则
+
+SpireFormer 是独立的 Python/PyTorch 工程，目录位于 `model/spireformer`。它不随 .NET Mod 构建，也不通过 `scripts/macos.sh` 或 `scripts/windows.ps1` 启动。当前没有预训练权重，下面的 smoke test 只验证模型能否在目标硬件上完成数值有限的前向或反向计算，以及实际峰值显存；它不能代表策略已经会打牌。
+
+建议使用 Python 3.11 或 3.12，并先按照 [PyTorch 官方安装选择器](https://pytorch.org/get-started/locally/)安装支持 RTX 5090 的 CUDA 版本。不要为了满足本项目依赖而手动降级到旧 CUDA wheel。
+
+Windows PowerShell：
+
+```powershell
+cd model\spireformer
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+# 先按 PyTorch 官网给出的命令安装 CUDA 版 torch，再安装本项目
+python -m pip install -e ".[test]"
+```
+
+macOS / Linux：
+
+```bash
+cd model/spireformer
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+# 5090 机器先按 PyTorch 官网给出的命令安装 CUDA 版 torch
+python -m pip install -e '.[test]'
+```
+
+先确认 Python 看到的确实是 5090，并且支持 BF16：
+
+```bash
+nvidia-smi
+python -c "import torch; print('torch=', torch.__version__); print('cuda=', torch.version.cuda); print('device=', torch.cuda.get_device_name(0) if torch.cuda.is_available() else None); print('bf16=', torch.cuda.is_bf16_supported() if torch.cuda.is_available() else False)"
+```
+
+然后运行基础测试并查看四档模型的精确参数量：
+
+```bash
+pytest -q
+spireformer presets
+```
+
+5090 建议按照从小到大的顺序测试。前向推理不会创建梯度；单步训练只执行 forward、loss 和 backward，不创建 AdamW 状态，因此它用于验证计算图，不等价于完整训练显存：
+
+```bash
+spireformer smoke --preset tiny --device cuda --precision bf16 --mode train
+spireformer smoke --preset small --device cuda --precision bf16 --mode train
+spireformer smoke --preset medium --device cuda --precision bf16 --mode train
+spireformer smoke --preset large --device cuda --precision bf16 --mode inference
+```
+
+命令成功时会输出 JSON，其中应满足 `finite=true`、`device` 为 `cuda:0`，并包含输出形状、耗时与 CUDA 峰值显存。出现 OOM 时先记录失败的 preset 和峰值，再减小 `--batch-size`、`--steps`、`--entities` 或 `--actions`；不要据此修改模型默认结构。
+
+真正训练使用 `spireformer train --dataset ...`，要求输入版本化 tensor shard。live 训练数据采集器目前尚未实现，所以现阶段的 5090 工作重点是验证模型执行、BF16、显存边界和环境兼容性。Small/Medium 可以继续做单卡训练实验；Large 约 2.03B 参数，当前 AdamW + DDP 路径需要 FSDP、ZeRO 或 offload，不能把 Large 的 smoke 成功视为单张 5090 可以完整训练。
 
 ## 启动配置接口
 
@@ -79,7 +136,7 @@ dotnet --version
 ./scripts/macos.sh --action test
 ```
 
-该命令依次运行 Search、Protocol、Action 和 ReplaySearch 四组 smoke 测试，不需要启动游戏。它们验证通用搜索器、协议、状态哈希、配置解析、动作完成和决策信息隔离，但不会凭空创建一场真实 STS2 战斗。
+该命令依次运行 Search、Protocol、Outside、Action 和 ReplaySearch 五组 smoke 测试，不需要启动游戏。它们验证通用搜索器、局内/局外协议、状态哈希、配置解析、动作完成和决策信息隔离，但不会凭空创建一场真实 STS2 战斗。
 
 读取本机游戏程序集的 ABI 信息时，工具只读取元数据，不加载或执行游戏代码：
 
@@ -286,16 +343,38 @@ Windows 和 macOS ARM64 的原生重放、后续选牌和跨进程状态校验�
 
 ### 局外
 
-局外 `first-legal` 只在一局已经开始后工作。每当受支持的界面出现时，它按游戏节点的稳定顺序找到第一个可见且已启用的原生控件，并调用游戏自己的点击接口。事件会跳过锁定、禁用或已经选择过的选项；奖励和其他选牌操作完成后，控制器会等待界面稳定，再选择第一个合法路线节点，避免选卡与地图并行出现时发生同步卡死。
+局外 `first-legal` 只在一局已经开始后工作。适配器先把当前局外状态和当前已支持界面的全部合法动作投影成不含 Godot 节点的稳定协议，再由策略返回完整的 `OutsideCombatActionDescriptor`，最后由私有原生绑定执行对应控件。`action_id` 是该动作在当前状态指纹下的唯一标识，不是策略的全部返回值。事件会跳过锁定、禁用或已经选择过的选项；奖励和其他选牌操作完成后，控制器会等待界面稳定，再选择第一个合法路线节点，避免选卡与地图并行出现时发生同步卡死。
 
 商店采用一个暂定的确定性特例：只使用删牌服务，优先删除打击，其次删除防御，如果两者都不存在则删除卡牌 ID 最小的一张；金币不足时跳过商店。除该特例外，它不评估路线、卡牌、遗物或商店价值，只负责提供第一版可复现的整局自动化基线。
+
+`choice_context` 使通用界面不会被错认为同一个决策：`context_id`、`state_token`、`phase`、选择数上下限和已选数量可以区分删牌、升级、预览确认以及小游戏的不同阶段。`state_token` 只导出稳定状态的 SHA-256 标识，不导出本地化正文。
+
+当前同步的 `first-legal` 只是快速基线，决策不做阻塞式推理。未来的慢神经网络或远程模型必须通过异步 worker 接入，不能在 Godot 主线程的帧回调中等待。
 
 ## 检查导出的决策文件
 
 ```bash
 dotnet run --project tools/SlayTheModel.CaptureCheck -- \
   artifacts/live-capture/latest-combat-decision.json
+
+# 也可检查局外决策或带策略选择的样本
+dotnet run --project tools/SlayTheModel.CaptureCheck -- \
+  artifacts/live-capture/latest-outside-sample.json
+
+# 检查动作是否观察到状态变化，或由原生事务确认成功/取消/失败/超时
+dotnet run --project tools/SlayTheModel.CaptureCheck -- \
+  artifacts/live-capture/latest-outside-result.json
 ```
+
+启用 `--outside-combat-policy first-legal` 后，每次实际选择都会更新
+`latest-outside-decision.json`、`latest-outside-sample.json` 和动作完成后的
+`latest-outside-result.json`。再启用
+`--capture-history`，控制器会额外写入不可变的逐条 JSON 样本，并把样本追加到
+`outside-trajectory.jsonl`；该 JSONL 是跨局、跨进程追加的数据集，通过 `episode_id`
+区分不同游戏，不应把整个文件当成单独一局。每条 `OutsideCombatDecisionSample` 都有独立的 `schema_version`，并包含同一决策点的完整局外观察、合法动作、策略名称、状态指纹和实际选择的动作 ID，可直接作为之后模仿学习或轨迹整理的输入。
+执行结果另存到 `outside-results.jsonl`。正常运行时每个 `request_id` 只有一条终态结果；强制退出或进程崩溃可能使结果缺失。训练预处理应以样本为左表按 `request_id` 左连接结果，只保留 `observed_transition` 或 `applied` 等成功结果；缺失、`cancelled`、`failed` 和 `timed_out` 不得当成成功训练样本。
+观察包含楼层、房间、玩家 HP/金币、牌组、遗物、药水以及已知地图拓扑；隐藏 RNG、
+Godot 路径、运行时实例 ID 和原生存档不会进入策略接口。
 
 主要接口：
 
@@ -303,7 +382,14 @@ dotnet run --project tools/SlayTheModel.CaptureCheck -- \
 - `CombatCaptureService.BuildDecisionPoint(...)`：只返回给战斗策略使用的观察与稳定合法动作列表；
 - `CombatStepGuard.RequireExpectedState(...)`：拒绝针对旧状态生成的命令；
 - `CombatActionExecutor.CreateGameAction(...)`：把协议动作转换为原生游戏动作，但不执行；
-- `CombatActionExecutor.ExecuteAsync(...)`：把动作加入原生执行队列，并等待执行器恢复空闲。
+- `CombatActionExecutor.ExecuteAsync(...)`：把动作加入原生执行队列，并等待执行器恢复空闲；
+- `OutsideCombatCaptureService.BuildDecisionPoint(...)`：把原生局外状态和合法动作投影为稳定决策点；
+- `IOutsideCombatPolicy.SelectAction(...)`：局外策略只接收协议数据并返回完整的 `OutsideCombatActionDescriptor`；
+- `OutsideCombatStepGuard.RequireCurrentAction(...)`：拒绝过期指纹或当前界面不存在的动作；
+- `OutsideCombatDecisionSample`：供训练与数据采集使用的可序列化“观察—动作”样本；
+- `OutsideCombatExecutionResult`：记录观察到状态变化、原生确认成功、取消、失败或超时。
+
+完整的数据边界、版本规则和采集文件见 [局外决策接口 v1](docs/outside-combat-interface-v1.md)。
 
 ## 常见问题
 

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slay-the-model-spireformer"
+version = "0.1.0"
+description = "Set- and trajectory-aware policy model for SlayTheModel"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = [
+    "torch>=2.3",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8",
+]
+
+[project.scripts]
+spireformer = "spireformer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["spireformer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

@@ -57,7 +57,7 @@ cd "$repo_dir"
 
 run_tests() {
     local project
-    for project in SlayTheModel.Search.Smoke SlayTheModel.Protocol.Smoke SlayTheModel.Action.Smoke SlayTheModel.ReplaySearch.Smoke; do
+    for project in SlayTheModel.Search.Smoke SlayTheModel.Protocol.Smoke SlayTheModel.Outside.Smoke SlayTheModel.Action.Smoke SlayTheModel.ReplaySearch.Smoke; do
         dotnet run --project "smoke/$project/$project.csproj" -c Release
     done
 }

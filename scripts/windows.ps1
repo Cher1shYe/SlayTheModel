@@ -136,7 +136,7 @@ try {
     Invoke-Dotnet @('--version')
     if ($Action -eq 'Check') { return }
     if ($Action -eq 'Test') {
-        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
+        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Outside.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
             Invoke-Dotnet @('run', '--project', "smoke/$project/$project.csproj", '-c', 'Release')
         }
         return

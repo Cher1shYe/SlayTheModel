@@ -27,6 +27,8 @@ public static class CombatCaptureService
     private static long _decisionIndex;
     private static bool _capturing;
 
+    internal static BuildIdentity CurrentBuild => Build;
+
     public static void Reset()
     {
         lock (Gate)
