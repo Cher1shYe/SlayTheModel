@@ -214,7 +214,8 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
         raise ValueError("unsupported checkpoint")
     model_manifest = json.loads(model.with_suffix(".manifest.json").read_text(encoding="utf-8"))
     if model_manifest.get("checkpointSha256", "").lower() != sha256(checkpoint).lower() \
-            or manifest.get("candidateSha256", "").lower() != model_sha.lower():
+            or manifest.get("candidateSha256", "").lower() != model_sha.lower() \
+            or manifest.get("sourceCheckpointSha256", sha256(checkpoint)).lower() != sha256(checkpoint).lower():
         raise ValueError("evaluation model/checkpoint identity mismatch")
     seeds = manifest.get("seeds", [])
     encounters = manifest.get("encounters", [])
@@ -277,8 +278,68 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
             "candidateWins": candidate_wins, "auditedRuns": list(audited.values())}
 
 
+def audit_bootstrap(manifest_path: Path, checkpoint: Path) -> dict:
+    """Attest candidate-controlled data without granting a champion promotion."""
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    base = manifest_path.resolve().parent
+    model = Path(manifest["candidateOnnx"]).resolve(strict=True)
+    model_sha = checked_model(model)
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
+    if payload.get("format") != "azcombat.checkpoint.v1" \
+            or manifest.get("sourceCheckpointSha256", "").lower() != sha256(checkpoint).lower() \
+            or json.loads(model.with_suffix(".manifest.json").read_text(encoding="utf-8")).get("checkpointSha256", "").lower() != sha256(checkpoint).lower():
+        raise ValueError("bootstrap source checkpoint/model identity mismatch")
+    catalog = Path(__file__).resolve().parents[3] / "combat" / "coverage" / "combat-hooks.json"
+    seeds = manifest.get("seeds", [])
+    encounters = manifest.get("encounters", [])
+    scenarios = manifest.get("scenarios", [])
+    known = set(payload["metadata"]["trainSeeds"]) | set(payload["metadata"]["validationSeeds"])
+    reasons: list[str] = []
+    if manifest.get("format") != "azcombat.wave.v2" or manifest.get("mode") != "bootstrap" \
+            or manifest.get("status") != "complete" or manifest.get("gameVersion") != "v0.111.0" \
+            or manifest.get("coverageCatalogSha256", "").lower() != sha256(catalog).lower() \
+            or manifest.get("candidateSha256", "").lower() != model_sha.lower():
+        reasons.append("bootstrap wave/version/catalog/model identity differs")
+    if len(seeds) < 2 or len(seeds) != len(set(seeds)) or set(seeds) & known \
+            or not encounters or len(encounters) != len(set(encounters)) \
+            or any(x not in REGISTERED_ENCOUNTERS for x in encounters) \
+            or not scenarios or len(scenarios) != len(set(scenarios)) \
+            or any(x not in SCENARIOS for x in scenarios):
+        reasons.append("bootstrap seeds or registered scenarios are invalid/overlap source")
+    budget = manifest.get("budgetMilliseconds")
+    cap = manifest.get("maxDecisions")
+    if type(budget) is not int or budget < 1000 or type(cap) is not int or cap < 1:
+        reasons.append("bootstrap decision budget/cap invalid")
+    expected = {(seed, encounter, scenario, start, "candidate")
+                for seed in seeds for encounter in encounters for scenario in scenarios
+                if scenario in SCENARIOS for start in SCENARIOS[scenario]["starts"]}
+    entries = manifest.get("runs", [])
+    keys = [(entry.get("seed"), entry.get("encounter"), entry.get("scenario"),
+             entry.get("startType"), entry.get("policy")) for entry in entries]
+    if len(keys) != len(set(keys)) or set(keys) != expected:
+        reasons.append("missing, duplicate or baseline/champion bootstrap runs")
+    audited = []
+    input_files = []
+    for key, entry in zip(keys, entries, strict=True):
+        try:
+            audited.append(_audit_run(base, entry, model_sha, budget, cap, minimum_rate=0.0))
+            input_files.append({"path": str(_inside(base, entry["jsonl"])), "sha256": entry["sha256"]})
+        except (KeyError, TypeError, ValueError, OSError) as error:
+            reasons.append(f"run {key}: {error}")
+    if len(audited) != len(expected):
+        reasons.append("incomplete strictly audited bootstrap coverage")
+    return {"format": "azcombat.bootstrap-audit.v1", "valid": not reasons, "reasons": reasons,
+            "sourceCheckpointSha256": sha256(checkpoint), "candidateSha256": model_sha,
+            "waveManifest": str(manifest_path.resolve()), "waveManifestSha256": sha256(manifest_path),
+            "seeds": seeds, "inputFiles": input_files, "auditedRuns": audited,
+            "below100Runs": sum(run["minSimulationsPerSecond"] < 100 for run in audited),
+            "unresolvedRuns": sum(run["outcome"] == "unresolved" for run in audited)}
+
+
 def write_gate(report: dict, path: Path, champion: Path | None = None) -> None:
     """A failed gate writes diagnostics but never changes the champion alias."""
+    if report.get("format") != "azcombat.gate.v1" or type(report.get("approved")) is not bool:
+        raise ValueError("only an evaluation gate report can promote a champion")
     if path.exists():
         raise FileExistsError("gate report already exists")
     path.parent.mkdir(parents=True, exist_ok=True)

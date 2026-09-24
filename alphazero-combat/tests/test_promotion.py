@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
@@ -12,6 +13,27 @@ from azcombat.promotion import (ASSEMBLY, EXPORT_OUT, _audit_choice_chain, _expe
 
 
 class PromotionSafetyTests(unittest.TestCase):
+    def test_bootstrap_cannot_reuse_source_seeds_or_grant_champion(self):
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            model = base / "candidate.onnx"
+            model.write_bytes(b"test-only-model-identity")
+            model.with_suffix(".manifest.json").write_text(json.dumps({
+                "format": "azcombat.onnx.v1", "onnxSha256": hashlib.sha256(model.read_bytes()).hexdigest(),
+                "checkpointSha256": "0" * 64,
+                "training": {"trainSeeds": ["trained"], "validationSeeds": ["validated"]},
+            }), encoding="utf-8")
+            output = base / "new-wave"
+            with self.assertRaisesRegex(ValueError, "distinct from source"):
+                run_wave(mode="bootstrap", output=output, game_dir=base, ritsu_root=base,
+                         model=model, seeds=["trained", "new"], encounters=["CULTISTS_NORMAL"])
+            self.assertFalse(output.exists())
+            with self.assertRaisesRegex(ValueError, "only an evaluation gate"):
+                write_gate({"format": "azcombat.bootstrap-audit.v1", "valid": True,
+                            "approved": True}, base / "forged-gate.json", base / "champion.json")
+            self.assertFalse((base / "forged-gate.json").exists())
+            self.assertFalse((base / "champion.json").exists())
+
     def test_nested_requires_same_parent_and_consecutive_live_layers(self):
         def row(kind, action_id, group, depth, parent, selected=None):
             sample = SimpleNamespace(legal_actions=[SimpleNamespace(kind=kind, action_id=action_id)])
@@ -112,11 +134,12 @@ class PromotionSafetyTests(unittest.TestCase):
             champion = base / "champion.json"
             report = base / "gate.json"
             champion.write_text('{"previous":"unchanged"}', encoding="utf-8")
-            write_gate({"approved": False, "reasons": ["missing death evidence"]}, report, champion)
+            write_gate({"format": "azcombat.gate.v1", "approved": False,
+                        "reasons": ["missing death evidence"]}, report, champion)
             self.assertEqual(json.loads(champion.read_text(encoding="utf-8")), {"previous": "unchanged"})
             self.assertTrue(report.is_file())
             with self.assertRaises(FileExistsError):
-                write_gate({"approved": False}, report, champion)
+                write_gate({"format": "azcombat.gate.v1", "approved": False}, report, champion)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-"""Run isolated NativeWorker candidate/baseline evaluation or champion self-play."""
+"""Run isolated candidate bootstrap, paired evaluation or champion self-play."""
 from __future__ import annotations
 
 import argparse
@@ -47,21 +47,28 @@ def run_wave(*, mode: str, output: Path, game_dir: Path, ritsu_root: Path,
              max_decisions: int = 256, champion: Path | None = None,
              scenarios: list[str] | None = None) -> dict:
     """Never overwrite a previous run; retain every command's stdout/stderr."""
-    if mode not in {"evaluate", "selfplay"}:
-        raise ValueError("mode must be evaluate or selfplay")
+    if mode not in {"bootstrap", "evaluate", "selfplay"}:
+        raise ValueError("mode must be bootstrap, evaluate or selfplay")
     if len(set(seeds)) != len(seeds) or len(seeds) < 2 or not all(seeds):
         raise ValueError("require at least two distinct nonempty seeds")
     if not encounters or any(encounter not in REGISTERED_ENCOUNTERS for encounter in encounters):
         raise ValueError("encounter is not in the admitted NativeWorker fixture catalog")
-    scenarios = list(SCENARIOS) if scenarios is None else scenarios
+    scenarios = (["ordinary"] if mode == "bootstrap" else list(SCENARIOS)) if scenarios is None else scenarios
     if not scenarios or len(scenarios) != len(set(scenarios)) or any(s not in SCENARIOS for s in scenarios):
         raise ValueError("unknown or duplicate scenario")
     if budget_ms < 1000 or max_decisions < 1:
         raise ValueError("live decisions require at least 1000 ms and a positive trajectory cap")
     if mode == "selfplay" and champion is None:
         raise ValueError("self-play requires a promoted champion alias")
+    if mode != "selfplay" and champion is not None:
+        raise ValueError("only promoted champion self-play accepts a champion alias")
     model = model.resolve(strict=True)
     model_hash = checked_model(model)
+    model_manifest = json.loads(model.with_suffix(".manifest.json").read_text(encoding="utf-8"))
+    source_seeds = set(model_manifest.get("training", {}).get("trainSeeds", [])) \
+        | set(model_manifest.get("training", {}).get("validationSeeds", []))
+    if mode == "bootstrap" and (not source_seeds or set(seeds) & source_seeds):
+        raise ValueError("bootstrap requires new seeds distinct from source training/validation")
     if mode == "selfplay":
         assert champion is not None
         alias = json.loads(champion.read_text(encoding="utf-8"))
@@ -87,6 +94,7 @@ def run_wave(*, mode: str, output: Path, game_dir: Path, ritsu_root: Path,
     manifest = {"format": "azcombat.wave.v2", "mode": mode, "gameVersion": "v0.111.0",
                 "coverageCatalogSha256": sha256(catalog),
                 "candidateOnnx": str(model), "candidateSha256": model_hash, "seeds": seeds,
+                "sourceCheckpointSha256": model_manifest.get("checkpointSha256"),
                 "encounters": encounters, "scenarios": scenarios, "startTypes": list(STARTS), "budgetMilliseconds": budget_ms,
                 "maxDecisions": max_decisions, "runs": [], "status": "incomplete"}
     manifest_path = output / "manifest.json"
@@ -96,7 +104,8 @@ def run_wave(*, mode: str, output: Path, game_dir: Path, ritsu_root: Path,
           for scenario in scenarios:
             spec = SCENARIOS[scenario]
             for start in spec["starts"]:
-                for policy in (("baseline", "candidate") if mode == "evaluate" else ("champion",)):
+                for policy in (("baseline", "candidate") if mode == "evaluate" else
+                               ("candidate",) if mode == "bootstrap" else ("champion",)):
                     stem = f"{seed_index:03d}-{encounter}-{scenario}-{start}-{policy}"
                     jsonl = output / (stem + ".jsonl")
                     env = os.environ.copy()
@@ -160,7 +169,7 @@ def run_wave(*, mode: str, output: Path, game_dir: Path, ritsu_root: Path,
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("mode", choices=("evaluate", "selfplay"))
+    parser.add_argument("mode", choices=("bootstrap", "evaluate", "selfplay"))
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--game-dir", required=True, type=Path)
     parser.add_argument("--ritsu-root", required=True, type=Path)

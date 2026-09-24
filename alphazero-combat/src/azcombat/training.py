@@ -146,13 +146,37 @@ def _loss(model: DeepSetsPolicyValue, sample: TrainingSample) -> tuple[Tensor, T
     return policy_loss + value_loss, policy_loss, value_loss
 
 
-def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainConfig()) -> dict:
+def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainConfig(),
+          init_checkpoint: Path | None = None, bootstrap_audit: dict | None = None) -> dict:
     if config.epochs < 1 or config.learning_rate <= 0 or config.hidden < 1:
         raise ValueError("invalid training hyperparameters")
+    if checkpoint.exists():
+        raise FileExistsError("checkpoint already exists")
     train_samples, validation = split_by_seed(dataset.samples, config.validation_fraction)
     random.seed(config.seed)
     torch.manual_seed(config.seed)
-    model = DeepSetsPolicyValue(config.hidden)
+    parent_metadata = None
+    if init_checkpoint is not None:
+        model, parent = load_checkpoint(init_checkpoint)
+        if parent["config"]["hidden"] != config.hidden:
+            raise ValueError("continuation must retain the parent network width")
+        parent_metadata = parent["metadata"]
+        old = set(parent_metadata["trainSeeds"]) | set(parent_metadata["validationSeeds"])
+        if old & {sample.seed for sample in dataset.samples}:
+            raise ValueError("self-play seed overlaps parent training/validation lineage")
+    else:
+        model = DeepSetsPolicyValue(config.hidden)
+    if bootstrap_audit is not None:
+        actual_inputs = {(str(path.resolve()), hashlib.sha256(path.read_bytes()).hexdigest().lower())
+                         for path in dataset.paths}
+        audited_inputs = {(item["path"], item["sha256"].lower())
+                          for item in bootstrap_audit.get("inputFiles", [])}
+        if init_checkpoint is None or bootstrap_audit.get("format") != "azcombat.bootstrap-audit.v1" \
+                or bootstrap_audit.get("valid") is not True \
+                or bootstrap_audit.get("sourceCheckpointSha256", "").lower() != hashlib.sha256(init_checkpoint.read_bytes()).hexdigest().lower() \
+                or {sample.seed for sample in dataset.samples} != set(bootstrap_audit.get("seeds", [])) \
+                or len(actual_inputs) != len(dataset.paths) or actual_inputs != audited_inputs:
+            raise ValueError("bootstrap audit/source model/seed lineage differs")
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     history = []
     for epoch in range(config.epochs):
@@ -170,10 +194,17 @@ def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainC
         with torch.no_grad():
             valid_loss = sum(_loss(model, sample)[0].item() for sample in validation) / len(validation)
         history.append({"epoch": epoch + 1, "trainLoss": sum(train_losses) / len(ordered), "validationLoss": valid_loss})
-    metadata = {"trainSeeds": sorted({s.seed for s in train_samples}),
-                "validationSeeds": sorted({s.seed for s in validation}), "history": history,
+    metadata = {"trainSeeds": sorted({s.seed for s in train_samples} | set(parent_metadata["trainSeeds"] if parent_metadata else [])),
+                "validationSeeds": sorted({s.seed for s in validation} | set(parent_metadata["validationSeeds"] if parent_metadata else [])),
+                "history": history, "generation": (parent_metadata.get("generation", 0) + 1) if parent_metadata else 0,
                 "inputSha256": {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in dataset.paths},
                 "samples": len(dataset)}
+    if init_checkpoint is not None:
+        metadata["parentCheckpointSha256"] = hashlib.sha256(init_checkpoint.read_bytes()).hexdigest()
+        metadata["cumulativeSamples"] = parent_metadata.get("cumulativeSamples", parent_metadata["samples"]) + len(dataset)
+    if bootstrap_audit is not None:
+        metadata["bootstrapWaveManifestSha256"] = bootstrap_audit["waveManifestSha256"]
+        metadata["bootstrapOnnxSha256"] = bootstrap_audit["candidateSha256"]
     checkpoint.parent.mkdir(parents=True, exist_ok=True)
     torch.save({"format": "azcombat.checkpoint.v1", "model": model.state_dict(),
                 "config": asdict(config), "metadata": metadata}, checkpoint)
