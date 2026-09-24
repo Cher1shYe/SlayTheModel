@@ -21,6 +21,10 @@ SCENARIOS = {
     "purity_choice": {"starts": ("full_combat",), "choiceFixture": True,
                       "fixtureCards": ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"],
                       "initialHp": None},
+    "cascade_nested": {"starts": ("full_combat",), "choiceFixture": True,
+                       "fixtureCards": ["CASCADE", "CASCADE", "CASCADE", "PREPARED", "PREPARED", "PREPARED",
+                                        "PREPARED", "PREPARED", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"],
+                       "initialHp": None},
     "native_death": {"starts": ("full_combat",), "choiceFixture": True,
                      "fixtureCards": ["STRIKE_IRONCLAD"], "initialHp": 1},
 }

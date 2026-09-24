@@ -43,9 +43,12 @@ def _scenario_spec(entry: dict, provenance: dict, budget_ms: int, max_decisions:
     return spec
 
 
-def _require_scenario_result(scenario: str, choice_flags: list[bool], settled_death: bool) -> None:
+def _require_scenario_result(scenario: str, choice_flags: list[bool], settled_death: bool,
+                             nested: bool = False) -> None:
     if scenario == "purity_choice" and not any(choice_flags):
         raise ValueError("choice fixture yielded no actual choice decision")
+    if scenario == "cascade_nested" and not nested:
+        raise ValueError("cascade fixture yielded no actual two-layer live choice")
     if scenario == "native_death" and not settled_death:
         raise ValueError("native death fixture did not settle as a real death")
 
@@ -192,7 +195,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
     choice_flags = [bool(sample.legal_actions and sample.legal_actions[0].kind == "NestedChoice") for sample in samples]
     nested = _audit_choice_chain(samples, metrics)
     death = outcome is Outcome.LOSS and provenance["playerHp"] == 0
-    _require_scenario_result(entry["scenario"], choice_flags, death)
+    _require_scenario_result(entry["scenario"], choice_flags, death, nested)
     return {"seed": entry["seed"], "encounter": entry["encounter"], "scenario": entry["scenario"],
             "startType": entry["startType"],
             "policy": policy, "outcome": outcome.value, "value": value, "samples": len(samples),
@@ -228,7 +231,7 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
         reasons.append("unseen seed/registered encounter coverage is insufficient")
     scenarios = manifest.get("scenarios", [])
     if scenarios != list(SCENARIOS):
-        reasons.append("ordinary, actual choice and native death scenarios are required")
+        reasons.append("ordinary, actual nested choice and native death scenarios are required")
     if manifest.get("startTypes") != list(STARTS) or manifest.get("budgetMilliseconds", 0) < 1000 \
             or type(manifest.get("maxDecisions")) is not int or manifest["maxDecisions"] < 1:
         reasons.append("both start types and >=1 second budget are required")

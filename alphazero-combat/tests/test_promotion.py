@@ -58,15 +58,17 @@ class PromotionSafetyTests(unittest.TestCase):
 
     def test_choice_and_death_must_be_observed_not_declared(self):
         for scenario, choices, death in (("purity_choice", [], False),
-                                         ("native_death", [True], False)):
+                                         ("native_death", [True], False),
+                                         ("cascade_nested", [True, True], False)):
             with self.subTest(scenario=scenario), self.assertRaises(ValueError):
                 _require_scenario_result(scenario, choices, death)
         _require_scenario_result("purity_choice", [False, True], False)
         _require_scenario_result("native_death", [], True)
+        _require_scenario_result("cascade_nested", [False, True, True], False, nested=True)
 
     def test_missing_or_unpaired_scenario_cannot_cover_matrix(self):
         expected = _expected_run_keys(["a", "b"], ["CULTISTS_NORMAL"])
-        self.assertEqual(len(expected), 16)
+        self.assertEqual(len(expected), 20)
         self.assertEqual(_paired_runs(expected, {}), [])
         key = ("a", "CULTISTS_NORMAL", "native_death", "full_combat")
         baseline = (*key, "baseline")

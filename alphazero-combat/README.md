@@ -38,7 +38,7 @@ python -m azcombat.native_parity_cli `
 
 M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promotion.py`。`evaluate` 为每个未见 seed、登记 encounter、完整/合法中途起点都运行纯 MCTS baseline 与 candidate 配对；每次都新建输出目录、完整 ExportRelease、保留 stdout/stderr，并严格回读 JSONL。`selfplay` 只有已晋级且哈希/门禁报告完整的 champion alias 才能启动，且禁止复用 champion 已使用的 seed。晋级审计要求真实程序集 provenance、每决策至少 1000 ms、有效模拟速率至少 100/s、统一终局回填、嵌套选择和死亡结算证据；任一缺项只写拒绝报告，不改 champion。
 
-新版波次支持 `--scenario ordinary --scenario purity_choice --scenario native_death`：普通场景覆盖完整与经重放核验的中途起点，净化场景要求实际选牌决策，1 HP 原生场景要求真实死亡结算；每项均 baseline/candidate 配对。请求夹具、种子、遭遇、起点、预算与模型哈希写入 manifest 并与 JSONL provenance 对账。每次发布后立即保存完整 worker stdout/stderr；审计核对原始日志中的实际加载路径、MVID、SHA256 和导出绝对路径。单层净化不能替代真正的多层嵌套选择证据。
+新版波次支持 `--scenario ordinary --scenario purity_choice --scenario cascade_nested --scenario native_death`：普通场景覆盖完整与经重放核验的中途起点，净化场景要求实际选牌决策，CASCADE/PREPARED 场景要求同一真实父动作下两层选择，1 HP 原生场景要求真实死亡结算；每项均 baseline/candidate 配对。请求夹具、种子、遭遇、起点、预算与模型哈希写入 manifest 并与 JSONL provenance 对账。每次发布后立即保存完整 worker stdout/stderr；审计核对原始日志中的实际加载路径、MVID、SHA256 和导出绝对路径。夹具本身不等于覆盖证明，必须由运行轨迹满足场景条件。
 
 新导出的 `decisionMetrics` 还记录真实执行的根动作 ID、父决策编号、父动作 ID 与选择层号；晋级审计要求每个选择层都接在同一个合法父动作之后且层号连续。仅在同一父动作下实际出现第二层选择才计为嵌套，数据仍保持原严格样本 schema，模型参数不变。
 
@@ -50,6 +50,7 @@ M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promo
 - `m4-regression-20260924/matrix-smoke-001`、`matrix-smoke-002`：16 次发布的场景矩阵回归，均严格拒绝不达标覆盖与未完成轨迹；第二轮真实死亡配对已出现。旧脚本只回显 worker 日志末尾，第二轮长轨迹缺程序集标识，拒绝报告保留。
 - `m4-regression-20260924/log-capture-smoke-003`：新完整日志保存逻辑下的 2 seed × 原生死亡 × baseline/candidate，4 次发布均严格回读并核对程序集与导出路径；它不是完整晋级矩阵。
 - `m4-regression-20260924/choice-chain-smoke-004`：新 Release 的 2 seed × 净化 baseline/candidate，4 次发布严格回读与选择层链路对账；仅单层选择，部分速率 <100/s，门禁拒绝并保留报告。
+- `m4-regression-20260924/cascade-prepared-probe-005.jsonl`：真实 CASCADE/PREPARED 战斗 40 条严格样本，包含同一 CASCADE 父动作的两层选择。`cascade-paired-006`：2 seed × baseline/candidate 实际配对；baseline 第二种子出现多层选择，但候选均未进入选择且死亡，部分初始决策仅约 44–56 sims/s，门禁拒绝。性能证据和未证实的预热假设见 `profile_output/azcombat-m4-cascade-20260924.md`。
 
 这些证据证明管线会正确拒绝未达门槛的候选，不代表当前模型已晋级或自博弈已获准。
 
