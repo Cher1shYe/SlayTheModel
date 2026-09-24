@@ -38,11 +38,15 @@ python -m azcombat.native_parity_cli `
 
 M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promotion.py`。`evaluate` 为每个未见 seed、登记 encounter、完整/合法中途起点都运行纯 MCTS baseline 与 candidate 配对；每次都新建输出目录、完整 ExportRelease、保留 stdout/stderr，并严格回读 JSONL。`selfplay` 只有已晋级且哈希/门禁报告完整的 champion alias 才能启动，且禁止复用 champion 已使用的 seed。晋级审计要求真实程序集 provenance、每决策至少 1000 ms、有效模拟速率至少 100/s、统一终局回填、嵌套选择和死亡结算证据；任一缺项只写拒绝报告，不改 champion。
 
+新版波次支持 `--scenario ordinary --scenario purity_choice --scenario native_death`：普通场景覆盖完整与经重放核验的中途起点，净化场景要求实际选牌决策，1 HP 原生场景要求真实死亡结算；每项均 baseline/candidate 配对。请求夹具、种子、遭遇、起点、预算与模型哈希写入 manifest 并与 JSONL provenance 对账。每次发布后立即保存完整 worker stdout/stderr；审计核对原始日志中的实际加载路径、MVID、SHA256 和导出绝对路径。单层净化不能替代真正的多层嵌套选择证据。
+
 当前已保存的 M4 证据包括：
 
 - `m4-regression-20260924/paired-smoke-003`：2 seed × 1 encounter × 2 起点 × baseline/candidate，8 次完整发布；每条决策实际墙钟均 ≥1000 ms。审计按预期拒绝（样本未完成、覆盖/嵌套/死亡证据不足）。
 - `m4-regression-20260924/native-death-004.jsonl` 与 `model-native-death-005.jsonl`：原生低 HP 真实死亡，最终 `loss/-1.0`，不伪造标签；候选模型路径无回退。
 - `m4-regression-20260924/mid-start-model-001.jsonl`：真实 checkpoint + `EndTurn` 前缀重放后导出 `mid_combat_verified`。
+- `m4-regression-20260924/matrix-smoke-001`、`matrix-smoke-002`：16 次发布的场景矩阵回归，均严格拒绝不达标覆盖与未完成轨迹；第二轮真实死亡配对已出现。旧脚本只回显 worker 日志末尾，第二轮长轨迹缺程序集标识，拒绝报告保留。
+- `m4-regression-20260924/log-capture-smoke-003`：新完整日志保存逻辑下的 2 seed × 原生死亡 × baseline/candidate，4 次发布均严格回读并核对程序集与导出路径；它不是完整晋级矩阵。
 
 这些证据证明管线会正确拒绝未达门槛的候选，不代表当前模型已晋级或自博弈已获准。
 

@@ -12,11 +12,59 @@ import uuid
 
 import torch
 
-from .experiments import REGISTERED_ENCOUNTERS, STARTS, checked_model, sha256
+from .experiments import REGISTERED_ENCOUNTERS, SCENARIOS, STARTS, checked_model, sha256
 from .reward import Outcome, TerminalResult, score_result
 from .samples import read_jsonl
 
-ASSEMBLY = re.compile(r"SLAY_WORKER_ASSEMBLY label=(NativeWorker|Search|CombatSolver) .*?sha256=([A-Fa-f0-9]{64})")
+ASSEMBLY = re.compile(r"^SLAY_WORKER_ASSEMBLY label=(NativeWorker|Search|CombatSolver) "
+                      r"path=(.+?) mvid=([A-Fa-f0-9-]{36}) sha256=([A-Fa-f0-9]{64})$", re.MULTILINE)
+EXPORT_OUT = re.compile(r"^SLAY_WORKER_EXPORT_OUT=(.+)$", re.MULTILINE)
+
+
+def _scenario_spec(entry: dict, provenance: dict, budget_ms: int, max_decisions: int) -> dict:
+    scenario = entry.get("scenario")
+    if scenario not in SCENARIOS:
+        raise ValueError("unregistered scenario")
+    spec = SCENARIOS[scenario]
+    fixture = {"choiceFixture": spec["choiceFixture"], "fixtureCards": spec["fixtureCards"],
+               "initialHp": spec["initialHp"]}
+    if entry.get("startType") not in spec["starts"] or entry.get("fixture") != fixture:
+        raise ValueError("scenario fixture/start differs from admitted definition")
+    if provenance.get("choiceFixture") is not spec["choiceFixture"] \
+            or provenance.get("fixtureCards") != spec["fixtureCards"] \
+            or provenance.get("budgetMilliseconds") != budget_ms \
+            or provenance.get("maxDecisions") != max_decisions:
+        raise ValueError("native scenario fixture or run parameters differ from request")
+    if spec["initialHp"] is not None:
+        start = provenance.get("startProvenance")
+        if not isinstance(start, dict) or start.get("nativeInitialHpFixture") != spec["initialHp"] \
+                or start.get("entryHp") != spec["initialHp"]:
+            raise ValueError("native low-HP fixture evidence missing")
+    return spec
+
+
+def _require_scenario_result(scenario: str, choice_flags: list[bool], settled_death: bool) -> None:
+    if scenario == "purity_choice" and not any(choice_flags):
+        raise ValueError("choice fixture yielded no actual choice decision")
+    if scenario == "native_death" and not settled_death:
+        raise ValueError("native death fixture did not settle as a real death")
+
+
+def _expected_run_keys(seeds: list[str], encounters: list[str]) -> set[tuple[str, str, str, str, str]]:
+    return {(seed, encounter, scenario, start, policy)
+            for seed in seeds for encounter in encounters for scenario, spec in SCENARIOS.items()
+            for start in spec["starts"] for policy in ("baseline", "candidate")}
+
+
+def _paired_runs(expected: set[tuple[str, str, str, str, str]],
+                 audited: dict[tuple[str, str, str, str, str], dict]) -> list[tuple[dict, dict]]:
+    pairs = []
+    for seed, encounter, scenario, start in sorted({key[:4] for key in expected}):
+        baseline = audited.get((seed, encounter, scenario, start, "baseline"))
+        candidate = audited.get((seed, encounter, scenario, start, "candidate"))
+        if baseline and candidate:
+            pairs.append((baseline, candidate))
+    return pairs
 
 
 def _inside(base: Path, name: str) -> Path:
@@ -26,9 +74,10 @@ def _inside(base: Path, name: str) -> Path:
     return target
 
 
-def _audit_run(base: Path, entry: dict, model_sha: str, minimum_rate: float = 100.0) -> dict:
+def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
+               max_decisions: int, minimum_rate: float = 100.0) -> dict:
     if entry.get("exitCode") != 0 or entry.get("encounter") not in REGISTERED_ENCOUNTERS \
-            or entry.get("startType") not in STARTS:
+            or entry.get("startType") not in STARTS or entry.get("scenario") not in SCENARIOS:
         raise ValueError("run failed or has an unregistered encounter/start")
     path = _inside(base, entry["jsonl"])
     if sha256(path).lower() != entry.get("sha256", "").lower():
@@ -40,20 +89,31 @@ def _audit_run(base: Path, entry: dict, model_sha: str, minimum_rate: float = 10
     samples = read_jsonl(path)
     if len(raw) != len(samples):
         raise ValueError("JSONL raw/strict sample counts differ")
-    stdout = _inside(base, entry["stdout"]).read_text(encoding="utf-8")
-    loaded = {label: digest.upper() for label, digest in ASSEMBLY.findall(stdout)}
-    if set(loaded) != {"NativeWorker", "Search", "CombatSolver"}:
+    worker_log = _inside(base, entry["workerStdout"])
+    if sha256(worker_log).lower() != entry.get("workerStdoutSha256", "").lower():
+        raise ValueError("full worker stdout SHA256 differs from wave manifest")
+    stdout = worker_log.read_text(encoding="utf-8")
+    matches = ASSEMBLY.findall(stdout)
+    loaded = {label: (assembly_path, mvid, digest.upper()) for label, assembly_path, mvid, digest in matches}
+    if len(matches) != 3 or set(loaded) != {"NativeWorker", "Search", "CombatSolver"}:
         raise ValueError("missing actual loaded assembly provenance")
+    exported = EXPORT_OUT.findall(stdout)
+    if len(exported) != 1 or Path(exported[0]).resolve() != path.resolve():
+        raise ValueError("native absolute export path differs from run JSONL")
     provenance = raw[0].get("provenance")
     if not isinstance(provenance, dict) or any(line.get("provenance") != provenance for line in raw):
         raise ValueError("trajectory provenance changed across decisions")
     expected = {"NativeWorker": "nativeWorker", "Search": "search", "CombatSolver": "combatSolver"}
-    if any(provenance.get("assemblies", {}).get(key, {}).get("sha256", "").upper() != digest
-           for label, digest in loaded.items() for key in [expected[label]]):
+    if any((provenance.get("assemblies", {}).get(expected[label], {}).get("path"),
+            provenance.get("assemblies", {}).get(expected[label], {}).get("mvid", "").lower(),
+            provenance.get("assemblies", {}).get(expected[label], {}).get("sha256", "").upper())
+           != (assembly_path, mvid.lower(), digest)
+           for label, (assembly_path, mvid, digest) in loaded.items()):
         raise ValueError("loaded assembly and sample provenance differ")
     if provenance.get("seed") != entry["seed"] or provenance.get("encounter") != entry["encounter"] \
             or any(s.seed != entry["seed"] or s.start_type != entry["startType"] for s in samples):
         raise ValueError("seed, encounter or start type differs")
+    spec = _scenario_spec(entry, provenance, budget_ms, max_decisions)
     start = provenance.get("startProvenance")
     if entry["startType"] == "mid_combat_verified":
         if not isinstance(start, dict) or start.get("replayVerified") is not True \
@@ -62,7 +122,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, minimum_rate: float = 10
         if start.get("entryHp") != provenance.get("entryHp") \
                 or start.get("initialEnemyEffectiveHp") != provenance.get("initialEnemyEffectiveHp"):
             raise ValueError("mid-combat reward start differs")
-    elif start is not None:
+    elif start is not None and spec["initialHp"] is None:
         raise ValueError("full-combat run has mid-combat provenance")
     outcome = Outcome(samples[0].outcome)
     if any(sample.outcome != outcome.value or sample.value_target != samples[0].value_target for sample in samples):
@@ -106,7 +166,9 @@ def _audit_run(base: Path, entry: dict, model_sha: str, minimum_rate: float = 10
     choice_flags = [bool(sample.legal_actions and sample.legal_actions[0].kind == "NestedChoice") for sample in samples]
     nested = any(a and b for a, b in zip(choice_flags, choice_flags[1:]))
     death = outcome is Outcome.LOSS and provenance["playerHp"] == 0
-    return {"seed": entry["seed"], "encounter": entry["encounter"], "startType": entry["startType"],
+    _require_scenario_result(entry["scenario"], choice_flags, death)
+    return {"seed": entry["seed"], "encounter": entry["encounter"], "scenario": entry["scenario"],
+            "startType": entry["startType"],
             "policy": policy, "outcome": outcome.value, "value": value, "samples": len(samples),
             "minSimulationsPerSecond": min(rates), "nestedChoice": nested, "settledDeath": death}
 
@@ -129,7 +191,7 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
     encounters = manifest.get("encounters", [])
     known = set(payload["metadata"]["trainSeeds"]) | set(payload["metadata"]["validationSeeds"])
     reasons: list[str] = []
-    if manifest.get("format") != "azcombat.wave.v1" or manifest.get("status") != "complete" \
+    if manifest.get("format") != "azcombat.wave.v2" or manifest.get("status") != "complete" \
             or manifest.get("mode") != "evaluate" or manifest.get("gameVersion") != "v0.111.0":
         reasons.append("wave is not a complete pinned-version paired evaluation")
     if manifest.get("coverageCatalogSha256", "").lower() != sha256(catalog).lower():
@@ -138,28 +200,30 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
             or len(seeds) != len(set(seeds)) or len(encounters) != len(set(encounters)) \
             or any(encounter not in REGISTERED_ENCOUNTERS for encounter in encounters):
         reasons.append("unseen seed/registered encounter coverage is insufficient")
-    if manifest.get("startTypes") != list(STARTS) or manifest.get("budgetMilliseconds", 0) < 1000:
+    scenarios = manifest.get("scenarios", [])
+    if scenarios != list(SCENARIOS):
+        reasons.append("ordinary, actual choice and native death scenarios are required")
+    if manifest.get("startTypes") != list(STARTS) or manifest.get("budgetMilliseconds", 0) < 1000 \
+            or type(manifest.get("maxDecisions")) is not int or manifest["maxDecisions"] < 1:
         reasons.append("both start types and >=1 second budget are required")
-    expected = {(seed, encounter, start, policy) for seed in seeds for encounter in encounters
-                for start in STARTS for policy in ("baseline", "candidate")}
+    expected = _expected_run_keys(seeds, encounters)
     entries = manifest.get("runs", [])
-    keys = [(entry.get("seed"), entry.get("encounter"), entry.get("startType"), entry.get("policy")) for entry in entries]
+    keys = [(entry.get("seed"), entry.get("encounter"), entry.get("scenario"),
+             entry.get("startType"), entry.get("policy")) for entry in entries]
     if len(keys) != len(set(keys)) or set(keys) != expected:
         reasons.append("missing or duplicate paired candidate/baseline runs")
     audited = {}
     for key, entry in zip(keys, entries, strict=True):
         try:
-            audited[key] = _audit_run(base, entry, model_sha)
+            audited[key] = _audit_run(base, entry, model_sha, manifest["budgetMilliseconds"],
+                                      manifest["maxDecisions"])
         except (KeyError, TypeError, ValueError, OSError) as error:
             reasons.append(f"run {key}: {error}")
-    pairs = []
-    for seed, encounter, start in sorted({key[:3] for key in expected}):
-        baseline = audited.get((seed, encounter, start, "baseline"))
-        candidate = audited.get((seed, encounter, start, "candidate"))
-        if baseline and candidate:
-            pairs.append((baseline, candidate))
-            if "unresolved" in (baseline["outcome"], candidate["outcome"]):
-                reasons.append(f"unresolved evaluation pair {seed}/{encounter}/{start}")
+    pairs = _paired_runs(expected, audited)
+    for baseline, candidate in pairs:
+        if "unresolved" in (baseline["outcome"], candidate["outcome"]):
+            reasons.append(f"unresolved evaluation pair {candidate['seed']}/{candidate['encounter']}/"
+                           f"{candidate['scenario']}/{candidate['startType']}")
     if len(pairs) != len(expected) // 2:
         reasons.append("incomplete audited pair coverage")
     if not any(candidate["nestedChoice"] for _, candidate in pairs):
