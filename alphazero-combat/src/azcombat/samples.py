@@ -2,6 +2,7 @@
 from __future__ import annotations
 from dataclasses import dataclass
 import json
+import math
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 from .schema import ActionNode, validate_observation
@@ -11,6 +12,8 @@ _START_TYPES = {"full_combat", "mid_combat_verified"}
 _OUTCOMES = {"win", "loss", "unresolved"}
 
 def _node_from_dict(raw: Mapping[str, Any]) -> ActionNode:
+    if not isinstance(raw, Mapping) or set(raw) - {"kind", "actionId", "payload", "children", "terminal"}:
+        raise ValueError("action node contains forbidden fields")
     node = ActionNode(str(raw.get("kind", "")), str(raw.get("actionId", "")), raw.get("payload"), tuple(_node_from_dict(x) for x in raw.get("children", ())), bool(raw.get("terminal", False)))
     node.validate()
     return node
@@ -23,15 +26,55 @@ def _node_to_dict(node: ActionNode) -> dict[str, Any]:
 
 def _action_ids(nodes: Iterable[ActionNode]) -> set[str]:
     result: set[str] = set()
-    for node in nodes:
-        if node.action_id in result: raise ValueError(f"duplicate actionId: {node.action_id}")
-        result.add(node.action_id); result.update(_action_ids(node.children))
+    def visit(items: Iterable[ActionNode]) -> None:
+        for node in items:
+            if node.action_id in result: raise ValueError(f"duplicate actionId: {node.action_id}")
+            result.add(node.action_id)
+            visit(node.children)
+    visit(nodes)
     return result
 
 def _field(obj: Mapping[str, Any], name: str) -> Any:
     return obj[name] if name in obj else obj[name[0].upper() + name[1:]]
 
+def _strict_keys(obj: Mapping[str, Any], names: tuple[str, ...], label: str) -> None:
+    if not isinstance(obj, Mapping):
+        raise ValueError(f"{label} must be an object")
+    allowed = {name for key in names for name in (key, key[0].upper() + key[1:])}
+    extra = set(obj) - allowed
+    if extra:
+        raise ValueError(f"{label} contains forbidden fields: {sorted(extra)}")
+    for name in names:
+        variants = (name, name[0].upper() + name[1:])
+        if sum(key in obj for key in variants) != 1:
+            raise ValueError(f"{label} requires exactly one spelling of {name}")
+
+def _strict_observation(raw: Mapping[str, Any]) -> None:
+    _strict_keys(raw, ("schemaVersion", "roundNumber", "currentSide", "players", "creatures"), "observation")
+    for player in _field(raw, "players"):
+        _strict_keys(player, ("playerId", "characterId", "energy", "stars", "turnNumber", "phase",
+                              "piles", "relics", "potions", "orbs"), "player")
+        for pile in _field(player, "piles"):
+            _strict_keys(pile, ("pileType", "cards"), "pile")
+            for card in _field(pile, "cards"):
+                _strict_keys(card, ("combatCardIndex", "modelId", "energyCost", "afflictionId",
+                                    "afflictionCount", "keywords"), "card")
+        for relic in _field(player, "relics"):
+            _strict_keys(relic, ("modelId",), "relic")
+        for potion in _field(player, "potions"):
+            # Older exports serialize potions as model IDs; both forms are still
+            # projected to the exact allowlisted observation without extra keys.
+            if isinstance(potion, Mapping):
+                _strict_keys(potion, ("slotIndex", "modelId"), "potion")
+        for orb in _field(player, "orbs"):
+            _strict_keys(orb, ("modelId", "passive", "evoke"), "orb")
+    for creature in _field(raw, "creatures"):
+        _strict_keys(creature, ("combatId", "playerId", "monsterId", "currentHp", "maxHp", "block", "powers"), "creature")
+        for power in _field(creature, "powers"):
+            _strict_keys(power, ("modelId", "amount"), "power")
+
 def _normalize_observation(raw: Mapping[str, Any]) -> dict[str, Any]:
+    _strict_observation(raw)
     players = []
     for p in _field(raw, "players"):
         players.append({"playerId": _field(p,"playerId"), "characterId": _field(p,"characterId"), "energy": _field(p,"energy"), "stars": _field(p,"stars"), "turnNumber": _field(p,"turnNumber"), "phase": _field(p,"phase"), "piles": [{"pileType": _field(q,"pileType"), "cards": [{"combatCardIndex": _field(c,"combatCardIndex"), "modelId": _field(c,"modelId"), "energyCost": _field(c,"energyCost"), "afflictionId": _field(c,"afflictionId"), "afflictionCount": _field(c,"afflictionCount"), "keywords": _field(c,"keywords")} for c in _field(q,"cards")]} for q in _field(p,"piles")], "relics": [{"modelId": _field(x,"modelId")} for x in _field(p,"relics")], "potions": [{"slotIndex": i, "modelId": x} for i,x in enumerate(_field(p,"potions"))], "orbs": [{"modelId": _field(x,"modelId"), "passive": _field(x,"passive"), "evoke": _field(x,"evoke")} for x in _field(p,"orbs")]})
@@ -56,9 +99,9 @@ class TrainingSample:
         validate_observation(self.observation)
         ids = _action_ids(self.legal_actions)
         if not ids: raise ValueError("legalActions must not be empty")
-        if not set(self.visit_policy).issubset(ids): raise ValueError("visitPolicy contains unknown action ids")
-        if any(not isinstance(v,(int,float)) or v < 0 for v in self.visit_policy.values()) or sum(self.visit_policy.values()) <= 0: raise ValueError("invalid visitPolicy")
-        if not -1 <= self.value_target <= 1: raise ValueError("valueTarget must be in [-1,1]")
+        if not isinstance(self.visit_policy, Mapping) or not set(self.visit_policy).issubset(ids): raise ValueError("visitPolicy contains unknown action ids")
+        if any(type(v) not in (int, float) or not math.isfinite(v) or v <= 0 for v in self.visit_policy.values()) or not math.isfinite(sum(self.visit_policy.values())) or sum(self.visit_policy.values()) <= 0: raise ValueError("invalid visitPolicy")
+        if not math.isfinite(self.value_target) or not -1 <= self.value_target <= 1: raise ValueError("valueTarget must be finite and in [-1,1]")
         if self.outcome not in _OUTCOMES: raise ValueError(f"unsupported outcome: {self.outcome}")
         return self
 
@@ -70,7 +113,9 @@ class TrainingSample:
     def from_dict(cls, raw: Mapping[str, Any]) -> "TrainingSample":
         required = {"schemaVersion","seed","startType","observation","legalActions","visitPolicy","valueTarget","outcome"}
         if not required.issubset(raw) or set(raw) - required - {"simulations","stateKey","provenance"}: raise ValueError("training sample fields do not match schema")
-        sample = cls(str(raw["seed"]), str(raw["startType"]), _normalize_observation(raw["observation"]), tuple(_node_from_dict(x) for x in raw["legalActions"]), raw["visitPolicy"], float(raw["valueTarget"]), str(raw["outcome"]), int(raw["schemaVersion"]))
+        if type(raw["valueTarget"]) not in (int, float) or type(raw["schemaVersion"]) is not int:
+            raise ValueError("valueTarget and schemaVersion must be numeric")
+        sample = cls(str(raw["seed"]), str(raw["startType"]), _normalize_observation(raw["observation"]), tuple(_node_from_dict(x) for x in raw["legalActions"]), raw["visitPolicy"], float(raw["valueTarget"]), str(raw["outcome"]), raw["schemaVersion"])
         return sample.validate()
 
 def write_jsonl(samples: Iterable[TrainingSample], path: Path) -> int:

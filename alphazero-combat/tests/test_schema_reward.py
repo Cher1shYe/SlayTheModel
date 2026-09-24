@@ -116,5 +116,22 @@ class SampleTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             sample.validate()
 
+    def test_rejects_nonfinite_visits_and_duplicate_nested_ids(self):
+        leaf = ActionNode("Option", "duplicate", terminal=True)
+        roots = (ActionNode("PlayCard", "duplicate", children=(leaf,)),)
+        base = TrainingSample("seed-a", "full_combat", observation(), roots,
+                              {"duplicate": 1}, 0.5, "win")
+        with self.assertRaisesRegex(ValueError, "duplicate actionId"):
+            base.validate()
+        root = (ActionNode("EndTurn", "end", terminal=True),)
+        for bad in (float("nan"), float("inf"), 0, -1, True):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    TrainingSample("seed-a", "full_combat", observation(), root,
+                                   {"end": bad}, 0.5, "win").validate()
+        with self.assertRaises(ValueError):
+            TrainingSample("seed-a", "full_combat", observation(), root,
+                           {"end": 1}, float("nan"), "win").validate()
+
 if __name__ == "__main__":
     unittest.main()
