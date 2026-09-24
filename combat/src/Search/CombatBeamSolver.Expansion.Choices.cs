@@ -1047,6 +1047,8 @@ internal sealed partial class CombatBeamSolver
             snapshot.ReleaseSimulator();
             yield break;
         }
+
+        RecordNativeMctsPendingChoiceFrame(snapshot, action);
         if (snapshot.BoundaryReason != SearchBoundaryReason.PendingChoice)
         {
             if (searchBudget.TryConsumeFinal())

@@ -44,9 +44,10 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
 
     public async Task<TimedSearchResult<TAction>> SearchAsync(IReadOnlyList<TAction> prefix,
         string expectedStateKey, TimeSpan initialBudget, TimeSpan continuationBudget,
-        CancellationToken cancellation = default, int maxDepth = 200)
+        CancellationToken cancellation = default, int maxDepth = 200, int? maxSimulations = null)
     {
-        if (initialBudget <= TimeSpan.Zero || continuationBudget <= TimeSpan.Zero || maxDepth <= 0)
+        if (initialBudget <= TimeSpan.Zero || continuationBudget <= TimeSpan.Zero || maxDepth <= 0
+            || maxSimulations is <= 0)
             throw new ArgumentOutOfRangeException(nameof(initialBudget));
         var rebuilt = _root?.Key != expectedStateKey;
         if (rebuilt) _root = null;
@@ -63,7 +64,7 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
         var retained = _root?.Visits ?? 0;
         try
         {
-            while (watch.Elapsed < budget)
+            while (watch.Elapsed < budget && (!maxSimulations.HasValue || completed < maxSimulations.Value))
             {
                 deadline.Token.ThrowIfCancellationRequested();
                 await environment.RestoreAsync(prefix, deadline.Token);

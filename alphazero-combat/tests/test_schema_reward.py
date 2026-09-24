@@ -11,7 +11,8 @@ from azcombat.samples import TrainingSample, read_jsonl, write_jsonl
 
 def observation():
     return {
-        "schemaVersion": 1,
+        "schemaVersion": 3,
+        "choice": None,
         "roundNumber": 2,
         "currentSide": "Player",
         "players": [{
@@ -25,7 +26,7 @@ def observation():
         }],
         "creatures": [{
             "combatId": 1, "playerId": 1, "monsterId": None,
-            "currentHp": 70, "maxHp": 80, "block": 0, "powers": [],
+            "currentHp": 70, "maxHp": 80, "block": 0, "powers": [], "currentIntent": None,
         }],
     }
 
@@ -47,6 +48,24 @@ class SchemaTests(unittest.TestCase):
         data["creatures"][0]["nextIntent"] = "ATTACK"
         with self.assertRaises(ObservationError):
             validate_observation(data)
+
+    def test_rejects_hidden_draw_contents_and_unknown_pile_semantics(self):
+        for pile_type in ("Draw", "UnregisteredPile"):
+            data = observation()
+            data["players"][0]["piles"].append({"pileType": pile_type,
+                "cards": [dict(data["players"][0]["piles"][0]["cards"][0])]})
+            with self.subTest(pile_type=pile_type), self.assertRaises(ObservationError):
+                validate_observation(data)
+
+    def test_current_public_intent_is_required_for_living_monsters(self):
+        data = observation()
+        data["creatures"].append({"combatId": 2, "playerId": None,
+            "monsterId": "MONSTER.CULTIST", "currentHp": 20, "maxHp": 20,
+            "block": 0, "powers": [], "currentIntent": None})
+        with self.assertRaises(ObservationError):
+            validate_observation(data)
+        data["creatures"][1]["currentIntent"] = "INCANTATION"
+        validate_observation(data)
 
     def test_nested_action_tree_and_end_turn(self):
         ActionNode("PlayCard", "play:3", children=(

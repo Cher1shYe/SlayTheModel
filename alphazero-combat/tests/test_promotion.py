@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 from azcombat.experiments import SCENARIOS, run_wave
 from azcombat.promotion import (ASSEMBLY, EXPORT_OUT, _audit_choice_chain, _expected_run_keys, _paired_runs, _require_scenario_result,
-                                _require_tree_guidance,
+                                _require_candidate_network_usage, _require_tree_guidance,
                                 _scenario_spec, write_gate)
 
 
@@ -22,6 +22,19 @@ class PromotionSafetyTests(unittest.TestCase):
                 _require_tree_guidance({"searchMode": mode}, metrics)
         _require_tree_guidance({"searchMode": "policy-value-tree-v1"},
                                [{"networkPriorCalls": 2, "networkValueCalls": 1}])
+
+    def test_tree_usage_counts_are_per_node_not_per_decision(self):
+        _require_candidate_network_usage({"searchMode": "policy-value-tree-v1",
+                                          "modelShadow": False, "modelFallbacks": 0,
+                                          "modelUsed": 12, "modelScored": 12}, 3)
+        with self.assertRaisesRegex(ValueError, "no successful network"):
+            _require_candidate_network_usage({"searchMode": "policy-value-tree-v1",
+                                              "modelShadow": False, "modelFallbacks": 0,
+                                              "modelUsed": 0, "modelScored": 0}, 3)
+        with self.assertRaisesRegex(ValueError, "every real decision"):
+            _require_candidate_network_usage({"searchMode": "post-mcts-rerank",
+                                              "modelShadow": False, "modelFallbacks": 0,
+                                              "modelUsed": 12, "modelScored": 12}, 3)
 
     def test_bootstrap_cannot_reuse_source_seeds_or_grant_champion(self):
         with TemporaryDirectory() as directory:

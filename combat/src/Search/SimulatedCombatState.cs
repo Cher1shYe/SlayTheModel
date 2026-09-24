@@ -2148,6 +2148,8 @@ internal sealed partial class SimulatedCombatState
             ? count
             : throw new InvalidOperationException($"Player {player.NetId} is outside the captured potion inventory.");
 
+    internal int CapturedPotionSlotCount(Player player) => PotionSlotCount(player);
+
     public void RegisterGeneratedCombatCard(PredictedCard card)
     {
         if (_registeredCombatCards?.Contains(card) != true)

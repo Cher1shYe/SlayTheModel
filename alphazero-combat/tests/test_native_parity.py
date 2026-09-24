@@ -30,7 +30,7 @@ class NativeParityTests(unittest.TestCase):
                 lines.append(f"SLAY_WORKER_ALPHAZERO decision={index} shadow=True model-root:{selected} value={float(value):.6f}")
             stdout.write_text("\n".join(lines), encoding="utf-8")
             self.assertEqual(verify(checkpoint, jsonl, stdout)["samples"], 2)
-            stdout.write_text("\n".join(lines).replace("model-root:play", "model-root:illegal"), encoding="utf-8")
+            stdout.write_text("\n".join(lines).replace("model-root:", "model-root:illegal-"), encoding="utf-8")
             with self.assertRaises(ValueError):
                 verify(checkpoint, jsonl, stdout)
 

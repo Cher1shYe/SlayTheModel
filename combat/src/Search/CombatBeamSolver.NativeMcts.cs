@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using CombatSolver.Api;
 using CombatSolver.Engine.Common;
 using CombatSolver.Engine.InCombat.Simulation;
@@ -15,6 +16,9 @@ internal sealed partial class CombatBeamSolver
     // currently being materialized; the worker prints them if native and predicted choice
     // boundaries disagree.
     private List<string>? _nativeMctsChoiceDiagnostics;
+    private PlanAction? _nativeMctsBaseAction;
+    private NativeMctsChoiceFrame? _nativeMctsFirstPendingFrame;
+    private Dictionary<string, NativeMctsChoiceFrame>? _nativeMctsFramesAfterPrefix;
 
     internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
 
@@ -58,6 +62,11 @@ internal sealed partial class CombatBeamSolver
         List<string> diagnostics = [];
         List<string>? previousDiagnostics = _nativeMctsChoiceDiagnostics;
         _nativeMctsChoiceDiagnostics = diagnostics;
+        var previousBase = _nativeMctsBaseAction;
+        var previousFirstFrame = _nativeMctsFirstPendingFrame;
+        var previousFrames = _nativeMctsFramesAfterPrefix;
+        _nativeMctsFirstPendingFrame = null;
+        _nativeMctsFramesAfterPrefix = new Dictionary<string, NativeMctsChoiceFrame>(StringComparer.Ordinal);
         try
         {
             SearchNode node = NativeMctsNode(snapshot, actionCount);
@@ -71,10 +80,12 @@ internal sealed partial class CombatBeamSolver
                 CardStateOccurrence: requested.CardStateOccurrence,
                 CardUpgradeLevel: requested.CardUpgradeLevel,
                 CardEnchantmentId: requested.CardEnchantmentId);
+            _nativeMctsBaseAction = action;
             if (action.Kind == PlanActionKind.EndTurn)
             {
                 var endTurnResolved = BuildEndTurnBranches(node, []).ToArray();
-                return new NativeMctsExpansion(action, endTurnResolved, diagnostics.ToArray());
+                return new NativeMctsExpansion(action, endTurnResolved, diagnostics.ToArray(),
+                    _nativeMctsFirstPendingFrame, _nativeMctsFramesAfterPrefix);
             }
 
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
@@ -97,20 +108,58 @@ internal sealed partial class CombatBeamSolver
             }
             CardChoiceSpec? primaryChoiceSpec = choiceSpec
                 ?? BuildRequiredEmptyChoiceSpec(prepared.RequiredEmptyChoice);
+            bool choiceBeforePrimary = HasChoiceBeforePrimary(probe, primaryChoiceSpec);
+            NativeMctsChoiceFrame? firstChoiceFrame = !choiceBeforePrimary && choiceSpec != null
+                ? NativeMctsCaptureChoiceFrame(probe, action.CardId, choiceSpec) : null;
             IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> branches =
-                HasChoiceBeforePrimary(probe, primaryChoiceSpec)
+                choiceBeforePrimary
                     ? ResolveRoundChoiceBranches(node, action, probe,
                         BuildPrimaryChoiceMatch(primaryChoiceSpec), budgetPrimaryChoiceSpec: primaryChoiceSpec)
                     : ResolvePrimaryCardChoiceBranches(node, action, probe, choiceSpec, prepared.RequiredEmptyChoice);
             (PlanAction Action, SimulationSnapshot Snapshot)[] resolved =
                 WithCardChoiceCheckpoint(capture?.Take(), branches).ToArray();
             RecordNativeMctsResolvedChoiceBranches(resolved);
-            return new NativeMctsExpansion(action, resolved, diagnostics.ToArray());
+            return new NativeMctsExpansion(action, resolved, diagnostics.ToArray(),
+                firstChoiceFrame ?? _nativeMctsFirstPendingFrame, _nativeMctsFramesAfterPrefix);
         }
         finally
         {
             _nativeMctsChoiceDiagnostics = previousDiagnostics;
+            _nativeMctsBaseAction = previousBase;
+            _nativeMctsFirstPendingFrame = previousFirstFrame;
+            _nativeMctsFramesAfterPrefix = previousFrames;
         }
+    }
+
+    private void RecordNativeMctsPendingChoiceFrame(SimulationSnapshot snapshot, PlanAction partial)
+    {
+        if (_nativeMctsFramesAfterPrefix == null || _nativeMctsBaseAction == null)
+            return;
+        var simulator = (CombatPredictionSimulator)snapshot.Simulator;
+        var combat = (SimulatedCombatState)simulator.State.CombatState;
+        // Only a registered current pending specification can be projected. A
+        // future choice is never inferred from a completed final branch.
+        if (combat.PendingTurnStartChoice == null)
+            return;
+        CardChoiceSpec spec = TurnStartChoiceSupport.BuildPendingSpec(simulator, combat, _player);
+        var frame = NativeMctsCaptureChoiceFrame(snapshot,
+            string.IsNullOrEmpty(_nativeMctsBaseAction.CardId) ? "END_TURN" : _nativeMctsBaseAction.CardId,
+            spec);
+        int preceding = partial.GetActionChoicesInExecutionOrder().Count;
+        if (preceding == 0)
+        {
+            if (_nativeMctsFirstPendingFrame != null
+                && JsonSerializer.Serialize(_nativeMctsFirstPendingFrame) != JsonSerializer.Serialize(frame))
+                throw new InvalidDataException("First choice probe differs across replay branches.");
+            _nativeMctsFirstPendingFrame = frame;
+            return;
+        }
+        string prefix = NativeMctsSimulation.ChoiceKey(_nativeMctsBaseAction, partial, preceding - 1);
+        if (_nativeMctsFramesAfterPrefix.TryGetValue(prefix, out var earlier)
+            && JsonSerializer.Serialize(earlier) != JsonSerializer.Serialize(frame))
+            throw new InvalidDataException($"Nested choice probe differs across branches for {prefix}. "
+                + $"previous={JsonSerializer.Serialize(earlier)} current={JsonSerializer.Serialize(frame)}");
+        _nativeMctsFramesAfterPrefix[prefix] = frame;
     }
 
     private void RecordNativeMctsChoiceLayer(
@@ -251,7 +300,9 @@ internal sealed partial class CombatBeamSolver
 internal sealed record NativeMctsExpansion(
     PlanAction BaseAction,
     IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> Resolved,
-    IReadOnlyList<string> ChoiceDiagnostics);
+    IReadOnlyList<string> ChoiceDiagnostics,
+    NativeMctsChoiceFrame? FirstChoiceFrame = null,
+    IReadOnlyDictionary<string, NativeMctsChoiceFrame>? FramesAfterPrefix = null);
 
 internal static class NativeMctsSimulation
 {
@@ -296,7 +347,11 @@ internal static class NativeMctsSimulation
         var choices = resolved.GetActionChoicesInExecutionOrder();
         if (choiceIndex >= 0 && choiceIndex < choices.Count)
         {
-            string step = System.Text.Json.JsonSerializer.Serialize(choices[choiceIndex]);
+            // A nested choice identity is the complete path to this layer, not
+            // only the current selection. Otherwise branches with different
+            // outer selections are merged into one pending root.
+            string step = System.Text.Json.JsonSerializer.Serialize(
+                choices.Take(choiceIndex + 1).ToArray());
             return $"choice:{ActionKey(baseAction)}:{choiceIndex}:"
                 + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(step)));
         }

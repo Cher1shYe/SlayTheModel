@@ -22,6 +22,8 @@
     <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.1" />
     <ProjectReference
       Include="../../src/SlayTheModel.Search/SlayTheModel.Search.csproj" />
+    <ProjectReference
+      Include="../../src/SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
 
     <ProjectReference
       Include="$(CombatSolverRoot)/CombatSolver.csproj"
@@ -65,8 +67,6 @@
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeActionCompletion.cs"
              Link="Bridge/NativeActionCompletion.cs" />
 
-    <Compile Include="../../src/SlayTheModel.Sts2.Protocol/*.cs"
-             Link="Protocol/%(Filename)%(Extension)" />
   </ItemGroup>
 
   <!-- Fail early with actionable messages instead of producing many missing-type errors. -->

@@ -50,7 +50,7 @@ def _strict_keys(obj: Mapping[str, Any], names: tuple[str, ...], label: str) -> 
             raise ValueError(f"{label} requires exactly one spelling of {name}")
 
 def _strict_observation(raw: Mapping[str, Any]) -> None:
-    _strict_keys(raw, ("schemaVersion", "roundNumber", "currentSide", "players", "creatures"), "observation")
+    _strict_keys(raw, ("schemaVersion", "roundNumber", "currentSide", "players", "creatures", "choice"), "observation")
     for player in _field(raw, "players"):
         _strict_keys(player, ("playerId", "characterId", "energy", "stars", "turnNumber", "phase",
                               "piles", "relics", "potions", "orbs"), "player")
@@ -62,24 +62,38 @@ def _strict_observation(raw: Mapping[str, Any]) -> None:
         for relic in _field(player, "relics"):
             _strict_keys(relic, ("modelId",), "relic")
         for potion in _field(player, "potions"):
-            # Older exports serialize potions as model IDs; both forms are still
-            # projected to the exact allowlisted observation without extra keys.
-            if isinstance(potion, Mapping):
-                _strict_keys(potion, ("slotIndex", "modelId"), "potion")
+            _strict_keys(potion, ("slotIndex", "modelId"), "potion")
         for orb in _field(player, "orbs"):
             _strict_keys(orb, ("modelId", "passive", "evoke"), "orb")
     for creature in _field(raw, "creatures"):
-        _strict_keys(creature, ("combatId", "playerId", "monsterId", "currentHp", "maxHp", "block", "powers"), "creature")
+        _strict_keys(creature, ("combatId", "playerId", "monsterId", "currentHp", "maxHp", "block", "powers", "currentIntent"), "creature")
         for power in _field(creature, "powers"):
             _strict_keys(power, ("modelId", "amount"), "power")
+    choice = _field(raw, "choice")
+    if choice is not None:
+        _strict_keys(choice, ("triggerCardId", "effect", "sourcePile", "minCount", "maxCount",
+                              "ordered", "candidates", "completedSelections"), "choice")
+        for candidate in _field(choice, "candidates"):
+            _strict_keys(candidate, ("combatCardIndex", "modelId", "upgradeLevel"), "choice candidate")
+        for completed in _field(choice, "completedSelections"):
+            _strict_keys(completed, ("effect", "combatCardIndices"), "completed selection")
 
 def _normalize_observation(raw: Mapping[str, Any]) -> dict[str, Any]:
     _strict_observation(raw)
     players = []
     for p in _field(raw, "players"):
-        players.append({"playerId": _field(p,"playerId"), "characterId": _field(p,"characterId"), "energy": _field(p,"energy"), "stars": _field(p,"stars"), "turnNumber": _field(p,"turnNumber"), "phase": _field(p,"phase"), "piles": [{"pileType": _field(q,"pileType"), "cards": [{"combatCardIndex": _field(c,"combatCardIndex"), "modelId": _field(c,"modelId"), "energyCost": _field(c,"energyCost"), "afflictionId": _field(c,"afflictionId"), "afflictionCount": _field(c,"afflictionCount"), "keywords": _field(c,"keywords")} for c in _field(q,"cards")]} for q in _field(p,"piles")], "relics": [{"modelId": _field(x,"modelId")} for x in _field(p,"relics")], "potions": [{"slotIndex": i, "modelId": x} for i,x in enumerate(_field(p,"potions"))], "orbs": [{"modelId": _field(x,"modelId"), "passive": _field(x,"passive"), "evoke": _field(x,"evoke")} for x in _field(p,"orbs")]})
-    creatures = [{"combatId": _field(c,"combatId"), "playerId": _field(c,"playerId"), "monsterId": _field(c,"monsterId"), "currentHp": _field(c,"currentHp"), "maxHp": _field(c,"maxHp"), "block": _field(c,"block"), "powers": [{"modelId": _field(x,"modelId"), "amount": _field(x,"amount")} for x in _field(c,"powers")]} for c in _field(raw,"creatures")]
-    return {"schemaVersion": _field(raw,"schemaVersion"), "roundNumber": _field(raw,"roundNumber"), "currentSide": _field(raw,"currentSide"), "players": players, "creatures": creatures}
+        players.append({"playerId": _field(p,"playerId"), "characterId": _field(p,"characterId"), "energy": _field(p,"energy"), "stars": _field(p,"stars"), "turnNumber": _field(p,"turnNumber"), "phase": _field(p,"phase"), "piles": [{"pileType": _field(q,"pileType"), "cards": [{"combatCardIndex": _field(c,"combatCardIndex"), "modelId": _field(c,"modelId"), "energyCost": _field(c,"energyCost"), "afflictionId": _field(c,"afflictionId"), "afflictionCount": _field(c,"afflictionCount"), "keywords": _field(c,"keywords")} for c in _field(q,"cards")]} for q in _field(p,"piles")], "relics": [{"modelId": _field(x,"modelId")} for x in _field(p,"relics")], "potions": [{"slotIndex": _field(x,"slotIndex"), "modelId": _field(x,"modelId")} for x in _field(p,"potions")], "orbs": [{"modelId": _field(x,"modelId"), "passive": _field(x,"passive"), "evoke": _field(x,"evoke")} for x in _field(p,"orbs")]})
+    creatures = [{"combatId": _field(c,"combatId"), "playerId": _field(c,"playerId"), "monsterId": _field(c,"monsterId"), "currentHp": _field(c,"currentHp"), "maxHp": _field(c,"maxHp"), "block": _field(c,"block"), "currentIntent": _field(c,"currentIntent"), "powers": [{"modelId": _field(x,"modelId"), "amount": _field(x,"amount")} for x in _field(c,"powers")]} for c in _field(raw,"creatures")]
+    source_choice = _field(raw, "choice")
+    choice = None if source_choice is None else {
+        "triggerCardId": _field(source_choice,"triggerCardId"), "effect": _field(source_choice,"effect"),
+        "sourcePile": _field(source_choice,"sourcePile"), "minCount": _field(source_choice,"minCount"),
+        "maxCount": _field(source_choice,"maxCount"), "ordered": _field(source_choice,"ordered"),
+        "candidates": [{"combatCardIndex": _field(c,"combatCardIndex"), "modelId": _field(c,"modelId"),
+                        "upgradeLevel": _field(c,"upgradeLevel")} for c in _field(source_choice,"candidates")],
+        "completedSelections": [{"effect": _field(c,"effect"), "combatCardIndices": _field(c,"combatCardIndices")}
+                                for c in _field(source_choice,"completedSelections")]}
+    return {"schemaVersion": _field(raw,"schemaVersion"), "roundNumber": _field(raw,"roundNumber"), "currentSide": _field(raw,"currentSide"), "players": players, "creatures": creatures, "choice": choice}
 
 @dataclass(frozen=True)
 class TrainingSample:
@@ -124,12 +138,19 @@ def write_jsonl(samples: Iterable[TrainingSample], path: Path) -> int:
         for sample in samples: handle.write(json.dumps(sample.to_dict(), ensure_ascii=False, separators=(",",":")) + "\n"); count += 1
     return count
 
-def read_jsonl(path: Path) -> list[TrainingSample]:
+def read_jsonl(path: Path, *, allow_regression: bool = False) -> list[TrainingSample]:
     result = []
     with path.open(encoding="utf-8") as handle:
         for line_number, line in enumerate(handle, 1):
             if not line.strip(): continue
-            try: result.append(TrainingSample.from_dict(json.loads(line)))
+            try:
+                raw = json.loads(line)
+                sample = TrainingSample.from_dict(raw)
+                provenance = raw.get("provenance", {})
+                if not allow_regression and (provenance.get("regressionOnly")
+                        or provenance.get("forcedFixtureCard") is not None):
+                    raise ValueError("regression-only forced trajectory is not training data")
+                result.append(sample)
             except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc: raise ValueError(f"invalid training sample at line {line_number}: {exc}") from exc
     return result
 

@@ -1,12 +1,13 @@
 using CombatSolver.Api;
 using SlayTheModel.Search;
+using SlayTheModel.Sts2.Protocol;
 
 public sealed record CombatSolverMctsAction(NativeMctsAction Native)
 {
     public string Key => Native.Key;
 }
 
-public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSolverMctsAction>, IDisposable
+public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironment<CombatSolverMctsAction, CombatObservation>, IDisposable
 {
     private NativeMctsSimulationSession? session;
     private int entryHp;
@@ -40,6 +41,13 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
             ? "<none>"
             : string.Join(" | ", session.ChoiceDiagnostics);
     public NativeMctsState State => state;
+    public CombatObservation ObserveCurrent()
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+            .ObserveCurrent();
+    public CombatObservation PolicyObservation() => ObserveCurrent();
+    public NativeMctsChoiceFrame CurrentChoiceFrame
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+            .CurrentChoiceFrame;
     public IReadOnlyList<CombatSolverMctsAction> RootActions
         => rootActions;
     public string ChoiceSignature => PendingChoiceSignature();

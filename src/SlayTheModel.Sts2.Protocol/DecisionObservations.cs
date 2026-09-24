@@ -9,9 +9,10 @@ public sealed record CombatObservation(
     int RoundNumber,
     CombatSide CurrentSide,
     IReadOnlyList<CombatPlayerObservation> Players,
-    IReadOnlyList<CreatureSnapshot> Creatures)
+    IReadOnlyList<CombatCreatureObservation> Creatures,
+    CombatChoiceObservation? Choice = null)
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 3;
 
     public void Validate()
     {
@@ -47,6 +48,26 @@ public sealed record CombatObservation(
             {
                 throw new InvalidDataException(
                     $"Creature {creature.CombatId} references unknown player {owner}.");
+            }
+            if (creature.PlayerId is null && creature.CurrentHp > 0
+                && string.IsNullOrWhiteSpace(creature.CurrentIntent))
+                throw new InvalidDataException($"Living enemy {creature.CombatId} has no visible current intent.");
+            if (creature.PlayerId is not null && creature.CurrentIntent != null)
+                throw new InvalidDataException($"Player creature {creature.CombatId} cannot have a monster intent.");
+        }
+        if (Choice is { } choice)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(choice.TriggerCardId);
+            ArgumentException.ThrowIfNullOrWhiteSpace(choice.Effect);
+            ArgumentException.ThrowIfNullOrWhiteSpace(choice.SourcePile);
+            if (choice.MinCount < 0 || choice.MaxCount < choice.MinCount
+                || choice.MaxCount > choice.Candidates.Count)
+                throw new InvalidDataException("Choice cardinality is inconsistent with its candidates.");
+            RequireUnique(choice.Candidates.Select(candidate => candidate.CombatCardIndex), "choice candidate ID");
+            foreach (var previous in choice.CompletedSelections)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(previous.Effect);
+                RequireUnique(previous.CombatCardIndices, "completed selection card ID");
             }
         }
     }
@@ -85,6 +106,14 @@ public sealed record CombatPlayerObservation(
         {
             throw new InvalidDataException($"Player {PlayerId} has invalid turn state.");
         }
+        string[] publicPileTypes = ["Hand", "Draw", "Discard", "Exhaust", "Play"];
+        foreach (var pile in Piles)
+        {
+            if (!publicPileTypes.Contains(pile.PileType, StringComparer.Ordinal))
+                throw new InvalidDataException($"Unknown policy pile type {pile.PileType}.");
+            if (pile.PileType == "Draw" && pile.Cards.Count != 0)
+                throw new InvalidDataException("Hidden draw pile cards are not policy observations.");
+        }
 
         var cardIds = Piles
             .SelectMany(pile => pile.Cards)
@@ -121,6 +150,19 @@ public sealed record CombatCardObservation(
 public sealed record RelicObservation(string ModelId);
 
 public sealed record PotionObservation(int SlotIndex, string ModelId);
+
+public sealed record CombatCreatureObservation(
+    uint CombatId, ulong? PlayerId, string? MonsterId,
+    int CurrentHp, int MaxHp, int Block,
+    IReadOnlyList<ModelAmountSnapshot> Powers,
+    string? CurrentIntent);
+
+public sealed record CombatChoiceCandidateObservation(uint CombatCardIndex, string ModelId, int UpgradeLevel);
+public sealed record CombatCompletedChoiceObservation(string Effect, IReadOnlyList<uint> CombatCardIndices);
+public sealed record CombatChoiceObservation(
+    string TriggerCardId, string Effect, string SourcePile, int MinCount, int MaxCount,
+    bool Ordered, IReadOnlyList<CombatChoiceCandidateObservation> Candidates,
+    IReadOnlyList<CombatCompletedChoiceObservation> CompletedSelections);
 
 /// <summary>
 /// The policy-facing persistent context carried by the current combat snapshot.
@@ -189,9 +231,12 @@ public sealed record RunPlayerObservation(
 /// </summary>
 public static class DecisionObservationProjector
 {
-    public static CombatObservation ToCombat(CombatSnapshot state)
+    public static CombatObservation ToCombat(CombatSnapshot state, Func<uint, int?> visibleEnergyCost,
+        Func<uint, string?> visibleCurrentIntent)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(visibleEnergyCost);
+        ArgumentNullException.ThrowIfNull(visibleCurrentIntent);
         state.Validate();
 
         var players = state.Players
@@ -205,11 +250,15 @@ public static class DecisionObservationProjector
                 player.Piles
                     .Select(pile => new CombatPileObservation(
                         pile.PileType,
-                        pile.Cards
+                        // Draw order is hidden information. Keep the public pile
+                        // boundary but never project its card contents.
+                        pile.PileType.Equals("Draw", StringComparison.OrdinalIgnoreCase)
+                            ? Array.Empty<CombatCardObservation>()
+                            : pile.Cards
                             .Select(card => new CombatCardObservation(
                                 card.CombatCardIndex,
                                 card.ModelId,
-                                card.EnergyCost,
+                                visibleEnergyCost(card.CombatCardIndex),
                                 card.AfflictionId,
                                 card.AfflictionCount,
                                 card.Keywords.ToArray()))
@@ -229,7 +278,12 @@ public static class DecisionObservationProjector
             state.RoundNumber,
             state.CurrentSide,
             players,
-            state.Creatures.ToArray());
+            state.Creatures.Select(creature => new CombatCreatureObservation(
+                creature.CombatId, creature.PlayerId, creature.MonsterId,
+                creature.CurrentHp, creature.MaxHp, creature.Block,
+                creature.Powers.ToArray(),
+                creature.PlayerId is null && creature.CurrentHp > 0
+                    ? visibleCurrentIntent(creature.CombatId) : null)).ToArray());
         observation.Validate();
         return observation;
     }

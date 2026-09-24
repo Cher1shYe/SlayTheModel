@@ -18,6 +18,7 @@ ENTITY_DIM = 12
 GLOBAL_DIM = 4
 ACTION_DIM = 19
 ACTION_KINDS = ("PlayCard", "UsePotion", "EndTurn", "Target", "Option", "CardSubset", "CardOrder", "NestedChoice")
+FEATURE_ABI = "azcombat.features.v4"
 
 
 def _hash(value: object) -> float:
@@ -38,6 +39,8 @@ def encode_observation(sample: TrainingSample) -> tuple[Tensor, Tensor]:
         entities.append([1, _hash(player["characterId"]), _num(player["energy"]), _num(player["stars"]),
                          _num(player["turnNumber"]), _hash(player["phase"])] + [0] * 6)
         for pile in player["piles"]:
+            if pile["pileType"].lower() == "draw" and pile["cards"]:
+                raise ValueError("hidden draw pile contents cannot enter the policy encoder")
             for card in pile["cards"]:
                 entities.append([2, _hash(card["modelId"]), _num(card["combatCardIndex"]),
                                  _num(card["energyCost"]), _hash(pile["pileType"]), _hash(card["afflictionId"]),
@@ -52,8 +55,24 @@ def encode_observation(sample: TrainingSample) -> tuple[Tensor, Tensor]:
         entities.append([6, _hash(creature["monsterId"]), _num(creature["currentHp"]),
                          _num(creature["maxHp"]), _num(creature["block"]),
                          float(creature["playerId"] is not None)] + [0] * 6)
+        if creature["currentIntent"] is not None:
+            entities.append([8, _hash(creature["currentIntent"])] + [0] * 10)
         for power in creature["powers"]:
             entities.append([7, _hash(power["modelId"]), _num(power["amount"])] + [0] * 9)
+    choice = obs["choice"]
+    if choice is not None:
+        entities.append([9, _hash(choice["triggerCardId"]), _hash(choice["effect"]),
+                         _hash(choice["sourcePile"]), choice["minCount"], choice["maxCount"],
+                         float(choice["ordered"]), len(choice["candidates"]),
+                         len(choice["completedSelections"])] + [0] * 3)
+        for index, candidate in enumerate(choice["candidates"]):
+            entities.append([10, _hash(candidate["modelId"]), candidate["combatCardIndex"],
+                             candidate["upgradeLevel"], index] + [0] * 7)
+        for index, completed in enumerate(choice["completedSelections"]):
+            card_ids = completed["combatCardIndices"]
+            entities.append([11, _hash(completed["effect"]), len(card_ids),
+                             _hash(json.dumps(card_ids, separators=(",", ":"))) if card_ids else 0.0,
+                             index] + [0] * 7)
     if not entities:
         entities = [[0] * ENTITY_DIM]
     globals_ = [_num(obs["roundNumber"]), _hash(obs["currentSide"]),
@@ -71,15 +90,14 @@ def encode_actions(sample: TrainingSample) -> tuple[list[str], Tensor]:
             ids.append(node.action_id)
             payload = node.payload or {}
             selected = payload.get("SelectedCards") or []
+            # Replay identity and predicted damage/HP are diagnostics, never network inputs.
+            selected_ids = [card["CardId"] for card in selected]
             features.append([float(node.kind == kind) for kind in ACTION_KINDS] + [
                 _hash(payload.get("CardId")), _num(payload.get("CardOccurrence")),
-                _num(payload.get("TargetCombatId")), _num(payload.get("Damage")),
-                _num(payload.get("TargetHp")), len(selected),
-                sum(_hash(card.get("CardId")) for card in selected) / max(1, len(selected)),
-                _hash(json.dumps([[card.get("CardId"), card.get("StateKey"), card.get("OptionOccurrence")]
-                                  for card in selected], separators=(",", ":"), ensure_ascii=True)),
-                _hash(payload.get("CardStateKey")), _num(payload.get("CardStateOccurrence")),
-                float(depth),
+                _num(payload.get("TargetCombatId")), 0.0, 0.0, len(selected_ids),
+                sum(_hash(card_id) for card_id in selected_ids) / max(1, len(selected_ids)),
+                _hash(json.dumps(selected_ids, separators=(",", ":"), ensure_ascii=True)) if selected_ids else 0.0,
+                0.0, 0.0, float(depth),
             ])
             visit(node.children, depth + 1)
 
@@ -206,14 +224,14 @@ def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainC
         metadata["bootstrapWaveManifestSha256"] = bootstrap_audit["waveManifestSha256"]
         metadata["bootstrapOnnxSha256"] = bootstrap_audit["candidateSha256"]
     checkpoint.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"format": "azcombat.checkpoint.v1", "model": model.state_dict(),
+    torch.save({"format": "azcombat.checkpoint.v3", "featureAbi": FEATURE_ABI, "model": model.state_dict(),
                 "config": asdict(config), "metadata": metadata}, checkpoint)
     return metadata
 
 
 def load_checkpoint(path: Path) -> tuple[DeepSetsPolicyValue, dict]:
     payload = torch.load(path, map_location="cpu", weights_only=True)
-    if payload.get("format") != "azcombat.checkpoint.v1":
+    if payload.get("format") != "azcombat.checkpoint.v3" or payload.get("featureAbi") != FEATURE_ABI:
         raise ValueError("unsupported checkpoint format")
     model = DeepSetsPolicyValue(payload["config"]["hidden"])
     model.load_state_dict(payload["model"])

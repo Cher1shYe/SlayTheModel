@@ -121,7 +121,8 @@ public static class CombatCaptureService
             CombatDecisionPoint.CurrentSchemaVersion,
             decisionIndex,
             fingerprint,
-            DecisionObservationProjector.ToCombat(snapshot),
+            DecisionObservationProjector.ToCombat(snapshot, BuildVisibleEnergyCosts(state),
+                BuildVisibleCurrentIntents(state)),
             legalActions);
         var searchPoint = new CombatSearchPoint(
             snapshot,
@@ -234,6 +235,31 @@ public static class CombatCaptureService
                 nativeState.nextChoiceIds.ToArray(),
                 nativeState.nextRewardIds.ToArray()),
             nativeChecksum);
+    }
+
+    private static Func<uint, int?> BuildVisibleEnergyCosts(CombatState state)
+    {
+        var costs = state.Players
+            .SelectMany(player => player.PlayerCombatState?.AllPiles
+                ?? throw new InvalidDataException($"Player {player.NetId} has no combat piles."))
+            .SelectMany(pile => pile.Cards)
+            .ToDictionary(card => NetCombatCard.FromModel(card).CombatCardIndex,
+                card => card.EnergyCost.CostsX
+                    ? (int?)null
+                    : card.EnergyCost.GetWithModifiers(CostModifiers.Local));
+        return cardId => costs.TryGetValue(cardId, out var cost)
+            ? cost : throw new InvalidDataException($"Visible card {cardId} is unavailable.");
+    }
+
+    private static Func<uint, string?> BuildVisibleCurrentIntents(CombatState state)
+    {
+        var intents = state.Enemies.Where(enemy => enemy.CurrentHp > 0)
+            .ToDictionary(enemy => enemy.CombatId
+                ?? throw new InvalidDataException("Live monster has no combat ID."),
+                enemy => enemy.Monster?.NextMove?.Id
+                    ?? throw new InvalidDataException("Living monster has no current public move."));
+        return combatId => intents.TryGetValue(combatId, out var move)
+            ? move : throw new InvalidDataException($"Current move of monster {combatId} is unavailable.");
     }
 
     private static PlayerCombatSnapshot MapPlayer(

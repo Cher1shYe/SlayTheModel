@@ -2,13 +2,15 @@ from __future__ import annotations
 
 import json
 import hashlib
+from dataclasses import replace
+from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
 
 import torch
 
-from azcombat.samples import TrainingSample, write_jsonl
+from azcombat.samples import TrainingSample, write_jsonl, read_jsonl
 from azcombat.schema import ActionNode
 from azcombat.training import (CombatDataset, DeepSetsPolicyValue, TrainConfig,
                                encode_actions, encode_observation, load_checkpoint,
@@ -24,6 +26,20 @@ def sample(seed: str) -> TrainingSample:
 
 
 class TrainingTests(unittest.TestCase):
+    def test_forced_regression_is_strictly_valid_but_not_training_data(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "regression.jsonl"
+            raw = sample("forced").to_dict()
+            raw["provenance"] = {"regressionOnly": True, "forcedFixtureCard": "BURNING_PACT"}
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            self.assertEqual(len(read_jsonl(path, allow_regression=True)), 1)
+            with self.assertRaisesRegex(ValueError, "regression-only"):
+                CombatDataset([path])
+            raw["visitPolicy"] = {"illegal": 1}
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "unknown action"):
+                read_jsonl(path, allow_regression=True)
+
     def test_strict_dataset_and_seed_isolation(self):
         with TemporaryDirectory() as directory:
             path = Path(directory) / "data.jsonl"
@@ -53,6 +69,34 @@ class TrainingTests(unittest.TestCase):
         self.assertTrue(torch.allclose(logits, shuffled, atol=1e-6))
         self.assertTrue(torch.allclose(value, other, atol=1e-6))
         self.assertFalse(torch.equal(actions[0], actions[1]))
+
+    def test_replay_identity_and_precomputed_damage_are_not_features(self):
+        item = sample("one")
+        original = encode_actions(item)[1]
+        altered = replace(item, legal_actions=(
+            ActionNode("PlayCard", "different-state-key", {
+                "CardId": "STRIKE_IRONCLAD", "Damage": 999, "TargetHp": 1,
+                "CardStateKey": "hidden-rng-and-future", "CardStateOccurrence": 19,
+            }), item.legal_actions[1]))
+        self.assertTrue(torch.equal(original, encode_actions(altered)[1]))
+
+    def test_old_feature_checkpoint_is_rejected_even_at_same_width(self):
+        with TemporaryDirectory() as directory:
+            legacy = Path(directory) / "legacy.pt"
+            torch.save({"format": "azcombat.checkpoint.v1", "config": {"hidden": 16},
+                        "model": DeepSetsPolicyValue(16).state_dict()}, legacy)
+            with self.assertRaisesRegex(ValueError, "unsupported checkpoint format"):
+                load_checkpoint(legacy)
+
+    def test_hidden_draw_pile_is_fail_closed_until_projection_exists(self):
+        raw = deepcopy(observation())
+        raw["players"][0]["piles"].append({"pileType": "Draw", "cards": [
+            deepcopy(raw["players"][0]["piles"][0]["cards"][0])]})
+        with self.assertRaisesRegex(ValueError, "hidden draw pile"):
+            encode_observation(replace(sample("one"), observation=raw))
+
+    def test_experimental_width_is_unchanged(self):
+        self.assertEqual(sum(parameter.numel() for parameter in DeepSetsPolicyValue(16).parameters()), 1970)
 
     def test_train_checkpoint_round_trip(self):
         with TemporaryDirectory() as directory:

@@ -44,6 +44,7 @@
   <Import Project="$(RitsuLibReferencesProps)" Condition="Exists('$(RitsuLibReferencesProps)')" />
 
   <ItemGroup>
+    <ProjectReference Include="../src/SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
     <Compile Remove="tools/**/*.cs" />
     <Compile Remove="outputs/**/*.cs" />
     <EmbeddedResource Include="src/UI/English.json" LogicalName="CombatSolver.UI.English.json" />

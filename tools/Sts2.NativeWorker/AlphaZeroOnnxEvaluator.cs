@@ -31,7 +31,8 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
             var manifestPath = Path.ChangeExtension(path, ".manifest.json");
             using var manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
             var root = manifest.RootElement;
-            if (root.GetProperty("format").GetString() != "azcombat.onnx.v1"
+            if (root.GetProperty("format").GetString() != "azcombat.onnx.v4"
+                || root.GetProperty("featureAbi").GetString() != "azcombat.features.v4"
                 || root.GetProperty("inputs").GetProperty("entities")[1].GetInt32() != EntityWidth
                 || root.GetProperty("inputs").GetProperty("globals")[0].GetInt32() != GlobalWidth
                 || root.GetProperty("inputs").GetProperty("actions")[1].GetInt32() != ActionWidth)
@@ -57,6 +58,26 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
         value = float.NaN;
         try
         {
+            if (!TryEvaluate(observation, legal, out var logits, out value, out status)) return false;
+            var best = Enumerable.Range(0, legal.Count).MaxBy(index => logits[index]);
+            chosen = legal[best];
+            status = "model-root:" + chosen.Key;
+            return true;
+        }
+        catch (Exception error)
+        {
+            status = $"pure-mcts:model-inference-failed:{error.GetType().Name}:{error.Message}";
+            return false;
+        }
+    }
+
+    public bool TryEvaluate(CombatObservation observation, IReadOnlyList<CombatSolverMctsAction> legal,
+        out float[] logits, out float value, out string status)
+    {
+        logits = [];
+        value = float.NaN;
+        try
+        {
             observation.Validate();
             if (legal.Count == 0 || legal.Select(a => a.Key).Distinct(StringComparer.Ordinal).Count() != legal.Count)
                 throw new InvalidDataException("Empty or duplicate root legal actions.");
@@ -71,15 +92,13 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
                 NamedOnnxValue.CreateFromTensor("actions", new DenseTensor<float>(actions, [legal.Count, ActionWidth])),
             };
             using var outputs = session.Run(inputs);
-            var logits = outputs.Single(output => output.Name == "logits").AsTensor<float>().ToArray();
+            logits = outputs.Single(output => output.Name == "logits").AsTensor<float>().ToArray();
             var values = outputs.Single(output => output.Name == "value").AsTensor<float>().ToArray();
             if (logits.Length != legal.Count || values.Length != 1 || logits.Any(x => !float.IsFinite(x))
                 || !float.IsFinite(values[0]) || values[0] < -1.0001f || values[0] > 1.0001f)
                 throw new InvalidDataException("ONNX output shape or finite-value constraint failed.");
-            var best = Enumerable.Range(0, legal.Count).MaxBy(index => logits[index]);
-            chosen = legal[best];
             value = values[0];
-            status = "model-root:" + chosen.Key;
+            status = $"model-evaluate:value={value:F6}";
             return true;
         }
         catch (Exception error)
@@ -111,9 +130,14 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
         {
             Add(1, Hash(player.CharacterId), player.Energy, player.Stars, player.TurnNumber, Hash(player.Phase));
             foreach (var pile in player.Piles)
+            {
+                if (string.Equals(pile.PileType, "Draw", StringComparison.OrdinalIgnoreCase)
+                    && pile.Cards.Count > 0)
+                    throw new InvalidDataException("Hidden draw pile contents cannot enter the policy encoder.");
                 foreach (var card in pile.Cards)
                     Add(2, Hash(card.ModelId), card.CombatCardIndex, card.EnergyCost ?? 0,
                         Hash(pile.PileType), Hash(card.AfflictionId), card.AfflictionCount, card.Keywords.Count);
+            }
             foreach (var relic in player.Relics) Add(3, Hash(relic.ModelId));
             foreach (var potion in player.Potions) Add(4, Hash(potion.ModelId), potion.SlotIndex);
             foreach (var orb in player.Orbs) Add(5, Hash(orb.ModelId), orb.Passive, orb.Evoke);
@@ -122,7 +146,27 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
         {
             Add(6, Hash(creature.MonsterId), creature.CurrentHp, creature.MaxHp, creature.Block,
                 creature.PlayerId.HasValue ? 1 : 0);
+            if (creature.CurrentIntent != null) Add(8, Hash(creature.CurrentIntent));
             foreach (var power in creature.Powers) Add(7, Hash(power.ModelId), power.Amount);
+        }
+        if (observation.Choice is { } choice)
+        {
+            Add(9, Hash(choice.TriggerCardId), Hash(choice.Effect), Hash(choice.SourcePile),
+                choice.MinCount, choice.MaxCount, choice.Ordered ? 1 : 0,
+                choice.Candidates.Count, choice.CompletedSelections.Count);
+            for (int index = 0; index < choice.Candidates.Count; index++)
+            {
+                var candidate = choice.Candidates[index];
+                Add(10, Hash(candidate.ModelId), candidate.CombatCardIndex, candidate.UpgradeLevel, index);
+            }
+            for (int index = 0; index < choice.CompletedSelections.Count; index++)
+            {
+                var completed = choice.CompletedSelections[index];
+                var selectedJson = JsonSerializer.Serialize(completed.CombatCardIndices,
+                    new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+                Add(11, Hash(completed.Effect), completed.CombatCardIndices.Count,
+                    completed.CombatCardIndices.Count == 0 ? 0 : Hash(selectedJson), index);
+            }
         }
         if (rows.Count == 0) Add(0);
         return rows.ToArray();
@@ -141,13 +185,13 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
             foreach (var candidateKind in kinds) data.Add(kind == candidateKind ? 1 : 0);
             var selected = action.SelectedCards ?? [];
             var selectionJson = JsonSerializer.Serialize(
-                selected.Select(card => new object?[] { card.CardId, card.StateKey, card.OptionOccurrence }).ToArray(),
+                selected.Select(card => card.CardId).ToArray(),
                 new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
             data.AddRange([
                 Hash(action.CardId), action.CardOccurrence, action.TargetCombatId ?? 0,
-                (float)action.Damage, action.TargetHp ?? 0, selected.Count,
+                0, 0, selected.Count,
                 selected.Count == 0 ? 0 : selected.Sum(card => Hash(card.CardId)) / selected.Count,
-                Hash(selectionJson), Hash(action.CardStateKey), action.CardStateOccurrence, 0,
+                selected.Count == 0 ? 0 : Hash(selectionJson), 0, 0, 0,
             ]);
         }
         return data.ToArray();

@@ -111,6 +111,18 @@ def _require_tree_guidance(provenance: dict, metrics: list[dict]) -> None:
         raise ValueError("candidate used post-search reranking, not policy/value-guided tree search")
 
 
+def _require_candidate_network_usage(provenance: dict, sample_count: int) -> None:
+    """Validate model usage without confusing per-node tree calls with decisions."""
+    if provenance.get("modelShadow") is not False or provenance.get("modelFallbacks") != 0:
+        raise ValueError("candidate model was not used for every real decision")
+    if provenance.get("searchMode") == "policy-value-tree-v1":
+        if type(provenance.get("modelUsed")) is not int or provenance["modelUsed"] <= 0 \
+                or type(provenance.get("modelScored")) is not int or provenance["modelScored"] <= 0:
+            raise ValueError("tree candidate has no successful network prior/value calls")
+    elif provenance.get("modelUsed") != sample_count or provenance.get("modelScored") != sample_count:
+        raise ValueError("candidate model was not used for every real decision")
+
+
 def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
                max_decisions: int, minimum_rate: float = 100.0,
                require_tree_guidance: bool = False) -> dict:
@@ -196,9 +208,9 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
             raise ValueError("baseline was not pure MCTS")
     elif policy in {"candidate", "champion"}:
         if model_sha.upper() not in status.upper() or not status.startswith("model-ready") \
-                or provenance.get("modelShadow") is not False or provenance.get("modelFallbacks") != 0 \
-                or provenance.get("modelUsed") != len(samples) or provenance.get("modelScored") != len(samples):
+                or not isinstance(provenance, dict):
             raise ValueError("candidate model was not used for every real decision")
+        _require_candidate_network_usage(provenance, len(samples))
         if require_tree_guidance:
             _require_tree_guidance(provenance, metrics)
         elif provenance.get("searchMode", "legacy-post-mcts-rerank") not in \

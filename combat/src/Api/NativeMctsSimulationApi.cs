@@ -1,11 +1,23 @@
 using MegaCrit.Sts2.Core.Combat;
 using CombatSolver.Engine.InCombat.Simulation;
+using CombatSolver.Engine.Common;
 using System.Security.Cryptography;
 using System.Text;
+using SlayTheModel.Sts2.Protocol;
 
 namespace CombatSolver.Api;
 
 public sealed record NativeMctsSelectedCard(string CardId, int UpgradeLevel, string StateKey, int OptionOccurrence);
+
+public sealed record NativeMctsChoiceCandidate(
+    uint CombatCardIndex, string ModelId, int UpgradeLevel,
+    string InternalStateKey, int OptionOccurrence);
+
+public sealed record NativeMctsChoiceFrame(
+    CombatObservation Observation, string TriggerCardId, string Effect, string SourcePile,
+    int MinCount, int MaxCount, bool Ordered,
+    IReadOnlyList<NativeMctsChoiceCandidate> Candidates,
+    IReadOnlyList<CombatCompletedChoiceObservation> CompletedSelections);
 
 public sealed record NativeMctsAction(
     string Key,
@@ -51,6 +63,10 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private sealed record PendingChoiceGroup(IReadOnlyList<PendingChoiceBranch> Branches, int ChoiceIndex);
     private Dictionary<string, PendingChoiceGroup>? pendingChoices;
     private IReadOnlyList<string> choiceDiagnostics = [];
+    private NativeMctsChoiceFrame? pendingChoiceFrame;
+    private IReadOnlyDictionary<string, NativeMctsChoiceFrame> choiceFramesAfterPrefix
+        = new Dictionary<string, NativeMctsChoiceFrame>();
+    private readonly List<CombatCompletedChoiceObservation> completedSelections = [];
     private int actionCount;
     private readonly int initialEnemyHp;
     private bool disposed;
@@ -70,6 +86,9 @@ public sealed class NativeMctsSimulationSession : IDisposable
     {
         ThrowIfDisposed();
         ReleasePendingChoices();
+        pendingChoiceFrame = null;
+        choiceFramesAfterPrefix = new Dictionary<string, NativeMctsChoiceFrame>();
+        completedSelections.Clear();
         ReleaseTransient();
         current = root;
         actionCount = 0;
@@ -87,6 +106,14 @@ public sealed class NativeMctsSimulationSession : IDisposable
         {
             if (!pendingChoices.TryGetValue(action.Key, out var selectedGroup))
                 throw new InvalidOperationException($"Unknown prediction choice action {action.Key}.");
+            if (pendingChoiceFrame is { } frame)
+            {
+                var selected = (action.SelectedCards ?? throw new InvalidDataException("Choice has no selected-card payload."))
+                    .Select(token => frame.Candidates.Single(candidate =>
+                        candidate.InternalStateKey == token.StateKey
+                        && candidate.OptionOccurrence == token.OptionOccurrence).CombatCardIndex).ToArray();
+                completedSelections.Add(new CombatCompletedChoiceObservation(frame.Effect, selected));
+            }
             foreach (var group in pendingChoices.Values.Where(group => !ReferenceEquals(group, selectedGroup)))
                 ReleaseBranches(group.Branches);
             pendingChoices = null;
@@ -104,6 +131,9 @@ public sealed class NativeMctsSimulationSession : IDisposable
                 ReleaseBranches(selectedGroup.Branches
                     .Where(branch => ChoiceCount(branch.Action) <= nextIndex));
                 pendingChoices = withMoreChoices;
+                pendingChoiceFrame = choiceFramesAfterPrefix.TryGetValue(action.Key, out var nextFrame)
+                    ? nextFrame with { CompletedSelections = completedSelections.ToArray() }
+                    : null;
                 currentDescription = BuildPendingDescription();
                 return currentDescription;
             }
@@ -112,6 +142,8 @@ public sealed class NativeMctsSimulationSession : IDisposable
                 .Single(branch => ChoiceCount(branch.Action) == nextIndex);
             ReleaseBranches(selectedGroup.Branches.Where(branch => !ReferenceEquals(branch, final)));
             current = final.Snapshot;
+            pendingChoiceFrame = null;
+            completedSelections.Clear();
             transient.Add(current);
             currentDescription = driver.NativeMctsDescribe(current, actionCount);
             return currentDescription;
@@ -141,6 +173,8 @@ public sealed class NativeMctsSimulationSession : IDisposable
             .ToDictionary(group => group.Key,
                 group => new PendingChoiceGroup(group.ToArray(), 0),
                 StringComparer.Ordinal);
+        pendingChoiceFrame = expansion.FirstChoiceFrame;
+        choiceFramesAfterPrefix = expansion.FramesAfterPrefix ?? new Dictionary<string, NativeMctsChoiceFrame>();
         actionCount++;
         currentDescription = BuildPendingDescription();
         return currentDescription;
@@ -151,6 +185,21 @@ public sealed class NativeMctsSimulationSession : IDisposable
         ThrowIfDisposed();
         return currentDescription;
     }
+
+    public CombatObservation ObserveCurrent()
+    {
+        ThrowIfDisposed();
+        if (pendingChoices != null)
+            return pendingChoiceFrame?.Observation ?? throw new PredictionUnsupportedException(
+                "Choice layer has no captured pre-selection observation; resolved branches contain future selections.");
+        return driver.NativeMctsObserve(current);
+    }
+
+    public NativeMctsChoiceFrame CurrentChoiceFrame
+        => pendingChoices != null && pendingChoiceFrame != null
+            ? pendingChoiceFrame
+            : throw new PredictionUnsupportedException(
+                "Choice layer has no captured pre-selection context.");
 
     public string ContinuationKey
     {
@@ -222,6 +271,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
             ReferenceEqualityComparer.Instance);
         foreach (var snapshot in unique) snapshot.ReleaseSimulator();
         pendingChoices = null;
+        pendingChoiceFrame = null;
     }
 
     private static int ChoiceCount(PlanAction action)

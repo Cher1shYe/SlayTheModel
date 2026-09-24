@@ -92,26 +92,62 @@ public static class WorkerServer
                 var budget = TimeSpan.FromMilliseconds(request.BudgetMilliseconds);
                 long transitionsBefore = simulation.Transitions;
                 var decisionWatch = Stopwatch.StartNew();
-                var result = await tree.SearchAsync([], simulation.RootKey, budget, budget);
-                var rootAction = result.Action;
+                CombatSolverMctsAction rootAction;
+                int completedSimulations, retainedVisits, networkPriorCalls = 0,
+                    networkValueCalls = 0, networkFallbacks = 0;
+                string? networkFallbackReason = null;
+                IReadOnlyList<RootActionStatistics<CombatSolverMctsAction>> statistics;
+                bool rebuilt;
+                string searchMode;
                 if (model != null)
                 {
                     try
                     {
-                        var visited = result.Statistics.Select(item => item.Action.Key).ToHashSet(StringComparer.Ordinal);
-                        var legal = simulation.RootActions.Where(action => visited.Contains(action.Key)).ToArray();
-                        var observation = CombatCaptureService.BuildDecisionPoint(session.CombatStateForSimulation, 0).Observation;
-                        if (model.TryChoose(observation, legal, out var candidate, out var predictedValue, out var status))
-                        {
-                            rootAction = candidate!;
-                            GD.Print($"SLAY_WORKER_ALPHAZERO_SERVER {status} value={predictedValue:F6}");
-                        }
-                        else GD.PrintErr("SLAY_WORKER_ALPHAZERO_SERVER " + status);
+                        var policyTree = new PolicyValueMcts<CombatSolverMctsAction, CombatObservation>(
+                            simulation,
+                            (observation, legal) =>
+                            {
+                                if (!model.TryEvaluate(observation, legal, out var logits, out var value, out var status))
+                                    throw new InvalidDataException(status);
+                                GD.Print($"SLAY_WORKER_ALPHAZERO_SERVER {status}");
+                                return new PolicyValuePrediction(logits.Select(item => (double)item).ToArray(), value);
+                            });
+                        var policyResult = await policyTree.SearchAsync([], simulation.RootKey, budget, budget);
+                        rootAction = policyResult.Action;
+                        completedSimulations = policyResult.CompletedSimulations;
+                        retainedVisits = policyResult.RetainedVisits;
+                        statistics = policyResult.Statistics;
+                        rebuilt = policyResult.Rebuilt;
+                        networkPriorCalls = policyResult.NetworkPriorCalls;
+                        networkValueCalls = policyResult.NetworkValueCalls;
+                        networkFallbacks = policyResult.NetworkFallbacks;
+                        searchMode = "policy-value-tree-v1";
+                        GD.Print($"SLAY_WORKER_ALPHAZERO_SERVER policy-value-tree-v1 prior={networkPriorCalls} value={networkValueCalls} fallback={networkFallbacks}");
                     }
-                    catch (Exception modelError)
+                    catch (Exception policyError)
                     {
-                        GD.PrintErr("SLAY_WORKER_ALPHAZERO_SERVER pure-mcts:observation-failed:" + modelError);
+                        networkFallbacks = 1;
+                        networkFallbackReason = policyError.ToString();
+                        searchMode = "pure-mcts-fallback";
+                        GD.PrintErr($"SLAY_WORKER_ALPHAZERO_SERVER pure-mcts-fallback reason={policyError}");
+                        tree.Reset();
+                        var pureResult = await tree.SearchAsync([], simulation.RootKey, budget, budget);
+                        rootAction = pureResult.Action;
+                        completedSimulations = pureResult.CompletedSimulations;
+                        retainedVisits = pureResult.RetainedVisits;
+                        statistics = pureResult.Statistics;
+                        rebuilt = pureResult.Rebuilt;
                     }
+                }
+                else
+                {
+                    var pureResult = await tree.SearchAsync([], simulation.RootKey, budget, budget);
+                    rootAction = pureResult.Action;
+                    completedSimulations = pureResult.CompletedSimulations;
+                    retainedVisits = pureResult.RetainedVisits;
+                    statistics = pureResult.Statistics;
+                    rebuilt = pureResult.Rebuilt;
+                    searchMode = "pure-mcts";
                 }
                 var predictedSimulation = simulation.PredictSuccessor(rootAction);
                 var selectedAction = session.ToLiveSearchAction(rootAction);
@@ -140,11 +176,12 @@ public static class WorkerServer
                     }
                 }
                 response = new NativeMctsResponse(request.Id, selectedAction, null,
-                    result.CompletedSimulations, result.RetainedVisits, decisionWatch.Elapsed.TotalMilliseconds,
-                    result.Rebuilt || !predictionMatched, nextStateKey,
+                    completedSimulations, retainedVisits, decisionWatch.Elapsed.TotalMilliseconds,
+                    rebuilt || !predictionMatched, nextStateKey,
                     simulation.Transitions - transitionsBefore,
                     simulation.Transitions - transitionsBefore,
-                    "combat_solver");
+                    "combat_solver", searchMode,
+                    networkPriorCalls, networkValueCalls, networkFallbacks, networkFallbackReason);
             }
             catch (Exception exception)
             {

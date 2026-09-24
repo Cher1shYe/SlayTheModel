@@ -143,6 +143,25 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         foreach (var action in actions) _ = ToLiveSearchAction(action);
     }
 
+    public void ValidateChoiceFrame(NativeMctsChoiceFrame frame)
+    {
+        if (_choice == null)
+            throw new InvalidDataException("Predicted choice has no pending live selector.");
+        if (frame.MinCount != Math.Min(_min, _options.Length)
+            || frame.MaxCount != Math.Min(_max, _options.Length)
+            || frame.Candidates.Count != _options.Length)
+            throw new InvalidDataException("Live/predicted choice cardinality differs.");
+        for (int index = 0; index < _options.Length; index++)
+        {
+            var predicted = frame.Candidates[index];
+            var live = _options[index];
+            if (predicted.CombatCardIndex != NetCombatCard.FromModel(live).CombatCardIndex
+                || predicted.ModelId != live.Id.ToString()
+                || predicted.UpgradeLevel != live.CurrentUpgradeLevel)
+                throw new InvalidDataException($"Choice option identity/order differs at {index}.");
+        }
+    }
+
     public double EvaluateTerminal() => Won
         ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI
         : -1.0 + 0.25 * Math.Clamp(EnemyDamageLost / (double)Math.Max(InitialEnemyEffectiveHp, 1), 0, 1);
