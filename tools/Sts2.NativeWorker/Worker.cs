@@ -90,6 +90,42 @@ public partial class Worker : Node
                 GetTree().Quit();
                 return;
             }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "az-server-smoke")
+            {
+                var smokePath = System.Environment.GetEnvironmentVariable("STS2_AZ_SERVER_VERIFY_OUT")
+                    ?? throw new InvalidOperationException("STS2_AZ_SERVER_VERIFY_OUT is required.");
+                session.Seed = "AZ-SERVER-SMOKE";
+                session.EncounterId = "CULTISTS_NORMAL";
+                await session.ResetAsync(session.Seed, timeout.Token);
+                var smokeCheckpoint = SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.Latest
+                    ?? throw new InvalidOperationException("Combat checkpoint was not captured.");
+                var directory = smokePath + ".ipc";
+                Directory.CreateDirectory(directory);
+                var id = Guid.NewGuid();
+                var request = new SlayTheModel.Sts2.ModAdapter.NativeMctsRequest(
+                    id, smokeCheckpoint, [], session.StateKey(), session.EntryHp,
+                    BudgetMilliseconds: 1000);
+                var requestPath = Path.Combine(directory, id + ".request.json");
+                File.WriteAllText(requestPath + ".tmp", System.Text.Json.JsonSerializer.Serialize(request));
+                File.Move(requestPath + ".tmp", requestPath);
+                var serverTask = WorkerServer.RunAsync(this, new NativeSession(this), directory,
+                    System.Environment.ProcessId);
+                var responsePath = Path.Combine(directory, id + ".json");
+                while (!File.Exists(responsePath) && !serverTask.IsFaulted)
+                    await Task.Delay(20, timeout.Token);
+                if (serverTask.IsFaulted) await serverTask;
+                var response = System.Text.Json.JsonSerializer.Deserialize<SlayTheModel.Sts2.ModAdapter.NativeMctsResponse>(
+                    File.ReadAllText(responsePath)) ?? throw new InvalidDataException("Empty IPC response.");
+                if (response.Error != null || response.Action == null || response.Simulations <= 0
+                    || response.SearchMilliseconds < 900 || response.SimulatorBackend != "combat_solver")
+                    throw new InvalidDataException("AlphaZero IPC smoke failed: " + System.Text.Json.JsonSerializer.Serialize(response));
+                Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(smokePath))!);
+                File.WriteAllText(smokePath, System.Text.Json.JsonSerializer.Serialize(response,
+                    new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                GD.Print($"SLAY_WORKER_ALPHAZERO_SERVER_SMOKE_MATCH simulations={response.Simulations} ms={response.SearchMilliseconds:F0} action={response.Action.Key}");
+                GetTree().Quit();
+                return;
+            }
             await session.ResetAsync("SLAYMODEL1", timeout.Token);
             var initial = session.Fingerprint();
             var checkpoint = SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.Latest

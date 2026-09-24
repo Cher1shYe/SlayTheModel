@@ -66,6 +66,9 @@ internal sealed class NativeWorkerClient : IDisposable
         start.Environment["STS2_WORKER_PARENT"] = Environment.ProcessId.ToString();
         start.Environment["STS2_GAME_PACK"] = RuntimeConfiguration.Get("STS2_GAME_PACK")
             ?? Path.Combine(Path.GetDirectoryName(Environment.ProcessPath)!, "SlayTheSpire2.pck");
+        var modelPath = RuntimeConfiguration.Get("SLAY_THE_MODEL_ALPHAZERO_ONNX_MODEL");
+        if (!string.IsNullOrWhiteSpace(modelPath))
+            start.Environment["STS2_ALPHAZERO_ONNX_MODEL"] = Path.GetFullPath(modelPath);
         _process = new Process { StartInfo = start };
         var directory = _directory;
         _process.OutputDataReceived += (_, args) => { if (args.Data != null) File.AppendAllText(Path.Combine(directory, "stdout.log"), args.Data + Environment.NewLine); };

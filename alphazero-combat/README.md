@@ -23,7 +23,18 @@ python -m azcombat.export_cli --checkpoint artifacts/alphazero/checkpoints/warm-
   --parity-jsonl artifacts/alphazero/m1-regression-20260924/choice-fixture-fixed.jsonl
 ```
 
-导出的 manifest 包含模型输入维度、checkpoint/ONNX 哈希、对账样本数及最大误差；尚未接入 NativeWorker 推理或搜索。
+导出的 manifest 包含模型输入维度、checkpoint/ONNX 哈希、对账样本数及最大误差。NativeWorker 可选加载候选，在 MCTS 已访问的当前合法根动作中重排；加载、编码或推理失败会保留纯 MCTS 动作。此重排并非已完成的 PUCT/价值引导搜索，也不是晋级许可。
+
+本地导出器实验路径设置 `STS2_ALPHAZERO_ONNX_MODEL` 为 ONNX 绝对路径；设置 `STS2_ALPHAZERO_SHADOW=1` 时仅记录分数、不改变 MCTS 执行。正式 IPC 游戏控制器通过 `SLAY_THE_MODEL_ALPHAZERO_ONNX_MODEL` 环境变量或 runtime 配置把绝对路径传给 Worker；未配置时保持纯 MCTS。新发布产物的选择根对账：
+
+```powershell
+python -m azcombat.native_parity_cli `
+  --checkpoint artifacts/alphazero/checkpoints/m2-smoke-20260924-v2.pt `
+  --jsonl artifacts/alphazero/m3-regression-20260924/model-choice-shadow-005.jsonl `
+  --stdout artifacts/alphazero/m3-regression-20260924/model-choice-shadow-005.stdout.txt
+```
+
+真实 server 请求/回退 smoke 用 `scripts/native-worker.ps1 -Mode az-server-smoke` 完整发布运行，并通过 `STS2_AZ_SERVER_VERIFY_OUT` 指定新的结果文件；测试不会自动晋级模型。仅模型启用时有一次返回 >100 sims/s，不代表多随机种子、选择与死亡状态的性能门槛通过。
 
 从本目录运行纯 Python 合约测试：
 

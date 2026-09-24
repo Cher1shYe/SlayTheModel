@@ -91,6 +91,13 @@ public static class CombatSolverMctsBenchmark
         if (budgetMilliseconds < 50) throw new ArgumentOutOfRangeException(nameof(budgetMilliseconds));
         native.Checkpoint = null;
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+        using var model = AlphaZeroOnnxEvaluator.TryLoad(
+            Environment.GetEnvironmentVariable("STS2_ALPHAZERO_ONNX_MODEL"), out var modelLoadStatus);
+        var modelShadow = string.Equals(Environment.GetEnvironmentVariable("STS2_ALPHAZERO_SHADOW"), "1", StringComparison.Ordinal);
+        Godot.GD.Print("SLAY_WORKER_ALPHAZERO " + modelLoadStatus);
+        var modelUsed = 0;
+        var modelScored = 0;
+        var modelFallbacks = 0;
         await using var writer = new StreamWriter(outputPath, false);
         var pending = new List<ExportedDecision>();
         var maxDecisions = int.TryParse(Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_MAX_DECISIONS"), out var parsedMax)
@@ -136,6 +143,23 @@ public static class CombatSolverMctsBenchmark
                 if (!visits.TryAdd(statId, item.Visits))
                     throw new InvalidDataException($"Duplicate root action statistic {statId}.");
             }
+            var selectedAction = result.Action;
+            if (model != null)
+            {
+                var visitedKeys = stats.Select(item => item.Action.Key).ToHashSet(StringComparer.Ordinal);
+                var candidates = legal.Where(action => visitedKeys.Contains(action.Key)).ToArray();
+                if (model.TryChoose(decisionPoint.Observation, candidates, out var modelAction, out var predictedValue, out var modelStatus))
+                {
+                    modelScored++;
+                    if (!modelShadow) { selectedAction = modelAction!; modelUsed++; }
+                    Godot.GD.Print($"SLAY_WORKER_ALPHAZERO decision={decision} shadow={modelShadow} {modelStatus} value={predictedValue:F6}");
+                }
+                else
+                {
+                    modelFallbacks++;
+                    Godot.GD.PrintErr($"SLAY_WORKER_ALPHAZERO decision={decision} {modelStatus}");
+                }
+            }
             pending.Add(new ExportedDecision(
                 native.Seed, decision, decisionPoint.Observation, rootKey,
                 legal.Select(action => new ExportedAction(
@@ -146,8 +170,8 @@ public static class CombatSolverMctsBenchmark
                 visits, result.CompletedSimulations));
             try
             {
-                var liveAction = native.ToLiveSearchAction(result.Action);
-                environment.Promote(result.Action);
+                var liveAction = native.ToLiveSearchAction(selectedAction);
+                environment.Promote(selectedAction);
                 await native.StepAsync(liveAction, cancellation);
                 while (native.HasPendingChoice)
                 {
@@ -173,6 +197,22 @@ public static class CombatSolverMctsBenchmark
                         || choiceStats.Any(item => item.Visits <= 0)
                         || choiceStats.Sum(item => item.Visits) <= 0)
                         throw new InvalidDataException("Pending choice statistics do not match its root legal action set.");
+                    if (model != null)
+                    {
+                        var visitedChoiceKeys = choiceStats.Select(item => item.Action.Key).ToHashSet(StringComparer.Ordinal);
+                        var candidates = choiceLegal.Where(action => visitedChoiceKeys.Contains(action.Key)).ToArray();
+                        if (model.TryChoose(choiceObservation, candidates, out var modelChoice, out var predictedValue, out var modelStatus))
+                        {
+                            modelScored++;
+                            if (!modelShadow) { selectedChoice = modelChoice!; modelUsed++; }
+                            Godot.GD.Print($"SLAY_WORKER_ALPHAZERO decision={decision} choice shadow={modelShadow} {modelStatus} value={predictedValue:F6}");
+                        }
+                        else
+                        {
+                            modelFallbacks++;
+                            Godot.GD.PrintErr($"SLAY_WORKER_ALPHAZERO decision={decision} choice {modelStatus}");
+                        }
+                    }
                     pending.Add(new ExportedDecision(
                         native.Seed, decision, choiceObservation,
                         choiceEnvironment.RootKey,
@@ -206,7 +246,7 @@ public static class CombatSolverMctsBenchmark
                     seed = native.Seed,
                     decision,
                     decisionType = environment.State.PendingChoice ? "pending-choice" : "combat-action",
-                    rawAction = result.Action.Native,
+                    rawAction = selectedAction.Native,
                     choiceDiagnostics = environment.ChoiceDiagnostics,
                     livePending = native.HasPendingChoice,
                     liveChoiceSignature = native.ChoiceSignature,
@@ -233,6 +273,11 @@ public static class CombatSolverMctsBenchmark
             playerHp = native.Hp,
             initialEnemyEffectiveHp = native.InitialEnemyEffectiveHp,
             enemyDamageLost = native.EnemyDamageLost,
+            modelLoadStatus,
+            modelShadow,
+            modelScored,
+            modelUsed,
+            modelFallbacks,
             assemblies = AssemblyProvenance(),
         };
         foreach (var item in pending)

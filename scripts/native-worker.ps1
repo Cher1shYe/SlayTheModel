@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'verify-choices', 'benchmark', 'solver-mcts-benchmark', 'solver-mcts-export')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'verify-choices', 'benchmark', 'solver-mcts-benchmark', 'solver-mcts-export', 'az-server-smoke')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'

@@ -9,6 +9,9 @@ public static class WorkerServer
 {
     public static async Task RunAsync(Node host, NativeSession session, string directory, int parentId)
     {
+        using var model = AlphaZeroOnnxEvaluator.TryLoad(
+            System.Environment.GetEnvironmentVariable("STS2_ALPHAZERO_ONNX_MODEL"), out var modelStatus);
+        GD.Print("SLAY_WORKER_ALPHAZERO_SERVER " + modelStatus);
         using var simulation = new CombatSolverReplayEnvironment();
         var tree = new ReplayMcts<CombatSolverMctsAction>(simulation);
         var returnedActions = new Dictionary<string, CombatSolverMctsAction>(StringComparer.Ordinal);
@@ -89,13 +92,33 @@ public static class WorkerServer
                 var budget = TimeSpan.FromMilliseconds(request.BudgetMilliseconds);
                 long transitionsBefore = simulation.Transitions;
                 var result = await tree.SearchAsync([], simulation.RootKey, budget, budget);
-                var predictedSimulation = simulation.PredictSuccessor(result.Action);
-                var selectedAction = session.ToLiveSearchAction(result.Action);
+                var rootAction = result.Action;
+                if (model != null)
+                {
+                    try
+                    {
+                        var visited = result.Statistics.Select(item => item.Action.Key).ToHashSet(StringComparer.Ordinal);
+                        var legal = simulation.RootActions.Where(action => visited.Contains(action.Key)).ToArray();
+                        var observation = CombatCaptureService.BuildDecisionPoint(session.CombatStateForSimulation, 0).Observation;
+                        if (model.TryChoose(observation, legal, out var candidate, out var predictedValue, out var status))
+                        {
+                            rootAction = candidate!;
+                            GD.Print($"SLAY_WORKER_ALPHAZERO_SERVER {status} value={predictedValue:F6}");
+                        }
+                        else GD.PrintErr("SLAY_WORKER_ALPHAZERO_SERVER " + status);
+                    }
+                    catch (Exception modelError)
+                    {
+                        GD.PrintErr("SLAY_WORKER_ALPHAZERO_SERVER pure-mcts:observation-failed:" + modelError);
+                    }
+                }
+                var predictedSimulation = simulation.PredictSuccessor(rootAction);
+                var selectedAction = session.ToLiveSearchAction(rootAction);
                 // Keep both transport identities. The live controller records
                 // a compact descriptor key, while pondered results carry the
                 // immutable full card identity key.
-                returnedActions[selectedAction.Key] = result.Action;
-                returnedActions[result.Action.Key] = result.Action;
+                returnedActions[selectedAction.Key] = rootAction;
+                returnedActions[rootAction.Key] = rootAction;
                 await session.ApplyAsync(selectedAction, CancellationToken.None);
                 var nextStateKey = session.Terminal ? null : session.StateKey();
                 bool predictionMatched = true;
