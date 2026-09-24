@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Diagnostics;
 using CombatSolver.Api;
 using SlayTheModel.Search;
 using SlayTheModel.Sts2.ModAdapter;
@@ -86,9 +87,11 @@ public static class CombatSolverMctsBenchmark
 
     public static async Task ExportTrajectoryAsync(
         NativeSession native, string outputPath, int budgetMilliseconds,
-        CancellationToken cancellation)
+        CancellationToken cancellation, string startType = "full_combat", object? startProvenance = null)
     {
         if (budgetMilliseconds < 50) throw new ArgumentOutOfRangeException(nameof(budgetMilliseconds));
+        if (startType is not ("full_combat" or "mid_combat_verified"))
+            throw new ArgumentOutOfRangeException(nameof(startType));
         native.Checkpoint = null;
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
         using var model = AlphaZeroOnnxEvaluator.TryLoad(
@@ -115,6 +118,7 @@ public static class CombatSolverMctsBenchmark
                 throw new InvalidDataException($"Root {rootKey} has an empty or duplicate legal action set.");
             var tree = new ReplayMcts<CombatSolverMctsAction>(environment, seed: 20260922 + decision);
             var budget = TimeSpan.FromMilliseconds(budgetMilliseconds);
+            var decisionWatch = Stopwatch.StartNew();
             var result = await tree.SearchAsync([], environment.RootKey, budget, budget, cancellation);
             var stats = result.Statistics.ToArray();
             var rootSet = legalIds.ToHashSet(StringComparer.Ordinal);
@@ -160,6 +164,7 @@ public static class CombatSolverMctsBenchmark
                     Godot.GD.PrintErr($"SLAY_WORKER_ALPHAZERO decision={decision} {modelStatus}");
                 }
             }
+            await WaitForDecisionBudgetAsync(decisionWatch, budget, cancellation);
             pending.Add(new ExportedDecision(
                 native.Seed, decision, decisionPoint.Observation, rootKey,
                 legal.Select(action => new ExportedAction(
@@ -167,7 +172,7 @@ public static class CombatSolverMctsBenchmark
                     {
                         "PlayCard" => "PlayCard", "UsePotion" => "UsePotion", "EndTurn" => "EndTurn", _ => "NestedChoice",
                     }, TrainingActionId(action.Native), action.Native.Kind == "EndTurn", action.Native)).ToArray(),
-                visits, result.CompletedSimulations));
+                visits, result.CompletedSimulations, decisionWatch.Elapsed.TotalMilliseconds));
             try
             {
                 var liveAction = native.ToLiveSearchAction(selectedAction);
@@ -186,6 +191,7 @@ public static class CombatSolverMctsBenchmark
                     native.ValidateSimulationActions(choiceActions);
                     var choiceObservation = CombatCaptureService.BuildDecisionPoint(native.CombatStateForSimulation, pending.Count).Observation;
                     var choiceTree = new ReplayMcts<CombatSolverMctsAction>(choiceEnvironment, seed: 20260922 + decision + 10000);
+                    var choiceWatch = Stopwatch.StartNew();
                     var choiceResult = await choiceTree.SearchAsync([], choiceEnvironment.RootKey, budget, budget, cancellation);
                     var selectedChoice = choiceActions.SingleOrDefault(action => action.Key == choiceResult.Action.Key)
                         ?? throw new InvalidDataException($"Choice result {choiceResult.Action.Key} is not in the pending root action set.");
@@ -213,12 +219,13 @@ public static class CombatSolverMctsBenchmark
                             Godot.GD.PrintErr($"SLAY_WORKER_ALPHAZERO decision={decision} choice {modelStatus}");
                         }
                     }
+                    await WaitForDecisionBudgetAsync(choiceWatch, budget, cancellation);
                     pending.Add(new ExportedDecision(
                         native.Seed, decision, choiceObservation,
                         choiceEnvironment.RootKey,
                         choiceLegal.Select(action => new ExportedAction("NestedChoice", TrainingActionId(action.Native), false, action.Native)).ToArray(),
                         choiceStats.ToDictionary(item => TrainingActionId(item.Action.Native), item => item.Visits, StringComparer.Ordinal),
-                        choiceResult.CompletedSimulations));
+                        choiceResult.CompletedSimulations, choiceWatch.Elapsed.TotalMilliseconds));
                     var liveChoice = native.ToLiveSearchAction(selectedChoice);
                     choiceEnvironment.Promote(selectedChoice);
                     await native.StepAsync(liveChoice, cancellation);
@@ -270,21 +277,28 @@ public static class CombatSolverMctsBenchmark
             budgetMilliseconds,
             maxDecisions,
             terminal = resolved,
+            entryHp = native.EntryHp,
             playerHp = native.Hp,
             initialEnemyEffectiveHp = native.InitialEnemyEffectiveHp,
             enemyDamageLost = native.EnemyDamageLost,
+            startProvenance,
             modelLoadStatus,
             modelShadow,
             modelScored,
             modelUsed,
             modelFallbacks,
+            decisionMetrics = pending.Select(item => new {
+                stateKey = item.RootKey,
+                simulations = item.Simulations,
+                elapsedMilliseconds = item.ElapsedMilliseconds,
+            }).ToArray(),
             assemblies = AssemblyProvenance(),
         };
         foreach (var item in pending)
         {
             var payload = new
             {
-                schemaVersion = 1, seed = item.Seed, startType = "full_combat",
+                schemaVersion = 1, seed = item.Seed, startType,
                 observation = item.Observation,
                 legalActions = item.LegalActions,
                 visitPolicy = item.VisitPolicy,
@@ -317,9 +331,16 @@ public static class CombatSolverMctsBenchmark
 
     private sealed record ExportedAction(string kind, string actionId, bool terminal, NativeMctsAction payload);
     private sealed record ExportedDecision(string Seed, int Decision, object Observation, string RootKey,
-        IReadOnlyList<ExportedAction> LegalActions, IReadOnlyDictionary<string, int> VisitPolicy, int Simulations);
+        IReadOnlyList<ExportedAction> LegalActions, IReadOnlyDictionary<string, int> VisitPolicy,
+        int Simulations, double ElapsedMilliseconds);
     private static string TrainingActionId(NativeMctsAction action)
         => action.Key;
+
+    internal static async Task WaitForDecisionBudgetAsync(Stopwatch watch, TimeSpan budget, CancellationToken cancellation)
+    {
+        while (watch.Elapsed < budget)
+            await Task.Delay(Math.Max(1, (int)Math.Ceiling((budget - watch.Elapsed).TotalMilliseconds)), cancellation);
+    }
 
     private static async Task<TimedSearchResult<CombatSolverMctsAction>> RunTrial(
         NativeSession native,

@@ -36,6 +36,16 @@ python -m azcombat.native_parity_cli `
 
 真实 server 请求/回退 smoke 用 `scripts/native-worker.ps1 -Mode az-server-smoke` 完整发布运行，并通过 `STS2_AZ_SERVER_VERIFY_OUT` 指定新的结果文件；测试不会自动晋级模型。仅模型启用时有一次返回 >100 sims/s，不代表多随机种子、选择与死亡状态的性能门槛通过。
 
+M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promotion.py`。`evaluate` 为每个未见 seed、登记 encounter、完整/合法中途起点都运行纯 MCTS baseline 与 candidate 配对；每次都新建输出目录、完整 ExportRelease、保留 stdout/stderr，并严格回读 JSONL。`selfplay` 只有已晋级且哈希/门禁报告完整的 champion alias 才能启动，且禁止复用 champion 已使用的 seed。晋级审计要求真实程序集 provenance、每决策至少 1000 ms、有效模拟速率至少 100/s、统一终局回填、嵌套选择和死亡结算证据；任一缺项只写拒绝报告，不改 champion。
+
+当前已保存的 M4 证据包括：
+
+- `m4-regression-20260924/paired-smoke-003`：2 seed × 1 encounter × 2 起点 × baseline/candidate，8 次完整发布；每条决策实际墙钟均 ≥1000 ms。审计按预期拒绝（样本未完成、覆盖/嵌套/死亡证据不足）。
+- `m4-regression-20260924/native-death-004.jsonl` 与 `model-native-death-005.jsonl`：原生低 HP 真实死亡，最终 `loss/-1.0`，不伪造标签；候选模型路径无回退。
+- `m4-regression-20260924/mid-start-model-001.jsonl`：真实 checkpoint + `EndTurn` 前缀重放后导出 `mid_combat_verified`。
+
+这些证据证明管线会正确拒绝未达门槛的候选，不代表当前模型已晋级或自博弈已获准。
+
 从本目录运行纯 Python 合约测试：
 
 ```powershell

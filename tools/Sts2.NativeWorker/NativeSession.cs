@@ -53,6 +53,26 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
     public int InitialEnemyEffectiveHp { get; private set; }
     public int EnemyDamageLost { get; private set; }
+
+    public void BeginTrajectoryAtCurrentState()
+    {
+        if (_state == null || Terminal || HasPendingChoice || Actions().Count == 0)
+            throw new InvalidOperationException("A mid-combat trajectory must begin at a settled legal decision.");
+        EntryHp = Hp;
+        InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        EnemyDamageLost = 0;
+    }
+
+    public async Task SetInitialHpFixtureAsync(int hp, CancellationToken cancellation)
+    {
+        if (_state == null || Terminal || HasPendingChoice || hp < 1 || hp > _player.Creature.MaxHp)
+            throw new ArgumentOutOfRangeException(nameof(hp), "Low-HP fixture requires a legal live combat root.");
+        await CreatureCmd.SetCurrentHp(_player.Creature, hp);
+        await SettleAsync(cancellation);
+        if (Hp != hp || Terminal || HasPendingChoice)
+            throw new InvalidDataException("Native low-HP fixture did not settle at a legal decision.");
+        BeginTrajectoryAtCurrentState();
+    }
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
     public bool HasPendingChoice => _choice != null;

@@ -51,7 +51,11 @@ public partial class Worker : Node
             }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-export")
             {
-                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                var midTurns = int.TryParse(System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_MID_START_TURNS"), out var parsedTurns)
+                    ? parsedTurns : 0;
+                if (midTurns is < 0 or > 20)
+                    throw new ArgumentOutOfRangeException(nameof(midTurns), "Mid-combat start turns must be 0..20.");
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = midTurns > 0;
                 var exportPath = System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_OUT")
                     ?? throw new InvalidOperationException("STS2_MCTS_EXPORT_OUT is required.");
                 var exportSeed = System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_SEED") ?? "AZ-TRAIN-000";
@@ -63,8 +67,51 @@ public partial class Worker : Node
                 if (session.ChoiceFixture && System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_FIXTURE_CARDS") is { Length: > 0 } fixtureCards)
                     session.ChoiceFixtureCards = fixtureCards.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
                 await session.ResetAsync(exportSeed, timeout.Token);
+                int? initialHpFixture = null;
+                if (System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_INITIAL_HP") is { Length: > 0 } hpText)
+                {
+                    if (midTurns > 0 || !int.TryParse(hpText, out int fixtureHp))
+                        throw new InvalidDataException("Low-HP fixture must be numeric and start from a full combat.");
+                    await session.SetInitialHpFixtureAsync(fixtureHp, timeout.Token);
+                    initialHpFixture = fixtureHp;
+                }
+                object? startProvenance = null;
+                if (initialHpFixture.HasValue)
+                    startProvenance = new { nativeInitialHpFixture = initialHpFixture.Value,
+                        entryHp = session.EntryHp, initialEnemyEffectiveHp = session.InitialEnemyEffectiveHp };
+                if (midTurns > 0)
+                {
+                    var entryCheckpoint = SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.Latest
+                        ?? throw new InvalidDataException("Mid-combat start requires a real entry checkpoint.");
+                    SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                    var prefix = new List<SlayTheModel.Sts2.Protocol.SearchAction>();
+                    for (int turn = 0; turn < midTurns; turn++)
+                    {
+                        if (session.Terminal || session.HasPendingChoice)
+                            throw new InvalidDataException("Mid-combat start ended before requested settled turns.");
+                        var endTurn = session.Actions().SingleOrDefault(action =>
+                            action.Combat?.Kind == SlayTheModel.Sts2.Protocol.CombatActionKind.EndTurn)
+                            ?? throw new InvalidDataException("Mid-combat start has no legal EndTurn action.");
+                        prefix.Add(endTurn);
+                        await session.StepAsync(endTurn, timeout.Token);
+                    }
+                    if (session.Terminal || session.HasPendingChoice)
+                        throw new InvalidDataException("Mid-combat start did not reach a legal decision.");
+                    string expectedKey = session.StateKey();
+                    string expectedContinuation = NativeMctsSimulationApi.CaptureLiveContinuationKey(session.CombatStateForSimulation);
+                    session.Checkpoint = entryCheckpoint;
+                    await session.RestoreAsync(prefix, timeout.Token);
+                    string actualContinuation = NativeMctsSimulationApi.CaptureLiveContinuationKey(session.CombatStateForSimulation);
+                    if (session.StateKey() != expectedKey || actualContinuation != expectedContinuation)
+                        throw new InvalidDataException("Checkpoint/prefix reconstruction differs at mid-combat start.");
+                    session.BeginTrajectoryAtCurrentState();
+                    startProvenance = new { replayVerified = true, midTurns, rootKey = expectedKey,
+                        entryHp = session.EntryHp, initialEnemyEffectiveHp = session.InitialEnemyEffectiveHp,
+                        prefix = prefix.Select(action => action.Key).ToArray() };
+                }
                 var exportBudget = int.TryParse(System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_BUDGET_MS"), out var parsedBudget) ? parsedBudget : 1000;
-                await CombatSolverMctsBenchmark.ExportTrajectoryAsync(session, exportPath, exportBudget, timeout.Token);
+                await CombatSolverMctsBenchmark.ExportTrajectoryAsync(session, exportPath, exportBudget, timeout.Token,
+                    midTurns > 0 ? "mid_combat_verified" : "full_combat", startProvenance);
                 GetTree().Quit();
                 return;
             }

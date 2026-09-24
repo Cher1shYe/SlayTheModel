@@ -91,6 +91,7 @@ public static class WorkerServer
 
                 var budget = TimeSpan.FromMilliseconds(request.BudgetMilliseconds);
                 long transitionsBefore = simulation.Transitions;
+                var decisionWatch = Stopwatch.StartNew();
                 var result = await tree.SearchAsync([], simulation.RootKey, budget, budget);
                 var rootAction = result.Action;
                 if (model != null)
@@ -114,6 +115,7 @@ public static class WorkerServer
                 }
                 var predictedSimulation = simulation.PredictSuccessor(rootAction);
                 var selectedAction = session.ToLiveSearchAction(rootAction);
+                await CombatSolverMctsBenchmark.WaitForDecisionBudgetAsync(decisionWatch, budget, CancellationToken.None);
                 // Keep both transport identities. The live controller records
                 // a compact descriptor key, while pondered results carry the
                 // immutable full card identity key.
@@ -138,7 +140,7 @@ public static class WorkerServer
                     }
                 }
                 response = new NativeMctsResponse(request.Id, selectedAction, null,
-                    result.CompletedSimulations, result.RetainedVisits, result.ElapsedMilliseconds,
+                    result.CompletedSimulations, result.RetainedVisits, decisionWatch.Elapsed.TotalMilliseconds,
                     result.Rebuilt || !predictionMatched, nextStateKey,
                     simulation.Transitions - transitionsBefore,
                     simulation.Transitions - transitionsBefore,
