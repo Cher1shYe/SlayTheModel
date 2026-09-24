@@ -103,8 +103,17 @@ def _inside(base: Path, name: str) -> Path:
     return target
 
 
+def _require_tree_guidance(provenance: dict, metrics: list[dict]) -> None:
+    if provenance.get("searchMode") != "policy-value-tree-v1" \
+            or any(type(metric.get("networkPriorCalls")) is not int or metric["networkPriorCalls"] <= 0
+                   or type(metric.get("networkValueCalls")) is not int or metric["networkValueCalls"] <= 0
+                   for metric in metrics):
+        raise ValueError("candidate used post-search reranking, not policy/value-guided tree search")
+
+
 def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
-               max_decisions: int, minimum_rate: float = 100.0) -> dict:
+               max_decisions: int, minimum_rate: float = 100.0,
+               require_tree_guidance: bool = False) -> dict:
     if entry.get("exitCode") != 0 or entry.get("encounter") not in REGISTERED_ENCOUNTERS \
             or entry.get("startType") not in STARTS or entry.get("scenario") not in SCENARIOS:
         raise ValueError("run failed or has an unregistered encounter/start")
@@ -180,13 +189,21 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
     policy = entry["policy"]
     status = provenance.get("modelLoadStatus", "")
     if policy == "baseline":
-        if status != "pure-mcts:no-model-configured" or provenance.get("modelUsed") != 0:
+        if status != "pure-mcts:no-model-configured" or provenance.get("modelUsed") != 0 \
+                or provenance.get("searchMode", "pure-mcts") != "pure-mcts" \
+                or any(metric.get("networkPriorCalls", 0) != 0 or metric.get("networkValueCalls", 0) != 0
+                       for metric in metrics):
             raise ValueError("baseline was not pure MCTS")
     elif policy in {"candidate", "champion"}:
         if model_sha.upper() not in status.upper() or not status.startswith("model-ready") \
                 or provenance.get("modelShadow") is not False or provenance.get("modelFallbacks") != 0 \
                 or provenance.get("modelUsed") != len(samples) or provenance.get("modelScored") != len(samples):
             raise ValueError("candidate model was not used for every real decision")
+        if require_tree_guidance:
+            _require_tree_guidance(provenance, metrics)
+        elif provenance.get("searchMode", "legacy-post-mcts-rerank") not in \
+                {"post-mcts-rerank", "legacy-post-mcts-rerank", "policy-value-tree-v1"}:
+            raise ValueError("candidate search mode is unknown")
     else:
         raise ValueError("unknown evaluation policy")
     if any((base / (entry["jsonl"] + suffix)).is_file()
@@ -199,7 +216,8 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
     return {"seed": entry["seed"], "encounter": entry["encounter"], "scenario": entry["scenario"],
             "startType": entry["startType"],
             "policy": policy, "outcome": outcome.value, "value": value, "samples": len(samples),
-            "minSimulationsPerSecond": min(rates), "nestedChoice": nested, "settledDeath": death}
+            "minSimulationsPerSecond": min(rates), "nestedChoice": nested, "settledDeath": death,
+            "searchMode": provenance.get("searchMode", "legacy-post-mcts-rerank" if policy != "baseline" else "legacy-pure-mcts")}
 
 
 def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
@@ -246,7 +264,7 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
     for key, entry in zip(keys, entries, strict=True):
         try:
             audited[key] = _audit_run(base, entry, model_sha, manifest["budgetMilliseconds"],
-                                      manifest["maxDecisions"])
+                                      manifest["maxDecisions"], require_tree_guidance=True)
         except (KeyError, TypeError, ValueError, OSError) as error:
             reasons.append(f"run {key}: {error}")
     pairs = _paired_runs(expected, audited)

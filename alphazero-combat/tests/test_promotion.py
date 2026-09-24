@@ -9,10 +9,20 @@ from types import SimpleNamespace
 
 from azcombat.experiments import SCENARIOS, run_wave
 from azcombat.promotion import (ASSEMBLY, EXPORT_OUT, _audit_choice_chain, _expected_run_keys, _paired_runs, _require_scenario_result,
+                                _require_tree_guidance,
                                 _scenario_spec, write_gate)
 
 
 class PromotionSafetyTests(unittest.TestCase):
+    def test_post_search_reranking_cannot_pass_tree_guidance_gate(self):
+        for mode, metrics in (("post-mcts-rerank", [{"networkPriorCalls": 0, "networkValueCalls": 0}]),
+                              ("legacy-post-mcts-rerank", [{}]),
+                              ("policy-value-tree-v1", [{"networkPriorCalls": 1, "networkValueCalls": 0}])):
+            with self.subTest(mode=mode), self.assertRaisesRegex(ValueError, "not policy/value-guided"):
+                _require_tree_guidance({"searchMode": mode}, metrics)
+        _require_tree_guidance({"searchMode": "policy-value-tree-v1"},
+                               [{"networkPriorCalls": 2, "networkValueCalls": 1}])
+
     def test_bootstrap_cannot_reuse_source_seeds_or_grant_champion(self):
         with TemporaryDirectory() as directory:
             base = Path(directory)

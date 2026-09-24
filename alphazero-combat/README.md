@@ -38,6 +38,8 @@ python -m azcombat.native_parity_cli `
 
 M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promotion.py`。`bootstrap` 允许未晋级候选在新的种子上执行单人随机环境战斗并收集严格样本，但只产生独立的 `bootstrap-audit`，**不能晋级**；`evaluate` 为每个未见 seed、登记 encounter、完整/合法中途起点都运行纯 MCTS baseline 与 candidate 配对；每次都新建输出目录、完整 ExportRelease、保留 stdout/stderr，并严格回读 JSONL。`selfplay` 仍只有已晋级且哈希/门禁报告完整的 champion alias 才能启动，且禁止复用 champion 已使用的 seed。晋级审计要求真实程序集 provenance、每决策至少 1000 ms、有效模拟速率至少 100/s、统一终局回填、嵌套选择和死亡结算证据；任一缺项只写拒绝报告，不改 champion。
 
+当前 NativeWorker 模型仅在 MCTS 完成后重排已访问的合法根动作，标识为 `post-mcts-rerank`。正式晋级门禁现在额外要求每个决策都由严格观测驱动的树内 policy prior 与 value 推理（`policy-value-tree-v1` 和正调用计数）；现有试验模型因此不能晋级。预测 API 当前只公开 HP/动作摘要，尚未提供完整严格战斗观测，不能用隐藏模拟状态拼凑网络输入。为树内观测建立与 live 一致、无 RNG/未来抽牌/未来意图的投影并实测性能，是后续实现任务，而非这次门禁已完成的能力。
+
 试验性的自博弈续训（不覆盖旧模型，网络宽度从父 checkpoint 继承）：
 
 ```powershell
@@ -71,6 +73,7 @@ python -m azcombat.train_cli --bootstrap-wave artifacts/alphazero/new-bootstrap/
 - `m4-regression-20260924/cascade-prepared-probe-005.jsonl`：真实 CASCADE/PREPARED 战斗 40 条严格样本，包含同一 CASCADE 父动作的两层选择。`cascade-paired-006`：2 seed × baseline/candidate 实际配对；baseline 第二种子出现多层选择，但候选均未进入选择且死亡，部分初始决策仅约 44–56 sims/s，门禁拒绝。性能证据和未证实的预热假设见 `profile_output/azcombat-m4-cascade-20260924.md`。
 - `m4-regression-20260924/bootstrap-smoke-007`：2 个新种子 × 2 起点的未晋级候选自博弈，4 次原生发布、48 条严格样本，审计有效但全部 unresolved，2 条运行的最低速率低于目标。独立续训的 `m4-bootstrap-20260924-g1.pt/.onnx` 保持 1,970 参数、ONNX 数值对账通过；`bootstrap-g1-smoke-008` 在另两种新种子上完成原生加载与严格审计，仍不代表晋级。
 - `m4-regression-20260924/bootstrap-g1-resolved-009`：第 1 代模型另两新 seed 的 full/mid 共 4 次真实死亡结算、57 条严格样本，均统一回填 `loss/-1.0`；审计有效，但一条运行低于 100 sims/s，也没有胜利证据，不可晋级。
+- `m4-regression-20260924/tree-mode-smoke-010`：新 Release 的 2 seed × full/mid 候选采集 4 次，严格回读与 provenance 对账；明确标记搜索后重排、树内推理计数为零。bootstrap 审计有效但全部 unresolved，2 条运行低于 100/s，不具备晋级资格。
 
 这些证据证明试验候选能够执行自博弈采集、续训与下一代推理，且晋级门禁会拒绝未达门槛的候选；当前没有 champion，正式 champion 自博弈尚未获准。
 
