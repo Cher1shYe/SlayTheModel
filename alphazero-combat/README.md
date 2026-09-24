@@ -40,6 +40,8 @@ M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promo
 
 新版波次支持 `--scenario ordinary --scenario purity_choice --scenario native_death`：普通场景覆盖完整与经重放核验的中途起点，净化场景要求实际选牌决策，1 HP 原生场景要求真实死亡结算；每项均 baseline/candidate 配对。请求夹具、种子、遭遇、起点、预算与模型哈希写入 manifest 并与 JSONL provenance 对账。每次发布后立即保存完整 worker stdout/stderr；审计核对原始日志中的实际加载路径、MVID、SHA256 和导出绝对路径。单层净化不能替代真正的多层嵌套选择证据。
 
+新导出的 `decisionMetrics` 还记录真实执行的根动作 ID、父决策编号、父动作 ID 与选择层号；晋级审计要求每个选择层都接在同一个合法父动作之后且层号连续。仅在同一父动作下实际出现第二层选择才计为嵌套，数据仍保持原严格样本 schema，模型参数不变。
+
 当前已保存的 M4 证据包括：
 
 - `m4-regression-20260924/paired-smoke-003`：2 seed × 1 encounter × 2 起点 × baseline/candidate，8 次完整发布；每条决策实际墙钟均 ≥1000 ms。审计按预期拒绝（样本未完成、覆盖/嵌套/死亡证据不足）。
@@ -47,6 +49,7 @@ M4 的波次编排和 fail-closed 晋级审计位于 `experiments.py` 与 `promo
 - `m4-regression-20260924/mid-start-model-001.jsonl`：真实 checkpoint + `EndTurn` 前缀重放后导出 `mid_combat_verified`。
 - `m4-regression-20260924/matrix-smoke-001`、`matrix-smoke-002`：16 次发布的场景矩阵回归，均严格拒绝不达标覆盖与未完成轨迹；第二轮真实死亡配对已出现。旧脚本只回显 worker 日志末尾，第二轮长轨迹缺程序集标识，拒绝报告保留。
 - `m4-regression-20260924/log-capture-smoke-003`：新完整日志保存逻辑下的 2 seed × 原生死亡 × baseline/candidate，4 次发布均严格回读并核对程序集与导出路径；它不是完整晋级矩阵。
+- `m4-regression-20260924/choice-chain-smoke-004`：新 Release 的 2 seed × 净化 baseline/candidate，4 次发布严格回读与选择层链路对账；仅单层选择，部分速率 <100/s，门禁拒绝并保留报告。
 
 这些证据证明管线会正确拒绝未达门槛的候选，不代表当前模型已晋级或自博弈已获准。
 

@@ -172,12 +172,14 @@ public static class CombatSolverMctsBenchmark
                     {
                         "PlayCard" => "PlayCard", "UsePotion" => "UsePotion", "EndTurn" => "EndTurn", _ => "NestedChoice",
                     }, TrainingActionId(action.Native), action.Native.Kind == "EndTurn", action.Native)).ToArray(),
-                visits, result.CompletedSimulations, decisionWatch.Elapsed.TotalMilliseconds));
+                visits, result.CompletedSimulations, decisionWatch.Elapsed.TotalMilliseconds,
+                0, null, TrainingActionId(selectedAction.Native)));
             try
             {
                 var liveAction = native.ToLiveSearchAction(selectedAction);
                 environment.Promote(selectedAction);
                 await native.StepAsync(liveAction, cancellation);
+                int choiceLayer = 0;
                 while (native.HasPendingChoice)
                 {
                     // Preserve the suspended parent context; never capture mid-action.
@@ -220,12 +222,14 @@ public static class CombatSolverMctsBenchmark
                         }
                     }
                     await WaitForDecisionBudgetAsync(choiceWatch, budget, cancellation);
+                    choiceLayer++;
                     pending.Add(new ExportedDecision(
                         native.Seed, decision, choiceObservation,
                         choiceEnvironment.RootKey,
                         choiceLegal.Select(action => new ExportedAction("NestedChoice", TrainingActionId(action.Native), false, action.Native)).ToArray(),
                         choiceStats.ToDictionary(item => TrainingActionId(item.Action.Native), item => item.Visits, StringComparer.Ordinal),
-                        choiceResult.CompletedSimulations, choiceWatch.Elapsed.TotalMilliseconds));
+                        choiceResult.CompletedSimulations, choiceWatch.Elapsed.TotalMilliseconds,
+                        choiceLayer, TrainingActionId(selectedAction.Native), TrainingActionId(selectedChoice.Native)));
                     var liveChoice = native.ToLiveSearchAction(selectedChoice);
                     choiceEnvironment.Promote(selectedChoice);
                     await native.StepAsync(liveChoice, cancellation);
@@ -288,6 +292,10 @@ public static class CombatSolverMctsBenchmark
             modelUsed,
             modelFallbacks,
             decisionMetrics = pending.Select(item => new {
+                parentDecision = item.Decision,
+                choiceLayer = item.ChoiceLayer,
+                parentActionId = item.ParentActionId,
+                selectedActionId = item.SelectedActionId,
                 stateKey = item.RootKey,
                 simulations = item.Simulations,
                 elapsedMilliseconds = item.ElapsedMilliseconds,
@@ -332,7 +340,8 @@ public static class CombatSolverMctsBenchmark
     private sealed record ExportedAction(string kind, string actionId, bool terminal, NativeMctsAction payload);
     private sealed record ExportedDecision(string Seed, int Decision, object Observation, string RootKey,
         IReadOnlyList<ExportedAction> LegalActions, IReadOnlyDictionary<string, int> VisitPolicy,
-        int Simulations, double ElapsedMilliseconds);
+        int Simulations, double ElapsedMilliseconds, int ChoiceLayer,
+        string? ParentActionId, string SelectedActionId);
     private static string TrainingActionId(NativeMctsAction action)
         => action.Key;
 

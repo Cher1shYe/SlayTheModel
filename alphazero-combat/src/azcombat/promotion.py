@@ -67,6 +67,32 @@ def _paired_runs(expected: set[tuple[str, str, str, str, str]],
     return pairs
 
 
+def _audit_choice_chain(samples: list, metrics: list[dict]) -> bool:
+    """Require live choice layers to follow one legal parent, not just be adjacent rows."""
+    parent_decision = -1
+    parent_action = None
+    layer = 0
+    nested = False
+    for sample, metric in zip(samples, metrics, strict=True):
+        group = metric.get("parentDecision")
+        depth = metric.get("choiceLayer")
+        selected = metric.get("selectedActionId")
+        if type(group) is not int or type(depth) is not int or not isinstance(selected, str) \
+                or selected not in {action.action_id for action in sample.legal_actions}:
+            raise ValueError("choice chain has an invalid group, layer or selected root action")
+        choice = all(action.kind == "NestedChoice" for action in sample.legal_actions)
+        if group == parent_decision + 1 and depth == 0 and not choice \
+                and metric.get("parentActionId") is None:
+            parent_decision, parent_action, layer = group, selected, 0
+        elif group == parent_decision and choice and depth == layer + 1 \
+                and metric.get("parentActionId") == parent_action:
+            layer = depth
+            nested |= layer >= 2
+        else:
+            raise ValueError("choice layer does not advance from its live parent action")
+    return nested
+
+
 def _inside(base: Path, name: str) -> Path:
     target = (base / name).resolve()
     if not target.is_relative_to(base.resolve()) or not target.is_file():
@@ -164,7 +190,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
            for suffix in (".diagnostic.json", ".live-action-diagnostic.json")):
         raise ValueError("run has failure diagnostics")
     choice_flags = [bool(sample.legal_actions and sample.legal_actions[0].kind == "NestedChoice") for sample in samples]
-    nested = any(a and b for a, b in zip(choice_flags, choice_flags[1:]))
+    nested = _audit_choice_chain(samples, metrics)
     death = outcome is Outcome.LOSS and provenance["playerHp"] == 0
     _require_scenario_result(entry["scenario"], choice_flags, death)
     return {"seed": entry["seed"], "encounter": entry["encounter"], "scenario": entry["scenario"],

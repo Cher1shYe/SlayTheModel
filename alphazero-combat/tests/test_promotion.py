@@ -4,13 +4,32 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from types import SimpleNamespace
 
 from azcombat.experiments import SCENARIOS, run_wave
-from azcombat.promotion import (ASSEMBLY, EXPORT_OUT, _expected_run_keys, _paired_runs, _require_scenario_result,
+from azcombat.promotion import (ASSEMBLY, EXPORT_OUT, _audit_choice_chain, _expected_run_keys, _paired_runs, _require_scenario_result,
                                 _scenario_spec, write_gate)
 
 
 class PromotionSafetyTests(unittest.TestCase):
+    def test_nested_requires_same_parent_and_consecutive_live_layers(self):
+        def row(kind, action_id, group, depth, parent, selected=None):
+            sample = SimpleNamespace(legal_actions=[SimpleNamespace(kind=kind, action_id=action_id)])
+            metric = {"parentDecision": group, "choiceLayer": depth,
+                      "parentActionId": parent, "selectedActionId": selected or action_id}
+            return sample, metric
+        root = row("PlayCard", "play", 0, 0, None)
+        one = row("NestedChoice", "choice-1", 0, 1, "play")
+        two = row("NestedChoice", "choice-2", 0, 2, "play")
+        self.assertTrue(_audit_choice_chain([root[0], one[0], two[0]], [root[1], one[1], two[1]]))
+        self.assertFalse(_audit_choice_chain([root[0], one[0]], [root[1], one[1]]))
+        for invalid in (row("NestedChoice", "choice-2", 1, 1, "play"),
+                        row("NestedChoice", "choice-2", 0, 2, "other"),
+                        row("NestedChoice", "choice-2", 0, 3, "play"),
+                        row("NestedChoice", "choice-2", 0, 2, "play", "illegal")):
+            with self.subTest(invalid=invalid[1]), self.assertRaises(ValueError):
+                _audit_choice_chain([root[0], one[0], invalid[0]], [root[1], one[1], invalid[1]])
+
     def test_full_worker_log_has_exact_assembly_and_export_identity(self):
         log = ("SLAY_WORKER_ASSEMBLY label=NativeWorker path=C:\\stage\\NativeWorker.dll "
                "mvid=7ff424b8-8fde-4d97-8b53-f86c544bd74e sha256=" + "A" * 64 + "\n"
