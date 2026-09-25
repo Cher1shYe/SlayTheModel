@@ -32,6 +32,24 @@ class FrozenRootDiagnosisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "verifiable pre-selection frame"):
             _choice_context_alignment(root)
 
+    def test_choice_context_comes_from_current_frame_and_rejects_stale_prefix(self):
+        base = {"SchemaVersion": 3, "Choice": None}
+        frame = {"Observation": base, "TriggerCardId": "CASCADE",
+                 "Effect": "Discard", "SourcePile": "Hand", "MinCount": 1,
+                 "MaxCount": 1, "Ordered": False,
+                 "Candidates": [{"CombatCardIndex": 4, "ModelId": "CARD.PREPARED",
+                                 "UpgradeLevel": 1}],
+                 "CompletedSelections": [{"Effect": "Exhaust", "CombatCardIndices": [2]}]}
+        choice = {key: frame[key] for key in
+                  ("TriggerCardId", "Effect", "SourcePile", "MinCount", "MaxCount",
+                   "Ordered", "Candidates", "CompletedSelections")}
+        root = {"rootKind": "cascade-second", "observation": {**base, "Choice": choice},
+                "choiceFrame": frame, "choiceContextAligned": True}
+        self.assertTrue(_choice_context_alignment(root))
+        root["observation"]["Choice"]["CompletedSelections"] = []
+        with self.assertRaisesRegex(ValueError, "model choice observation"):
+            _choice_context_alignment(root)
+
     def test_policy_distance_requires_full_support(self):
         result = policy_distance([3, 1, 0], [0.5, 0.25, 0.25])
         self.assertTrue(result["top1Agrees"])
@@ -95,6 +113,13 @@ class FrozenRootDiagnosisTests(unittest.TestCase):
                                       "actionScores": [
                                           {"actionId": "a", "logit": 1, "prior": 0.7},
                                           {"actionId": "b", "logit": 0, "prior": 0.3}]},
+                        "actualTreeEvaluatorInputs": [{
+                            "arm": "model-prior_model-value", "invocation": index + 1,
+                            "stateKey": "frozen-key" if index == 0 else f"child-{index}",
+                            "observation": observation,
+                            "orderedActionIds": ["a", "b"],
+                            "actualTreeEvaluator": True,
+                        } for index in range(3)],
                         "assemblies": {name: identity for name in
                                        ("nativeWorker", "search", "combatSolver")},
                         "arms": arms}
@@ -109,6 +134,11 @@ class FrozenRootDiagnosisTests(unittest.TestCase):
             artifact["arms"][1]["modelValueBackprops"] = 0
             path.write_text(json.dumps(artifact), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "guidance counters"):
+                audit_frozen_root(path, "f" * 64)
+            artifact["arms"][1]["modelValueBackprops"] = 3
+            artifact["actualTreeEvaluatorInputs"][0]["actualTreeEvaluator"] = False
+            path.write_text(json.dumps(artifact), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "actual tree evaluator"):
                 audit_frozen_root(path, "f" * 64)
 
 

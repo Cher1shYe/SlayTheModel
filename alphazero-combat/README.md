@@ -85,6 +85,12 @@ python -m azcombat.wave_smoke_report --wave artifacts/alphazero/new-tree-smoke `
 
 从本目录运行纯 Python 合约测试：
 
+当前 Native exporter 轨迹的训练门禁要求 `provenance.searchSemanticsVersion` 为
+`azcombat.search.v2`。旧语义轨迹仍可用 `read_jsonl` 做只读审计，但 `CombatDataset`
+会拒绝把它们加入新训练。`regressionOnly` 夹具仍默认拒收。观测 schema v3、特征
+ABI v4 和现有 1,970 参数模型保持不变；版本变化只标识选择树输入和终局回传的
+搜索语义。
+
 ```powershell
 python -m unittest discover -s alphazero-combat/tests -v
 ```

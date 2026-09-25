@@ -28,6 +28,25 @@ def sample(seed: str) -> TrainingSample:
 
 
 class TrainingTests(unittest.TestCase):
+    def test_native_training_requires_current_search_semantics(self):
+        with TemporaryDirectory() as directory:
+            path = Path(directory) / "native.jsonl"
+            raw = sample("native").to_dict()
+            raw["provenance"] = {"requestedSearchMode": "policy-value-tree-v1",
+                                 "searchMode": "policy-value-tree-v1",
+                                 "regressionOnly": False}
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            self.assertEqual(len(read_jsonl(path)), 1)  # historical read-only audit
+            with self.assertRaisesRegex(ValueError, "searchSemanticsVersion"):
+                CombatDataset([path])
+            raw["provenance"]["searchSemanticsVersion"] = "azcombat.search.v2"
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            self.assertEqual(len(CombatDataset([path])), 1)
+            raw["provenance"]["regressionOnly"] = True
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "regression-only"):
+                CombatDataset([path])
+
     def test_forced_regression_is_strictly_valid_but_not_training_data(self):
         with TemporaryDirectory() as directory:
             path = Path(directory) / "regression.jsonl"

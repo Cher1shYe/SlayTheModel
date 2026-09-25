@@ -279,7 +279,7 @@ internal sealed class CombatRootSnapshot
     /// amounts come from the live models rather than hard-coded constants so a data-layer rebalance of these
     /// relics is followed without a code change here.
     /// </remarks>
-    private static PostCombatRelicHealProfile CapturePostCombatRelicHeal(
+    internal static PostCombatRelicHealProfile CapturePostCombatRelicHeal(
         IEnumerable<RelicModel> relics)
     {
         int unconditionalHeal = 0;

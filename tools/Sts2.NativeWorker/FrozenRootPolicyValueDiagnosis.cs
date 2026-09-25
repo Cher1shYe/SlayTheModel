@@ -24,7 +24,41 @@ internal static class FrozenRootPolicyValueDiagnosis
             ?? throw new InvalidDataException("Frozen-root model load failed: " + modelStatus);
         modelPath = Path.GetFullPath(modelPath);
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(native.CombatStateForSimulation, native.EntryHp);
+        environment.Capture(native.CombatStateForSimulation, native.CaptureRewardSeed());
+        native.BindTrajectoryRewardContext(environment.RewardContext);
+        var liveCompletedSelections = new List<CombatCompletedChoiceObservation>();
+        var actualTreeEvaluatorInputs = new List<object>();
+        if (rootKind == "purity")
+        {
+            // A separate, bounded tree from the real ordinary root must expand
+            // a choice as a child. Choice-root-only checks cannot exercise this.
+            var ordinaryKey = environment.RootKey;
+            int legalCount = environment.RootActions.Count;
+            int invocation = 0;
+            bool sawExpandedChoice = false;
+            var probe = new PolicyValueMcts<CombatSolverMctsAction, CombatObservation>(environment,
+                (nodeObservation, actions) =>
+                {
+                    invocation++;
+                    if (environment.State.PendingChoice)
+                    {
+                        sawExpandedChoice = true;
+                        if (nodeObservation.Choice is null)
+                            throw new InvalidDataException("Newly expanded choice reached tree evaluator without Choice context.");
+                    }
+                    if (!model.TryEvaluate(nodeObservation, actions, out var logits, out var value, out var status))
+                        throw new InvalidDataException("Expanded-choice model inference failed: " + status);
+                    var policyLogits = logits.Select(item => (double)item).ToArray();
+                    RecordTreeInput("expanded-choice-probe", invocation, nodeObservation, actions,
+                        policyLogits, value);
+                    return new PolicyValuePrediction(policyLogits, value);
+                }, 20270922);
+            await probe.SearchAsync([], ordinaryKey, ArmBudget, ArmBudget, cancellation,
+                maxDepth: 200, maxSimulations: legalCount + 1);
+            if (!sawExpandedChoice)
+                throw new InvalidDataException("Bounded ordinary-root tree did not evaluate a newly expanded choice node.");
+            await environment.RestoreAsync([], cancellation);
+        }
         if (rootKind != "ordinary")
         {
             var parent = environment.RootActions.Single(action => action.Native.CardId ==
@@ -38,6 +72,10 @@ internal static class FrozenRootPolicyValueDiagnosis
                 var first = environment.RootActions.First(action =>
                     action.Native.SelectedCards is [{ CardId: "PREPARED", OptionOccurrence: 0 }]);
                 var liveChoice = native.ToLiveSearchAction(first);
+                var liveOptions = native.CaptureLiveChoiceEvidence().Candidates;
+                liveCompletedSelections.Add(new CombatCompletedChoiceObservation("Discard",
+                    (liveChoice.Selection ?? throw new InvalidDataException("First CASCADE selection has no live indices."))
+                    .Select(index => liveOptions[index].CombatCardIndex).ToArray()));
                 environment.Promote(first);
                 await native.StepAsync(liveChoice, cancellation);
                 AssertChoiceAlignment();
@@ -57,20 +95,10 @@ internal static class FrozenRootPolicyValueDiagnosis
         var observation = environment.ObserveCurrent();
         var observationJson = JsonSerializer.Serialize(observation);
         var choiceFrame = environment.State.PendingChoice ? environment.CurrentChoiceFrame : null;
-        CombatObservation? choiceContextObservation = null;
-        if (choiceFrame != null)
-        {
-            choiceContextObservation = observation with
-            {
-                Choice = new CombatChoiceObservation(choiceFrame.TriggerCardId,
-                    choiceFrame.Effect, choiceFrame.SourcePile,
-                    choiceFrame.MinCount, choiceFrame.MaxCount, choiceFrame.Ordered,
-                    choiceFrame.Candidates.Select(candidate => new CombatChoiceCandidateObservation(
-                        candidate.CombatCardIndex, candidate.ModelId, candidate.UpgradeLevel)).ToArray(),
-                    choiceFrame.CompletedSelections),
-            };
-            choiceContextObservation.Validate();
-        }
+        CombatObservation? choiceContextObservation = choiceFrame?.ToPolicyObservation();
+        var liveBaseObservation = CombatCaptureService.BuildDecisionPoint(
+            native.CombatStateForSimulation, 0).Observation;
+        var liveChoiceEvidence = choiceFrame == null ? null : native.CaptureLiveChoiceEvidence();
         bool choiceContextAligned = choiceFrame == null ||
             JsonSerializer.Serialize(observation) == JsonSerializer.Serialize(choiceContextObservation);
         if (!model.TryEvaluate(observation, legal, out var rootLogits, out var rootValue,
@@ -97,6 +125,11 @@ internal static class FrozenRootPolicyValueDiagnosis
             ["choiceContextAligned"] = choiceContextAligned,
             ["legalActionIds"] = legalIds,
             ["choiceFrame"] = choiceFrame,
+            ["liveBaseObservation"] = liveBaseObservation,
+            ["liveChoiceEvidence"] = liveChoiceEvidence,
+            ["liveCompletedSelections"] = liveCompletedSelections.ToArray(),
+            ["exportObservation"] = observation,
+            ["actualTreeEvaluatorInputs"] = actualTreeEvaluatorInputs,
             ["model"] = new { path = modelPath, sha256 = Hash(File.ReadAllBytes(modelPath)),
                 loadStatus = modelStatus },
             ["rootModel"] = new
@@ -192,6 +225,8 @@ internal static class FrozenRootPolicyValueDiagnosis
                     }
                     if (modelPrior) appliedPrior++;
                     if (modelValue) appliedValue++;
+                    RecordTreeInput(label, evaluatorInvocations, nodeObservation, actions,
+                        logits, value);
                     return new PolicyValuePrediction(logits, value);
                 }, 20270922);
             var result = await tree.SearchAsync([], rootKey, ArmBudget, ArmBudget, cancellation,
@@ -265,6 +300,13 @@ internal static class FrozenRootPolicyValueDiagnosis
             var frame = environment.CurrentChoiceFrame;
             native.ValidateChoiceFrame(frame);
             native.ValidateSimulationActions(environment.RootActions);
+            string expectedTrigger = rootKind == "purity" ? "PURITY" : "CASCADE";
+            string expectedEffect = rootKind == "purity" ? "Exhaust" : "Discard";
+            if (frame.TriggerCardId != expectedTrigger || frame.Effect != expectedEffect
+                || frame.SourcePile != "Hand" || frame.Ordered
+                || JsonSerializer.Serialize(frame.CompletedSelections)
+                    != JsonSerializer.Serialize(liveCompletedSelections))
+                throw new InvalidDataException("Choice fixture context or completed live prefix differs.");
             var liveObservation = CombatCaptureService.BuildDecisionPoint(
                 native.CombatStateForSimulation, 0).Observation;
             if (JsonSerializer.Serialize(liveObservation) != JsonSerializer.Serialize(frame.Observation))
@@ -272,6 +314,22 @@ internal static class FrozenRootPolicyValueDiagnosis
         }
 
         void Save() => File.WriteAllText(output, JsonSerializer.Serialize(report, JsonOptions));
+
+        void RecordTreeInput(string arm, int invocation, CombatObservation nodeObservation,
+            IReadOnlyList<CombatSolverMctsAction> actions, IReadOnlyList<double> logits, double value)
+        {
+            if (actualTreeEvaluatorInputs.Count >= 160)
+                throw new InvalidDataException("Bounded tree evaluator trace exceeded 160 nodes.");
+            string json = JsonSerializer.Serialize(nodeObservation);
+            actualTreeEvaluatorInputs.Add(new
+            {
+                arm, invocation, stateKey = environment.StateKey(), observation = nodeObservation,
+                observationJson = json, observationSha256 = Hash(json),
+                orderedActionIds = actions.Select(action => action.Key).ToArray(),
+                legalActions = actions.Select(action => action.Native).ToArray(),
+                logits = logits.ToArray(), value, actualTreeEvaluator = true,
+            });
+        }
     }
 
     private static double[] Softmax(IReadOnlyList<double> logits)

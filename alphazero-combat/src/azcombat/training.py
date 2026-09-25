@@ -154,7 +154,8 @@ class CombatDataset:
         self.paths = tuple(Path(p) for p in paths)
         if not self.paths:
             raise ValueError("at least one JSONL path is required")
-        self.samples = [sample for path in self.paths for sample in read_jsonl(path)]
+        self.samples = [sample for path in self.paths for sample in
+                        read_jsonl(path, require_current_search_semantics=True)]
         if not self.samples:
             raise ValueError("no strictly valid training samples")
 

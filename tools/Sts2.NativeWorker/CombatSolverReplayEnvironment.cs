@@ -30,6 +30,7 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
 {
     private NativeMctsSimulationSession? session;
     private int entryHp;
+    private NativeMctsTrajectoryRewardContext rewardContext = null!;
     private NativeMctsState state = null!;
     private string rootKey = "";
     private IReadOnlyList<CombatSolverMctsAction> rootActions = [];
@@ -38,11 +39,13 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
     public MctsReplayEnvironmentDiagnostics? Diagnostics { get; set; }
     public IReadOnlyList<string> PromotedActionKeys => promotedPrefix.Select(action => action.Key).ToArray();
 
-    public void Capture(MegaCrit.Sts2.Core.Combat.CombatState combat, int capturedEntryHp)
+    public void Capture(MegaCrit.Sts2.Core.Combat.CombatState combat,
+        NativeMctsTrajectoryRewardSeed rewardSeed)
     {
         session?.Dispose();
-        entryHp = capturedEntryHp;
-        session = NativeMctsSimulationApi.Capture(combat);
+        session = NativeMctsSimulationApi.Capture(combat, rewardSeed);
+        rewardContext = session.RewardContext;
+        entryHp = rewardContext.EntryHp;
         state = session.RestoreRoot();
         rootKey = state.Key;
         rootActions = SnapshotActions(state.LegalActions);
@@ -51,6 +54,9 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
     }
 
     public string RootKey => rootKey;
+    public int CapturedEntryHp => entryHp;
+    public NativeMctsTrajectoryRewardContext RewardContext => rewardContext;
+    public bool HasRewardContext => session != null;
     public bool Terminal => state.Terminal;
     public long Transitions => transitions;
     public string CurrentContinuationKey
@@ -88,6 +94,10 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
             }
         }
     }
+    // This is the single policy-facing projection used by both tree expansion
+    // and trajectory export. It intentionally delegates to the session's
+    // frame-owned observation so a pending choice cannot fall back to its
+    // pre-choice base observation.
     public CombatObservation PolicyObservation() => ObserveCurrent();
     public NativeMctsChoiceFrame CurrentChoiceFrame
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
@@ -214,14 +224,31 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
 
     public string StateKey() => state.Key;
 
-    public double EvaluateTerminal()
-        => state.Resolved
-            ? state.Won
-                ? 0.5 + Math.Atan((state.PlayerHp - entryHp) / 20.0) / Math.PI
-                : -1.0 + 0.25 * EnemyDamageProgress
-            : -0.5 + 0.25 * EnemyDamageProgress;
+    public NativeMctsTerminalRewardInputs TerminalRewardInputs()
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+            .TerminalRewardInputs();
 
-    public double EvaluateUnresolved() => -0.5 + 0.25 * EnemyDamageProgress;
+    public double EvaluateTerminal() => TerminalRewardInputs().Reward;
+
+    public NativeMctsTerminalRewardInputs UnresolvedRewardInputs()
+    {
+        if (state.Terminal)
+            throw new InvalidOperationException("Unresolved reward requires a nonterminal simulation state.");
+        int totalEnemyHpLost = rewardContext.TotalEnemyHpLost(state.EnemyHpLost);
+        double progress = Math.Clamp(totalEnemyHpLost
+            / (double)Math.Max(rewardContext.InitialEnemyEffectiveHp, 1), 0.0, 1.0);
+        double reward = NativeMctsReward.Score(false, false, rewardContext.EntryHp,
+            state.PlayerHp, totalEnemyHpLost, rewardContext.InitialEnemyEffectiveHp);
+        return new NativeMctsTerminalRewardInputs(
+            rewardContext.TrajectoryId, rewardContext.CaptureId,
+            rewardContext.CaptureBoundaryKey, "unresolved", rewardContext.EntryHp,
+            state.PlayerHp, 0, 0, 0, 0, 0, state.PlayerHp, state.EnemyHpLost,
+            state.EnemyHpTotal, rewardContext.InitialEnemyEffectiveHp,
+            rewardContext.CapturedEnemyDamagePrefix, totalEnemyHpLost,
+            progress, reward);
+    }
+
+    public double EvaluateUnresolved() => UnresolvedRewardInputs().Reward;
 
     private double EnemyDamageProgress => Math.Clamp(
         state.EnemyHpLost / (double)Math.Max(state.EnemyHpTotal, 1), 0.0, 1.0);

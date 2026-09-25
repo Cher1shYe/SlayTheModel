@@ -17,7 +17,100 @@ public sealed record NativeMctsChoiceFrame(
     CombatObservation Observation, string TriggerCardId, string Effect, string SourcePile,
     int MinCount, int MaxCount, bool Ordered,
     IReadOnlyList<NativeMctsChoiceCandidate> Candidates,
-    IReadOnlyList<CombatCompletedChoiceObservation> CompletedSelections);
+    IReadOnlyList<CombatCompletedChoiceObservation> CompletedSelections)
+{
+    // The frame is captured at the pending boundary, before any candidate is
+    // applied. Both tree evaluation and export use this one projection.
+    public CombatObservation ToPolicyObservation()
+    {
+        ValidateFrame();
+        var choice = new CombatChoiceObservation(TriggerCardId, Effect, SourcePile,
+            MinCount, MaxCount, Ordered,
+            Candidates.Select(candidate =>
+            {
+                if (string.IsNullOrWhiteSpace(candidate.ModelId)
+                    || string.IsNullOrWhiteSpace(candidate.InternalStateKey))
+                    throw new PredictionUnsupportedException("Choice candidate has incomplete identity.");
+                return new CombatChoiceCandidateObservation(candidate.CombatCardIndex,
+                    candidate.ModelId, candidate.UpgradeLevel);
+            }).ToArray(),
+            CompletedSelections.Select(previous => new CombatCompletedChoiceObservation(
+                previous.Effect, previous.CombatCardIndices.ToArray())).ToArray());
+        var observation = Observation with { Choice = choice };
+        observation.Validate();
+        return observation;
+    }
+
+    internal void ValidateFrame()
+    {
+        if (Observation.Choice != null || string.IsNullOrWhiteSpace(TriggerCardId)
+            || string.IsNullOrWhiteSpace(Effect) || string.IsNullOrWhiteSpace(SourcePile)
+            || Candidates is null || CompletedSelections is null)
+            throw new PredictionUnsupportedException("Choice frame has incomplete or nested observation context.");
+        if (MinCount < 0 || MaxCount < MinCount || MaxCount > Candidates.Count)
+            throw new PredictionUnsupportedException("Choice frame cardinality is inconsistent with its candidates.");
+        if (Candidates.Count == 0 && MaxCount != 0)
+            throw new PredictionUnsupportedException("Choice frame has no candidates for a non-empty selection.");
+        if (Candidates.Any(candidate => string.IsNullOrWhiteSpace(candidate.ModelId)
+                || !candidate.ModelId.StartsWith("CARD.", StringComparison.Ordinal)
+                || string.IsNullOrWhiteSpace(candidate.InternalStateKey)))
+            throw new PredictionUnsupportedException("Choice candidate has incomplete identity.");
+        if (Candidates.Select(candidate => candidate.CombatCardIndex).Distinct().Count()
+            != Candidates.Count)
+            throw new PredictionUnsupportedException("Choice candidate instance IDs are ambiguous.");
+        foreach (var previous in CompletedSelections)
+        {
+            if (string.IsNullOrWhiteSpace(previous.Effect)
+                || previous.CombatCardIndices is null
+                || previous.CombatCardIndices.Distinct().Count() != previous.CombatCardIndices.Count)
+                throw new PredictionUnsupportedException("Completed choice prefix is invalid.");
+        }
+    }
+
+    internal IReadOnlyList<uint> ResolveSelection(NativeMctsAction action)
+    {
+        ValidateFrame();
+        if (!string.Equals(action.ChoiceKey, action.Key, StringComparison.Ordinal))
+            throw new InvalidDataException("Choice action path does not identify its pending choice layer.");
+        var tokens = action.SelectedCards
+            ?? throw new InvalidDataException("Choice has no selected-card payload.");
+        if (tokens.Count < MinCount || tokens.Count > MaxCount)
+            throw new InvalidDataException(
+                $"Choice selection count {tokens.Count} is outside [{MinCount}, {MaxCount}].");
+
+        var selected = new List<uint>(tokens.Count);
+        var selectedIds = new HashSet<uint>();
+        foreach (var token in tokens)
+        {
+            var candidate = Candidates.SingleOrDefault(item =>
+                item.InternalStateKey == token.StateKey
+                && item.OptionOccurrence == token.OptionOccurrence);
+            if (candidate is null)
+                throw new InvalidDataException(
+                    $"Choice selection token {token.StateKey}#{token.OptionOccurrence} is not a candidate.");
+            if (!CardIdsMatch(candidate.ModelId, token.CardId)
+                || candidate.UpgradeLevel != token.UpgradeLevel)
+                throw new InvalidDataException(
+                    $"Choice selection token identity differs for {token.StateKey}#{token.OptionOccurrence}.");
+            if (!selectedIds.Add(candidate.CombatCardIndex))
+                throw new InvalidDataException("Choice selection contains a duplicate card instance.");
+            selected.Add(candidate.CombatCardIndex);
+        }
+        return selected;
+    }
+
+    private static bool CardIdsMatch(string candidateModelId, string actionCardId)
+    {
+        if (string.Equals(candidateModelId, actionCardId, StringComparison.Ordinal))
+            return true;
+        // PlanCardChoice carries the card entry (for example ARMAMENTS), while
+        // the public observation carries the typed model ID (CARD.ARMAMENTS).
+        const string modelPrefix = "CARD.";
+        return candidateModelId.StartsWith(modelPrefix, StringComparison.Ordinal)
+            && string.Equals(candidateModelId[modelPrefix.Length..], actionCardId,
+                StringComparison.Ordinal);
+    }
+}
 
 public sealed record NativeMctsAction(
     string Key,
@@ -77,7 +170,7 @@ public sealed record NativeMctsDriverDiagnostics(
     IReadOnlyDictionary<string, NativeMctsPhaseDiagnostic> Phases);
 
 /// <summary>Prediction-only API for an external MCTS host. It never runs Combat Solver's Beam search.</summary>
-public sealed class NativeMctsSimulationSession : IDisposable
+public sealed partial class NativeMctsSimulationSession : IDisposable
 {
     private readonly CombatBeamSolver driver;
     private readonly CombatRootSnapshot capturedRoot;
@@ -96,6 +189,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private readonly List<CombatCompletedChoiceObservation> completedSelections = [];
     private int actionCount;
     private readonly int initialEnemyHp;
+    public NativeMctsTrajectoryRewardContext RewardContext { get; }
     private bool disposed;
     public NativeMctsProbeBoundaryDiagnostic? LastProbeBoundary { get; private set; }
 
@@ -114,9 +208,30 @@ public sealed class NativeMctsSimulationSession : IDisposable
         }
     }
 
-    internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot)
+    internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot,
+        NativeMctsTrajectoryRewardSeed rewardSeed)
     {
         this.capturedRoot = capturedRoot;
+        string boundaryKey = Convert.ToHexString(SHA256.HashData(
+            Encoding.UTF8.GetBytes(capturedRoot.ContinuationStamp.StateText)));
+        if (!string.Equals(boundaryKey, rewardSeed.CaptureBoundaryKey, StringComparison.Ordinal))
+            throw new InvalidDataException("Trajectory reward context does not match the captured combat boundary.");
+        if (string.IsNullOrWhiteSpace(rewardSeed.TrajectoryId)
+            || string.IsNullOrWhiteSpace(rewardSeed.CaptureBoundaryKey)
+            || rewardSeed.CaptureId < 1
+            || rewardSeed.EntryHp < 0 || rewardSeed.CapturedEnemyDamagePrefix < 0)
+            throw new InvalidDataException("Trajectory reward context contains negative inputs.");
+        if (rewardSeed.TrajectoryInitialEnemyEffectiveHp is < 1
+            || rewardSeed.TrajectoryInitialEnemyEffectiveHp is null && rewardSeed.CaptureId != 1)
+            throw new InvalidDataException("Trajectory reward denominator is missing or invalid.");
+        int trajectoryInitialEnemyHp = rewardSeed.TrajectoryInitialEnemyEffectiveHp
+            ?? capturedRoot.InitialEnemyEffectiveHp;
+        if (trajectoryInitialEnemyHp < 1)
+            throw new InvalidDataException("Captured trajectory has no positive effective enemy HP denominator.");
+        RewardContext = new NativeMctsTrajectoryRewardContext(
+            rewardSeed.TrajectoryId, rewardSeed.CaptureId, rewardSeed.CaptureBoundaryKey,
+            rewardSeed.EntryHp, trajectoryInitialEnemyHp,
+            rewardSeed.CapturedEnemyDamagePrefix);
         driver = NativeMctsSimulation.CreateDriver(capturedRoot);
         initialEnemyHp = capturedRoot.InitialEnemyEffectiveHp;
         root = driver.NativeMctsCreateRoot();
@@ -152,14 +267,9 @@ public sealed class NativeMctsSimulationSession : IDisposable
         {
             if (!pendingChoices.TryGetValue(action.Key, out var selectedGroup))
                 throw new InvalidOperationException($"Unknown prediction choice action {action.Key}.");
-            if (pendingChoiceFrame is { } frame)
-            {
-                var selected = (action.SelectedCards ?? throw new InvalidDataException("Choice has no selected-card payload."))
-                    .Select(token => frame.Candidates.Single(candidate =>
-                        candidate.InternalStateKey == token.StateKey
-                        && candidate.OptionOccurrence == token.OptionOccurrence).CombatCardIndex).ToArray();
-                completedSelections.Add(new CombatCompletedChoiceObservation(frame.Effect, selected));
-            }
+            var frame = CurrentChoiceFrame;
+            var selected = frame.ResolveSelection(action).ToArray();
+            completedSelections.Add(new CombatCompletedChoiceObservation(frame.Effect, selected));
             foreach (var group in pendingChoices.Values.Where(group => !ReferenceEquals(group, selectedGroup)))
                 ReleaseBranches(group.Branches);
             pendingChoices = null;
@@ -177,9 +287,10 @@ public sealed class NativeMctsSimulationSession : IDisposable
                 ReleaseBranches(selectedGroup.Branches
                     .Where(branch => ChoiceCount(branch.Action) <= nextIndex));
                 pendingChoices = withMoreChoices;
-                pendingChoiceFrame = choiceFramesAfterPrefix.TryGetValue(action.Key, out var nextFrame)
-                    ? nextFrame with { CompletedSelections = completedSelections.ToArray() }
-                    : null;
+                if (!choiceFramesAfterPrefix.TryGetValue(action.Key, out var nextFrame))
+                    throw new PredictionUnsupportedException(
+                        $"Nested choice {action.Key} has no captured current-layer frame.");
+                pendingChoiceFrame = nextFrame with { CompletedSelections = completedSelections.ToArray() };
                 currentDescription = BuildPendingDescription();
                 return currentDescription;
             }
@@ -189,6 +300,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
             ReleaseBranches(selectedGroup.Branches.Where(branch => !ReferenceEquals(branch, final)));
             current = final.Snapshot;
             pendingChoiceFrame = null;
+            choiceFramesAfterPrefix = new Dictionary<string, NativeMctsChoiceFrame>();
             completedSelections.Clear();
             transient.Add(current);
             currentDescription = driver.NativeMctsDescribe(current, actionCount);
@@ -221,6 +333,8 @@ public sealed class NativeMctsSimulationSession : IDisposable
                 group => new PendingChoiceGroup(group.ToArray(), 0),
                 StringComparer.Ordinal);
         pendingChoiceFrame = expansion.FirstChoiceFrame;
+        if (pendingChoiceFrame is null)
+            throw new PredictionUnsupportedException("Choice expansion has no captured current-layer frame.");
         choiceFramesAfterPrefix = expansion.FramesAfterPrefix ?? new Dictionary<string, NativeMctsChoiceFrame>();
         actionCount++;
         currentDescription = BuildPendingDescription();
@@ -237,16 +351,24 @@ public sealed class NativeMctsSimulationSession : IDisposable
     {
         ThrowIfDisposed();
         if (pendingChoices != null)
-            return pendingChoiceFrame?.Observation ?? throw new PredictionUnsupportedException(
-                "Choice layer has no captured pre-selection observation; resolved branches contain future selections.");
+            return CurrentChoiceFrame.ToPolicyObservation();
         return driver.NativeMctsObserve(current);
     }
 
     public NativeMctsChoiceFrame CurrentChoiceFrame
-        => pendingChoices != null && pendingChoiceFrame != null
-            ? pendingChoiceFrame
-            : throw new PredictionUnsupportedException(
-                "Choice layer has no captured pre-selection context.");
+    {
+        get
+        {
+            if (pendingChoices == null || pendingChoiceFrame == null)
+                throw new PredictionUnsupportedException(
+                    "Choice layer has no captured pre-selection context.");
+            pendingChoiceFrame.ValidateFrame();
+            if (!CompletedSelectionsEqual(pendingChoiceFrame.CompletedSelections, completedSelections))
+                throw new PredictionUnsupportedException(
+                    "Choice frame completed prefix does not match the current predicted layer.");
+            return pendingChoiceFrame;
+        }
+    }
 
     public string ContinuationKey
     {
@@ -324,6 +446,14 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private static int ChoiceCount(PlanAction action)
         => action.GetActionChoicesInExecutionOrder().Count;
 
+    private static bool CompletedSelectionsEqual(
+        IReadOnlyList<CombatCompletedChoiceObservation> expected,
+        IReadOnlyList<CombatCompletedChoiceObservation> actual)
+        => expected.Count == actual.Count
+            && expected.Zip(actual).All(pair =>
+                string.Equals(pair.First.Effect, pair.Second.Effect, StringComparison.Ordinal)
+                && pair.First.CombatCardIndices.SequenceEqual(pair.Second.CombatCardIndices));
+
     private static void ReleaseBranches(IEnumerable<PendingChoiceBranch> branches)
     {
         var unique = new HashSet<SimulationSnapshot>(
@@ -346,11 +476,13 @@ public static class NativeMctsSimulationApi
         Entry.InitializeSimulationRuntime();
     }
 
-    public static NativeMctsSimulationSession Capture(CombatState state)
+    public static NativeMctsSimulationSession Capture(
+        CombatState state, NativeMctsTrajectoryRewardSeed rewardSeed)
     {
         ArgumentNullException.ThrowIfNull(state);
+        ArgumentNullException.ThrowIfNull(rewardSeed);
         Initialize();
-        return new NativeMctsSimulationSession(CombatRootSnapshot.Capture(state));
+        return new NativeMctsSimulationSession(CombatRootSnapshot.Capture(state), rewardSeed);
     }
 
     public static MegaCrit.Sts2.Core.Models.CardModel ResolveLiveCard(

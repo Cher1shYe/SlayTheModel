@@ -80,7 +80,8 @@ def _choice_context_alignment(raw: dict) -> bool:
             raise ValueError("ordinary frozen root unexpectedly has choice context")
         aligned = True
     else:
-        if not isinstance(frame, dict) or frame.get("Observation") != observation \
+        base_observation = {**observation, "Choice": None}
+        if not isinstance(frame, dict) or frame.get("Observation") != base_observation \
                 or not frame.get("Candidates") or frame.get("MinCount") is None \
                 or frame.get("MaxCount") is None or type(frame.get("Ordered")) is not bool:
             raise ValueError("pending frozen root lacks a verifiable pre-selection frame")
@@ -128,6 +129,8 @@ def audit_frozen_root(path: Path, expected_model_hash: str) -> dict:
             != raw.get("observationSha256", "").lower():
         raise ValueError("frozen-root observation/hash differs")
     choice_context_aligned = _choice_context_alignment(raw)
+    if not choice_context_aligned:
+        raise ValueError("frozen root actual tree input lacks current choice context")
     root_model = raw.get("rootModel", {})
     if root_model.get("outsideSearch") is not True or raw.get("rootTerminal") is not False \
             or len(root_model.get("logits", [])) != len(ids) \
@@ -190,6 +193,20 @@ def audit_frozen_root(path: Path, expected_model_hash: str) -> dict:
             raise ValueError("frozen-root assembly provenance differs from disk")
     if set(raw.get("assemblies", {})) != {"nativeWorker", "search", "combatSolver"}:
         raise ValueError("frozen-root assembly provenance is incomplete")
+    trace = raw.get("actualTreeEvaluatorInputs")
+    full_model_trace = [row for row in trace if row.get("arm") == "model-prior_model-value"] \
+        if isinstance(trace, list) else []
+    if not isinstance(trace, list) or not full_model_trace \
+            or len(full_model_trace) != arms[1]["evaluatorCalls"] \
+            or full_model_trace[0].get("invocation") != 1 \
+            or full_model_trace[0].get("stateKey") != raw["stateKey"] \
+            or full_model_trace[0].get("observation") != raw["observation"] \
+            or full_model_trace[0].get("orderedActionIds") != ids \
+            or any(row.get("actualTreeEvaluator") is not True
+                   or row.get("outsideSearch") is not None
+                   or row.get("invocation") != index + 1
+                   for index, row in enumerate(full_model_trace)):
+        raise ValueError("frozen-root actual tree evaluator trace is missing or inconsistent")
     pure, full = arms[0], arms[1]
     distance = policy_distance([item["visits"] for item in pure["actions"]],
                                root_model["prior"])

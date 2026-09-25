@@ -182,7 +182,7 @@ public partial class Worker : Node
                 object? startProvenance = null;
                 if (initialHpFixture.HasValue)
                     startProvenance = new { nativeInitialHpFixture = initialHpFixture.Value,
-                        entryHp = session.EntryHp, initialEnemyEffectiveHp = session.InitialEnemyEffectiveHp };
+                        entryHp = session.EntryHp, initialEnemyRawHp = session.InitialEnemyRawHp };
                 if (midTurns > 0)
                 {
                     var entryCheckpoint = SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.Latest
@@ -210,7 +210,7 @@ public partial class Worker : Node
                         throw new InvalidDataException("Checkpoint/prefix reconstruction differs at mid-combat start.");
                     session.BeginTrajectoryAtCurrentState();
                     startProvenance = new { replayVerified = true, midTurns, rootKey = expectedKey,
-                        entryHp = session.EntryHp, initialEnemyEffectiveHp = session.InitialEnemyEffectiveHp,
+                        entryHp = session.EntryHp, initialEnemyRawHp = session.InitialEnemyRawHp,
                         prefix = prefix.Select(action => action.Key).ToArray() };
                 }
                 var exportBudget = int.TryParse(System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_BUDGET_MS"), out var parsedBudget) ? parsedBudget : 1000;

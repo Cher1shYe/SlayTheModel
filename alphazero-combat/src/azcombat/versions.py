@@ -9,4 +9,4 @@ ONNX_MANIFEST_FORMAT = "azcombat.onnx.v4"
 FEATURE_ABI = "azcombat.features.v4"
 CHECKPOINT_FORMAT = "azcombat.checkpoint.v3"
 OBSERVATION_SCHEMA_VERSION = 3
-
+SEARCH_SEMANTICS_VERSION = "azcombat.search.v2"

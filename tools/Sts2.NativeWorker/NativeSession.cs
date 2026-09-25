@@ -28,6 +28,9 @@ using CombatSolver;
 
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
+public sealed record NativeLiveChoiceEvidence(int MinCount, int MaxCount,
+    IReadOnlyList<CombatChoiceCandidateObservation> Candidates);
+
 public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment<SearchAction>
 {
     private static readonly string AssemblyHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(RunManager).Assembly.Location)));
@@ -53,12 +56,21 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     private GameAction? _action;
     private IDisposable? _selector;
     private CancellationToken _activeCancellation;
+    private long _trajectoryGeneration;
+    private long _captureGeneration;
+    private string _trajectoryId = "";
+    private NativeMctsTrajectoryRewardContext? _boundRewardContext;
     public int Hp => _player.Creature.CurrentHp;
     public int Round => _state.RoundNumber;
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
-    public int InitialEnemyEffectiveHp { get; private set; }
+    public int InitialEnemyRawHp { get; private set; }
+    public int InitialEnemyEffectiveHp => BoundRewardContext().InitialEnemyEffectiveHp;
     public int EnemyDamageLost { get; private set; }
+    public string TrajectoryId => string.IsNullOrWhiteSpace(_trajectoryId)
+        ? throw new InvalidOperationException("Native trajectory has not started.")
+        : _trajectoryId;
+    public int TrajectoryInitialEnemyEffectiveHp => BoundRewardContext().InitialEnemyEffectiveHp;
     public List<EnemyHpTransition> EnemyHpTransitions { get; } = [];
     public readonly record struct EnemyHpTransition(int Before, int After, int Damage);
 
@@ -67,9 +79,10 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         if (_state == null || Terminal || HasPendingChoice || Actions().Count == 0)
             throw new InvalidOperationException("A mid-combat trajectory must begin at a settled legal decision.");
         EntryHp = Hp;
-        InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        InitialEnemyRawHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         EnemyDamageLost = 0;
         EnemyHpTransitions.Clear();
+        BeginTrajectoryIdentity();
     }
 
     public async Task SetInitialHpFixtureAsync(int hp, CancellationToken cancellation)
@@ -81,6 +94,17 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         if (Hp != hp || Terminal || HasPendingChoice)
             throw new InvalidDataException("Native low-HP fixture did not settle at a legal decision.");
         BeginTrajectoryAtCurrentState();
+    }
+
+    public async Task SetCurrentHpForRegressionAsync(int hp, CancellationToken cancellation)
+    {
+        if (_state == null || Terminal || HasPendingChoice || hp < 1
+            || hp > _player.Creature.MaxHp)
+            throw new ArgumentOutOfRangeException(nameof(hp), "Regression HP change requires a legal live combat root.");
+        await CreatureCmd.SetCurrentHp(_player.Creature, hp);
+        await SettleAsync(cancellation);
+        if (Hp != hp || Terminal || HasPendingChoice)
+            throw new InvalidDataException("Regression HP change did not settle at a legal decision.");
     }
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
@@ -171,11 +195,60 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
     }
 
-    public double EvaluateTerminal() => Won
-        ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI
-        : -1.0 + 0.25 * Math.Clamp(EnemyDamageLost / (double)Math.Max(InitialEnemyEffectiveHp, 1), 0, 1);
-    public double EvaluateUnresolved() => -0.5
-        + 0.25 * Math.Clamp(EnemyDamageLost / (double)Math.Max(InitialEnemyEffectiveHp, 1), 0, 1);
+    public NativeLiveChoiceEvidence CaptureLiveChoiceEvidence()
+    {
+        if (_choice == null)
+            throw new InvalidDataException("No pending native choice to capture.");
+        return new NativeLiveChoiceEvidence(Math.Min(_min, _options.Length),
+            Math.Min(_max, _options.Length), _options.Select(card =>
+                new CombatChoiceCandidateObservation(NetCombatCard.FromModel(card).CombatCardIndex,
+                    card.Id.ToString(), card.CurrentUpgradeLevel)).ToArray());
+    }
+
+    public double EvaluateTerminal() => NativeMctsReward.Score(
+        Won, true, EntryHp, Hp, EnemyDamageLost,
+        BoundRewardContext().InitialEnemyEffectiveHp);
+    public double EvaluateUnresolved() => NativeMctsReward.Score(
+        false, false, EntryHp, Hp, EnemyDamageLost,
+        BoundRewardContext().InitialEnemyEffectiveHp);
+
+    public NativeMctsTrajectoryRewardSeed CaptureRewardSeed()
+    {
+        if (_state == null || string.IsNullOrWhiteSpace(_trajectoryId))
+            throw new InvalidOperationException("Cannot capture reward context before a trajectory starts.");
+        return new NativeMctsTrajectoryRewardSeed(
+            TrajectoryId, ++_captureGeneration,
+            NativeMctsSimulationApi.CaptureLiveContinuationKey(_state),
+            EntryHp, EnemyDamageLost,
+            _boundRewardContext?.InitialEnemyEffectiveHp);
+    }
+
+    public void BindTrajectoryRewardContext(NativeMctsTrajectoryRewardContext context)
+    {
+        ArgumentNullException.ThrowIfNull(context);
+        if (context.TrajectoryId != TrajectoryId
+            || context.EntryHp != EntryHp
+            || context.CapturedEnemyDamagePrefix != EnemyDamageLost)
+            throw new InvalidDataException("Trajectory reward context conflicts with the stable native boundary.");
+        if (_boundRewardContext is { } previous
+            && (previous.TrajectoryId != context.TrajectoryId
+                || previous.EntryHp != context.EntryHp
+                || previous.InitialEnemyEffectiveHp != context.InitialEnemyEffectiveHp
+                || context.CaptureId <= previous.CaptureId))
+            throw new InvalidDataException("Trajectory reward context was reused or changed across captures.");
+        _boundRewardContext = context;
+    }
+
+    private NativeMctsTrajectoryRewardContext BoundRewardContext()
+        => _boundRewardContext
+            ?? throw new InvalidOperationException("Native reward context has not been bound to a simulation root.");
+
+    private void BeginTrajectoryIdentity()
+    {
+        _trajectoryId = $"{Seed}#{++_trajectoryGeneration}";
+        _captureGeneration = 0;
+        _boundRewardContext = null;
+    }
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
 
@@ -230,9 +303,10 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         if (GeneratedScenario is not null && (_state.Encounter?.RoomType != RoomType.Monster
             || !string.Equals(_state.Encounter.Id.Entry, EncounterId, StringComparison.OrdinalIgnoreCase)))
             throw new InvalidDataException("Native generated-deck combat entered a different encounter.");
-        InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        InitialEnemyRawHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         EnemyDamageLost = 0;
         EnemyHpTransitions.Clear();
+        BeginTrajectoryIdentity();
         await SettleAsync(cancellation);
     }
 

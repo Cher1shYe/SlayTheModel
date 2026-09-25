@@ -135,6 +135,7 @@ public static class CombatSolverMctsBenchmark
             new FileStream(parityPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read)) { AutoFlush = true };
         await using var writer = new StreamWriter(new FileStream(outputPath, FileMode.CreateNew, FileAccess.Write, FileShare.Read));
         var pending = new List<ExportedDecision>();
+        var rewardAudits = new List<NativeMctsTerminalRewardInputs>();
         var maxDecisions = int.TryParse(Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_MAX_DECISIONS"), out var parsedMax)
             ? Math.Max(1, parsedMax) : 256;
         var maxSimulationsText = Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_MAX_SIMULATIONS");
@@ -149,10 +150,11 @@ public static class CombatSolverMctsBenchmark
         {
             cancellation.ThrowIfCancellationRequested();
             using var environment = new CombatSolverReplayEnvironment();
-            environment.Capture(native.CombatStateForSimulation, native.EntryHp);
+            environment.Capture(native.CombatStateForSimulation, native.CaptureRewardSeed());
+            native.BindTrajectoryRewardContext(environment.RewardContext);
             var decisionPoint = CombatCaptureService.BuildDecisionPoint(native.CombatStateForSimulation, decision);
             RequirePublicPolicyObservation(decisionPoint.Observation, outputPath, native.Seed, decision);
-            var predictedObservation = environment.ObserveCurrent();
+            var predictedObservation = environment.PolicyObservation();
             RequirePublicPolicyObservation(predictedObservation, outputPath, native.Seed, decision);
             if (!string.Equals(JsonSerializer.Serialize(decisionPoint.Observation),
                     JsonSerializer.Serialize(predictedObservation), StringComparison.Ordinal))
@@ -174,8 +176,19 @@ public static class CombatSolverMctsBenchmark
             var tree = new ReplayMcts<CombatSolverMctsAction>(environment, seed: 20260922 + decision);
             var budget = TimeSpan.FromMilliseconds(budgetMilliseconds);
             var decisionWatch = Stopwatch.StartNew();
+            bool rootParityCaptured = false;
             var search = await SearchRootAsync(environment, tree, treeMode ? model : null,
-                budget, 20260922 + decision, cancellation, maxSimulations, treeRequested, modelLoadStatus);
+                budget, 20260922 + decision, cancellation, maxSimulations, treeRequested, modelLoadStatus,
+                (observation, actions, logits, value) =>
+                {
+                    if (environment.StateKey() != rootKey || rootParityCaptured) return;
+                    WriteTreeParity(parityWriter, observation, decisionPoint.Observation,
+                        rootKey, legal, actions,
+                        logits, value, native.Seed, decision, 0);
+                    rootParityCaptured = true;
+                });
+            if (parityWriter != null && !rootParityCaptured)
+                throw new InvalidDataException("Ordinary root did not reach the actual tree evaluator.");
             await VerifyObservationRestorationAsync(environment, predictedObservation, legal, cancellation);
             var stats = search.Statistics.ToArray();
             var rootSet = legalIds.ToHashSet(StringComparer.Ordinal);
@@ -248,8 +261,6 @@ public static class CombatSolverMctsBenchmark
                 search.NetworkValueCalls, search.NetworkFallbacks,
                 treeRequested ? search.Mode : model == null ? "pure-mcts" : modelShadow ? "shadow-post-mcts" : "post-mcts-rerank",
                 search.NetworkFallbackReason));
-            WriteRootParity(parityWriter, model, decisionPoint.Observation, rootKey, legal,
-                native.Seed, decision, 0, search.Mode);
             try
             {
                 string? predictedBefore = regressionOnly ? environment.CurrentContinuationStateText : null;
@@ -261,6 +272,7 @@ public static class CombatSolverMctsBenchmark
                 environment.Promote(selectedAction);
                 await native.StepAsync(liveAction, cancellation);
                 int choiceLayer = 0;
+                var completedLiveSelections = new List<CombatCompletedChoiceObservation>();
                 while (native.HasPendingChoice)
                 {
                     // Preserve the suspended parent context; never capture mid-action.
@@ -279,19 +291,19 @@ public static class CombatSolverMctsBenchmark
                     {
                         frame = choiceEnvironment.CurrentChoiceFrame;
                         native.ValidateChoiceFrame(frame);
+                        if (JsonSerializer.Serialize(frame.CompletedSelections)
+                            != JsonSerializer.Serialize(completedLiveSelections))
+                            throw new InvalidDataException("Choice frame completed prefix differs from executed native selections.");
                         if (frame.TriggerCardId != selectedAction.Native.CardId)
                             throw new InvalidDataException("Choice trigger differs from the executed parent card.");
                         if (!string.Equals(JsonSerializer.Serialize(choiceObservation),
                                 JsonSerializer.Serialize(frame.Observation), StringComparison.Ordinal))
                             throw new InvalidDataException("Live/predicted pre-selection policy observations differ.");
-                        var choiceContext = new CombatChoiceObservation(
-                            frame.TriggerCardId, frame.Effect, frame.SourcePile,
-                            frame.MinCount, frame.MaxCount, frame.Ordered,
-                            frame.Candidates.Select(candidate => new CombatChoiceCandidateObservation(
-                                candidate.CombatCardIndex, candidate.ModelId, candidate.UpgradeLevel)).ToArray(),
-                            frame.CompletedSelections);
-                        choiceObservation = choiceObservation with { Choice = choiceContext };
-                        choiceObservation.Validate();
+                        choiceObservation = choiceEnvironment.PolicyObservation();
+                        if (choiceObservation.Choice is null
+                            || !string.Equals(JsonSerializer.Serialize(choiceObservation with { Choice = null }),
+                                JsonSerializer.Serialize(frame.Observation), StringComparison.Ordinal))
+                            throw new InvalidDataException("Current choice frame did not produce the tree policy observation.");
                         if (decision == 0 && forcedFixtureCard != null)
                             forcedFixtureChoiceObserved = true;
                     }
@@ -312,8 +324,20 @@ public static class CombatSolverMctsBenchmark
                     }
                     var choiceTree = new ReplayMcts<CombatSolverMctsAction>(choiceEnvironment, seed: 20260922 + decision + 10000);
                     var choiceWatch = Stopwatch.StartNew();
+                    bool choiceParityCaptured = false;
+                    var choiceRootKey = choiceEnvironment.RootKey;
                     var choiceSearch = await SearchRootAsync(choiceEnvironment, choiceTree, treeMode ? model : null,
-                        budget, 20260922 + decision + 10000, cancellation, maxSimulations, treeRequested, modelLoadStatus);
+                        budget, 20260922 + decision + 10000, cancellation, maxSimulations, treeRequested, modelLoadStatus,
+                        (observation, actions, logits, value) =>
+                        {
+                            if (choiceEnvironment.StateKey() != choiceRootKey || choiceParityCaptured) return;
+                            WriteTreeParity(parityWriter, observation, choiceObservation,
+                                choiceRootKey, choiceActions,
+                                actions, logits, value, native.Seed, decision, choiceLayer);
+                            choiceParityCaptured = true;
+                        });
+                    if (parityWriter != null && !choiceParityCaptured)
+                        throw new InvalidDataException("Choice root did not reach the actual tree evaluator.");
                     var selectedChoice = choiceActions.SingleOrDefault(action => action.Key == choiceSearch.Action.Key)
                         ?? throw new InvalidDataException($"Choice result {choiceSearch.Action.Key} is not in the pending root action set.");
                     var choiceLegal = choiceActions.ToArray();
@@ -352,12 +376,14 @@ public static class CombatSolverMctsBenchmark
                          choiceSearch.NetworkPriorCalls, choiceSearch.NetworkValueCalls, choiceSearch.NetworkFallbacks,
                          treeRequested ? choiceSearch.Mode : model == null ? "pure-mcts" : modelShadow ? "shadow-post-mcts" : "post-mcts-rerank",
                          choiceSearch.NetworkFallbackReason));
-                    WriteRootParity(parityWriter, model, choiceObservation, choiceEnvironment.RootKey,
-                        choiceLegal, native.Seed, decision, choiceLayer, choiceSearch.Mode);
                     modelFallbacks += choiceSearch.NetworkFallbacks;
                     modelScored += choiceSearch.NetworkPriorCalls;
                     modelUsed += choiceSearch.NetworkValueCalls;
                     var liveChoice = native.ToLiveSearchAction(selectedChoice);
+                    var liveCandidates = native.CaptureLiveChoiceEvidence().Candidates;
+                    completedLiveSelections.Add(new CombatCompletedChoiceObservation(frame.Effect,
+                        (liveChoice.Selection ?? throw new InvalidDataException("Live choice has no selected indices."))
+                        .Select(index => liveCandidates[index].CombatCardIndex).ToArray()));
                     choiceEnvironment.Promote(selectedChoice);
                     await native.StepAsync(liveChoice, cancellation);
                 }
@@ -412,6 +438,15 @@ public static class CombatSolverMctsBenchmark
                 if ((advancedForcedChoice || (decision == 0 && forcedFixtureCard != null)) && !native.Terminal
                     && environment.CurrentContinuationKey != NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation))
                     throw new InvalidDataException("Forced choice continuation differs from live state.");
+                if (native.Terminal)
+                {
+                    await environment.RestoreAsync([], cancellation);
+                    rewardAudits.Add(environment.TerminalRewardInputs());
+                }
+                else if (!environment.State.PendingChoice)
+                {
+                    rewardAudits.Add(environment.UnresolvedRewardInputs());
+                }
             }
             catch (Exception exception)
             {
@@ -442,6 +477,7 @@ public static class CombatSolverMctsBenchmark
         var actualSearchModes = pending.Select(item => item.SearchMode).Distinct(StringComparer.Ordinal).ToArray();
         var provenance = new
         {
+            searchSemanticsVersion = "azcombat.search.v2",
             seed = native.Seed,
             encounter = native.EncounterId,
             choiceFixture = native.ChoiceFixture,
@@ -456,11 +492,12 @@ public static class CombatSolverMctsBenchmark
             terminal = resolved,
             entryHp = native.EntryHp,
             playerHp = native.Hp,
-            initialEnemyEffectiveHp = native.InitialEnemyEffectiveHp,
+            trajectoryInitialEnemyEffectiveHp = native.TrajectoryInitialEnemyEffectiveHp,
             enemyDamageLost = native.EnemyDamageLost,
             enemyHpTransitions = native.EnemyHpTransitions.Select(item => new {
                 before = item.Before, after = item.After, damage = item.Damage,
             }).ToArray(),
+            rewardAudits,
             startProvenance,
             modelLoadStatus,
             requestedSearchMode,
@@ -569,24 +606,28 @@ public static class CombatSolverMctsBenchmark
         };
     }
 
-    private static void WriteRootParity(StreamWriter? writer, AlphaZeroOnnxEvaluator? model,
-        CombatObservation observation, string rootKey, IReadOnlyList<CombatSolverMctsAction> legal,
-        string seed, int decision, int choiceLayer, string searchMode)
+    private static void WriteTreeParity(StreamWriter? writer, CombatObservation observation,
+        CombatObservation expectedObservation,
+        string rootKey, IReadOnlyList<CombatSolverMctsAction> expected,
+        IReadOnlyList<CombatSolverMctsAction> legal, IReadOnlyList<float> logits, float value,
+        string seed, int decision, int choiceLayer)
     {
-        if (writer is null) return;
-        if (searchMode != "policy-value-tree-v1" || model is null)
-            throw new InvalidDataException("Root parity capture requires successful tree guidance, not fallback.");
-        if (!model.TryEvaluate(observation, legal, out var logits, out var value, out var status))
-            throw new InvalidDataException($"Root parity model evaluation failed: {status}");
+        if (!legal.Select(action => action.Key).SequenceEqual(expected.Select(action => action.Key)))
+            throw new InvalidDataException("Tree root legal action order differs from the export boundary.");
         var observationJson = JsonSerializer.Serialize(observation);
+        if (observationJson != JsonSerializer.Serialize(expectedObservation))
+            throw new InvalidDataException("Actual tree evaluator input differs from the export observation.");
+        if (writer is null) return;
         var observationSha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
             System.Text.Encoding.UTF8.GetBytes(observationJson)));
         writer.WriteLine(JsonSerializer.Serialize(new
         {
             seed, decision, choiceLayer, stateKey = rootKey, observationJson,
+            observation,
             observationSha256,
             orderedActionIds = legal.Select(action => TrainingActionId(action.Native)).ToArray(),
-            logits, value, outsideSearch = true,
+            legalActions = legal.Select(action => action.Native).ToArray(),
+            logits, value, actualTreeEvaluator = true,
         }));
     }
 
@@ -615,7 +656,8 @@ public static class CombatSolverMctsBenchmark
         CancellationToken cancellation,
         int? maxSimulations,
         bool treeRequested,
-        string modelLoadStatus)
+        string modelLoadStatus,
+        Action<CombatObservation, IReadOnlyList<CombatSolverMctsAction>, IReadOnlyList<float>, float>? onTreeEvaluation = null)
     {
         if (model is null)
         {
@@ -634,6 +676,7 @@ public static class CombatSolverMctsBenchmark
                 {
                     if (!model.TryEvaluate(observation, legal, out var logits, out var value, out var status))
                         throw new ModelInferenceException(status);
+                    onTreeEvaluation?.Invoke(observation, legal, logits, value);
                     return new PolicyValuePrediction(logits.Select(item => (double)item).ToArray(), value);
                 }, seed);
             var policy = await policyTree.SearchAsync([], environment.RootKey, budget, budget, cancellation,
@@ -670,7 +713,8 @@ public static class CombatSolverMctsBenchmark
         CancellationToken cancellation)
     {
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(native.CombatStateForSimulation, native.EntryHp);
+        environment.Capture(native.CombatStateForSimulation, native.CaptureRewardSeed());
+        native.BindTrajectoryRewardContext(environment.RewardContext);
         return await SearchPureRootAsync(environment, budget, cancellation);
     }
 

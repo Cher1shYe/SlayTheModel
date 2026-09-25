@@ -18,7 +18,8 @@ internal static class MctsThroughputDiagnosis
         Directory.CreateDirectory(Path.GetDirectoryName(output)!);
         var setupWatch = Stopwatch.StartNew();
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(native.CombatStateForSimulation, native.EntryHp);
+        environment.Capture(native.CombatStateForSimulation, native.CaptureRewardSeed());
+        native.BindTrajectoryRewardContext(environment.RewardContext);
         if (rootKind != "ordinary")
         {
             string parentCard = rootKind == "purity" ? "PURITY" : "CASCADE";

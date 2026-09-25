@@ -29,11 +29,14 @@ internal sealed partial class CombatBeamSolver
                 card.Preview.Id.ToString(), card.Preview.CurrentUpgradeLevel,
                 stateKey, occurrence);
         }).ToArray();
+        if (spec.MinCount > candidates.Length || spec.MaxCount > candidates.Length)
+            throw new PredictionUnsupportedException(
+                "Choice cardinality exceeds the captured candidate set.");
         if (candidates.Select(candidate => candidate.CombatCardIndex).Distinct().Count() != candidates.Length)
             throw new PredictionUnsupportedException("Choice candidate instance IDs are ambiguous.");
         return new NativeMctsChoiceFrame(NativeMctsObserve(preSelection), triggerCardId,
             spec.Effect.ToString(), spec.SourcePile.ToString(),
-            Math.Min(spec.MinCount, candidates.Length), Math.Min(spec.MaxCount, candidates.Length),
+            spec.MinCount, spec.MaxCount,
             spec.Effect == PlanChoiceEffect.MoveToDrawTop, candidates, []);
     }
 

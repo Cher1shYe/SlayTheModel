@@ -11,7 +11,8 @@ public static partial class NativeVerification
         session.EncounterId = "CULTISTS_NORMAL";
         await session.ResetAsync("SOLVER-END-TURN", cancellation);
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        environment.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+        session.BindTrajectoryRewardContext(environment.RewardContext);
         await environment.RestoreAsync([], cancellation);
         var endTurn = environment.LegalActions().Single(action => action.Native.Kind == "EndTurn");
         await environment.ApplyAsync(endTurn, cancellation);
@@ -66,14 +67,56 @@ public static partial class NativeVerification
         session.EncounterId = "CULTISTS_NORMAL";
         await session.ResetAsync("SOLVER-CHOICE-FIXTURE", cancellation);
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        environment.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+        session.BindTrajectoryRewardContext(environment.RewardContext);
         await environment.RestoreAsync([], cancellation);
         var purity = environment.LegalActions().Single(action => action.Native.CardId == "PURITY");
+        bool sawExpandedChoiceInput = false;
+        var expansionTree = new SlayTheModel.Search.PolicyValueMcts<CombatSolverMctsAction,
+            SlayTheModel.Sts2.Protocol.CombatObservation>(environment, (observation, legal) =>
+        {
+            if (environment.State.PendingChoice)
+            {
+                sawExpandedChoiceInput = true;
+                var expected = environment.ObserveCurrent();
+                if (JsonSerializer.Serialize(observation) != JsonSerializer.Serialize(expected)
+                    || observation.Choice is null)
+                    throw new InvalidDataException("Expanded choice node reached the actual tree evaluator without Choice context.");
+            }
+            return new SlayTheModel.Search.PolicyValuePrediction(new double[legal.Count], 0);
+        }, seed: 20260925);
+        await expansionTree.SearchAsync([], environment.RootKey, TimeSpan.FromSeconds(20),
+            TimeSpan.FromSeconds(20), cancellation, maxSimulations: environment.RootActions.Count + 1);
+        if (!sawExpandedChoiceInput)
+            throw new InvalidDataException("Ordinary-root tree did not evaluate its newly expanded Purity choice node.");
+        await environment.RestoreAsync([], cancellation);
         await environment.ApplyAsync(purity, cancellation);
         var choices = environment.LegalActions();
         if (choices.Count != 15 || choices.Any(action => action.Native.ChoiceKey == null))
             throw new InvalidDataException($"Combat Solver Purity should expose 15 independent choice nodes, observed {choices.Count}.");
         environment.Promote(purity);
+        bool sawTreeChoiceInput = false;
+        var choiceInputTree = new SlayTheModel.Search.PolicyValueMcts<CombatSolverMctsAction,
+            SlayTheModel.Sts2.Protocol.CombatObservation>(environment, (observation, legal) =>
+        {
+            sawTreeChoiceInput = true;
+            if (environment.State.PendingChoice)
+            {
+                var expected = environment.ObserveCurrent();
+                if (JsonSerializer.Serialize(observation) != JsonSerializer.Serialize(expected)
+                    || observation.Choice is null)
+                throw new InvalidDataException("Actual tree evaluator received a choice root without Choice context.");
+            }
+            return new SlayTheModel.Search.PolicyValuePrediction(new double[legal.Count], 0);
+        }, seed: 20260925);
+        await choiceInputTree.SearchAsync([], environment.RootKey, TimeSpan.FromSeconds(10),
+            TimeSpan.FromSeconds(10), cancellation, maxSimulations: 2);
+        if (!sawTreeChoiceInput)
+            throw new InvalidDataException("Choice root did not reach the actual tree evaluator.");
+        await environment.RestoreAsync([], cancellation);
+        if (JsonSerializer.Serialize(environment.ObserveCurrent())
+            != JsonSerializer.Serialize(environment.CurrentChoiceFrame.ToPolicyObservation()))
+            throw new InvalidDataException("Choice frame projection differs from the shared policy observation.");
         await VerifyChoiceReplayAsync(environment, cancellation);
         await session.StepAsync(session.ToLiveSearchAction(purity), cancellation);
         if (!environment.MatchesLiveRoot(session.CombatStateForSimulation, livePendingChoice: true,
@@ -128,7 +171,8 @@ public static partial class NativeVerification
         session.ChoiceFixtureUpgradedCards = ["UPPERCUT"];
         await session.ResetAsync("DARK-EMBRACE-UPPERCUT", cancellation);
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        environment.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+        session.BindTrajectoryRewardContext(environment.RewardContext);
         foreach (string cardId in new[] { "DARK_EMBRACE", "BLOODLETTING", "UPPERCUT" })
         {
             var action = environment.LegalActions().First(candidate => candidate.Native.CardId == cardId);
@@ -171,7 +215,8 @@ public static partial class NativeVerification
             ["BURNING_PACT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD", "BASH", "HEADBUTT"];
         await session.ResetAsync("BURNING-PACT-CHOICE", cancellation);
         using var environment = new CombatSolverReplayEnvironment();
-        environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+        environment.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+        session.BindTrajectoryRewardContext(environment.RewardContext);
         await environment.RestoreAsync([], cancellation);
         var play = environment.LegalActions().Single(action => action.Native.CardId == "BURNING_PACT");
         await environment.ApplyAsync(play, cancellation);

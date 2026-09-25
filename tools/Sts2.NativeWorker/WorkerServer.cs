@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text.Json;
 using Godot;
+using CombatSolver.Api;
 using SlayTheModel.Search;
 using SlayTheModel.Sts2.ModAdapter;
 using SlayTheModel.Sts2.Protocol;
@@ -64,6 +65,13 @@ public static class WorkerServer
                     reused = simulation.MatchesLiveRoot(
                         session.CombatStateForSimulation, session.HasPendingChoice,
                         session.ChoiceSignature);
+                if (reused && (!simulation.HasRewardContext
+                    || simulation.RewardContext.TrajectoryId != session.TrajectoryId
+                    || simulation.RewardContext.CapturedEnemyDamagePrefix != session.EnemyDamageLost
+                    || simulation.RewardContext.CaptureBoundaryKey
+                        != NativeMctsSimulationApi.CaptureLiveContinuationKey(
+                            session.CombatStateForSimulation)))
+                    reused = false;
                 SearchAction? previousRequest = request.PreviousAction ?? request.Prefix.LastOrDefault();
                 if (!reused && previousRequest != null
                     && returnedActions.TryGetValue(previousRequest.Key, out var previous))
@@ -74,6 +82,13 @@ public static class WorkerServer
                         session.CombatStateForSimulation, session.HasPendingChoice,
                         session.ChoiceSignature);
                 }
+                if (reused && (!simulation.HasRewardContext
+                    || simulation.RewardContext.TrajectoryId != session.TrajectoryId
+                    || simulation.RewardContext.CapturedEnemyDamagePrefix != session.EnemyDamageLost
+                    || simulation.RewardContext.CaptureBoundaryKey
+                        != NativeMctsSimulationApi.CaptureLiveContinuationKey(
+                            session.CombatStateForSimulation)))
+                    reused = false;
                 if (!reused)
                 {
                     if (session.HasPendingChoice)
@@ -84,7 +99,8 @@ public static class WorkerServer
                     // A request without PreviousAction may be a native choice boundary whose
                     // ponder key did not match. The restored session is authoritative; never
                     // search the previous play-state root at a new choice boundary.
-                    simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+                    simulation.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+                    session.BindTrajectoryRewardContext(simulation.RewardContext);
                     tree.Reset();
                 }
                 session.ValidateSimulationActions(simulation.LegalActions());
@@ -170,7 +186,8 @@ public static class WorkerServer
                         Console.Error.WriteLine(
                             $"[SlayTheModel] Combat Solver continuation mismatch; rebuilding from native state. "
                             + $"predicted={predictedSimulation.ContinuationKey} actual={actualContinuation}");
-                        simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+                        simulation.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+                        session.BindTrajectoryRewardContext(simulation.RewardContext);
                         tree.Reset();
                         returnedActions.Clear();
                     }
