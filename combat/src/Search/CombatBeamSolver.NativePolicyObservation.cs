@@ -41,6 +41,7 @@ internal sealed partial class CombatBeamSolver
     // state, the continuation stamp, branch forecasts or replay fingerprints here.
     internal CombatObservation NativeMctsObserve(SimulationSnapshot snapshot)
     {
+        using var projection = _run.Performance.Measure(SearchMetricPhase.NativeObservationProjection);
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
         CombatPredictionState state = simulator.State;
         SimulatedCombatState combat = (SimulatedCombatState)state.CombatState;
@@ -93,7 +94,8 @@ internal sealed partial class CombatBeamSolver
         };
         var observation = new CombatObservation(CombatObservation.CurrentSchemaVersion,
             combat.RoundNumber, side, players, creatures);
-        observation.Validate();
+        using (_run.Performance.Measure(SearchMetricPhase.NativeObservationValidation))
+            observation.Validate();
         return observation;
     }
 }

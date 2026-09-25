@@ -6,19 +6,19 @@ import hashlib
 import json
 from pathlib import Path
 import random
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 
 import torch
 from torch import Tensor, nn
 
 from .samples import TrainingSample, read_jsonl
 from .schema import ActionNode
+from .versions import CHECKPOINT_FORMAT, FEATURE_ABI, OBSERVATION_SCHEMA_VERSION
 
 ENTITY_DIM = 12
 GLOBAL_DIM = 4
 ACTION_DIM = 19
 ACTION_KINDS = ("PlayCard", "UsePotion", "EndTurn", "Target", "Option", "CardSubset", "CardOrder", "NestedChoice")
-FEATURE_ABI = "azcombat.features.v4"
 
 
 def _hash(value: object) -> float:
@@ -116,6 +116,39 @@ def split_by_seed(samples: Sequence[TrainingSample], fraction: float = 0.2) -> t
             [s for s in samples if s.seed in validation_seeds])
 
 
+def load_seed_split(path: Path) -> dict[str, list[str]]:
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    fields = {"format", "trainSeeds", "validationSeeds", "evaluationSeeds"}
+    if not isinstance(raw, dict) or set(raw) != fields or raw["format"] != "azcombat.seed-split.v1":
+        raise ValueError("unsupported seed split manifest")
+    groups = {}
+    for name in ("trainSeeds", "validationSeeds", "evaluationSeeds"):
+        seeds = raw[name]
+        if not isinstance(seeds, list) or not seeds or any(not isinstance(seed, str) or not seed for seed in seeds) \
+                or len(seeds) != len(set(seeds)):
+            raise ValueError(f"invalid {name} in seed split manifest")
+        groups[name] = seeds
+    if set(groups["trainSeeds"]) & set(groups["validationSeeds"]) \
+            or set(groups["trainSeeds"]) & set(groups["evaluationSeeds"]) \
+            or set(groups["validationSeeds"]) & set(groups["evaluationSeeds"]):
+        raise ValueError("seed split manifest has overlapping sets")
+    return groups
+
+
+def split_by_manifest(samples: Sequence[TrainingSample], groups: Mapping[str, Sequence[str]]) \
+        -> tuple[list[TrainingSample], list[TrainingSample]]:
+    actual = {sample.seed for sample in samples}
+    expected = set(groups["trainSeeds"]) | set(groups["validationSeeds"])
+    if actual - expected:
+        raise ValueError(f"dataset contains undeclared/evaluation seeds: {sorted(actual - expected)}")
+    train_seeds = set(groups["trainSeeds"])
+    training = [sample for sample in samples if sample.seed in train_seeds]
+    validation = [sample for sample in samples if sample.seed not in train_seeds]
+    if not training or not validation:
+        raise ValueError("frozen split requires nonempty train and validation samples")
+    return training, validation
+
+
 class CombatDataset:
     def __init__(self, paths: Iterable[Path]):
         self.paths = tuple(Path(p) for p in paths)
@@ -164,13 +197,50 @@ def _loss(model: DeepSetsPolicyValue, sample: TrainingSample) -> tuple[Tensor, T
     return policy_loss + value_loss, policy_loss, value_loss
 
 
+def _evaluate(model: DeepSetsPolicyValue, samples: Sequence[TrainingSample], label: str) -> dict[str, float]:
+    totals = {"Loss": 0.0, "PolicyLoss": 0.0, "ValueLoss": 0.0, "ValueMae": 0.0}
+    with torch.no_grad():
+        for sample in samples:
+            loss, policy_loss, value_loss = _loss(model, sample)
+            totals["Loss"] += loss.item()
+            totals["PolicyLoss"] += policy_loss.item()
+            totals["ValueLoss"] += value_loss.item()
+            totals["ValueMae"] += value_loss.sqrt().item()
+    return {label + name: value / len(samples) for name, value in totals.items()}
+
+
 def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainConfig(),
-          init_checkpoint: Path | None = None, bootstrap_audit: dict | None = None) -> dict:
+          init_checkpoint: Path | None = None, bootstrap_audit: dict | None = None,
+          seed_split: Path | None = None, teacher_report: dict | None = None) -> dict:
     if config.epochs < 1 or config.learning_rate <= 0 or config.hidden < 1:
         raise ValueError("invalid training hyperparameters")
     if checkpoint.exists():
         raise FileExistsError("checkpoint already exists")
-    train_samples, validation = split_by_seed(dataset.samples, config.validation_fraction)
+    if teacher_report is not None:
+        if seed_split is None or init_checkpoint is not None or bootstrap_audit is not None \
+                or teacher_report.get("phase") != "teacher" \
+                or teacher_report.get("summary", {}).get("readyForTraining") is not True \
+                or teacher_report.get("splitSha256", "").lower() != hashlib.sha256(
+                    seed_split.read_bytes()).hexdigest().lower():
+            raise ValueError("teacher audit or frozen split differs from training request")
+        eligible = [row for row in teacher_report["runs"] if row["status"] == "complete"
+                    and row["outcome"] in {"win", "loss"} and row["terminal"]]
+        expected = {str(Path(row["jsonl"]).resolve()): row["jsonlSha256"].lower()
+                    for row in eligible}
+        actual = {str(path.resolve()): hashlib.sha256(path.read_bytes()).hexdigest().lower()
+                  for path in dataset.paths}
+        declared = {str(Path(path).resolve()) for path in teacher_report["summary"]["trainingInputs"]}
+        if len(expected) != len(eligible) or len(actual) != len(dataset.paths) \
+                or actual != expected or set(expected) != declared:
+            raise ValueError("teacher training inputs differ from strictly audited terminal trajectories")
+    if seed_split is None:
+        train_samples, validation = split_by_seed(dataset.samples, config.validation_fraction)
+    else:
+        groups = load_seed_split(seed_split)
+        train_samples, validation = split_by_manifest(dataset.samples, groups)
+        if any(sample.start_type != "full_combat" or sample.outcome == "unresolved"
+               for sample in dataset.samples):
+            raise ValueError("frozen teacher split requires completed full-combat trajectories")
     random.seed(config.seed)
     torch.manual_seed(config.seed)
     parent_metadata = None
@@ -197,26 +267,49 @@ def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainC
             raise ValueError("bootstrap audit/source model/seed lineage differs")
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
     history = []
+    best_validation_loss = float("inf")
+    best_epoch = 0
+    best_state = None
     for epoch in range(config.epochs):
         model.train()
         ordered = list(train_samples)
         random.shuffle(ordered)
-        train_losses = []
         for sample in ordered:
             optimizer.zero_grad()
             loss, _, _ = _loss(model, sample)
             loss.backward()
             optimizer.step()
-            train_losses.append(loss.item())
         model.eval()
-        with torch.no_grad():
-            valid_loss = sum(_loss(model, sample)[0].item() for sample in validation) / len(validation)
-        history.append({"epoch": epoch + 1, "trainLoss": sum(train_losses) / len(ordered), "validationLoss": valid_loss})
+        metrics = {"epoch": epoch + 1, **_evaluate(model, train_samples, "train"),
+                   **_evaluate(model, validation, "validation")}
+        history.append(metrics)
+        if metrics["validationLoss"] < best_validation_loss:
+            best_validation_loss = metrics["validationLoss"]
+            best_epoch = epoch + 1
+            best_state = {name: tensor.detach().clone() for name, tensor in model.state_dict().items()}
+    assert best_state is not None
+    model.load_state_dict(best_state)
     metadata = {"trainSeeds": sorted({s.seed for s in train_samples} | set(parent_metadata["trainSeeds"] if parent_metadata else [])),
                 "validationSeeds": sorted({s.seed for s in validation} | set(parent_metadata["validationSeeds"] if parent_metadata else [])),
                 "history": history, "generation": (parent_metadata.get("generation", 0) + 1) if parent_metadata else 0,
                 "inputSha256": {str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in dataset.paths},
-                "samples": len(dataset)}
+                "samples": len(dataset), "trainSamples": len(train_samples),
+                "validationSamples": len(validation), "selectedEpoch": best_epoch,
+                "selectionMetric": "validationLoss"}
+    if seed_split is not None:
+        metadata["seedSplitManifest"] = str(seed_split.resolve())
+        metadata["seedSplitSha256"] = hashlib.sha256(seed_split.read_bytes()).hexdigest()
+        metadata["reservedEvaluationSeeds"] = sorted(groups["evaluationSeeds"])
+        metadata["missingTrainSeeds"] = sorted(set(groups["trainSeeds"]) - {s.seed for s in train_samples})
+        metadata["missingValidationSeeds"] = sorted(set(groups["validationSeeds"]) - {s.seed for s in validation})
+        metadata["observedTrainSeeds"] = len({s.seed for s in train_samples})
+        metadata["observedValidationSeeds"] = len({s.seed for s in validation})
+    if teacher_report is not None:
+        metadata["teacherWaveManifestSha256"] = teacher_report["sourceManifestSha256"]
+        metadata["teacherAuditSha256"] = hashlib.sha256(json.dumps(
+            teacher_report, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+        ).encode("utf-8")).hexdigest()
+        metadata["teacherTerminalBattles"] = len(eligible)
     if init_checkpoint is not None:
         metadata["parentCheckpointSha256"] = hashlib.sha256(init_checkpoint.read_bytes()).hexdigest()
         metadata["cumulativeSamples"] = parent_metadata.get("cumulativeSamples", parent_metadata["samples"]) + len(dataset)
@@ -224,14 +317,16 @@ def train(dataset: CombatDataset, checkpoint: Path, config: TrainConfig = TrainC
         metadata["bootstrapWaveManifestSha256"] = bootstrap_audit["waveManifestSha256"]
         metadata["bootstrapOnnxSha256"] = bootstrap_audit["candidateSha256"]
     checkpoint.parent.mkdir(parents=True, exist_ok=True)
-    torch.save({"format": "azcombat.checkpoint.v3", "featureAbi": FEATURE_ABI, "model": model.state_dict(),
+    torch.save({"format": CHECKPOINT_FORMAT, "featureAbi": FEATURE_ABI,
+                "observationSchemaVersion": OBSERVATION_SCHEMA_VERSION, "model": model.state_dict(),
                 "config": asdict(config), "metadata": metadata}, checkpoint)
     return metadata
 
 
 def load_checkpoint(path: Path) -> tuple[DeepSetsPolicyValue, dict]:
     payload = torch.load(path, map_location="cpu", weights_only=True)
-    if payload.get("format") != "azcombat.checkpoint.v3" or payload.get("featureAbi") != FEATURE_ABI:
+    if payload.get("format") != CHECKPOINT_FORMAT or payload.get("featureAbi") != FEATURE_ABI \
+            or payload.get("observationSchemaVersion", OBSERVATION_SCHEMA_VERSION) != OBSERVATION_SCHEMA_VERSION:
         raise ValueError("unsupported checkpoint format")
     model = DeepSetsPolicyValue(payload["config"]["hidden"])
     model.load_state_dict(payload["model"])

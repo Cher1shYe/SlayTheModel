@@ -19,13 +19,21 @@ internal sealed partial class CombatBeamSolver
     private PlanAction? _nativeMctsBaseAction;
     private NativeMctsChoiceFrame? _nativeMctsFirstPendingFrame;
     private Dictionary<string, NativeMctsChoiceFrame>? _nativeMctsFramesAfterPrefix;
+    private int _nativeMctsRootForkCount;
+    private int _nativeMctsGeneratedChoiceBranches;
+    private int _nativeMctsResolvedChoiceBranches;
 
-    internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
+    internal SimulationSnapshot NativeMctsCreateRoot()
+    {
+        _nativeMctsRootForkCount++;
+        return Replay([]);
+    }
 
     internal int NativeMctsInitialEnemyHp => root.InitialEnemyEffectiveHp;
 
     internal NativeMctsState NativeMctsDescribe(SimulationSnapshot snapshot, int actionCount)
     {
+        using var describe = _run.Performance.Measure(SearchMetricPhase.NativeDescribe);
         // Explicit choices are described by NativeMctsSimulationSession from the
         // resolved branch groups, not by treating a suspended probe as a terminal.
         if (snapshot.BoundaryReason == SearchBoundaryReason.PendingChoice)
@@ -40,8 +48,11 @@ internal sealed partial class CombatBeamSolver
             || snapshot.BoundaryReason != SearchBoundaryReason.None;
         int incomingDamage = 0;
         NativeMctsAction[] actions = terminal ? [] : NativeMctsPreparedPublicActions(snapshot, actionCount, out incomingDamage);
+        string key;
+        using (_run.Performance.Measure(SearchMetricPhase.NativeIdentityHash))
+            key = NativeMctsSimulation.DecisionStateKey(snapshot.StateKey, actions);
         return new NativeMctsState(
-            NativeMctsSimulation.DecisionStateKey(snapshot.StateKey, actions),
+            key,
             terminal,
             snapshot.TerminalStamp is { Outcome: CombatTerminalOutcome.Victory },
             snapshot.TerminalStamp is { Outcome: CombatTerminalOutcome.Defeat },
@@ -59,6 +70,7 @@ internal sealed partial class CombatBeamSolver
     internal NativeMctsExpansion NativeMctsExpand(
         SimulationSnapshot snapshot, NativeMctsAction requested, int actionCount)
     {
+        using var expand = _run.Performance.Measure(SearchMetricPhase.NativeExpand);
         List<string> diagnostics = [];
         List<string>? previousDiagnostics = _nativeMctsChoiceDiagnostics;
         _nativeMctsChoiceDiagnostics = diagnostics;
@@ -83,7 +95,10 @@ internal sealed partial class CombatBeamSolver
             _nativeMctsBaseAction = action;
             if (action.Kind == PlanActionKind.EndTurn)
             {
-                var endTurnResolved = BuildEndTurnBranches(node, []).ToArray();
+                (PlanAction Action, SimulationSnapshot Snapshot)[] endTurnResolved;
+                using (_run.Performance.Measure(SearchMetricPhase.NativeChoiceMaterialization))
+                    endTurnResolved = BuildEndTurnBranches(node, []).ToArray();
+                CountNativeMctsResolvedChoiceBranches(endTurnResolved);
                 return new NativeMctsExpansion(action, endTurnResolved, diagnostics.ToArray(),
                     _nativeMctsFirstPendingFrame, _nativeMctsFramesAfterPrefix);
             }
@@ -100,6 +115,19 @@ internal sealed partial class CombatBeamSolver
                 CardChoiceSupport.BuildRequiredEmptyChoice(card.Preview));
             using CardChoiceReplayCapture? capture = PrepareCardChoiceCapture(node, action);
             SimulationSnapshot probe = ReplayAction(node, action, cardChoiceCapture: capture);
+            var probeSimulator = (CombatPredictionSimulator)probe.Simulator;
+            var probeCombat = (SimulatedCombatState)probeSimulator.State.CombatState;
+            NativeMctsProbeBoundaryDiagnostic probeBoundary = new(
+                probe.PlayerDead, probe.AllEnemiesDead, probe.TerminalStamp?.ToString(),
+                probeSimulator.IsInProgress, probeSimulator.IsEnding,
+                probeSimulator.HasPendingChoice, probeCombat.HasPendingChoice,
+                probe.BoundaryReason.ToString());
+            if (probe.TerminalStamp.HasValue && (probe.BoundaryReason == SearchBoundaryReason.PendingChoice
+                || probeSimulator.HasPendingChoice || probeCombat.HasPendingChoice))
+            {
+                probe.ReleaseSimulator();
+                throw new InvalidDataException("A resolved terminal card probe retained a pending choice.");
+            }
             CardChoiceSpec? choiceSpec = BuildPrimaryCardChoiceSpec(probe);
             if (choiceSpec == null && prepared.RequiresUnsupportedExistingChoice)
             {
@@ -116,11 +144,14 @@ internal sealed partial class CombatBeamSolver
                     ? ResolveRoundChoiceBranches(node, action, probe,
                         BuildPrimaryChoiceMatch(primaryChoiceSpec), budgetPrimaryChoiceSpec: primaryChoiceSpec)
                     : ResolvePrimaryCardChoiceBranches(node, action, probe, choiceSpec, prepared.RequiredEmptyChoice);
-            (PlanAction Action, SimulationSnapshot Snapshot)[] resolved =
-                WithCardChoiceCheckpoint(capture?.Take(), branches).ToArray();
+            (PlanAction Action, SimulationSnapshot Snapshot)[] resolved;
+            using (_run.Performance.Measure(SearchMetricPhase.NativeChoiceMaterialization))
+                resolved = WithCardChoiceCheckpoint(capture?.Take(), branches).ToArray();
+            CountNativeMctsResolvedChoiceBranches(resolved);
             RecordNativeMctsResolvedChoiceBranches(resolved);
             return new NativeMctsExpansion(action, resolved, diagnostics.ToArray(),
-                firstChoiceFrame ?? _nativeMctsFirstPendingFrame, _nativeMctsFramesAfterPrefix);
+                firstChoiceFrame ?? _nativeMctsFirstPendingFrame, _nativeMctsFramesAfterPrefix,
+                probeBoundary);
         }
         finally
         {
@@ -148,17 +179,28 @@ internal sealed partial class CombatBeamSolver
         int preceding = partial.GetActionChoicesInExecutionOrder().Count;
         if (preceding == 0)
         {
-            if (_nativeMctsFirstPendingFrame != null
-                && JsonSerializer.Serialize(_nativeMctsFirstPendingFrame) != JsonSerializer.Serialize(frame))
-                throw new InvalidDataException("First choice probe differs across replay branches.");
+            if (_nativeMctsFirstPendingFrame != null)
+            {
+                bool differs;
+                using (_run.Performance.Measure(SearchMetricPhase.NativeJsonSerialization))
+                    differs = JsonSerializer.Serialize(_nativeMctsFirstPendingFrame)
+                        != JsonSerializer.Serialize(frame);
+                if (differs)
+                    throw new InvalidDataException("First choice probe differs across replay branches.");
+            }
             _nativeMctsFirstPendingFrame = frame;
             return;
         }
-        string prefix = NativeMctsSimulation.ChoiceKey(_nativeMctsBaseAction, partial, preceding - 1);
-        if (_nativeMctsFramesAfterPrefix.TryGetValue(prefix, out var earlier)
-            && JsonSerializer.Serialize(earlier) != JsonSerializer.Serialize(frame))
-            throw new InvalidDataException($"Nested choice probe differs across branches for {prefix}. "
-                + $"previous={JsonSerializer.Serialize(earlier)} current={JsonSerializer.Serialize(frame)}");
+        string prefix = NativeMctsChoiceKey(_nativeMctsBaseAction, partial, preceding - 1);
+        if (_nativeMctsFramesAfterPrefix.TryGetValue(prefix, out var earlier))
+        {
+            bool differs;
+            using (_run.Performance.Measure(SearchMetricPhase.NativeJsonSerialization))
+                differs = JsonSerializer.Serialize(earlier) != JsonSerializer.Serialize(frame);
+            if (differs)
+                throw new InvalidDataException($"Nested choice probe differs across branches for {prefix}. "
+                    + $"previous={JsonSerializer.Serialize(earlier)} current={JsonSerializer.Serialize(frame)}");
+        }
         _nativeMctsFramesAfterPrefix[prefix] = frame;
     }
 
@@ -168,6 +210,9 @@ internal sealed partial class CombatBeamSolver
     {
         if (_nativeMctsChoiceDiagnostics == null)
             return;
+
+        if (policy.MeasurePhasePerformance)
+            _nativeMctsGeneratedChoiceBranches += generated.Count;
 
         const int itemLimit = 128;
         string options = FormatDiagnosticItems(
@@ -236,6 +281,56 @@ internal sealed partial class CombatBeamSolver
         return omitted == 0 ? value : value + $";...(+{omitted})";
     }
 
+    private void CountNativeMctsResolvedChoiceBranches(
+        IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> resolved)
+    {
+        if (policy.MeasurePhasePerformance)
+            _nativeMctsResolvedChoiceBranches += resolved.Count(item =>
+                item.Action.GetActionChoicesInExecutionOrder().Count > 0);
+    }
+
+    internal string NativeMctsChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1)
+    {
+        using var measure = _run.Performance.Measure(SearchMetricPhase.NativeIdentityHash);
+        return NativeMctsSimulation.ChoiceKey(baseAction, resolved, choiceIndex, _run.Performance);
+    }
+
+    internal string NativeMctsPendingStateKey(
+        StateFingerprint parent, IReadOnlyList<NativeMctsAction> actions)
+    {
+        using var measure = _run.Performance.Measure(SearchMetricPhase.NativeIdentityHash);
+        return NativeMctsSimulation.PendingStateKey(parent, actions);
+    }
+
+    internal string NativeMctsHash(string value)
+    {
+        using var measure = _run.Performance.Measure(SearchMetricPhase.NativeIdentityHash);
+        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
+    }
+
+    internal NativeMctsDriverDiagnostics NativeMctsDiagnostics() => new(
+        Enabled: policy.MeasurePhasePerformance,
+        ForkCount: _run.ForkCount,
+        RootForkCount: _nativeMctsRootForkCount,
+        ReplayCount: _run.ReplayCount,
+        ChoiceBranchesEvaluated: _run.ChoiceBranchesEvaluated,
+        ChoiceReplayAttempts: _run.ChoiceReplayAttempts,
+        ChoiceReplayBudgetExhaustions: _run.ChoiceReplayBudgetExhaustions,
+        ChoiceBranchesDroppedByBudget: _run.ChoiceBranchesDroppedByBudget,
+        TransitionCount: _run.TransitionCount,
+        GeneratedChoiceBranches: _nativeMctsGeneratedChoiceBranches,
+        ResolvedChoiceBranches: _nativeMctsResolvedChoiceBranches,
+        Phases: Enum.GetValues<SearchMetricPhase>().ToDictionary(
+            phase => phase.ToString(),
+            phase =>
+            {
+                SearchPhaseMetric metric = _run.Performance.Snapshot(phase);
+                SearchPhaseMetric inclusive = _run.Performance.SnapshotInclusive(phase);
+                return new NativeMctsPhaseDiagnostic(metric.Elapsed.TotalMilliseconds, metric.AllocatedBytes,
+                    inclusive.Elapsed.TotalMilliseconds, inclusive.AllocatedBytes);
+            },
+            StringComparer.Ordinal));
+
     private SearchNode NativeMctsNode(SimulationSnapshot snapshot, int actionCount = 0) => new(
         null,
         actionCount,
@@ -264,6 +359,7 @@ internal sealed partial class CombatBeamSolver
     private NativeMctsAction[] NativeMctsPreparedPublicActions(
         SimulationSnapshot snapshot, int actionCount, out int incomingDamage)
     {
+        using var description = _run.Performance.Measure(SearchMetricPhase.NativeActionDescription);
         SimulationSnapshot query = Replay([], snapshot, snapshot.Turn, actionCount, countTransition: false);
         try
         {
@@ -302,7 +398,8 @@ internal sealed record NativeMctsExpansion(
     IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> Resolved,
     IReadOnlyList<string> ChoiceDiagnostics,
     NativeMctsChoiceFrame? FirstChoiceFrame = null,
-    IReadOnlyDictionary<string, NativeMctsChoiceFrame>? FramesAfterPrefix = null);
+    IReadOnlyDictionary<string, NativeMctsChoiceFrame>? FramesAfterPrefix = null,
+    NativeMctsProbeBoundaryDiagnostic? ProbeBoundary = null);
 
 internal static class NativeMctsSimulation
 {
@@ -317,10 +414,11 @@ internal static class NativeMctsSimulation
             MaxHandChoiceBranchesPerAction = 4096,
             SoftTimeBudgetMilliseconds = int.MaxValue,
         };
+        bool diagnosticsEnabled = Environment.GetEnvironmentVariable("STS2_MCTS_DIAG_PROFILE") == "1";
         var policy = new SearchPolicySnapshot(
             profile, SolverPotionPolicy.Disabled,
             new PotionStrategySnapshot(SolverPotionPolicy.Disabled, []),
-            false, false, true, false, 1, null, false, null,
+            false, false, true, diagnosticsEnabled, 1, null, false, null,
             BossHpStrategy.ProgressionFirst, BossHpStrategy.ProgressionFirst, 0,
             new SearchDiagnosticsSink(static _ => { }, static _ => { }),
             new SearchFramePressureSignal(), new SearchMemoryPressureSignal());
@@ -342,7 +440,8 @@ internal static class NativeMctsSimulation
         action.CardStateOccurrence, action.CardUpgradeLevel, action.CardEnchantmentId,
         action.TargetCombatId?.ToString() ?? "-");
 
-    internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1)
+    internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1,
+        SearchPerformanceMetrics? performance = null)
     {
         var choices = resolved.GetActionChoicesInExecutionOrder();
         if (choiceIndex >= 0 && choiceIndex < choices.Count)
@@ -350,17 +449,31 @@ internal static class NativeMctsSimulation
             // A nested choice identity is the complete path to this layer, not
             // only the current selection. Otherwise branches with different
             // outer selections are merged into one pending root.
-            string step = System.Text.Json.JsonSerializer.Serialize(
-                choices.Take(choiceIndex + 1).ToArray());
+            string step;
+            if (performance is null)
+                step = System.Text.Json.JsonSerializer.Serialize(choices.Take(choiceIndex + 1).ToArray());
+            else
+            {
+                using var serialization = performance.Measure(SearchMetricPhase.NativeJsonSerialization);
+                step = System.Text.Json.JsonSerializer.Serialize(choices.Take(choiceIndex + 1).ToArray());
+            }
             return $"choice:{ActionKey(baseAction)}:{choiceIndex}:"
                 + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(step)));
         }
-        string payload = System.Text.Json.JsonSerializer.Serialize(new
+        string payload;
+        if (performance is null)
+            payload = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                resolved.Choice, resolved.NestedChoices, resolved.TurnStartChoices,
+            });
+        else
         {
-            resolved.Choice,
-            resolved.NestedChoices,
-            resolved.TurnStartChoices,
-        });
+            using var serialization = performance.Measure(SearchMetricPhase.NativeJsonSerialization);
+            payload = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                resolved.Choice, resolved.NestedChoices, resolved.TurnStartChoices,
+            });
+        }
         string digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(payload)));
         return $"choice:{ActionKey(baseAction)}:{digest}";
     }

@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Mapping
 
+from .versions import OBSERVATION_SCHEMA_VERSION
+
 
 class ObservationError(ValueError):
     """Input violates the policy ABI or contains data outside its trust boundary."""
@@ -97,7 +99,7 @@ def _project_entity_list(raw: Any, fields: set[str], label: str) -> tuple[Mappin
 def validate_observation(raw: Mapping[str, Any]) -> CombatObservation:
     """Validate and project the strict combat observation allowlist."""
     obj = _object(raw, _TOP_LEVEL, "observation")
-    if obj["schemaVersion"] != 3:
+    if obj["schemaVersion"] != OBSERVATION_SCHEMA_VERSION:
         raise ObservationError("unsupported combat observation schemaVersion")
     if not isinstance(obj["roundNumber"], int) or obj["roundNumber"] < 0:
         raise ObservationError("roundNumber must be a non-negative integer")
@@ -138,7 +140,7 @@ def validate_observation(raw: Mapping[str, Any]) -> CombatObservation:
     creature_ids = [c["combatId"] for c in creatures]
     if len(player_ids) != len(set(player_ids)) or len(creature_ids) != len(set(creature_ids)):
         raise ObservationError("player and creature identifiers must be unique")
-    return CombatObservation(3, obj["roundNumber"], str(obj["currentSide"]), players, creatures, choice)
+    return CombatObservation(OBSERVATION_SCHEMA_VERSION, obj["roundNumber"], str(obj["currentSide"]), players, creatures, choice)
 
 
 @dataclass(frozen=True)

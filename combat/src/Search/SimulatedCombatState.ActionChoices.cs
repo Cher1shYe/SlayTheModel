@@ -151,6 +151,10 @@ internal sealed partial class SimulatedCombatState :
         CardChoiceSpec? spec = CardChoiceSupport.GetSpec(simulator, card);
         if (spec != null)
         {
+            // Vanilla skips a selector after the card's damage ended combat. The
+            // terminal stamp is committed after the complete card/death tail.
+            if (simulator.IsOverOrEnding)
+                return true;
             return ResolveActionCardChoice(
                 simulator,
                 card,
@@ -165,6 +169,8 @@ internal sealed partial class SimulatedCombatState :
             CardChoiceSupport.ApplyNoChoiceEffects(simulator, this, card);
             return !HasPendingChoice;
         }
+        if (simulator.IsOverOrEnding)
+            return true;
 
         TurnStartChoiceCursor choices = _activeActionChoices
             ?? throw new InvalidOperationException(
@@ -210,6 +216,8 @@ internal sealed partial class SimulatedCombatState :
         CardChoiceSpec? spec = CardChoiceSupport.GetSpec(simulator, card);
         if (spec != null)
         {
+            if (simulator.IsOverOrEnding)
+                return true;
             return ResolveActionCardChoice(
                 simulator,
                 card,
@@ -220,7 +228,11 @@ internal sealed partial class SimulatedCombatState :
         }
 
         if (CardChoiceSupport.BuildRequiredEmptyChoice(card.Preview) is { } emptyChoice)
+        {
+            if (simulator.IsOverOrEnding)
+                return true;
             CardChoiceSupport.Apply(simulator, this, card, emptyChoice, processedEnemyDeaths);
+        }
         else
             CardChoiceSupport.ApplyNoChoiceEffects(simulator, this, card);
         return !HasPendingChoice;

@@ -1,6 +1,25 @@
 using CombatSolver.Api;
+using System.Diagnostics;
 using SlayTheModel.Search;
 using SlayTheModel.Sts2.Protocol;
+
+public sealed class MctsReplayEnvironmentDiagnostics
+{
+    public long RestoreCalls { get; internal set; }
+    public long RestoreTicks { get; internal set; }
+    public long RestoreRootTicks { get; internal set; }
+    public long PrefixReplayTicks { get; internal set; }
+    public long PrefixReplaySteps { get; internal set; }
+    public long ApplyCalls { get; internal set; }
+    public long ApplyTicks { get; internal set; }
+    public long ObservationCalls { get; internal set; }
+    public long ObservationTicks { get; internal set; }
+    public double RestoreMs => Stopwatch.GetElapsedTime(0, RestoreTicks).TotalMilliseconds;
+    public double RestoreRootMs => Stopwatch.GetElapsedTime(0, RestoreRootTicks).TotalMilliseconds;
+    public double PrefixReplayMs => Stopwatch.GetElapsedTime(0, PrefixReplayTicks).TotalMilliseconds;
+    public double ApplyMs => Stopwatch.GetElapsedTime(0, ApplyTicks).TotalMilliseconds;
+    public double ObservationMs => Stopwatch.GetElapsedTime(0, ObservationTicks).TotalMilliseconds;
+}
 
 public sealed record CombatSolverMctsAction(NativeMctsAction Native)
 {
@@ -16,6 +35,8 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
     private IReadOnlyList<CombatSolverMctsAction> rootActions = [];
     private readonly List<CombatSolverMctsAction> promotedPrefix = [];
     private long transitions;
+    public MctsReplayEnvironmentDiagnostics? Diagnostics { get; set; }
+    public IReadOnlyList<string> PromotedActionKeys => promotedPrefix.Select(action => action.Key).ToArray();
 
     public void Capture(MegaCrit.Sts2.Core.Combat.CombatState combat, int capturedEntryHp)
     {
@@ -41,9 +62,32 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
             ? "<none>"
             : string.Join(" | ", session.ChoiceDiagnostics);
     public NativeMctsState State => state;
-    public CombatObservation ObserveCurrent()
+    public NativeMctsProbeBoundaryDiagnostic? LastProbeBoundary
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
-            .ObserveCurrent();
+            .LastProbeBoundary;
+    public NativeMctsProbeBoundaryDiagnostic CurrentBoundary
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+            .CurrentBoundary;
+    public NativeMctsDriverDiagnostics NativeDiagnosticSnapshot
+        => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+            .DiagnosticSnapshot;
+    public CombatObservation ObserveCurrent()
+    {
+        long start = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
+        try
+        {
+            return (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
+                .ObserveCurrent();
+        }
+        finally
+        {
+            if (Diagnostics is { } diagnostic)
+            {
+                diagnostic.ObservationCalls++;
+                diagnostic.ObservationTicks += Stopwatch.GetTimestamp() - start;
+            }
+        }
+    }
     public CombatObservation PolicyObservation() => ObserveCurrent();
     public NativeMctsChoiceFrame CurrentChoiceFrame
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
@@ -99,31 +143,70 @@ public sealed class CombatSolverReplayEnvironment : IPolicyValueReplayEnvironmen
 
     public Task RestoreAsync(IReadOnlyList<CombatSolverMctsAction> prefix, CancellationToken cancellation)
     {
+        long restoreStart = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
+        try
+        {
         cancellation.ThrowIfCancellationRequested();
         var active = session ?? throw new InvalidOperationException("Combat Solver root has not been captured.");
+        long rootStart = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
         state = active.RestoreRoot();
+        if (Diagnostics is { } diagnosticRoot)
+            diagnosticRoot.RestoreRootTicks += Stopwatch.GetTimestamp() - rootStart;
         foreach (var action in promotedPrefix)
         {
             cancellation.ThrowIfCancellationRequested();
+            long prefixStart = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
             state = active.Apply(action.Native);
+            if (Diagnostics is { } diagnosticPrefix)
+            {
+                diagnosticPrefix.PrefixReplaySteps++;
+                diagnosticPrefix.PrefixReplayTicks += Stopwatch.GetTimestamp() - prefixStart;
+            }
         }
         foreach (var action in prefix)
         {
             cancellation.ThrowIfCancellationRequested();
+            long prefixStart = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
             state = active.Apply(action.Native);
+            if (Diagnostics is { } diagnosticPrefix)
+            {
+                diagnosticPrefix.PrefixReplaySteps++;
+                diagnosticPrefix.PrefixReplayTicks += Stopwatch.GetTimestamp() - prefixStart;
+            }
         }
         if (prefix.Count == 0 && promotedPrefix.Count == 0 && rootKey.Length > 0 && state.Key != rootKey)
             throw new InvalidDataException($"Combat Solver root action set changed. expected={rootKey} actual={state.Key} expectedActions={string.Join(" | ", rootActions.Select(action => action.Key))} actualActions={string.Join(" | ", state.LegalActions.Select(action => action.Key))}");
         return Task.CompletedTask;
+        }
+        finally
+        {
+            if (Diagnostics is { } diagnostic)
+            {
+                diagnostic.RestoreCalls++;
+                diagnostic.RestoreTicks += Stopwatch.GetTimestamp() - restoreStart;
+            }
+        }
     }
 
     public Task ApplyAsync(CombatSolverMctsAction action, CancellationToken cancellation)
     {
+        long start = Diagnostics == null ? 0 : Stopwatch.GetTimestamp();
+        try
+        {
         cancellation.ThrowIfCancellationRequested();
         state = (session ?? throw new InvalidOperationException("Combat Solver root has not been captured."))
             .Apply(action.Native);
         transitions++;
         return Task.CompletedTask;
+        }
+        finally
+        {
+            if (Diagnostics is { } diagnostic)
+            {
+                diagnostic.ApplyCalls++;
+                diagnostic.ApplyTicks += Stopwatch.GetTimestamp() - start;
+            }
+        }
     }
 
     public IReadOnlyList<CombatSolverMctsAction> LegalActions()

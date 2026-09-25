@@ -351,7 +351,9 @@ internal sealed partial class CombatBeamSolver
             if (replayForkSeed != null)
                 throw new InvalidOperationException("根回放不能消费父节点 Fork seed。");
             _run.ReplayCount++;
-            simulator = root.ForkSimulator();
+            SearchMeasurement rootForkMeasurement = _run.Performance.Begin();
+            try { simulator = root.ForkSimulator(); }
+            finally { _run.Performance.End(SearchMetricPhase.Fork, rootForkMeasurement); }
             simulatedCombat = (SimulatedCombatState)simulator.State.CombatState;
             turn = _startTurnNumber;
             shufflesCrossed = 0;

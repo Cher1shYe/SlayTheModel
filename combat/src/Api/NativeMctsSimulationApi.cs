@@ -49,6 +49,33 @@ public sealed record NativeMctsState(
     bool PendingChoice,
     IReadOnlyList<NativeMctsAction> LegalActions);
 
+public sealed record NativeMctsProbeBoundaryDiagnostic(
+    bool PlayerDead,
+    bool AllEnemiesDead,
+    string? TerminalStamp,
+    bool SimulatorIsInProgress,
+    bool SimulatorIsEnding,
+    bool SimulatorHasPendingChoice,
+    bool CombatHasPendingChoice,
+    string BoundaryReason);
+
+public sealed record NativeMctsPhaseDiagnostic(double ExclusiveMilliseconds, long ExclusiveAllocatedBytes,
+    double InclusiveMilliseconds, long InclusiveAllocatedBytes);
+
+public sealed record NativeMctsDriverDiagnostics(
+    bool Enabled,
+    int ForkCount,
+    int RootForkCount,
+    int ReplayCount,
+    int ChoiceBranchesEvaluated,
+    int ChoiceReplayAttempts,
+    int ChoiceReplayBudgetExhaustions,
+    int ChoiceBranchesDroppedByBudget,
+    int TransitionCount,
+    int GeneratedChoiceBranches,
+    int ResolvedChoiceBranches,
+    IReadOnlyDictionary<string, NativeMctsPhaseDiagnostic> Phases);
+
 /// <summary>Prediction-only API for an external MCTS host. It never runs Combat Solver's Beam search.</summary>
 public sealed class NativeMctsSimulationSession : IDisposable
 {
@@ -70,6 +97,22 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private int actionCount;
     private readonly int initialEnemyHp;
     private bool disposed;
+    public NativeMctsProbeBoundaryDiagnostic? LastProbeBoundary { get; private set; }
+
+    public NativeMctsProbeBoundaryDiagnostic CurrentBoundary
+    {
+        get
+        {
+            ThrowIfDisposed();
+            var simulator = (CombatPredictionSimulator)current.Simulator;
+            var combat = (SimulatedCombatState)simulator.State.CombatState;
+            return new NativeMctsProbeBoundaryDiagnostic(
+                current.PlayerDead, current.AllEnemiesDead, current.TerminalStamp?.ToString(),
+                simulator.IsInProgress, simulator.IsEnding,
+                simulator.HasPendingChoice, combat.HasPendingChoice,
+                current.BoundaryReason.ToString());
+        }
+    }
 
     internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot)
     {
@@ -93,10 +136,13 @@ public sealed class NativeMctsSimulationSession : IDisposable
         current = root;
         actionCount = 0;
         currentDescription = rootDescription;
+        LastProbeBoundary = null;
         return currentDescription;
     }
 
     public IReadOnlyList<string> ChoiceDiagnostics => choiceDiagnostics;
+
+    public NativeMctsDriverDiagnostics DiagnosticSnapshot => driver.NativeMctsDiagnostics();
 
     public NativeMctsState Apply(NativeMctsAction action)
     {
@@ -121,7 +167,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
             int nextIndex = selectedGroup.ChoiceIndex + 1;
             var withMoreChoices = selectedGroup.Branches
                 .Where(branch => ChoiceCount(branch.Action) > nextIndex)
-                .GroupBy(branch => NativeMctsSimulation.ChoiceKey(
+                .GroupBy(branch => driver.NativeMctsChoiceKey(
                     branch.Action, branch.Action, nextIndex), StringComparer.Ordinal)
                 .ToDictionary(group => group.Key,
                     group => new PendingChoiceGroup(group.ToArray(), nextIndex),
@@ -150,6 +196,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
         }
 
         var expansion = driver.NativeMctsExpand(current, action, actionCount);
+        LastProbeBoundary = expansion.ProbeBoundary;
         choiceDiagnostics = expansion.ChoiceDiagnostics;
         if (expansion.Resolved.Count == 0)
             throw new InvalidOperationException($"Prediction action {action.Key} produced no resolved state.");
@@ -168,7 +215,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
             .Select(item => new PendingChoiceBranch(item.Action, item.Snapshot))
             .ToArray();
         pendingChoices = branches
-            .GroupBy(branch => NativeMctsSimulation.ChoiceKey(
+            .GroupBy(branch => driver.NativeMctsChoiceKey(
                 expansion.BaseAction, branch.Action, 0), StringComparer.Ordinal)
             .ToDictionary(group => group.Key,
                 group => new PendingChoiceGroup(group.ToArray(), 0),
@@ -212,7 +259,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
                 current.Turn,
                 capturedRoot.Forecast,
                 capturedRoot.StartTurnNumber).StateText;
-            return Hash(text);
+            return driver.NativeMctsHash(text);
         }
     }
 
@@ -241,7 +288,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
         var combatState = (SimulatedCombatState)((CombatPredictionSimulator)current.Simulator).State.CombatState;
         int enemyHpLost = combatState.KnownEnemies.Sum(combatState.GetMctsCumulativeEnemyHpLost);
         return new NativeMctsState(
-            NativeMctsSimulation.PendingStateKey(current.StateKey, actions),
+            driver.NativeMctsPendingStateKey(current.StateKey, actions),
             false, false, false, false, current.PlayerHp, enemyHpLost,
             initialEnemyHp, 0, true, actions);
     }
@@ -287,8 +334,6 @@ public sealed class NativeMctsSimulationSession : IDisposable
 
     private void ThrowIfDisposed() => ObjectDisposedException.ThrowIf(disposed, this);
 
-    private static string Hash(string value)
-        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 }
 
 public static class NativeMctsSimulationApi

@@ -1,5 +1,29 @@
 # CombatSolver 测试清单
 
+## HEADBUTT 终局选择与独立发布回归（2026-09-25）
+
+- 精确 R2 失败基线在新 headless 路径复现，旧原始诊断/两项 Copy-Item 失败日志保留。最终完整 ExportRelease 的 `verify-headbutt`：10 HP/Strength 20/Vulnerable 2 致命根锁定 Victory stamp、IsInProgress=false、内外 pending=false，40 HP 非致命根保留两候选选择及完整续状态对账；R2 同输入回放 24 条严格 `regressionOnly` 样本、统一 win 奖励且默认训练拒收。PURITY 15 分支与 BURNING_PACT 选择回归通过；CASCADE 第二层在最终冻结根诊断通过 live/predicted frame 对账。
+- 上一 stage EXE 独占文件锁下，新独立 stage 的完整 ExportRelease/verify-choices 成功；每 stage 记录完整 stdout/stderr、release_info、实际 DLL 路径/MVID/SHA256 并核对磁盘哈希。最终同批三个冻结根的 15 个搜索臂各完成 32 次模拟、零 fallback，严格报告显式标记两类选择根输入缺 Choice 上下文。Python 完整 78/78，`PolicyValueMctsChecks` 通过，`git diff --check` 无补丁空白错误。证据见父仓库 `artifacts/alphazero/headbutt-boundary-20260925/report.md` 与 `artifacts/alphazero/frozen-prior-value-20260925-004/manifest.json`。未运行可见 Steam、训练或正式 M4。
+
+## AlphaZero 教师采集与完整战斗对比（2026-09-25）
+
+- Python 合约测试 68/68、`PolicyValueMctsChecks` 通过；NativeWorker 使用本地 SDK 串行完整 `ExportRelease`。独立生成牌组 pilot 在两个固定遭遇通过实际牌组与原生 provenance 对账；新候选 1,380 条 PyTorch/ONNX 对账最大误差 `5.36e-7`，独立 Native 10 根（含 2 个选择根）最大误差 `5.94e-8`，树内调用有效、无回退。
+- 教师波次 50 格全量审计：48 胜、2 个发布前文件占用错误；错误日志保留、样本不纳入训练。评估波次 60/60 完成、20/20 配对同根；无非法动作、异常、回退或程序集哈希错配。纯 MCTS 19 胜、旧树 10 胜、新树 9 胜另 3 未完成，不通过质量改善判断。逐场证据见父仓库 `artifacts/alphazero/teacher-tree-r3-20260924/evaluation-audit-corrected.json` 与 `study-report.md`。原错误报告 `evaluation-audit.json` 保留，树内首根展开不计根边访问的口径已修正；访问次数未补造。
+- 本次未运行正式 M4、可见 Steam、champion 晋级或 self-play。完整对比是研究性验证，不替代 100/s、未见遭遇等正式门禁。
+
+## Native pure MCTS 同根诊断（2026-09-24）
+
+- `artifacts/alphazero/mcts-diagnosis-20260924-005/manifest.json`：普通、净化和 CASCADE 第二层真实根各有阶段计时开/关一对进程，串行完整 ExportRelease；同根使用完全相同的保存 checkpoint，rootKey/合法动作/观测哈希相同，六次实际程序集身份一致。A 冷1秒、弃树预热、B新树1秒、C新树5秒、固定16次及 exporter 校验臂均完成；所有搜索臂 retainedVisits=0。
+- 固定16次两侧选中动作、根访问统计、树/rollout步数和真实Fork一致；取消合同验证未完成模拟不计入访问/完成数。全部截止模拟在报告中单列。Python 合约 51/51、`PolicyValueMctsChecks`、NativeWorker ExportRelease 构建通过。
+- 热1秒 CASCADE 第二层阶段开/关约34.8/33.8 simulations/s，五秒臂约152.8/164.9/s；不能用五秒平均代替短决策门槛。额外 exporter 校验最长4.21ms，未解释选择根吞吐差距。阶段计时没有 CPU/分配调用栈证据，详细口径与全部失败/未通过项见父仓库 `profile_output/mcts-same-root-diagnosis-20260924.md`。未修改算法或战斗语义。
+
+## AlphaZero Native 验证（2026-09-24）
+
+- 完整 `ExportRelease` 的 headless NativeWorker 单次 probe 共 16 个独立 JSONL/完整日志：6 条选择、4 条完整终局、6 条无模拟上限性能轨迹；全部逐条严格回读、实际加载程序集路径/MVID/SHA256 对账，非法动作和回退为 0。强制父卡的选择/性能夹具均 `regressionOnly`，默认训练加载器拒收。
+- 选择：PURITY 和 BURNING_PACT baseline/tree 各有 1 个真实选择根；CASCADE baseline/tree 各有连续两层真实选择，第二层 `completedSelections` 对账上一层实际选中候选实例。每个有上限的选择根完成 50 次模拟，tree 每根 prior/value 各 50 次。
+- 终局：普通纯 MCTS 胜利 16 决策、树内死亡 18 决策；低 HP 原生死亡 baseline/tree 各 4 决策。整条轨迹 outcome/value 统一回填，enemyHpTransitions 累计与起点敌方 HP 一致。Python 全套 49/49 和 `PolicyValueMctsChecks` 通过。
+- 独立性能按 `simulations / elapsedMilliseconds` 墙钟口径：tree 普通/选择各 3 根均 >=100/s；纯 MCTS 普通/选择各 3 根存在低于 100/s，整体性能门槛未通过。完整数据及边界见父仓库 `alphazero-combat/docs/NATIVE_VALIDATION_20260924.md`。未运行正式 M4 或可见 Steam。
+
 ## Native MCTS 选择导出（2026-09-24）
 
 - 父仓库 scripts/native-worker.ps1 新增 -Mode verify-choices：运行真实 selector、净化 15 分支重放隔离、燃烧契约选择续接和既有三牌续接合同；本轮完整 ExportRelease 后通过。

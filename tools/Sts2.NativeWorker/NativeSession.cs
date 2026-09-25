@@ -24,6 +24,7 @@ using SlayTheModel.Search;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using CombatSolver.Api;
+using CombatSolver;
 
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
@@ -38,6 +39,11 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
+    internal ResolvedGeneratedCombatScenario? GeneratedScenario { get; set; }
+    internal string? GeneratedScenarioSpecPath { get; set; }
+    internal string? GeneratedScenarioSpecSha256 { get; set; }
+    internal string[]? GeneratedScenarioRequestedCards { get; set; }
+    internal object? GeneratedDeckProvenance { get; private set; }
     private Player _player = null!;
     private CombatState _state = null!;
     private TaskCompletionSource<IEnumerable<CardModel>>? _choice;
@@ -53,6 +59,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);
     public int InitialEnemyEffectiveHp { get; private set; }
     public int EnemyDamageLost { get; private set; }
+    public List<EnemyHpTransition> EnemyHpTransitions { get; } = [];
+    public readonly record struct EnemyHpTransition(int Before, int After, int Damage);
 
     public void BeginTrajectoryAtCurrentState()
     {
@@ -61,6 +69,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         EntryHp = Hp;
         InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         EnemyDamageLost = 0;
+        EnemyHpTransitions.Clear();
     }
 
     public async Task SetInitialHpFixtureAsync(int hp, CancellationToken cancellation)
@@ -172,6 +181,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
 
     public async Task ResetAsync(string seed, CancellationToken cancellation)
     {
+        GeneratedDeckProvenance = null;
         _activeCancellation = cancellation;
         cancellation.ThrowIfCancellationRequested();
         var pendingChoice = _choice;
@@ -202,6 +212,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             }
             var run = RunState.CreateForTest([_player], seed: seed);
             RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
+            if (GeneratedScenario is not null)
+                await PrepareGeneratedDeckAsync(run);
             _selector = CardSelectCmd.PushSelector(this);
             var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
                 candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
@@ -210,12 +222,67 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
         else
         {
+            if (GeneratedScenario is not null)
+                throw new InvalidDataException("Generated deck setup cannot be combined with checkpoint restoration.");
             await RestoreCheckpointAsync(Checkpoint);
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
+        if (GeneratedScenario is not null && (_state.Encounter?.RoomType != RoomType.Monster
+            || !string.Equals(_state.Encounter.Id.Entry, EncounterId, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidDataException("Native generated-deck combat entered a different encounter.");
         InitialEnemyEffectiveHp = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         EnemyDamageLost = 0;
+        EnemyHpTransitions.Clear();
         await SettleAsync(cancellation);
+    }
+
+    private async Task PrepareGeneratedDeckAsync(RunState run)
+    {
+        var generated = GeneratedScenario ?? throw new InvalidOperationException("Generated scenario is not configured.");
+        if (GeneratedScenarioSpecPath is null || GeneratedScenarioSpecSha256 is null
+            || GeneratedScenarioRequestedCards is null || run.Players.Count != 1
+            || _player.Character.Id.Entry != generated.Character.Id.Entry
+            || run.AscensionLevel != generated.Options.Ascension)
+            throw new InvalidDataException("Native generated-deck run does not match the resolved scenario.");
+        CardModel[] startingCards = _player.Deck.Cards.ToArray();
+        _player.Deck.Clear(silent: true);
+        foreach (CardModel card in startingCards)
+            run.RemoveCard(card);
+        if (_player.Deck.Cards.Count != 0)
+            throw new InvalidDataException("Native starting deck could not be cleared.");
+
+        string[] resolvedCards = generated.Options.CharacterCards.Ids.Select(id => id!).ToArray();
+        foreach (string id in resolvedCards)
+        {
+            CardModel canonical = ModelDb.AllCards.Single(card => card.Id.Entry == id);
+            CardModel card = run.CreateCard(canonical, _player);
+            CardPileAddResult result = await CardPileCmd.Add(card, PileType.Deck);
+            if (!result.success)
+                throw new InvalidDataException($"Native run refused generated deck card {id}.");
+        }
+        var actualDeck = _player.Deck.Cards.Select(card => new
+        {
+            id = card.Id.Entry,
+            upgradeLevel = card.CurrentUpgradeLevel,
+        }).ToArray();
+        if (actualDeck.Length != resolvedCards.Length
+            || !actualDeck.Select(card => card.id).SequenceEqual(resolvedCards)
+            || actualDeck.Any(card => card.upgradeLevel != 0))
+            throw new InvalidDataException("Native generated deck differs from its resolved card identities/order/upgrades.");
+        GeneratedDeckProvenance = new
+        {
+            specPath = GeneratedScenarioSpecPath,
+            specSha256 = GeneratedScenarioSpecSha256,
+            catalogFingerprint = generated.CatalogFingerprint,
+            requestedCards = GeneratedScenarioRequestedCards,
+            resolvedCards,
+            actualDeck,
+            characterId = _player.Character.Id.Entry,
+            encounterId = EncounterId,
+            resolverEncounterId = generated.Encounter.Id.Entry,
+            ascension = run.AscensionLevel,
+            includeStartingDeck = false,
+        };
     }
 
     private async Task DrainActiveActionAsync()
@@ -314,6 +381,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
                 + $" selection=[{string.Join(',', input.Selection ?? [])}]"
                 + $" pending={_choice != null} min={_min} max={_max} options={_options.Length}"
                 + $" legal=[{string.Join(';', legal.Select(DescribeAction))}]");
+        int enemyHpBefore = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         Transitions++;
         if (input.Selection is { } indices)
         {
@@ -327,7 +395,6 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
-        int enemyHpBefore = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
         try { await SettleAsync(cancellation); }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
         {
@@ -345,7 +412,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             throw;
         }
         int enemyHpAfter = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
-        EnemyDamageLost += Math.Max(0, enemyHpBefore - enemyHpAfter);
+        int damage = Math.Max(0, enemyHpBefore - enemyHpAfter);
+        EnemyDamageLost += damage;
+        EnemyHpTransitions.Add(new EnemyHpTransition(enemyHpBefore, enemyHpAfter, damage));
     }
 
     private static string DescribeAction(SearchAction action)

@@ -7,14 +7,16 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
+from unittest.mock import patch
 
 import torch
 
 from azcombat.samples import TrainingSample, write_jsonl, read_jsonl
 from azcombat.schema import ActionNode
 from azcombat.training import (CombatDataset, DeepSetsPolicyValue, TrainConfig,
-                               encode_actions, encode_observation, load_checkpoint,
-                               split_by_seed, train)
+                               _loss, encode_actions, encode_observation, load_checkpoint,
+                               load_seed_split, split_by_manifest, split_by_seed, train)
+from azcombat.train_cli import main as train_main
 from test_schema_reward import observation
 
 
@@ -110,6 +112,153 @@ class TrainingTests(unittest.TestCase):
             self.assertEqual(set(metadata["trainSeeds"] + metadata["validationSeeds"]), {"one", "two"})
             entities, global_, actions = (*encode_observation(sample("one")), encode_actions(sample("one"))[1])
             self.assertEqual(tuple(model(entities, global_, actions)[0].shape), (2,))
+
+    def test_frozen_seed_split_keeps_trajectories_together_and_selects_best_epoch(self):
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            first, second = base / "cultists.jsonl", base / "fog.jsonl"
+            split = base / "seeds.json"
+            checkpoint = base / "candidate.pt"
+            write_jsonl([sample("train"), sample("valid")], first)
+            write_jsonl([sample("train"), sample("valid")], second)
+            split.write_text(json.dumps({"format": "azcombat.seed-split.v1",
+                                         "trainSeeds": ["train"], "validationSeeds": ["valid"],
+                                         "evaluationSeeds": ["held-out"]}), encoding="utf-8")
+            dataset = CombatDataset([first, second])
+            training, validation = split_by_manifest(dataset.samples, load_seed_split(split))
+            self.assertEqual([s.seed for s in training], ["train", "train"])
+            self.assertEqual([s.seed for s in validation], ["valid", "valid"])
+            metadata = train(dataset, checkpoint, TrainConfig(epochs=3, hidden=16, seed=5),
+                             seed_split=split)
+            model, _ = load_checkpoint(checkpoint)
+            self.assertEqual(metadata["trainSamples"], 2)
+            self.assertEqual(metadata["validationSamples"], 2)
+            self.assertEqual(metadata["reservedEvaluationSeeds"], ["held-out"])
+            self.assertEqual(metadata["missingTrainSeeds"], [])
+            self.assertEqual(metadata["missingValidationSeeds"], [])
+            self.assertEqual(metadata["selectionMetric"], "validationLoss")
+            self.assertLess(metadata["history"][-1]["trainLoss"], metadata["history"][0]["trainLoss"])
+            self.assertLess(metadata["history"][-1]["trainPolicyLoss"],
+                            metadata["history"][0]["trainPolicyLoss"])
+            self.assertLess(metadata["history"][-1]["trainValueLoss"],
+                            metadata["history"][0]["trainValueLoss"])
+            self.assertEqual(metadata["selectedEpoch"], min(metadata["history"],
+                             key=lambda epoch: epoch["validationLoss"])["epoch"])
+            self.assertAlmostEqual(sum(_loss(model, s)[0].item() for s in validation) / len(validation),
+                                   metadata["history"][metadata["selectedEpoch"] - 1]["validationLoss"],
+                                   places=5)
+            for epoch in metadata["history"]:
+                self.assertAlmostEqual(epoch["trainLoss"],
+                                       epoch["trainPolicyLoss"] + epoch["trainValueLoss"], places=5)
+                self.assertAlmostEqual(epoch["validationLoss"],
+                                       epoch["validationPolicyLoss"] + epoch["validationValueLoss"], places=5)
+                self.assertGreaterEqual(epoch["validationValueMae"], 0)
+
+    def test_frozen_seed_split_records_missing_and_rejects_extra_or_unresolved(self):
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            split = base / "seeds.json"
+            data = base / "data.jsonl"
+            groups = {"format": "azcombat.seed-split.v1", "trainSeeds": ["train"],
+                      "validationSeeds": ["valid"], "evaluationSeeds": ["held-out"]}
+            split.write_text(json.dumps(groups), encoding="utf-8")
+            write_jsonl([sample("train"), sample("valid")], data)
+            for bad in ({**groups, "evaluationSeeds": ["valid"]},
+                        {**groups, "trainSeeds": ["train", "train"]}):
+                split.write_text(json.dumps(bad), encoding="utf-8")
+                with self.assertRaises(ValueError):
+                    load_seed_split(split)
+            split.write_text(json.dumps(groups), encoding="utf-8")
+            write_jsonl([sample("train"), sample("valid")], data)
+            groups_with_missing = {**groups, "trainSeeds": ["train", "missing-train"],
+                                   "validationSeeds": ["valid", "missing-valid"]}
+            split.write_text(json.dumps(groups_with_missing), encoding="utf-8")
+            metadata = train(CombatDataset([data]), base / "missing.pt",
+                             TrainConfig(epochs=1, hidden=16), seed_split=split)
+            self.assertEqual(metadata["missingTrainSeeds"], ["missing-train"])
+            self.assertEqual(metadata["missingValidationSeeds"], ["missing-valid"])
+            self.assertEqual(metadata["observedTrainSeeds"], 1)
+            self.assertEqual(metadata["observedValidationSeeds"], 1)
+            split.write_text(json.dumps(groups), encoding="utf-8")
+            write_jsonl([sample("train")], data)
+            with self.assertRaisesRegex(ValueError, "nonempty train and validation"):
+                train(CombatDataset([data]), base / "empty-side.pt", TrainConfig(epochs=1, hidden=16),
+                      seed_split=split)
+            write_jsonl([sample("train"), sample("valid"), sample("held-out")], data)
+            with self.assertRaisesRegex(ValueError, "undeclared/evaluation"):
+                train(CombatDataset([data]), base / "extra.pt", TrainConfig(epochs=1, hidden=16),
+                      seed_split=split)
+            write_jsonl([sample("train"), replace(sample("valid"), outcome="unresolved")], data)
+            with self.assertRaisesRegex(ValueError, "completed full-combat"):
+                train(CombatDataset([data]), base / "unresolved.pt", TrainConfig(epochs=1, hidden=16),
+                      seed_split=split)
+
+    def test_teacher_audit_binds_training_to_terminal_file_hashes(self):
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            train_data, valid_data = base / "train.jsonl", base / "valid.jsonl"
+            split = base / "seeds.json"
+            write_jsonl([sample("train")], train_data)
+            write_jsonl([sample("valid")], valid_data)
+            split.write_text(json.dumps({"format": "azcombat.seed-split.v1",
+                                         "trainSeeds": ["train"], "validationSeeds": ["valid"],
+                                         "evaluationSeeds": ["held-out"]}), encoding="utf-8")
+            inputs = [train_data.resolve(), valid_data.resolve()]
+            report = {"phase": "teacher", "sourceManifestSha256": "a" * 64,
+                      "splitSha256": hashlib.sha256(split.read_bytes()).hexdigest(),
+                      "runs": [{"status": "complete", "outcome": "win", "terminal": True,
+                                "jsonl": str(path), "jsonlSha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+                               for path in inputs],
+                      "summary": {"readyForTraining": True,
+                                  "trainingInputs": [str(path) for path in inputs]}}
+            dataset = CombatDataset(inputs)
+            metadata = train(dataset, base / "teacher.pt", TrainConfig(epochs=1, hidden=16),
+                             seed_split=split, teacher_report=report)
+            self.assertEqual(metadata["teacherWaveManifestSha256"], "a" * 64)
+            self.assertEqual(metadata["teacherTerminalBattles"], 2)
+            self.assertEqual(len(metadata["teacherAuditSha256"]), 64)
+            changed = deepcopy(report)
+            changed["runs"][0]["jsonlSha256"] = "0" * 64
+            with self.assertRaisesRegex(ValueError, "teacher training inputs differ"):
+                train(dataset, base / "bad-hash.pt", TrainConfig(epochs=1, hidden=16),
+                      seed_split=split, teacher_report=changed)
+            changed = deepcopy(report)
+            changed["summary"]["readyForTraining"] = False
+            with self.assertRaisesRegex(ValueError, "teacher audit"):
+                train(dataset, base / "not-ready.pt", TrainConfig(epochs=1, hidden=16),
+                      seed_split=split, teacher_report=changed)
+            with self.assertRaisesRegex(ValueError, "teacher training inputs differ"):
+                train(CombatDataset([train_data]), base / "missing-file.pt",
+                      TrainConfig(epochs=1, hidden=16), seed_split=split, teacher_report=report)
+
+    def test_teacher_cli_reaudits_wave_and_rejects_unready_or_explicit_inputs(self):
+        with TemporaryDirectory() as directory:
+            base = Path(directory)
+            split = base / "seeds.json"
+            split.write_text("split", encoding="utf-8")
+            wave = base / "wave"
+            wave.mkdir()
+            report = {"splitSha256": hashlib.sha256(split.read_bytes()).hexdigest()}
+            summary = {"readyForTraining": True, "trainingInputs": [str(base / "terminal.jsonl")]}
+            args = ["train", "--checkpoint", str(base / "new.pt"), "--seed-split", str(split),
+                    "--teacher-wave", str(wave)]
+            with patch("sys.argv", args), patch("azcombat.train_cli.audit_wave", return_value=report) as audit, \
+                    patch("azcombat.train_cli.summarize_teacher", return_value=summary), \
+                    patch("azcombat.train_cli.CombatDataset") as dataset, \
+                    patch("azcombat.train_cli.train", return_value={}) as train_call:
+                self.assertEqual(train_main(), 0)
+            audit.assert_called_once_with(wave / "manifest.json")
+            dataset.assert_called_once_with([base / "terminal.jsonl"])
+            self.assertEqual(train_call.call_args.kwargs["teacher_report"]["summary"], summary)
+            with patch("sys.argv", args), patch("azcombat.train_cli.audit_wave", return_value=report), \
+                    patch("azcombat.train_cli.summarize_teacher", return_value={"readyForTraining": False}), \
+                    patch("azcombat.train_cli.train") as forbidden:
+                with self.assertRaisesRegex(ValueError, "minimum audited terminal data"):
+                    train_main()
+            forbidden.assert_not_called()
+            with patch("sys.argv", [*args, str(base / "other.jsonl")]):
+                with self.assertRaises(SystemExit):
+                    train_main()
 
     def test_selfplay_continuation_preserves_width_and_seed_lineage(self):
         with TemporaryDirectory() as directory:

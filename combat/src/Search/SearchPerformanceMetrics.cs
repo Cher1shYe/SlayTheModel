@@ -31,6 +31,14 @@ internal enum SearchMetricPhase
     CombatFingerprint,
     Prune,
     FinalSelection,
+    NativeExpand,
+    NativeDescribe,
+    NativeActionDescription,
+    NativeChoiceMaterialization,
+    NativeObservationProjection,
+    NativeObservationValidation,
+    NativeIdentityHash,
+    NativeJsonSerialization,
 }
 
 internal readonly record struct SearchMeasurement(long Timestamp, long AllocatedBytes, int FrameId)
@@ -43,6 +51,8 @@ internal sealed class SearchPerformanceMetrics(bool enabled)
     private readonly bool _enabled = enabled;
     private readonly long[] _ticks = new long[Enum.GetValues<SearchMetricPhase>().Length];
     private readonly long[] _allocatedBytes = new long[Enum.GetValues<SearchMetricPhase>().Length];
+    private readonly long[] _inclusiveTicks = new long[Enum.GetValues<SearchMetricPhase>().Length];
+    private readonly long[] _inclusiveAllocatedBytes = new long[Enum.GetValues<SearchMetricPhase>().Length];
     private readonly List<ActiveFrame> _activeFrames = [];
     private int _nextFrameId;
 
@@ -90,6 +100,8 @@ internal sealed class SearchPerformanceMetrics(bool enabled)
         long ticks = Math.Max(0, Stopwatch.GetTimestamp() - frame.Timestamp);
         long allocatedBytes = Math.Max(0, GC.GetAllocatedBytesForCurrentThread() - frame.AllocatedBytes);
         int index = (int)phase;
+        _inclusiveTicks[index] += ticks;
+        _inclusiveAllocatedBytes[index] += allocatedBytes;
         _ticks[index] += Math.Max(0, ticks - frame.ChildTicks);
         _allocatedBytes[index] += Math.Max(0, allocatedBytes - frame.ChildAllocatedBytes);
         if (_activeFrames.Count > 0)
@@ -115,9 +127,13 @@ internal sealed class SearchPerformanceMetrics(bool enabled)
             {
                 _ticks[index] += worker._ticks[index];
                 _allocatedBytes[index] += worker._allocatedBytes[index];
+                _inclusiveTicks[index] += worker._inclusiveTicks[index];
+                _inclusiveAllocatedBytes[index] += worker._inclusiveAllocatedBytes[index];
             }
             worker._ticks[index] = 0;
             worker._allocatedBytes[index] = 0;
+            worker._inclusiveTicks[index] = 0;
+            worker._inclusiveAllocatedBytes[index] = 0;
         }
     }
 
@@ -127,6 +143,14 @@ internal sealed class SearchPerformanceMetrics(bool enabled)
         return new SearchPhaseMetric(
             Stopwatch.GetElapsedTime(0, _ticks[index]),
             _allocatedBytes[index]);
+    }
+
+    public SearchPhaseMetric SnapshotInclusive(SearchMetricPhase phase)
+    {
+        int index = (int)phase;
+        return new SearchPhaseMetric(
+            Stopwatch.GetElapsedTime(0, _inclusiveTicks[index]),
+            _inclusiveAllocatedBytes[index]);
     }
 }
 

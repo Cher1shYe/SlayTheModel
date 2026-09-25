@@ -14,6 +14,7 @@ import torch
 from .samples import TrainingSample
 from .training import (ACTION_DIM, ENTITY_DIM, GLOBAL_DIM, FEATURE_ABI, encode_actions,
                        encode_observation, load_checkpoint)
+from .versions import OBSERVATION_SCHEMA_VERSION, ONNX_MANIFEST_FORMAT
 
 
 def export_onnx(checkpoint: Path, destination: Path, samples: Sequence[TrainingSample], tolerance: float = 1e-4) -> dict:
@@ -49,7 +50,8 @@ def export_onnx(checkpoint: Path, destination: Path, samples: Sequence[TrainingS
                 if not np.isfinite(error) or error > tolerance:
                     raise ValueError(f"ONNX numerical parity failed: error={error}, tolerance={tolerance}")
                 max_error = max(max_error, error)
-        manifest = {"format": "azcombat.onnx.v4", "featureAbi": FEATURE_ABI, "opset": 17,
+        manifest = {"format": ONNX_MANIFEST_FORMAT, "featureAbi": FEATURE_ABI,
+                    "observationSchemaVersion": OBSERVATION_SCHEMA_VERSION, "opset": 17,
                     "inputs": {"entities": ["N", ENTITY_DIM], "globals": [GLOBAL_DIM],
                                "actions": ["A", ACTION_DIM]},
                     "outputs": {"logits": ["A"], "value": []},

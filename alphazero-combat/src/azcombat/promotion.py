@@ -10,18 +10,20 @@ import re
 import shutil
 import uuid
 
-import torch
-
-from .experiments import REGISTERED_ENCOUNTERS, SCENARIOS, STARTS, checked_model, sha256
+from .experiments import (BASELINE_SEARCH_MODE, CANDIDATE_SEARCH_MODE,
+                          REGISTERED_ENCOUNTERS, SCENARIOS, STARTS, checked_model, sha256)
 from .reward import Outcome, TerminalResult, score_result
 from .samples import read_jsonl
+from .training import load_checkpoint
 
 ASSEMBLY = re.compile(r"^SLAY_WORKER_ASSEMBLY label=(NativeWorker|Search|CombatSolver) "
                       r"path=(.+?) mvid=([A-Fa-f0-9-]{36}) sha256=([A-Fa-f0-9]{64})$", re.MULTILINE)
 EXPORT_OUT = re.compile(r"^SLAY_WORKER_EXPORT_OUT=(.+)$", re.MULTILINE)
 
 
-def _scenario_spec(entry: dict, provenance: dict, budget_ms: int, max_decisions: int) -> dict:
+def _scenario_spec(entry: dict, provenance: dict, budget_ms: int, max_decisions: int,
+                   max_simulations: int | None = None,
+                   expected_search_mode: str | None = None) -> dict:
     scenario = entry.get("scenario")
     if scenario not in SCENARIOS:
         raise ValueError("unregistered scenario")
@@ -35,6 +37,10 @@ def _scenario_spec(entry: dict, provenance: dict, budget_ms: int, max_decisions:
             or provenance.get("budgetMilliseconds") != budget_ms \
             or provenance.get("maxDecisions") != max_decisions:
         raise ValueError("native scenario fixture or run parameters differ from request")
+    if max_simulations is not None and provenance.get("maxSimulations") != max_simulations:
+        raise ValueError("native simulation cap differs from request")
+    if expected_search_mode is not None and provenance.get("searchMode") != expected_search_mode:
+        raise ValueError("native search mode differs from request")
     if spec["initialHp"] is not None:
         start = provenance.get("startProvenance")
         if not isinstance(start, dict) or start.get("nativeInitialHpFixture") != spec["initialHp"] \
@@ -107,6 +113,7 @@ def _require_tree_guidance(provenance: dict, metrics: list[dict]) -> None:
     if provenance.get("searchMode") != "policy-value-tree-v1" \
             or any(type(metric.get("networkPriorCalls")) is not int or metric["networkPriorCalls"] <= 0
                    or type(metric.get("networkValueCalls")) is not int or metric["networkValueCalls"] <= 0
+                   or metric.get("networkFallbacks", 0) != 0
                    for metric in metrics):
         raise ValueError("candidate used post-search reranking, not policy/value-guided tree search")
 
@@ -125,7 +132,9 @@ def _require_candidate_network_usage(provenance: dict, sample_count: int) -> Non
 
 def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
                max_decisions: int, minimum_rate: float = 100.0,
-               require_tree_guidance: bool = False) -> dict:
+               require_tree_guidance: bool = False,
+               max_simulations: int | None = None,
+               expected_search_mode: str | None = None) -> dict:
     if entry.get("exitCode") != 0 or entry.get("encounter") not in REGISTERED_ENCOUNTERS \
             or entry.get("startType") not in STARTS or entry.get("scenario") not in SCENARIOS:
         raise ValueError("run failed or has an unregistered encounter/start")
@@ -163,7 +172,9 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
     if provenance.get("seed") != entry["seed"] or provenance.get("encounter") != entry["encounter"] \
             or any(s.seed != entry["seed"] or s.start_type != entry["startType"] for s in samples):
         raise ValueError("seed, encounter or start type differs")
-    spec = _scenario_spec(entry, provenance, budget_ms, max_decisions)
+    spec = _scenario_spec(entry, provenance, budget_ms, max_decisions,
+                          max_simulations=max_simulations,
+                          expected_search_mode=expected_search_mode)
     start = provenance.get("startProvenance")
     if entry["startType"] == "mid_combat_verified":
         if not isinstance(start, dict) or start.get("replayVerified") is not True \
@@ -192,6 +203,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
         simulations, elapsed = metric.get("simulations"), metric.get("elapsedMilliseconds")
         if type(simulations) is not int or simulations <= 0 or type(elapsed) not in (int, float) \
                 or not math.isfinite(elapsed) or elapsed < 1000 \
+                or max_simulations is not None and simulations > max_simulations \
                 or line.get("stateKey") != metric.get("stateKey") or line.get("simulations") != simulations:
             raise ValueError("invalid/misaligned effective simulation or live wall-clock evidence")
         rate = simulations / (elapsed / 1000)
@@ -202,7 +214,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
     status = provenance.get("modelLoadStatus", "")
     if policy == "baseline":
         if status != "pure-mcts:no-model-configured" or provenance.get("modelUsed") != 0 \
-                or provenance.get("searchMode", "pure-mcts") != "pure-mcts" \
+                or provenance.get("searchMode", BASELINE_SEARCH_MODE) != BASELINE_SEARCH_MODE \
                 or any(metric.get("networkPriorCalls", 0) != 0 or metric.get("networkValueCalls", 0) != 0
                        for metric in metrics):
             raise ValueError("baseline was not pure MCTS")
@@ -214,7 +226,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
         if require_tree_guidance:
             _require_tree_guidance(provenance, metrics)
         elif provenance.get("searchMode", "legacy-post-mcts-rerank") not in \
-                {"post-mcts-rerank", "legacy-post-mcts-rerank", "policy-value-tree-v1"}:
+                {"post-mcts-rerank", "legacy-post-mcts-rerank", CANDIDATE_SEARCH_MODE}:
             raise ValueError("candidate search mode is unknown")
     else:
         raise ValueError("unknown evaluation policy")
@@ -229,7 +241,7 @@ def _audit_run(base: Path, entry: dict, model_sha: str, budget_ms: int,
             "startType": entry["startType"],
             "policy": policy, "outcome": outcome.value, "value": value, "samples": len(samples),
             "minSimulationsPerSecond": min(rates), "nestedChoice": nested, "settledDeath": death,
-            "searchMode": provenance.get("searchMode", "legacy-post-mcts-rerank" if policy != "baseline" else "legacy-pure-mcts")}
+            "searchMode": provenance.get("searchMode", "legacy-post-mcts-rerank" if policy != "baseline" else BASELINE_SEARCH_MODE)}
 
 
 def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
@@ -239,9 +251,7 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
     model = Path(manifest["candidateOnnx"]).resolve(strict=True)
     model_sha = checked_model(model)
     catalog = Path(__file__).resolve().parents[3] / "combat" / "coverage" / "combat-hooks.json"
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
-    if payload.get("format") != "azcombat.checkpoint.v1":
-        raise ValueError("unsupported checkpoint")
+    _, payload = load_checkpoint(checkpoint)
     model_manifest = json.loads(model.with_suffix(".manifest.json").read_text(encoding="utf-8"))
     if model_manifest.get("checkpointSha256", "").lower() != sha256(checkpoint).lower() \
             or manifest.get("candidateSha256", "").lower() != model_sha.lower() \
@@ -263,7 +273,13 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
     scenarios = manifest.get("scenarios", [])
     if scenarios != list(SCENARIOS):
         reasons.append("ordinary, actual nested choice and native death scenarios are required")
-    if manifest.get("startTypes") != list(STARTS) or manifest.get("budgetMilliseconds", 0) < 1000 \
+    budget = manifest.get("budgetMilliseconds")
+    max_simulations = manifest.get("maxSimulations")
+    if manifest.get("startTypes") != list(STARTS) or type(budget) is not int or budget < 1000 \
+            or manifest.get("decisionBudgetMilliseconds") != budget \
+            or type(max_simulations) is not int or max_simulations < 1 \
+            or manifest.get("baselineSearchMode") != BASELINE_SEARCH_MODE \
+            or manifest.get("candidateSearchMode") != CANDIDATE_SEARCH_MODE \
             or type(manifest.get("maxDecisions")) is not int or manifest["maxDecisions"] < 1:
         reasons.append("both start types and >=1 second budget are required")
     expected = _expected_run_keys(seeds, encounters)
@@ -275,8 +291,10 @@ def audit_wave(manifest_path: Path, checkpoint: Path) -> dict:
     audited = {}
     for key, entry in zip(keys, entries, strict=True):
         try:
-            audited[key] = _audit_run(base, entry, model_sha, manifest["budgetMilliseconds"],
-                                      manifest["maxDecisions"], require_tree_guidance=True)
+            expected_mode = BASELINE_SEARCH_MODE if entry.get("policy") == "baseline" else CANDIDATE_SEARCH_MODE
+            audited[key] = _audit_run(base, entry, model_sha, budget, manifest["maxDecisions"],
+                                      require_tree_guidance=True, max_simulations=max_simulations,
+                                      expected_search_mode=expected_mode)
         except (KeyError, TypeError, ValueError, OSError) as error:
             reasons.append(f"run {key}: {error}")
     pairs = _paired_runs(expected, audited)
@@ -314,9 +332,8 @@ def audit_bootstrap(manifest_path: Path, checkpoint: Path) -> dict:
     base = manifest_path.resolve().parent
     model = Path(manifest["candidateOnnx"]).resolve(strict=True)
     model_sha = checked_model(model)
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
-    if payload.get("format") != "azcombat.checkpoint.v1" \
-            or manifest.get("sourceCheckpointSha256", "").lower() != sha256(checkpoint).lower() \
+    _, payload = load_checkpoint(checkpoint)
+    if manifest.get("sourceCheckpointSha256", "").lower() != sha256(checkpoint).lower() \
             or json.loads(model.with_suffix(".manifest.json").read_text(encoding="utf-8")).get("checkpointSha256", "").lower() != sha256(checkpoint).lower():
         raise ValueError("bootstrap source checkpoint/model identity mismatch")
     catalog = Path(__file__).resolve().parents[3] / "combat" / "coverage" / "combat-hooks.json"
@@ -337,8 +354,13 @@ def audit_bootstrap(manifest_path: Path, checkpoint: Path) -> dict:
             or any(x not in SCENARIOS for x in scenarios):
         reasons.append("bootstrap seeds or registered scenarios are invalid/overlap source")
     budget = manifest.get("budgetMilliseconds")
+    max_simulations = manifest.get("maxSimulations")
     cap = manifest.get("maxDecisions")
-    if type(budget) is not int or budget < 1000 or type(cap) is not int or cap < 1:
+    if type(budget) is not int or budget < 1000 \
+            or manifest.get("decisionBudgetMilliseconds") != budget \
+            or type(max_simulations) is not int or max_simulations < 1 \
+            or manifest.get("candidateSearchMode") != CANDIDATE_SEARCH_MODE \
+            or type(cap) is not int or cap < 1:
         reasons.append("bootstrap decision budget/cap invalid")
     expected = {(seed, encounter, scenario, start, "candidate")
                 for seed in seeds for encounter in encounters for scenario in scenarios
@@ -352,7 +374,9 @@ def audit_bootstrap(manifest_path: Path, checkpoint: Path) -> dict:
     input_files = []
     for key, entry in zip(keys, entries, strict=True):
         try:
-            audited.append(_audit_run(base, entry, model_sha, budget, cap, minimum_rate=0.0))
+            audited.append(_audit_run(base, entry, model_sha, budget, cap, minimum_rate=0.0,
+                                      require_tree_guidance=True, max_simulations=max_simulations,
+                                      expected_search_mode=CANDIDATE_SEARCH_MODE))
             input_files.append({"path": str(_inside(base, entry["jsonl"])), "sha256": entry["sha256"]})
         except (KeyError, TypeError, ValueError, OSError) as error:
             reasons.append(f"run {key}: {error}")

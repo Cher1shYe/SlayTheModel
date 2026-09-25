@@ -1,5 +1,31 @@
 # CombatSolver 开发笔记与未来构想
 
+## HEADBUTT 终局选择与 AlphaZero 诊断（2026-09-25，本地未发布）
+
+- 精确 R2 场景复现 HEADBUTT 末击后 live 已胜利而预测仍有 MoveToDrawTop pending。卡牌攻击后、完整动作终局安全检查前，选择 sink 曾创建原版不会打开的选择；现只在确有选择且模拟器 `IsOverOrEnding` 时跳过请求，保留无选择后置效果，终局仍由完整动作/死亡清理后的既有 `CheckWinCondition` 锁定。Native MCTS 终局 probe 的模拟器与分支 pending 任一非空立即失败；exporter 以根起敌方掉血对账该动作实际掉血，并显式断言 live 终局对应预测已结算且无选择。原 `AllEnemiesDead` 已基于 Victory TerminalStamp，未改搜索终局政策。
+- 独立 10 HP 致命/40 HP 非致命 HEADBUTT 控制，敌方 Strength=20、Vulnerable=2：前者原生与预测都胜利、无选择，敌方 10→0；后者 40→27，出现真实两候选选择，完成后完整 continuation 相等。精确 R2 输入修复后在第 21 决策而非原失败第 20 决策末击；整条回归数据标记 `regressionOnly`。终局前完整 continuation 与终局后 RNG 对账通过；Native 战后清场和燃烧之血回血使终局后完整牌堆/HP 文本与模拟的战斗终点不同，不能声称完全同态或预/后结算奖励相等。
+- NativeWorker 发布使用每运行独立 stage 并核对加载程序集路径/MVID/SHA256 与磁盘哈希；旧 stage EXE 被独占锁住时新的完整 ExportRelease 仍成功。冻结普通/PURITY/CASCADE 第二层根各有纯 MCTS 与四种固定 policy/value 消融，15 臂完成且零回退。PURITY/CASCADE 的树内实际观察缺少 Choice 上下文，而导出样本有该字段，选择根网络效果仍不能正确比较；只读 held-out 普通根 value 校准显著偏正。完整证据和未处理边界见父仓库 `artifacts/alphazero/headbutt-boundary-20260925/report.md`。未训练、晋级或启动 self-play。
+
+## AlphaZero 教师数据与树内模型对比（2026-09-25，本地未发布）
+
+- NativeWorker 新增仅用于研究采集的显式生成牌组入口：复用现有 `GeneratedCombatScenario.Resolve` 规范化卡牌，在固定登记遭遇的原生跑局中用 `run.CreateCard` 与 `CardPileCmd.Add` 建牌组，导出配置 SHA、解析目录指纹及实际卡牌身份/顺序。该入口不改变正式模拟、奖励、rollout 或动作身份；复用原始选择严格校验。发布脚本在完整 ExportRelease 后核对游戏 EXE 哈希，避免相同字节的共享 EXE 重复覆盖占用。
+- 研究波次固定 20/5/10 seed、五套牌组、邪教徒/Living Fog 两遭遇；50 个教师任务为 48 胜、2 项发布前文件占用错误，1,380 条严格终局决策与 172 个自然选择节点进入训练。新的 1,970 参数候选按第 11/12 轮验证损失选定，训练集无死亡标签。独立 Native 数值对账包括 2 个自然选择根。
+- 60/60 场预留 seed 三组完整战斗严格审计通过、20/20 配对同根：纯 MCTS 19 胜，旧树 10 胜，新树 9 胜、3 未完成。新树在邪教徒 4/10 胜但 Living Fog 5/10 胜、3 未完成；不构成总体改善，也不满足正式晋级结论。完整数据、来源哈希、局限和未启动下一轮的决定见父仓库 `artifacts/alphazero/teacher-tree-r3-20260924/study-report.md`。R1 初始牌部分数据及 R2 终局 HEADBUTT 选择错配诊断均保留，未混入 R3 训练。
+
+## Native pure MCTS 同根吞吐归因（2026-09-24，本地未发布）
+
+- 增加仅在专用 headless 诊断模式使用的纯 MCTS 尝试/完成/截止、树路径/rollout/前缀重放、真实 Fork、选择分支生成/物化、阶段包含与独占耗时、分配和 GC 暂停指标；搜索算法、深度、rollout 策略、奖励及动作身份未改。发布、启动、根建立和预热时间独立记录。历史 `WorkerServer` 的 `SimulatorForks` 仍是旧 Apply 代理值，本轮报告只使用新真实 Fork 计数。
+- 使用三种真实根（普通、净化选择、CASCADE 第二层选择），每根两进程共享同一原生 checkpoint，完整 ExportRelease 串行运行 A 冷 1 秒、弃树预热、B 新树 1 秒、C 新树 5 秒、固定完成 16 次及 exporter 校验臂。六进程加载程序集路径/MVID/SHA256 一致，每臂 retainedVisits=0。最终数据见父仓库 `profile_output/mcts-same-root-diagnosis-20260924.md`；旧 `-001` 至 `-004` 诊断产物保留但不混合速率。
+- PURITY/CASCADE 热 1 秒根有 1/2 次每模拟前缀动作重放和约 20/46 个每模拟已物化选择后继；CASCADE 同时平均执行约 49 次显式 Apply、114 次真实 Fork，比普通根的约 28/55 多。CASCADE 选择物化包含约 552 ms/秒，前缀重放约 136 ms/秒，两个范围有重叠；观察/JSON/威胁单项不能解释主要差距。诊断关闭臂的固定16次选中动作、访问统计、步数和 Fork 与开启臂一致。
+- 一秒预热后 CASCADE 同根新树仍仅约 34–35 simulations/s；五秒臂本批超过 100/s，但不代替真实决策首秒门槛。冷启动、JIT、GC、系统调度和树内工作分布的精确因果占比没有 CPU 调用栈证据，不作断言。本轮只建议以后优先验证急切选择兄弟物化的按需续接，不实施优化，不晋级。
+
+## AlphaZero Native 选择、终局与性能验证（2026-09-24，本地未发布）
+
+- NativeWorker 测试宿主允许模型参与强制父卡回归；所有此类样本仍标记 `regressionOnly`，训练加载器拒收。PURITY、BURNING_PACT 及 CASCADE/PREPARED 两层选择均在纯 MCTS 与树内 policy/value 下真实执行，逐层 live/predicted 候选、顺序、数量和上下文对账通过。
+- 修正测试宿主 `NativeSession.StepAsync` 的敌方累计实际掉血采样时点：旧实现提交动作后才读取“动作前”HP，历史胜利样本出现敌人已清零而 `enemyDamageLost=0`。现在在动作提交前冻结 HP，并导出逐动作 before/after/damage 证据；奖励公式、模拟器和正式 Mod 不变。
+- 当前完整普通战斗取得纯 MCTS 胜利（16 决策，80→68 HP，敌方 91/91 掉血）及树内候选死亡（18 决策，敌方 60/91 掉血）；另有两条 1 HP 原生死亡轨迹。逐条 schema、统一 outcome/value 回填和实际程序集 provenance 通过。
+- 独立无模拟次数上限、每决策至少 1000 ms 的 headless 测试中，树内普通/选择根本批最小 361.26/159.65 simulations/s；纯 MCTS 普通/选择根最小 42.56/33.48，100/s 门槛未整体通过。该数据不外推可见 Steam 性能，也不作为模型晋级依据。详细证据见父仓库 `alphazero-combat/docs/NATIVE_VALIDATION_20260924.md`。未提交、未推送、未创建 champion。
+
 ## Native MCTS 选择导出修复（2026-09-24，本地未发布）
 
 - M1 导出器曾在真实卡牌挂起选择后重新 Capture，丢失父动作的预测分支上下文。现在从原稳定根 Promote 已执行父动作，逐层搜索/提交选择；选择 observation 在搜索前冻结，写入 Observation 本身而非 DecisionPoint 包装。

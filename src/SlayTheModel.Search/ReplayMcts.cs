@@ -18,7 +18,22 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
 public sealed record TimedSearchResult<TAction>(TAction Action, int CompletedSimulations,
     int RetainedVisits, double ElapsedMilliseconds, bool Rebuilt, IReadOnlyList<RootActionStatistics<TAction>> Statistics) where TAction : notnull;
 
-public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1)
+public sealed class ReplayMctsDiagnostics
+{
+    public int AttemptedSimulations { get; internal set; }
+    public int CompletedSimulations { get; internal set; }
+    public int IncompleteSimulations => AttemptedSimulations - CompletedSimulations;
+    public long TreeSteps { get; internal set; }
+    public long CompletedTreeSteps { get; internal set; }
+    public long RolloutSteps { get; internal set; }
+    public long CompletedRolloutSteps { get; internal set; }
+    public int MaximumCompletedRolloutSteps { get; internal set; }
+    public int TerminalSimulations { get; internal set; }
+    public int UnresolvedSimulations { get; internal set; }
+}
+
+public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1,
+    ReplayMctsDiagnostics? diagnostics = null)
     where TAction : notnull
 {
     private sealed class Node(string key, IReadOnlyList<TAction> actions)
@@ -67,6 +82,9 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
             while (watch.Elapsed < budget && (!maxSimulations.HasValue || completed < maxSimulations.Value))
             {
                 deadline.Token.ThrowIfCancellationRequested();
+                if (diagnostics != null) diagnostics.AttemptedSimulations++;
+                int rolloutSteps = 0;
+                int treeSteps = 0;
                 await environment.RestoreAsync(prefix, deadline.Token);
                 if (environment.StateKey() != expectedStateKey)
                     throw new InvalidDataException(
@@ -83,6 +101,8 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                         var index = _random.Next(node.Unexpanded.Count);
                         var action = node.Unexpanded[index];
                         await environment.ApplyAsync(action, deadline.Token);
+                        treeSteps++;
+                        if (diagnostics != null) diagnostics.TreeSteps++;
                         // Commit expansion only after the native transition completes.
                         var child = new Node(environment.StateKey(), environment.Terminal ? [] : environment.LegalActions());
                         node.Children.Add(action, child);
@@ -96,6 +116,8 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     var edge = node.Children.MaxBy(pair => pair.Value.Visits == 0 ? double.PositiveInfinity :
                         pair.Value.Mean + Math.Sqrt(2 * Math.Log(Math.Max(1, node.Visits)) / pair.Value.Visits));
                     await environment.ApplyAsync(edge.Key, deadline.Token);
+                    treeSteps++;
+                    if (diagnostics != null) diagnostics.TreeSteps++;
                     node = edge.Value;
                     if (environment.StateKey() != node.Key) throw new InvalidDataException("A replayed tree edge diverged.");
                     path.Add(node);
@@ -107,6 +129,8 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     var actions = environment.LegalActions();
                     if (actions.Count == 0) throw new InvalidDataException("Rollout has no legal action.");
                     await environment.ApplyAsync(environment.RolloutAction(actions, _random), deadline.Token);
+                    rolloutSteps++;
+                    if (diagnostics != null) diagnostics.RolloutSteps++;
                 }
                 deadline.Token.ThrowIfCancellationRequested();
                 // Depth-limited rollouts are unresolved, never a zero-loss victory.
@@ -122,6 +146,16 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     visited.Best = Math.Max(visited.Best, value);
                 }
                 completed++;
+                if (diagnostics != null)
+                {
+                    diagnostics.CompletedSimulations++;
+                    diagnostics.CompletedTreeSteps += treeSteps;
+                    diagnostics.CompletedRolloutSteps += rolloutSteps;
+                    diagnostics.MaximumCompletedRolloutSteps = Math.Max(
+                        diagnostics.MaximumCompletedRolloutSteps, rolloutSteps);
+                    if (environment.Terminal) diagnostics.TerminalSimulations++;
+                    else diagnostics.UnresolvedSimulations++;
+                }
             }
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && deadline.IsCancellationRequested) { }

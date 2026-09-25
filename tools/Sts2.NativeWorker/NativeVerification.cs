@@ -2,7 +2,7 @@ using System.Text.Json;
 using SlayTheModel.Sts2.ModAdapter;
 using SlayTheModel.Sts2.Protocol;
 
-public static class NativeVerification
+public static partial class NativeVerification
 {
     public static async Task CombatSolverEndTurnAsync(NativeSession session, CancellationToken cancellation)
     {

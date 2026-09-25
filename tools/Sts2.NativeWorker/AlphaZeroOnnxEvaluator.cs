@@ -33,6 +33,8 @@ internal sealed class AlphaZeroOnnxEvaluator : IDisposable
             var root = manifest.RootElement;
             if (root.GetProperty("format").GetString() != "azcombat.onnx.v4"
                 || root.GetProperty("featureAbi").GetString() != "azcombat.features.v4"
+                || (root.TryGetProperty("observationSchemaVersion", out var observationSchema)
+                    && observationSchema.GetInt32() != 3)
                 || root.GetProperty("inputs").GetProperty("entities")[1].GetInt32() != EntityWidth
                 || root.GetProperty("inputs").GetProperty("globals")[0].GetInt32() != GlobalWidth
                 || root.GetProperty("inputs").GetProperty("actions")[1].GetInt32() != ActionWidth)
