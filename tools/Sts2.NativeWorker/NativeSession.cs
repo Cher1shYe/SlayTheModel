@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using Godot;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Commands;
 using MegaCrit.Sts2.Core.Context;
 using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
@@ -72,7 +73,16 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         : _trajectoryId;
     public int TrajectoryInitialEnemyEffectiveHp => BoundRewardContext().InitialEnemyEffectiveHp;
     public List<EnemyHpTransition> EnemyHpTransitions { get; } = [];
-    public readonly record struct EnemyHpTransition(int Before, int After, int Damage);
+    public readonly record struct EnemyHpSnapshot(uint CombatId, string MonsterId, int Hp);
+    public readonly record struct EnemyDamageEvent(uint CombatId, string MonsterId,
+        int UnblockedDamage, int OverkillDamage, int CreditedDamage);
+    public readonly record struct EnemyHpTransition(int Before, int After, int Damage,
+        int HistoryStartIndex, int HistoryEndIndex,
+        IReadOnlyList<EnemyHpSnapshot> EnemyRosterBefore,
+        IReadOnlyList<EnemyHpSnapshot> EnemyRosterAfter,
+        IReadOnlyList<EnemyDamageEvent> EnemyDamageEvents,
+        bool HistoryReset,
+        string DamageCaptureSource = "native-damage-command-v1");
 
     public void BeginTrajectoryAtCurrentState()
     {
@@ -455,7 +465,46 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
                 + $" selection=[{string.Join(',', input.Selection ?? [])}]"
                 + $" pending={_choice != null} min={_min} max={_max} options={_options.Length}"
                 + $" legal=[{string.Join(';', legal.Select(DescribeAction))}]");
-        int enemyHpBefore = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        EnemyHpSnapshot[] enemyRosterBefore = CaptureEnemyRoster();
+        int enemyHpBefore = enemyRosterBefore.Sum(enemy => enemy.Hp);
+        int historyStartIndex = CombatManager.Instance.History.Entries.Count();
+        var history = CombatManager.Instance.History;
+        int historyCursor = historyStartIndex;
+        int observedHistoryCount = 0;
+        bool historyReset = false;
+        var retainedDamage = new List<EnemyDamageEvent>();
+        void CaptureHistoryChange()
+        {
+            var entries = history.Entries.ToArray();
+            if (entries.Length < historyCursor)
+            {
+                if (entries.Length != 0)
+                    throw new InvalidDataException("Native history was replaced without a clear boundary.");
+                historyReset = true;
+                historyCursor = 0;
+            }
+            foreach (var entry in entries.Skip(historyCursor))
+            {
+                observedHistoryCount++;
+            }
+            historyCursor = entries.Length;
+        }
+        if (NativeDamageCapture.Sink != null)
+            throw new InvalidDataException("Overlapping native damage capture scopes.");
+        history.Changed += CaptureHistoryChange;
+        NativeDamageCapture.ActiveCombat = _state;
+        NativeDamageCapture.Sink = result =>
+        {
+            if (result.Receiver.Side != MegaCrit.Sts2.Core.Combat.CombatSide.Enemy) return;
+            if (result.UnblockedDamage < 0 || result.OverkillDamage < 0)
+                throw new InvalidDataException("Negative native damage result.");
+            retainedDamage.Add(new EnemyDamageEvent(
+                result.Receiver.CombatId ?? throw new InvalidDataException("Damage receiver lacks combat ID."),
+                result.Receiver.Monster?.Id.ToString() ?? throw new InvalidDataException("Damage receiver lacks monster ID."),
+                result.UnblockedDamage, result.OverkillDamage, result.UnblockedDamage));
+        };
+        try
+        {
         Transitions++;
         if (input.Selection is { } indices)
         {
@@ -485,10 +534,44 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             await DrainActiveActionAsync();
             throw;
         }
-        int enemyHpAfter = _state.Enemies.Sum(enemy => Math.Max(enemy.CurrentHp, 0));
-        int damage = Math.Max(0, enemyHpBefore - enemyHpAfter);
-        EnemyDamageLost += damage;
-        EnemyHpTransitions.Add(new EnemyHpTransition(enemyHpBefore, enemyHpAfter, damage));
+        EnemyHpSnapshot[] enemyRosterAfter = CaptureEnemyRoster();
+        int enemyHpAfter = enemyRosterAfter.Sum(enemy => enemy.Hp);
+        CaptureHistoryChange();
+        if (!ReferenceEquals(history, CombatManager.Instance.History))
+            throw new InvalidDataException("Native history instance changed during a live transition.");
+        if (historyReset && !Terminal)
+            throw new InvalidDataException("Unexpected nonterminal native history reset.");
+        EnemyDamageEvent[] damageEvents = retainedDamage.ToArray();
+        int damage = checked(damageEvents.Sum(entry => entry.CreditedDamage));
+        EnemyDamageLost = checked(EnemyDamageLost + damage);
+        EnemyHpTransitions.Add(new EnemyHpTransition(enemyHpBefore, enemyHpAfter, damage,
+            historyStartIndex, checked(historyStartIndex + observedHistoryCount),
+            enemyRosterBefore, enemyRosterAfter, damageEvents, historyReset));
+        }
+        finally
+        {
+            NativeDamageCapture.Sink = null;
+            NativeDamageCapture.ActiveCombat = null;
+            history.Changed -= CaptureHistoryChange;
+        }
+    }
+
+    private EnemyHpSnapshot[] CaptureEnemyRoster()
+        => _state.Enemies.Select(enemy => new EnemyHpSnapshot(
+            enemy.CombatId ?? throw new InvalidDataException("Native enemy has no CombatId."),
+            enemy.Monster?.Id.ToString() ?? throw new InvalidDataException("Native enemy has no monster model."),
+            Math.Max(enemy.CurrentHp, 0))).ToArray();
+
+    private static EnemyDamageEvent CaptureEnemyDamageEvent(DamageReceivedEntry entry)
+    {
+        int unblocked = entry.Result.UnblockedDamage;
+        int overkill = entry.Result.OverkillDamage;
+        if (unblocked < 0 || overkill < 0)
+            throw new InvalidDataException("Native damage event contains negative damage or overkill.");
+        return new EnemyDamageEvent(
+            entry.Receiver.CombatId ?? throw new InvalidDataException("Damaged enemy has no CombatId."),
+            entry.Receiver.Monster?.Id.ToString() ?? throw new InvalidDataException("Damaged enemy has no monster model."),
+            unblocked, overkill, Math.Max(0, unblocked));
     }
 
     private static string DescribeAction(SearchAction action)

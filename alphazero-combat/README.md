@@ -112,3 +112,24 @@ python combat/tools/GeneratedCombatScenarios/run.py `
 ```
 
 输出目录必须不存在。详细边界、奖励与集成缺口见 [项目规格](docs/PROJECT_SPEC.md) 和 [仓库集成说明](docs/REPOSITORY_INTEGRATION.md)。
+
+### R4 过杀事件的离线重审
+
+Native UnblockedDamage 表示实际掉血，OverkillDamage 是额外过杀诊断，
+二者不存在 overkill <= unblocked 约束。1 HP 目标的 1/8/1
+（unblocked/overkill/credited）只累计 1 点伤害；字段类型、非负值、credit、
+事件总计、Capture 奖励及完整轨迹仍严格核对。不要从实际掉血减去或加上过杀。
+
+从仓库根运行离线重审（输出目录必须为新目录，且位于冻结试采目录之外）：
+
+    $env:PYTHONPATH = 'alphazero-combat/src'
+    python -m azcombat.pilot_reaudit --manifest artifacts/alphazero/natural-pilot-20260925-r4/manifest.json --original-audit artifacts/alphazero/natural-pilot-20260925-r4-audit.json --output-dir artifacts/alphazero/r4-overkill-reaudit
+
+该入口不运行 Worker。它核对旧报告所登记文件的哈希并逐条重审所有已执行轨迹，
+区分原尝试状态、Worker 退出码和当前接纳状态；仅允许对匹配过杀误拒证据且
+Worker 正常退出的原失败尝试重新判定。原 JSONL、probe、日志和 manifest 均不改写。
+修正审计器后的源码身份与采集时源码分开记录，不关闭实际加载程序集的哈希核对。
+
+全部已有尝试通过后，另存剩余任务的 continuation-manifest.json 及其哈希。
+这是不可直接交给旧 run_pilot 的计划补充文件，不启动任务、不重跑已接纳战斗；
+后续执行需显式授权并由支持补充计划的入口验证源码、输入和原计划关联。

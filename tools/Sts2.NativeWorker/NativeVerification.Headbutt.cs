@@ -9,6 +9,25 @@ using MegaCrit.Sts2.Core.Models.Relics;
 
 public static partial class NativeVerification
 {
+    public static async Task CrossRootAsync(NativeSession session, string outputPath,
+        CancellationToken cancellation)
+    {
+        outputPath = Path.GetFullPath(outputPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(outputPath)!);
+        if (File.Exists(outputPath))
+            throw new IOException($"Cross-root diagnostic already exists: {outputPath}");
+        object crossRoot = await CheckCrossRootRewardAsync(session, cancellation);
+        using var stream = new FileStream(outputPath, FileMode.CreateNew, FileAccess.Write);
+        JsonSerializer.Serialize(stream, new
+        {
+            format = "azcombat.cross-root-reward-regression.v1",
+            regressionOnly = true,
+            status = "passed",
+            crossRoot,
+        }, new JsonSerializerOptions { WriteIndented = true });
+        Godot.GD.Print($"SLAY_WORKER_CROSS_ROOT_REWARD_MATCH output={outputPath}");
+    }
+
     public static async Task HeadbuttAsync(NativeSession session, string outputPath, CancellationToken cancellation)
     {
         outputPath = Path.GetFullPath(outputPath);
@@ -266,92 +285,200 @@ public static partial class NativeVerification
         session.Checkpoint = null;
         session.Seed = "AZ-CROSS-ROOT-REWARD-REGRESSION";
         session.EncounterId = "LIVING_FOG_NORMAL";
-        session.ChoiceFixture = false;
+        session.ChoiceFixture = true;
+        session.ChoiceFixtureCards =
+            ["STRIKE_IRONCLAD", "BASH", "DEFEND_IRONCLAD", "DEFEND_IRONCLAD", "DEFEND_IRONCLAD"];
+        session.ChoiceFixtureUpgradedCards.Clear();
         await session.ResetAsync(session.Seed, cancellation);
         session.BeginTrajectoryAtCurrentState();
+        const int decisionCap = 2;
+        long decisionsBefore = session.Transitions;
+        int initialEnemyHpFromLive = session.CombatStateForSimulation.Enemies
+            .Sum(enemy => Math.Max(enemy.CurrentHp, 0));
+        if (initialEnemyHpFromLive < 1 || session.InitialEnemyRawHp != initialEnemyHpFromLive)
+            throw new InvalidDataException("Cross-root fixture has no independent live initial enemy HP.");
 
         using var firstRoot = new CombatSolverReplayEnvironment();
         firstRoot.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
         session.BindTrajectoryRewardContext(firstRoot.RewardContext);
+        NativeMctsTrajectoryRewardContext firstContext = firstRoot.RewardContext;
+        if (firstContext.CaptureId != 1 || firstContext.CapturedEnemyDamagePrefix != 0
+            || firstContext.InitialEnemyEffectiveHp != initialEnemyHpFromLive
+            || firstContext.EntryHp != session.EntryHp
+            || firstContext.CaptureBoundaryKey != NativeMctsSimulationApi.CaptureLiveContinuationKey(
+                session.CombatStateForSimulation))
+            throw new InvalidDataException("Initial cross-root Capture context differs from the live trajectory.");
         var strike = firstRoot.RootActions.Single(action => action.Native.CardId == "STRIKE_IRONCLAD");
         firstRoot.Promote(strike);
         await session.StepAsync(session.ToLiveSearchAction(strike), cancellation);
-        int prefixDamage = session.EnemyDamageLost;
-        if (prefixDamage <= 0 || session.Terminal || session.HasPendingChoice)
+        NativeSession.EnemyHpTransition prefixTransition = session.EnemyHpTransitions.Single();
+        int prefixDamage = prefixTransition.Before - prefixTransition.After;
+        if (prefixDamage <= 0 || prefixDamage != prefixTransition.Damage
+            || prefixDamage != session.EnemyDamageLost
+            || prefixTransition.Before != initialEnemyHpFromLive
+            || firstRoot.State.EnemyHpLost != prefixDamage
+            || session.Terminal || session.HasPendingChoice)
             throw new InvalidDataException("Cross-root fixture did not create a nonzero stable damage prefix.");
 
         await session.SetCurrentHpForRegressionAsync(1, cancellation);
         using var secondRoot = new CombatSolverReplayEnvironment();
         secondRoot.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
         session.BindTrajectoryRewardContext(secondRoot.RewardContext);
-        if (secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage
-            || secondRoot.RewardContext.InitialEnemyEffectiveHp
-                != firstRoot.RewardContext.InitialEnemyEffectiveHp
-            || secondRoot.RewardContext.EntryHp != firstRoot.RewardContext.EntryHp)
+        NativeMctsTrajectoryRewardContext secondContext = secondRoot.RewardContext;
+        if (secondContext.TrajectoryId != firstContext.TrajectoryId
+            || secondContext.CaptureId != firstContext.CaptureId + 1
+            || secondContext.CaptureBoundaryKey != NativeMctsSimulationApi.CaptureLiveContinuationKey(
+                session.CombatStateForSimulation)
+            || secondContext.CapturedEnemyDamagePrefix != prefixDamage
+            || secondContext.InitialEnemyEffectiveHp != initialEnemyHpFromLive
+            || secondContext.EntryHp != firstContext.EntryHp
+            || secondRoot.State.EnemyHpLost != 0
+            || secondRoot.State.EnemyHpTotal != prefixTransition.After)
             throw new InvalidDataException("Cross-root trajectory reward context was reset or changed.");
 
         var sibling = secondRoot.RootActions.FirstOrDefault(action =>
-            action.Native.Kind == "PlayCard" && action.Native.CardId != "STRIKE_IRONCLAD");
-        if (sibling != null)
-        {
-            _ = secondRoot.PredictSuccessor(sibling);
-            await secondRoot.RestoreAsync([], cancellation);
-            if (secondRoot.State.EnemyHpLost != 0
-                || secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage)
-                throw new InvalidDataException("Sibling restore duplicated or leaked cross-root damage.");
-        }
-
-        double unresolved = secondRoot.EvaluateUnresolved();
-        double expectedUnresolved = -0.5 + 0.25 * Math.Clamp(
-            prefixDamage / (double)Math.Max(secondRoot.RewardContext.InitialEnemyEffectiveHp, 1), 0, 1);
-        if (Math.Abs(unresolved - expectedUnresolved) > 1e-9)
-            throw new InvalidDataException("Cross-root unresolved reward used the wrong denominator or prefix.");
-
-        var cutoffAction = secondRoot.RootActions.SingleOrDefault(action =>
-            action.Native.CardId == "DEFEND_IRONCLAD");
-        if (cutoffAction is null)
-            throw new InvalidDataException("Cross-root unresolved cutoff fixture has no deterministic Defend action.");
-        await secondRoot.ApplyAsync(cutoffAction, cancellation);
-        if (secondRoot.State.Terminal || secondRoot.State.PendingChoice)
-        {
-            await secondRoot.RestoreAsync([], cancellation);
-            throw new InvalidDataException("Cross-root unresolved cutoff did not remain at a legal nonterminal state.");
-        }
-        double unresolvedAfterDecisionLimit = secondRoot.EvaluateUnresolved();
-        if (Math.Abs(unresolvedAfterDecisionLimit - expectedUnresolved) > 1e-9)
-            throw new InvalidDataException("Decision-limit unresolved reward changed its trajectory prefix.");
+            action.Native.Kind == "PlayCard" && action.Native.CardId == "DEFEND_IRONCLAD")
+            ?? throw new InvalidDataException("Cross-root sibling Restore fixture has no Defend action.");
+        _ = secondRoot.PredictSuccessor(sibling);
         await secondRoot.RestoreAsync([], cancellation);
+        if (secondRoot.State.EnemyHpLost != 0
+            || secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage)
+            throw new InvalidDataException("Sibling restore duplicated or leaked cross-root damage.");
+
+        var bash = secondRoot.RootActions.Single(action => action.Native.CardId == "BASH");
+        await secondRoot.ApplyAsync(bash, cancellation);
+        NativeMctsState afterBranch = secondRoot.State;
+        await session.StepAsync(session.ToLiveSearchAction(bash), cancellation);
+        NativeSession.EnemyHpTransition branchTransition = session.EnemyHpTransitions.Last();
+        int branchDamage = branchTransition.Before - branchTransition.After;
+        int totalDamageFromLive = checked(prefixDamage + branchDamage);
+        if (branchDamage <= 0 || branchDamage != branchTransition.Damage
+            || branchTransition.Before != prefixTransition.After
+            || totalDamageFromLive != session.EnemyDamageLost
+            || afterBranch.Terminal || afterBranch.PendingChoice
+            || session.Terminal || session.HasPendingChoice
+            || afterBranch.EnemyHpLost != branchDamage
+            || afterBranch.EnemyHpTotal != prefixTransition.After)
+            throw new InvalidDataException(
+                $"Cross-root branch damage differs: livePrefix={prefixDamage} "
+                + $"liveBranch={branchDamage} predictedBranch={afterBranch.EnemyHpLost}.");
+        long executedAtCap = session.Transitions - decisionsBefore;
+        if (executedAtCap != decisionCap)
+            throw new InvalidDataException("Cross-root unresolved boundary is not the registered decision cap.");
+
+        NativeMctsTerminalRewardInputs unresolvedInputs = secondRoot.UnresolvedRewardInputs();
+        double expectedUnresolved = -0.5 + 0.25 * Math.Clamp(
+            totalDamageFromLive / (double)initialEnemyHpFromLive, 0, 1);
+        double nativeUnresolved = session.EvaluateUnresolved();
+        if (unresolvedInputs.Outcome != "unresolved"
+            || unresolvedInputs.TrajectoryId != firstContext.TrajectoryId
+            || unresolvedInputs.CaptureId != secondContext.CaptureId
+            || unresolvedInputs.CaptureBoundaryKey != secondContext.CaptureBoundaryKey
+            || unresolvedInputs.TrajectoryInitialEnemyHp != initialEnemyHpFromLive
+            || unresolvedInputs.CapturedEnemyDamagePrefix != prefixDamage
+            || unresolvedInputs.EnemyHpLost != branchDamage
+            || unresolvedInputs.TotalEnemyHpLost != totalDamageFromLive
+            || Math.Abs(unresolvedInputs.Reward - nativeUnresolved) > 1e-9
+            || Math.Abs(nativeUnresolved - expectedUnresolved) > 1e-9)
+            throw new InvalidDataException("Decision-cap unresolved reward differs from independent live damage.");
+
+        secondRoot.Promote(bash);
+        await secondRoot.RestoreAsync([], cancellation);
+        if (secondRoot.State.EnemyHpLost != branchDamage
+            || secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage
+            || Math.Abs(secondRoot.EvaluateUnresolved() - expectedUnresolved) > 1e-9)
+            throw new InvalidDataException("Promote/Restore lost or duplicated root-local branch damage.");
+
+        using var thirdRoot = new CombatSolverReplayEnvironment();
+        thirdRoot.Capture(session.CombatStateForSimulation, session.CaptureRewardSeed());
+        session.BindTrajectoryRewardContext(thirdRoot.RewardContext);
+        NativeMctsTrajectoryRewardContext thirdContext = thirdRoot.RewardContext;
+        if (thirdContext.TrajectoryId != firstContext.TrajectoryId
+            || thirdContext.CaptureId != secondContext.CaptureId + 1
+            || thirdContext.CaptureBoundaryKey != NativeMctsSimulationApi.CaptureLiveContinuationKey(
+                session.CombatStateForSimulation)
+            || thirdContext.EntryHp != firstContext.EntryHp
+            || thirdContext.InitialEnemyEffectiveHp != initialEnemyHpFromLive
+            || thirdContext.CapturedEnemyDamagePrefix != totalDamageFromLive
+            || thirdRoot.State.EnemyHpLost != 0
+            || thirdRoot.State.EnemyHpTotal != branchTransition.After
+            || Math.Abs(thirdRoot.EvaluateUnresolved() - expectedUnresolved) > 1e-9)
+            throw new InvalidDataException("Third Capture did not transfer branch damage into the prefix once.");
 
         var endTurn = secondRoot.RootActions.Single(action => action.Native.Kind == "EndTurn");
+        var thirdRootEndTurn = thirdRoot.RootActions.Single(action => action.Native.Kind == "EndTurn");
         secondRoot.Promote(endTurn);
+        await thirdRoot.ApplyAsync(thirdRootEndTurn, cancellation);
         await secondRoot.RestoreAsync([], cancellation);
-        if (secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage)
-            throw new InvalidDataException("Promote/Restore changed the immutable reward prefix.");
+        if (secondRoot.RewardContext.CapturedEnemyDamagePrefix != prefixDamage
+            || secondRoot.State.EnemyHpLost != branchDamage)
+            throw new InvalidDataException("Terminal Promote/Restore changed the branch damage ledger.");
         await session.StepAsync(session.ToLiveSearchAction(endTurn), cancellation);
-        if (!session.Terminal || session.Won || !secondRoot.State.Defeated)
+        if (!session.Terminal || session.Won || !secondRoot.State.Defeated
+            || !thirdRoot.State.Defeated || session.Hp != 0
+            || secondRoot.State.PlayerHp != 0 || thirdRoot.State.PlayerHp != 0
+            || session.EnemyDamageLost != totalDamageFromLive)
             throw new InvalidDataException("Cross-root fixture did not reach a real death.");
 
         NativeMctsTerminalRewardInputs rewardInputs = secondRoot.TerminalRewardInputs();
+        NativeMctsTerminalRewardInputs recapturedRewardInputs = thirdRoot.TerminalRewardInputs();
         double actualReward = session.EvaluateTerminal();
         double expectedLoss = -1.0 + 0.25 * Math.Clamp(
-            (prefixDamage + rewardInputs.EnemyHpLost)
-                / (double)Math.Max(secondRoot.RewardContext.InitialEnemyEffectiveHp, 1), 0, 1);
-        if (rewardInputs.CapturedEnemyDamagePrefix != prefixDamage
-            || rewardInputs.TotalEnemyHpLost != prefixDamage + rewardInputs.EnemyHpLost
+            totalDamageFromLive / (double)initialEnemyHpFromLive, 0, 1);
+        if (rewardInputs.Outcome != "loss" || recapturedRewardInputs.Outcome != "loss"
+            || rewardInputs.EntryHp != firstContext.EntryHp
+            || recapturedRewardInputs.EntryHp != firstContext.EntryHp
+            || rewardInputs.CombatFinalHp != 0 || recapturedRewardInputs.CombatFinalHp != 0
+            || rewardInputs.SettledFinalHp != session.Hp
+            || recapturedRewardInputs.SettledFinalHp != session.Hp
+            || rewardInputs.AppliedPostCombatHeal != 0
+            || recapturedRewardInputs.AppliedPostCombatHeal != 0
+            || rewardInputs.CapturedEnemyDamagePrefix != prefixDamage
+            || rewardInputs.EnemyHpLost != branchDamage
+            || rewardInputs.EnemyHpTotal != prefixTransition.After
+            || rewardInputs.TotalEnemyHpLost != totalDamageFromLive
+            || rewardInputs.TrajectoryInitialEnemyHp != initialEnemyHpFromLive
+            || rewardInputs.TrajectoryId != firstContext.TrajectoryId
+            || rewardInputs.CaptureId != secondContext.CaptureId
+            || rewardInputs.CaptureBoundaryKey != secondContext.CaptureBoundaryKey
+            || recapturedRewardInputs.TrajectoryId != firstContext.TrajectoryId
+            || recapturedRewardInputs.CaptureId != thirdContext.CaptureId
+            || recapturedRewardInputs.CaptureBoundaryKey != thirdContext.CaptureBoundaryKey
+            || recapturedRewardInputs.CapturedEnemyDamagePrefix != totalDamageFromLive
+            || recapturedRewardInputs.EnemyHpLost != 0
+            || recapturedRewardInputs.TotalEnemyHpLost != totalDamageFromLive
+            || recapturedRewardInputs.TrajectoryInitialEnemyHp != initialEnemyHpFromLive
             || Math.Abs(rewardInputs.Reward - actualReward) > 1e-9
+            || Math.Abs(recapturedRewardInputs.Reward - actualReward) > 1e-9
             || Math.Abs(actualReward - expectedLoss) > 1e-9)
             throw new InvalidDataException("Cross-root terminal reward did not use prefix plus root-local damage once.");
         return new
         {
             regressionOnly = true,
-            trajectoryId = secondRoot.RewardContext.TrajectoryId,
-            initialEnemyHp = secondRoot.RewardContext.InitialEnemyEffectiveHp,
-            entryHp = secondRoot.RewardContext.EntryHp,
+            trajectoryId = firstContext.TrajectoryId,
+            initialEnemyHp = initialEnemyHpFromLive,
+            entryHp = firstContext.EntryHp,
+            firstCapture = firstContext,
+            secondCapture = secondContext,
+            thirdCapture = thirdContext,
+            prefixTransition,
+            branchTransition,
+            liveEnemyHpTransitions = session.EnemyHpTransitions.ToArray(),
             capturedPrefixDamage = prefixDamage,
-            branchDamage = rewardInputs.EnemyHpLost,
-            totalEnemyHpLost = rewardInputs.TotalEnemyHpLost,
-            unresolved, unresolvedAfterDecisionLimit, expectedUnresolved,
-            actualReward, expectedLoss,
+            branchDamage,
+            totalEnemyHpLost = totalDamageFromLive,
+            unresolvedAtDecisionCap = new
+            {
+                regressionOnly = true,
+                decisionCap,
+                executedDecisions = executedAtCap,
+                terminationReason = "decision_cap",
+                expectedUnresolved,
+                nativeUnresolved,
+                rewardInputs = unresolvedInputs,
+            },
+            liveSettledHp = session.Hp,
+            actualReward, expectedLoss, recapturedRewardInputs,
             rewardInputs,
         };
     }

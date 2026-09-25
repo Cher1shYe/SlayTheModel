@@ -4,12 +4,13 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'verify-choices', 'verify-headbutt', 'benchmark', 'solver-mcts-benchmark', 'solver-mcts-export', 'solver-mcts-diagnosis', 'az-server-smoke')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'verify-choices', 'verify-headbutt', 'verify-cross-root', 'verify-enemy-damage', 'benchmark', 'solver-mcts-benchmark', 'solver-mcts-export', 'solver-mcts-diagnosis', 'az-server-smoke')][string]$Mode = 'verify',
     [ValidateSet('pure-mcts', 'policy-value-tree-v1')][string]$SearchMode,
     [string]$OnnxModel,
     [int]$MaxSimulations = 0,
     [int]$BudgetMilliseconds = 0,
     [string]$StageRoot,
+    [switch]$CleanupInstanceOnExit,
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -164,12 +165,20 @@ try {
     $savedMode = $env:STS2_WORKER_MODE
     $savedOutput = $env:STS2_BENCHMARK_OUT
     $savedExportOut = $env:STS2_MCTS_EXPORT_OUT
+    $savedCrossRootOut = $env:STS2_CROSS_ROOT_DIAG_OUT
+    $savedEnemyDamageOut = $env:STS2_ENEMY_DAMAGE_DIAG_OUT
     $savedExportSeed = $env:STS2_MCTS_EXPORT_SEED
     $savedExportEncounter = $env:STS2_MCTS_EXPORT_ENCOUNTER
     try {
         $env:STS2_GAME_PACK = Join-Path $game 'SlayTheSpire2.pck'
         $env:STS2_WORKER_MODE = $Mode
         $env:STS2_BENCHMARK_OUT = Join-Path $stage 'benchmark.json'
+        if ($Mode -eq 'verify-cross-root') {
+            $env:STS2_CROSS_ROOT_DIAG_OUT = Join-Path $stage 'cross-root-reward.json'
+        }
+        if ($Mode -eq 'verify-enemy-damage') {
+            $env:STS2_ENEMY_DAMAGE_DIAG_OUT = Join-Path $stage 'enemy-damage-ledger.json'
+        }
         $processWatch = [System.Diagnostics.Stopwatch]::StartNew()
         $process = Start-Process -FilePath (Join-Path $stage 'NativeWorker.exe') -ArgumentList @('--headless', '--path', ('"' + $project + '"')) -WindowStyle Hidden -RedirectStandardOutput (Join-Path $stage 'stdout.txt') -RedirectStandardError (Join-Path $stage 'stderr.txt') -PassThru
         # Windows PowerShell must open the process handle before the process exits
@@ -220,10 +229,21 @@ try {
             ($stageIdentity | ConvertTo-Json -Depth 5), [System.Text.UTF8Encoding]::new($false))
         if ($process.ExitCode -ne 0) { throw "Worker failed with exit $($process.ExitCode)." }
     } finally {
+        # NativeWorker has no copied game instance directory. Clean up only
+        # this invocation's process; retain its stage and audit evidence.
+        if ($CleanupInstanceOnExit -and $null -ne $process) {
+            if (-not $process.HasExited) {
+                Stop-Process -Id $process.Id
+                $process.WaitForExit()
+            }
+            Write-Output "SLAY_NATIVE_WORKER_INSTANCE_CLEANED pid=$($process.Id)"
+        }
         $env:STS2_GAME_PACK = $savedPack
         $env:STS2_WORKER_MODE = $savedMode
         $env:STS2_BENCHMARK_OUT = $savedOutput
         $env:STS2_MCTS_EXPORT_OUT = $savedExportOut
+        $env:STS2_CROSS_ROOT_DIAG_OUT = $savedCrossRootOut
+        $env:STS2_ENEMY_DAMAGE_DIAG_OUT = $savedEnemyDamageOut
         $env:STS2_MCTS_EXPORT_SEED = $savedExportSeed
         $env:STS2_MCTS_EXPORT_ENCOUNTER = $savedExportEncounter
         foreach ($name in $searchEnvironmentNames) {

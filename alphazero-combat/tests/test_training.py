@@ -41,6 +41,14 @@ class TrainingTests(unittest.TestCase):
                 CombatDataset([path])
             raw["provenance"]["searchSemanticsVersion"] = "azcombat.search.v2"
             path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "searchSemanticsVersion"):
+                CombatDataset([path])
+            raw["provenance"]["searchSemanticsVersion"] = "azcombat.search.v3"
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "rewardLedgerVersion"):
+                CombatDataset([path])
+            raw["provenance"]["rewardLedgerVersion"] = "azcombat.reward-ledger.v2"
+            path.write_text(json.dumps(raw) + "\n", encoding="utf-8")
             self.assertEqual(len(CombatDataset([path])), 1)
             raw["provenance"]["regressionOnly"] = True
             path.write_text(json.dumps(raw) + "\n", encoding="utf-8")

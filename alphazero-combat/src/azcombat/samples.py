@@ -6,7 +6,7 @@ import math
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 from .schema import ActionNode, validate_observation
-from .versions import SEARCH_SEMANTICS_VERSION
+from .versions import REWARD_LEDGER_VERSION, SEARCH_SEMANTICS_VERSION
 
 SAMPLE_SCHEMA_VERSION = 1
 _START_TYPES = {"full_combat", "mid_combat_verified"}
@@ -153,9 +153,11 @@ def read_jsonl(path: Path, *, allow_regression: bool = False,
                         or provenance.get("forcedFixtureCard") is not None):
                     raise ValueError("regression-only forced trajectory is not training data")
                 if require_current_search_semantics and any(key in provenance for key in
-                        ("requestedSearchMode", "searchMode", "decisionMetrics", "assemblies")) \
-                        and provenance.get("searchSemanticsVersion") != SEARCH_SEMANTICS_VERSION:
-                    raise ValueError("Native training sample searchSemanticsVersion is missing or obsolete")
+                        ("requestedSearchMode", "searchMode", "decisionMetrics", "assemblies")):
+                    if provenance.get("searchSemanticsVersion") != SEARCH_SEMANTICS_VERSION:
+                        raise ValueError("Native training sample searchSemanticsVersion is missing or obsolete")
+                    if provenance.get("rewardLedgerVersion") != REWARD_LEDGER_VERSION:
+                        raise ValueError("Native training sample rewardLedgerVersion is missing or obsolete")
                 result.append(sample)
             except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc: raise ValueError(f"invalid training sample at line {line_number}: {exc}") from exc
     return result

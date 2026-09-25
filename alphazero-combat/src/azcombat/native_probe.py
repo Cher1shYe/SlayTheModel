@@ -14,6 +14,7 @@ from .experiments import REGISTERED_ENCOUNTERS, checked_model, sha256
 from .promotion import ASSEMBLY, EXPORT_OUT
 from .reward import Outcome, TerminalResult, score_result
 from .samples import read_jsonl
+from .versions import REWARD_LEDGER_VERSION, SEARCH_SEMANTICS_VERSION
 
 
 def _write_new(path: Path, content: str) -> None:
@@ -80,6 +81,262 @@ def _audit_generated_deck(provenance: dict, expected: dict) -> None:
             or not isinstance(actual.get("catalogFingerprint"), str) \
             or re.fullmatch(r"[0-9a-fA-F]{64}", actual["catalogFingerprint"]) is None:
         raise ValueError("Native generated deck provenance or actual card order differs from request")
+
+
+def _enemy_roster(value: object, *, transition: int, boundary: str) -> dict[int, tuple[str, int]]:
+    if not isinstance(value, list):
+        raise ValueError(f"native transition {transition} {boundary} roster is missing")
+    roster: dict[int, tuple[str, int]] = {}
+    for enemy in value:
+        if not isinstance(enemy, dict) or type(enemy.get("combatId")) is not int \
+                or not 0 <= enemy["combatId"] <= 0xFFFFFFFF \
+                or not isinstance(enemy.get("monsterId"), str) \
+                or not enemy["monsterId"].startswith("MONSTER.") \
+                or type(enemy.get("hp")) is not int or enemy["hp"] < 0:
+            raise ValueError(f"native transition {transition} {boundary} roster has an invalid enemy")
+        combat_id = enemy["combatId"]
+        if combat_id in roster:
+            raise ValueError(f"native transition {transition} {boundary} roster repeats a combatId")
+        roster[combat_id] = (enemy["monsterId"], enemy["hp"])
+    return roster
+
+
+def _audit_reward_ledger(provenance: dict, metrics: list[dict], *,
+                         final_outcome: str, final_value: float) -> dict:
+    """Reconcile every Capture against independently recorded native damage events.
+
+    An ordinary decision creates a new Capture; its following choice rows use
+    that Capture and each still produces one native transition. Summed roster
+    HP is diagnostic only: spawning, departure, and healing are not damage.
+    The predicted reward input never supplies expected damage for this check.
+    """
+    denominator = provenance.get("trajectoryInitialEnemyEffectiveHp")
+    transitions = provenance.get("enemyHpTransitions")
+    audits = provenance.get("rewardAudits")
+    if type(denominator) is not int or denominator < 1:
+        raise ValueError("trajectoryInitialEnemyEffectiveHp is missing or invalid")
+    if not isinstance(transitions, list) or len(transitions) != len(metrics) \
+            or not isinstance(audits, list):
+        raise ValueError("native reward ledger has missing transitions or Capture audits")
+    prior_roster: dict[int, tuple[str, int]] | None = None
+    prior_history_end: int | None = None
+    identities: dict[int, str] = {}
+    total_damage_events = 0
+    for index, item in enumerate(transitions):
+        if not isinstance(item, dict) or any(type(item.get(key)) is not int
+                                             or item[key] < 0
+                                             for key in ("before", "after", "damage",
+                                                         "historyStartIndex", "historyEndIndex")):
+            raise ValueError(f"native enemy HP transition {index} is malformed")
+        history_start = item["historyStartIndex"]
+        history_end = item["historyEndIndex"]
+        history_reset = item.get("historyReset", False)
+        capture_source = item.get("damageCaptureSource", "legacy-history-slice")
+        if capture_source not in {"legacy-history-slice", "native-damage-command-v1"}:
+            raise ValueError(f"native transition {index} unknown damage capture source")
+        retained = capture_source == "native-damage-command-v1"
+        if retained and history_reset and (index != len(transitions) - 1 or final_outcome == "unresolved"):
+            raise ValueError(f"native transition {index} unexpected nonterminal history reset")
+        if type(history_reset) is not bool:
+            raise ValueError(f"native transition {index} historyReset is missing")
+        if history_end < history_start or (prior_history_end is not None
+                                           and history_start != prior_history_end):
+            raise ValueError(f"native transition {index} history indices are discontinuous")
+        before_roster = _enemy_roster(item.get("enemyRosterBefore"),
+                                      transition=index, boundary="before")
+        after_roster = _enemy_roster(item.get("enemyRosterAfter"),
+                                     transition=index, boundary="after")
+        if sum(hp for _, hp in before_roster.values()) != item["before"] \
+                or sum(hp for _, hp in after_roster.values()) != item["after"]:
+            raise ValueError(f"native transition {index} roster HP differs from diagnostic totals")
+        if prior_roster is not None and before_roster != prior_roster:
+            raise ValueError(f"native transition {index} enemy roster is discontinuous")
+        for roster in (before_roster, after_roster):
+            for combat_id, (monster_id, _) in roster.items():
+                if combat_id in identities and identities[combat_id] != monster_id:
+                    raise ValueError(f"native transition {index} combatId changed monster identity")
+                identities[combat_id] = monster_id
+        events = item.get("enemyDamageEvents")
+        if not isinstance(events, list) or not retained and len(events) > history_end - history_start:
+            raise ValueError(f"native transition {index} damage events exceed history slice")
+        if history_reset and events and not retained:
+            raise ValueError(f"native transition {index} history reset cannot carry damage events")
+        credited_total = 0
+        for event in events:
+            if not isinstance(event, dict) or type(event.get("combatId")) is not int \
+                    or not 0 <= event["combatId"] <= 0xFFFFFFFF \
+                    or not isinstance(event.get("monsterId"), str) \
+                    or not event["monsterId"].startswith("MONSTER.") \
+                    or any(type(event.get(key)) is not int or event[key] < 0
+                           for key in ("unblockedDamage", "overkillDamage", "creditedDamage")):
+                raise ValueError(f"native transition {index} has a malformed damage event")
+            combat_id = event["combatId"]
+            monster_id = event["monsterId"]
+            if combat_id in identities and identities[combat_id] != monster_id:
+                raise ValueError(f"native transition {index} damage event targets a different monster")
+            identities[combat_id] = monster_id
+            # Native UnblockedDamage is the actual HP loss, already excluding
+            # OverkillDamage. A 1-HP enemy can lose 1 HP with 8 overkill; the
+            # diagnostic overkill has no ordering constraint against HP loss.
+            credited = event["unblockedDamage"]
+            if event["creditedDamage"] != credited:
+                raise ValueError(f"native transition {index} damage event credit differs from actual HP loss")
+            credited_total += credited
+        expected_damage = (max(0, item["before"] - item["after"])
+                           if history_reset and not retained else credited_total)
+        if item["damage"] != expected_damage:
+            raise ValueError(f"native transition {index} damage differs from damage events")
+        total_damage_events += len(events)
+        prior_roster = after_roster
+        prior_history_end = history_end
+    if not transitions or transitions[0]["before"] != denominator \
+            or any(left["after"] != right["before"]
+                   for left, right in zip(transitions, transitions[1:])):
+        raise ValueError("native enemy HP transitions are discontinuous or have a wrong denominator")
+    if sum(item["damage"] for item in transitions) != provenance.get("enemyDamageLost"):
+        raise ValueError("total native enemy damage differs from actual transitions")
+    roots = [index for index, metric in enumerate(metrics)
+             if isinstance(metric, dict) and metric.get("choiceLayer") == 0]
+    if not roots or roots[0] != 0 or len(roots) != len(audits):
+        raise ValueError("reward audits must match ordinary decision Captures")
+    entry_hp = provenance.get("entryHp")
+    if type(entry_hp) is not int or entry_hp < 0:
+        raise ValueError("native entry HP is missing or invalid")
+    trajectory_id = None
+    capture_ledger = []
+    for capture_number, (start, audit) in enumerate(zip(roots, audits, strict=True), 1):
+        end = roots[capture_number] if capture_number < len(roots) else len(metrics)
+        if not isinstance(audit, dict):
+            raise ValueError(f"capture {capture_number} reward audit is malformed")
+        if metrics[start].get("parentDecision") != capture_number - 1 \
+                or any(metric.get("parentDecision") != capture_number - 1
+                       for metric in metrics[start:end]) \
+                or [metric.get("choiceLayer") for metric in metrics[start:end]] \
+                != list(range(end - start)):
+            raise ValueError(f"capture {capture_number} decision/choice sequence differs")
+        prefix = sum(item["damage"] for item in transitions[:start])
+        branch = sum(item["damage"] for item in transitions[start:end])
+        total = prefix + branch
+        if audit.get("CapturedEnemyDamagePrefix") != prefix:
+            raise ValueError(f"capture {capture_number} damage prefix differs from native transitions")
+        if audit.get("EnemyHpLost") != branch:
+            raise ValueError(f"capture {capture_number} branch damage differs from native transitions")
+        if audit.get("TotalEnemyHpLost") != total:
+            raise ValueError(f"capture {capture_number} total damage differs from native transitions")
+        if audit.get("TrajectoryInitialEnemyHp") != denominator \
+                or audit.get("EnemyHpTotal") != transitions[start]["before"]:
+            raise ValueError(f"capture {capture_number} root/trajectory denominator differs")
+        if audit.get("CaptureId") != capture_number or audit.get("EntryHp") != entry_hp:
+            raise ValueError(f"capture {capture_number} identity or entry HP differs")
+        current_id = audit.get("TrajectoryId")
+        if not isinstance(current_id, str) or not current_id.startswith(provenance["seed"] + "#"):
+            raise ValueError(f"capture {capture_number} trajectoryId is missing or invalid")
+        if trajectory_id is None:
+            trajectory_id = current_id
+        elif current_id != trajectory_id:
+            raise ValueError(f"capture {capture_number} trajectoryId changed")
+        boundary_key = audit.get("CaptureBoundaryKey")
+        if not isinstance(boundary_key, str) or re.fullmatch(r"[0-9A-Fa-f]{64}", boundary_key) is None:
+            raise ValueError(f"capture {capture_number} boundary hash is missing or invalid")
+        outcome = final_outcome if capture_number == len(roots) else "unresolved"
+        if audit.get("Outcome") != outcome:
+            raise ValueError(f"capture {capture_number} outcome differs from actual trajectory")
+        progress = min(total / denominator, 1.0)
+        if type(audit.get("EnemyDamageProgress")) not in (int, float) \
+                or not math.isclose(audit["EnemyDamageProgress"], progress, abs_tol=1e-9):
+            raise ValueError(f"capture {capture_number} damage progress differs")
+        combat_hp = audit.get("CombatFinalHp")
+        settled_hp = audit.get("SettledFinalHp")
+        applied_heal = audit.get("AppliedPostCombatHeal")
+        if any(type(value) is not int or value < 0 for value in
+               (combat_hp, settled_hp, applied_heal)) or settled_hp != combat_hp + applied_heal:
+            raise ValueError(f"capture {capture_number} combat/settled HP accounting differs")
+        unconditional = audit.get("UnconditionalRelicHeal")
+        wounded = audit.get("WoundedRelicHeal")
+        wounded_percent = audit.get("WoundedHpPercent")
+        if any(type(value) is not int or value < 0 for value in
+               (unconditional, wounded, wounded_percent)):
+            raise ValueError(f"capture {capture_number} post-combat healing profile is invalid")
+        if outcome != "win":
+            if any((applied_heal, unconditional, wounded, wounded_percent)):
+                raise ValueError(f"capture {capture_number} non-win applied post-combat healing")
+        else:
+            max_hp = audit.get("CombatFinalMaxHp")
+            if type(max_hp) is not int or max_hp < 1 or settled_hp > max_hp:
+                raise ValueError(f"capture {capture_number} settled HP exceeds max HP")
+            heal_capacity = unconditional + (wounded if combat_hp <= max_hp * wounded_percent // 100 else 0)
+            if applied_heal != min(heal_capacity, max(0, max_hp - combat_hp)):
+                raise ValueError(f"capture {capture_number} post-combat heal differs from profile/cap")
+        if capture_number == len(roots) and settled_hp != provenance.get("playerHp"):
+            raise ValueError(f"capture {capture_number} settled HP differs from real final HP")
+        # The final label uses native post-combat HP; intermediate unresolved
+        # reward depends only on progress and is recomputed from live transitions.
+        value_hp = provenance["playerHp"] if capture_number == len(roots) else 0
+        expected_reward = score_result(TerminalResult(
+            Outcome(outcome), entry_hp, value_hp, total, denominator))
+        reward = audit.get("Reward")
+        if type(reward) not in (int, float) or not math.isfinite(reward) \
+                or not math.isclose(reward, expected_reward, abs_tol=1e-6):
+            raise ValueError(f"capture {capture_number} reward differs from actual result")
+        capture_ledger.append({"captureId": capture_number, "trajectoryId": trajectory_id,
+                               "captureBoundaryKey": boundary_key,
+                               "trajectoryInitialEnemyHp": denominator,
+                               "capturedPrefix": prefix, "branchDamage": branch,
+                               "totalEnemyHpLost": total, "rootEnemyHp": transitions[start]["before"],
+                               "outcome": outcome, "reward": reward})
+    if not math.isclose(capture_ledger[-1]["reward"], final_value, abs_tol=1e-6):
+        raise ValueError("final value target differs from the last Capture reward")
+    return {"captures": len(audits), "trajectoryId": trajectory_id,
+            "trajectoryInitialEnemyHp": denominator,
+            "totalEnemyHpLost": sum(item["damage"] for item in transitions),
+            "nativeDamageEvents": total_damage_events,
+            "captureLedger": capture_ledger}
+
+
+def _audit_tree_parity(path: Path, raw: list[dict], metrics: list[dict]) -> dict:
+    """Read the actual evaluator callback, not an outside-search re-inference."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if len(lines) != len(raw) or any(not line.strip() for line in lines):
+        raise ValueError("actual tree evaluator parity must have one row per saved decision")
+    seen: set[tuple[int, int, str]] = set()
+    choice_roots = 0
+    for index, (line, sample, metric) in enumerate(zip(lines, raw, metrics, strict=True)):
+        row = json.loads(line)
+        if not isinstance(row, dict) or row.get("actualTreeEvaluator") is not True \
+                or "outsideSearch" in row:
+            raise ValueError(f"tree parity row {index} is not an actual evaluator call")
+        key = (row.get("decision"), row.get("choiceLayer"), row.get("stateKey"))
+        if key in seen:
+            raise ValueError(f"tree parity row {index} duplicates a decision root")
+        seen.add(key)
+        if row.get("seed") != sample.get("seed") or key != (
+                metric.get("parentDecision"), metric.get("choiceLayer"), sample.get("stateKey")):
+            raise ValueError(f"tree parity row {index} seed/decision/state differs")
+        observation_json = row.get("observationJson")
+        if not isinstance(observation_json, str) or json.loads(observation_json) != row.get("observation") \
+                or row["observation"] != sample.get("observation") \
+                or sha256_bytes(observation_json.encode("utf-8")) != \
+                str(row.get("observationSha256", "")).lower():
+            raise ValueError(f"tree parity row {index} actual input differs from saved observation")
+        ordered = [item.get("actionId") for item in sample["legalActions"]]
+        payloads = [item.get("payload") for item in sample["legalActions"]]
+        if row.get("orderedActionIds") != ordered or row.get("legalActions") != payloads:
+            raise ValueError(f"tree parity row {index} actual legal actions/order differ")
+        logits = row.get("logits")
+        value = row.get("value")
+        if not isinstance(logits, list) or len(logits) != len(ordered) \
+                or any(type(item) not in (int, float) or not math.isfinite(item) for item in logits) \
+                or type(value) not in (int, float) or not math.isfinite(value):
+            raise ValueError(f"tree parity row {index} evaluator output is malformed")
+        if sample["observation"].get("choice", sample["observation"].get("Choice")) is not None:
+            choice_roots += 1
+    return {"actualTreeEvaluatorRoots": len(lines), "actualTreeChoiceRoots": choice_roots,
+            "actualTreeParitySha256": sha256(path)}
+
+
+def sha256_bytes(content: bytes) -> str:
+    import hashlib
+    return hashlib.sha256(content).hexdigest()
 
 
 def run_probe(*, output: Path, seed: str, encounter: str, search_mode: str,
@@ -166,7 +423,7 @@ def run_probe(*, output: Path, seed: str, encounter: str, search_mode: str,
         env["STS2_MCTS_EXPORT_REGRESSION_ONLY"] = "1"
     command = [shell, "-NoProfile", "-File", str(script), "-GameDir", str(game_dir.resolve()),
                "-RitsuLibRoot", str(ritsu_root.resolve()), "-Mode", "solver-mcts-export",
-               "-StageRoot", str(stage),
+               "-StageRoot", str(stage), "-CleanupInstanceOnExit",
                "-TimeoutSeconds", str(timeout_seconds), "-SearchMode", search_mode,
                "-BudgetMilliseconds", str(budget_ms)]
     if model is not None:
@@ -185,6 +442,7 @@ def run_probe(*, output: Path, seed: str, encounter: str, search_mode: str,
               "generatedScenarioSha256": scenario_hash,
               "stageRoot": str(stage),
               "regressionOnly": regression_only or force_card is not None, "status": "started"}
+    report["damageCaptureSource"] = "native-damage-command-v1"
     _write_new(report_path, json.dumps(report, indent=2) + "\n")
     try:
         try:
@@ -236,13 +494,19 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
     if not lines or any(not line.strip() for line in lines):
         raise ValueError("probe JSONL is empty or contains blank lines")
     raw = [json.loads(line) for line in lines]
-    samples = read_jsonl(path, allow_regression=bool(expected["regressionOnly"]))
-    if len(samples) != len(raw):
-        raise ValueError("strict/raw sample counts differ")
-    provenance = raw[0]["provenance"]
+    provenance = raw[0].get("provenance") if isinstance(raw[0], dict) else None
+    if not isinstance(provenance, dict) \
+            or provenance.get("rewardLedgerVersion") != REWARD_LEDGER_VERSION:
+        raise ValueError("native provenance/reward ledger version is missing or obsolete")
     if any(line.get("provenance") != provenance for line in raw):
         raise ValueError("trajectory provenance differs across samples")
-    if provenance.get("regressionOnly") is not expected["regressionOnly"] \
+    samples = read_jsonl(path, allow_regression=bool(expected["regressionOnly"]),
+                         require_current_search_semantics=True)
+    if len(samples) != len(raw):
+        raise ValueError("strict/raw sample counts differ")
+    if provenance.get("searchSemanticsVersion") != SEARCH_SEMANTICS_VERSION \
+            or provenance.get("rewardLedgerVersion") != REWARD_LEDGER_VERSION \
+            or provenance.get("regressionOnly") is not expected["regressionOnly"] \
             or provenance.get("forcedFixtureCard") != expected["forceCard"] \
             or provenance.get("requestedSearchMode") != expected["requestedSearchMode"] \
             or provenance.get("searchMode") != expected["requestedSearchMode"] \
@@ -251,7 +515,11 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
             or provenance.get("maxDecisions") != expected["maxDecisions"] \
             or provenance.get("seed") != expected["seed"] \
             or provenance.get("encounter") != expected["encounter"]:
-        raise ValueError("native provenance differs from probe request")
+        raise ValueError("native provenance/search semantics differs from probe request")
+    if expected["regressionOnly"] is False and (provenance.get("choiceFixture") is not False
+            or provenance.get("startProvenance") is not None
+            or expected.get("initialHp") is not None):
+        raise ValueError("natural full-combat probe contains a regression/modified start")
     _audit_generated_deck(provenance, expected)
     metrics = provenance.get("decisionMetrics")
     if not isinstance(metrics, list) or len(metrics) != len(samples):
@@ -266,6 +534,11 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
                 or metric.get("stateKey") != line.get("stateKey") \
                 or metric.get("simulations") != line.get("simulations"):
             raise ValueError("selected action or root metrics are misaligned")
+        if not isinstance(line.get("visitPolicy"), dict) \
+                or any(type(visits) is not int or visits <= 0
+                       for visits in line["visitPolicy"].values()) \
+                or sum(line["visitPolicy"].values()) <= 0:
+            raise ValueError(f"decision {index} has invalid actual root visit statistics")
         simulations = metric.get("simulations")
         elapsed = metric.get("elapsedMilliseconds")
         if type(simulations) is not int or simulations <= 0 \
@@ -328,20 +601,11 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
     elif not status.startswith("model-ready") or expected["modelSha256"].lower() not in status.lower():
         raise ValueError("Native loaded a different model")
     transitions = provenance.get("enemyHpTransitions")
-    if not isinstance(transitions, list) or any(
-            type(item.get("before")) is not int or type(item.get("after")) is not int
-            or type(item.get("damage")) is not int
-            or item["damage"] != max(0, item["before"] - item["after"])
-            for item in transitions):
-        raise ValueError("native enemy HP transition evidence is invalid")
-    if not transitions or transitions[0]["before"] != provenance.get("initialEnemyEffectiveHp") \
-            or sum(item["damage"] for item in transitions) != provenance.get("enemyDamageLost"):
-        raise ValueError("cumulative actual enemy damage differs from native transitions")
-    if len(transitions) != len(samples) or any(
-            previous["after"] != following["before"]
-            for previous, following in zip(transitions, transitions[1:])):
-        raise ValueError("native enemy HP transitions are missing or discontinuous")
     outcome = Outcome(samples[0].outcome)
+    if expected.get("damageCaptureSource") is not None and (
+            not isinstance(transitions, list) or any(
+                item.get("damageCaptureSource") != expected["damageCaptureSource"] for item in transitions)):
+        raise ValueError("requested damage capture source is missing or mixed")
     if any(sample.outcome != outcome.value or sample.value_target != samples[0].value_target
            for sample in samples):
         raise ValueError("outcome/value was not uniformly backfilled")
@@ -349,9 +613,19 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
         raise ValueError("native settlement disagrees with outcome")
     value_target = score_result(TerminalResult(
         outcome, provenance["entryHp"], provenance["playerHp"],
-        provenance["enemyDamageLost"], provenance["initialEnemyEffectiveHp"]))
+        provenance["enemyDamageLost"], provenance["trajectoryInitialEnemyEffectiveHp"]))
     if abs(value_target - samples[0].value_target) > 1e-6:
         raise ValueError("value target differs from native HP and reward definition")
+    reward_ledger = _audit_reward_ledger(provenance, metrics, final_outcome=outcome.value,
+                                         final_value=samples[0].value_target)
+    if outcome is Outcome.UNRESOLVED and reward_ledger["captures"] != expected["maxDecisions"]:
+        raise ValueError("unresolved trajectory did not reach its declared decision limit")
+    parity_summary = {}
+    parity_path = expected.get("rootParityOutput")
+    if parity_path is not None:
+        if expected["requestedSearchMode"] != "policy-value-tree-v1":
+            raise ValueError("pure MCTS must not have tree evaluator parity")
+        parity_summary = _audit_tree_parity(Path(parity_path), raw, metrics)
     worker_log = path.with_suffix(".worker.stdout.txt").read_text(encoding="utf-8")
     worker_err = path.with_suffix(".worker.stderr.txt").read_text(encoding="utf-8")
     if "SLAY_WORKER_FAILED" in worker_log + worker_err or "pure-mcts-fallback" in worker_log + worker_err:
@@ -394,9 +668,10 @@ def audit_probe(path: Path, *, expected: dict, verify_current_assembly: bool = T
     return {"samples": len(samples), "outcome": outcome.value, "valueTarget": samples[0].value_target,
             "terminal": provenance["terminal"], "entryHp": provenance["entryHp"],
             "playerHp": provenance["playerHp"],
-            "initialEnemyEffectiveHp": provenance["initialEnemyEffectiveHp"],
+            "trajectoryInitialEnemyEffectiveHp": provenance["trajectoryInitialEnemyEffectiveHp"],
             "enemyDamageLost": provenance["enemyDamageLost"],
             "enemyHpTransitions": len(transitions), "choiceRows": choice_rows,
+            "rewardLedger": reward_ledger, **parity_summary,
             "simulations": [item["simulations"] for item in metrics],
             "elapsedMilliseconds": [item["elapsedMilliseconds"] for item in metrics],
             "simulationsPerSecond": rates,

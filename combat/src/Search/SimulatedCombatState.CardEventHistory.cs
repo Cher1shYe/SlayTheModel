@@ -186,8 +186,9 @@ internal sealed partial class SimulatedCombatState
                 GetCumulativeHpLost(receiver) + result.UnblockedDamage;
             if (receiver.Side == CombatSide.Enemy)
             {
+                int actualHpLost = Math.Max(0, result.UnblockedDamage);
                 (_mctsCumulativeEnemyHpLost ??= [])[receiver] =
-                    GetMctsCumulativeEnemyHpLost(receiver) + result.UnblockedDamage;
+                    checked(GetMctsCumulativeEnemyHpLost(receiver) + actualHpLost);
             }
         }
         if (dealer == null || !result.Props.IsPoweredAttack())

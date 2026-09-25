@@ -110,6 +110,22 @@ public partial class Worker : Node
                 GetTree().Quit();
                 return;
             }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "verify-cross-root")
+            {
+                var output = System.Environment.GetEnvironmentVariable("STS2_CROSS_ROOT_DIAG_OUT")
+                    ?? throw new InvalidDataException("STS2_CROSS_ROOT_DIAG_OUT is required.");
+                await NativeVerification.CrossRootAsync(session, Path.GetFullPath(output), timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "verify-enemy-damage")
+            {
+                var output = System.Environment.GetEnvironmentVariable("STS2_ENEMY_DAMAGE_DIAG_OUT")
+                    ?? throw new InvalidDataException("STS2_ENEMY_DAMAGE_DIAG_OUT is required.");
+                await NativeVerification.EnemyDamageAsync(session, Path.GetFullPath(output), timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-export")
             {
                 var midTurns = int.TryParse(System.Environment.GetEnvironmentVariable("STS2_MCTS_EXPORT_MID_START_TURNS"), out var parsedTurns)

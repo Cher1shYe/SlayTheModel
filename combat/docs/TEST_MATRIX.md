@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## AlphaZero 跨根累计伤害（2026-09-25）
+
+- 独立 `verify-cross-root` 用完整 ExportRelease 的 headless NativeWorker 通过：真实前缀伤害 6、重新 Capture 后真实新增伤害 8、轨迹初始分母 80，决策上限 2 的 unresolved 效用 `-0.45625`，真实死亡 HP 0 的效用 `-0.95625`；两者由原生伤害记录独立算出并与预测回传对账。三次 Capture 保留同一 trajectoryId，Restore／Promote 无漏计或重复。证据位于父仓库 `artifacts/alphazero/cross-root-reward-completion-20260925/verified-stage/`，夹具 `regressionOnly`，没有当作自然训练轨迹。
+
 ## HEADBUTT 终局选择与独立发布回归（2026-09-25）
 
 - 精确 R2 失败基线在新 headless 路径复现，旧原始诊断/两项 Copy-Item 失败日志保留。最终完整 ExportRelease 的 `verify-headbutt`：10 HP/Strength 20/Vulnerable 2 致命根锁定 Victory stamp、IsInProgress=false、内外 pending=false，40 HP 非致命根保留两候选选择及完整续状态对账；R2 同输入回放 24 条严格 `regressionOnly` 样本、统一 win 奖励且默认训练拒收。PURITY 15 分支与 BURNING_PACT 选择回归通过；CASCADE 第二层在最终冻结根诊断通过 live/predicted frame 对账。

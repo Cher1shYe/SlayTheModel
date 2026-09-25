@@ -333,7 +333,7 @@ public static class CombatSolverMctsBenchmark
                             if (choiceEnvironment.StateKey() != choiceRootKey || choiceParityCaptured) return;
                             WriteTreeParity(parityWriter, observation, choiceObservation,
                                 choiceRootKey, choiceActions,
-                                actions, logits, value, native.Seed, decision, choiceLayer);
+                                actions, logits, value, native.Seed, decision, choiceLayer + 1);
                             choiceParityCaptured = true;
                         });
                     if (parityWriter != null && !choiceParityCaptured)
@@ -477,7 +477,8 @@ public static class CombatSolverMctsBenchmark
         var actualSearchModes = pending.Select(item => item.SearchMode).Distinct(StringComparer.Ordinal).ToArray();
         var provenance = new
         {
-            searchSemanticsVersion = "azcombat.search.v2",
+            searchSemanticsVersion = "azcombat.search.v3",
+            rewardLedgerVersion = "azcombat.reward-ledger.v2",
             seed = native.Seed,
             encounter = native.EncounterId,
             choiceFixture = native.ChoiceFixture,
@@ -496,6 +497,22 @@ public static class CombatSolverMctsBenchmark
             enemyDamageLost = native.EnemyDamageLost,
             enemyHpTransitions = native.EnemyHpTransitions.Select(item => new {
                 before = item.Before, after = item.After, damage = item.Damage,
+                historyStartIndex = item.HistoryStartIndex,
+                historyEndIndex = item.HistoryEndIndex,
+                enemyRosterBefore = item.EnemyRosterBefore.Select(enemy => new {
+                    combatId = enemy.CombatId, monsterId = enemy.MonsterId, hp = enemy.Hp,
+                }).ToArray(),
+                enemyRosterAfter = item.EnemyRosterAfter.Select(enemy => new {
+                    combatId = enemy.CombatId, monsterId = enemy.MonsterId, hp = enemy.Hp,
+                }).ToArray(),
+                historyReset = item.HistoryReset,
+                damageCaptureSource = item.DamageCaptureSource,
+                enemyDamageEvents = item.EnemyDamageEvents.Select(damage => new {
+                    combatId = damage.CombatId, monsterId = damage.MonsterId,
+                    unblockedDamage = damage.UnblockedDamage,
+                    overkillDamage = damage.OverkillDamage,
+                    creditedDamage = damage.CreditedDamage,
+                }).ToArray(),
             }).ToArray(),
             rewardAudits,
             startProvenance,
@@ -587,7 +604,7 @@ public static class CombatSolverMctsBenchmark
             $"Policy observation contains hidden draw pile contents; diagnostic={diagnosticPath}");
     }
 
-    private static object AssemblyProvenance()
+    internal static object AssemblyProvenance()
         => new
         {
             nativeWorker = AssemblyIdentity(typeof(Worker).Assembly),

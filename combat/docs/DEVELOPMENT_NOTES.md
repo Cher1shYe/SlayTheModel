@@ -1,5 +1,10 @@
 # CombatSolver 开发笔记与未来构想
 
+## AlphaZero 跨根累计伤害回归（2026-09-25，本地未发布）
+
+- 新的独立 `verify-cross-root` headless 夹具先在真实战斗打出 6 点伤害，再从稳定状态重新 Capture 并实际打出 8 点伤害；原生伤害记录独立给出累计 14／轨迹初始敌方 80 HP。第二根仍保留 `NativeMctsState.EnemyHpLost=8`、`EnemyHpTotal=74` 的根内诊断语义，奖励上下文则记前缀 6、总伤害 14。决策上限 2 的 unresolved 效用为 `-0.45625`；随后真实死亡（HP 0）的效用为 `-0.95625`，搜索终局、第三次 Capture 和原生标签一致。Restore／Promote 未重复或漏计伤害。完整证据见父仓库 `artifacts/alphazero/cross-root-reward-completion-20260925/verified-stage/cross-root-reward.json`，仅作 `regressionOnly` 验证，不进入训练。
+- 这项新回归补的是非零前缀加非零根内伤害的真实 Native 边界；下方历史 HEADBUTT 段落描述的是修复前证据，不能替代本轮新结果。未更改搜索策略、模型或奖励公式；自然轨迹试采另行按冻结计划审计。
+
 ## HEADBUTT 终局选择与 AlphaZero 诊断（2026-09-25，本地未发布）
 
 - 精确 R2 场景复现 HEADBUTT 末击后 live 已胜利而预测仍有 MoveToDrawTop pending。卡牌攻击后、完整动作终局安全检查前，选择 sink 曾创建原版不会打开的选择；现只在确有选择且模拟器 `IsOverOrEnding` 时跳过请求，保留无选择后置效果，终局仍由完整动作/死亡清理后的既有 `CheckWinCondition` 锁定。Native MCTS 终局 probe 的模拟器与分支 pending 任一非空立即失败；exporter 以根起敌方掉血对账该动作实际掉血，并显式断言 live 终局对应预测已结算且无选择。原 `AllEnemiesDead` 已基于 Victory TerminalStamp，未改搜索终局政策。
