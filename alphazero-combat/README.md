@@ -81,7 +81,15 @@ python -m azcombat.wave_smoke_report --wave artifacts/alphazero/new-tree-smoke `
 
 预留 10 seed × 2 遭遇 × 3 策略的 60 场 headless 完整战斗全部严格通过，20 个配对开局一致：纯 MCTS 胜 19/20、旧树模型 10/20、新树模型 9/20（另 3 场 unresolved）。新模型在邪教徒遭遇提高了胜场，但 Living Fog 明显退化；不能宣称总体改善或晋级。完整逐场审计、训练曲线、计算成本和失败现场见 [研究报告](../artifacts/alphazero/teacher-tree-r3-20260924/study-report.md)。没有修改 M4 门槛、创建 champion 或启动正式 self-play。
 
-后续局部回归修复了 HEADBUTT 末击后预测侧错误保留选牌的问题；NativeWorker 每次发布现在使用独立 stage，不覆盖旧 EXE/DLL/日志。冻结根诊断发现 PURITY、CASCADE 的实际树内模型输入仍缺少 `Choice` 上下文，选择感知效果暂不能据此评判。只读 R3 校准显示失败/未完成普通根的 value 普遍偏正；本轮没有重训或调参。证据见 [边界与诊断报告](../artifacts/alphazero/headbutt-boundary-20260925/report.md)和[冻结根报告](../artifacts/alphazero/frozen-prior-value-20260925-summary.md)。
+后续局部回归修复了 HEADBUTT 末击后预测侧错误保留选牌的问题；NativeWorker 每次发布现在使用独立 stage，不覆盖旧 EXE/DLL/日志。PURITY、BURNING_PACT 和 CASCADE/PREPARED 的树内 evaluator 现在与导出观测共用当前层 `Choice` 上下文，并通过严格 Python/ONNX/Native 对账。只读 R3 校准显示失败/未完成普通根的 value 普遍偏正；本轮没有重训或调参。证据见 [边界与诊断报告](../artifacts/alphazero/headbutt-boundary-20260925/report.md)和[冻结根报告](../artifacts/alphazero/frozen-prior-value-20260925-summary.md)。
+
+### 跨决策奖励基准回归（2026-09-25）
+
+每次父决策重新捕获模拟根时，奖励适配层保留同一轨迹的入场 HP、初始敌方有效总 HP、Capture 前真实累计敌方掉血和稳定边界身份；模拟根的 `EnemyHpLost` 仍仅表示该根内分支伤害。搜索和 Native 标签使用 `前缀伤害 + 根内伤害`，不会因 Restore、Promote 或兄弟分支重放而重复计数。
+
+回归覆盖了真实非零伤害后重新 Capture、死亡、明确决策上限的 unresolved、兄弟恢复和连续 Promote。算术控制 `100` 初始敌方 HP、`60` 前缀掉血、`10` 分支新增掉血得到 death `-0.825`、unresolved `-0.325`；Native 回归结果和完整程序集 provenance 保存在 `artifacts/alphazero/cross-root-reward-20260925/`。本轮未采集训练数据、未重训、未运行正式 M4 或 self-play；夹具均为 `regressionOnly`。
+
+当前最新源码通过完整 `ExportRelease`、Native 选择/终局回归和 Python 测试（`81/81`）。
 
 从本目录运行纯 Python 合约测试：
 
