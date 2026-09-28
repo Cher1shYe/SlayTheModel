@@ -25,7 +25,9 @@ from .versions import (FEATURE_ABI, OBSERVATION_SCHEMA_VERSION,
 PILOT_FORMAT = "azcombat.natural-pilot.v2"
 PILOT_ENCOUNTERS = ("CULTISTS_NORMAL", "LIVING_FOG_NORMAL")
 PILOT_POLICIES = ("pure-mcts", "tree-candidate")
-TREE_CANDIDATE_SHA256 = "b56006d70539a733a1485f2b76403205e3c7b8a04a96bfc636b525ae344ea190"
+# R5 freezes the surviving, numerically re-audited engineering candidate.
+# This is a behavior identity only; it is not a promotion decision.
+TREE_CANDIDATE_SHA256 = "8dd5cd09725aca6f6fef1254106ffb911c6a82302022d393d1d5baf08ffa6025"
 R3_DECK_PLAN_SHA256 = "c802dff60c5f212f6d8880e4a3655b53b3a344022b1520dc8816579329020463"
 R1_SEED_SPLIT_SHA256 = "765c121a01a4e023814d5dfabf51dba28c248b553d8828f3ecf15ddde782dcb8"
 _SEED_TOKEN = re.compile(r'"seed"\s*:\s*"([^"\\]+)"')
@@ -261,7 +263,7 @@ def freeze_pilot(*, output: Path, pilot_seeds: list[str],
     model = model.resolve(strict=True)
     model_hash = checked_model(model)
     if model_hash.lower() != TREE_CANDIDATE_SHA256:
-        raise ValueError("pilot requires the fixed existing R3 tree candidate")
+        raise ValueError("pilot requires the fixed tree candidate registered for this pilot")
     old_seeds.update(_model_lineage(model))
     if overlap := old_seeds.intersection([*pilot_seeds, *final_evaluation_seeds]):
         raise ValueError(f"pilot/final-evaluation seed overlaps historical evidence: {sorted(overlap)}")
