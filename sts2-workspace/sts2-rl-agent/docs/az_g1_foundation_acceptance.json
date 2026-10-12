@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-09T13:44:07.680793+00:00",
+  "stage": "G1",
+  "batch": "G1.1-foundation",
+  "status": "foundation_tests_passed",
+  "g1_complete": false,
+  "content_admitted": false,
+  "planner_integration": false,
+  "smoke_run": false,
+  "training_run": false,
+  "tests": {
+    "new_tests": 48,
+    "regression_tests": 467,
+    "subtests": 8,
+    "regression_seconds": 37.89,
+    "post_regression_change": "Added hypothetical option alias guard; all 48 G1 tests rerun and passed"
+  },
+  "versions": {
+    "card_state": "az-public-card-state-v1",
+    "choice_state": "az-public-choice-v1"
+  },
+  "source_sha256": {
+    "sts2_env/az/card_state.py": "a343676dd66b7b5b6a172df887c488c8179244aa2aff81cb1733ded9be6f7d38",
+    "sts2_env/az/choice_state.py": "7a9eecd37d7d54b3bd9d9bebbb2ba25991b9e8b51a345a1560161de23a393c8b",
+    "tests/test_az_g1_state.py": "9d952dabeaf9c90ab8b966b41fd2f5e0e7ee9e99848d46247585ad8c1c6cd60d"
+  },
+  "next": "G1.2 public continuation reconstruction, InformationState and encoder integration; then new content freeze, smoke and training",
+  "evidence": "docs/az_g1_foundation_tests.txt",
+  "coverage": "docs/AZ_G1.md"
+}

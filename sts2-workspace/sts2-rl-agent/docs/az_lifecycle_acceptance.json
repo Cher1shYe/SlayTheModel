@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-10",
+  "batch": "G1.4a",
+  "engineering": "passed",
+  "g1_complete": false,
+  "regression": {
+    "passed": 1695,
+    "subtests": 8,
+    "seconds": 103.23
+  },
+  "native_regression": {
+    "passed": 98,
+    "seconds": 0.4
+  },
+  "smoke": {
+    "actual": {
+      "42": {
+        "champion": "initial.pt",
+        "episodes": 252,
+        "iterations": 2,
+        "promoted": 0,
+        "updates": 8
+      }
+    },
+    "code_digest": "916fd88286800430af06bb70bb8756bb64875f85a8b00f15f38fad12242c1101",
+    "collection_episodes_per_second": 11.892603223642011,
+    "collection_seconds": 21.189641600001778,
+    "content_version": "g1-lifecycle-v1",
+    "decisions_per_second": 178.76659131411085,
+    "estimate_caveat": "Linear scaling of smoke budgets and counts; policy, fight length and cache reuse change cost; excludes final tests",
+    "estimated_full_training_hours": 0.10667620341271282,
+    "iterations": 2,
+    "planned_long_iterations": 3,
+    "runner_digest": "e44102a96887a5665546214b7ef92068bdeae4e3fbe8006c163c498f0fd89483",
+    "status": "passed",
+    "test_evaluated": false,
+    "training_decisions": 3788
+  },
+  "training": "complete",
+  "purpose": "quick_mechanism_verification",
+  "quality_acceptance": "not_claimed_quick_verification",
+  "learning_gain": "passed",
+  "actual": {
+    "42": {
+      "champion": "candidate-2.pt",
+      "decisions": 6681,
+      "episodes": 378,
+      "iterations": 3,
+      "promoted": 1,
+      "updates": 48
+    },
+    "43": {
+      "champion": "candidate-1.pt",
+      "decisions": 6895,
+      "episodes": 378,
+      "iterations": 3,
+      "promoted": 2,
+      "updates": 48
+    }
+  },
+  "lifecycle_evidence": {
+    "42": {
+      "episodes": 378,
+      "episodes_with_discounted_stomp": 83,
+      "episodes_with_retain_observation": 87,
+      "stomp_plays_discounted": 31,
+      "restlessness_only_card_plays": 1,
+      "retained_boundary_observations": 134
+    },
+    "43": {
+      "episodes": 378,
+      "episodes_with_discounted_stomp": 78,
+      "episodes_with_retain_observation": 98,
+      "stomp_plays_discounted": 28,
+      "restlessness_only_card_plays": 0,
+      "retained_boundary_observations": 152
+    }
+  },
+  "run_wall_seconds": 301.7403118610382,
+  "wall_scope": "plan creation to final report; excludes smoke, implementation and tests",
+  "verification": "artifact_and_statistics_checks_passed",
+  "independent_cross_model_audit": "not_performed",
+  "report": "output\\az_g1_lifecycle_v1_quick\\report.json"
+}

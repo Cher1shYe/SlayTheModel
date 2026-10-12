@@ -57,3 +57,13 @@ The supported game ABI is STS2 `v0.111.0`; verify local paths through script
 parameters or environment variables such as `STS2_GAME_DIR`. Preserve existing
 uncommitted work, and never use destructive Git commands to clean unrelated
 changes.
+
+## Local workspace snapshot and delegation
+
+`sts2-workspace/` contains the imported 2026-10-12 local workspace snapshot:
+the headless CLI, RL/AlphaZero simulator, configs, fixtures, docs, tests, and
+the Codex-to-Claude delegation entry point. Read its AGENTS.md for delegated work.
+Codex owns planning, architecture, acceptance and final integration; Claude Code
+CLI executes scoped file tasks. Codex checks the report, actual diff and relevant
+tests before acceptance, and sends explicit repair tasks when needed.
+The snapshot import does not change the existing C# or alphazero-combat projects.

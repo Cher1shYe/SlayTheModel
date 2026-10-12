@@ -1,0 +1,1 @@
+{"batch_size":256,"capacity":200000,"content_version":"seven-encounters-decks-v3","episodes_per_iteration":256,"eval_simulations":256,"iterations":10,"max_decisions":400,"max_turns":100,"reward_version":"win-timeout-hp-v3","seed":43,"simulations":64,"updates":200,"validation_count":256,"workers":8}

@@ -1,0 +1,34 @@
+{
+  "stage": "M4",
+  "status": "passed",
+  "information_mode": "observable",
+  "tests": {"passed": 105, "subtests_passed": 30, "new_tests": 6},
+  "checks": {
+    "paired_bootstrap_accept_reject": "passed_synthetic_512_pairs_10000_resamples",
+    "small_validation_no_promotion": "passed",
+    "optimizer_rng_next_batch_and_update": "exact_match",
+    "interrupted_sampling_deduplication": "passed",
+    "schema_manifest_configuration_validation": "passed",
+    "atomic_champion_pointer_repair": "passed",
+    "completed_cli_resume": "passed_no_additional_episodes_or_updates",
+    "reproducible_public_baselines": "passed"
+  },
+  "smoke": {
+    "output": "output/az_m4_acceptance",
+    "iterations": 2,
+    "training_episodes": 4,
+    "updates_per_iteration": 3,
+    "validation_scenarios_per_iteration": 4,
+    "train_simulations": 8,
+    "eval_simulations": 8,
+    "promotion": [false, false],
+    "champion": "initial.pt",
+    "candidate_network_win_rates": [0.25, 0.5],
+    "champion_network_win_rates": [0.0, 0.0],
+    "candidate_search_win_rates": [0.0, 0.0],
+    "champion_search_win_rates": [0.0, 0.0]
+  },
+  "engineering_sampling_training_evaluation_loop": "passed_small_smoke",
+  "formal_performance_experiments": "pending_M5",
+  "learning_acceptance": "not_evaluated"
+}
