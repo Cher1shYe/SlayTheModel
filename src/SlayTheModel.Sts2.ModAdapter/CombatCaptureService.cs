@@ -100,6 +100,32 @@ public static class CombatCaptureService
         => BuildSearchPoint(state, decisionIndex).Decision;
 
     /// <summary>
+    /// Projects the visible combat state even while a card effect is waiting
+    /// for a nested choice and ordinary play/end-turn actions are unavailable.
+    /// The native snapshot remains inside the adapter; callers receive only
+    /// the policy observation.
+    /// </summary>
+    public static CombatObservation BuildObservation(CombatState state, long decisionIndex) =>
+        DecisionObservationProjector.ToCombat(BuildSnapshot(state, decisionIndex));
+
+    /// <summary>
+    /// Freeze the native state at the caller's observation boundary. The
+    /// collector also uses this for manual input during turn start; ordinary
+    /// policy legal-action exposure remains restricted to the Play phase.
+    /// </summary>
+    internal static CombatSnapshot BuildSnapshot(CombatState state, long decisionIndex)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        var runState = RunManager.Instance.DebugOnlyGetState()
+            ?? throw new InvalidOperationException("Run state is unavailable during combat capture.");
+        var nativeState = NetFullCombatState.FromRun(runState, null);
+        var nativeChecksum = RunManager.Instance.ChecksumTracker.GenerateChecksum(nativeState);
+        var snapshot = MapSnapshot(state, nativeState, nativeChecksum, decisionIndex);
+        snapshot.Validate();
+        return snapshot;
+    }
+
+    /// <summary>
     /// Builds both sides of the policy boundary. Headless search owns SimulatorState,
     /// combat policies receive Decision, and the future run controller receives
     /// RunObservation.
@@ -113,11 +139,7 @@ public static class CombatCaptureService
             throw new InvalidOperationException("Combat state has no player decision to expose.");
         }
 
-        var runState = RunManager.Instance.DebugOnlyGetState()
-            ?? throw new InvalidOperationException("Run state is unavailable during combat capture.");
-        var nativeState = NetFullCombatState.FromRun(runState, null);
-        var nativeChecksum = RunManager.Instance.ChecksumTracker.GenerateChecksum(nativeState);
-        var snapshot = MapSnapshot(state, nativeState, nativeChecksum, decisionIndex);
+        var snapshot = BuildSnapshot(state, decisionIndex);
         var fingerprint = ProtocolJson.ComputeStateFingerprint(snapshot);
         var decision = new CombatDecisionPoint(
             CombatDecisionPoint.CurrentSchemaVersion,
@@ -125,6 +147,7 @@ public static class CombatCaptureService
             fingerprint,
             DecisionObservationProjector.ToCombat(snapshot),
             legalActions);
+        decision.ValidatePotionActionReferences();
         var searchPoint = new CombatSearchPoint(
             snapshot,
             DecisionObservationProjector.ToRun(snapshot),
@@ -249,6 +272,23 @@ public static class CombatCaptureService
             .Select(pile => MapPile(pile, nativePiles[pile.Type]))
             .ToArray();
 
+        var nativePotionIds = nativePlayer.potions
+            .Select(potion => potion.id.ToString())
+            .ToArray();
+        var occupiedPotionSlots = player.PotionSlots
+            .Select((potion, index) => new { Potion = potion, Index = index })
+            .Where(entry => entry.Potion is not null)
+            .ToArray();
+        if (!nativePotionIds.SequenceEqual(
+                occupiedPotionSlots.Select(entry => entry.Potion!.Id.ToString())))
+        {
+            throw new InvalidDataException(
+                $"Live and native potion slot contents differ for player {player.NetId}.");
+        }
+        var potionSlotIndexes = occupiedPotionSlots
+            .Select(entry => entry.Index)
+            .ToArray();
+
         return new PlayerCombatSnapshot(
             player.NetId,
             nativePlayer.characterId.ToString(),
@@ -263,11 +303,18 @@ public static class CombatCaptureService
                     ModelIdString(relic.relic?.Id, "native relic"),
                     JsonSerializer.Serialize(relic.relic, NativeJsonOptions)))
                 .ToArray(),
-            nativePlayer.potions.Select(potion => potion.id.ToString()).ToArray(),
+            nativePotionIds,
             nativePlayer.orbs
                 .Select(orb => new OrbSnapshot(orb.id.ToString(), orb.passive, orb.evoke))
                 .ToArray(),
-            MapPlayerRng(nativePlayer.rngSet));
+            MapPlayerRng(nativePlayer.rngSet))
+        {
+            // Dense slots already have the legacy meaning and fingerprint.
+            PotionSlotIndexes = potionSlotIndexes.SequenceEqual(
+                Enumerable.Range(0, potionSlotIndexes.Length))
+                ? null
+                : potionSlotIndexes,
+        };
     }
 
     private static CombatPileSnapshot MapPile(

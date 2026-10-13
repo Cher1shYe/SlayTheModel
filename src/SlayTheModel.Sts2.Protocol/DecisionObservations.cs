@@ -1,8 +1,11 @@
+using System.Text.Json.Serialization;
+
 namespace SlayTheModel.Sts2.Protocol;
 
 /// <summary>
-/// The policy-facing view of a combat. It deliberately excludes run economy,
-/// hidden RNG state, native serialization payloads, and determinism metadata.
+/// The policy-facing view of a combat. It excludes hidden RNG state, native
+/// serialization payloads, and determinism metadata. Gold is included because
+/// some combat effects depend on the player's current gold.
 /// </summary>
 public sealed record CombatObservation(
     int SchemaVersion,
@@ -11,14 +14,38 @@ public sealed record CombatObservation(
     IReadOnlyList<CombatPlayerObservation> Players,
     IReadOnlyList<CreatureSnapshot> Creatures)
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 5;
+
+    /// <summary>
+    /// Intent icons that the live UI currently exposes for enemy creatures.
+    /// An empty or unverified intent is not a prediction of the next move.
+    /// </summary>
+    public IReadOnlyList<CombatEnemyIntentObservation> EnemyIntents { get; init; } = [];
+
+    /// <summary>
+    /// Owned combat companions such as Osty. These may not occur in the
+    /// native creature array used by the simulator snapshot.
+    /// </summary>
+    public IReadOnlyList<CombatCompanionObservation> Companions { get; init; } = [];
+
+    /// <summary>
+    /// A visible card selector opened while a combat action is resolving.
+    /// Null for ordinary play-card, potion, and end-turn decisions.
+    /// </summary>
+    public CombatChoiceObservation? ActiveChoice { get; init; }
+
+    /// <summary>
+    /// Manual combat commands already submitted by the player, in click order.
+    /// This is visible input history, not a native queue snapshot or a legal set.
+    /// </summary>
+    public IReadOnlyList<CombatActionDescriptor> PendingManualActions { get; init; } = [];
 
     public void Validate()
     {
-        if (SchemaVersion != CurrentSchemaVersion)
+        if (SchemaVersion is < 1 or > CurrentSchemaVersion)
         {
             throw new InvalidDataException(
-                $"Unsupported combat observation schema {SchemaVersion}; expected {CurrentSchemaVersion}.");
+                $"Unsupported combat observation schema {SchemaVersion}; expected 1..{CurrentSchemaVersion}.");
         }
 
         if (RoundNumber < 0)
@@ -33,6 +60,21 @@ public sealed record CombatObservation(
         foreach (var player in Players)
         {
             player.Validate();
+            foreach (var card in player.Piles.SelectMany(pile => pile.Cards))
+            {
+                if (string.IsNullOrWhiteSpace(card.ModelId)
+                    || card.UpgradeLevel is < 0
+                    || card.Display?.DynamicValues.Any(value =>
+                        string.IsNullOrWhiteSpace(value.Key)) == true
+                    || SchemaVersion >= 4 && card.EnchantmentAmount is not null
+                    || card.EnchantmentDisplay is not null
+                        && (SchemaVersion < 4 || card.EnchantmentId is null))
+                {
+                    throw new InvalidDataException("Combat card has invalid visible data.");
+                }
+
+                card.EnchantmentDisplay?.Validate();
+            }
         }
 
         foreach (var creature in Creatures)
@@ -47,6 +89,46 @@ public sealed record CombatObservation(
             {
                 throw new InvalidDataException(
                     $"Creature {creature.CombatId} references unknown player {owner}.");
+            }
+        }
+
+        RequireUnique(EnemyIntents.Select(intent => intent.CreatureCombatId), "enemy intent creature ID");
+        var creatureIds = Creatures.Select(creature => creature.CombatId).ToHashSet();
+        foreach (var intent in EnemyIntents)
+        {
+            if (!creatureIds.Contains(intent.CreatureCombatId)
+                || Creatures.Any(creature => creature.CombatId == intent.CreatureCombatId
+                                             && creature.PlayerId is not null)
+                || intent.Visibility is not ("visible" or "not_visible" or "unverified")
+                || intent.Visibility != "visible" && intent.Intents.Count != 0
+                || intent.Intents.Any(item => string.IsNullOrWhiteSpace(item.Kind)
+                                              || item.TotalDamage is < 0
+                                              || item.Hits is < 0))
+            {
+                throw new InvalidDataException("Combat enemy intent is invalid or references an unknown creature.");
+            }
+        }
+
+        foreach (var companion in Companions)
+        {
+            if (!playerIds.Contains(companion.OwnerPlayerId)
+                || string.IsNullOrWhiteSpace(companion.ModelId)
+                || companion.CurrentHp < 0
+                || companion.MaxHp < 0
+                || companion.Block < 0)
+            {
+                throw new InvalidDataException("Combat companion has invalid owner, identity, HP, or block.");
+            }
+        }
+
+        ActiveChoice?.Validate();
+        foreach (var action in PendingManualActions)
+        {
+            action.Validate();
+            if (action.Kind == CombatActionKind.ResolveChoice
+                || !playerIds.Contains(action.ActorPlayerId))
+            {
+                throw new InvalidDataException("Pending manual action is not a combat command by a visible player.");
             }
         }
     }
@@ -65,6 +147,60 @@ public sealed record CombatObservation(
     }
 }
 
+public sealed record CombatChoiceObservation(
+    uint ChoiceId,
+    string Source,
+    int MinSelections,
+    int MaxSelections,
+    bool CanCancel,
+    IReadOnlyList<CombatChoiceCardObservation> Cards)
+{
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(Source);
+        if (MinSelections < 0 || MaxSelections < MinSelections || Cards.Count == 0
+            || MaxSelections > Cards.Count)
+        {
+            throw new InvalidDataException("Combat choice cardinality or candidate set is invalid.");
+        }
+
+        var nativeIds = Cards
+            .Where(card => card.CombatCardIndex.HasValue)
+            .Select(card => card.CombatCardIndex!.Value)
+            .ToArray();
+        var optionIndexes = Cards
+            .Where(card => card.OptionIndex.HasValue)
+            .Select(card => card.OptionIndex!.Value)
+            .ToArray();
+        if (nativeIds.Distinct().Count() != nativeIds.Length
+            || optionIndexes.Length != 0
+               && (optionIndexes.Length != Cards.Count
+                   || !optionIndexes.SequenceEqual(Enumerable.Range(0, Cards.Count)))
+            || Cards.Any(card => string.IsNullOrWhiteSpace(card.ModelId)
+                                 || card.UpgradeLevel < 0
+                                 || card.CombatCardIndex is null && card.OptionIndex is null
+                                 || card.Display?.DynamicValues.Any(value =>
+                                     string.IsNullOrWhiteSpace(value.Key)) == true))
+        {
+            throw new InvalidDataException("Combat choice cards need unique native IDs or ordered selector options.");
+        }
+    }
+}
+
+public sealed record CombatChoiceCardObservation(
+    uint? CombatCardIndex,
+    string ModelId,
+    int UpgradeLevel,
+    int? OptionIndex = null)
+{
+    /// <summary>
+    /// Card presentation observed on the choice interface at the manual
+    /// input boundary. A null value means no visible card node was verified.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CombatCardDisplayObservation? Display { get; init; }
+}
+
 public sealed record CombatPlayerObservation(
     ulong PlayerId,
     string CharacterId,
@@ -77,11 +213,15 @@ public sealed record CombatPlayerObservation(
     IReadOnlyList<PotionObservation> Potions,
     IReadOnlyList<OrbSnapshot> Orbs)
 {
+    public int? Gold { get; init; }
+
+    public int? OrbCapacity { get; init; }
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(CharacterId);
         ArgumentException.ThrowIfNullOrWhiteSpace(Phase);
-        if (Energy < 0 || TurnNumber < 0)
+        if (Energy < 0 || TurnNumber < 0 || Gold is < 0 || OrbCapacity is < 0)
         {
             throw new InvalidDataException($"Player {PlayerId} has invalid turn state.");
         }
@@ -103,6 +243,11 @@ public sealed record CombatPlayerObservation(
             throw new InvalidDataException(
                 $"Player {PlayerId} has invalid or duplicate potion slots.");
         }
+
+        foreach (var relic in Relics)
+        {
+            relic.Validate();
+        }
     }
 }
 
@@ -116,9 +261,109 @@ public sealed record CombatCardObservation(
     int? EnergyCost,
     string? AfflictionId,
     int AfflictionCount,
-    IReadOnlyList<string> Keywords);
+    IReadOnlyList<string> Keywords)
+{
+    public int? UpgradeLevel { get; init; }
 
-public sealed record RelicObservation(string ModelId);
+    public string? EnchantmentId { get; init; }
+
+    /// <summary>
+    /// Legacy v2/v3 native amount. New v4 observations must leave it null and
+    /// use EnchantmentDisplay.VisibleAmount only when the card UI shows it.
+    /// </summary>
+    public int? EnchantmentAmount { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CardEnchantmentDisplayObservation? EnchantmentDisplay { get; init; }
+
+    /// <summary>
+    /// In v5 live collector observations, internal Hand cards carry native
+    /// current costs here regardless of hand animation; Description is null.
+    /// Earlier collector versions used UI-visible card presentation. Base
+    /// projections and cards outside Hand may leave this null.
+    /// </summary>
+    public CombatCardDisplayObservation? Display { get; init; }
+}
+
+public sealed record CombatCardDisplayObservation(
+    string? Description,
+    int? EnergyCost,
+    int? StarCost,
+    bool? CostsX,
+    IReadOnlyList<CombatCardDynamicValueObservation> DynamicValues);
+
+public sealed record CombatCardDynamicValueObservation(string Key, decimal Value);
+
+/// <summary>
+/// Inspectable enchantment presentation: the native card hover title and
+/// description, plus only the counter and icon state that NCard would show.
+/// </summary>
+public sealed record CardEnchantmentDisplayObservation(
+    string Title,
+    string Description,
+    int? VisibleAmount,
+    string IconAppearance)
+{
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(Title);
+        ArgumentNullException.ThrowIfNull(Description);
+        if (IconAppearance is not ("normal" or "dimmed"))
+        {
+            throw new InvalidDataException("Enchantment icon appearance is invalid.");
+        }
+    }
+}
+
+public sealed record CombatEnemyIntentObservation(
+    uint CreatureCombatId,
+    string Visibility,
+    IReadOnlyList<CombatIntentObservation> Intents);
+
+public sealed record CombatIntentObservation(
+    string Kind,
+    string? DisplayText,
+    int? TotalDamage,
+    int? Hits);
+
+public sealed record CombatCompanionObservation(
+    ulong OwnerPlayerId,
+    string ModelId,
+    int CurrentHp,
+    int MaxHp,
+    int Block,
+    IReadOnlyList<ModelAmountSnapshot> Powers);
+
+public sealed record RelicObservation(string ModelId)
+{
+    /// <summary>
+    /// The state available from this relic's icon and hover text at the
+    /// decision boundary. Null means that no display projection was obtained.
+    /// A null VisibleCounter within Display means that the icon showed no
+    /// counter; zero is a visible zero.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RelicDisplayObservation? Display { get; init; }
+
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ModelId);
+        Display?.Validate();
+    }
+}
+
+public sealed record RelicDisplayObservation(
+    string IconStatus,
+    bool IsMelted,
+    bool IsWax,
+    int? VisibleCounter,
+    string? HoverDescription)
+{
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(IconStatus);
+    }
+}
 
 public sealed record PotionObservation(int SlotIndex, string ModelId);
 
@@ -179,6 +424,11 @@ public sealed record RunPlayerObservation(
             throw new InvalidDataException(
                 $"Player {PlayerId} has invalid or duplicate run potion slots.");
         }
+
+        foreach (var relic in Relics)
+        {
+            relic.Validate();
+        }
     }
 }
 
@@ -218,10 +468,11 @@ public static class DecisionObservationProjector
                 player.Relics
                     .Select(relic => new RelicObservation(relic.ModelId))
                     .ToArray(),
-                player.Potions
-                    .Select((modelId, slotIndex) => new PotionObservation(slotIndex, modelId))
-                    .ToArray(),
-                player.Orbs.ToArray()))
+                ProjectPotions(player),
+                player.Orbs.ToArray())
+            {
+                Gold = player.Gold,
+            })
             .ToArray();
 
         var observation = new CombatObservation(
@@ -260,9 +511,7 @@ public static class DecisionObservationProjector
                     player.Relics
                         .Select(relic => new RelicObservation(relic.ModelId))
                         .ToArray(),
-                    player.Potions
-                        .Select((modelId, slotIndex) => new PotionObservation(slotIndex, modelId))
-                        .ToArray());
+                    ProjectPotions(player));
             })
             .ToArray();
 
@@ -270,4 +519,11 @@ public static class DecisionObservationProjector
         observation.Validate();
         return observation;
     }
+
+    private static PotionObservation[] ProjectPotions(PlayerCombatSnapshot player) =>
+        player.Potions
+            .Select((modelId, index) => new PotionObservation(
+                player.PotionSlotIndexes?[index] ?? index,
+                modelId))
+            .ToArray();
 }

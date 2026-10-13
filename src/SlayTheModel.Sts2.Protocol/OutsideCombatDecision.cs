@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SlayTheModel.Sts2.Protocol;
 
 /// <summary>
@@ -19,15 +21,29 @@ public sealed record OutsideCombatObservation(
     IReadOnlyList<OutsideRunPlayerObservation> Players,
     IReadOnlyList<OutsideMapPointObservation> MapPoints)
 {
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 5;
+
+    /// <summary>
+    /// Only populated on the Crystal Sphere screen. Older outside observations
+    /// remain v1/v2 with the same JSON and fingerprint.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CrystalSphereBoardObservation? CrystalSphere { get; init; }
+
+    /// <summary>
+    /// Ordered, visible options for one card-set choice. This list describes
+    /// candidates once; it does not enumerate their possible subsets.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<OutsideSelectedCardReference>? CardSelectionOptions { get; init; }
 
     public void Validate()
     {
-        if (SchemaVersion != CurrentSchemaVersion)
+        if (SchemaVersion is < 1 or > CurrentSchemaVersion)
         {
             throw new InvalidDataException(
                 $"Unsupported outside-combat observation schema {SchemaVersion}; "
-                + $"expected {CurrentSchemaVersion}.");
+                + $"expected 1..{CurrentSchemaVersion}.");
         }
 
         if (!Enum.IsDefined(Surface))
@@ -38,6 +54,21 @@ public sealed record OutsideCombatObservation(
         ArgumentNullException.ThrowIfNull(Players);
         ArgumentNullException.ThrowIfNull(MapPoints);
         ArgumentNullException.ThrowIfNull(ChoiceContext);
+        if (CrystalSphere is not null)
+        {
+            if (SchemaVersion < 3 || Surface != OutsideCombatSurfaceKind.CrystalSphere)
+            {
+                throw new InvalidDataException(
+                    "Crystal Sphere board requires a v3 Crystal Sphere observation.");
+            }
+
+            CrystalSphere.Validate();
+        }
+        else if (SchemaVersion >= 3 && Surface == OutsideCombatSurfaceKind.CrystalSphere)
+        {
+            throw new InvalidDataException(
+                "Crystal Sphere v3 observation requires a visible board.");
+        }
         if (ActIndex < 0 || ActFloor < 0 || TotalFloor < 0 || AscensionLevel < 0)
         {
             throw new InvalidDataException("Outside-combat run position cannot be negative.");
@@ -45,6 +76,37 @@ public sealed record OutsideCombatObservation(
 
         ArgumentException.ThrowIfNullOrWhiteSpace(RoomType);
         ChoiceContext.Validate();
+        if (CardSelectionOptions is { } options)
+        {
+            if (SchemaVersion < 5
+                || Surface is not (OutsideCombatSurfaceKind.CardGridChoice
+                    or OutsideCombatSurfaceKind.MerchantCardRemoval)
+                || options.Count == 0
+                || options.Where((option, index) => option.OptionIndex != index).Any()
+                || options.Any(option => option is null)
+                || options.Where(option => option.DeckIndex is not null)
+                    .Select(option => option.DeckIndex)
+                    .Distinct().Count()
+                    != options.Count(option => option.DeckIndex is not null))
+            {
+                throw new InvalidDataException(
+                    "Card-set candidates require a v5 grid observation in option order.");
+            }
+
+            foreach (var option in options)
+            {
+                option.Validate();
+                if (option.DeckIndex is { } deckIndex
+                    && (Players.Count != 1 || !Players[0].Deck.Any(card =>
+                        card.DeckIndex == deckIndex
+                        && string.Equals(card.ModelId, option.ModelId,
+                            StringComparison.Ordinal))))
+                {
+                    throw new InvalidDataException(
+                        "Card-set candidate does not match the observed deck.");
+                }
+            }
+        }
         if (Players.Count == 0)
         {
             throw new InvalidDataException("Outside-combat observation requires at least one player.");
@@ -54,6 +116,20 @@ public sealed record OutsideCombatObservation(
         foreach (var player in Players)
         {
             player.Validate();
+            if (SchemaVersion >= 2 && player.Relics.Any(relic =>
+                    relic.StackCount is not null || relic.IsUsedUp is not null
+                    || relic.Status is not null || relic.DisplayAmount is not null))
+            {
+                throw new InvalidDataException(
+                    "Outside-combat schema v2 cannot expose native relic fields.");
+            }
+
+            if (player.Deck.Any(card => card.EnchantmentDisplay is not null
+                    && (SchemaVersion < 4 || card.EnchantmentId is null)))
+            {
+                throw new InvalidDataException(
+                    "Outside-combat enchantment display requires a v4 enchanted card.");
+            }
         }
 
         RequireUnique(MapPoints.Select(point => point.Coordinate), "outside-combat map coordinate");
@@ -88,6 +164,71 @@ public sealed record OutsideCombatObservation(
             {
                 throw new InvalidDataException($"Duplicate {label}: {value}.");
             }
+        }
+    }
+}
+
+/// <summary>
+/// Player-visible Crystal Sphere minigame state. Item identity is only emitted
+/// after the native reveal callback; covered items are never inspected for
+/// feature values.
+/// </summary>
+public sealed record CrystalSphereBoardObservation(
+    int Width,
+    int Height,
+    int DivinationsRemaining,
+    string SelectedTool,
+    bool IsFinished,
+    IReadOnlyList<CrystalSphereCellObservation> Cells)
+{
+    public void Validate()
+    {
+        if (Width <= 0 || Height <= 0 || DivinationsRemaining < 0
+            || Width > 32 || Height > 32 || Cells is null
+            || Cells.Count != Width * Height
+            || SelectedTool is not ("none" or "small" or "big"))
+        {
+            throw new InvalidDataException("Crystal Sphere board shape or tool is invalid.");
+        }
+
+        var coordinates = new HashSet<(int X, int Y)>();
+        foreach (var cell in Cells)
+        {
+            cell.Validate();
+            if (cell.X >= Width || cell.Y >= Height
+                || !coordinates.Add((cell.X, cell.Y)))
+            {
+                throw new InvalidDataException(
+                    "Crystal Sphere board has an out-of-bounds or duplicate cell.");
+            }
+        }
+    }
+}
+
+public sealed record CrystalSphereCellObservation(
+    int X,
+    int Y,
+    bool IsHidden,
+    bool IsHighlighted,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? RevealedItemKind = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    string? RevealedVisualId = null)
+{
+    public void Validate()
+    {
+        if (X < 0 || Y < 0
+            || (IsHidden && (RevealedItemKind is not null || RevealedVisualId is not null))
+            || (RevealedItemKind is null && RevealedVisualId is not null))
+        {
+            throw new InvalidDataException(
+                "Crystal Sphere cell exposes hidden content or invalid coordinates.");
+        }
+
+        if (RevealedItemKind is { Length: 0 }
+            || RevealedVisualId is { Length: 0 })
+        {
+            throw new InvalidDataException("Crystal Sphere revealed visual value is empty.");
         }
     }
 }
@@ -233,17 +374,22 @@ public sealed record OutsideRunPlayerObservation(
 
 public sealed record OutsideRunRelicObservation(
     string ModelId,
-    int StackCount,
-    bool IsUsedUp,
-    string Status,
-    int DisplayAmount)
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? StackCount = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] bool? IsUsedUp = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] string? Status = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DisplayAmount = null)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RelicDisplayObservation? Display { get; init; }
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ModelId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(Status);
-        // Keep StackCount and DisplayAmount lossless. Native relics may use
-        // sentinel values, including negative values, for their own UI state.
+        if (Status is not null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(Status);
+        }
+        Display?.Validate();
     }
 }
 
@@ -254,6 +400,9 @@ public sealed record OutsideRunCardObservation(
     string? EnchantmentId,
     string? AfflictionId)
 {
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CardEnchantmentDisplayObservation? EnchantmentDisplay { get; init; }
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ModelId);
@@ -262,6 +411,7 @@ public sealed record OutsideRunCardObservation(
             throw new InvalidDataException(
                 $"Card {ModelId} has a negative deck index or upgrade level.");
         }
+        EnchantmentDisplay?.Validate();
     }
 }
 
@@ -277,8 +427,23 @@ public sealed record OutsideCombatActionDescriptor(
     string? TargetId = null,
     OutsideMapCoordinate? MapCoordinate = null,
     int? Cost = null,
-    int? TargetDeckIndex = null)
+    int? TargetDeckIndex = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyList<OutsideSelectedCardReference>? SelectedCards = null,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    IReadOnlyList<OutsideBundleCardReference>? BundleCards = null)
 {
+    /// <summary>The native belt slot of an outside-combat potion action.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? PotionSlotIndex { get; init; }
+
+    /// <summary>
+    /// One legal card-set action can stand for any set satisfying the observed
+    /// candidate list and bounds. The actual set is recorded at submission.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsSelectionTemplate { get; init; }
+
     public void Validate()
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(ActionId);
@@ -303,21 +468,137 @@ public sealed record OutsideCombatActionDescriptor(
                 "Outside-combat target deck index cannot be negative.");
         }
 
+        if (PotionSlotIndex is < 0)
+        {
+            throw new InvalidDataException(
+                "Outside-combat potion slot index cannot be negative.");
+        }
+
+        if (Kind is OutsideCombatActionKind.UsePotion
+            or OutsideCombatActionKind.DiscardPotion)
+        {
+            if (PotionSlotIndex is null || string.IsNullOrWhiteSpace(TargetId)
+                || MapCoordinate is not null || Cost is not null
+                || TargetDeckIndex is not null)
+            {
+                throw new InvalidDataException(
+                    $"{Kind} requires a potion slot and model ID only.");
+            }
+        }
+        else if (PotionSlotIndex is not null)
+        {
+            throw new InvalidDataException(
+                "Only potion actions may carry a potion slot index.");
+        }
+
         if (Kind == OutsideCombatActionKind.Travel && MapCoordinate is null)
         {
             throw new InvalidDataException("Travel action requires a map coordinate.");
         }
 
-        if ((Kind is OutsideCombatActionKind.ChooseCard or OutsideCombatActionKind.RemoveCard)
+        if ((Kind is OutsideCombatActionKind.ChooseCard
+                or OutsideCombatActionKind.RemoveCard
+                or OutsideCombatActionKind.BuyCard
+                or OutsideCombatActionKind.BuyRelic
+                or OutsideCombatActionKind.BuyPotion)
             && string.IsNullOrWhiteSpace(TargetId))
         {
-            throw new InvalidDataException($"{Kind} action requires a target card model ID.");
+            throw new InvalidDataException($"{Kind} action requires a semantic target ID.");
         }
 
         if (Kind == OutsideCombatActionKind.RemoveCard && TargetDeckIndex is null)
         {
             throw new InvalidDataException(
                 "RemoveCard action requires the target's observation deck index.");
+        }
+
+        if (Kind is OutsideCombatActionKind.ChooseCardSet
+            or OutsideCombatActionKind.RemoveCardSet)
+        {
+            if ((IsSelectionTemplate && SelectedCards is not null)
+                || (!IsSelectionTemplate && SelectedCards is null)
+                || TargetDeckIndex is not null)
+            {
+                throw new InvalidDataException(
+                    "A card-set template has no selected cards; a concrete action must have a set.");
+            }
+
+            foreach (var card in SelectedCards ?? [])
+            {
+                card.Validate();
+            }
+
+            var indexes = (SelectedCards ?? [])
+                .Select(card => card.OptionIndex).ToArray();
+            if (!indexes.SequenceEqual(indexes.Distinct().Order()))
+            {
+                throw new InvalidDataException(
+                    "Card-set action option indexes must be unique and sorted.");
+            }
+
+            if (Kind == OutsideCombatActionKind.RemoveCardSet
+                && SelectedCards is { } selected
+                && (selected.Any(card => card.DeckIndex is null)
+                    || selected.Select(card => card.DeckIndex).Distinct().Count()
+                    != selected.Count))
+            {
+                throw new InvalidDataException(
+                    "RemoveCardSet requires distinct observed deck indexes.");
+            }
+        }
+        else if (SelectedCards is not null || IsSelectionTemplate)
+        {
+            throw new InvalidDataException(
+                "Only card-set actions may contain selected cards.");
+        }
+
+        if (Kind == OutsideCombatActionKind.ChooseCardBundle)
+        {
+            if (BundleCards is not null)
+            {
+                if (BundleCards.Count == 0)
+                {
+                    throw new InvalidDataException("A card bundle cannot be empty.");
+                }
+
+                foreach (var card in BundleCards)
+                {
+                    card.Validate();
+                }
+            }
+        }
+        else if (BundleCards is not null)
+        {
+            throw new InvalidDataException(
+                "Only ChooseCardBundle may contain bundle cards.");
+        }
+    }
+}
+
+public sealed record OutsideSelectedCardReference(
+    int OptionIndex,
+    string ModelId,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? DeckIndex = null)
+{
+    public void Validate()
+    {
+        if (OptionIndex < 0 || DeckIndex is < 0)
+        {
+            throw new InvalidDataException("Selected card indexes must be non-negative.");
+        }
+
+        ArgumentException.ThrowIfNullOrWhiteSpace(ModelId);
+    }
+}
+
+public sealed record OutsideBundleCardReference(string ModelId, int UpgradeLevel)
+{
+    public void Validate()
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ModelId);
+        if (UpgradeLevel < 0)
+        {
+            throw new InvalidDataException("Bundle card upgrade level cannot be negative.");
         }
     }
 }
@@ -346,6 +627,20 @@ public enum OutsideCombatActionKind
     CancelSelection,
     /// <summary>Leave a confirmation preview and return to the still-pending selector.</summary>
     BackToSelection,
+    /// <summary>Buy a card from a merchant inventory.</summary>
+    BuyCard,
+    /// <summary>Buy a relic from a merchant inventory.</summary>
+    BuyRelic,
+    /// <summary>Buy a potion from a merchant inventory.</summary>
+    BuyPotion,
+    /// <summary>Choose an unordered set of visible card options in one native selection.</summary>
+    ChooseCardSet,
+    /// <summary>Remove an unordered set of cards identified in the observed deck.</summary>
+    RemoveCardSet,
+    /// <summary>Use an available potion in a native belt slot outside combat.</summary>
+    UsePotion,
+    /// <summary>Discard a potion in a native belt slot outside combat.</summary>
+    DiscardPotion,
 }
 
 public sealed record OutsideCombatDecisionPoint(
@@ -357,6 +652,53 @@ public sealed record OutsideCombatDecisionPoint(
     IReadOnlyList<OutsideCombatActionDescriptor> LegalActions)
 {
     public const int CurrentSchemaVersion = 1;
+
+    /// <summary>
+    /// Check the concrete result of a set-action template against the frozen
+    /// visible candidates, without materializing every candidate subset.
+    /// </summary>
+    public static void ValidateSubmittedSetAction(
+        OutsideCombatObservation observation,
+        OutsideCombatActionDescriptor template,
+        OutsideCombatActionDescriptor selected)
+    {
+        ArgumentNullException.ThrowIfNull(observation);
+        ArgumentNullException.ThrowIfNull(template);
+        ArgumentNullException.ThrowIfNull(selected);
+        if (!template.IsSelectionTemplate
+            || template.Kind is not (OutsideCombatActionKind.ChooseCardSet
+                or OutsideCombatActionKind.RemoveCardSet)
+            || selected.IsSelectionTemplate
+            || selected.ActionId != template.ActionId
+            || selected.Kind != template.Kind
+            || selected.Ordinal != template.Ordinal
+            || selected.TargetId != template.TargetId
+            || selected.MapCoordinate != template.MapCoordinate
+            || selected.Cost != template.Cost
+            || selected.TargetDeckIndex != template.TargetDeckIndex
+            || selected.PotionSlotIndex != template.PotionSlotIndex
+            || selected.BundleCards is not null
+            || observation.CardSelectionOptions is not { } candidates
+            || observation.ChoiceContext.MinSelections is not { } min
+            || observation.ChoiceContext.MaxSelections is not { } max
+            || selected.SelectedCards is not { } chosen
+            || chosen.Count < min || chosen.Count > max)
+        {
+            throw new InvalidDataException(
+                "Submitted card set is not an instance of the legal template.");
+        }
+
+        selected.Validate();
+        foreach (var card in chosen)
+        {
+            if (card.OptionIndex >= candidates.Count
+                || card != candidates[card.OptionIndex])
+            {
+                throw new InvalidDataException(
+                    "Submitted card set does not match a frozen candidate.");
+            }
+        }
+    }
 
     public void Validate()
     {
@@ -423,6 +765,20 @@ public sealed record OutsideCombatDecisionPoint(
                 }
             }
 
+            if (action.Kind is OutsideCombatActionKind.UsePotion
+                or OutsideCombatActionKind.DiscardPotion)
+            {
+                if (Observation.Players.Count != 1
+                    || !Observation.Players[0].Potions.Any(potion =>
+                        potion.SlotIndex == action.PotionSlotIndex
+                        && string.Equals(potion.ModelId, action.TargetId,
+                            StringComparison.Ordinal)))
+                {
+                    throw new InvalidDataException(
+                        $"{action.Kind} potion slot/model is absent from the observation.");
+                }
+            }
+
             if (action.Kind == OutsideCombatActionKind.Travel
                 && !Observation.MapPoints.Any(point =>
                     point.Coordinate == action.MapCoordinate))
@@ -448,6 +804,58 @@ public sealed record OutsideCombatDecisionPoint(
                     throw new InvalidDataException(
                         $"ChooseCard target {action.TargetId} at deck index {deckIndex} "
                         + "is absent from the observation.");
+                }
+            }
+
+            if (action.Kind is OutsideCombatActionKind.ChooseCardSet
+                or OutsideCombatActionKind.RemoveCardSet)
+            {
+                if (Observation.ChoiceContext.MinSelections is not { } min
+                    || Observation.ChoiceContext.MaxSelections is not { } max
+                    || (action.IsSelectionTemplate
+                        ? Observation.CardSelectionOptions is not { } options
+                          || min > options.Count || max < min || max > options.Count
+                        : action.SelectedCards is not { } selected
+                          || selected.Count < min || selected.Count > max))
+                {
+                    throw new InvalidDataException(
+                        "Card-set action violates the observed selection bounds.");
+                }
+
+                foreach (var card in (action.SelectedCards ?? [])
+                             .Where(card => card.DeckIndex is not null))
+                {
+                    if (Observation.Players.Count != 1
+                        || !Observation.Players[0].Deck.Any(observed =>
+                            observed.DeckIndex == card.DeckIndex
+                            && string.Equals(observed.ModelId, card.ModelId,
+                                StringComparison.Ordinal)))
+                    {
+                        throw new InvalidDataException(
+                            $"Card-set deck target {card.ModelId} at index "
+                            + $"{card.DeckIndex} is absent from the observation.");
+                    }
+                }
+            }
+
+            if (Observation.CrystalSphere is { } sphere)
+            {
+                if (action.Kind == OutsideCombatActionKind.Proceed)
+                {
+                    if (!sphere.IsFinished || action.TargetId != "proceed")
+                    {
+                        throw new InvalidDataException(
+                            "Crystal Sphere Proceed requires a finished visible board.");
+                    }
+                }
+                else if (action.Kind == OutsideCombatActionKind.ChooseMinigameOption)
+                {
+                    if (sphere.IsFinished || !IsObservedCrystalSphereOption(
+                            sphere, action.TargetId))
+                    {
+                        throw new InvalidDataException(
+                            "Crystal Sphere action is absent from the visible board.");
+                    }
                 }
             }
         }
@@ -479,12 +887,38 @@ public sealed record OutsideCombatDecisionPoint(
         }
     }
 
+    private static bool IsObservedCrystalSphereOption(
+        CrystalSphereBoardObservation sphere,
+        string? target)
+    {
+        if (target is "tool:small" or "tool:big")
+        {
+            return true;
+        }
+
+        if (sphere.DivinationsRemaining <= 0
+            || target is null
+            || !target.StartsWith("cell:", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var coordinates = target["cell:".Length..].Split(',');
+        return coordinates.Length == 2
+               && int.TryParse(coordinates[0], out var x)
+               && int.TryParse(coordinates[1], out var y)
+               && sphere.Cells.Any(cell => cell.X == x && cell.Y == y && cell.IsHidden);
+    }
+
     private static bool IsAllowedOnSurface(
         OutsideCombatSurfaceKind surface,
         OutsideCombatActionKind action) => surface switch
     {
         OutsideCombatSurfaceKind.Rewards => action is
-            OutsideCombatActionKind.ClaimReward or OutsideCombatActionKind.Proceed,
+            OutsideCombatActionKind.ClaimReward
+            or OutsideCombatActionKind.Proceed
+            or OutsideCombatActionKind.UsePotion
+            or OutsideCombatActionKind.DiscardPotion,
         OutsideCombatSurfaceKind.CardReward => action is
             OutsideCombatActionKind.ChooseCard
             or OutsideCombatActionKind.ChooseRewardAlternative
@@ -497,11 +931,15 @@ public sealed record OutsideCombatDecisionPoint(
             OutsideCombatActionKind.ChooseRelic or OutsideCombatActionKind.Skip,
         OutsideCombatSurfaceKind.CardGridChoice => action is
             OutsideCombatActionKind.ChooseCard
+            or OutsideCombatActionKind.ChooseCardSet
+            or OutsideCombatActionKind.RemoveCard
+            or OutsideCombatActionKind.RemoveCardSet
             or OutsideCombatActionKind.Confirm
             or OutsideCombatActionKind.CancelSelection
             or OutsideCombatActionKind.BackToSelection,
         OutsideCombatSurfaceKind.MerchantCardRemoval => action is
             OutsideCombatActionKind.RemoveCard
+            or OutsideCombatActionKind.RemoveCardSet
             or OutsideCombatActionKind.Confirm
             or OutsideCombatActionKind.CancelSelection
             or OutsideCombatActionKind.BackToSelection,
@@ -513,8 +951,13 @@ public sealed record OutsideCombatDecisionPoint(
         OutsideCombatSurfaceKind.Merchant => action is
             OutsideCombatActionKind.OpenMerchant
             or OutsideCombatActionKind.OpenCardRemoval
+            or OutsideCombatActionKind.BuyCard
+            or OutsideCombatActionKind.BuyRelic
+            or OutsideCombatActionKind.BuyPotion
             or OutsideCombatActionKind.LeaveMerchant
-            or OutsideCombatActionKind.Proceed,
+            or OutsideCombatActionKind.Proceed
+            or OutsideCombatActionKind.UsePotion
+            or OutsideCombatActionKind.DiscardPotion,
         OutsideCombatSurfaceKind.Treasure => action is
             OutsideCombatActionKind.OpenChest
             or OutsideCombatActionKind.TakeTreasureRelic

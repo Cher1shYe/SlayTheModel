@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SlayTheModel.Sts2.Protocol;
 
 public sealed record CombatSnapshot(
@@ -45,6 +47,20 @@ public sealed record CombatSnapshot(
             RequireUnique(
                 player.Piles.SelectMany(pile => pile.Cards).Select(card => card.CombatCardIndex),
                 $"combat card ID for player {player.PlayerId}");
+
+            if (player.PotionSlotIndexes is { } potionSlotIndexes
+                && (potionSlotIndexes.Count != player.Potions.Count
+                    || potionSlotIndexes.Any(slot => slot < 0)
+                    || !potionSlotIndexes.SequenceEqual(potionSlotIndexes.Order())))
+            {
+                throw new InvalidDataException(
+                    $"Player {player.PlayerId} has invalid potion slot indexes.");
+            }
+
+            if (player.PotionSlotIndexes is { } slots)
+            {
+                RequireUnique(slots, $"potion slot for player {player.PlayerId}");
+            }
         }
 
         foreach (var creature in Creatures)
@@ -102,7 +118,16 @@ public sealed record PlayerCombatSnapshot(
     IReadOnlyList<RelicSnapshot> Relics,
     IReadOnlyList<string> Potions,
     IReadOnlyList<OrbSnapshot> Orbs,
-    PlayerRngSnapshot PlayerRng);
+    PlayerRngSnapshot PlayerRng)
+{
+    /// <summary>
+    /// Physical slot indexes corresponding to Potions. Native combat state
+    /// serializes occupied potions densely, so the live adapter must preserve
+    /// their original slots separately. Null retains legacy snapshot behavior.
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<int>? PotionSlotIndexes { get; init; }
+}
 
 public sealed record CombatPileSnapshot(
     string PileType,

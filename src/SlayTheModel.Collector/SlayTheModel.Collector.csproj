@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Game-independent, durable episode collection for SlayTheModel.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
+  </ItemGroup>
+</Project>
