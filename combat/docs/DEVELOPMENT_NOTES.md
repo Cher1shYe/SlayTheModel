@@ -2,6 +2,7 @@
 
 ## SlayTheModel 集成修复（2026-10-15，未发布）
 
+- 用户随后明确奖励应按末尾总缺血／总血量，女王与仆从必须合计。撤回下方历史记录中的主怪过滤，恢复所有捕获敌人，并保留阵容中 0 HP 等待复活的对象；后者若按 IsAlive 排除，会在复活后无法扣回旧进度。末尾读当前 HP，不累计中途伤害。女王分母 599、幻象复活后第二次死亡与第一次同为 0.075 的原生／预测对账通过，详见上层专题。下条的过滤说明仅记录已撤回的中间实现。
 - Native MCTS API 新增 `EnemyDamageFraction`：捕获根中存活主怪的身份与最大生命，从当前分支影子状态计算按生命加权的净缺血比例。按 `ICombatPredictionCreatureSemantics.IsPrimaryEnemy` 过滤附属敌人，与原生 `Creature.IsPrimaryEnemy` 对账；不读取分支外的 live Power。首次版本漏掉了捕获时已在场的仆从，女王 400 HP 与仆从 199 HP 被错误合并，现已复现并修复。根提升和回放保持同一基准，后续召唤不累计奖励，治疗降低进度。此派生值不进入状态键。上层 SlayTheModel 用它区分失败与深度截断路线，保留胜利优先；本仓库原 Beam 评分不变。测试与限制见上层仓库 `docs/mcts-progress-reward-20261015.md`。
 - Native MCTS 选牌桥接的 `OptionOccurrence` 与 `PlanCardToken` 对齐：先按卡牌 ID 和升级等级定位第几个实例，再校验完整语义状态。此前错误地在完整状态键相同的候选内计数，使头槌面对同名的普通／虚无／附魔副本时找不到候选。仍拒绝状态不符与重复选同一实例。
 - 上层 `tools/Sts2.NativeWorker/NativeVerification.cs` 的头槌测试验证普通与虚无副本、普通与灵巧附魔副本、相同副本，逐一核对原生选牌和完整 continuation key，并验证错误状态被拒绝。原实现已在混合副本测试复现失败。

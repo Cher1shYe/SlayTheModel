@@ -2,6 +2,7 @@
 
 ## SlayTheModel Native MCTS 进度评分（2026-10-15）
 
+- **最新口径替代下方旧过滤断言**：用户要求按末尾总缺血／总血量，仆从正常计入。`-Mode reward-verify` 已通过女王总血量 599、仆从受伤／死亡贡献、卵／机器人捕获后计分、利齿之眼 0 HP 根捕获→复活→再次死亡（两次比例均 0.075，不累计），各步原生／预测完整 continuation key 相等；原三个短搜回归通过。日志 `artifacts/verification/mcts-endpoint-reward-20261015.txt` 位于上层仓库。
 - 附属怪回归：上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode reward-verify` 覆盖女王开场仆从伤害为 0、受伤后重新捕获为 0、主怪分母不含仆从及击杀仆从不增加进度／不结束战斗。旧实现明确失败，新实现通过；原三场评分短搜亦通过。蟹的两个原生主怪仍计入。
 - `-Mode summon-reward-verify` 单独运行 `OVICOPTER_NORMAL`、`FOGMOG_NORMAL`、`FABRICATOR_NORMAL` 的实际回合召唤，比较召唤前根、召唤后攻击及重新捕获后攻击；幻象额外经过死亡／复活。三个场景的进度均保持 0，每步完整 continuation key 与原生相等。未对所有怪物、分裂后主怪及所有阶段作穷举验证。
 - 上层 `scripts/native-worker.ps1 -GameDir <游戏目录>` 的 `RewardVerification` 覆盖 `CULTISTS_NORMAL`、`KAISER_CRAB_BOSS`、`QUEEN_BOSS`。同根同 seed 的 300 ms／深度 1 对照检查旧奖励全相同、新奖励可区分动作；实际执行选中动作，核对净缺血比例及完整 continuation key。回放恢复无奖励串扰，根提升不改变分母。

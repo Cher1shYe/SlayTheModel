@@ -57,10 +57,10 @@ public sealed class NativeMctsSimulationSession : IDisposable
         root = driver.NativeMctsCreateRoot();
         current = root;
         var simulator = (CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator)root.Simulator;
-        var semantics = (CombatSolver.Engine.Common.ICombatPredictionCreatureSemantics)simulator.State.CombatState;
         rewardEnemies = capturedRoot.Enemies
             .Select(enemy => (Identity: enemy, State: simulator.State.GetCreature(enemy)))
-            .Where(enemy => enemy.State.IsAlive && enemy.State.MaxHp > 0 && semantics.IsPrimaryEnemy(enemy.Identity))
+            // Keep zero-HP enemies still in the roster (pending revival), too.
+            .Where(enemy => enemy.State.MaxHp > 0)
             .Select(enemy => (enemy.Identity, enemy.State.MaxHp)).ToArray();
         rootDescription = driver.NativeMctsDescribe(root, 0);
         currentDescription = rootDescription;
@@ -157,7 +157,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
         return currentDescription;
     }
 
-    /// <summary>Net HP deficit of primary enemies frozen at capture; secondary enemies never contribute.</summary>
+    /// <summary>Endpoint HP deficit of the captured roster, including minions and reviving enemies. Never accumulated damage.</summary>
     public double EnemyDamageFraction
     {
         get
