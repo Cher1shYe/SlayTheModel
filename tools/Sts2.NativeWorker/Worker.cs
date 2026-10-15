@@ -35,6 +35,22 @@ public partial class Worker : Node
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "summon-reward-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "reward-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await MinionRewardVerification.RunAsync(session, timeout.Token);
+                await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
+                await RewardVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-benchmark")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
@@ -87,6 +103,8 @@ public partial class Worker : Node
             await NativeVerification.ChoicesAsync(session, timeout.Token);
             await NativeVerification.IpcAsync(session, checkpoint, timeout.Token);
             await RewardVerification.RunAsync(session, timeout.Token);
+            await MinionRewardVerification.RunAsync(session, timeout.Token);
+            await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
             if (System.Environment.GetEnvironmentVariable("STS2_COLLECTOR_TEST_DLL") is { Length: > 0 } collectorDll)
                 await CollectorVerification.RunAsync(session, collectorDll, timeout.Token);
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "benchmark")

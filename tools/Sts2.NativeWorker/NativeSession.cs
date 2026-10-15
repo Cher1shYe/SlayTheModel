@@ -166,7 +166,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
         await SettleAsync(cancellation);
-        _rewardEnemies = _state.Enemies.Where(enemy => enemy.IsAlive && enemy.MaxHp > 0)
+        _rewardEnemies = _state.Enemies.Where(enemy => enemy.IsAlive && enemy.MaxHp > 0 && enemy.IsPrimaryEnemy)
             .Select(enemy => (enemy, enemy.MaxHp)).ToArray();
     }
 
