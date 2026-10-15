@@ -84,11 +84,15 @@ if (!staleWasRejected)
     throw new InvalidOperationException("A stale combat action was not rejected.");
 }
 
-if (json.Contains("\"gold\"", StringComparison.Ordinal)
-    || json.Contains("run_rng", StringComparison.Ordinal)
+if (json.Contains("run_rng", StringComparison.Ordinal)
     || json.Contains("native_card_json", StringComparison.Ordinal))
 {
-    throw new InvalidOperationException("Combat policy payload leaked simulator or run-only state.");
+    throw new InvalidOperationException("Combat policy payload leaked simulator-only state.");
+}
+
+if (roundTripped.Observation.Players[0].Gold != 99)
+{
+    throw new InvalidOperationException("Combat observation did not retain visible player gold.");
 }
 
 var runJson = ProtocolJson.Serialize(searchPoint.RunObservation);

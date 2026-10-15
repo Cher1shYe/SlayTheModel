@@ -48,6 +48,7 @@ public static class CombatActionExecutor
         var executor = runManager.ActionExecutor
             ?? throw new InvalidOperationException("The run action executor is unavailable.");
 
+        PolicyChoiceCapture.BeforeAction(gameAction);
         queue.EnqueueWithoutSynchronizing(gameAction);
         // Queue idle also means "paused for a player choice". It does not mean
         // the card finished. Keep the live controller busy until the action really

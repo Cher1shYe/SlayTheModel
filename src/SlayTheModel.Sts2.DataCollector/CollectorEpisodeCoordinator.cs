@@ -317,16 +317,14 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
                 {
                     FinalizeInterruptedSession(
                         "resume_checkpoint_mismatch",
-                        new
-                        {
+                        new ResumeCheckpointMismatch(
                             sidecar.ResumeCheckpointValid,
                             sidecar.DurableEventSequence,
-                            durable_event_sequence = snapshot.NextEventSequence,
-                            state_fingerprint_matches = string.Equals(
+                            snapshot.NextEventSequence,
+                            string.Equals(
                                 sidecar.ResumeSaveFingerprint,
                                 restoredFingerprint,
-                                StringComparison.OrdinalIgnoreCase),
-                        });
+                                StringComparison.OrdinalIgnoreCase)));
                     sidecar = null;
                 }
             }

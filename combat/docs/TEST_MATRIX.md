@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## SlayTheModel Native MCTS 选牌集成（2026-10-15）
+
+- 从上层仓库运行 `scripts/native-worker.ps1 -GameDir <游戏目录>`。`SLAY_WORKER_HEADBUTT_CHOICE_MATCH` 覆盖 ethereal、enchanted、identical 三种同名副本组合；检查全部候选可映射、第二实例索引、原生结算 continuation key 相等以及无效语义键拒绝。
+- 可设置 `STS2_COLLECTOR_TEST_DLL` 为已构建的采集器 DLL 绝对路径，追加自动出牌与头槌选牌采集集成测试。测试写入独立临时数据集；因原生 TestMode 禁止 UI StateTracker 订阅，测试移除该 UI 订阅，但保留动作与选牌采集链路。
+
 ## 0.43.3：余像路线与战后掉药预测
 
 - 药水奖励机会成本：更新纯合同，概率 100%/40% 但结果未知的满栏情形额度均为 0；确定掉药按预测药水档位抵扣一次，确定不掉、药栏未满和禁用获得药水时额度为 0。UI 本地化合同新增搜索刚开始即显示预测掉药/不掉药，关闭预测时清空；英/简/繁分别核对。本地 Release 构建 0 警告、0 错误，自动部署的 DLL 与构建 DLL SHA256 一致。没有运行无人游戏合同或可见实机。结构门禁本次失败：`CombatBeamSolver.BlockPotionInsertion.cs` 缺少脚本硬编码的 `ReplayInsertedRoute(`，但当前 HEAD 的该文件原本就命名为 `ReplayAdjustedRoute(`，本次未改动该文件；不把门禁当作通过。

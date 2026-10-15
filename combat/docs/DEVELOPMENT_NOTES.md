@@ -1,5 +1,10 @@
 # CombatSolver 开发笔记与未来构想
 
+## SlayTheModel 集成修复（2026-10-15，未发布）
+
+- Native MCTS 选牌桥接的 `OptionOccurrence` 与 `PlanCardToken` 对齐：先按卡牌 ID 和升级等级定位第几个实例，再校验完整语义状态。此前错误地在完整状态键相同的候选内计数，使头槌面对同名的普通／虚无／附魔副本时找不到候选。仍拒绝状态不符与重复选同一实例。
+- 上层 `tools/Sts2.NativeWorker/NativeVerification.cs` 的头槌测试验证普通与虚无副本、普通与灵巧附魔副本、相同副本，逐一核对原生选牌和完整 continuation key，并验证错误状态被拒绝。原实现已在混合副本测试复现失败。
+
 ## 0.43.3：余像路线与战后掉药预测（2026-09-20）
 
 - 玩家可感知的变化见 [0.43.3 更新日志](releases/0.43.3-RELEASE_NOTES.md)。本版本仍处于未发布状态，未创建版本标签或上传发布渠道。

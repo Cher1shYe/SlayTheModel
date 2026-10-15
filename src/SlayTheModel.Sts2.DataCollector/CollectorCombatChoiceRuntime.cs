@@ -50,6 +50,29 @@ internal sealed class PendingCombatCardChoice(
 
 internal static partial class CollectorRuntime
 {
+    internal static void RecordPolicyChoice(
+        CardModel[] options, int minSelect, int maxSelect, CardModel[] selected)
+    {
+        // ICardSelector returns directly to CardSelectCmd, bypassing both the
+        // visible selector and the multiplayer receipt used by human inputs.
+        // Observe its exact returned objects before the native effect resumes.
+        if (_configuration?.Actor != "automation_or_unknown") return;
+        try
+        {
+            var pending = PrepareCombatCardChoice(new object(), options, minSelect, maxSelect,
+                canCancel: false, expectsNativeCombatCardResult: false, description: "mcts_card_choice");
+            if (pending is null) return;
+            NativeCombatChoiceTickets.Remove(pending);
+            MarkCombatChoiceManualInput(pending.Selector);
+            CompleteCombatChoice(pending, selected);
+        }
+        catch (Exception exception)
+        {
+            RecordCoverageGap("policy_choice_capture_failed", new { error = exception.ToString() },
+                invalidatePendingDecision: false);
+        }
+    }
+
     private static readonly Dictionary<object, PendingCombatCardChoice> PendingCombatChoices =
         new(ReferenceEqualityComparer.Instance);
     private static readonly List<PendingCombatCardChoice> NativeCombatChoiceTickets = [];

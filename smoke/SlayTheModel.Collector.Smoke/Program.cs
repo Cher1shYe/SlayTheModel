@@ -10,6 +10,11 @@ var temporaryRoot = Path.Combine(
 
 try
 {
+    var mismatch = JsonSerializer.SerializeToElement(
+        new ResumeCheckpointMismatch(true, 5, 12, false), CollectorJson.Options);
+    Assert(mismatch.GetProperty("checkpoint_event_sequence").GetInt64() == 5
+           && mismatch.GetProperty("journal_event_sequence").GetInt64() == 12,
+        "Resume mismatch must preserve both cursors without JSON name collisions.");
     AssertThrows<InvalidOperationException>(() => CollectorJson.Options.WriteIndented = true);
     AssertThrows<JsonException>(() => JsonSerializer.Deserialize<PolicyTrace>(
         "{\"policy_id\":\"missing-actor\"}",
@@ -142,6 +147,7 @@ try
     var clock = new AdvancingClock(
         new DateTimeOffset(2026, 9, 24, 12, 0, 0, TimeSpan.Zero));
     var store = new CollectorStore(temporaryRoot, clock);
+    RunResumeMismatchSmoke(store);
     RunPublicationNamingSmoke(store);
     RunCompactJournalSmoke(store);
     RunHpAnchorPayloadSmoke(store);
@@ -272,7 +278,7 @@ static void RunCompactJournalSmoke(CollectorStore store)
 
     var compactPath = store.GetCompactEpisodePath(episodeId);
     Assert(File.Exists(compactPath), "Finishing an episode did not publish its compact view.");
-    var rows = File.ReadLines(compactPath)
+    var rows = ReadJournalLines(compactPath)
         .Select(line => JsonNode.Parse(line)?.AsObject()
             ?? throw new InvalidDataException("Compact fixture contains a null row."))
         .ToArray();
@@ -443,12 +449,12 @@ static void RunCompletedEpisodeSmoke(CollectorStore store)
             session.Snapshot.Phase == EpisodePhase.Ready,
             "A diagnostic must not alter policy state.");
 
-        var beforeForgedDecision = File.ReadLines(
+        var beforeForgedDecision = ReadJournalLines(
             store.GetOpenEpisodePath(episodeId)).Count();
         AssertThrows<InvalidDataException>(() => session.RecordDecision(
             decisionInput with { ActionKeys = ["forged:0", "forged:1"] }));
         Assert(
-            File.ReadLines(store.GetOpenEpisodePath(episodeId)).Count()
+            ReadJournalLines(store.GetOpenEpisodePath(episodeId)).Count()
                 == beforeForgedDecision,
             "Forged action keys must be rejected before durable append.");
 
@@ -492,7 +498,7 @@ static void RunCompletedEpisodeSmoke(CollectorStore store)
             receipt.ActionKeys[0],
             new PolicyTrace(ActionActor.Policy, "first-legal-retry")));
 
-        var committedBeforeRejectedReward = File.ReadLines(
+        var committedBeforeRejectedReward = ReadJournalLines(
             store.GetOpenEpisodePath(episodeId)).Count();
         AssertThrows<InvalidDataException>(() => session.RecordReward(new RewardInput(
             Guid.NewGuid(),
@@ -500,7 +506,7 @@ static void RunCompletedEpisodeSmoke(CollectorStore store)
             "reward-v1",
             new Dictionary<string, double> { ["hp_delta"] = 0.0 })));
         Assert(
-            File.ReadLines(store.GetOpenEpisodePath(episodeId)).Count()
+            ReadJournalLines(store.GetOpenEpisodePath(episodeId)).Count()
                 == committedBeforeRejectedReward,
             "An invalid transition must be rejected before durable append.");
 
@@ -655,7 +661,7 @@ static void RunExplicitResumeSmoke(CollectorStore store)
             "Explicit resume did not reconstruct the pending decision.");
         Assert(resumed.Snapshot.NextEventSequence == 2, "Torn tail was not discarded.");
         Assert(
-            !File.ReadAllText(partialPath).Contains("torn", StringComparison.Ordinal),
+            !string.Join("\n", ReadJournalLines(partialPath)).Contains("torn", StringComparison.Ordinal),
             "Resume retained an uncommitted torn tail.");
 
         resumed.RecordDiagnostic(
@@ -740,11 +746,11 @@ static void RunQueuedManualCombatInputSmoke(CollectorStore store)
             Guid.NewGuid(), queuedIntent, 102,
             CollectorExecutionStatus.ObservedTransition,
             Data: JsonSerializer.SerializeToElement(new { executed_after = 101 })));
-        var beforeDuplicate = File.ReadLines(store.GetOpenEpisodePath(episodeId)).Count();
+        var beforeDuplicate = ReadJournalLines(store.GetOpenEpisodePath(episodeId)).Count();
         AssertThrows<InvalidDataException>(() => session.RecordManualCombatInputOutcome(
             new ManualCombatInputOutcomeInput(
                 Guid.NewGuid(), queuedIntent, 102, CollectorExecutionStatus.Applied)));
-        Assert(File.ReadLines(store.GetOpenEpisodePath(episodeId)).Count() == beforeDuplicate,
+        Assert(ReadJournalLines(store.GetOpenEpisodePath(episodeId)).Count() == beforeDuplicate,
             "A duplicate manual outcome must be rejected before durable append.");
         session.RecordManualCombatInputOutcome(new ManualCombatInputOutcomeInput(
             Guid.NewGuid(), structuredIntent, 101, CollectorExecutionStatus.Applied));
@@ -1318,12 +1324,12 @@ static void RunTargetedQueuedCoverageGapSmoke(CollectorStore store)
         Assert(session.Snapshot.PendingDecisionCount == 2,
             "B and child C should both be pending before the selector failure.");
 
-        var countBeforeInvalidTarget = File.ReadLines(
+        var countBeforeInvalidTarget = ReadJournalLines(
             store.GetOpenEpisodePath(episodeId)).Count();
         AssertThrows<InvalidDataException>(() => session.RecordCoverageGap(
             new CoverageGapInput(Guid.NewGuid(), "invalid_target",
                 TargetDecisionId: Guid.NewGuid())));
-        Assert(File.ReadLines(store.GetOpenEpisodePath(episodeId)).Count()
+        Assert(ReadJournalLines(store.GetOpenEpisodePath(episodeId)).Count()
                == countBeforeInvalidTarget,
             "An invalid target gap must be rejected before durable append.");
 
@@ -1482,6 +1488,26 @@ static void RunInterruptedPublicationSmoke(CollectorStore store)
     Assert(recovered.Snapshot.IsPublished, "Recovery did not complete interrupted publication.");
     Assert(File.Exists(completed), "Recovered finish was not republished.");
     Assert(!File.Exists(partial), "Recovered finish left a partial file behind.");
+}
+
+static void RunResumeMismatchSmoke(CollectorStore store)
+{
+    var episodeId = Guid.NewGuid();
+    using (var session = store.StartEpisode(CreateStart(episodeId)))
+        session.RecordDiagnostic("segment_ended", JsonSerializer.SerializeToElement(new { reason = "process_exit" }));
+    using (var resumed = store.ResumeEpisode(episodeId))
+    {
+        var details = new ResumeCheckpointMismatch(true, 1, resumed.Snapshot.NextEventSequence, false);
+        resumed.RecordDiagnostic("interrupted_episode", JsonSerializer.SerializeToElement(
+            new { reason = "resume_checkpoint_mismatch", details }, CollectorJson.Options));
+        resumed.RecordCoverageGap(new CoverageGapInput(Guid.NewGuid(), "resume_checkpoint_mismatch"));
+        resumed.Finish(new EpisodeFinishInput(Guid.NewGuid(), "interrupted", "resume_checkpoint_mismatch",
+            EpisodeCompleteness.Incomplete, JsonSerializer.SerializeToElement(details, CollectorJson.Options)));
+    }
+    var finished = store.ReadEpisode(episodeId)[^1].Payload.Deserialize<EpisodeFinishedPayload>(CollectorJson.Options)!;
+    Assert(finished.Completeness == EpisodeCompleteness.Incomplete && !finished.ValueTargetValid,
+        "A mismatched checkpoint must publish an explicitly incomplete segment.");
+    RunCompletedEpisodeSmoke(store);
 }
 
 static void RunPublicationNamingSmoke(CollectorStore store)
@@ -2000,7 +2026,7 @@ static void RunOutsideCardSetTemplateSmoke(CollectorStore store)
     Assert(restored?.SelectedCards?.Select(card => card.OptionIndex)
                .SequenceEqual(chosen) == true,
         "Submitted card-set label must survive journal replay with exact option indexes.");
-    var compactAction = File.ReadLines(store.GetCompactEpisodePath(episodeId))
+    var compactAction = ReadJournalLines(store.GetCompactEpisodePath(episodeId))
         .Select(line => JsonNode.Parse(line)?.AsObject())
         .Single(row => row?["t"]?.GetValue<string>() == "action");
     var compactOutside = compactAction?["selected_action"]?.Deserialize<
@@ -2322,7 +2348,7 @@ static void RunCombatCardSetContractSmoke(CollectorStore store)
         CollectorJson.Options);
     Assert(restored?.SelectedCombatCardIds?.SequenceEqual([4u, 7u, 14u, 22u]) == true,
         "Combat selected_action must survive journal replay as one card set.");
-    var compactAction = File.ReadLines(store.GetCompactEpisodePath(episodeId))
+    var compactAction = ReadJournalLines(store.GetCompactEpisodePath(episodeId))
         .Select(line => JsonNode.Parse(line)?.AsObject())
         .Single(row => row?["t"]?.GetValue<string>() == "action");
     var compactCombat = compactAction?["selected_action"]?.Deserialize<
@@ -2383,6 +2409,18 @@ static void RunLegacySingleChoiceKeySmoke()
         "The existing indexed hand-card key must remain replay-compatible.");
 }
 
+static IEnumerable<string> ReadJournalLines(string path)
+{
+    // Active journals retain write access; Windows readers must share it.
+    using var stream = new FileStream(
+        path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+    using var reader = new StreamReader(stream);
+    string? line;
+    while ((line = reader.ReadLine()) is not null)
+    {
+        yield return line;
+    }
+}
 static string Fingerprint(char character) => new(character, 64);
 
 static void Assert(bool condition, string message)

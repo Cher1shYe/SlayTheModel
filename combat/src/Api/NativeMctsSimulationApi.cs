@@ -280,11 +280,19 @@ public static class NativeMctsSimulationApi
             int found = -1;
             for (int index = 0; index < options.Count; index++)
             {
-                if (!string.Equals(CardChoiceSupport.ChoiceCardKey(options[index]), selected.StateKey, StringComparison.Ordinal))
+                // PlanCardToken.OptionOccurrence counts model + upgrade, not
+                // full state keys (see CardChoiceSupport.CountTokenOccurrence).
+                // Locate that instance first, then verify its semantic state.
+                if (options[index].Id.Entry != selected.CardId
+                    || options[index].CurrentUpgradeLevel != selected.UpgradeLevel)
                     continue;
                 if (occurrence-- == 0) { found = index; break; }
             }
             if (found < 0) throw new InvalidOperationException($"Live choice identity {selected.StateKey} is unavailable.");
+            if (!string.Equals(CardChoiceSupport.ChoiceCardKey(options[found]), selected.StateKey, StringComparison.Ordinal))
+                throw new InvalidOperationException($"Live choice state differs for {selected.CardId}+{selected.UpgradeLevel}#{selected.OptionOccurrence}.");
+            if (result.Contains(found))
+                throw new InvalidOperationException("A live choice cannot select the same card twice.");
             result.Add(found);
         }
         return result.ToArray();

@@ -43,12 +43,10 @@ var observation = new OutsideCombatObservation(
             ],
             Relics:
             [
-                new OutsideRunRelicObservation(
-                    "BURNING_BLOOD",
-                    StackCount: 1,
-                    IsUsedUp: false,
-                    Status: "Active",
-                    DisplayAmount: 0),
+                new OutsideRunRelicObservation("BURNING_BLOOD")
+                {
+                    Display = new RelicDisplayObservation("normal", false, false, null, null),
+                },
             ],
             Potions: [new PotionObservation(0, "BLOCK_POTION")]),
     ],
@@ -68,8 +66,28 @@ var legalActions = new OutsideCombatActionDescriptor[]
     new("cancel_selection:3:-", OutsideCombatActionKind.CancelSelection, 3),
 };
 var fingerprint = ProtocolJson.ComputeOutsideStateFingerprint(build, observation, legalActions);
+// Current observations expose visible display data, never native relic state.
+foreach (var nativeRelic in new[]
+{
+    observation.Players[0].Relics[0] with { StackCount = 1 },
+    observation.Players[0].Relics[0] with { IsUsedUp = false },
+    observation.Players[0].Relics[0] with { Status = "Active" },
+    observation.Players[0].Relics[0] with { DisplayAmount = 0 },
+})
+{
+    try
+    {
+        (observation with
+        {
+            Players = [observation.Players[0] with { Relics = [nativeRelic] }],
+        }).Validate();
+        throw new Exception("Current outside observation accepted native relic state.");
+    }
+    catch (InvalidDataException) { }
+}
+// This golden value belongs to the current observation fixture, including display.
 const string expectedFingerprint =
-    "0ca6fc3d7ff778af0ec4b1ce4d6335e228618ee3c1b8eb066a958baa3893412c";
+    "81f713ca38f6ed839c58f315066b73233135caf2653efc6151df1b0f9505902a";
 if (fingerprint != expectedFingerprint)
     throw new Exception(
         $"Outside fingerprint contract changed without a schema update: {fingerprint}.");
@@ -157,11 +175,18 @@ var surfaceFixtures = new (OutsideCombatSurfaceKind Surface, OutsideCombatAction
     (OutsideCombatSurfaceKind.Map,
         new("map:1:0", OutsideCombatActionKind.Travel, 0, MapCoordinate: next)),
     (OutsideCombatSurfaceKind.CrystalSphere,
-        new("sphere:0", OutsideCombatActionKind.ChooseMinigameOption, 0, "CELL_0")),
+        new("sphere:0", OutsideCombatActionKind.ChooseMinigameOption, 0, "cell:0,0")),
 };
 foreach (var (surface, action) in surfaceFixtures)
 {
-    var fixtureObservation = observation with { Surface = surface };
+    var fixtureObservation = observation with
+    {
+        Surface = surface,
+        CrystalSphere = surface == OutsideCombatSurfaceKind.CrystalSphere
+            ? new CrystalSphereBoardObservation(1, 1, 1, "small", false,
+                [new CrystalSphereCellObservation(0, 0, true, false)])
+            : null,
+    };
     OutsideCombatActionDescriptor[] fixtureActions = [action];
     var fixture = new OutsideCombatDecisionPoint(
         OutsideCombatDecisionPoint.CurrentSchemaVersion,

@@ -264,6 +264,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         else
         {
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
+            PolicyChoiceCapture.BeforeAction(_action);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
         try { await SettleAsync(cancellation); }

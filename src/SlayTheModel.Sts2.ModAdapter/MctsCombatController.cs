@@ -360,7 +360,9 @@ internal sealed class MctsCombatController : ICardSelector
                     AppendPrefix(response.Action!);
                     if (response.NextStateKey != null)
                         StartPondering(response.NextStateKey, _prefix.ToArray(), response.Action!, _generation.Token);
-                    return indices.Select(i => cards[i]).ToArray();
+                    var policySelected = indices.Select(i => cards[i]).ToArray();
+                    PolicyChoiceCapture.Record(cards, minSelect, maxSelect, policySelected);
+                    return policySelected;
                 }
                 catch (OperationCanceledException) when (_paused || _state == null) { }
                 catch (Exception exception)

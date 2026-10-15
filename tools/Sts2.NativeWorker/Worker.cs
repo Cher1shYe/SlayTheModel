@@ -86,6 +86,8 @@ public partial class Worker : Node
             await NativeVerification.CombatSolverEndTurnAsync(session, timeout.Token);
             await NativeVerification.ChoicesAsync(session, timeout.Token);
             await NativeVerification.IpcAsync(session, checkpoint, timeout.Token);
+            if (System.Environment.GetEnvironmentVariable("STS2_COLLECTOR_TEST_DLL") is { Length: > 0 } collectorDll)
+                await CollectorVerification.RunAsync(session, collectorDll, timeout.Token);
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "benchmark")
                 await Benchmark.RunAsync(session, System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT") ?? "benchmark.json", timeout.Token);
             GetTree().Quit();

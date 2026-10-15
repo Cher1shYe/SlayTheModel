@@ -112,6 +112,25 @@ internal sealed record CardRewardExtraOption(string OptionId, bool IsSkip);
 internal static partial class CollectorRuntime
 {
     private static readonly Dictionary<GameAction, CollectorActionDraft> PendingCombatActions = [];
+    private static readonly Dictionary<GameAction, CapturedCombatDecision?> PendingPolicyCaptures = [];
+
+    internal static void PreparePolicyAction(GameAction action)
+    {
+        if (_stopping || _episodes?.HasActiveEpisode != true
+            || _configuration?.Actor != "automation_or_unknown") return;
+        PendingPolicyCaptures[action] = null;
+        try
+        {
+            var state = CombatManager.Instance.DebugOnlyGetState()
+                ?? throw new InvalidOperationException("No combat state for policy action.");
+            PendingPolicyCaptures[action] = CollectorCombatProjector.Capture(state, _episodes.NextSourceDecisionIndex());
+        }
+        catch (Exception exception)
+        {
+            RecordCoverageGap("policy_action_capture_failed", new { error = exception.ToString() },
+                invalidatePendingDecision: false);
+        }
+    }
     private static readonly Dictionary<GameAction, CollectorActionDraft> PendingOutsidePotionActions = [];
     private static readonly HashSet<object> PendingOutsideOperations =
         new(ReferenceEqualityComparer.Instance);
@@ -1832,6 +1851,7 @@ internal static partial class CollectorRuntime
         }
 
         PendingCombatActions.Clear();
+        PendingPolicyCaptures.Clear();
         PendingOutsidePotionActions.Clear();
         PendingManualCombatIntents.Clear();
         ClearCombatChoiceState();
@@ -2322,6 +2342,19 @@ internal static partial class CollectorRuntime
             : new HashSet<Guid>();
         try
         {
+            if (PendingPolicyCaptures.Remove(action, out var policyCapture))
+            {
+                if (policyCapture is null) return;
+                var policyIndex = CollectorCombatProjector.FindAction(policyCapture.Decision.LegalActions, descriptor);
+                if (policyIndex < 0)
+                {
+                    RecordCoverageGap("policy_action_not_in_legal_set", new { action = action.ToString() },
+                        invalidatePendingDecision: false);
+                    return;
+                }
+                PendingCombatActions[action] = _episodes!.DraftCombat(policyCapture, policyIndex, "policy_action");
+                return;
+            }
             // Only a native manual-play/end-turn/potion entry point proves a
             // human submission. Card effects can enqueue the same action
             // classes while their parent is still resolving.
@@ -2891,8 +2924,14 @@ internal static partial class CollectorRuntime
         _stopping = true;
         Console.Error.WriteLine(
             $"[SlayTheModel/Collector] {operation} failed; collector stopped: {exception}");
+        GD.PushError($"[SlayTheModel/Collector] {operation} failed: {exception}");
         try
         {
+            _episodes?.RecordDiagnostic("collector_failure", new
+            {
+                operation,
+                error = exception.ToString(),
+            });
             _episodes?.EndProcessSegment("collector_error");
         }
         catch (Exception flushError)
