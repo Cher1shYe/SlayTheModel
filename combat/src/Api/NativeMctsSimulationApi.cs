@@ -48,6 +48,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private IReadOnlyList<string> choiceDiagnostics = [];
     private int actionCount;
     private bool disposed;
+    private readonly (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] rewardEnemies;
 
     internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot)
     {
@@ -55,6 +56,11 @@ public sealed class NativeMctsSimulationSession : IDisposable
         driver = NativeMctsSimulation.CreateDriver(capturedRoot);
         root = driver.NativeMctsCreateRoot();
         current = root;
+        var simulator = (CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator)root.Simulator;
+        rewardEnemies = capturedRoot.Enemies
+            .Select(enemy => (Identity: enemy, State: simulator.State.GetCreature(enemy)))
+            .Where(enemy => enemy.State.IsAlive && enemy.State.MaxHp > 0)
+            .Select(enemy => (enemy.Identity, enemy.State.MaxHp)).ToArray();
         rootDescription = driver.NativeMctsDescribe(root, 0);
         currentDescription = rootDescription;
     }
@@ -148,6 +154,23 @@ public sealed class NativeMctsSimulationSession : IDisposable
     {
         ThrowIfDisposed();
         return currentDescription;
+    }
+
+    /// <summary>Net HP deficit of enemies frozen at capture; later summons cannot farm reward.</summary>
+    public double EnemyDamageFraction
+    {
+        get
+        {
+            ThrowIfDisposed();
+            var simulator = (CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator)current.Simulator;
+            double total = 0, lost = 0;
+            foreach (var enemy in rewardEnemies)
+            {
+                total += enemy.MaxHp;
+                lost += enemy.MaxHp - Math.Clamp(simulator.State.GetCreature(enemy.Identity).CurrentHp, 0, enemy.MaxHp);
+            }
+            return total == 0 ? 0 : Math.Clamp(lost / total, 0, 1);
+        }
     }
 
     public string ContinuationKey

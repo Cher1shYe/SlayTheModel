@@ -47,6 +47,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     private GameAction? _action;
     private IDisposable? _selector;
     private CancellationToken _activeCancellation;
+    private (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] _rewardEnemies = [];
     public int Hp => _player.Creature.CurrentHp;
     public int Round => _state.RoundNumber;
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
@@ -107,7 +108,17 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         foreach (var action in actions) _ = ToLiveSearchAction(action);
     }
 
-    public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
+    public double EnemyDamageFraction
+    {
+        get
+        {
+            var total = _rewardEnemies.Sum(enemy => (double)enemy.MaxHp);
+            var lost = _rewardEnemies.Sum(enemy => (double)enemy.MaxHp - Math.Clamp(enemy.Identity.CurrentHp, 0, enemy.MaxHp));
+            return total == 0 ? 0 : Math.Clamp(lost / total, 0, 1);
+        }
+    }
+    public double EvaluateTerminal() => CombatRolloutReward.Evaluate(Won, Hp <= 0, Hp, EntryHp, EnemyDamageFraction);
+    public double EvaluateCutoff() => EvaluateTerminal();
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
 
@@ -155,6 +166,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
         await SettleAsync(cancellation);
+        _rewardEnemies = _state.Enemies.Where(enemy => enemy.IsAlive && enemy.MaxHp > 0)
+            .Select(enemy => (enemy, enemy.MaxHp)).ToArray();
     }
 
     private async Task DrainActiveActionAsync()

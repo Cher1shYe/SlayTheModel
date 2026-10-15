@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## SlayTheModel Native MCTS 进度评分（2026-10-15）
+
+- 上层 `scripts/native-worker.ps1 -GameDir <游戏目录>` 的 `RewardVerification` 覆盖 `CULTISTS_NORMAL`、`KAISER_CRAB_BOSS`、`QUEEN_BOSS`。同根同 seed 的 300 ms／深度 1 对照检查旧奖励全相同、新奖励可区分动作；实际执行选中动作，核对净缺血比例及完整 continuation key。回放恢复无奖励串扰，根提升不改变分母。
+- 三场均通过；另各做同根同 seed、2 秒／深度 200 的新旧评分观察。两种 Boss 的旧均值全为 -1，新均值能区分路线；同进程短搜仅为机制证据，不声称整场胜率或性能提升。主工程 ReplaySearch smoke 覆盖失败／截断偏好、胜利／生存排序与原有取消、复用合同。
+
 ## SlayTheModel Native MCTS 选牌集成（2026-10-15）
 
 - 从上层仓库运行 `scripts/native-worker.ps1 -GameDir <游戏目录>`。`SLAY_WORKER_HEADBUTT_CHOICE_MATCH` 覆盖 ethereal、enchanted、identical 三种同名副本组合；检查全部候选可映射、第二实例索引、原生结算 continuation key 相等以及无效语义键拒绝。
