@@ -3,10 +3,11 @@ LEGACY = "legacy-zero-index-v1"
 PRIOR = "prior-tie-v1"
 PARENT = "parent-fpu-v1"
 COMBINED = "parent-prior-v1"
+DYNAMIC = "dynamic-key-puct-v1"
 VERSIONS = (LEGACY, PRIOR, PARENT, COMBINED)
 
 
 def validate_search(version):
-    if version not in VERSIONS:
+    if version not in VERSIONS + (DYNAMIC,):
         raise ValueError("Unknown search version")
     return version

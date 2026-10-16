@@ -76,6 +76,9 @@ class TransformerPolicyValueNetwork(nn.Module):
     def __init__(self, config=TIERS['XS']):
         super().__init__()
         self.config = config.validate()
+        self.information_mode = 'observable'
+        self.reward_version = SCHEMA['reward']
+        self.content_version = SCHEMA['content']
         d = config.d_model
         self.op = nn.Embedding(len(OPS), 32)
         self.op_target = nn.Embedding(len(TARGETS), 32)

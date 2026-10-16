@@ -47,6 +47,8 @@ Public objects expose .legal_mask, .key() and .terminal_value(). The generic
 interface makes enumerated chance-tree expectation tests independent of combat.
 """
     validate_search(search_version)
+    if search_version == 'dynamic-key-puct-v1':
+        raise ValueError('Dynamic search requires plan_dynamic, not fixed action search')
     if (type(budget) is not int or budget < 1 or type(max_depth) is not int or max_depth < 1
             or not np.isfinite([c_puct, epsilon, alpha, temperature]).all() or c_puct < 0
             or not 0 <= epsilon <= 1 or alpha <= 0 or temperature not in (0, 1)

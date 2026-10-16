@@ -12,7 +12,7 @@ import torch
 from .adapter import ObservableCombatAdapter
 from .config import ACTION_VERSION, REWARD_VERSION, RULES_VERSION, EpisodeLimits, atomic_json, content_hash, derive_seed
 from .encoder import OBSERVABLE_SCHEMA, encode_information, schema_for
-from .network import load_checkpoint
+from .model_io import load_checkpoint
 from .observable_puct import plan_observable
 from .scenarios import CombatScenario
 from .search_config import LEGACY, validate_search
@@ -61,6 +61,17 @@ def collect_episode(job):
         _models.clear()
         _models[key] = model.requires_grad_(False).eval()
     model = _models[key]
+    if job.search_version == 'dynamic-key-puct-v1':
+        from .transformer_network import TransformerPolicyValueNetwork
+        from .entity_transition import collect_entity_episode
+        if not isinstance(model, TransformerPolicyValueNetwork):
+            raise ValueError('Dynamic collection requires Transformer weights')
+        try:
+            return collect_entity_episode(job, model)
+        except Exception as exc:
+            atomic_json(Path(job.error_dir) / f'{content_hash([job.master_seed, job.iteration, job.job_id])}.json',
+                        dict(error=repr(exc), job_id=job.job_id))
+            raise
     if model.reward_version != job.reward_version or model.content_version != recipe.content_manifest_version:
         raise ValueError("Job/model reward mismatch")
     schema = schema_for("observable", job.reward_version, recipe.content_manifest_version)

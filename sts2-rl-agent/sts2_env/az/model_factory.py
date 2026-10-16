@@ -21,14 +21,19 @@ def model_metadata(model):
     config = asdict(model.config)
     return {'format_version': 'transformer-checkpoint-v1', 'architecture': ARCHITECTURE_VERSION,
             'config': config, 'config_hash': content_hash(config), 'schema': SCHEMA,
+            'information_mode': 'observable', 'reward_version': SCHEMA['reward'], 'content_manifest_version': SCHEMA['content'],
             'schema_hash': SCHEMA_HASH, 'parameter_count': sum(p.numel() for p in model.parameters())}
 
 
-def save_transformer_checkpoint(path, model):
+def save_transformer_checkpoint(path, model, model_version='entity-initial', config=None, statistics=None,
+                                iteration=0, training_state=None):
     if any(not torch.isfinite(t).all() for t in model.state_dict().values()):
         raise ValueError('Nonfinite Transformer weights')
     payload = dict(model_metadata(model), model_state=model.state_dict(), code_digest=code_digest(),
-                   torch_version=str(torch.__version__), resume_scope='weights_only_T1')
+                   torch_version=str(torch.__version__), resume_scope='weights_only',
+                   model_version=model_version, run_config=config or {}, statistics=statistics or {}, iteration=iteration)
+    if training_state is not None:
+        payload.update(training_state=training_state, resume_scope='training_update_boundary')
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=path.name + '.', suffix='.tmp')
@@ -44,6 +49,8 @@ def save_transformer_checkpoint(path, model):
 
 
 def load_transformer_checkpoint(path, expected_tier='XS'):
+    if expected_tier not in TIERS:
+        raise ValueError('Unknown Transformer tier')
     payload = torch.load(path, map_location='cpu', weights_only=True)
     # Check cheap headers before allocating weights; never interpret an MLP as a Transformer.
     if (payload.get('format_version') != 'transformer-checkpoint-v1' or payload.get('schema_hash') != SCHEMA_HASH

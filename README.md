@@ -19,7 +19,7 @@
 |---|---|
 | T0/T1 最小切片 | starter 三种基础卡和 Shrinker 已接入公开实体编码、动态动作头、五档模型及严格 checkpoint；19 项契约测试通过 |
 | T0 全内容审计 | 尚未覆盖 G2.3e 全集；当前网络只开放明确的 starter 白名单 |
-| T2 | 下一步：紧凑 Replay、逐节点动态搜索、训练更新与确定性恢复 |
+| T2 | starter 白名单内已接入紧凑 Replay、逐节点动态搜索、既有协调器与确定性恢复；串并行和中断契约验证通过，详见 T2 报告 |
 | T3 | 待单独授权：S 两轮 smoke，seed 42/43 各三轮验证 |
 | T4/T5 | 组合扩展、复杂选择、Boss 难例、档位比较及独立质量验收尚未完成 |
 
@@ -27,7 +27,7 @@
 
 ## 当前目标与边界
 
-1. 先完成 T2 接口闭环，复用已审计奖励、信息边界和原子工件机制。
+1. T2 starter 接口已闭环；下一步扩大 G2.3e 对齐内容的机制覆盖，并冻结实验配方和资源配置。
 2. 每次扩展明确列出 engine、observation、action、network、belief/search 和 tests 支持状态；未知机制必须拒绝。
 3. 之后再冻结训练/验证/测试配方，评估未见组合与内容 ID 的泛化。未见机制测试只验证拒绝，不混入普通胜率。
 
@@ -44,6 +44,8 @@ cd sts2-rl-agent
 ```
 
 第二条执行参数、公开夹具和合成梯度审计，不启动自对弈。详见 [T0/T1 交付报告](sts2-rl-agent/docs/AZ_TRANSFORMER_T0_T1.md)、[资源原始报告](sts2-rl-agent/docs/transformer_t0_t1_audit.json)、[旧规格](sts2-rl-agent/spec.md) 和 [历史规格](sts2-rl-agent/spec_0.md)。已查看的夹具不能充当未见测试集。
+
+新增 [T2 交付报告](sts2-rl-agent/docs/AZ_TRANSFORMER_T2.md) 与 [T2 资源审计](sts2-rl-agent/docs/transformer_t2_audit.json)。可用 `python -m pytest tests/test_az_transformer_t2.py -q` 检查 Replay、动态搜索和恢复。该测试只运行固定小夹具；本次没有启动 S smoke 或正式训练实验。
 
 ## 快照说明
 

@@ -23,7 +23,17 @@ def episode_digest(episode):
 
 
 class ReplayBuffer:
+    digest = staticmethod(episode_digest)
+
+    def read_episode(self, identity):
+        return json.loads((self.directory / 'episodes' / f'{identity}.json').read_text(encoding='utf-8'))
+
+    def write_episode(self, identity, payload):
+        atomic_json(self.directory / 'episodes' / f'{identity}.json', payload)
+
     def __init__(self, directory, capacity=200_000, information_mode="observable", reward_version=REWARD_VERSION, content_version=CONTENT_VERSION, search_version=LEGACY):
+        if search_version == 'dynamic-key-puct-v1':
+            raise ValueError('Dynamic search labels require EntityReplayBuffer')
         self.search_version = validate_search(search_version)
         if type(capacity) is not int or capacity < 1:
             raise ValueError("Positive replay capacity required")
@@ -46,9 +56,9 @@ class ReplayBuffer:
                 raise ValueError("Replay version/capacity mismatch")
             self.committed = manifest["committed"]
             for episode_id in manifest["active"]:
-                episode = json.loads((self.directory / "episodes" / f"{episode_id}.json").read_text(encoding="utf-8"))
+                episode = self.read_episode(episode_id)
                 self.validate(episode)
-                if episode_digest(episode) != self.committed[episode_id]:
+                if self.digest(episode) != self.committed[episode_id]:
                     raise ValueError("Replay episode checksum mismatch")
                 self.episodes.append(episode)
 
@@ -57,9 +67,9 @@ class ReplayBuffer:
         if self._episodes is None:
             loaded = []
             for identity in self._released_ids:
-                episode = json.loads((self.directory / "episodes" / f"{identity}.json").read_text(encoding="utf-8"))
+                episode = self.read_episode(identity)
                 self.validate(episode)
-                if episode_digest(episode) != self.committed[identity]:
+                if self.digest(episode) != self.committed[identity]:
                     raise ValueError("Replay episode checksum mismatch on reload")
                 loaded.append(episode)
             self._episodes = loaded
@@ -183,7 +193,7 @@ class ReplayBuffer:
         # Debug metadata is persisted separately and never exposed to the learner.
         payload = deepcopy({k: v for k, v in episode.items() if k not in ("debug", "worker_pid")})
         identity = payload["episode_id"]
-        digest = episode_digest(payload)
+        digest = self.digest(payload)
         if identity in self.committed:
             if self.committed[identity] != digest:
                 raise ValueError("Conflicting duplicate episode")
@@ -192,7 +202,7 @@ class ReplayBuffer:
         while sum(len(e["rows"]) for e in active) > self.capacity:
             active.pop(0)
         committed = {**self.committed, identity: digest}
-        atomic_json(self.directory / "episodes" / f"{identity}.json", payload)
+        self.write_episode(identity, payload)
         atomic_json(self.directory / "debug" / f"{identity}.json",
                     dict(metadata=episode.get("debug"), search_seconds=[r["search_seconds"] for r in episode["rows"]]))
         atomic_json(self.directory / "manifest.json", dict(compatibility=self.compatibility, capacity=self.capacity,

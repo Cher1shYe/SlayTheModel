@@ -16,7 +16,8 @@ from .content import DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, G
 from .content import BOSS_CONTENT
 from .evaluation import compare, evaluate_parallel
 from .learner import Learner
-from .network import PolicyValueNetwork, code_digest, load_checkpoint, save_checkpoint
+from .network import PolicyValueNetwork, code_digest
+from .model_io import load_checkpoint, save_checkpoint
 from .replay_buffer import ReplayBuffer
 from .scenarios import load_manifest, balanced_selection, save_manifest
 from .self_play import CollectionJob, Collector, file_digest, initialize_worker
@@ -26,6 +27,8 @@ from .search_config import LEGACY, validate_search
 
 @dataclass(frozen=True)
 class TrainingConfig:
+    model_tier: str = 'mlp'
+    microbatch_size: int = 64
     seed: int = 42
     workers: int = 4
     episodes_per_iteration: int = 256
@@ -48,8 +51,15 @@ class TrainingConfig:
         validate_reward(self.reward_version)
         validate_search(self.search_version)
         validate_content(self.content_version)
-        if any(type(v) is not int or v < 1 for k, v in asdict(self).items() if k not in ("seed", "reward_version", "content_version", "sampling_version", "initial_checkpoint", "search_version")):
+        if any(type(v) is not int or v < 1 for k, v in asdict(self).items() if k not in ("seed", "reward_version", "content_version", "sampling_version", "initial_checkpoint", "search_version", "model_tier")):
             raise ValueError("Positive integer training settings required")
+        from .transformer_network import TIERS
+        from .search_config import DYNAMIC
+        if self.model_tier != 'mlp':
+            if self.model_tier not in TIERS or self.search_version != DYNAMIC or self.content_version != CONTENT_VERSION or self.reward_version != V1:
+                raise ValueError('Transformer requires supported starter content and explicit dynamic search')
+        elif self.search_version == DYNAMIC:
+            raise ValueError('Dynamic search cannot use an MLP')
         if self.sampling_version != "standard":
             from .boss_curriculum import VERSION
             if self.sampling_version not in (VERSION,"boss-search-course-v1") or self.content_version != BOSS_CONTENT or self.episodes_per_iteration != 180:
@@ -76,6 +86,9 @@ def save_training(path, learner, rng, replay, version, config, history, iteratio
 def restore_training(path, replay):
     model, payload = load_checkpoint(path, "observable", replay.compatibility["reward_version"], replay.content_version)
     state = payload["training_state"]
+    if payload.get('format_version') == 'transformer-checkpoint-v1' and (payload['code_digest'] != code_digest()
+            or payload['torch_version'] != str(torch.__version__)):
+        raise ValueError('Transformer resume requires identical implementation/runtime')
     if state["replay_hash"] != file_digest(replay.directory / "manifest.json"):
         raise ValueError("Replay changed since training checkpoint")
     learner = Learner(model)
@@ -150,7 +163,14 @@ class Coordinator:
                 initialization = dict(source=str(source), sha256=file_digest(source),
                                       source_code_digest=metadata.get("code_digest"), optimizer="fresh")
             else:
-                model = PolicyValueNetwork("observable", self.config.reward_version, self.config.content_version)
+                if self.config.model_tier == 'mlp':
+                    model = PolicyValueNetwork("observable", self.config.reward_version, self.config.content_version)
+                else:
+                    from .model_factory import create_transformer
+                    model = create_transformer(self.config.model_tier)
+            actual_tier = getattr(getattr(model, 'config', None), 'tier', 'mlp')
+            if actual_tier != self.config.model_tier:
+                raise ValueError('Initial checkpoint architecture/tier mismatch')
             save_checkpoint(self.root / "initial.pt", model, "initial", asdict(self.config), {"initialization": initialization})
             self.state = dict(format_version=1, information_mode="observable", phase="collect", iteration=0,
                               champion="initial.pt", champion_hash=file_digest(self.root / "initial.pt"),
@@ -177,7 +197,11 @@ class Coordinator:
         if file_digest(self.root / self.state["champion"]) != self.state["champion_hash"]:
             raise ValueError("Champion checkpoint was modified")
         load_checkpoint(self.root / self.state["champion"], "observable", self.config.reward_version, self.config.content_version)
-        self.replay = ReplayBuffer(self.root / "replay", self.config.capacity, reward_version=self.config.reward_version,
+        replay_class = ReplayBuffer
+        if self.config.model_tier != 'mlp':
+            from .entity_replay import EntityReplayBuffer
+            replay_class = EntityReplayBuffer
+        self.replay = replay_class(self.root / "replay", self.config.capacity, reward_version=self.config.reward_version,
                                    content_version=self.config.content_version, search_version=self.config.search_version)
         self.sync_champion()
 
@@ -261,7 +285,7 @@ class Coordinator:
                 history = []
             if learner.updates < c.updates:
                 samples, counts = self.replay.sample(c.batch_size, rng)
-                history.append(dict(learner.update(samples), family_counts=counts))
+                history.append(dict(learner.update(samples, microbatch_size=c.microbatch_size), family_counts=counts))
                 save_training(training_path, learner, rng, self.replay, version, asdict(c), history, iteration)
             if learner.updates == c.updates:
                 save_checkpoint(candidate_path, learner.model, version, asdict(c), dict(history=history), iteration)

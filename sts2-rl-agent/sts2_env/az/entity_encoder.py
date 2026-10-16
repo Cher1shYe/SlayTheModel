@@ -19,7 +19,7 @@ SCHEMA = {'version': 'public-entities-starter-v1', 'action_version': 'dynamic-ac
           'numeric': NUMERIC_FIELDS, 'kinds': KINDS, 'zones': ZONES,
           'max_entities': 13, 'max_actions': 11, 'max_effects': 8,
           'rules': RULES_VERSION, 'content': CONTENT_VERSION, 'reward': REWARD_VERSION,
-          'mechanics': REGISTRY_HASH, 'mode': 'network-only', 'search': 'not-integrated-v1',
+          'mechanics': REGISTRY_HASH, 'mode': 'network-and-search', 'search': 'dynamic-key-puct-v1',
           'split': 'contract-fixtures-only-v1'}
 SCHEMA_HASH = content_hash(SCHEMA)
 
