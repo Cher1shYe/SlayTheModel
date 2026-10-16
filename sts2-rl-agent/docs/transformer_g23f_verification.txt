@@ -1,0 +1,1 @@
+{"sources": 605, "groups": 6, "full_legal_witnesses": 6, "passed": true}

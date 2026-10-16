@@ -1,0 +1,1762 @@
+{
+  "recipe": {
+    "schema_version": "az-scenario-v1",
+    "scenario_id": "boss-search-course-v1-focus-train-42-0-140-transformer-g23e-course-v1",
+    "family_id": "ironclad-block",
+    "split": "train",
+    "character_id": "Ironclad",
+    "ascension": 0,
+    "encounter_id": "setup_test_subject_boss",
+    "deck": [
+      {
+        "card_id": "ARMAMENTS",
+        "upgraded": true,
+        "count": 1
+      },
+      {
+        "card_id": "BODY_SLAM",
+        "upgraded": true,
+        "count": 3
+      },
+      {
+        "card_id": "EQUILIBRIUM",
+        "upgraded": true,
+        "count": 1
+      },
+      {
+        "card_id": "IMPERVIOUS",
+        "upgraded": true,
+        "count": 1
+      },
+      {
+        "card_id": "IRON_WAVE",
+        "upgraded": true,
+        "count": 1
+      },
+      {
+        "card_id": "PURITY",
+        "upgraded": true,
+        "count": 1
+      },
+      {
+        "card_id": "SHRUG_IT_OFF",
+        "upgraded": true,
+        "count": 5
+      }
+    ],
+    "player_hp": 80,
+    "player_max_hp": 80,
+    "relics": [],
+    "potions": [],
+    "environment_seed": 1041236108,
+    "rules_version": "az-combat-v1",
+    "content_manifest_version": "g2-boss-v1"
+  },
+  "actions": [
+    "play:hand/3:player",
+    "play:hand/0:player",
+    "play:hand/1:player",
+    "play:hand/0:enemy/0",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/2:player",
+    "play:hand/2:player",
+    "play:hand/3:player",
+    "choose_set:hand/0,hand/1,hand/2",
+    "end_turn",
+    "play:hand/0:player",
+    "play:hand/4:player",
+    "play:hand/0:player",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/1:player",
+    "play:hand/2:player",
+    "play:hand/2:player",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/0:player",
+    "play:hand/0:player",
+    "play:hand/1:player",
+    "play:hand/0:enemy/0",
+    "play:hand/2:enemy/0",
+    "end_turn",
+    "play:hand/3:player",
+    "play:hand/1:player",
+    "play:hand/1:player",
+    "play:hand/0:enemy/0",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/0:player",
+    "play:hand/0:player",
+    "play:hand/0:player",
+    "play:hand/1:enemy/0",
+    "end_turn",
+    "play:hand/4:player",
+    "play:hand/1:player",
+    "play:hand/1:player",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/2:player",
+    "play:hand/2:player",
+    "play:hand/3:player",
+    "play:hand/1:enemy/0",
+    "end_turn",
+    "play:hand/1:player",
+    "play:hand/2:player",
+    "play:hand/2:player",
+    "play:hand/1:enemy/0",
+    "play:hand/3:enemy/0",
+    "end_turn",
+    "play:hand/2:player",
+    "play:hand/0:player",
+    "play:hand/1:player",
+    "end_turn",
+    "play:hand/1:player",
+    "play:hand/2:player",
+    "play:hand/3:player",
+    "play:hand/0:enemy/0",
+    "play:hand/0:enemy/0",
+    "end_turn",
+    "play:hand/2:player",
+    "play:hand/2:player",
+    "play:hand/3:player",
+    "play:hand/3:enemy/0",
+    "end_turn",
+    "play:hand/0:player",
+    "play:hand/1:player",
+    "play:hand/4:player",
+    "play:hand/2:enemy/0",
+    "end_turn"
+  ],
+  "boundaries": [
+    {
+      "step": 0,
+      "public": {
+        "player_hp": 80,
+        "player_max_hp": 80,
+        "player_block": 0,
+        "energy": 3,
+        "max_energy": 3,
+        "turn": 1,
+        "hand": [
+          "SHRUG_IT_OFF+",
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "ARMAMENTS+",
+          "BODY_SLAM+"
+        ],
+        "draw_composition": [
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "discard": [],
+        "exhaust": [],
+        "shrink": 0,
+        "enemy_hp": 100,
+        "enemy_max_hp": 100,
+        "enemy_block": 0,
+        "vulnerable": 0,
+        "intent": [
+          "ATTACK",
+          20,
+          1
+        ],
+        "history": {
+          "boss_events": [],
+          "decisions": 0,
+          "enemy_moves": [],
+          "roster_moves": [],
+          "pending_target": null,
+          "played_this_turn": [],
+          "removed_powers": [],
+          "generated": [],
+          "upgraded": [],
+          "known_top": [],
+          "payments": [],
+          "retain_turns": 0,
+          "transformed": [],
+          "known_bottom": []
+        },
+        "limits": {
+          "max_decisions": 400,
+          "max_turns": 100
+        },
+        "termination_reason": null,
+        "known_top": [],
+        "known_bottom": [],
+        "information_version": "boss-information-v1",
+        "rules_version": "az-combat-v1",
+        "content_version": "g2-boss-v1",
+        "initial_hp": 80,
+        "reward_version": "risk-terminal-v7",
+        "monster_id": "TEST_SUBJECT",
+        "enemy_strength": 0,
+        "known_deck": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "player_strength": 0,
+        "enemy_initial_hp": 100,
+        "enemy_slow": 0,
+        "enemy_territorial": 0,
+        "enemy_artifact": 0,
+        "player_vulnerable": 0,
+        "hand_states": [
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "BODY_SLAM+",
+            "cost": 0,
+            "original_cost": 0,
+            "base_damage": 0,
+            "base_block": null,
+            "effect_vars": [
+              [
+                "calc_base",
+                0
+              ],
+              [
+                "extra_damage",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "ARMAMENTS+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 5,
+            "effect_vars": [],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "BODY_SLAM+",
+            "cost": 0,
+            "original_cost": 0,
+            "base_damage": 0,
+            "base_block": null,
+            "effect_vars": [
+              [
+                "calc_base",
+                0
+              ],
+              [
+                "extra_damage",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          }
+        ],
+        "pending_card": null,
+        "choice": null,
+        "retain_hand": 0,
+        "enemies": [
+          {
+            "slot": 0,
+            "monster_id": "TEST_SUBJECT",
+            "initial_hp": 100,
+            "hp": 100,
+            "max_hp": 100,
+            "block": 0,
+            "vulnerable": 0,
+            "strength": 0,
+            "slow": 0,
+            "territorial": 0,
+            "artifact": 0,
+            "illusion": 0,
+            "minion": 0,
+            "primary": true,
+            "spawned": false,
+            "reviving": false,
+            "intent": [
+              "ATTACK",
+              20,
+              1
+            ],
+            "moves": []
+          }
+        ],
+        "boss": {
+          "phase": {
+            "hp": 100,
+            "events": [],
+            "version": "test-subject-phase-foundation-v1"
+          },
+          "block": 0,
+          "powers": [
+            [
+              "ADAPTABLE",
+              1
+            ],
+            [
+              "ENRAGE",
+              2
+            ]
+          ],
+          "version": "test-subject-public-enemy-v1"
+        },
+        "legal_actions": [
+          0,
+          1,
+          3,
+          4,
+          16,
+          31
+        ]
+      }
+    },
+    {
+      "step": 20,
+      "public": {
+        "player_hp": 50,
+        "player_max_hp": 80,
+        "player_block": 27,
+        "energy": 0,
+        "max_energy": 3,
+        "turn": 4,
+        "hand": [
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "draw_composition": [
+          "SHRUG_IT_OFF+"
+        ],
+        "discard": [
+          "ARMAMENTS+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "BODY_SLAM+"
+        ],
+        "exhaust": [
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+"
+        ],
+        "shrink": 0,
+        "enemy_hp": 0,
+        "enemy_max_hp": 100,
+        "enemy_block": 0,
+        "vulnerable": 0,
+        "intent": [
+          "HEAL",
+          0,
+          1
+        ],
+        "history": {
+          "boss_events": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "public-knockout"
+          ],
+          "decisions": 20,
+          "enemy_moves": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE"
+          ],
+          "roster_moves": [
+            [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE"
+            ]
+          ],
+          "pending_target": null,
+          "played_this_turn": [
+            "ARMAMENTS+",
+            "SHRUG_IT_OFF+",
+            "SHRUG_IT_OFF+",
+            "BODY_SLAM+"
+          ],
+          "removed_powers": [],
+          "generated": [],
+          "upgraded": [],
+          "known_top": [],
+          "payments": [
+            {
+              "token": "ARMAMENTS+",
+              "energy": 1
+            },
+            {
+              "token": "SHRUG_IT_OFF+",
+              "energy": 1
+            },
+            {
+              "token": "SHRUG_IT_OFF+",
+              "energy": 1
+            },
+            {
+              "token": "BODY_SLAM+",
+              "energy": 0
+            }
+          ],
+          "retain_turns": 0,
+          "transformed": [],
+          "known_bottom": []
+        },
+        "limits": {
+          "max_decisions": 400,
+          "max_turns": 100
+        },
+        "termination_reason": null,
+        "known_top": [],
+        "known_bottom": [],
+        "information_version": "boss-information-v1",
+        "rules_version": "az-combat-v1",
+        "content_version": "g2-boss-v1",
+        "initial_hp": 80,
+        "reward_version": "risk-terminal-v7",
+        "monster_id": "TEST_SUBJECT",
+        "enemy_strength": 0,
+        "known_deck": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "player_strength": 0,
+        "enemy_initial_hp": 100,
+        "enemy_slow": 0,
+        "enemy_territorial": 0,
+        "enemy_artifact": 0,
+        "player_vulnerable": 0,
+        "hand_states": [
+          {
+            "token": "BODY_SLAM+",
+            "cost": 0,
+            "original_cost": 0,
+            "base_damage": 0,
+            "base_block": null,
+            "effect_vars": [
+              [
+                "calc_base",
+                0
+              ],
+              [
+                "extra_damage",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          }
+        ],
+        "pending_card": null,
+        "choice": null,
+        "retain_hand": 0,
+        "enemies": [
+          {
+            "slot": 0,
+            "monster_id": "TEST_SUBJECT",
+            "initial_hp": 100,
+            "hp": 0,
+            "max_hp": 100,
+            "block": 0,
+            "vulnerable": 0,
+            "strength": 0,
+            "slow": 0,
+            "territorial": 0,
+            "artifact": 0,
+            "illusion": 0,
+            "minion": 0,
+            "primary": true,
+            "spawned": false,
+            "reviving": true,
+            "intent": [
+              "HEAL",
+              0,
+              1
+            ],
+            "moves": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE"
+            ]
+          }
+        ],
+        "boss": {
+          "phase": {
+            "hp": 0,
+            "events": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "public-knockout"
+            ],
+            "version": "test-subject-phase-foundation-v1"
+          },
+          "block": 0,
+          "powers": [
+            [
+              "ADAPTABLE",
+              1
+            ]
+          ],
+          "version": "test-subject-public-enemy-v1"
+        },
+        "legal_actions": [
+          0
+        ]
+      }
+    },
+    {
+      "step": 21,
+      "public": {
+        "player_hp": 50,
+        "player_max_hp": 80,
+        "player_block": 0,
+        "energy": 3,
+        "max_energy": 3,
+        "turn": 5,
+        "hand": [
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "draw_composition": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+"
+        ],
+        "discard": [],
+        "exhaust": [
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+"
+        ],
+        "shrink": 0,
+        "enemy_hp": 200,
+        "enemy_max_hp": 200,
+        "enemy_block": 0,
+        "vulnerable": 0,
+        "intent": [
+          "MULTI_ATTACK",
+          10,
+          3
+        ],
+        "history": {
+          "boss_events": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "public-knockout",
+            "RESPAWN_MOVE"
+          ],
+          "decisions": 21,
+          "enemy_moves": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "RESPAWN_MOVE"
+          ],
+          "roster_moves": [
+            [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE"
+            ]
+          ],
+          "pending_target": null,
+          "played_this_turn": [],
+          "removed_powers": [],
+          "generated": [],
+          "upgraded": [],
+          "known_top": [],
+          "payments": [],
+          "retain_turns": 0,
+          "transformed": [],
+          "known_bottom": []
+        },
+        "limits": {
+          "max_decisions": 400,
+          "max_turns": 100
+        },
+        "termination_reason": null,
+        "known_top": [],
+        "known_bottom": [],
+        "information_version": "boss-information-v1",
+        "rules_version": "az-combat-v1",
+        "content_version": "g2-boss-v1",
+        "initial_hp": 80,
+        "reward_version": "risk-terminal-v7",
+        "monster_id": "TEST_SUBJECT",
+        "enemy_strength": 0,
+        "known_deck": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "player_strength": 0,
+        "enemy_initial_hp": 100,
+        "enemy_slow": 0,
+        "enemy_territorial": 0,
+        "enemy_artifact": 0,
+        "player_vulnerable": 0,
+        "hand_states": [
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "BODY_SLAM+",
+            "cost": 0,
+            "original_cost": 0,
+            "base_damage": 0,
+            "base_block": null,
+            "effect_vars": [
+              [
+                "calc_base",
+                0
+              ],
+              [
+                "extra_damage",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          }
+        ],
+        "pending_card": null,
+        "choice": null,
+        "retain_hand": 0,
+        "enemies": [
+          {
+            "slot": 0,
+            "monster_id": "TEST_SUBJECT",
+            "initial_hp": 100,
+            "hp": 200,
+            "max_hp": 200,
+            "block": 0,
+            "vulnerable": 0,
+            "strength": 0,
+            "slow": 0,
+            "territorial": 0,
+            "artifact": 0,
+            "illusion": 0,
+            "minion": 0,
+            "primary": true,
+            "spawned": false,
+            "reviving": false,
+            "intent": [
+              "MULTI_ATTACK",
+              10,
+              3
+            ],
+            "moves": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE"
+            ]
+          }
+        ],
+        "boss": {
+          "phase": {
+            "hp": 200,
+            "events": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "public-knockout",
+              "RESPAWN_MOVE"
+            ],
+            "version": "test-subject-phase-foundation-v1"
+          },
+          "block": 0,
+          "powers": [
+            [
+              "ADAPTABLE",
+              1
+            ],
+            [
+              "PAINFUL_STABS",
+              1
+            ]
+          ],
+          "version": "test-subject-public-enemy-v1"
+        },
+        "legal_actions": [
+          0,
+          1,
+          2,
+          4,
+          5,
+          21
+        ]
+      }
+    },
+    {
+      "step": 47,
+      "public": {
+        "player_hp": 37,
+        "player_max_hp": 80,
+        "player_block": 33,
+        "energy": 0,
+        "max_energy": 3,
+        "turn": 9,
+        "hand": [
+          "WOUND",
+          "WOUND",
+          "SHRUG_IT_OFF+",
+          "ARMAMENTS+"
+        ],
+        "draw_composition": [
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "WOUND"
+        ],
+        "discard": [
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "BODY_SLAM+"
+        ],
+        "exhaust": [
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+"
+        ],
+        "shrink": 0,
+        "enemy_hp": 0,
+        "enemy_max_hp": 200,
+        "enemy_block": 0,
+        "vulnerable": 0,
+        "intent": [
+          "HEAL",
+          0,
+          1
+        ],
+        "history": {
+          "boss_events": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "public-knockout",
+            "RESPAWN_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "public-knockout"
+          ],
+          "decisions": 47,
+          "enemy_moves": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "RESPAWN_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE"
+          ],
+          "roster_moves": [
+            [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE"
+            ]
+          ],
+          "pending_target": null,
+          "played_this_turn": [
+            "SHRUG_IT_OFF+",
+            "SHRUG_IT_OFF+",
+            "SHRUG_IT_OFF+",
+            "BODY_SLAM+"
+          ],
+          "removed_powers": [],
+          "generated": [
+            {
+              "decision": 33,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            },
+            {
+              "decision": 38,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            },
+            {
+              "decision": 43,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            }
+          ],
+          "upgraded": [],
+          "known_top": [],
+          "payments": [
+            {
+              "token": "SHRUG_IT_OFF+",
+              "energy": 1
+            },
+            {
+              "token": "SHRUG_IT_OFF+",
+              "energy": 1
+            },
+            {
+              "token": "SHRUG_IT_OFF+",
+              "energy": 1
+            },
+            {
+              "token": "BODY_SLAM+",
+              "energy": 0
+            }
+          ],
+          "retain_turns": 0,
+          "transformed": [],
+          "known_bottom": []
+        },
+        "limits": {
+          "max_decisions": 400,
+          "max_turns": 100
+        },
+        "termination_reason": null,
+        "known_top": [],
+        "known_bottom": [],
+        "information_version": "boss-information-v1",
+        "rules_version": "az-combat-v1",
+        "content_version": "g2-boss-v1",
+        "initial_hp": 80,
+        "reward_version": "risk-terminal-v7",
+        "monster_id": "TEST_SUBJECT",
+        "enemy_strength": 0,
+        "known_deck": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "player_strength": 0,
+        "enemy_initial_hp": 100,
+        "enemy_slow": 0,
+        "enemy_territorial": 0,
+        "enemy_artifact": 0,
+        "player_vulnerable": 0,
+        "hand_states": [
+          {
+            "token": "WOUND",
+            "cost": -1,
+            "original_cost": -1,
+            "base_damage": null,
+            "base_block": null,
+            "effect_vars": [],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "WOUND",
+            "cost": -1,
+            "original_cost": -1,
+            "base_damage": null,
+            "base_block": null,
+            "effect_vars": [],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "ARMAMENTS+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 5,
+            "effect_vars": [],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          }
+        ],
+        "pending_card": null,
+        "choice": null,
+        "retain_hand": 0,
+        "enemies": [
+          {
+            "slot": 0,
+            "monster_id": "TEST_SUBJECT",
+            "initial_hp": 100,
+            "hp": 0,
+            "max_hp": 200,
+            "block": 0,
+            "vulnerable": 0,
+            "strength": 0,
+            "slow": 0,
+            "territorial": 0,
+            "artifact": 0,
+            "illusion": 0,
+            "minion": 0,
+            "primary": true,
+            "spawned": false,
+            "reviving": true,
+            "intent": [
+              "HEAL",
+              0,
+              1
+            ],
+            "moves": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE"
+            ]
+          }
+        ],
+        "boss": {
+          "phase": {
+            "hp": 0,
+            "events": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "public-knockout",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "public-knockout"
+            ],
+            "version": "test-subject-phase-foundation-v1"
+          },
+          "block": 0,
+          "powers": [
+            [
+              "ADAPTABLE",
+              1
+            ],
+            [
+              "PAINFUL_STABS",
+              1
+            ]
+          ],
+          "version": "test-subject-public-enemy-v1"
+        },
+        "legal_actions": [
+          0
+        ]
+      }
+    },
+    {
+      "step": 48,
+      "public": {
+        "player_hp": 37,
+        "player_max_hp": 80,
+        "player_block": 0,
+        "energy": 3,
+        "max_energy": 3,
+        "turn": 10,
+        "hand": [
+          "WOUND",
+          "SHRUG_IT_OFF+",
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "draw_composition": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "WOUND",
+          "WOUND"
+        ],
+        "discard": [],
+        "exhaust": [
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+"
+        ],
+        "shrink": 0,
+        "enemy_hp": 300,
+        "enemy_max_hp": 300,
+        "enemy_block": 0,
+        "vulnerable": 0,
+        "intent": [
+          "MULTI_ATTACK",
+          10,
+          3
+        ],
+        "history": {
+          "boss_events": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "public-knockout",
+            "RESPAWN_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "public-knockout",
+            "RESPAWN_MOVE"
+          ],
+          "decisions": 48,
+          "enemy_moves": [
+            "BITE_MOVE",
+            "SKULL_BASH_MOVE",
+            "BITE_MOVE",
+            "RESPAWN_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "MULTI_CLAW_MOVE",
+            "POUNCE_MOVE",
+            "RESPAWN_MOVE"
+          ],
+          "roster_moves": [
+            [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "RESPAWN_MOVE"
+            ]
+          ],
+          "pending_target": null,
+          "played_this_turn": [],
+          "removed_powers": [],
+          "generated": [
+            {
+              "decision": 33,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            },
+            {
+              "decision": 38,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            },
+            {
+              "decision": 43,
+              "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+              "result_token": "WOUND",
+              "destination": "discard",
+              "mechanism": "boss-wound-v1",
+              "count": 1
+            }
+          ],
+          "upgraded": [],
+          "known_top": [],
+          "payments": [],
+          "retain_turns": 0,
+          "transformed": [],
+          "known_bottom": []
+        },
+        "limits": {
+          "max_decisions": 400,
+          "max_turns": 100
+        },
+        "termination_reason": null,
+        "known_top": [],
+        "known_bottom": [],
+        "information_version": "boss-information-v1",
+        "rules_version": "az-combat-v1",
+        "content_version": "g2-boss-v1",
+        "initial_hp": 80,
+        "reward_version": "risk-terminal-v7",
+        "monster_id": "TEST_SUBJECT",
+        "enemy_strength": 0,
+        "known_deck": [
+          "ARMAMENTS+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "BODY_SLAM+",
+          "EQUILIBRIUM+",
+          "IMPERVIOUS+",
+          "IRON_WAVE+",
+          "PURITY+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+",
+          "SHRUG_IT_OFF+"
+        ],
+        "player_strength": 0,
+        "enemy_initial_hp": 100,
+        "enemy_slow": 0,
+        "enemy_territorial": 0,
+        "enemy_artifact": 0,
+        "player_vulnerable": 0,
+        "hand_states": [
+          {
+            "token": "WOUND",
+            "cost": -1,
+            "original_cost": -1,
+            "base_damage": null,
+            "base_block": null,
+            "effect_vars": [],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "BODY_SLAM+",
+            "cost": 0,
+            "original_cost": 0,
+            "base_damage": 0,
+            "base_block": null,
+            "effect_vars": [
+              [
+                "calc_base",
+                0
+              ],
+              [
+                "extra_damage",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          },
+          {
+            "token": "SHRUG_IT_OFF+",
+            "cost": 1,
+            "original_cost": 1,
+            "base_damage": null,
+            "base_block": 11,
+            "effect_vars": [
+              [
+                "cards",
+                1
+              ]
+            ],
+            "turn_cost": null,
+            "single_turn_retain": false,
+            "version": "az-public-card-state-v1"
+          }
+        ],
+        "pending_card": null,
+        "choice": null,
+        "retain_hand": 0,
+        "enemies": [
+          {
+            "slot": 0,
+            "monster_id": "TEST_SUBJECT",
+            "initial_hp": 100,
+            "hp": 300,
+            "max_hp": 300,
+            "block": 0,
+            "vulnerable": 0,
+            "strength": 0,
+            "slow": 0,
+            "territorial": 0,
+            "artifact": 0,
+            "illusion": 0,
+            "minion": 0,
+            "primary": true,
+            "spawned": false,
+            "reviving": false,
+            "intent": [
+              "MULTI_ATTACK",
+              10,
+              3
+            ],
+            "moves": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "RESPAWN_MOVE"
+            ]
+          }
+        ],
+        "boss": {
+          "phase": {
+            "hp": 300,
+            "events": [
+              "BITE_MOVE",
+              "SKULL_BASH_MOVE",
+              "BITE_MOVE",
+              "public-knockout",
+              "RESPAWN_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "MULTI_CLAW_MOVE",
+              "POUNCE_MOVE",
+              "public-knockout",
+              "RESPAWN_MOVE"
+            ],
+            "version": "test-subject-phase-foundation-v1"
+          },
+          "block": 0,
+          "powers": [
+            [
+              "INTANGIBLE",
+              1
+            ],
+            [
+              "NEMESIS",
+              1
+            ]
+          ],
+          "version": "test-subject-public-enemy-v1"
+        },
+        "legal_actions": [
+          0,
+          2,
+          4,
+          5,
+          21
+        ]
+      }
+    }
+  ],
+  "final_public": {
+    "player_hp": 0,
+    "player_max_hp": 80,
+    "player_block": 0,
+    "energy": 0,
+    "max_energy": 3,
+    "turn": 14,
+    "hand": [],
+    "draw_composition": [
+      "ARMAMENTS+",
+      "BODY_SLAM+",
+      "BURN",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "WOUND"
+    ],
+    "discard": [
+      "SHRUG_IT_OFF+",
+      "BODY_SLAM+",
+      "BURN",
+      "BURN",
+      "WOUND",
+      "WOUND"
+    ],
+    "exhaust": [
+      "BODY_SLAM+",
+      "EQUILIBRIUM+",
+      "IMPERVIOUS+",
+      "IRON_WAVE+",
+      "PURITY+"
+    ],
+    "shrink": 0,
+    "enemy_hp": 268,
+    "enemy_max_hp": 300,
+    "enemy_block": 0,
+    "vulnerable": 0,
+    "intent": [
+      "ATTACK",
+      45,
+      1
+    ],
+    "history": {
+      "boss_events": [
+        "BITE_MOVE",
+        "SKULL_BASH_MOVE",
+        "BITE_MOVE",
+        "public-knockout",
+        "RESPAWN_MOVE",
+        "MULTI_CLAW_MOVE",
+        "POUNCE_MOVE",
+        "MULTI_CLAW_MOVE",
+        "POUNCE_MOVE",
+        "public-knockout",
+        "RESPAWN_MOVE",
+        "PHASE3_LACERATE_MOVE",
+        "BIG_POUNCE_MOVE",
+        "BURNING_GROWL_MOVE",
+        "PHASE3_LACERATE_MOVE"
+      ],
+      "decisions": 74,
+      "enemy_moves": [
+        "BITE_MOVE",
+        "SKULL_BASH_MOVE",
+        "BITE_MOVE",
+        "RESPAWN_MOVE",
+        "MULTI_CLAW_MOVE",
+        "POUNCE_MOVE",
+        "MULTI_CLAW_MOVE",
+        "POUNCE_MOVE",
+        "RESPAWN_MOVE",
+        "PHASE3_LACERATE_MOVE",
+        "BIG_POUNCE_MOVE",
+        "BURNING_GROWL_MOVE",
+        "PHASE3_LACERATE_MOVE"
+      ],
+      "roster_moves": [
+        [
+          "BITE_MOVE",
+          "SKULL_BASH_MOVE",
+          "BITE_MOVE",
+          "RESPAWN_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "RESPAWN_MOVE",
+          "PHASE3_LACERATE_MOVE",
+          "BIG_POUNCE_MOVE",
+          "BURNING_GROWL_MOVE",
+          "PHASE3_LACERATE_MOVE"
+        ]
+      ],
+      "pending_target": null,
+      "played_this_turn": [],
+      "removed_powers": [],
+      "generated": [
+        {
+          "decision": 33,
+          "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+          "result_token": "WOUND",
+          "destination": "discard",
+          "mechanism": "boss-wound-v1",
+          "count": 1
+        },
+        {
+          "decision": 38,
+          "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+          "result_token": "WOUND",
+          "destination": "discard",
+          "mechanism": "boss-wound-v1",
+          "count": 1
+        },
+        {
+          "decision": 43,
+          "source_token": "TEST_SUBJECT.PAINFUL_STABS",
+          "result_token": "WOUND",
+          "destination": "discard",
+          "mechanism": "boss-wound-v1",
+          "count": 1
+        },
+        {
+          "decision": 64,
+          "source_token": "TEST_SUBJECT.BURNING_GROWL",
+          "result_token": "BURN",
+          "destination": "discard",
+          "mechanism": "boss-burn-v1",
+          "count": 3
+        }
+      ],
+      "upgraded": [],
+      "known_top": [],
+      "payments": [],
+      "retain_turns": 0,
+      "transformed": [],
+      "known_bottom": []
+    },
+    "limits": {
+      "max_decisions": 400,
+      "max_turns": 100
+    },
+    "termination_reason": "death",
+    "known_top": [],
+    "known_bottom": [],
+    "information_version": "boss-information-v1",
+    "rules_version": "az-combat-v1",
+    "content_version": "g2-boss-v1",
+    "initial_hp": 80,
+    "reward_version": "risk-terminal-v7",
+    "monster_id": "TEST_SUBJECT",
+    "enemy_strength": 2,
+    "known_deck": [
+      "ARMAMENTS+",
+      "BODY_SLAM+",
+      "BODY_SLAM+",
+      "BODY_SLAM+",
+      "EQUILIBRIUM+",
+      "IMPERVIOUS+",
+      "IRON_WAVE+",
+      "PURITY+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+",
+      "SHRUG_IT_OFF+"
+    ],
+    "player_strength": 0,
+    "enemy_initial_hp": 100,
+    "enemy_slow": 0,
+    "enemy_territorial": 0,
+    "enemy_artifact": 0,
+    "player_vulnerable": 0,
+    "hand_states": [],
+    "pending_card": null,
+    "choice": null,
+    "retain_hand": 0,
+    "enemies": [
+      {
+        "slot": 0,
+        "monster_id": "TEST_SUBJECT",
+        "initial_hp": 100,
+        "hp": 268,
+        "max_hp": 300,
+        "block": 0,
+        "vulnerable": 0,
+        "strength": 2,
+        "slow": 0,
+        "territorial": 0,
+        "artifact": 0,
+        "illusion": 0,
+        "minion": 0,
+        "primary": true,
+        "spawned": false,
+        "reviving": false,
+        "intent": [
+          "ATTACK",
+          45,
+          1
+        ],
+        "moves": [
+          "BITE_MOVE",
+          "SKULL_BASH_MOVE",
+          "BITE_MOVE",
+          "RESPAWN_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "RESPAWN_MOVE",
+          "PHASE3_LACERATE_MOVE",
+          "BIG_POUNCE_MOVE",
+          "BURNING_GROWL_MOVE",
+          "PHASE3_LACERATE_MOVE"
+        ]
+      }
+    ],
+    "boss": {
+      "phase": {
+        "hp": 268,
+        "events": [
+          "BITE_MOVE",
+          "SKULL_BASH_MOVE",
+          "BITE_MOVE",
+          "public-knockout",
+          "RESPAWN_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "MULTI_CLAW_MOVE",
+          "POUNCE_MOVE",
+          "public-knockout",
+          "RESPAWN_MOVE",
+          "PHASE3_LACERATE_MOVE",
+          "BIG_POUNCE_MOVE",
+          "BURNING_GROWL_MOVE",
+          "PHASE3_LACERATE_MOVE"
+        ],
+        "version": "test-subject-phase-foundation-v1"
+      },
+      "block": 0,
+      "powers": [
+        [
+          "INTANGIBLE",
+          1
+        ],
+        [
+          "NEMESIS",
+          1
+        ],
+        [
+          "STRENGTH",
+          2
+        ]
+      ],
+      "version": "test-subject-public-enemy-v1"
+    },
+    "legal_actions": []
+  },
+  "outcome": {
+    "reward": -1.0,
+    "done": true,
+    "termination_reason": "death",
+    "final_hp": 0,
+    "turns": 14,
+    "decisions": 74,
+    "initial_hp": 80,
+    "enemy_final_hp": 268,
+    "enemy_max_hp": 600,
+    "enemy_initial_hp": 600,
+    "enemy_roster": [
+      {
+        "boss_phase": {
+          "version": "test-subject-phase-foundation-v1",
+          "hp": 268,
+          "events": [
+            "public-knockout",
+            "RESPAWN_MOVE",
+            "public-knockout",
+            "RESPAWN_MOVE"
+          ]
+        }
+      }
+    ],
+    "player_max_hp": 80,
+    "incoming_risk": 0.0
+  }
+}

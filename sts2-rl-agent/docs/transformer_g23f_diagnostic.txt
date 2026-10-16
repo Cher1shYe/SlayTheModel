@@ -1,0 +1,105 @@
+{
+  "42": {
+    "summary": {
+      "scenario_id": "boss-search-course-v1-focus-train-42-0-140-transformer-g23e-course-v1",
+      "split": "train",
+      "deck_signature": "9cdfa66bbf7f8b378475862eb2103c82b4f2d80fb5f1fb4dc25bb002ec6cb920",
+      "initial_hp": 80,
+      "decisions": 74,
+      "actions": {
+        "play": 59,
+        "end_turn": 14,
+        "choose_set": 1
+      },
+      "end_with_playable": 0,
+      "only_end_turn": false,
+      "phase_decisions": {
+        "0": 21,
+        "1": 27,
+        "2": 26
+      },
+      "max_phase": 2,
+      "burn_hand_decisions": 10,
+      "wound_hand_decisions": 36,
+      "damage_progress": 0.5533333333333333,
+      "outcome": {
+        "reward": -1.0,
+        "done": true,
+        "termination_reason": "death",
+        "final_hp": 0,
+        "turns": 14,
+        "decisions": 74,
+        "initial_hp": 80,
+        "enemy_final_hp": 268,
+        "enemy_max_hp": 600,
+        "enemy_initial_hp": 600,
+        "enemy_roster": [
+          {
+            "boss_phase": {
+              "version": "test-subject-phase-foundation-v1",
+              "hp": 268,
+              "events": [
+                "public-knockout",
+                "RESPAWN_MOVE",
+                "public-knockout",
+                "RESPAWN_MOVE"
+              ]
+            }
+          }
+        ],
+        "player_max_hp": 80,
+        "incoming_risk": 0.0
+      }
+    },
+    "first_action_difference": 0,
+    "zero_block_body_slam": 0
+  },
+  "43": {
+    "summary": {
+      "scenario_id": "boss-search-course-v1-focus-train-42-0-140-transformer-g23e-course-v1",
+      "split": "train",
+      "deck_signature": "9cdfa66bbf7f8b378475862eb2103c82b4f2d80fb5f1fb4dc25bb002ec6cb920",
+      "initial_hp": 80,
+      "decisions": 30,
+      "actions": {
+        "play": 24,
+        "end_turn": 5,
+        "choose_set": 1
+      },
+      "end_with_playable": 0,
+      "only_end_turn": false,
+      "phase_decisions": {
+        "0": 30
+      },
+      "max_phase": 0,
+      "burn_hand_decisions": 0,
+      "wound_hand_decisions": 0,
+      "damage_progress": 0.09166666666666667,
+      "outcome": {
+        "reward": -1.0,
+        "done": true,
+        "termination_reason": "death",
+        "final_hp": 0,
+        "turns": 5,
+        "decisions": 30,
+        "initial_hp": 80,
+        "enemy_final_hp": 545,
+        "enemy_max_hp": 600,
+        "enemy_initial_hp": 600,
+        "enemy_roster": [
+          {
+            "boss_phase": {
+              "version": "test-subject-phase-foundation-v1",
+              "hp": 45,
+              "events": []
+            }
+          }
+        ],
+        "player_max_hp": 80,
+        "incoming_risk": 0.0
+      }
+    },
+    "first_action_difference": 0,
+    "zero_block_body_slam": 7
+  }
+}
