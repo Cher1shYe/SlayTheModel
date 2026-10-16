@@ -9,7 +9,8 @@ public sealed record CombatSolverMctsAction(NativeMctsAction Native)
 public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSolverMctsAction>, IDisposable
 {
     private NativeMctsSimulationSession? session;
-    private int entryHp;
+    private int rootPlayerHp;
+    private int rolloutStartHp;
     private NativeMctsState state = null!;
     private string rootKey = "";
     private string rootActions = "";
@@ -22,7 +23,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     public void Capture(Func<NativeMctsSimulationSession> createSession, int capturedEntryHp)
     {
         session?.Dispose();
-        entryHp = capturedEntryHp;
+        rootPlayerHp = rolloutStartHp = capturedEntryHp;
         session = createSession();
         state = session.RestoreRoot();
         rootKey = state.Key;
@@ -32,6 +33,10 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
 
     public string RootKey => rootKey;
     public bool Terminal => state.Terminal;
+    public bool CanEvaluate => !state.PendingChoice;
+    public void SetRootPlayerHp(int hp) => rootPlayerHp = hp;
+    public void BeginRollout() => rolloutStartHp = state.PendingChoice ? rootPlayerHp : state.PlayerHp;
+    public string RewardContextKey => rolloutStartHp.ToString(System.Globalization.CultureInfo.InvariantCulture);
     public long Transitions => transitions;
     public string CurrentContinuationKey
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
@@ -123,7 +128,8 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
 
     public double EnemyDamageFraction => (session ?? throw new InvalidOperationException("No captured root.")).EnemyDamageFraction;
     public double EvaluateTerminal()
-        => CombatRolloutReward.Evaluate(state.Won, state.PlayerHp <= 0, state.PlayerHp, entryHp, EnemyDamageFraction);
+        => CombatRolloutReward.Evaluate(state.Won, state.PlayerHp <= 0, state.PlayerHp, state.PlayerMaxHp,
+            rolloutStartHp, EnemyDamageFraction, state.IncomingDamage);
     public double EvaluateCutoff() => EvaluateTerminal();
 
     public CombatSolverMctsAction RolloutAction(

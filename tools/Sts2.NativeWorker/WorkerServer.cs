@@ -113,6 +113,7 @@ public static class WorkerServer
                     returnedActions.Clear();
                 }
                 session.ValidateSimulationActions(simulation.LegalActions());
+                simulation.SetRootPlayerHp(session.Hp);
 
                 var budget = TimeSpan.FromMilliseconds(request.BudgetMilliseconds);
                 long transitionsBefore = simulation.Transitions;

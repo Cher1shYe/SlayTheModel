@@ -46,7 +46,7 @@ internal sealed partial class CombatBeamSolver
             snapshot.PlayerHp,
             incomingDamage,
             false,
-            actions);
+            actions, snapshot.PlayerMaxHp);
     }
 
     internal NativeMctsExpansion NativeMctsExpand(

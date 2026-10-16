@@ -37,33 +37,39 @@ try
 catch (TimeoutException) { }
 foreach (var dead in new[] { false, true })
 {
-    var progress = new ProgressToy(dead);
-    var result = await new ReplayMcts<int>(progress).SearchAsync([], "root", budget, budget, maxDepth: 1);
-    if (result.Action != 1 || result.Statistics.Single(stat => stat.Action == 1).MeanValue
-        <= result.Statistics.Single(stat => stat.Action == 0).MeanValue)
-        throw new Exception("Enemy damage must distinguish both failed and depth-limited rollouts.");
+    var result = await new ReplayMcts<int>(new ProgressToy(dead)).SearchAsync([], "root", budget, budget, maxDepth: 1);
+    if (dead && result.Statistics.Any(stat => stat.MeanValue != -1))
+        throw new Exception("Death must be -1 regardless of damage.");
+    if (!dead && result.Action != 1) throw new Exception("Cutoff must reward effective damage.");
 }
-var bestFailure = CombatRolloutReward.Evaluate(false, true, 0, 80, 1);
-var untouchedCutoff = CombatRolloutReward.Evaluate(false, false, 1, 80, 0);
-var bestCutoff = CombatRolloutReward.Evaluate(false, false, 80, 80, 1);
-var costlyWin = CombatRolloutReward.Evaluate(true, false, 1, 80, 0);
-if (!(bestFailure < untouchedCutoff && bestCutoff < costlyWin))
-    throw new Exception("Progress must not outrank survival or a genuine victory.");
-if (CombatRolloutReward.Evaluate(false, false, 50, 80, 0.2)
-    >= CombatRolloutReward.Evaluate(false, false, 50, 80, 0.8))
-    throw new Exception("Healing away enemy damage must reduce progress reward.");
+static void Equal(double actual, double expected)
+{
+    if (Math.Abs(actual - expected) > 1e-9) throw new Exception($"Reward {actual} != {expected}");
+}
+Equal(CombatRolloutReward.Evaluate(true, false, 50, 100, 80, 1, 0), 0.95);
+Equal(CombatRolloutReward.Evaluate(true, false, 100, 100, 80, 1, 0), 1);
+Equal(CombatRolloutReward.Evaluate(false, true, 0, 100, 80, 1, 100), -1);
+Equal(CombatRolloutReward.Evaluate(false, false, 80, 100, 80, 0, 0), -0.1);
+Equal(CombatRolloutReward.Evaluate(false, false, 40, 100, 80, 0.5, 20), 0.35 - 0.275 - 0.0625 - 0.0625);
+Equal(CombatRolloutReward.Evaluate(false, false, 100, 100, 80, 0.5, 0), 0.4875);
+Equal(CombatRolloutReward.Evaluate(false, false, 160, 200, 80, 0.5, 0), 0.625);
+Equal(CombatRolloutReward.Evaluate(false, false, 160, 200, 80, 1, 0), 0.8);
+Equal(CombatRolloutReward.Evaluate(false, false, 1, 100, 80, 0, 1000), -0.8);
+Equal(CombatRolloutReward.Evaluate(false, false, 1, 100, 0, 0, 0), 0.175);
 var safer = await new ReplayMcts<int>(new HealthTradeoffToy()).SearchAsync([], "root", budget, budget, maxDepth: 1);
-if (safer.Action != 1)
-    throw new Exception("Cutoff search must prefer 40% damage without HP loss over 50% damage costing 50% HP.");
-var wounded = CombatRolloutReward.Evaluate(false, false, 40, 80, 0.5);
-var healed = CombatRolloutReward.Evaluate(false, false, 60, 80, 0.5);
-var full = CombatRolloutReward.Evaluate(false, false, 80, 80, 0.5);
-if (!(wounded < healed && healed < full)
-    || full != CombatRolloutReward.Evaluate(false, false, 100, 80, 0.5)
-    || wounded != CombatRolloutReward.Evaluate(false, false, 20, 40, 0.5))
-    throw new Exception("Player penalty must use net proportional HP loss, with healing capped at entry HP.");
-Console.WriteLine("replay search: preference, reuse, mismatch, cancellation, interrupted rollout, damage-shaped failure/cutoff, player HP tradeoff, healing and victory ordering passed");
-
+if (safer.Action != 1) throw new Exception("Cutoff must prefer lower player loss.");
+var risk = await new ReplayMcts<int>(new RiskToy()).SearchAsync([], "root", budget, budget, maxDepth: 1);
+if (risk.Action != 1) throw new Exception("Equal damage/HP must prefer lower imminent risk.");
+var timed = await new ReplayMcts<int>(new AtomicTimeoutToy()).SearchAsync([], "root", budget, budget);
+Equal(timed.Statistics.Single().MeanValue, 0.35);
+if (timed.CompletedSimulations != 1) throw new Exception("Atomic completed timeout must be scored once.");
+environment.Stall = false;
+var contextTree = new ReplayMcts<int>(environment);
+await contextTree.SearchAsync([], "0", budget, budget);
+environment.RewardContextKey = "new-start-hp";
+var changed = await contextTree.SearchAsync([], "0", budget, budget);
+if (!changed.Rebuilt || changed.RetainedVisits != 0) throw new Exception("Changed HP baseline must invalidate old reward statistics.");
+Console.WriteLine("replay search: formula, death, healing, clamps, risk, timeout, cancellation, context invalidation and reuse passed");
 sealed class HealthTradeoffToy : IReplayEnvironment<int>
 {
     private int action = -1;
@@ -73,7 +79,7 @@ sealed class HealthTradeoffToy : IReplayEnvironment<int>
     public IReadOnlyList<int> LegalActions() => [0, 1];
     public string StateKey() => action < 0 ? "root" : action.ToString();
     public double EvaluateTerminal() => throw new InvalidOperationException("This fixture only exercises cutoff evaluation.");
-    public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, action == 0 ? 40 : 80, 80, action == 0 ? 0.5 : 0.4);
+    public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, action == 0 ? 40 : 80, 80, 80, action == 0 ? 0.5 : 0.4, 0);
     public int RolloutAction(IReadOnlyList<int> actions, Random random) => actions[0];
 }
 
@@ -85,7 +91,7 @@ sealed class ProgressToy(bool dead) : IReplayEnvironment<int>
     public Task ApplyAsync(int action, CancellationToken cancellation) { _action = action; return Task.CompletedTask; }
     public IReadOnlyList<int> LegalActions() => [0, 1];
     public string StateKey() => _action < 0 ? "root" : _action.ToString();
-    public double EvaluateTerminal() => CombatRolloutReward.Evaluate(false, dead, dead ? 0 : 30, 80, _action == 1 ? 0.9 : 0.1);
+    public double EvaluateTerminal() => CombatRolloutReward.Evaluate(false, dead, dead ? 0 : 30, 80, 80, _action == 1 ? 0.9 : 0.1, 0);
     public double EvaluateCutoff() => EvaluateTerminal();
     public int RolloutAction(IReadOnlyList<int> actions, Random random) => actions[0];
 }
@@ -94,6 +100,7 @@ sealed class ReplayToy : IReplayEnvironment<int>
 {
     private int _state;
     public bool Stall;
+    public string RewardContextKey { get; set; } = "";
     public bool Terminal => _state >= 2;
     public Task RestoreAsync(IReadOnlyList<int> prefix, CancellationToken cancellation)
     {
@@ -110,4 +117,35 @@ sealed class ReplayToy : IReplayEnvironment<int>
     public string StateKey() => _state.ToString();
     public double EvaluateTerminal() => _state == 2 ? 1 : -1;
     public int RolloutAction(IReadOnlyList<int> actions, Random random) => 1;
+}
+
+sealed class AtomicTimeoutToy : IReplayEnvironment<int>
+{
+    private bool moved;
+    public bool Terminal => false;
+    public Task RestoreAsync(IReadOnlyList<int> prefix, CancellationToken cancellation) { moved = false; return Task.CompletedTask; }
+    public async Task ApplyAsync(int action, CancellationToken cancellation)
+    {
+        // An atomic transition completes after the deadline; it is safe to evaluate.
+        await Task.Delay(350);
+        moved = true;
+    }
+    public IReadOnlyList<int> LegalActions() => [0];
+    public string StateKey() => moved ? "after" : "root";
+    public double EvaluateTerminal() => throw new InvalidOperationException();
+    public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, 80, 80, 80, 0.5, 0);
+    public int RolloutAction(IReadOnlyList<int> actions, Random random) => 0;
+}
+
+sealed class RiskToy : IReplayEnvironment<int>
+{
+    private int action = -1;
+    public bool Terminal => false;
+    public Task RestoreAsync(IReadOnlyList<int> prefix, CancellationToken cancellation) { action = -1; return Task.CompletedTask; }
+    public Task ApplyAsync(int value, CancellationToken cancellation) { action = value; return Task.CompletedTask; }
+    public IReadOnlyList<int> LegalActions() => [0, 1];
+    public string StateKey() => action < 0 ? "root" : action.ToString();
+    public double EvaluateTerminal() => throw new InvalidOperationException();
+    public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, 40, 80, 40, 0.5, action == 0 ? 40 : 0);
+    public int RolloutAction(IReadOnlyList<int> actions, Random random) => 0;
 }

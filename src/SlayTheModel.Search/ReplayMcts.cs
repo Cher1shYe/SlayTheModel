@@ -10,6 +10,9 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
     IReadOnlyList<TAction> LegalActions();
     string StateKey();
     bool Terminal { get; }
+    void BeginRollout() { }
+    string RewardContextKey => "";
+    bool CanEvaluate => true;
     double EvaluateTerminal();
     double EvaluateCutoff() => -0.5;
     TAction RolloutAction(IReadOnlyList<TAction> actions, Random random);
@@ -34,6 +37,7 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
 
     private readonly Random _random = new(seed);
     private Node? _root;
+    private string? _rewardContext;
 
     public void Advance(TAction action)
     {
@@ -66,13 +70,20 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     throw new InvalidDataException(
                         $"Native reconstruction differs from the requested root state. expected={expectedStateKey} actual={environment.StateKey()}");
                 if (environment.Terminal) throw new InvalidOperationException("Cannot search a terminal state.");
+                environment.BeginRollout();
+                if (_rewardContext != environment.RewardContextKey)
+                {
+                    _root = null;
+                    _rewardContext = environment.RewardContextKey;
+                    rebuilt = true;
+                    retained = 0;
+                }
                 _root ??= new Node(expectedStateKey, environment.LegalActions());
                 var node = _root;
                 var path = new List<Node> { node };
                 var depth = 0;
-                while (!environment.Terminal && depth < maxDepth)
+                while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested)
                 {
-                    deadline.Token.ThrowIfCancellationRequested();
                     if (node.Unexpanded.Count > 0)
                     {
                         var index = _random.Next(node.Unexpanded.Count);
@@ -96,15 +107,17 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     path.Add(node);
                     depth++;
                 }
-                while (!environment.Terminal && depth++ < maxDepth)
+                while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested)
                 {
-                    deadline.Token.ThrowIfCancellationRequested();
                     var actions = environment.LegalActions();
                     if (actions.Count == 0) throw new InvalidDataException("Rollout has no legal action.");
                     await environment.ApplyAsync(environment.RolloutAction(actions, _random), deadline.Token);
+                    depth++;
                 }
-                deadline.Token.ThrowIfCancellationRequested();
-                // Depth-limited rollouts are unresolved, never a zero-loss victory.
+                cancellation.ThrowIfCancellationRequested();
+                // Score completed decision boundaries on time/depth cutoff. A cancelled
+                // transition or suspended selection has no complete endpoint to score.
+                if (depth == 0 || !environment.CanEvaluate) continue;
                 var value = environment.Terminal ? environment.EvaluateTerminal() : environment.EvaluateCutoff();
                 if (!double.IsFinite(value) || value < -1 || value > 1)
                     throw new InvalidDataException("Expected a finite utility in [-1, 1].");

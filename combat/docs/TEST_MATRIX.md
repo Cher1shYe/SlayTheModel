@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 最终推荐奖励（2026-10-16）
+
+- 上层 ReplaySearch smoke：胜利/死亡常数与比例、净回血、l/q/最终值截断、风险偏好、深度与时间截断、取消原子性、H0 改变清空统计及同基准续用。
+- 上层 `reward-verify`：当前 HP=40、最大 HP=100、故意提供旧入战 HP=80，验证模拟使用当前根 H0；格挡后的预计掉血5与原生结束回合实际掉血5一致，完整 continuation 对账。女王599分母、死亡/复活末尾血量、三场短搜对账通过。
+- 同产物 `gambling-chip-verify -SkipBuild` 验证新奖励下开场选择、后续出牌与0/2/5张选择对账。日志：上层 `artifacts/verification/mcts-final-reward-20261016.txt`；不据此推断整场胜率。
+
 ## SlayTheModel 赌博筹码（2026-10-16）
 
 - 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode gambling-chip-verify`：原生开场赌博筹码等待选择，通过真实 IPC 冷启动 worker；旧版报 `Combat entry itself has an unsupported pending choice`。新版返回选择后核对原生指纹，继续请求出牌并核对结果。

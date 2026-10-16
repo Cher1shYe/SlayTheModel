@@ -31,7 +31,8 @@ public sealed record NativeMctsState(
     int PlayerHp,
     int IncomingDamage,
     bool PendingChoice,
-    IReadOnlyList<NativeMctsAction> LegalActions);
+    IReadOnlyList<NativeMctsAction> LegalActions,
+    int PlayerMaxHp);
 
 /// <summary>Prediction-only API for an external MCTS host. It never runs Combat Solver's Beam search.</summary>
 public sealed class NativeMctsSimulationSession : IDisposable
@@ -227,7 +228,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
         }).ToArray();
         return new NativeMctsState(
             NativeMctsSimulation.PendingStateKey(current.StateKey, actions),
-            false, false, current.PlayerHp, 0, true, actions);
+            false, false, current.PlayerHp, 0, true, actions, current.PlayerMaxHp);
     }
 
     public void Dispose()

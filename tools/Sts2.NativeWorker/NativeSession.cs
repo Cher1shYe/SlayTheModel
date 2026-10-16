@@ -126,8 +126,18 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             return total == 0 ? 0 : Math.Clamp(lost / total, 0, 1);
         }
     }
-    public double EvaluateTerminal() => CombatRolloutReward.Evaluate(Won, Hp <= 0, Hp, EntryHp, EnemyDamageFraction);
-    public double EvaluateCutoff() => EvaluateTerminal();
+    private int rolloutStartHp;
+    public void BeginRollout() => rolloutStartHp = Hp;
+    public string RewardContextKey => rolloutStartHp.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public bool CanEvaluate => !HasPendingChoice;
+    public double EvaluateTerminal() => CombatRolloutReward.Evaluate(Won, Hp <= 0, Hp,
+        _player.Creature.MaxHp, rolloutStartHp, EnemyDamageFraction, 0);
+    public double EvaluateCutoff()
+    {
+        using var prediction = NativeMctsSimulationApi.Capture(_state);
+        return CombatRolloutReward.Evaluate(false, Hp <= 0, Hp, _player.Creature.MaxHp,
+            rolloutStartHp, EnemyDamageFraction, prediction.DescribeCurrent().IncomingDamage);
+    }
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
 
