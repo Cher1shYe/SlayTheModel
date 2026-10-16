@@ -42,3 +42,12 @@ Combat Solver 的选牌 token 按卡牌 ID 与升级等级计算实例序号。�
   且没有 coverage gap。
 - 以上已经覆盖原生 `GameAction`、`ICardSelector` 与真实 journal writer 的整条链路，
   仍不能替代一整局可见 Steam MCTS 采集复测；旧 JSONL 不回填。
+# 2026-10-16：茂密植被事件战斗暂停
+
+茂密植被选择回血后进入四扭动虫战斗时，原生战斗房间具有 `ParentEventId`。原版 v0.111.0 的 `CombatRoom.ToSerializable()` 不允许序列化尚未结束的事件战斗；Adapter 此前直接调用它，导致开战 checkpoint 捕获失败，MCTS 无法开始搜索。
+
+修复在 `NativeCombatCheckpoint` 内为此类活动事件战斗构造 worker 专用 `SerializableRoom`，按原版字段复制遭遇、事件、奖励和自定义状态。普通房间继续使用原接口。不把真实房间标记为完成，不移除父事件，不改变游戏存档政策。该快照只用于隔离 worker 中的战斗重建。
+
+验证命令：`scripts/native-worker.ps1 -GameDir <游戏目录> -Mode event-checkpoint-verify`。回归经实际事件房间、原生休息回血和四怪战斗入口复现旧版异常；修复后核对恢复前后完整状态，实际执行 MCTS 选中动作及敌方回合，与模拟完整 continuation key 对账通过，普通战斗快照往返通过。无头验证未执行事件 UI 音效/按钮交互，也未验证所有其他事件遭遇。
+
+部署后重启游戏生效；旧进程中已经丢失的开战 checkpoint 无法靠 F8 补回，需要重新进入战斗。

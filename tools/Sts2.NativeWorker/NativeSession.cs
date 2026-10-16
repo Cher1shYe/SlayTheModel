@@ -38,6 +38,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
+    internal Func<RunState, EncounterModel, Task>? EnterRoomForVerification { get; set; }
     internal Action<GameAction>? BeforeActionEnqueuedForVerification { get; set; }
     internal Action<object, CardModel[], int, int>? ChoiceRequestedForVerification { get; set; }
     internal Action<object, CardModel[]?, Exception?>? ChoiceCompletedForVerification { get; set; }
@@ -162,7 +163,10 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
                 candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
                 || candidate.GetType().Name.Equals(EncounterId, StringComparison.OrdinalIgnoreCase));
-            await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
+            if (EnterRoomForVerification is { } enterRoom)
+                await enterRoom(run, encounter.ToMutable());
+            else
+                await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
         }
         else
         {

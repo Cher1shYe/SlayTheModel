@@ -36,6 +36,12 @@ public partial class Worker : Node
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
             string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "event-checkpoint-verify")
+            {
+                await EventCheckpointVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (workerMode == "summon-reward-verify")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;

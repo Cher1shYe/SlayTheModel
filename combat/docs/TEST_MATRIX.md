@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 事件战斗快照（2026-10-16）
+
+- 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode event-checkpoint-verify`：按茂密植被事件房间→原生休息回血→带父事件 ID 的四扭动虫战斗构造无头复现。旧代码因未完成事件房间禁止序列化而没有 checkpoint；修复后完整网络状态及 continuation key 往返相等，MCTS 动作和敌方回合完整对账相等，普通战斗快照哨兵通过。日志见上层 `artifacts/verification/event-checkpoint-before-20261016.txt` 和 `event-checkpoint-after-20261016.txt`。未执行可见 UI 点击测试；macOS 模式入口已同步，未在本机执行。
+
 ## SlayTheModel 自身战损评分（2026-10-16）
 
 - 上层 ReplaySearch smoke：深度截断选择无损 40% 敌方伤害而非自身损血 50% 的 50% 敌方伤害；验证回血抵消惩罚、入战 HP 比例归一化及胜负区间。

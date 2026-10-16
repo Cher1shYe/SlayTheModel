@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## SlayTheModel 事件战斗快照（2026-10-16）
+
+- 修复上层 Adapter 对茂密植被回血后四怪战斗的开战快照捕获：原生 `CombatRoom.ToSerializable` 拒绝带 ParentEventId 的未完成战斗。worker 私有快照现在显式复制 v0.111.0 的房间字段，保留事件身份、继续事件标记、遭遇自定义状态和额外奖励；不修改真实房间或原生存档政策。无头复现旧版捕获失败；新版核对回血后的开战完整状态、MCTS 出牌、四怪行动后的完整 continuation key，普通战斗往返哨兵通过。
+
 ## SlayTheModel MCTS 自身战损评分（2026-10-16）
 
 - 上层共享 `CombatRolloutReward` 对未完成路线加入相对入战 HP 的净损血比例惩罚，与敌方末尾缺血比例等权；回血抵消惩罚，不累计伤害事件。评分区间保持胜利、存活未完成、死亡顺序。未改 CombatSolver 原 Beam 评分或战斗模拟语义；公式及验证见上层 `docs/mcts-progress-reward-20261015.md`。

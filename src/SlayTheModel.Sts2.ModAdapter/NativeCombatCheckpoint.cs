@@ -34,7 +34,7 @@ public sealed record NativeCombatCheckpoint(string AssemblyHash, string RunPacke
             if (run == null || run.Players.Count != 1) return;
             Latest = new NativeCombatCheckpoint(
                 CurrentAssemblyHash,
-                Encode(manager.ToSave(null)), Encode(__instance.ToSerializable()), run.ActFloor,
+                Encode(manager.ToSave(null)), Encode(CaptureRoom(__instance)), run.ActFloor,
                 manager.ActionQueueSet.NextActionId, manager.ActionQueueSynchronizer.NextHookId,
                 manager.PlayerChoiceSynchronizer.ChoiceIds.ToList(), manager.RewardsSetSynchronizer.GetNextRewardIds().ToList());
         }
@@ -43,6 +43,28 @@ public sealed record NativeCombatCheckpoint(string AssemblyHash, string RunPacke
             // A checkpoint failure must never prevent the real combat from starting.
             Console.Error.WriteLine("[SlayTheModel] checkpoint unavailable: " + exception);
         }
+    }
+
+    private static SerializableRoom CaptureRoom(CombatRoom room)
+    {
+        if (room.ParentEventId == null || room.IsPreFinished)
+            return room.ToSerializable();
+        // v0.111.0's save API rejects active event combats. This private worker
+        // packet preserves the same room fields without marking live combat
+        // finished or changing the game's save/load policy.
+        var snapshot = new SerializableRoom
+        {
+            RoomType = room.RoomType,
+            EncounterId = room.Encounter.Id,
+            IsPreFinished = room.IsPreFinished,
+            GoldProportion = room.GoldProportion,
+            ParentEventId = room.ParentEventId,
+            ShouldResumeParentEvent = room.ShouldResumeParentEventAfterCombat,
+            EncounterState = room.Encounter.SaveCustomState()
+        };
+        foreach (var (player, rewards) in room.ExtraRewards)
+            snapshot.ExtraRewards[player.NetId] = rewards.Select(reward => reward.ToSerializable()).ToList();
+        return snapshot;
     }
 
     public static string Encode<T>(T value) where T : IPacketSerializable
