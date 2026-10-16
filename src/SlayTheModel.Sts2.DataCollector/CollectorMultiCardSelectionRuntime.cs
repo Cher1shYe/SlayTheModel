@@ -147,7 +147,7 @@ internal static partial class CollectorRuntime
                 || cards.Count == 0
                 || selector is not (NSimpleCardSelectScreen
                     or NDeckCardSelectScreen or NDeckEnchantSelectScreen
-                    or NDeckTransformSelectScreen))
+                    or NDeckTransformSelectScreen or NDeckUpgradeSelectScreen))
             {
                 RecordCoverageGap(
                     "multi_card_selection_options_unavailable",
@@ -162,15 +162,17 @@ internal static partial class CollectorRuntime
             }
 
             // NSimple only completes automatically at MaxSelect when there is
-            // no manual confirmation button. Enchant and transform always
-            // open a preview with a final confirmation, regardless of prefs.
+            // no manual confirmation button. Enchant, transform, and upgrade
+            // screens open a preview with a final confirmation.
             var effectiveRequiresConfirmation = requiresConfirmation
-                || selector is NDeckEnchantSelectScreen or NDeckTransformSelectScreen;
+                || selector is NDeckEnchantSelectScreen or NDeckTransformSelectScreen
+                    or NDeckUpgradeSelectScreen;
             var effectiveMaxSelections = Math.Min(maxSelections, cards.Count);
             var effectiveMinSelections = selector switch
             {
                 NSimpleCardSelectScreen when !effectiveRequiresConfirmation =>
                     effectiveMaxSelections,
+                NDeckUpgradeSelectScreen => effectiveMaxSelections,
                 NDeckEnchantSelectScreen => Math.Max(1, minSelections),
                 _ => minSelections,
             };
@@ -212,7 +214,7 @@ internal static partial class CollectorRuntime
                 .Select(index => index >= 0 ? index : null)
                 .ToArray();
             if ((removalSelection || selector is NDeckEnchantSelectScreen
-                    or NDeckTransformSelectScreen)
+                    or NDeckTransformSelectScreen or NDeckUpgradeSelectScreen)
                 && optionDeckIndexes.Any(index => index is null))
             {
                 RecordCoverageGap(
@@ -220,7 +222,9 @@ internal static partial class CollectorRuntime
                         ? "multi_card_removal_option_not_in_deck"
                         : selector is NDeckTransformSelectScreen
                             ? "multi_card_transform_option_not_in_deck"
-                            : "multi_card_enchant_option_not_in_deck",
+                            : selector is NDeckUpgradeSelectScreen
+                                ? "multi_card_upgrade_option_not_in_deck"
+                                : "multi_card_enchant_option_not_in_deck",
                     new { contextId },
                     invalidatePendingDecision: false);
                 return null;
@@ -410,7 +414,7 @@ internal static partial class CollectorRuntime
     }
 
     internal static void ObserveMultiCardManualConfirm(
-        NDeckEnchantSelectScreen selector,
+        NCardGridSelectionScreen selector,
         NButton button,
         IReadOnlyCollection<CardModel>? nativeSelectedCards)
     {
@@ -444,7 +448,7 @@ internal static partial class CollectorRuntime
             || indexes.Any(index => !pending.ClickedOptionIndexes.Contains(index)))
         {
             pending.ClickEvidenceFailure =
-                "enchantment confirmation did not match visible manual card selection";
+                "manual confirmation did not match visible card selection";
             return;
         }
 
@@ -572,7 +576,7 @@ internal static partial class CollectorRuntime
         if (pending.Selector is NSimpleCardSelectScreen
             && kind is not ("Index" or "Indexes")
             || (pending.Selector is NDeckCardSelectScreen or NDeckEnchantSelectScreen
-                or NDeckTransformSelectScreen)
+                or NDeckTransformSelectScreen or NDeckUpgradeSelectScreen)
                 && kind != "DeckCard")
         {
             return false;
@@ -701,7 +705,7 @@ internal static partial class CollectorRuntime
                 || indexes.Distinct().Count() != indexes.Length
                 || pending.CancelledByManualInput
                 || (pending.Selector is NDeckEnchantSelectScreen
-                    or NDeckTransformSelectScreen)
+                    or NDeckTransformSelectScreen or NDeckUpgradeSelectScreen)
                    && !pending.ManualConfirmationObserved
                 || pending.ClickEvidenceFailure is not null
                 || pending.LastSelectedOptionIndexes is null
@@ -856,11 +860,11 @@ internal static partial class CollectorRuntime
                 }
             }
 
-            // The enchant screen asks NCardGrid to sort its visible holders.
+            // Enchant and upgrade screens ask NCardGrid to sort their visible holders.
             // Native DeckCard receipts use deck indexes, not that display
             // order. Keep the frozen selector order for action option indexes
             // and require the grid to contain exactly the same card objects.
-            if (selector is NDeckEnchantSelectScreen)
+            if (selector is NDeckEnchantSelectScreen or NDeckUpgradeSelectScreen)
             {
                 var gridIdentities = new HashSet<CardModel>(
                     ReferenceEqualityComparer.Instance);
