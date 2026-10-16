@@ -1,5 +1,11 @@
 # CombatSolver 开发笔记与未来构想
 
+## SlayTheModel 赌博筹码开场选择（2026-10-16）
+
+- 修复 worker 从开战 checkpoint 恢复时拒绝入口待选项的问题。仅在选择根重建时，于原生 `SetupPlayerTurn` 前冻结首回合稳定根，再用已有 `BuildTurnSetupRoots` 重放回合准备；禁止从悬停的选牌中间态捕获并重复抽牌。
+- Native MCTS session 将开场选择展开为可恢复的选择根。开场分支快照由 session 独占持有，rollout 恢复与候选淘汰不释放它们，session 结束统一释放；后续动作仍通过原有 Fork 与选牌状态匹配。普通请求不额外捕获开场根，奖励函数未改变。
+- 无头原生复现旧版 unsupported pending choice；修复后冷启动 IPC 选牌、同 worker 后续出牌、不弃牌／弃两张／弃全部五张（含同名副本）的完整 continuation、牌堆与 RNG 对账通过。知识恶魔恢复、三轮诅咒及头槌选择回归通过。未进行可见游戏或全部遗物组合验收。
+
 ## SlayTheModel 知识恶魔选牌与恢复（2026-10-16）
 
 - Native MCTS 动作导出现在将动作内选择与 `TurnStartChoices` 按执行顺序合并，补上敌方回合的诅咒选择；原有 PlanAction 普通动作助手的职责不变。知识诅咒 token 原本仅含模型身份，导出增加诅咒轮次，部署按原生 IChoosable、模型/升级/出现次数以及瓦解当前轮次伤害校验；不放宽普通卡牌的完整状态键校验。

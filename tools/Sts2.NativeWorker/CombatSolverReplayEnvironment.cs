@@ -17,10 +17,13 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     private long transitions;
 
     public void Capture(MegaCrit.Sts2.Core.Combat.CombatState combat, int capturedEntryHp)
+        => Capture(() => NativeMctsSimulationApi.Capture(combat), capturedEntryHp);
+
+    public void Capture(Func<NativeMctsSimulationSession> createSession, int capturedEntryHp)
     {
         session?.Dispose();
         entryHp = capturedEntryHp;
-        session = NativeMctsSimulationApi.Capture(combat);
+        session = createSession();
         state = session.RestoreRoot();
         rootKey = state.Key;
         rootActions = string.Join(" | ", state.LegalActions.Select(action => action.Key));

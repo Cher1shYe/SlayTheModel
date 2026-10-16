@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 赌博筹码（2026-10-16）
+
+- 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode gambling-chip-verify`：原生开场赌博筹码等待选择，通过真实 IPC 冷启动 worker；旧版报 `Combat entry itself has an unsupported pending choice`。新版返回选择后核对原生指纹，继续请求出牌并核对结果。
+- 同一稳定开场根反复恢复，分别选 0、2、5 张，核对完整 continuation（有序牌堆、实例状态和 RNG），覆盖相同卡牌副本。证据为上层 `artifacts/verification/gambling-chip-before-20261016.txt` 与 `gambling-chip-after-20261016.txt`。
+- `knowledge-demon-verify -SkipBuild` 相邻回归通过：敌方诅咒中断恢复、三轮两条路线与头槌实例身份；Windows 无头验证，macOS 仅添加模式入口、未运行。
+
 ## SlayTheModel 知识恶魔（2026-10-16）
 
 - 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode knowledge-demon-verify`：旧版结束回合后 native 0..1 DISINTEGRATION/MIND_ROT、预测为空选项；冷 worker 在同一选择处报 PendingChoiceSignature 空引用，均已保存失败基线。

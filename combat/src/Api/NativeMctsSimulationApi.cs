@@ -46,16 +46,18 @@ public sealed class NativeMctsSimulationSession : IDisposable
     private sealed record PendingChoiceBranch(PlanAction Action, SimulationSnapshot Snapshot);
     private sealed record PendingChoiceGroup(IReadOnlyList<PendingChoiceBranch> Branches, int ChoiceIndex);
     private Dictionary<string, PendingChoiceGroup>? pendingChoices;
+    private Dictionary<string, PendingChoiceGroup>? openingChoices;
+    private readonly HashSet<SimulationSnapshot> persistent = new(ReferenceEqualityComparer.Instance);
     private IReadOnlyList<string> choiceDiagnostics = [];
     private int actionCount;
     private bool disposed;
     private readonly (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] rewardEnemies;
 
-    internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot)
+    internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot, bool includeTurnSetup = false)
     {
         this.capturedRoot = capturedRoot;
-        driver = NativeMctsSimulation.CreateDriver(capturedRoot);
-        root = driver.NativeMctsCreateRoot();
+        driver = NativeMctsSimulation.CreateDriver(capturedRoot, includeTurnSetup);
+        root = includeTurnSetup ? driver.NativeMctsCreateSetupRoot() : driver.NativeMctsCreateRoot();
         current = root;
         var simulator = (CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator)root.Simulator;
         rewardEnemies = capturedRoot.Enemies
@@ -63,7 +65,17 @@ public sealed class NativeMctsSimulationSession : IDisposable
             // Keep zero-HP enemies still in the roster (pending revival), too.
             .Where(enemy => enemy.State.MaxHp > 0)
             .Select(enemy => (enemy.Identity, enemy.State.MaxHp)).ToArray();
-        rootDescription = driver.NativeMctsDescribe(root, 0);
+        if (includeTurnSetup && root.BoundaryReason == SearchBoundaryReason.PendingChoice)
+        {
+            var branches = driver.NativeMctsSetupBranches()
+                .Select(item => new PendingChoiceBranch(item.Action, item.Snapshot)).ToArray();
+            foreach (var branch in branches) persistent.Add(branch.Snapshot);
+            openingChoices = branches.GroupBy(branch => NativeMctsSimulation.ChoiceKey(branch.Action, branch.Action, 0), StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => new PendingChoiceGroup(group.ToArray(), 0), StringComparer.Ordinal);
+            pendingChoices = new(openingChoices, StringComparer.Ordinal);
+            rootDescription = BuildPendingDescription();
+        }
+        else rootDescription = driver.NativeMctsDescribe(root, 0);
         currentDescription = rootDescription;
     }
 
@@ -72,6 +84,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
         ThrowIfDisposed();
         ReleasePendingChoices();
         ReleaseTransient();
+        pendingChoices = openingChoices == null ? null : new(openingChoices, StringComparer.Ordinal);
         current = root;
         actionCount = 0;
         choiceDiagnostics = [];
@@ -224,12 +237,14 @@ public sealed class NativeMctsSimulationSession : IDisposable
         ReleasePendingChoices();
         ReleaseTransient();
         root.ReleaseSimulator();
+        foreach (var snapshot in persistent) snapshot.ReleaseSimulator();
+        persistent.Clear();
     }
 
     private void ReleaseTransient()
     {
         HashSet<SimulationSnapshot> unique = new(transient, ReferenceEqualityComparer.Instance);
-        foreach (var snapshot in unique)
+        foreach (var snapshot in unique.Where(snapshot => !persistent.Contains(snapshot)))
             snapshot.ReleaseSimulator();
         transient.Clear();
     }
@@ -240,18 +255,18 @@ public sealed class NativeMctsSimulationSession : IDisposable
         HashSet<SimulationSnapshot> unique = new(
             pendingChoices.Values.SelectMany(candidate => candidate.Branches).Select(candidate => candidate.Snapshot),
             ReferenceEqualityComparer.Instance);
-        foreach (var snapshot in unique) snapshot.ReleaseSimulator();
+        foreach (var snapshot in unique.Where(snapshot => !persistent.Contains(snapshot))) snapshot.ReleaseSimulator();
         pendingChoices = null;
     }
 
     private static int ChoiceCount(PlanAction action)
         => NativeMctsSimulation.ExecutionChoices(action).Count;
 
-    private static void ReleaseBranches(IEnumerable<PendingChoiceBranch> branches)
+    private void ReleaseBranches(IEnumerable<PendingChoiceBranch> branches)
     {
         var unique = new HashSet<SimulationSnapshot>(
             branches.Select(branch => branch.Snapshot), ReferenceEqualityComparer.Instance);
-        foreach (SimulationSnapshot snapshot in unique)
+        foreach (SimulationSnapshot snapshot in unique.Where(snapshot => !persistent.Contains(snapshot)))
             snapshot.ReleaseSimulator();
     }
 
@@ -276,6 +291,14 @@ public static class NativeMctsSimulationApi
         ArgumentNullException.ThrowIfNull(state);
         Initialize();
         return new NativeMctsSimulationSession(CombatRootSnapshot.Capture(state));
+    }
+
+    // Called before native SetupPlayerTurn begins, never from a suspended selector.
+    public static Func<NativeMctsSimulationSession> FreezeTurnSetupRoot(CombatState state)
+    {
+        Initialize();
+        var root = CombatRootSnapshot.Capture(state);
+        return () => new NativeMctsSimulationSession(root, includeTurnSetup: true);
     }
 
     public static MegaCrit.Sts2.Core.Models.CardModel ResolveLiveCard(

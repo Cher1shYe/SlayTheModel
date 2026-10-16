@@ -36,6 +36,12 @@ public partial class Worker : Node
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
             string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "gambling-chip-verify")
+            {
+                await GamblingChipVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (workerMode == "knowledge-demon-verify")
             {
                 await KnowledgeDemonVerification.RunAsync(session, timeout.Token);

@@ -10,11 +10,14 @@ public static class WorkerServer
     private static async Task RebuildChoiceRootAsync(NativeSession session,
         CombatSolverReplayEnvironment simulation, NativeMctsRequest request)
     {
-        // Suspended actions cannot be captured: replay from the stable entry root.
-        await session.RestoreAsync([], CancellationToken.None);
+        // Suspended actions cannot be captured: freeze before opening setup, then replay.
+        session.CaptureOpeningRoot = true;
+        try { await session.RestoreAsync([], CancellationToken.None); }
+        finally { session.CaptureOpeningRoot = false; }
         if (session.HasPendingChoice)
-            throw new InvalidDataException("Combat entry itself has an unsupported pending choice.");
-        simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+            simulation.Capture(session.OpeningRoot
+                ?? throw new InvalidDataException("Missing stable opening turn root."), request.EntryHp);
+        else simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
         foreach (var recorded in request.Prefix)
         {
             var matched = simulation.LegalActions().Single(candidate =>

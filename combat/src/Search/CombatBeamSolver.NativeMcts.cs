@@ -18,6 +18,12 @@ internal sealed partial class CombatBeamSolver
 
     internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
 
+    internal SimulationSnapshot NativeMctsCreateSetupRoot() => ReplayTurnSetup([]);
+
+    internal IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> NativeMctsSetupBranches()
+        => BuildTurnSetupRoots().Select(item =>
+            (new PlanAction(PlanActionKind.EndTurn, _startTurnNumber, TurnStartChoices: item.Choices), item.Snapshot)).ToArray();
+
     internal NativeMctsState NativeMctsDescribe(SimulationSnapshot snapshot, int actionCount)
     {
         if (snapshot.BoundaryReason is SearchBoundaryReason.UnsupportedEffect
@@ -246,7 +252,7 @@ internal sealed record NativeMctsExpansion(
 
 internal static class NativeMctsSimulation
 {
-    internal static CombatBeamSolver CreateDriver(CombatRootSnapshot root)
+    internal static CombatBeamSolver CreateDriver(CombatRootSnapshot root, bool includeTurnSetup = false)
     {
         var profile = SolverSearchProfile.Default with
         {
@@ -260,7 +266,7 @@ internal static class NativeMctsSimulation
         var policy = new SearchPolicySnapshot(
             profile, SolverPotionPolicy.Disabled,
             new PotionStrategySnapshot(SolverPotionPolicy.Disabled, []),
-            false, false, true, false, 1, null, false, null,
+            false, false, true, false, 1, null, includeTurnSetup, null,
             BossHpStrategy.ProgressionFirst, BossHpStrategy.ProgressionFirst, 0,
             new SearchDiagnosticsSink(static _ => { }, static _ => { }),
             new SearchFramePressureSignal(), new SearchMemoryPressureSignal());

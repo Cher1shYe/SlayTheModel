@@ -60,6 +60,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
     public bool HasPendingChoice => _choice != null;
+    internal Func<NativeMctsSimulationSession>? OpeningRoot { get; private set; }
+    internal bool CaptureOpeningRoot { get; set; }
     public string ChoiceSignature => _choice == null
         ? ""
         // The native selector may retain its requested maximum even when fewer
@@ -147,41 +149,47 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             await ObserveCleanupAsync(previousTurnLoop, "Previous combat turn loop did not stop during reconstruction.");
         LocalContext.NetId = 1;
         _action = null;
-        if (Checkpoint is null)
+        OpeningRoot = null;
+        NativeOpeningCapture.Capture = CaptureOpeningRoot ? root => OpeningRoot = root : null;
+        try
         {
-            _player = Player.CreateForNewRun<Ironclad>(UnlockState.all, 1);
-            if (ChoiceFixture)
+            if (Checkpoint is null)
             {
-                _player.Deck.Clear();
-                foreach (string entry in ChoiceFixtureCards)
+                _player = Player.CreateForNewRun<Ironclad>(UnlockState.all, 1);
+                if (ChoiceFixture)
                 {
-                    var canonical = ModelDb.AllCards.Single(card => card.Id.Entry == entry);
-                    var card = canonical.ToMutable();
-                    if (ChoiceFixtureUpgradedCards.Contains(entry))
+                    _player.Deck.Clear();
+                    foreach (string entry in ChoiceFixtureCards)
                     {
-                        HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
-                        HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);
+                        var canonical = ModelDb.AllCards.Single(card => card.Id.Entry == entry);
+                        var card = canonical.ToMutable();
+                        if (ChoiceFixtureUpgradedCards.Contains(entry))
+                        {
+                            HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
+                            HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);
+                        }
+                        _player.Deck.AddInternal(card);
                     }
-                    _player.Deck.AddInternal(card);
                 }
+                var run = RunState.CreateForTest([_player], seed: seed);
+                RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
+                _selector = CardSelectCmd.PushSelector(this);
+                var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
+                    candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
+                    || candidate.GetType().Name.Equals(EncounterId, StringComparison.OrdinalIgnoreCase));
+                if (EnterRoomForVerification is { } enterRoom)
+                    await enterRoom(run, encounter.ToMutable());
+                else
+                    await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
             }
-            var run = RunState.CreateForTest([_player], seed: seed);
-            RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
-            _selector = CardSelectCmd.PushSelector(this);
-            var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
-                candidate.Id.Entry.Equals(EncounterId, StringComparison.OrdinalIgnoreCase)
-                || candidate.GetType().Name.Equals(EncounterId, StringComparison.OrdinalIgnoreCase));
-            if (EnterRoomForVerification is { } enterRoom)
-                await enterRoom(run, encounter.ToMutable());
             else
-                await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter.ToMutable());
+            {
+                await RestoreCheckpointAsync(Checkpoint);
+            }
+            _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
+            await SettleAsync(cancellation);
         }
-        else
-        {
-            await RestoreCheckpointAsync(Checkpoint);
-        }
-        _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
-        await SettleAsync(cancellation);
+        finally { NativeOpeningCapture.Capture = null; }
         _rewardEnemies = _state.Enemies.Where(enemy => enemy.MaxHp > 0)
             .Select(enemy => (enemy, enemy.MaxHp)).ToArray();
     }
