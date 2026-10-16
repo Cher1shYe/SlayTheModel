@@ -213,6 +213,8 @@ Crystal Sphere 的工作树采集路径基于原生 `SetSmallDivination`、`SetB
 
 同一铁甲胜局还记录了 97 次烤面包手套单卡选择。每次已有冻结候选、结构化选择动作和原生 `CombatCard` 回执；逐次对照后，所选卡 ID 与回执 97/97 一致，但旧采集器的 ticket 没绑定原生 choice ID，因此每次各报一次 `combat_card_choice_without_selector` 与 `combat_choice_native_result_missing`。这些缺口使整局 `completeness=incomplete`、`value_target_valid=false`，BC-only 转换器继续排除受影响的选择标签；旧 JSONL 不回写。新的内部手牌候选和回执关联路径只能由后续实机轨迹验证。
 
+MCTS 测试胜局 `1f1633aafb794e2084a01ed03a8629b5` 的唯一缺口发生在 `EVENT.TRIAL` 的 `INNOCENT` 后续选牌：原生 `NDeckUpgradeSelectScreen` 展示 14 张可升级牌并返回牌组索引 `[22,23]`，当时采集器却以 `multi_card_selection_options_unavailable` 拒绝建立子决策。原因是该页面直接继承 `NCardGridSelectionScreen`，不是已覆盖的 `NDeckCardSelectScreen`、`NDeckEnchantSelectScreen` 或 `NDeckTransformSelectScreen` 子类；此前的通用多卡测试没有触发这个同级页面。工作树现放行该类型，并挂接其点击、关闭、预览返回和确认入口；候选对象、选中集合、最终确认、Task 与原生 `DeckCard` 回执继续逐项核对。当前游戏程序集枚举出的六个具体网格选择页均已有对应路径，DataCollector Release 构建和 Harmony 安装审计通过；新的多张升级事件尚需实机触发验证，旧胜局仍保持 `incomplete`，不能事后补回缺失动作。
+
 ## headless 共用记录接口
 
 未来 headless runner 应为每张内部手牌提供等价的原生当前费用投影，`description=null`、`dynamic_values=[]`，以便与 live collector v5 训练特征对齐；不能因为没有 UI 就把整张牌删除。当前泛协议 `DecisionObservationProjector.ToCombat` 与 `HeadlessEpisodeRecorder` 尚未强制这一投影，仍可写出 v5 且 Hand `display=null`；assembler 必须保留费用缺失 mask，不能假定所有 v5 都有费用。选择器候选、敌意图和遗物展示仍按各自原有契约处理。

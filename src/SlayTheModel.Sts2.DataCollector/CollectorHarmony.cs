@@ -224,6 +224,19 @@ internal static class CollectorHarmony
             Method(typeof(NDeckEnchantSelectScreen), "ConfirmSelection", typeof(NButton)),
             prefix: nameof(EnchantConfirmPrefix));
         PatchRequired(
+            Method(typeof(NDeckUpgradeSelectScreen), "OnCardClicked", typeof(CardModel)),
+            prefix: nameof(UpgradeCardClickedPrefix),
+            postfix: nameof(MultiCardClickedPostfix));
+        PatchRequired(
+            Method(typeof(NDeckUpgradeSelectScreen), "CloseSelection", typeof(NButton)),
+            prefix: nameof(UpgradeClosePrefix));
+        PatchRequired(
+            Method(typeof(NDeckUpgradeSelectScreen), "CancelSelection", typeof(NButton)),
+            postfix: nameof(UpgradePreviewBackPostfix));
+        PatchRequired(
+            Method(typeof(NDeckUpgradeSelectScreen), "ConfirmSelection", typeof(NButton)),
+            prefix: nameof(UpgradeConfirmPrefix));
+        PatchRequired(
             Method(typeof(NChooseACardSelectionScreen), "SelectHolder", typeof(NCardHolder)),
             prefix: nameof(SingleCardClickedPrefix));
         PatchRequired(
@@ -1064,6 +1077,33 @@ internal static class CollectorHarmony
 
     private static void EnchantConfirmPrefix(
         NDeckEnchantSelectScreen __instance,
+        NButton __0) =>
+        CollectorRuntime.ObserveMultiCardManualConfirm(
+            __instance,
+            __0,
+            ReadField<HashSet<CardModel>>(__instance, "_selectedCards"));
+
+    private static void UpgradeCardClickedPrefix(
+        NDeckUpgradeSelectScreen __instance,
+        CardModel __0)
+    {
+        CollectorRuntime.VerifyMultiCardVisibleClick(__instance, __0);
+        CollectorRuntime.ObserveMultiCardClickBefore(
+            __instance,
+            __0,
+            ReadField<HashSet<CardModel>>(__instance, "_selectedCards"));
+    }
+
+    private static void UpgradeClosePrefix(NDeckUpgradeSelectScreen __instance) =>
+        CollectorRuntime.ObserveMultiCardCancel(__instance);
+
+    private static void UpgradePreviewBackPostfix(NDeckUpgradeSelectScreen __instance) =>
+        CollectorRuntime.ObserveMultiCardPreviewBack(
+            __instance,
+            ReadField<HashSet<CardModel>>(__instance, "_selectedCards"));
+
+    private static void UpgradeConfirmPrefix(
+        NDeckUpgradeSelectScreen __instance,
         NButton __0) =>
         CollectorRuntime.ObserveMultiCardManualConfirm(
             __instance,
