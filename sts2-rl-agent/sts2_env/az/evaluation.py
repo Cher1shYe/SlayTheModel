@@ -13,7 +13,10 @@ from .rewards import V1, V2, V3, V4, V5, V6, terminal_reward, validate_reward
 from .search_config import LEGACY, validate_search
 
 
-def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, required_count=256, reward_version=V1):
+def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, required_count=256, reward_version=V1,
+                   criterion='utility-win-priority-v1'):
+    if criterion not in ('utility-win-priority-v1','utility-only-v1'):
+        raise ValueError('Unknown promotion criterion')
     validate_reward(reward_version)
     if len(champion) != len(candidate) or not champion:
         raise ValueError("Paired evaluation requires equal nonempty results")
@@ -60,7 +63,8 @@ def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, req
     eligible = len(delta) == required_count
     win_low, win_high = np.percentile(win_means, [2.5, 97.5])
     win_priority = reward_version == V1 or win_low > 0 or bool(np.all(wins == 0))
-    return dict(promote=bool(eligible and clean and low > 0 and win_priority), eligible=eligible,
+    return dict(promote=bool(eligible and clean and low > 0 and (criterion=='utility-only-v1' or win_priority)), eligible=eligible,
+                criterion=criterion, primary_metric='mean_terminal_utility',
                 reward_version=reward_version, win_priority_satisfied=bool(win_priority),
                 mean_win_difference=float(wins.mean()), win_difference_ci95=[float(win_low), float(win_high)],
                 mean_utility_difference=float(delta.mean()), confidence_interval=[float(low), float(high)],
@@ -161,7 +165,11 @@ def summarize(results):
 
 
 def compare(champion, candidate, champion_version, candidate_version, recipes, simulations=256,
-            seed=123, limits=EpisodeLimits(), error_dir="output/az_errors", evaluation_runner=None, reward_version=V1, search_version=LEGACY):
+            seed=123, limits=EpisodeLimits(), error_dir="output/az_errors", evaluation_runner=None, reward_version=V1, search_version=LEGACY,
+            promotion_policy='network-only-v1'):
+    if promotion_policy not in ('network-only-v1','network-utility-v1'):
+        raise ValueError('Unknown network promotion policy')
+    criterion='utility-only-v1' if promotion_policy=='network-utility-v1' else 'utility-win-priority-v1'
     if any(r.split != "validation" for r in recipes):
         raise ValueError("Promotion must use validation only")
     reports = {}
@@ -173,7 +181,7 @@ def compare(champion, candidate, champion_version, candidate_version, recipes, s
             old = evaluation_runner("champion", budget)
             new = evaluation_runner("candidate", budget)
         reports["network" if budget == 0 else "search"] = dict(champion=old, candidate=new,
-            champion_summary=summarize(old), candidate_summary=summarize(new), gate=promotion_gate(old, new, reward_version=reward_version),
+            champion_summary=summarize(old), candidate_summary=summarize(new), gate=promotion_gate(old, new, reward_version=reward_version,criterion=criterion),
             by_encounter={enc: dict(champion=summarize([r for r in old if r["encounter_id"] == enc]),
                                    candidate=summarize([r for r in new if r["encounter_id"] == enc]))
                           for enc in sorted({r["encounter_id"] for r in old})})
@@ -181,7 +189,7 @@ def compare(champion, candidate, champion_version, candidate_version, recipes, s
         for report in reports.values():
             report["by_stratum"] = stratified_pairs(report["champion"], report["candidate"])
     return dict(modes=reports, promote=reports["network"]["gate"]["promote"],
-                promotion_policy="network-only-v1", search_role="observation", simulations=simulations)
+                promotion_policy=promotion_policy, search_role="observation", simulations=simulations)
 
 
 def stratified_pairs(old, new):

@@ -27,6 +27,7 @@ from .search_config import LEGACY, validate_search
 
 @dataclass(frozen=True)
 class TrainingConfig:
+    promotion_policy: str = 'network-only-v1'
     model_tier: str = 'mlp'
     microbatch_size: int = 64
     seed: int = 42
@@ -51,7 +52,9 @@ class TrainingConfig:
         validate_reward(self.reward_version)
         validate_search(self.search_version)
         validate_content(self.content_version)
-        if any(type(v) is not int or v < 1 for k, v in asdict(self).items() if k not in ("seed", "reward_version", "content_version", "sampling_version", "initial_checkpoint", "search_version", "model_tier")):
+        if self.promotion_policy not in ('network-only-v1','network-utility-v1'):
+            raise ValueError('Unknown promotion policy')
+        if any(type(v) is not int or v < 1 for k, v in asdict(self).items() if k not in ("seed", "reward_version", "content_version", "sampling_version", "initial_checkpoint", "search_version", "model_tier", "promotion_policy")):
             raise ValueError("Positive integer training settings required")
         from .transformer_network import TIERS
         from .search_config import DYNAMIC
@@ -63,8 +66,14 @@ class TrainingConfig:
             raise ValueError('Dynamic search cannot use an MLP')
         if self.sampling_version != "standard":
             from .boss_curriculum import VERSION
-            if self.sampling_version not in (VERSION,"boss-search-course-v1") or self.content_version != BOSS_CONTENT or self.episodes_per_iteration != 180:
+            if self.sampling_version not in (VERSION,"boss-search-course-v1","transformer-g23e-course-v1","transformer-g23e-smoke-v1") or self.content_version != BOSS_CONTENT or self.episodes_per_iteration != 180:
                 raise ValueError("Incompatible Boss curriculum configuration")
+        if self.sampling_version.startswith('transformer-g23e-'):
+            smoke = self.sampling_version == 'transformer-g23e-smoke-v1'
+            if (self.model_tier != 'S' or self.initial_checkpoint is not None or self.promotion_policy != 'network-utility-v1'
+                    or self.seed not in ((42,) if smoke else (42,43))
+                    or self.iterations != (2 if smoke else 3)):
+                raise ValueError('Frozen T3 requires independent S initialization and fixed seeds/rounds')
         if self.initial_checkpoint is not None and (type(self.initial_checkpoint) is not str or not self.initial_checkpoint):
             raise ValueError("Explicit initial checkpoint path required")
         if self.validation_count > 256:
@@ -210,6 +219,9 @@ class Coordinator:
         atomic_json(self.root / "state.json", self.state)
 
     def generator_config(self):
+        if self.config.sampling_version.startswith('transformer-g23e-'):
+            from .transformer_course import configuration, SMOKE_VERSION
+            return configuration(self.config.sampling_version == SMOKE_VERSION)
         if self.config.sampling_version == "boss-search-course-v1":
             from .boss_search_curriculum import configuration
             return configuration()
@@ -247,6 +259,10 @@ class Coordinator:
                     from .boss_curriculum import generate
                     if c.sampling_version == "boss-search-course-v1":
                         from .boss_search_curriculum import generate
+                    if c.sampling_version.startswith('transformer-g23e-'):
+                        from functools import partial
+                        from .transformer_course import generate, SMOKE_VERSION
+                        generate = partial(generate,smoke=c.sampling_version == SMOKE_VERSION)
                     generated = [generate(c.seed, iteration, j) for j in range(c.episodes_per_iteration)]
                 path = self.root / "manifests" / f"train-{iteration}.json"
                 if path.exists():
@@ -302,7 +318,7 @@ class Coordinator:
                     return evaluate_parallel(collector.pool, path, self.validation, budget, c.seed, self.limits,
                                              self.root / "evaluation_cache", reward_version=c.reward_version, search_version=c.search_version)
             report = compare(champion, candidate, metadata["model_version"], version, self.validation,
-                             c.eval_simulations, c.seed, self.limits, str(self.root / "errors"), runner, c.reward_version, c.search_version)
+                             c.eval_simulations, c.seed, self.limits, str(self.root / "errors"), runner, c.reward_version, c.search_version,c.promotion_policy)
             # Smoke limits do not define the formal task, even with 256 scenarios.
             if self.limits != EpisodeLimits():
                 report.update(promote=False, restriction="nonstandard_episode_limits")
