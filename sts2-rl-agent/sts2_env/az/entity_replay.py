@@ -9,31 +9,31 @@ import tempfile
 import numpy as np
 
 from .config import atomic_replace, canonical_json, content_hash, CONTENT_VERSION, REWARD_VERSION
-from .entity_encoder import Entity, ActionCandidate, EntityObservation, SCHEMA_HASH, NUMERIC_FIELDS, KINDS, ZONES
-from .mechanic_registry import Operation, OPS, TARGETS, TIMINGS
+from .entity_encoder import Entity, ActionCandidate, EntityObservation, SCHEMA, SCHEMA_HASH, NUMERIC_FIELDS, KINDS, ZONES, SUPPORTED
+from .mechanic_registry import Operation, OPS, TARGETS, TIMINGS, CONDITIONS
 from .replay_buffer import ReplayBuffer, episode_digest
 from .dynamic_search import VERSION
 
-REPLAY_VERSION = 'typed-entity-replay-v1'
+REPLAY_VERSION = 'typed-entity-replay-v2'
 
 
 def pack_observation(obs):
     obs.validate()
     refs = {e.ref: i for i, e in enumerate(obs.entities)}
-    return {'schema_hash': obs.schema_hash,
+    return {'schema_hash': obs.schema_hash, 'content_version':obs.content_version,'reward_version':obs.reward_version,
         'numbers_f64le': base64.b64encode(struct.pack('<' + 'd'*len(NUMERIC_FIELDS)*len(obs.entities),
             *(x for e in obs.entities for x in e.numbers))).decode('ascii'),
         'entities': [[e.ref, KINDS.index(e.kind), ZONES.index(e.zone), refs[e.owner] if e.owner else -1,
-            [[OPS.index(o.kind), TARGETS.index(o.target), TIMINGS.index(o.timing), o.amount, o.hits] for o in e.effects]] for e in obs.entities],
+            [[OPS.index(o.kind), TARGETS.index(o.target), TIMINGS.index(o.timing), o.amount, o.hits,CONDITIONS.index(o.condition),o.coefficient] for o in e.effects]] for e in obs.entities],
         'actions': [[a.action_key, a.action_type, refs[a.source_ref] if a.source_ref else -1,
-                     [refs[r] for r in a.target_refs], a.legal] for a in obs.actions]}
+                     [refs[r] for r in a.target_refs], a.legal,[refs[r] for r in a.choice_refs]] for a in obs.actions]}
 
 
 def unpack_observation(data):
-    if set(data) != {'schema_hash', 'numbers_f64le', 'entities', 'actions'} or data['schema_hash'] != SCHEMA_HASH:
+    if set(data) != {'schema_hash', 'numbers_f64le', 'entities', 'actions','content_version','reward_version'} or data['schema_hash'] != SCHEMA_HASH:
         raise ValueError('Packed entity schema mismatch')
     rows = data['entities']
-    if not 1 <= len(rows) <= 13:
+    if not 1 <= len(rows) <= SCHEMA['max_entities']:
         raise ValueError('Packed entity length overflow')
     try:
         values = struct.unpack('<' + 'd'*len(NUMERIC_FIELDS)*len(rows), base64.b64decode(data['numbers_f64le'], validate=True))
@@ -43,9 +43,9 @@ def unpack_observation(data):
             return None if index == -1 else rows[index][0]
         entities = tuple(Entity(row[0], KINDS[row[1]], ZONES[row[2]], ref(row[3]),
             tuple(values[i*len(NUMERIC_FIELDS):(i+1)*len(NUMERIC_FIELDS)]),
-            tuple(Operation(OPS[o[0]], TARGETS[o[1]], TIMINGS[o[2]], o[3], o[4]) for o in row[4])) for i, row in enumerate(rows))
-        actions = tuple(ActionCandidate(row[0], row[1], ref(row[2]), tuple(ref(i) for i in row[3]), legal=row[4]) for row in data['actions'])
-        obs = EntityObservation(entities, actions, data['schema_hash']).validate()
+            tuple(Operation(OPS[o[0]], TARGETS[o[1]], TIMINGS[o[2]], o[3], o[4],CONDITIONS[o[5]],o[6]) for o in row[4])) for i, row in enumerate(rows))
+        actions = tuple(ActionCandidate(row[0], row[1], ref(row[2]), tuple(ref(i) for i in row[3]),tuple(ref(i) for i in row[5]), legal=row[4]) for row in data['actions'])
+        obs = EntityObservation(entities, actions, data['schema_hash'],data['content_version'],data['reward_version']).validate()
         if pack_observation(obs) != data:
             raise ValueError('Noncanonical packed observation')
         return obs
@@ -55,20 +55,22 @@ def unpack_observation(data):
 
 class EntityReplayBuffer(ReplayBuffer):
     @staticmethod
-    def compatibility_for():
+    def compatibility_for(content_version=CONTENT_VERSION,reward_version=REWARD_VERSION):
         return dict(format_version=REPLAY_VERSION, schema_hash=SCHEMA_HASH, search_version=VERSION,
-                    information_mode='observable', reward_version=REWARD_VERSION, content_version=CONTENT_VERSION)
+                    information_mode='observable', reward_version=reward_version, content_version=content_version)
 
     def __init__(self, directory, capacity=200_000, **kwargs):
-        if kwargs.get('content_version', CONTENT_VERSION) != CONTENT_VERSION or kwargs.get('reward_version', REWARD_VERSION) != REWARD_VERSION:
+        content=kwargs.get('content_version',CONTENT_VERSION)
+        reward=kwargs.get('reward_version',SUPPORTED.get(content))
+        if content not in SUPPORTED or SUPPORTED[content] != reward:
             raise ValueError('Unsupported entity replay content/reward')
         if kwargs.get('search_version', VERSION) != VERSION or kwargs.get('information_mode', 'observable') != 'observable':
             raise ValueError('Entity replay requires dynamic observable search')
         if type(capacity) is not int or capacity < 1:
             raise ValueError('Positive replay capacity required')
         self.directory, self.capacity = Path(directory), capacity
-        self.content_version, self.search_version = CONTENT_VERSION, VERSION
-        self.compatibility = self.compatibility_for()
+        self.content_version, self.search_version = content, VERSION
+        self.compatibility = self.compatibility_for(content,reward)
         self.episodes, self.committed = [], {}
         path = self.directory / 'manifest.json'
         if path.exists():
@@ -110,19 +112,24 @@ class EntityReplayBuffer(ReplayBuffer):
                 or episode.get('compatibility') != self.compatibility):
             raise ValueError('Invalid complete entity episode')
         outcome = episode['outcome']
-        from .rewards import terminal_reward
-        z = terminal_reward(outcome['termination_reason'], outcome['final_hp'], outcome['initial_hp'],
-                            outcome['enemy_final_hp'], outcome['enemy_max_hp'], REWARD_VERSION)
         if outcome['decisions'] != len(rows) or outcome['termination_reason'] not in ('win', 'death', 'time_limit'):
             raise ValueError('Incomplete episode outcome')
         from .entity_transition import public_from_dict
         final = public_from_dict(episode['final_public'])
-        if (final.terminal_value() != z or outcome['reward'] != z or final.history.decisions != len(rows)
+        z = final.terminal_value()
+        from .rewards import terminal_reward
+        settled = terminal_reward(outcome['termination_reason'],outcome['final_hp'],outcome['initial_hp'],
+            outcome['enemy_final_hp'],outcome['enemy_max_hp'],final.reward_version,
+            enemy_initial_hp=outcome.get('enemy_initial_hp'),enemy_roster=outcome.get('enemy_roster'))
+        if (z is None or final.content_version!=self.content_version or final.reward_version!=self.compatibility['reward_version']
+                or outcome['reward'] != z or settled != z or final.history.decisions != len(rows)
                 or final.termination_reason != outcome['termination_reason'] or final.player_hp != outcome['final_hp']
-                or final.enemy_hp != outcome['enemy_final_hp'] or final.turn != outcome['turns']):
+                or final.turn != outcome['turns']):
             raise ValueError('Final public state/outcome mismatch')
         for i, row in enumerate(rows):
             obs = unpack_observation(row['observation'])
+            if (obs.content_version,obs.reward_version)!=(self.content_version,self.compatibility['reward_version']):
+                raise ValueError('Replay observation content/reward mismatch')
             keys = {a.action_key for a in obs.actions}
             legal = {a.action_key for a in obs.actions if a.legal}
             pi, visits = row['policy_target'], row['root_visits']

@@ -18,16 +18,16 @@
 | 阶段 | 当前状态 |
 |---|---|
 | T0/T1 最小切片 | starter 三种基础卡和 Shrinker 已接入公开实体编码、动态动作头、五档模型及严格 checkpoint；19 项契约测试通过 |
-| T0 全内容审计 | 尚未覆盖 G2.3e 全集；当前网络只开放明确的 starter 白名单 |
-| T2 | starter 白名单内已接入紧凑 Replay、逐节点动态搜索、既有协调器与确定性恢复；串并行和中断契约验证通过，详见 T2 报告 |
+| T0 既有内容审计 | 已扩展至 G2.3e 冻结范围：33 基础卡牌、63 升级变体、10 遭遇、10 怪物实体；逐项支持矩阵见扩展报告 |
+| T2 | 已接入 G2.3e 的机制描述、公开实体、单选/原子多选、双敌/召唤/Boss 搜索重建、紧凑 Replay 与精确恢复；必要回归见扩展报告 |
 | T3 | 待单独授权：S 两轮 smoke，seed 42/43 各三轮验证 |
 | T4/T5 | 组合扩展、复杂选择、Boss 难例、档位比较及独立质量验收尚未完成 |
 
-五档精确参数量为 XS 1,029,666；S 5,587,234；M 16,049,698；L 41,081,122；XL 120,635,170。XS/S 已做真实前后向与更新检查；M/L/XL 仅参数实例化和形状验证，不宣称训练性能合格。
+当前 v2 架构五档精确参数量为 XS 1,059,554；S 5,671,522；M 16,221,154；L 41,372,514；XL 121,264,738。XS/S 已做真实批处理与契约检查；M/L/XL 仅参数实例化和形状验证，不宣称训练性能合格。历史 schema/权重不自动迁移。
 
 ## 当前目标与边界
 
-1. T2 starter 接口已闭环；下一步扩大 G2.3e 对齐内容的机制覆盖，并冻结实验配方和资源配置。
+1. T2 已扩大到 G2.3e 既有内容；下一步冻结实验配方与资源配置，再按单独授权开展 T3。
 2. 每次扩展明确列出 engine、observation、action、network、belief/search 和 tests 支持状态；未知机制必须拒绝。
 3. 之后再冻结训练/验证/测试配方，评估未见组合与内容 ID 的泛化。未见机制测试只验证拒绝，不混入普通胜率。
 
@@ -46,6 +46,8 @@ cd sts2-rl-agent
 第二条执行参数、公开夹具和合成梯度审计，不启动自对弈。详见 [T0/T1 交付报告](sts2-rl-agent/docs/AZ_TRANSFORMER_T0_T1.md)、[资源原始报告](sts2-rl-agent/docs/transformer_t0_t1_audit.json)、[旧规格](sts2-rl-agent/spec.md) 和 [历史规格](sts2-rl-agent/spec_0.md)。已查看的夹具不能充当未见测试集。
 
 新增 [T2 交付报告](sts2-rl-agent/docs/AZ_TRANSFORMER_T2.md) 与 [T2 资源审计](sts2-rl-agent/docs/transformer_t2_audit.json)。可用 `python -m pytest tests/test_az_transformer_t2.py -q` 检查 Replay、动态搜索和恢复。该测试只运行固定小夹具；本次没有启动 S smoke 或正式训练实验。
+
+最新交付见 [G2.3e Transformer 扩展报告](sts2-rl-agent/docs/AZ_TRANSFORMER_G23E.md)、[逐项支持与资源审计](sts2-rl-agent/docs/transformer_g23e_audit.json)、[必要测试结果](sts2-rl-agent/docs/transformer_g23e_tests.txt)。836 项测试通过，覆盖 180 个训练配方完整轨迹、选择/生成/临时费用、召唤和 Boss 后续阶段，以及动态搜索、Replay 与恢复。人工夹具不计为自然战斗胜率；本次没有启动训练实验。
 
 ## 快照说明
 

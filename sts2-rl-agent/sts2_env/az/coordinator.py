@@ -56,7 +56,8 @@ class TrainingConfig:
         from .transformer_network import TIERS
         from .search_config import DYNAMIC
         if self.model_tier != 'mlp':
-            if self.model_tier not in TIERS or self.search_version != DYNAMIC or self.content_version != CONTENT_VERSION or self.reward_version != V1:
+            from .entity_encoder import SUPPORTED
+            if self.model_tier not in TIERS or self.search_version != DYNAMIC or SUPPORTED.get(self.content_version) != self.reward_version:
                 raise ValueError('Transformer requires supported starter content and explicit dynamic search')
         elif self.search_version == DYNAMIC:
             raise ValueError('Dynamic search cannot use an MLP')
@@ -167,7 +168,7 @@ class Coordinator:
                     model = PolicyValueNetwork("observable", self.config.reward_version, self.config.content_version)
                 else:
                     from .model_factory import create_transformer
-                    model = create_transformer(self.config.model_tier)
+                    model = create_transformer(self.config.model_tier,self.config.content_version,self.config.reward_version)
             actual_tier = getattr(getattr(model, 'config', None), 'tier', 'mlp')
             if actual_tier != self.config.model_tier:
                 raise ValueError('Initial checkpoint architecture/tier mismatch')

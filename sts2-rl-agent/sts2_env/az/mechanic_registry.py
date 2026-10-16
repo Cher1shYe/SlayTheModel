@@ -8,9 +8,21 @@ from dataclasses import dataclass, asdict
 from .config import content_hash
 
 OPS = ('none', 'damage', 'block', 'vulnerable', 'shrink', 'damage_multiplier', 'decrement', 'remove')
+OPS += ('draw', 'energy', 'hp_loss', 'strength', 'exhaust', 'retain', 'ethereal', 'unplayable',
+        'damage_from_block', 'damage_per_exhaust', 'choose_exhaust', 'random_exhaust', 'choose_upgrade',
+        'upgrade_hand', 'choose_topdeck', 'generate_copy', 'generate', 'cost', 'transform_attacks',
+        'damage_per_energy', 'cost_per_attack', 'retain_hand', 'damage_unpowered', 'stage', 'next_stage',
+        'random_branch', 'summon', 'revive', 'secondary', 'artifact', 'strength_per_skill', 'strength_per_turn',
+        'damage_per_play', 'clear_turn', 'damage_cap', 'finite_forms', 'wound_per_unblocked_hit', 'alternate_intangible')
+OPS += ('hits_per_claw', 'untargetable', 'clear_debuffs', 'prevent_combat_end')
+OPS += ('clear_form_powers', 'advance_phase')
 TARGETS = ('none', 'self', 'enemy', 'player')
+TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
 TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_turn',
            'outgoing_powered_attack', 'incoming_powered_attack', 'enemy_turn_end', 'applier_death')
+TIMINGS += ('after_play', 'turn_end_hand', 'before_attack_play', 'generated_card', 'generated_on_play',
+            'generated_after_play', 'on_skill_play', 'on_card_play', 'on_unblocked_hit', 'on_death', 'turn_start')
+CONDITIONS = ('always', 'hand_empty', 'phase0', 'phase1', 'phase2', 'alive', 'if_hand_nonempty', 'unupgraded', 'reviving')
 
 
 @dataclass(frozen=True)
@@ -20,11 +32,14 @@ class Operation:
     timing: str
     amount: float
     hits: int = 1
+    condition: str = 'always'
+    coefficient: float = 0.
 
     def validate(self):
-        if self.kind not in OPS or self.target not in TARGETS or self.timing not in TIMINGS:
+        if self.kind not in OPS or self.target not in TARGETS or self.timing not in TIMINGS or self.condition not in CONDITIONS:
             raise ValueError(f'Unsupported mechanic path: {self}')
-        if not isinstance(self.amount, (int, float)) or not float('-inf') < self.amount < float('inf') or self.hits < 1:
+        if (not isinstance(self.amount, (int, float)) or not float('-inf') < self.amount < float('inf')
+                or type(self.hits) is not int or self.hits < 1 or not float('-inf') < self.coefficient < float('inf')):
             raise ValueError('Invalid mechanic parameters')
         return self
 
@@ -55,15 +70,13 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'starter-mechanics-v1'
+REGISTRY_VERSION = 'g23e-mechanics-v2'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},
-                              'ops': OPS, 'targets': TARGETS, 'timings': TIMINGS})
+                              'ops': OPS, 'targets': TARGETS, 'timings': TIMINGS, 'conditions': CONDITIONS})
 
 
 def card_descriptor(name):
-    try:
-        return CARDS[name]
-    except KeyError as exc:
-        raise ValueError(f'Unsupported mechanic path: cards/{name}') from exc
+    from .expanded_mechanics import describe_card
+    return describe_card(name)

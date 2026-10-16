@@ -21,7 +21,42 @@ def starter_candidates(info):
 def execute_candidate(adapter, action_key):
     from .entity_encoder import encode_entities
     encode_entities(adapter.information)
-    _, mapping = starter_candidates(adapter.information)
+    _, mapping = action_candidates(adapter.information)
     if action_key not in mapping:
         raise ValueError(f'Unknown action key: {action_key}')
     return adapter.step(mapping[action_key])
+
+
+def action_candidates(info):
+    from .content import BOSS_CONTENT
+    from .config import CONTENT_VERSION
+    if info.content_version == CONTENT_VERSION: return starter_candidates(info)
+    if info.content_version != BOSS_CONTENT: raise ValueError('Unsupported dynamic action content')
+    from sts2_env.gym_env.action_space import action_to_card_and_target
+    rows=[]
+    for native,legal in enumerate(info.legal_mask):
+        if not legal: continue
+        if info.choice:
+            choice=info.choice
+            if choice.mechanism.removesuffix('+') == 'PURITY':
+                refs=tuple(f'{o.pile}/{o.index}' for i,o in enumerate(choice.options) if native & (1<<i))
+                action=ActionCandidate('choose_set:'+','.join(refs),'choose_set','pending',choice_refs=refs)
+            elif native==0:
+                action=ActionCandidate('confirm_choice','confirm_choice','pending')
+            else:
+                o=choice.options[native-1]
+                ref=f'{o.pile}/{o.index}'
+                action=ActionCandidate('choose:'+ref,'choose','pending',choice_refs=(ref,))
+        elif native==0: action=ActionCandidate('end_turn','end_turn')
+        else:
+            slot,target=action_to_card_and_target(native)
+            if slot is None or slot>=len(info.hand): raise ValueError('Unsupported action category')
+            d=card_descriptor(info.hand[slot])
+            if target is not None: refs=(f'enemy/{target}',)
+            elif d.target=='all_enemies': refs=tuple(f'enemy/{e.slot}' for e in info.enemies if e.hp>0 and not e.reviving)
+            elif d.target=='self': refs=('player',)
+            else: refs=()
+            action=ActionCandidate(f'play:hand/{slot}:'+','.join(refs),'play',f'hand/{slot}',refs)
+        rows.append((action,native))
+    if len({a.action_key for a,_ in rows})!=len(rows): raise ValueError('Duplicate dynamic action keys')
+    return tuple(a for a,_ in rows),{a.action_key:n for a,n in rows}

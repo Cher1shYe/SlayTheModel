@@ -6,7 +6,7 @@ import numpy as np
 
 from .information import InformationState, BeliefSampler
 from .entity_encoder import encode_entities
-from .action_candidates import starter_candidates
+from .action_candidates import action_candidates
 from .observable_puct import ActionEdge, OutcomeNode
 from sts2_env.cards import base as card_base
 
@@ -125,7 +125,7 @@ class KeyedParticle:
         return self.particle.info
 
     def step(self, key):
-        _, mapping = starter_candidates(self.info)
+        _, mapping = action_candidates(self.info)
         if key not in mapping:
             raise ValueError('Action missing from current particle node')
         return self.particle.step(mapping[key])
@@ -137,6 +137,8 @@ def plan_dynamic(info, model, **kwargs):
     from .transformer_network import TransformerPolicyValueNetwork
     if not isinstance(model, TransformerPolicyValueNetwork):
         raise ValueError('Dynamic planner requires a Transformer model')
+    if (model.content_version,model.reward_version) != (info.content_version,info.reward_version):
+        raise ValueError('Dynamic planner content/reward mismatch')
     encode_entities(info)
     sampler = BeliefSampler()
     return search_dynamic(info, lambda public, rng: KeyedParticle(sampler.sample(public, rng)),

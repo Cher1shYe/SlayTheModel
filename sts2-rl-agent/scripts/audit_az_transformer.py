@@ -33,7 +33,7 @@ def synthetic_batch(reference, entities, actions):
         elif key == 'state_index':
             out[key] = value
         else:
-            width = actions if key in ('action_type', 'source', 'target_ref', 'legal_mask') else entities
+            width = actions if key in ('action_type', 'source', 'target_ref', 'choice_ref', 'legal_mask') else entities
             out[key] = value[:, torch.arange(width) % value.shape[1]].clone()
     out['entity_mask'].fill_(True)
     out['legal_mask'].fill_(True)

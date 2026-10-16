@@ -1,0 +1,162 @@
+{
+  "scope_counts": {
+    "base_cards": 33,
+    "card_variants": 63,
+    "encounters": 10,
+    "monster_entities": 10
+  },
+  "coverage": {
+    "kind": "180 training recipe random contract trajectories; seed 42, iteration 0; not quality evaluation",
+    "recipes_hash": "95fe07484f6806da9cb23e3919edd58fef6e8a082d3f88d43c7ea344c482c231",
+    "decisions": 3039,
+    "seconds": 6.347299000015482,
+    "seen_card_variants": [
+      "ANGER",
+      "ANGER+",
+      "ARMAMENTS",
+      "ARMAMENTS+",
+      "BASH",
+      "BASH+",
+      "BLUDGEON",
+      "BODY_SLAM+",
+      "BURNING_PACT",
+      "BURNING_PACT+",
+      "DAZED",
+      "DEFEND_IRONCLAD",
+      "DEFEND_IRONCLAD+",
+      "EQUILIBRIUM",
+      "EQUILIBRIUM+",
+      "GIANT_ROCK",
+      "GIANT_ROCK+",
+      "HEADBUTT",
+      "HEADBUTT+",
+      "IMPERVIOUS+",
+      "INFLAME",
+      "INFLAME+",
+      "IRON_WAVE",
+      "IRON_WAVE+",
+      "POMMEL_STRIKE",
+      "POMMEL_STRIKE+",
+      "PRIMAL_FORCE",
+      "PRIMAL_FORCE+",
+      "PURITY",
+      "PURITY+",
+      "REAVE",
+      "REAVE+",
+      "RESTLESSNESS",
+      "RESTLESSNESS+",
+      "SHRUG_IT_OFF",
+      "SHRUG_IT_OFF+",
+      "SOUL",
+      "SOUL+",
+      "STOMP",
+      "STOMP+",
+      "STRIKE_IRONCLAD",
+      "STRIKE_IRONCLAD+",
+      "THUNDERCLAP",
+      "THUNDERCLAP+",
+      "TRUE_GRIT",
+      "TRUE_GRIT+",
+      "TWIN_STRIKE",
+      "WHIRLWIND",
+      "WHIRLWIND+",
+      "WOUND"
+    ],
+    "seen_monsters": [
+      "BYGONE_EFFIGY",
+      "BYRDONIS",
+      "CUBEX_CONSTRUCT",
+      "EYE_WITH_TEETH",
+      "FOGMOG",
+      "FUZZY_WURM_CRAWLER",
+      "MAWLER",
+      "NIBBIT",
+      "SHRINKER_BEETLE",
+      "TEST_SUBJECT"
+    ],
+    "seen_choices": [
+      "BURNING_PACT",
+      "BURNING_PACT+",
+      "HEADBUTT",
+      "HEADBUTT+",
+      "PURITY",
+      "PURITY+",
+      "TRUE_GRIT+"
+    ],
+    "action_types": [
+      "choose",
+      "choose_set",
+      "end_turn",
+      "play"
+    ],
+    "max_entities": 26,
+    "max_actions": 219,
+    "mean_packed_feature_bytes": 10227.050674564001,
+    "max_packed_feature_bytes": 28178,
+    "note": "feature JSON bytes excludes public audit and gzip; not total Replay memory"
+  },
+  "tiers": {
+    "XS": {
+      "parameters": 1059554,
+      "fp32_parameter_gradient_adam_bytes": 16952864,
+      "config": {
+        "tier": "XS",
+        "layers": 4,
+        "d_model": 128,
+        "heads": 4,
+        "dropout": 0.0
+      },
+      "allocation": "actual CPU parameters; no experiment",
+      "serial_20_initial_states_seconds": 0.3272508999798447
+    },
+    "S": {
+      "parameters": 5671522,
+      "fp32_parameter_gradient_adam_bytes": 90744352,
+      "config": {
+        "tier": "S",
+        "layers": 6,
+        "d_model": 256,
+        "heads": 8,
+        "dropout": 0.0
+      },
+      "allocation": "actual CPU parameters; no experiment",
+      "serial_20_initial_states_seconds": 0.1255006999708712
+    },
+    "M": {
+      "parameters": 16221154,
+      "fp32_parameter_gradient_adam_bytes": 259538464,
+      "config": {
+        "tier": "M",
+        "layers": 8,
+        "d_model": 384,
+        "heads": 8,
+        "dropout": 0.0
+      },
+      "allocation": "actual CPU parameters; no experiment"
+    },
+    "L": {
+      "parameters": 41372514,
+      "fp32_parameter_gradient_adam_bytes": 661960224,
+      "config": {
+        "tier": "L",
+        "layers": 12,
+        "d_model": 512,
+        "heads": 8,
+        "dropout": 0.0
+      },
+      "allocation": "actual CPU parameters; no experiment"
+    },
+    "XL": {
+      "parameters": 121264738,
+      "fp32_parameter_gradient_adam_bytes": 1940235808,
+      "config": {
+        "tier": "XL",
+        "layers": 16,
+        "d_model": 768,
+        "heads": 12,
+        "dropout": 0.0
+      },
+      "allocation": "actual CPU parameters; no experiment"
+    }
+  }
+}

@@ -11,17 +11,17 @@ from .network import code_digest
 from .transformer_network import TIERS, ARCHITECTURE_VERSION, TransformerPolicyValueNetwork
 
 
-def create_transformer(tier='XS'):
+def create_transformer(tier='XS', content_version=SCHEMA['content'], reward_version=None):
     if tier not in TIERS:
         raise ValueError(f'Unknown model tier: {tier}')
-    return TransformerPolicyValueNetwork(TIERS[tier])
+    return TransformerPolicyValueNetwork(TIERS[tier],content_version,reward_version)
 
 
 def model_metadata(model):
     config = asdict(model.config)
     return {'format_version': 'transformer-checkpoint-v1', 'architecture': ARCHITECTURE_VERSION,
             'config': config, 'config_hash': content_hash(config), 'schema': SCHEMA,
-            'information_mode': 'observable', 'reward_version': SCHEMA['reward'], 'content_manifest_version': SCHEMA['content'],
+            'information_mode': 'observable', 'reward_version': model.reward_version, 'content_manifest_version': model.content_version,
             'schema_hash': SCHEMA_HASH, 'parameter_count': sum(p.numel() for p in model.parameters())}
 
 
@@ -48,7 +48,7 @@ def save_transformer_checkpoint(path, model, model_version='entity-initial', con
             os.unlink(temporary)
 
 
-def load_transformer_checkpoint(path, expected_tier='XS'):
+def load_transformer_checkpoint(path, expected_tier='XS', expected_content=SCHEMA['content'], expected_reward=None):
     if expected_tier not in TIERS:
         raise ValueError('Unknown Transformer tier')
     payload = torch.load(path, map_location='cpu', weights_only=True)
@@ -56,7 +56,7 @@ def load_transformer_checkpoint(path, expected_tier='XS'):
     if (payload.get('format_version') != 'transformer-checkpoint-v1' or payload.get('schema_hash') != SCHEMA_HASH
             or payload.get('config') != asdict(TIERS[expected_tier])):
         raise ValueError('Transformer checkpoint architecture/schema/config mismatch')
-    model = create_transformer(expected_tier)
+    model = create_transformer(expected_tier,expected_content,expected_reward)
     if any(payload.get(k) != v for k, v in model_metadata(model).items()):
         raise ValueError('Transformer checkpoint metadata mismatch')
     model.load_state_dict(payload['model_state'], strict=True)

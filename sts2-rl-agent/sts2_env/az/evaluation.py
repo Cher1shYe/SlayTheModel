@@ -96,7 +96,7 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
                 elif search_version == 'dynamic-key-puct-v1':
                     from .dynamic_search import plan_dynamic
                     from .entity_encoder import encode_entities
-                    from .action_candidates import starter_candidates
+                    from .action_candidates import action_candidates
                     from .transformer_network import TransformerPolicyValueNetwork
                     if not isinstance(model, TransformerPolicyValueNetwork):
                         raise ValueError('Dynamic evaluation requires Transformer')
@@ -106,7 +106,7 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
                     else:
                         priors, _ = model.predict(encode_entities(env.information))
                         key = max(sorted(priors), key=priors.get)
-                    _, mapping = starter_candidates(env.information)
+                    _, mapping = action_candidates(env.information)
                     action = mapping[key]
                 elif simulations:
                     action = plan_observable(env.information, model, model_version=version, budget=simulations,
