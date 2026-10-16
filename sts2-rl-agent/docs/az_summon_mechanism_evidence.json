@@ -1,0 +1,1512 @@
+{
+  "training": {
+    "42": {
+      "episodes": 486,
+      "decisions": 8538,
+      "fogmog_episodes": 54,
+      "timeouts": 0,
+      "fogmog_decisions": 1086,
+      "eye_reviving_decisions": 258,
+      "dazed_in_hand_decisions": 395,
+      "purity_submissions": 93,
+      "purity_observed_exits": 93,
+      "observed_dazed_generated": 522,
+      "episodes_with_observed_summon": 54,
+      "episodes_with_observed_revival": 47,
+      "fogmog_target0_plays": 257,
+      "fogmog_target1_plays": 131
+    },
+    "43": {
+      "episodes": 486,
+      "decisions": 8566,
+      "fogmog_episodes": 54,
+      "timeouts": 0,
+      "fogmog_decisions": 1198,
+      "eye_reviving_decisions": 273,
+      "dazed_in_hand_decisions": 527,
+      "purity_submissions": 97,
+      "purity_observed_exits": 97,
+      "observed_dazed_generated": 564,
+      "episodes_with_observed_summon": 54,
+      "episodes_with_observed_revival": 48,
+      "fogmog_target0_plays": 273,
+      "fogmog_target1_plays": 122
+    }
+  },
+  "evaluations": {
+    "42/evaluation-0/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 39,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 3
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 3
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 16
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 13
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 21
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 18
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 9
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 22
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 14
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-0/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 49,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 9
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 17
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 23
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 26
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 20
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 28
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-0/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 35,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 0
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 4
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 3
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 4
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 9
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 8
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-0/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 39,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 2
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 7
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 3
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 8
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 18
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 18
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-1/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 49,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 9
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 17
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 23
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 26
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 20
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 28
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-1/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 42,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 11
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 16
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 26
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 30
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 28
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-1/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 39,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 2
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 7
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 3
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 8
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 18
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 18
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-1/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 44,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 5
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 14
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 5
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 21
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 17
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 7
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 25
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-2/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 42,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 11
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 16
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 26
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 30
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 28
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-2/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 56,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 14
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 18
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 25
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 22
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 26
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 19
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 27
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-2/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 44,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 5
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 14
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 5
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 21
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 17
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 7
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 25
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/evaluation-2/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 41,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 3
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 14
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 6
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 24
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 26
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/test/network/final": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 47,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 7
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 9
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 18
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 16
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 20
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 18
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 14
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 19
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 19
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/test/network/initial": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 43,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 4
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 5
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 11
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 8
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 12
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 12
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 9
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 14
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 16
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/test/search/final": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 45,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 2
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 13
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 8
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 15
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 15
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 5
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 18
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 18
+        }
+      },
+      "timeout_cases": []
+    },
+    "42/test/search/initial": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 38,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 0
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 1
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 0
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 5
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 2
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 6
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 2
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-0/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 96,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 5
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 13
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 9
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 14
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 17
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 15
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 18
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 12
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-0/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 53,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 8
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 17
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 25
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 22
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 29
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-0/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 99,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 0
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 3
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 2
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 6
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 4
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-0/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 46,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 1
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 3
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 9
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 1
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 16
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 8
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-1/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 53,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 8
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 17
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 25
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 22
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 28
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 29
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-1/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 45,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 14
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 20
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 25
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 25
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-1/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 46,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 1
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 3
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 9
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 8
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 1
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 16
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 8
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-1/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 45,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 4
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 12
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 9
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 21
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 23
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 6
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 22
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 23
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-2/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 45,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 14
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 20
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 25
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 25
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-2/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 78,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 14
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 19
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 24
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 27
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 23
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 29
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 29
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-2/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 45,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 4
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 12
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 9
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 21
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 23
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 6
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 22
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 23
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/evaluation-2/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 38,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 30,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 28,
+          "wins": 6
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 27,
+          "wins": 19
+        },
+        "setup_fogmog_normal": {
+          "episodes": 27,
+          "wins": 5
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 30,
+          "wins": 22
+        },
+        "setup_mawler_normal": {
+          "episodes": 27,
+          "wins": 21
+        },
+        "setup_nibbits_normal": {
+          "episodes": 27,
+          "wins": 9
+        },
+        "setup_nibbits_weak": {
+          "episodes": 30,
+          "wins": 27
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 30,
+          "wins": 28
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/test/network/final": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 50,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 8
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 11
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 19
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 17
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 20
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 18
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 14
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 19
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 19
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/test/network/initial": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 111,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 3
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 8
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 4
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 9
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 12
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 10
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 12
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 12
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/test/search/final": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 43,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 1
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 2
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 9
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 5
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 11
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 15
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 7
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 17
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 16
+        }
+      },
+      "timeout_cases": []
+    },
+    "43/test/search/initial": {
+      "episodes": 180,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 70,
+      "encounters": {
+        "setup_bygone_effigy_elite": {
+          "episodes": 21,
+          "wins": 0
+        },
+        "setup_byrdonis_elite": {
+          "episodes": 21,
+          "wins": 0
+        },
+        "setup_cubex_construct_normal": {
+          "episodes": 21,
+          "wins": 2
+        },
+        "setup_fogmog_normal": {
+          "episodes": 18,
+          "wins": 0
+        },
+        "setup_fuzzy_wurm_crawler_weak": {
+          "episodes": 21,
+          "wins": 4
+        },
+        "setup_mawler_normal": {
+          "episodes": 18,
+          "wins": 1
+        },
+        "setup_nibbits_normal": {
+          "episodes": 18,
+          "wins": 0
+        },
+        "setup_nibbits_weak": {
+          "episodes": 21,
+          "wins": 3
+        },
+        "setup_shrinker_beetle_weak": {
+          "episodes": 21,
+          "wins": 2
+        }
+      },
+      "timeout_cases": []
+    }
+  },
+  "run_wall_seconds": 741.759548664093,
+  "caveat": "Observed pre-decision states; no inference of unobserved terminal events; same-family test"
+}

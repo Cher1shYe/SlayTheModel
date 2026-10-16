@@ -1,0 +1,380 @@
+{
+  "baselines": {
+    "oracle_mcts": {
+      "information_mode": "full_state_oracle",
+      "split": "validation",
+      "summary": {
+        "decision_seconds_p50": 1.43557495001005,
+        "decision_seconds_p95": 5.324968419922516,
+        "episodes": 16,
+        "exception_rate": 0.0,
+        "illegal_actions": 0,
+        "mean_final_hp": 29.3125,
+        "mean_turns": 4.0,
+        "mean_utility": 0.9465625,
+        "mean_winning_hp": 29.3125,
+        "time_limit_rate": 0.0,
+        "win_rate": 1.0
+      }
+    },
+    "random": {
+      "information_mode": "observable",
+      "split": "test",
+      "summary": {
+        "decision_seconds_p50": 0.00013109995052218437,
+        "decision_seconds_p95": 0.0038305250636767596,
+        "episodes": 500,
+        "exception_rate": 0.0,
+        "illegal_actions": 0,
+        "mean_final_hp": 7.738,
+        "mean_turns": 7.032,
+        "mean_utility": 0.16915164642375174,
+        "mean_winning_hp": 13.026936026936028,
+        "time_limit_rate": 0.0,
+        "win_rate": 0.594
+      }
+    },
+    "rule": {
+      "information_mode": "observable",
+      "split": "test",
+      "summary": {
+        "decision_seconds_p50": 5.350005812942982e-05,
+        "decision_seconds_p95": 0.0001620999537408352,
+        "episodes": 500,
+        "exception_rate": 0.0,
+        "illegal_actions": 0,
+        "mean_final_hp": 32.114,
+        "mean_turns": 3.176,
+        "mean_utility": 0.96057,
+        "mean_winning_hp": 32.114,
+        "time_limit_rate": 0.0,
+        "win_rate": 1.0
+      }
+    }
+  },
+  "engineering_acceptance": "passed",
+  "learning_acceptance": "passed",
+  "plan": {
+    "code_digest": "d164c6bf0fc8baac53d898871ef70408d20bedbe6a2125f2fff0979719271908",
+    "episodes_per_iteration": 256,
+    "eval_simulations": 256,
+    "evaluation_seed": 123,
+    "format_version": 1,
+    "information_mode": "observable",
+    "iterations_per_seed": 2,
+    "learning_rule": "positive utility CI and win-priority gate for both modes in each of two seeds",
+    "manifest": "C:\\Users\\15808\\Desktop\\github\\sts2_laya\\sts2-rl-agent\\data\\az\\hp_v2_manifest.json",
+    "manifest_sha256": "9aef9a3b25868cc2cd8b9c0007ee81115312d1bd83e8fe9dc2da084f023734d2",
+    "oracle_scope": "first 16 validation scenarios, 256 simulations, rollout depth 40; separate privileged reference",
+    "reward_version": "win-first-hp-v2",
+    "seeds": [
+      42,
+      43
+    ],
+    "statistical_seed": 1729,
+    "stopping_rule": "exactly two training rounds per seed; no tuning based on final test",
+    "test_count": 500,
+    "train_simulations": 64,
+    "updates_per_iteration": 200,
+    "validation_count": 512,
+    "workers": 8
+  },
+  "seeds": {
+    "42": {
+      "network": {
+        "bootstrap_samples": 10000,
+        "by_family": {
+          "ironclad-starter": {
+            "final": {
+              "decision_seconds_p50": 0.0008577000116929412,
+              "decision_seconds_p95": 0.001129099982790649,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 31.78,
+              "mean_turns": 3.204,
+              "mean_utility": 0.9589,
+              "mean_winning_hp": 31.78,
+              "time_limit_rate": 0.0,
+              "win_rate": 1.0
+            },
+            "initial": {
+              "decision_seconds_p50": 0.0008155000396072865,
+              "decision_seconds_p95": 0.0011654000263661146,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 13.898,
+              "mean_turns": 5.618,
+              "mean_utility": 0.6149335087719299,
+              "mean_winning_hp": 16.466824644549764,
+              "time_limit_rate": 0.0,
+              "win_rate": 0.844
+            }
+          }
+        },
+        "elapsed_seconds": 7.451137800002471,
+        "final": {
+          "decision_seconds_p50": 0.0008577000116929412,
+          "decision_seconds_p95": 0.001129099982790649,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 31.78,
+          "mean_turns": 3.204,
+          "mean_utility": 0.9589,
+          "mean_winning_hp": 31.78,
+          "time_limit_rate": 0.0,
+          "win_rate": 1.0
+        },
+        "gain_passed": true,
+        "initial": {
+          "decision_seconds_p50": 0.0008155000396072865,
+          "decision_seconds_p95": 0.0011654000263661146,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 13.898,
+          "mean_turns": 5.618,
+          "mean_utility": 0.6149335087719299,
+          "mean_winning_hp": 16.466824644549764,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.844
+        },
+        "mean_utility_difference": 0.3439664912280702,
+        "reward_version": "win-first-hp-v2",
+        "statistics_seed": 1729,
+        "utility_difference_ci95": [
+          0.29122758940620785,
+          0.4009324308367072
+        ],
+        "win_rate_difference": 0.156,
+        "win_rate_difference_ci95": [
+          0.124,
+          0.188
+        ]
+      },
+      "search": {
+        "bootstrap_samples": 10000,
+        "by_family": {
+          "ironclad-starter": {
+            "final": {
+              "decision_seconds_p50": 1.0331793000223115,
+              "decision_seconds_p95": 1.2752551799174394,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 27.138,
+              "mean_turns": 3.628,
+              "mean_utility": 0.93569,
+              "mean_winning_hp": 27.138,
+              "time_limit_rate": 0.0,
+              "win_rate": 1.0
+            },
+            "initial": {
+              "decision_seconds_p50": 1.0308808499830775,
+              "decision_seconds_p95": 1.1394660550344264,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 12.892,
+              "mean_turns": 5.994,
+              "mean_utility": 0.7004275303643727,
+              "mean_winning_hp": 14.324444444444444,
+              "time_limit_rate": 0.0,
+              "win_rate": 0.9
+            }
+          }
+        },
+        "elapsed_seconds": 1314.1572229999583,
+        "final": {
+          "decision_seconds_p50": 1.0331793000223115,
+          "decision_seconds_p95": 1.2752551799174394,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 27.138,
+          "mean_turns": 3.628,
+          "mean_utility": 0.93569,
+          "mean_winning_hp": 27.138,
+          "time_limit_rate": 0.0,
+          "win_rate": 1.0
+        },
+        "gain_passed": true,
+        "initial": {
+          "decision_seconds_p50": 1.0308808499830775,
+          "decision_seconds_p95": 1.1394660550344264,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 12.892,
+          "mean_turns": 5.994,
+          "mean_utility": 0.7004275303643727,
+          "mean_winning_hp": 14.324444444444444,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.9
+        },
+        "mean_utility_difference": 0.23526246963562752,
+        "reward_version": "win-first-hp-v2",
+        "statistics_seed": 1729,
+        "utility_difference_ci95": [
+          0.19124994804318488,
+          0.28149191835357623
+        ],
+        "win_rate_difference": 0.1,
+        "win_rate_difference_ci95": [
+          0.074,
+          0.126
+        ]
+      }
+    },
+    "43": {
+      "network": {
+        "bootstrap_samples": 10000,
+        "by_family": {
+          "ironclad-starter": {
+            "final": {
+              "decision_seconds_p50": 0.0008565000025555491,
+              "decision_seconds_p95": 0.001090364984702319,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 31.884,
+              "mean_turns": 3.196,
+              "mean_utility": 0.9594199999999999,
+              "mean_winning_hp": 31.884,
+              "time_limit_rate": 0.0,
+              "win_rate": 1.0
+            },
+            "initial": {
+              "decision_seconds_p50": 0.0008356999605894089,
+              "decision_seconds_p95": 0.0011591399786993856,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 3.79,
+              "mean_turns": 7.264,
+              "mean_utility": -0.3156803778677463,
+              "mean_winning_hp": 11.99367088607595,
+              "time_limit_rate": 0.0,
+              "win_rate": 0.316
+            }
+          }
+        },
+        "elapsed_seconds": 4.422578699886799,
+        "final": {
+          "decision_seconds_p50": 0.0008565000025555491,
+          "decision_seconds_p95": 0.001090364984702319,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 31.884,
+          "mean_turns": 3.196,
+          "mean_utility": 0.9594199999999999,
+          "mean_winning_hp": 31.884,
+          "time_limit_rate": 0.0,
+          "win_rate": 1.0
+        },
+        "gain_passed": true,
+        "initial": {
+          "decision_seconds_p50": 0.0008356999605894089,
+          "decision_seconds_p95": 0.0011591399786993856,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 3.79,
+          "mean_turns": 7.264,
+          "mean_utility": -0.3156803778677463,
+          "mean_winning_hp": 11.99367088607595,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.316
+        },
+        "mean_utility_difference": 1.2751003778677463,
+        "reward_version": "win-first-hp-v2",
+        "statistics_seed": 1729,
+        "utility_difference_ci95": [
+          1.2027717243589746,
+          1.3436698559379219
+        ],
+        "win_rate_difference": 0.684,
+        "win_rate_difference_ci95": [
+          0.642,
+          0.724
+        ]
+      },
+      "search": {
+        "bootstrap_samples": 10000,
+        "by_family": {
+          "ironclad-starter": {
+            "final": {
+              "decision_seconds_p50": 1.8277432000031695,
+              "decision_seconds_p95": 3.6523802800569696,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 27.244,
+              "mean_turns": 3.614,
+              "mean_utility": 0.9362200000000002,
+              "mean_winning_hp": 27.244,
+              "time_limit_rate": 0.0,
+              "win_rate": 1.0
+            },
+            "initial": {
+              "decision_seconds_p50": 1.0215700499829836,
+              "decision_seconds_p95": 1.129662465007277,
+              "episodes": 500,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "mean_final_hp": 9.742,
+              "mean_turns": 6.574,
+              "mean_utility": 0.6294389473684212,
+              "mean_winning_hp": 11.249422632794458,
+              "time_limit_rate": 0.0,
+              "win_rate": 0.866
+            }
+          }
+        },
+        "elapsed_seconds": 1834.2328044999158,
+        "final": {
+          "decision_seconds_p50": 1.8277432000031695,
+          "decision_seconds_p95": 3.6523802800569696,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 27.244,
+          "mean_turns": 3.614,
+          "mean_utility": 0.9362200000000002,
+          "mean_winning_hp": 27.244,
+          "time_limit_rate": 0.0,
+          "win_rate": 1.0
+        },
+        "gain_passed": true,
+        "initial": {
+          "decision_seconds_p50": 1.0215700499829836,
+          "decision_seconds_p95": 1.129662465007277,
+          "episodes": 500,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_final_hp": 9.742,
+          "mean_turns": 6.574,
+          "mean_utility": 0.6294389473684212,
+          "mean_winning_hp": 11.249422632794458,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.866
+        },
+        "mean_utility_difference": 0.30678105263157895,
+        "reward_version": "win-first-hp-v2",
+        "statistics_seed": 1729,
+        "utility_difference_ci95": [
+          0.25883990620782726,
+          0.3578259041835357
+        ],
+        "win_rate_difference": 0.134,
+        "win_rate_difference_ci95": [
+          0.106,
+          0.164
+        ]
+      }
+    }
+  }
+}

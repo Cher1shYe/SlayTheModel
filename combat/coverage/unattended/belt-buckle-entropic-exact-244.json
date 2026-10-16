@@ -1,6 +1,0 @@
-{
-  "potionId": "EntropicBrew",
-  "target": "Player",
-  "procureThroughGame": true,
-  "expectedAbsentPlayerPowers": ["DEXTERITY_POWER"]
-}

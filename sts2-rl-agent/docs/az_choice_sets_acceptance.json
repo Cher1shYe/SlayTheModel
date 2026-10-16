@@ -1,0 +1,179 @@
+{
+  "date": "2026-10-10",
+  "batch": "G1.4c complete-set actions",
+  "engineering": "passed",
+  "g1_complete": false,
+  "regression": {
+    "passed": 2112,
+    "subtests": 8,
+    "seconds": 138.29
+  },
+  "smoke": {
+    "actual": {
+      "42": {
+        "champion": "initial.pt",
+        "episodes": 252,
+        "iterations": 2,
+        "promoted": 0,
+        "updates": 8
+      }
+    },
+    "code_digest": "2de2f9c449f8afa8eaf0c68792b0fdc820bc345c4616df8399bca13412a31b26",
+    "collection_episodes_per_second": 11.33119387203279,
+    "collection_seconds": 22.239492400000017,
+    "content_version": "g1-selection-v2",
+    "decisions_per_second": 155.71398563035535,
+    "estimate_caveat": "Linear scaling of smoke budgets and counts; policy, fight length and cache reuse change cost; excludes final tests",
+    "estimated_full_training_hours": 0.0735040637725129,
+    "iterations": 2,
+    "planned_long_iterations": 3,
+    "runner_digest": "b007abd60c0da24cb67daf66c829bb08aca1407e3e2011db42b378f144d4798d",
+    "status": "passed",
+    "test_evaluated": false,
+    "training_decisions": 3463
+  },
+  "training": "complete",
+  "purpose": "quick_mechanism_verification",
+  "quality_acceptance": "not_claimed_quick_verification",
+  "learning_gain": "passed",
+  "actual": {
+    "42": {
+      "champion": "candidate-2.pt",
+      "decisions": 6427,
+      "episodes": 378,
+      "iterations": 3,
+      "promoted": 3,
+      "updates": 48
+    },
+    "43": {
+      "champion": "candidate-2.pt",
+      "decisions": 6513,
+      "episodes": 378,
+      "iterations": 3,
+      "promoted": 2,
+      "updates": 48
+    }
+  },
+  "mechanism_evidence": {
+    "42": {
+      "counts": {
+        "episodes": 378,
+        "decisions": 6427,
+        "training_timeouts": 0,
+        "purity_set_decisions": 73,
+        "observed_returns_from_choice": 73
+      },
+      "selected_card_counts": {
+        "0": 20,
+        "3": 8,
+        "1": 23,
+        "2": 20,
+        "4": 1,
+        "5": 1
+      }
+    },
+    "43": {
+      "counts": {
+        "episodes": 378,
+        "decisions": 6513,
+        "training_timeouts": 0,
+        "purity_set_decisions": 77,
+        "observed_returns_from_choice": 77
+      },
+      "selected_card_counts": {
+        "2": 19,
+        "3": 15,
+        "1": 26,
+        "4": 1,
+        "0": 16
+      }
+    }
+  },
+  "tests": [
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-42-network.json",
+      "role": "initial",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 11,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 57
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-42-network.json",
+      "role": "final",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 113,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 41
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-42-search.json",
+      "role": "initial",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 2,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 44
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-42-search.json",
+      "role": "final",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 60,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 36
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-43-network.json",
+      "role": "initial",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 112,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 35
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-43-network.json",
+      "role": "final",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 121,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 34
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-43-search.json",
+      "role": "initial",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 29,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 32
+    },
+    {
+      "source": "output\\az_g1_selection_v2_quick\\test-43-search.json",
+      "role": "final",
+      "episodes": 150,
+      "timeouts": 0,
+      "wins": 65,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 38
+    }
+  ],
+  "run_wall_seconds": 300.0330035686493,
+  "verification": "artifact_and_statistics_checks_passed",
+  "independent_cross_model_audit": "not_performed",
+  "retained_intermediate_timeout": "seed 42 candidate-0, set-validation-182-0-84, 100 turns / 318 decisions, defensive combat stall; Purity resolved once",
+  "report": "output/az_g1_selection_v2_quick/report.json"
+}

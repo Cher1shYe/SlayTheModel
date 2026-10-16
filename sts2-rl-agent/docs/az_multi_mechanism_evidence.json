@@ -1,0 +1,263 @@
+{
+  "training": {
+    "42": {
+      "episodes": 432,
+      "decisions": 7202,
+      "timeouts": 0,
+      "pair_episodes": 54,
+      "pair_decisions": 932,
+      "front_dead_back_alive_decisions": 58,
+      "pair_target1_plays": 175,
+      "back_target_after_front_death_plays": 15,
+      "pair_target0_plays": 176,
+      "pair_aoe_plays.STOMP": 3,
+      "purity_set_decisions": 83,
+      "purity_observed_completed": 83,
+      "pair_aoe_plays.WHIRLWIND": 7,
+      "pair_aoe_plays.STOMP+": 2,
+      "pair_aoe_plays.WHIRLWIND+": 8,
+      "pair_headbutt_choices": 10,
+      "pair_headbutt_back_target_choices": 7
+    },
+    "43": {
+      "episodes": 432,
+      "decisions": 7469,
+      "timeouts": 0,
+      "pair_episodes": 54,
+      "pair_decisions": 1032,
+      "front_dead_back_alive_decisions": 83,
+      "pair_target1_plays": 185,
+      "back_target_after_front_death_plays": 25,
+      "purity_set_decisions": 84,
+      "purity_observed_completed": 84,
+      "pair_target0_plays": 189,
+      "pair_aoe_plays.WHIRLWIND": 9,
+      "pair_headbutt_choices": 13,
+      "pair_headbutt_back_target_choices": 5,
+      "pair_aoe_plays.WHIRLWIND+": 6,
+      "pair_aoe_plays.STOMP": 4,
+      "pair_aoe_plays.STOMP+": 2,
+      "pair_aoe_plays.THUNDERCLAP+": 1
+    }
+  },
+  "evaluations": {
+    "42/evaluation-0/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-0/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-0/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-0/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-1/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-1/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-1/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-1/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-2/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-2/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-2/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/evaluation-2/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "42/test/network/initial": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 27,
+      "pair_episodes": 18,
+      "pair_wins": 0
+    },
+    "42/test/network/final": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 54,
+      "pair_episodes": 18,
+      "pair_wins": 14
+    },
+    "42/test/search/initial": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 33,
+      "pair_episodes": 18,
+      "pair_wins": 0
+    },
+    "42/test/search/final": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 38,
+      "pair_episodes": 18,
+      "pair_wins": 0
+    },
+    "43/evaluation-0/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-0/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-0/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-0/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-1/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-1/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-1/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-1/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-2/network/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-2/network/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-2/search/champion": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/evaluation-2/search/candidate": {
+      "episodes": 256,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0
+    },
+    "43/test/network/initial": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 34,
+      "pair_episodes": 18,
+      "pair_wins": 10
+    },
+    "43/test/network/final": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 41,
+      "pair_episodes": 18,
+      "pair_wins": 16
+    },
+    "43/test/search/initial": {
+      "episodes": 150,
+      "timeouts": 0,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 32,
+      "pair_episodes": 18,
+      "pair_wins": 0
+    },
+    "43/test/search/final": {
+      "episodes": 150,
+      "timeouts": 1,
+      "errors": 0,
+      "illegal_actions": 0,
+      "max_decisions": 308,
+      "pair_episodes": 18,
+      "pair_wins": 4
+    }
+  },
+  "run_wall_seconds": 399.11538767814636,
+  "caveat": "Pre-decision observations; post-terminal mechanism events are not inferred"
+}

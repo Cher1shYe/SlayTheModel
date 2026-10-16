@@ -1,0 +1,31 @@
+F                                                                        [100%]
+================================== FAILURES ===================================
+_________________ test_versioned_collection_replay_and_spawn __________________
+
+tmp_path = WindowsPath('C:/Users/15808/AppData/Local/Temp/pytest-of-15808/pytest-93/test_versioned_collection_repl0')
+
+    def test_versioned_collection_replay_and_spawn(tmp_path):
+        initialize_worker()
+        torch.manual_seed(7)
+        model=PolicyValueNetwork("observable",V6,BOSS_CONTENT)
+        checkpoint=tmp_path/"model.pt"
+        save_checkpoint(checkpoint,model,"versioned",{}, {})
+        job=CollectionJob("0",0,42,generate(42,0,90).to_dict(),str(checkpoint),file_digest(checkpoint),
+                          "versioned",str(tmp_path/"errors"),8,EpisodeLimits(max_decisions=3),V6,COMBINED)
+        serial=collect_episode(job)
+        with Collector(1) as pool:
+            parallel=pool.collect([job])[0]
+        for a,b in zip(serial["rows"],parallel["rows"]):
+            assert {k:v for k,v in a.items() if k!="search_seconds"}=={k:v for k,v in b.items() if k!="search_seconds"}
+        buffer=ReplayBuffer(tmp_path/"new",reward_version=V6,content_version=BOSS_CONTENT,search_version=COMBINED)
+        buffer.commit(serial)
+        assert buffer.size==3
+        before=buffer.sample(4,np.random.default_rng(77))
+>       buffer.release_memory()
+        ^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'ReplayBuffer' object has no attribute 'release_memory'
+
+tests\test_az_search_versions.py:66: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/test_az_search_versions.py::test_versioned_collection_replay_and_spawn
+1 failed in 6.17s

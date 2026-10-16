@@ -1,0 +1,45 @@
+{
+  "milestone": "G2.3d",
+  "date": "2026-10-16",
+  "status": "diagnostic_complete",
+  "production_search_changed": false,
+  "training_started": false,
+  "final_test_read": false,
+  "unique_training_recipes": 9,
+  "full_fights": 108,
+  "first_state_label_probes": 36,
+  "model_seeds": [42, 43],
+  "modes": ["network", "search8", "search32", "tie8", "zero8", "rule"],
+  "search8": {"decisions": 477, "tied_max": 288, "prior_tie_changes": 234, "tied_end_turn": 60, "phase2": 10, "phase3": 0},
+  "tie8": {"phase2": 16, "phase3": 2, "policy_target_changed": false},
+  "search32": {"phase2": 18, "phase3": 3},
+  "all_modes_wins": 0,
+  "all_modes_timeouts": 0,
+  "noisy_training_root_ties": {"count": 13, "total": 18},
+  "regressions_passed": 14,
+  "same_case_deterministic_reproduction": "passed",
+  "artifact_verification": "passed",
+  "quality_acceptance": "not_claimed",
+  "conclusions": [
+    "Low-index resolution of tied visit maxima contributes to observed search8 degradation",
+    "Prior tie resolution changes selected action but does not repair visit-based training targets",
+    "Negative values with zero unvisited Q spread visits in controlled test; isolated combat FPU causality remains untested",
+    "Zero neural values have mixed results; no justification for production value removal",
+    "More simulations improve phase coverage on these recipes with higher cost; no victories"
+  ],
+  "limitations": [
+    "Nine shared training recipes, not eighteen independent scenarios or an independent final benchmark",
+    "Rule trajectories duplicated across model seeds",
+    "Value error is relative to a particular continuation policy",
+    "High target entropy alone is not proof of an incorrect target"
+  ],
+  "next": "G2.3e: versioned prior-tie and FPU/target comparisons on train/validation; freeze fresh final test before smoke and three-round learning verification",
+  "evidence": [
+    "docs/AZ_G2_BOSS_SEARCH_DIAGNOSTIC.md",
+    "docs/az_boss_search_diagnostic_tests.txt",
+    "docs/az_boss_search_diagnostic_verification.json",
+    "output/az_boss_search_diagnostic_v1/plan.json",
+    "output/az_boss_search_diagnostic_v1/report.json",
+    "output/az_boss_label_diagnostic_v1.json"
+  ]
+}

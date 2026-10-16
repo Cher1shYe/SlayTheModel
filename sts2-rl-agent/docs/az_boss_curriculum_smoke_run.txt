@@ -1,0 +1,7 @@
+{'stage': 'smoke', 'seed': 42, 'iteration': 0, 'phase': 'collect'}
+{'stage': 'smoke', 'seed': 42, 'iteration': 0, 'phase': 'evaluate'}
+{'stage': 'smoke', 'seed': 42, 'iteration': 0, 'phase': 'finalize'}
+{'stage': 'smoke', 'seed': 42, 'iteration': 1, 'phase': 'collect'}
+{'stage': 'smoke', 'seed': 42, 'iteration': 1, 'phase': 'evaluate'}
+{'stage': 'smoke', 'seed': 42, 'iteration': 1, 'phase': 'finalize'}
+{'status': 'passed', 'iterations': 2, 'content_version': 'g2-boss-v1', 'planned_long_iterations': 3, 'actual': {'42': {'iterations': 2, 'episodes': 360, 'champion': 'initial.pt', 'promoted': 0, 'updates': 8}}, 'code_digest': '7d94e1befac31f14c3bc1bccce27dfe27bd02e181c842d1272c99ba53f5e8941', 'runner_digest': 'b975c50211d0c63f47f4ec5fa6a3e2b269a5153dcb09b16d2b2f3a1eb4b06bfa', 'training_decisions': 5365, 'collection_seconds': 174.41676120006014, 'decisions_per_second': 30.759658435843896, 'collection_episodes_per_second': 2.0640218148935325, 'estimated_full_training_hours': 0.6134485661671109, 'estimate_caveat': 'Linear scaling of smoke budgets and counts; policy, fight length and cache reuse change cost; excludes final tests', 'test_evaluated': False, 'sampling_version': 'boss-course-v1'}

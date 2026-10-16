@@ -1,0 +1,45 @@
+{
+  "date": "2026-10-11",
+  "stage": "G2.2a",
+  "engineering": "foundation_complete",
+  "full_g2_2_content": "not_integrated",
+  "reward_contract": "primary-roster-hp-v5",
+  "reward_registered_for_training": false,
+  "tests": {
+    "command": ".venv-az/Scripts/python.exe -m pytest tests -q",
+    "passed": 6356,
+    "skipped": 1,
+    "subtests_passed": 30,
+    "seconds": 131.72,
+    "new_tests": 36,
+    "targeted_passed": 426,
+    "log": "docs/az_g2_lifecycle_tests.txt",
+    "log_sha256": "879a30b22eb5df7f8d5c59f8e953d9dcd785bec50e26b6fb07929224131c3ced"
+  },
+  "regressions_reproduced_before_fix": 3,
+  "training": {
+    "status": "not_started",
+    "reason": "No new AZ content/schema admitted; prerequisite foundation only",
+    "future_budget": "two-round smoke then each of two seeds three rounds; network-only promotion"
+  },
+  "source_sha256": {
+    "sts2_env/core/combat.py": "ef0052233631dd5969fbe35e65461858c14f8f68c2e97556068a2e19e0abe375",
+    "sts2_env/core/creature.py": "ca95ef7bbbd59edde584e369cd67a891b21127eb5eaef2feeb9a3355a56978c3",
+    "sts2_env/powers/base.py": "09d3b38914252a337e5b6043e6469a44ae6c5fe401c9732702ec96ace2bff822",
+    "sts2_env/powers/monster.py": "5a4ec08daf6a012934422ee2ef7d69bab8a8664429ed99f58b331fc7c839453d",
+    "sts2_env/powers/remaining_c.py": "489dc9b664b779b7b5faefcf2be92df368e078ae52674b8126b54ab69c329f78",
+    "sts2_env/az/enemy_lifecycle.py": "f37ac2972ac23db317760977fd231fc2e4b533b92ca6becd2eed5b0a86ca2f62",
+    "tests/test_enemy_lifecycle_terminal.py": "4391877ce2866dd5d9f3e3d79b65c0be0156779a875ea93666cba706e6d45b05",
+    "tests/test_az_enemy_lifecycle.py": "0fa4dc6e4b08719e623c2a4558b9b57a1d915a922d4f330bf6609cee481ed346",
+    "tests/test_parity_helpers.py": "bf27e4cfc2ae59e1425be6d7a01705df6e90963bfbd6dd41cd2b8da20a667cf1",
+    "tests/test_monster_ai_state_machine_parity.py": "c38173d8af3af62c900eabfb2dabdd68ae959f106b19e061a7abb8053b4b5e84"
+  },
+  "remaining": [
+    "Fogmog/Eye public AI and native target mapping",
+    "Dazed generation/ethereal lifecycle",
+    "InformationState/particle/encoder integration",
+    "Versioned shared reward/Replay/evaluation integration",
+    "New frozen manifests, smoke and three-round validation"
+  ],
+  "historical_results": "unchanged; do not resume old runs with changed source"
+}

@@ -1,0 +1,22 @@
+{
+  "experiment": "output/az_hp_v2_experiment",
+  "initial_hp": 40,
+  "iterations": 2,
+  "learning_acceptance": "passed",
+  "reward_version": "win-first-hp-v2",
+  "seeds": [
+    42,
+    43
+  ],
+  "smoke": "output/az_hp_v2_acceptance",
+  "status": "complete",
+  "subtests_passed": 30,
+  "test_count": 500,
+  "tests_passed": 120,
+  "engineering_acceptance": "passed_current_limited_scope",
+  "verification": "docs/az_hp_v2_verification.json",
+  "results": "docs/AZ_HP_V2_RESULTS.md",
+  "training_episodes": 1024,
+  "training_updates": 800,
+  "independent_cross_model_audit": "unavailable"
+}

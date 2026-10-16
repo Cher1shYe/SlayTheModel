@@ -1,0 +1,89 @@
+{
+  "checkpoint_sha256": "c258318847d0278727f543516e03fdc084bd487ce5f2d3de0fab879321596b05",
+  "cpu_count": 16,
+  "episodes": 16,
+  "information_mode": "observable",
+  "job_hash": "2515955b792727542edb0d2deee66e0bfc0e208d7ea966ec94133ab540feb967",
+  "manifest_sha256": "cbeb63c9b761eca7fb177886c3d64526467d3ae8bb667c3e06efedf30ce618a6",
+  "master_seed": 42,
+  "memory_method": "20ms sampled sum of parent and recursive child RSS; shared pages counted per process",
+  "python": "3.12.14",
+  "results": [
+    {
+      "actual_worker_pids": [
+        62740
+      ],
+      "cold_collection_seconds": 24.80601309996564,
+      "decision_seconds_p50": 0.08535665000090376,
+      "decision_seconds_p95": 0.1102776900108438,
+      "decisions": 332,
+      "decisions_per_second": 13.64796833344317,
+      "episodes_per_second": 0.6577334136599119,
+      "labels_identical": true,
+      "outcomes": {
+        "win": 16
+      },
+      "peak_process_tree_rss_bytes": 611344384,
+      "simulations": 17920,
+      "simulations_per_second": 736.6614232991013,
+      "startup_seconds": 2.3718975000083447,
+      "warm_collection_seconds": 24.325964999967255,
+      "workers": 1
+    },
+    {
+      "actual_worker_pids": [
+        28288,
+        44076,
+        52120,
+        64884
+      ],
+      "cold_collection_seconds": 8.238107100012712,
+      "decision_seconds_p50": 0.08881260000634938,
+      "decision_seconds_p95": 0.1017899600265082,
+      "decisions": 332,
+      "decisions_per_second": 44.95350832360543,
+      "episodes_per_second": 2.1664341360773705,
+      "labels_identical": true,
+      "outcomes": {
+        "win": 16
+      },
+      "peak_process_tree_rss_bytes": 1531052032,
+      "simulations": 17920,
+      "simulations_per_second": 2426.406232406655,
+      "startup_seconds": 2.7150051000062376,
+      "warm_collection_seconds": 7.385407999972813,
+      "workers": 4
+    },
+    {
+      "actual_worker_pids": [
+        13572,
+        35656,
+        46000,
+        54388,
+        61780,
+        63840,
+        65668,
+        66268
+      ],
+      "cold_collection_seconds": 5.570334199932404,
+      "decision_seconds_p50": 0.1023993999697268,
+      "decision_seconds_p95": 0.12867267002002336,
+      "decisions": 332,
+      "decisions_per_second": 62.624239322981715,
+      "episodes_per_second": 3.018035630023215,
+      "labels_identical": true,
+      "outcomes": {
+        "win": 16
+      },
+      "peak_process_tree_rss_bytes": 2733076480,
+      "simulations": 17920,
+      "simulations_per_second": 3380.199905626001,
+      "startup_seconds": 3.412569700041786,
+      "warm_collection_seconds": 5.301461600000039,
+      "workers": 8
+    }
+  ],
+  "simulations_per_decision": 64,
+  "timing_scope": "complete episodes incl setup, model load on cold pass, search, execution, IPC; pool startup separate",
+  "torch": "2.14.1+cpu"
+}

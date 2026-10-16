@@ -1,0 +1,39 @@
+{
+  "source": "training Replay decision inputs; terminal post-action events not inferred",
+  "seeds": {
+    "42": {
+      "episodes": 378,
+      "decisions": 6809,
+      "purity_choice_decisions": 485,
+      "selections": 248,
+      "cancellations": 166,
+      "empty_confirms": 25,
+      "nonempty_confirms": 46,
+      "x_plays": 110,
+      "zero_x_plays": 15,
+      "max_observed_x_payment": 5,
+      "equilibrium_plays": 64,
+      "episodes_with_timed_retain": 48,
+      "max_retain_turns": 1,
+      "timed_retain_boundaries": 61,
+      "training_timeouts": 0
+    },
+    "43": {
+      "episodes": 378,
+      "decisions": 6887,
+      "purity_choice_decisions": 280,
+      "selections": 141,
+      "cancellations": 66,
+      "empty_confirms": 25,
+      "nonempty_confirms": 48,
+      "x_plays": 109,
+      "zero_x_plays": 17,
+      "max_observed_x_payment": 6,
+      "equilibrium_plays": 75,
+      "episodes_with_timed_retain": 52,
+      "max_retain_turns": 1,
+      "timed_retain_boundaries": 73,
+      "training_timeouts": 0
+    }
+  }
+}

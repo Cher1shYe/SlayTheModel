@@ -1,8 +1,0 @@
-[
-  {
-    "monsterId": "PhrogParasite",
-    "useCurrentMove": true,
-    "killMonsterAfterMove": true,
-    "expectedSimulatedDynamicResolution": false
-  }
-]

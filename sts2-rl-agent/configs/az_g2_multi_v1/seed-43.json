@@ -1,0 +1,1 @@
+{"batch_size":64,"capacity":200000,"content_version":"g2-multi-v1","episodes_per_iteration":144,"eval_simulations":8,"iterations":3,"max_decisions":400,"max_turns":100,"reward_version":"fixed-roster-hp-v4","seed":43,"simulations":8,"updates":16,"validation_count":256,"workers":8}

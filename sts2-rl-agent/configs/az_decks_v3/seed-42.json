@@ -1,0 +1,1 @@
+{"batch_size":256,"capacity":200000,"content_version":"three-weak-decks-v1","episodes_per_iteration":256,"eval_simulations":256,"iterations":50,"max_decisions":400,"max_turns":100,"reward_version":"win-timeout-hp-v3","seed":42,"simulations":64,"updates":200,"validation_count":256,"workers":8}

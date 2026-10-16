@@ -1,10 +1,2 @@
-bin/
-obj/
-.godot/
-.DS_Store
-artifacts/
-*.user
-*.suo
-
-# Local Codex delegation artifacts
 .handoffs/
+scripts/__pycache__/

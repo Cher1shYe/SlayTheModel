@@ -1,8 +1,0 @@
-[
-  {
-    "monsterId": "FuzzyWurmCrawler",
-    "moveId": "INHALE",
-    "enemyHpBefore": 999,
-    "triggerPlayerTurnEndAfterMove": true
-  }
-]

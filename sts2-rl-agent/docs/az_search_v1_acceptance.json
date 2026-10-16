@@ -1,0 +1,167 @@
+{
+  "milestone": "G2.3e",
+  "date": "2026-10-16",
+  "engineering": "implemented_and_verified",
+  "search_version": "parent-prior-v1",
+  "sampling_version": "boss-search-course-v1",
+  "content_version": "g2-boss-v1",
+  "reward_version": "finite-primary-phases-v6",
+  "code_digest": "d77c12f17634f0be7cbdc89b2a1b8bdfaad7f052df7ab8018552edd5dc8a82cb",
+  "runner_digest": "5d705b4a17df977b5ac5bdc53bb97e4834e5c4740e92fe1ae3a6f59bf456e750",
+  "tests": {
+    "before_final_replay_release_full_suite": {
+      "passed": 6884,
+      "skipped": 1,
+      "subtests_passed": 30
+    },
+    "final_source_targeted": {
+      "passed": 170
+    },
+    "final_source_full_suite_rerun": false
+  },
+  "controlled_probe": {
+    "full_fights": 72,
+    "noisy_root_probes": 72,
+    "source_code_digest": "d77c12f17634f0be7cbdc89b2a1b8bdfaad7f052df7ab8018552edd5dc8a82cb",
+    "status": "passed",
+    "timeouts": 0
+  },
+  "failed_smoke": {
+    "directory": "output/az_g2_search_v1_smoke",
+    "cause": "worker result serialization MemoryError",
+    "preserved": true,
+    "counted_as_pass": false
+  },
+  "memory_fix": [
+    "bounded ordered collection with immediate replay commit",
+    "release inactive seed replay memory and validate ordered reload",
+    "4 workers"
+  ],
+  "smoke": {
+    "status": "passed",
+    "iterations": 2,
+    "episodes": 360,
+    "decisions": 6739,
+    "updates": 8,
+    "test_evaluated": false
+  },
+  "training": {
+    "status": "complete",
+    "seeds": [
+      42,
+      43
+    ],
+    "iterations_per_seed": 3,
+    "episodes": 1080,
+    "decisions": 22353,
+    "updates": 96,
+    "timeouts": 0,
+    "teacher_labels": false,
+    "old_replay_imported": false
+  },
+  "initialization": "G2.3c frozen champions, same-schema weights verified exactly, fresh optimizer",
+  "promotion_policy": "network-only-v1",
+  "search_role": "observation",
+  "actual": {
+    "42": {
+      "champion": "candidate-0.pt",
+      "decisions": 11407,
+      "episodes": 540,
+      "iterations": 3,
+      "promoted": 1,
+      "updates": 48
+    },
+    "43": {
+      "champion": "candidate-0.pt",
+      "decisions": 10946,
+      "episodes": 540,
+      "iterations": 3,
+      "promoted": 1,
+      "updates": 48
+    }
+  },
+  "learning_gain": "not_met",
+  "final_network": {
+    "42": {
+      "initial_wins": 138,
+      "final_wins": 145,
+      "episodes": 216
+    },
+    "43": {
+      "initial_wins": 142,
+      "final_wins": 139,
+      "episodes": 216
+    }
+  },
+  "focused_boss_final": {
+    "episodes_per_seed_mode": 36,
+    "network_wins": [
+      0,
+      0
+    ],
+    "search_wins": [
+      0,
+      0
+    ],
+    "restricted_rule_wins": 0
+  },
+  "retained_network": {
+    "episodes_per_seed": 180,
+    "seed42_initial_final_wins": [
+      138,
+      145
+    ],
+    "seed43_initial_final_wins": [
+      142,
+      139
+    ]
+  },
+  "training_coverage": {
+    "boss_episodes": 594,
+    "focused_episodes": 540,
+    "observed_phase2": 237,
+    "observed_phase3": 3,
+    "boss_wins": 0,
+    "wound_in_hand_decisions": 1360,
+    "burn_in_hand_decisions": 0
+  },
+  "purity": {
+    "submissions": 588,
+    "observed_exits": 588
+  },
+  "evaluation_records": {
+    "episodes": 7872,
+    "timeouts": 0,
+    "errors": 0,
+    "illegal_actions": 0,
+    "caveat": "Includes reused outcomes in paired and cross-round reports; not independent scenarios"
+  },
+  "artifact_audit": "artifact_and_statistics_checks_passed",
+  "boss_quality": "not_met",
+  "general_quality": "not_claimed",
+  "historical_results_preserved": true,
+  "run_wall_seconds": 1841.5617773532867,
+  "next": "G2.3f: training/validation-only Boss deck feasibility and natural later-phase trajectory audit before choosing curriculum or value/label changes; no extra rounds",
+  "limitations": [
+    "72-fight fixed-recipe probe is diagnostic only",
+    "Combined training is not a per-factor training ablation",
+    "Different environment seeds prevent cross-batch causal claims",
+    "Sparse within-stratum bootstrap can collapse to a point",
+    "Two models share final test recipes"
+  ],
+  "evidence": [
+    "docs/AZ_G2_SEARCH_V1.md",
+    "docs/az_search_v1_final_tests.txt",
+    "docs/az_search_v1_memory_contract_tests.txt",
+    "docs/az_search_v1_probe_verification.json",
+    "docs/az_search_v1_verification.json",
+    "docs/az_search_v1_mechanism_evidence.json",
+    "output/az_g2_search_v1_quick/report.json"
+  ],
+  "baseline_records": {
+    "episodes": 252,
+    "timeouts": 0,
+    "errors": 0,
+    "illegal_actions": 0
+  }
+}

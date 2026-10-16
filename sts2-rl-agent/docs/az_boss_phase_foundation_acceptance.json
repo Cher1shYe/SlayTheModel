@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-13",
+  "milestone": "G2.3a",
+  "status": "phase_foundation_passed",
+  "scope": "TestSubject, ascension 0, one player, one initial stable primary slot",
+  "engineering": {
+    "new_tests_passed": 46,
+    "full_tests_passed": 6578,
+    "skipped": 1,
+    "subtests_passed": 30,
+    "seconds": 170.74
+  },
+  "phase_version": "test-subject-phase-foundation-v1",
+  "staged_reward_version": "finite-primary-phases-v6",
+  "reward_registered": false,
+  "initial_form_hp": [
+    100,
+    200,
+    300
+  ],
+  "fixed_budget": 600,
+  "native_engine_changed": false,
+  "training": "not_started_no_boss_content_admitted",
+  "smoke": "not_started",
+  "learning_gain": "not_evaluated",
+  "quality_acceptance": "not_claimed",
+  "checks": [
+    "native full three-form progression over 12 seed/length cases",
+    "two knockouts block victory; third-form defeat wins",
+    "stable native enemy identity and untargetable knockouts",
+    "Wound generation per unblocked hit",
+    "Burn generation and Strength gain",
+    "Nemesis parity including respawn turn",
+    "immutable public event state and JSON roundtrip",
+    "private AI state not read by phase observer",
+    "finite reward continuity and healing rollback",
+    "old reward registry rejects staged V6"
+  ],
+  "limitations": [
+    "not a full public observation or particle restorer",
+    "no Boss network, Replay or scenario admission",
+    "native test fixtures use high player HP and forced knockouts, not policy performance",
+    "Burn/Wound lifecycle, additional powers and action/card capacity remain G2.3b dependencies"
+  ],
+  "next": "G2.3b full dependency integration, then two-round smoke and two seeds with three rounds each; network-only promotion",
+  "sha256": {
+    "sts2_env/az/boss_phases.py": "4a1f0f4050f1fce7c33fcab4c2901d52d96ef31ee11d5b324e7b167a88388fe6",
+    "tests/test_az_boss_phases.py": "3268553e1a0fac587744e2d6da220dc417a7ce149f41b4c36cc9132ee4c01d36",
+    "docs/az_boss_phase_foundation_tests.txt": "d1700de24dc4a6c41e3b0af4ddd15a085cfe8014861e16d660cec6c47bd37222"
+  }
+}

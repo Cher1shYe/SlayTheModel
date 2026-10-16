@@ -1,0 +1,22 @@
+{
+  "status": "artifact_and_statistics_checks_passed",
+  "actual": {
+    "42": {
+      "champion": "candidate-0.pt",
+      "episodes": 540,
+      "iterations": 3,
+      "promoted": 1,
+      "updates": 48,
+      "decisions": 11407
+    },
+    "43": {
+      "champion": "candidate-0.pt",
+      "episodes": 540,
+      "iterations": 3,
+      "promoted": 1,
+      "updates": 48,
+      "decisions": 10946
+    }
+  },
+  "test_strata": 180
+}
