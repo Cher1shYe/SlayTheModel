@@ -2,6 +2,8 @@
 
 日期：2026-09-24
 
+本文保留旧 shard v1 的读取契约。当前 writer 写入 [shard v2](tensor-shard-format-v2.md)，以保存多卡集合选择的候选、张数约束和具体标签；reader 仍支持 v1。
+
 ## 定位
 
 Tensor shard 是面向高吞吐训练的**派生数据**，不是长期保存的原始事实。

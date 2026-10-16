@@ -1020,7 +1020,9 @@ internal sealed class EpisodeStateMachine
         if (!Enum.IsDefined(policy.Actor)
             || policy.PolicyId is not null && string.IsNullOrWhiteSpace(policy.PolicyId)
             || policy.Actor != ActionActor.Human && policy.PolicyId is null
-            || policy.ModelRevision is not null && string.IsNullOrWhiteSpace(policy.ModelRevision))
+            || policy.ModelRevision is not null && string.IsNullOrWhiteSpace(policy.ModelRevision)
+            || policy.TeacherInformation is not (null or "public_observation"
+                or "native_checkpoint_privileged" or "unknown"))
         {
             throw new InvalidDataException("Policy metadata is invalid.");
         }

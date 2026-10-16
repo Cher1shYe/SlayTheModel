@@ -158,7 +158,8 @@ public sealed record PolicyTrace(
     string? PolicyId = null,
     string? ModelRevision = null,
     IReadOnlyList<double>? Logits = null,
-    IReadOnlyList<long>? MctsVisitCounts = null);
+    IReadOnlyList<long>? MctsVisitCounts = null,
+    string? TeacherInformation = null);
 
 public sealed record ActionSubmissionInput(
     Guid EventId,

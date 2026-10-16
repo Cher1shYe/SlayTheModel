@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Headless producer smoke test using the shared episode JSONL journal.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Collector/SlayTheModel.Collector.csproj" />
+  </ItemGroup>
+</Project>

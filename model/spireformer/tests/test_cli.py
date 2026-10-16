@@ -44,8 +44,8 @@ def test_presets_command_reports_all_exact_sizes(capsys) -> None:
     assert main(["presets", "--json"]) == 0
     rows = json.loads(capsys.readouterr().out)
     assert [row["name"] for row in rows] == ["tiny", "small", "medium", "large"]
-    assert rows[0]["parameters"] == 2_882_818
-    assert rows[-1]["parameters"] == 2_033_487_362
+    assert rows[0]["parameters"] == 2_916_099
+    assert rows[-1]["parameters"] == 2_044_113_411
 
 
 def test_smoke_bf16_inference_uses_deployment_weights_and_reports_shapes(
@@ -85,7 +85,7 @@ def test_smoke_bf16_inference_uses_deployment_weights_and_reports_shapes(
     assert result["device"] == "cpu"
     assert result["precision"] == "bf16"
     assert result["parameter_dtype"] == "bfloat16"
-    assert result["parameter_count"] == 2_882_818
+    assert result["parameter_count"] == 2_916_099
     assert result["finite"] is True
     assert result["outputs_finite"] is True
     assert result["gradients_finite"] is None
@@ -131,7 +131,7 @@ def test_smoke_bf16_training_keeps_fp32_master_and_runs_backward(capsys) -> None
     assert result["mode"] == "train"
     assert result["precision"] == "bf16"
     assert result["parameter_dtype"] == "float32"
-    assert result["parameter_count"] == 2_882_818
+    assert result["parameter_count"] == 2_916_099
     assert result["finite"] is True
     assert result["outputs_finite"] is True
     assert result["gradients_finite"] is True
@@ -196,9 +196,11 @@ def test_ddp_metric_aggregation_uses_global_weighted_counts(monkeypatch) -> None
         value_targets=2,
         global_step=7,
         learning_rate=1.0e-4,
+        set_loss=2.0,
+        set_targets=1,
     )
     remote_contribution = torch.tensor(
-        [6.0, 6.0, 10.0, 3.0, 1.0, 1.0, 3.0, 1.0],
+        [6.0, 6.0, 10.0, 3.0, 6.0, 1.0, 1.0, 3.0, 1.0, 3.0],
         dtype=torch.float64,
     )
 
@@ -225,6 +227,8 @@ def test_ddp_metric_aggregation_uses_global_weighted_counts(monkeypatch) -> None
     assert result.active_steps == 3
     assert result.policy_targets == 4
     assert result.value_targets == 3
+    assert result.set_loss == pytest.approx(2.0)
+    assert result.set_targets == 4
     assert result.optimizer_steps == 1
 
 

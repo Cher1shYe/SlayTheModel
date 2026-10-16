@@ -1,5 +1,11 @@
 # CombatSolver 开发笔记与未来构想
 
+## SlayTheModel 集成修复（2026-10-15，未发布）
+
+- Native MCTS API 为搜索根冻结全部已捕获敌人的身份与最大生命，并从当前影子状态计算终点净缺血比例；包含主怪、仆从及等待复活的 0 HP 对象，治疗或复活会降低进度。该派生值不进入状态键，CombatSolver 原有 Beam 评分不变；上层 SlayTheModel 将它用于失败和深度截断 rollout 的价值塑形。
+- Native MCTS 选牌的 `OptionOccurrence` 先按卡牌 ID 与升级等级定位，再核对完整语义状态；修复头槌面对同名普通/虚无/附魔副本时的实例错配，并拒绝状态不符或重复选择同一实例。
+- 上层验证覆盖女王与仆从、召唤和复活终点生命，以及头槌三类同名副本的原生 continuation 对账。具体口径见上层 `docs/mcts-progress-reward-20261015.md` 与 `docs/mcts-collector-fixes-20261015.md`。
+
 ## 0.43.3：余像路线与战后掉药预测（2026-09-20）
 
 - 玩家可感知的变化见 [0.43.3 更新日志](releases/0.43.3-RELEASE_NOTES.md)。本版本仍处于未发布状态，未创建版本标签或上传发布渠道。

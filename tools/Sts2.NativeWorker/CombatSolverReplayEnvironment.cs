@@ -118,8 +118,17 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
 
     public string StateKey() => state.Key;
 
+    public double EnemyDamageFraction
+        => (session ?? throw new InvalidOperationException("No captured root."))
+            .EnemyDamageFraction;
     public double EvaluateTerminal()
-        => state.Won ? 0.5 + Math.Atan((state.PlayerHp - entryHp) / 20.0) / Math.PI : -1;
+        => CombatRolloutReward.Evaluate(
+            state.Won,
+            state.PlayerHp <= 0,
+            state.PlayerHp,
+            entryHp,
+            EnemyDamageFraction);
+    public double EvaluateCutoff() => EvaluateTerminal();
 
     public CombatSolverMctsAction RolloutAction(
         IReadOnlyList<CombatSolverMctsAction> actions,

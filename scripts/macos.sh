@@ -57,8 +57,14 @@ cd "$repo_dir"
 
 run_tests() {
     local project
-    for project in SlayTheModel.Search.Smoke SlayTheModel.Protocol.Smoke SlayTheModel.Outside.Smoke SlayTheModel.Action.Smoke SlayTheModel.ReplaySearch.Smoke; do
-        dotnet run --project "smoke/$project/$project.csproj" -c Release
+    for project in SlayTheModel.Search.Smoke SlayTheModel.Protocol.Smoke SlayTheModel.Outside.Smoke SlayTheModel.Action.Smoke SlayTheModel.ReplaySearch.Smoke SlayTheModel.Collector.Smoke; do
+        if [[ "$project" == "SlayTheModel.Collector.Smoke" ]]; then
+            dotnet build "smoke/$project/$project.csproj" \
+                -c Release -m:1 -nodeReuse:false -p:UseSharedCompilation=false
+            dotnet "smoke/$project/bin/Release/net9.0/$project.dll"
+        else
+            dotnet run --project "smoke/$project/$project.csproj" -c Release
+        fi
     done
 }
 

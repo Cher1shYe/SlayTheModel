@@ -9,6 +9,7 @@ ritsu_root="${STS2_RITSULIB_DIR:-$HOME/Library/Application Support/Steam/steamap
 mode="verify"
 timeout_seconds="120"
 skip_build="0"
+no_restore="0"
 
 usage() {
     cat <<'EOF'
@@ -16,9 +17,10 @@ Usage: ./scripts/native-worker-macos.sh [options]
 
   --game-app PATH
   --ritsu-lib-root PATH
-  --mode verify|benchmark
+  --mode verify|reward-verify|summon-reward-verify|collector-policy-verify|benchmark|native-throughput|whole-run-api-probe|whole-run-speed-probe|whole-run-speed-probe-legacy|spire-codex-combat-replay
   --timeout-seconds NUMBER
   --skip-build
+  --no-restore
 EOF
 }
 
@@ -36,12 +38,13 @@ while [[ $# -gt 0 ]]; do
         --mode) require_value "$@"; mode="$2"; shift 2 ;;
         --timeout-seconds) require_value "$@"; timeout_seconds="$2"; shift 2 ;;
         --skip-build) skip_build="1"; shift ;;
+        --no-restore) no_restore="1"; shift ;;
         --help|-h) usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     esac
 done
 
-case "$mode" in verify|benchmark) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in verify|reward-verify|summon-reward-verify|collector-policy-verify|benchmark|native-throughput|whole-run-api-probe|whole-run-speed-probe|whole-run-speed-probe-legacy|spire-codex-combat-replay) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
 if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
     echo "--timeout-seconds must be a positive integer." >&2
     exit 2
@@ -73,6 +76,8 @@ worker_contents="$worker_app/Contents"
 worker_exe="$worker_contents/MacOS/NativeWorker"
 worker_data="$worker_contents/Resources/data_NativeWorker_macos_arm64"
 build_output="$project_dir/.godot/mono/temp/bin/ExportRelease"
+collector_test_dll="$repo_dir/src/SlayTheModel.Sts2.DataCollector/bin/Release/net9.0/SlayTheModelDataCollector.dll"
+adapter_test_dll="$repo_dir/src/SlayTheModel.Sts2.ModAdapter/bin/Release/net9.0/SlayTheModelAdapter.dll"
 
 # Validate third-party source and binary inputs before starting the expensive
 # Godot build. This keeps path/setup mistakes separate from compiler failures.
@@ -104,11 +109,13 @@ if ! command -v jq >/dev/null 2>&1; then
     exit 1
 fi
 
-mkdir -p "$project_dir/.godot" "$stage_dir"
+mkdir -p "$project_dir/.godot" "$stage_dir" \
+    "$worker_contents/MacOS" "$worker_contents/Frameworks" "$worker_contents/Resources"
 printf 'list=Array[Dictionary]([])\n' > "$project_dir/.godot/global_script_class_cache.cfg"
 
 if [[ "$skip_build" == "0" ]]; then
-    mkdir -p "$worker_contents/MacOS" "$worker_contents/Frameworks" "$worker_contents/Resources"
+    restore_arg=""
+    if [[ "$no_restore" == "1" ]]; then restore_arg="--no-restore"; fi
     dotnet build "$project_dir/Sts2.NativeWorker.csproj" \
         -c ExportRelease \
         "-p:Sts2ManagedDir=$managed_dir" \
@@ -117,56 +124,60 @@ if [[ "$skip_build" == "0" ]]; then
         "-p:RitsuLibRoot=$ritsu_root" \
         "-p:RitsuWorkshopRoot=$ritsu_root" \
         "-p:RitsuLibDir=$ritsu_root/compat/0.111.0" \
-        -p:CopyModOnBuild=false
-
-    # Reuse the game's matching self-contained ARM64 runtime and dependency
-    # manifest, then add the worker assembly. This avoids mixing MegaDot with a
-    # stock Godot runtime and avoids downloading a second .NET runtime pack.
-    mkdir -p "$worker_data"
-    cp -R "$managed_dir/." "$worker_data/"
-    # ProjectReference keeps Search and CombatSolver as separate assemblies.
-    # Copy every build-produced DLL except the game/Godot assemblies already
-    # supplied by the matching game runtime copied above. This preserves ABI
-    # compatibility while making the worker's dependency graph complete.
-    for dependency in "$build_output"/*.dll; do
-        case "$(basename "$dependency")" in
-            sts2.dll|GodotSharp.dll|0Harmony.dll) continue ;;
-        esac
-        cp "$dependency" "$worker_data/"
-    done
-    if [[ -f "$build_output/NativeWorker.pdb" ]]; then
-        cp "$build_output/NativeWorker.pdb" "$worker_data/NativeWorker.pdb"
+        -p:CopyModOnBuild=false -m:1 -nr:false ${restore_arg:+"$restore_arg"}
+    if [[ "$mode" == collector-policy-verify ]]; then
+        dotnet build "$repo_dir/src/SlayTheModel.Sts2.DataCollector/SlayTheModel.Sts2.DataCollector.csproj" \
+            -c Release "-p:Sts2ManagedDir=$managed_dir" -m:1 -nr:false ${restore_arg:+"$restore_arg"}
+        dotnet build "$repo_dir/src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj" \
+            -c Release "-p:Sts2ManagedDir=$managed_dir" -m:1 -nr:false ${restore_arg:+"$restore_arg"}
     fi
-    # MegaDot's executable is a self-contained custom Godot host. The game's
-    # deps file carries its ARM64 CoreCLR/runtime-pack records, while the normal
-    # worker deps file carries CombatSolver/Search/RitsuLib. Build one primary
-    # deps file containing both sets; replacing either side outright breaks
-    # host startup or managed project-reference resolution.
-    deps_output="$worker_data/NativeWorker.deps.json"
-    jq -s '
-      .[0] as $game
-      | .[1] as $worker
-      | ($game.runtimeTarget.name) as $gameTarget
-      | ($worker.runtimeTarget.name) as $workerTarget
-      | ($worker.targets[$workerTarget]
-          | with_entries(select(.key | test("^(NativeWorker|CombatSolver|SlayTheModel\\.Search|STS2-RitsuLib)")))) as $workerTargets
-      | ($worker.libraries
-          | with_entries(select(.key | test("^(NativeWorker|CombatSolver|SlayTheModel\\.Search|STS2-RitsuLib)")))) as $workerLibraries
-      | $game
-      | .targets[$gameTarget] += $workerTargets
-      | .libraries += $workerLibraries
-    ' "$managed_dir/sts2.deps.json" "$build_output/NativeWorker.deps.json" > "$deps_output.tmp"
-    mv "$deps_output.tmp" "$deps_output"
-    cp "$managed_dir/sts2.runtimeconfig.json" "$worker_data/NativeWorker.runtimeconfig.json"
-
-    cp "$game_exe" "$worker_exe"
-    chmod +x "$worker_exe"
-    cp -R "$game_contents/Frameworks/." "$worker_contents/Frameworks/"
-    cp "$game_contents/Info.plist" "$worker_contents/Info.plist"
-    /usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable NativeWorker' "$worker_contents/Info.plist"
-    /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier dev.slaythemodel.NativeWorker' "$worker_contents/Info.plist"
-    cp "$game_resources/release_info.json" "$worker_contents/Resources/release_info.json"
 fi
+if [[ "$mode" == collector-policy-verify && ( ! -f "$collector_test_dll" || ! -f "$adapter_test_dll" ) ]]; then
+    echo 'collector-policy-verify requires current Release builds of the collector and adapter.' >&2
+    exit 1
+fi
+
+# Reuse the game's matching self-contained ARM64 runtime and dependency
+# manifest, then add the worker assembly. Packaging also runs with --skip-build
+# so a separately verified build cannot accidentally execute an older staged DLL.
+mkdir -p "$worker_data"
+cp -R "$managed_dir/." "$worker_data/"
+# ProjectReference keeps Search and CombatSolver as separate assemblies.
+for dependency in "$build_output"/*.dll; do
+    case "$(basename "$dependency")" in
+        sts2.dll|GodotSharp.dll|0Harmony.dll) continue ;;
+    esac
+    cp "$dependency" "$worker_data/"
+done
+if [[ -f "$build_output/NativeWorker.pdb" ]]; then
+    cp "$build_output/NativeWorker.pdb" "$worker_data/NativeWorker.pdb"
+fi
+# MegaDot's executable is a self-contained custom Godot host. Merge its game
+# runtime records with the worker's project-reference dependencies.
+deps_output="$worker_data/NativeWorker.deps.json"
+jq -s '
+  .[0] as $game
+  | .[1] as $worker
+  | ($game.runtimeTarget.name) as $gameTarget
+  | ($worker.runtimeTarget.name) as $workerTarget
+  | ($worker.targets[$workerTarget]
+      | with_entries(select(.key | test("^(NativeWorker|CombatSolver|SlayTheModel\\.Search|STS2-RitsuLib)")))) as $workerTargets
+  | ($worker.libraries
+      | with_entries(select(.key | test("^(NativeWorker|CombatSolver|SlayTheModel\\.Search|STS2-RitsuLib)")))) as $workerLibraries
+  | $game
+  | .targets[$gameTarget] += $workerTargets
+  | .libraries += $workerLibraries
+' "$managed_dir/sts2.deps.json" "$build_output/NativeWorker.deps.json" > "$deps_output.tmp"
+mv "$deps_output.tmp" "$deps_output"
+cp "$managed_dir/sts2.runtimeconfig.json" "$worker_data/NativeWorker.runtimeconfig.json"
+
+cp "$game_exe" "$worker_exe"
+chmod +x "$worker_exe"
+cp -R "$game_contents/Frameworks/." "$worker_contents/Frameworks/"
+cp "$game_contents/Info.plist" "$worker_contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleExecutable NativeWorker' "$worker_contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier dev.slaythemodel.NativeWorker' "$worker_contents/Info.plist"
+cp "$game_resources/release_info.json" "$worker_contents/Resources/release_info.json"
 
 if [[ ! -x "$worker_exe" || ! -f "$worker_data/NativeWorker.dll" ]]; then
     echo "Native worker build is incomplete: $worker_app" >&2
@@ -177,10 +188,82 @@ stdout_log="$stage_dir/stdout.txt"
 stderr_log="$stage_dir/stderr.txt"
 godot_log="$stage_dir/godot-worker.log"
 benchmark_out="$stage_dir/benchmark.json"
+if [[ "$mode" == native-throughput ]]; then benchmark_out="$stage_dir/native-throughput.json"; fi
+if [[ "$mode" == whole-run-api-probe ]]; then benchmark_out="$stage_dir/whole-run-api-probe.txt"; fi
+if [[ "$mode" == spire-codex-combat-replay ]]; then
+    if [[ -z "${STS2_SPIRE_CODEX_PLAN:-}" || ! -f "${STS2_SPIRE_CODEX_PLAN}" ]]; then
+        echo 'STS2_SPIRE_CODEX_PLAN must name an existing internal combat-plan JSON.' >&2
+        exit 2
+    fi
+    if [[ -n "${STS2_SPIRE_CODEX_NEXT_PLAN:-}" && ! -f "${STS2_SPIRE_CODEX_NEXT_PLAN}" ]]; then
+        echo 'STS2_SPIRE_CODEX_NEXT_PLAN must name an existing internal combat-plan JSON.' >&2
+        exit 2
+    fi
+    benchmark_out="$stage_dir/spire-codex-combat-replay.json"
+fi
+if [[ "$mode" == whole-run-speed-probe || "$mode" == whole-run-speed-probe-legacy ]]; then
+    if [[ "${STS2_PROBE_GENERIC:-0}" == 1 ]]; then
+        if [[ "$mode" != whole-run-speed-probe || -n "${STS2_PROBE_ROUTE:-}" || "${STS2_PROBE_LONG_PATH:-0}" == 1 || -n "${STS2_PROBE_REPLAY_TRACE:-}" || -n "${STS2_PROBE_COLLECTOR_REPLAY:-}" ]]; then
+            echo 'STS2_PROBE_GENERIC=1 requires canonical --mode whole-run-speed-probe without route, long-path, or replay flags.' >&2
+            exit 2
+        fi
+        probe_seed="${STS2_PROBE_SEED:-STM-WHOLE-RUN-SPEED-1}"
+        safe_probe_seed="$(printf '%s' "$probe_seed" | tr -c '[:alnum:]_-' '-')"
+        probe_policy_suffix=""
+        if [[ "${STS2_PROBE_USE_POTIONS:-0}" == 1 ]]; then probe_policy_suffix="-potions"; fi
+        benchmark_out="$stage_dir/whole-run-speed-probe-generic-${safe_probe_seed}${probe_policy_suffix}.json"
+    fi
+    if [[ "$mode" == whole-run-speed-probe && ( "${STS2_PROBE_ROUTE:-}" == shop || "${STS2_PROBE_ROUTE:-}" == rest ) ]]; then
+        echo 'STS2_PROBE_ROUTE=shop|rest is supported only by --mode whole-run-speed-probe-legacy.' >&2
+        exit 2
+    fi
+    if [[ "$mode" == whole-run-speed-probe-legacy && "${STS2_PROBE_ROUTE:-}" == event ]]; then
+        echo 'STS2_PROBE_ROUTE=event is supported only by --mode whole-run-speed-probe.' >&2
+        exit 2
+    fi
+    output_base="$mode"
+    if [[ "${STS2_PROBE_GENERIC:-0}" != 1 ]]; then
+        case "${STS2_PROBE_ROUTE:-}" in
+            "") benchmark_out="$stage_dir/${output_base}.json" ;;
+            shop|rest|event) benchmark_out="$stage_dir/${output_base}-${STS2_PROBE_ROUTE}.json" ;;
+            *) echo "Invalid STS2_PROBE_ROUTE: $STS2_PROBE_ROUTE" >&2; exit 2 ;;
+        esac
+    fi
+    if [[ "${STS2_PROBE_ROUTE:-}" == event && "${STS2_PROBE_EVENT_OPTION:-0}" != 0 ]]; then
+        benchmark_out="$stage_dir/${output_base}-event-${STS2_PROBE_EVENT_OPTION}.json"
+    fi
+    if [[ "${STS2_PROBE_LONG_PATH:-0}" == 1 ]]; then
+        if [[ "$mode" != whole-run-speed-probe || "${STS2_PROBE_ROUTE:-}" != event ]]; then
+            echo 'STS2_PROBE_LONG_PATH=1 requires canonical --mode whole-run-speed-probe and STS2_PROBE_ROUTE=event.' >&2
+            exit 2
+        fi
+        benchmark_out="${benchmark_out%.json}-long.json"
+    fi
+    if [[ -n "${STS2_PROBE_REPLAY_TRACE:-}" ]]; then
+        if [[ "$mode" != whole-run-speed-probe || -n "${STS2_PROBE_ROUTE:-}" || "${STS2_PROBE_LONG_PATH:-0}" == 1 ]]; then
+            echo 'STS2_PROBE_REPLAY_TRACE requires canonical --mode whole-run-speed-probe without route or long-path flags.' >&2
+            exit 2
+        fi
+        benchmark_out="$stage_dir/whole-run-speed-probe-recorded-replay.json"
+    fi
+    if [[ -n "${STS2_PROBE_COLLECTOR_REPLAY:-}" ]]; then
+        if [[ "$mode" != whole-run-speed-probe || -n "${STS2_PROBE_ROUTE:-}" || "${STS2_PROBE_LONG_PATH:-0}" == 1 || -n "${STS2_PROBE_REPLAY_TRACE:-}" || ! -f "${STS2_PROBE_COLLECTOR_REPLAY}" ]]; then
+            echo 'STS2_PROBE_COLLECTOR_REPLAY requires an existing collector JSONL and canonical --mode whole-run-speed-probe without route, long-path, or terminal replay flags.' >&2
+            exit 2
+        fi
+        if [[ -n "${STS2_PROBE_PROGRESS_SAVE:-}" && ! -f "${STS2_PROBE_PROGRESS_SAVE}" ]]; then
+            echo 'STS2_PROBE_PROGRESS_SAVE must name an existing progress.save file.' >&2
+            exit 2
+        fi
+        benchmark_out="$stage_dir/whole-run-speed-probe-collector-replay.json"
+    fi
+fi
 env -u SENTRY_GODOT_LIB_PATH \
     STS2_GAME_PACK="$game_pack" \
     STS2_WORKER_MODE="$mode" \
     STS2_BENCHMARK_OUT="$benchmark_out" \
+    STS2_COLLECTOR_TEST_DLL="$collector_test_dll" \
+    STS2_ADAPTER_TEST_DLL="$adapter_test_dll" \
     "$worker_exe" --headless --path "$project_dir" --log-file "$godot_log" >"$stdout_log" 2>"$stderr_log" &
 worker_pid=$!
 deadline=$((SECONDS + timeout_seconds))

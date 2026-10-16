@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <Description>Isolated action-origin bridge checks without starting STS2.</Description>
+    <UserProfileDir>$([System.Environment]::GetFolderPath(System.Environment+SpecialFolder.UserProfile))</UserProfileDir>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == '' and $([MSBuild]::IsOSPlatform('OSX'))">$(UserProfileDir)/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64</Sts2ManagedDir>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == '' and '$(STS2_GAME_DIR)' != '' and $([MSBuild]::IsOSPlatform('Windows'))">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Collector/SlayTheModel.Collector.csproj" />
+    <Compile Include="../../src/SlayTheModel.Sts2.DataCollector/CollectorPolicyOrigin.cs" Link="CollectorPolicyOrigin.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.DataCollector/CollectorConfiguration.cs" Link="CollectorConfiguration.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PolicyDecisionTelemetry.cs" Link="PolicyDecisionTelemetry.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PolicyTraceMetadata.cs" Link="PolicyTraceMetadata.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeMctsMessages.cs" Link="NativeMctsMessages.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeCombatCheckpoint.cs" Link="NativeCombatCheckpoint.cs" />
+    <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
+    <Reference Include="GodotSharp" HintPath="$(Sts2ManagedDir)/GodotSharp.dll" />
+    <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
+  </ItemGroup>
+</Project>

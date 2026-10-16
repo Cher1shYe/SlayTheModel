@@ -283,6 +283,8 @@ def test_metric_accumulator_reports_real_counts_and_weighted_averages() -> None:
             global_step=0,
             learning_rate=0.01,
             did_optimizer_step=False,
+            set_loss=3.0,
+            set_targets=2,
         )
     )
     accumulator.update(
@@ -298,6 +300,8 @@ def test_metric_accumulator_reports_real_counts_and_weighted_averages() -> None:
             global_step=1,
             learning_rate=0.005,
             did_optimizer_step=True,
+            set_loss=9.0,
+            set_targets=1,
         )
     )
 
@@ -309,6 +313,8 @@ def test_metric_accumulator_reports_real_counts_and_weighted_averages() -> None:
     assert metrics.active_steps == 3
     assert metrics.policy_targets == 3
     assert metrics.value_targets == 4
+    assert metrics.set_loss == pytest.approx(5.0)
+    assert metrics.set_targets == 3
     assert metrics.optimizer_steps == 1
 
 

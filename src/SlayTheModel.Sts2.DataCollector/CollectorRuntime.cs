@@ -145,11 +145,13 @@ internal static partial class CollectorRuntime
         _episodes = new CollectorEpisodeCoordinator(configuration);
         CollectorHarmony.Install();
         CollectorManualCombatInput.Install();
+        CollectorPolicyTelemetry.Install();
 
         var runManager = RunManager.Instance;
         runManager.RunStarted += OnRunStarted;
         var combatManager = CombatManager.Instance;
         combatManager.CombatBegan += OnCombatBegan;
+        combatManager.CombatWon += OnActRewardCombatWon;
         combatManager.CombatEnded += OnCombatEnded;
         combatManager.StateTracker.CombatStateChanged += OnCombatStateChanged;
 
@@ -170,6 +172,7 @@ internal static partial class CollectorRuntime
     internal static void PrepareNewRun(RunState state, DateTimeOffset? dailyTime)
     {
         DrainCompletedSelectors();
+        ResetActRewardCapture();
         // The native argument is the daily-run date, not SerializableRun's
         // unique start timestamp. OnRunStarted reads the latter after setup.
         _preparedRun = new RunStartEvidence(
@@ -184,6 +187,7 @@ internal static partial class CollectorRuntime
     internal static void PrepareLoadedRun(RunState state, SerializableRun save)
     {
         DrainCompletedSelectors();
+        ResetActRewardCapture();
         _preparedRun = new RunStartEvidence(
             state,
             true,
@@ -255,6 +259,7 @@ internal static partial class CollectorRuntime
 
     internal static void FinishRun(RunHistory history)
     {
+        CaptureActRewardTerminalBoundary(history);
         // SaveRunHistory can run inside the terminal GameAction, before
         // ActionExecutor emits AfterActionExecuted. Keep the episode open
         // until that final observed action has been committed.
@@ -1802,6 +1807,7 @@ internal static partial class CollectorRuntime
         _actionQueue = manager.ActionQueueSet;
         _actionQueue.ActionEnqueued += OnActionEnqueued;
         _actionExecutor = manager.ActionExecutor;
+        _actionExecutor.BeforeActionExecuted += OnPolicyActionStarting;
         _actionExecutor.BeforeActionExecuted += OnManualCombatActionStarting;
         _actionExecutor.AfterActionExecuted += OnActionExecuted;
         _choiceSynchronizer = manager.PlayerChoiceSynchronizer;
@@ -1810,6 +1816,7 @@ internal static partial class CollectorRuntime
 
     private static void DetachRunInputs()
     {
+        ResetActRewardCapture();
         CollectorManualCombatInput.EndGeneration(_runGeneration);
         _runGeneration++;
         if (_actionQueue is not null)
@@ -1820,6 +1827,7 @@ internal static partial class CollectorRuntime
 
         if (_actionExecutor is not null)
         {
+            _actionExecutor.BeforeActionExecuted -= OnPolicyActionStarting;
             _actionExecutor.BeforeActionExecuted -= OnManualCombatActionStarting;
             _actionExecutor.AfterActionExecuted -= OnActionExecuted;
             _actionExecutor = null;
@@ -1832,6 +1840,7 @@ internal static partial class CollectorRuntime
         }
 
         PendingCombatActions.Clear();
+        ClearPolicyActionInputs();
         PendingOutsidePotionActions.Clear();
         PendingManualCombatIntents.Clear();
         ClearCombatChoiceState();
@@ -1853,7 +1862,7 @@ internal static partial class CollectorRuntime
         _lastReservedNativeChoice = null;
         DrainCompletedSelectors();
         CompleteAcceptedParentActions("combat_started");
-        _combatId = Guid.NewGuid();
+        _combatId = ActRewardCombatId(state) ?? Guid.NewGuid();
         _activeCombatState = state;
         ResolveStableCombatBoundary(state);
         RecordDiagnostic(
@@ -1868,6 +1877,7 @@ internal static partial class CollectorRuntime
 
     private static void OnCombatEnded(CombatRoom room)
     {
+        CaptureActRewardCombatEnded(room);
         CloseNativeChoiceTicketsAtCombatEnd();
         _lastReservedNativeChoice = null;
         var state = _activeCombatState;
@@ -2232,6 +2242,10 @@ internal static partial class CollectorRuntime
     {
         DrainCompletedSelectors();
         var manualInput = CollectorManualCombatInput.Consume(action);
+        if (TryCapturePolicyAction(action, manualInput is not null))
+        {
+            return;
+        }
         // PotionModel.EnqueueManualUse and the discard popup are native manual
         // entry points outside combat. Record an independent action only when
         // their click-time surface and legal set were frozen; otherwise keep
@@ -2427,6 +2441,7 @@ internal static partial class CollectorRuntime
 
     private static void OnActionExecuted(GameAction action)
     {
+        CapturedPolicyActions.Remove(action);
         try
         {
             // Native CombatCard callbacks are synchronous and precede action
@@ -2499,6 +2514,8 @@ internal static partial class CollectorRuntime
         {
             return;
         }
+
+        CapturedPolicyActions.Remove(action);
 
         try
         {
@@ -2891,8 +2908,14 @@ internal static partial class CollectorRuntime
         _stopping = true;
         Console.Error.WriteLine(
             $"[SlayTheModel/Collector] {operation} failed; collector stopped: {exception}");
+        GD.PushError($"[SlayTheModel/Collector] {operation} failed: {exception}");
         try
         {
+            _episodes?.RecordDiagnostic("collector_failure", new
+            {
+                operation,
+                error = exception.ToString(),
+            });
             _episodes?.EndProcessSegment("collector_error");
         }
         catch (Exception flushError)

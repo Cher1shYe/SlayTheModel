@@ -174,6 +174,53 @@ def _run_presets(args: argparse.Namespace) -> int:
     return 0
 
 
+def _run_assemble(args: argparse.Namespace) -> int:
+    from .assemble import assemble_raw_dataset
+
+    result = assemble_raw_dataset(
+        args.input,
+        args.output,
+        train_episodes=args.train_episode,
+        val_episodes=args.val_episode,
+        test_episodes=args.test_episode,
+        holdout_episodes=args.holdout_episode,
+        feature_spec_path=args.feature_spec,
+        max_window_steps=args.max_window_steps,
+        trajectories_per_shard=args.trajectories_per_shard,
+        max_vocabulary_size=args.max_vocabulary_size,
+        reward_scheme=args.reward_scheme,
+        allowed_policy_ids=args.allow_policy,
+    )
+    print(
+        json.dumps(
+            {"kind": "assembled", "output": str(result.output), **result.report},
+            sort_keys=True,
+        ),
+        flush=True,
+    )
+    return 0
+
+
+def _run_evaluate(args: argparse.Namespace) -> int:
+    from .evaluate import evaluate_checkpoint
+
+    result = evaluate_checkpoint(
+        args.checkpoint,
+        args.dataset,
+        device=args.device,
+        precision=args.precision,
+        batch_size=args.batch_size,
+        verify_hashes=args.verify_data,
+        conditioning=args.conditioning,
+        allow_training_dataset=args.allow_training_dataset,
+        training_assembly_root=args.training_assembly_root,
+    )
+    if args.output is not None:
+        _atomic_write_json(Path(args.output), result)
+    print(json.dumps(result, sort_keys=True), flush=True)
+    return 0
+
+
 def _synchronize_device(device: torch.device) -> None:
     """Make accelerator timings describe completed work, not queued work."""
 
@@ -503,10 +550,12 @@ def _aggregate_metrics(
             metrics.policy_loss * metrics.policy_targets,
             metrics.value_loss * metrics.value_targets,
             metrics.entropy * metrics.policy_targets,
+            metrics.set_loss * metrics.set_targets,
             metrics.microbatches,
             metrics.active_steps,
             metrics.policy_targets,
             metrics.value_targets,
+            metrics.set_targets,
         ],
         dtype=torch.float64,
         device=context.device,
@@ -517,10 +566,12 @@ def _aggregate_metrics(
         policy_sum,
         value_sum,
         entropy_sum,
+        set_sum,
         microbatches,
         active_steps,
         policy_targets,
         value_targets,
+        set_targets,
     ) = values.tolist()
     return AggregatedMetrics(
         total_loss=total_sum / active_steps if active_steps else 0.0,
@@ -533,6 +584,8 @@ def _aggregate_metrics(
         active_steps=int(active_steps),
         policy_targets=int(policy_targets),
         value_targets=int(value_targets),
+        set_loss=set_sum / set_targets if set_targets else 0.0,
+        set_targets=int(set_targets),
         global_step=metrics.global_step,
         learning_rate=metrics.learning_rate,
     )
@@ -864,6 +917,35 @@ def build_parser() -> argparse.ArgumentParser:
     presets_parser.add_argument("--json", action="store_true")
     presets_parser.set_defaults(handler=_run_presets)
 
+    assemble_parser = subparsers.add_parser(
+        "assemble", help="audit collector JSONL and write versioned tensor shards"
+    )
+    assemble_parser.add_argument(
+        "--input", nargs="+", required=True, help="published JSONL files or directories"
+    )
+    assemble_parser.add_argument("--output", required=True)
+    assemble_parser.add_argument("--train-episode", action="append", default=[])
+    assemble_parser.add_argument("--val-episode", action="append", default=[])
+    assemble_parser.add_argument("--test-episode", action="append", default=[])
+    assemble_parser.add_argument("--holdout-episode", action="append", default=[])
+    assemble_parser.add_argument(
+        "--feature-spec", help="fit no new vocabulary; encode a standalone holdout"
+    )
+    assemble_parser.add_argument("--max-window-steps", type=int, default=64)
+    assemble_parser.add_argument("--trajectories-per-shard", type=int, default=8)
+    assemble_parser.add_argument("--max-vocabulary-size", type=int, default=512)
+    assemble_parser.add_argument(
+        "--allow-policy", action="append", default=[], choices=("native-mcts", "first-legal"),
+        help="explicitly admit verified policy provenance alongside human decisions; never relax no-SL or reward gates",
+    )
+    assemble_parser.add_argument(
+        "--reward-scheme",
+        choices=("bc-only", "whole-run-hp-safe-v1", "whole-run-win-v1", "whole-run-act-v1"),
+        default="bc-only",
+        help="BC placeholder, historical HP/win RTG, or act/boss/combat-HP RTG",
+    )
+    assemble_parser.set_defaults(handler=_run_assemble)
+
     smoke_parser = subparsers.add_parser(
         "smoke",
         help="run a synthetic forward or backward pass without a dataset",
@@ -929,6 +1011,32 @@ def build_parser() -> argparse.ArgumentParser:
         help="default: enabled for medium/large, disabled for tiny/small",
     )
     train_parser.set_defaults(handler=_run_train)
+
+    evaluate_parser = subparsers.add_parser(
+        "evaluate", help="score a checkpoint on an episode-held-out tensor dataset"
+    )
+    evaluate_parser.add_argument("--checkpoint", required=True)
+    evaluate_parser.add_argument("--dataset", required=True)
+    evaluate_parser.add_argument("--output", help="write the evaluation metrics as JSON")
+    evaluate_parser.add_argument(
+        "--device", choices=("auto", "cpu", "cuda", "mps"), default="auto"
+    )
+    evaluate_parser.add_argument(
+        "--precision",
+        choices=tuple(mode.value for mode in PrecisionMode),
+        default=PrecisionMode.FP32.value,
+    )
+    evaluate_parser.add_argument("--batch-size", type=int, default=1)
+    evaluate_parser.add_argument("--conditioning", choices=("zero", "recorded"), default="zero")
+    evaluate_parser.add_argument(
+        "--verify-data", action=argparse.BooleanOptionalAction, default=True
+    )
+    evaluate_parser.add_argument("--allow-training-dataset", action="store_true")
+    evaluate_parser.add_argument(
+        "--training-assembly-root",
+        help="verify a standalone holdout against the checkpoint's assembled train episodes",
+    )
+    evaluate_parser.set_defaults(handler=_run_evaluate)
     return parser
 
 
@@ -944,6 +1052,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         "steps",
         "entities",
         "actions",
+        "max_window_steps",
+        "trajectories_per_shard",
+        "max_vocabulary_size",
         "seed",
     ):
         if hasattr(args, name) and getattr(args, name) <= 0:

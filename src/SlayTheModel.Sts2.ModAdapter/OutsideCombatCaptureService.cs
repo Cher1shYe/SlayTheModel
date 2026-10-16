@@ -84,12 +84,10 @@ internal static class OutsideCombatCaptureService
                         card.Affliction?.Id.ToString()))
                     .ToArray(),
                 player.Relics
-                    .Select(relic => new OutsideRunRelicObservation(
-                        relic.Id.ToString(),
-                        relic.StackCount,
-                        relic.IsUsedUp,
-                        relic.Status.ToString(),
-                        relic.DisplayAmount))
+                    .Select(relic => new OutsideRunRelicObservation(relic.Id.ToString())
+                    {
+                        Display = RelicDisplayProjector.Capture(relic),
+                    })
                     .ToArray(),
                 player.PotionSlots
                     .Select((potion, index) => new { Potion = potion, Index = index })
@@ -101,7 +99,7 @@ internal static class OutsideCombatCaptureService
             .ToArray();
 
         var observation = new OutsideCombatObservation(
-            OutsideCombatObservation.CurrentSchemaVersion,
+            2, // Generic outside surfaces retain their v2 JSON and fingerprint.
             surface,
             choiceContext,
             state.CurrentActIndex,

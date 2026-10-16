@@ -10,6 +10,11 @@ var temporaryRoot = Path.Combine(
 
 try
 {
+    var mismatch = JsonSerializer.SerializeToElement(
+        new ResumeCheckpointMismatch(true, 5, 12, false), CollectorJson.Options);
+    Assert(mismatch.GetProperty("checkpoint_event_sequence").GetInt64() == 5
+           && mismatch.GetProperty("journal_event_sequence").GetInt64() == 12,
+        "Resume mismatch must preserve both cursors without JSON name collisions.");
     AssertThrows<InvalidOperationException>(() => CollectorJson.Options.WriteIndented = true);
     AssertThrows<JsonException>(() => JsonSerializer.Deserialize<PolicyTrace>(
         "{\"policy_id\":\"missing-actor\"}",

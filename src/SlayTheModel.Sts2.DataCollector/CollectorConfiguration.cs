@@ -18,7 +18,9 @@ internal sealed record CollectorConfiguration(
     bool Enabled,
     string DatasetRoot,
     CollectorInformationMode InformationMode,
-    string Actor)
+    string Actor,
+    string CombatPolicy = "manual",
+    string OutsideCombatPolicy = "manual")
 {
     internal const string EnabledVariable = "SLAY_THE_MODEL_COLLECTOR_ENABLED";
     internal const string DatasetRootVariable = "SLAY_THE_MODEL_DATASET_DIR";
@@ -91,7 +93,9 @@ internal sealed record CollectorConfiguration(
                 + "Automation is detected from the Adapter policy configuration.");
         }
 
-        return new CollectorConfiguration(enabled, root, informationMode, actor);
+        return new CollectorConfiguration(enabled, root, informationMode, actor,
+            combatPolicy == "" ? "manual" : combatPolicy,
+            outsidePolicy == "" ? "manual" : outsidePolicy);
     }
 
     private static string? Read(string name)

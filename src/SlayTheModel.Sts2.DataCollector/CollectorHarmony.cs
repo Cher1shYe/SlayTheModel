@@ -11,6 +11,7 @@ using MegaCrit.Sts2.Core.Entities.Actions;
 using MegaCrit.Sts2.Core.Entities.Rewards;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Hooks;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Multiplayer.Game;
 using MegaCrit.Sts2.Core.Nodes.Screens;
@@ -66,6 +67,10 @@ internal static class CollectorHarmony
             Method(typeof(SaveManager), nameof(SaveManager.SaveRunHistory),
                 typeof(RunHistory)),
             postfix: nameof(RunHistoryPostfix));
+        PatchRequired(
+            Method(typeof(Hook), nameof(Hook.BeforeCombatStart),
+                typeof(IRunState), typeof(ICombatState)),
+            prefix: nameof(ActRewardCombatStartPrefix));
         PatchObserved(
             Method(typeof(RunSaveManager), nameof(RunSaveManager.SaveRun),
                 typeof(SerializableRun), typeof(bool)),
@@ -187,6 +192,9 @@ internal static class CollectorHarmony
             Method(typeof(NSimpleCardSelectScreen), "OnCardClicked", typeof(CardModel)),
             prefix: nameof(SimpleCardClickedPrefix),
             postfix: nameof(MultiCardClickedPostfix));
+        PatchRequired(
+            Method(typeof(NSimpleCardSelectScreen), "CompleteSelection"),
+            prefix: nameof(SimpleCardConfirmedPrefix));
         PatchRequired(
             Method(typeof(NDeckCardSelectScreen), "OnCardClicked", typeof(CardModel)),
             prefix: nameof(MultiCardClickedPrefix),
@@ -322,6 +330,11 @@ internal static class CollectorHarmony
 
     private static void RunHistoryPostfix(RunHistory history) =>
         CollectorRuntime.FinishRun(history);
+
+    private static void ActRewardCombatStartPrefix(
+        IRunState runState,
+        ICombatState? combatState) =>
+        CollectorRuntime.CaptureActRewardCombatStart(runState, combatState);
 
     private static void NativeSavePrefix(
         SerializableRun save,
@@ -994,6 +1007,10 @@ internal static class CollectorHarmony
             __0,
             ReadField<HashSet<CardModel>>(__instance, "_selectedCards"));
     }
+
+    private static void SimpleCardConfirmedPrefix(NSimpleCardSelectScreen __instance) =>
+        CollectorRuntime.ObserveHandChoiceConfirmation(
+            __instance, ReadField<HashSet<CardModel>>(__instance, "_selectedCards")?.ToArray());
 
     private static void MultiCardClickedPrefix(
         NDeckCardSelectScreen __instance,

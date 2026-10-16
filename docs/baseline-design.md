@@ -24,7 +24,7 @@ StateHash(state) -> deterministic hash
 The policy-facing observation is separate from the world state:
 
 - `CombatSnapshot` is the complete simulator-owned state and retains RNG, native payloads, checksums, and persistent fields required for exact transitions.
-- `CombatObservation` is the combat-policy input. It contains combat resources, piles, creatures, powers, relic IDs, potion slots, and orbs, but excludes gold, RNG, checksums, build metadata, and opaque native JSON.
+- `CombatObservation` is the combat-policy input. It contains combat resources, gold, piles, creatures, powers, relics, potion slots, and orbs; newer live observations can also carry verified visible card displays, enemy intents, companions, and relic display state. It excludes RNG, checksums, build metadata, and opaque native JSON.
 - `RunObservation` is the run-policy input. Its first bridge contains persistent HP, gold, relics, and potions; the canonical deck, map, floor, rewards, and shops are added with the M5 run-state bridge rather than guessed from transient combat piles.
 
 The omniscient searcher may use the full simulator state to follow known future RNG, but a leaf policy or external baseline receives only the observation type appropriate to its decision level.

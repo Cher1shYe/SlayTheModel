@@ -1,10 +1,44 @@
 # 人类整局轨迹采集 Mod v0.1
 
-更新：2026-10-12
+更新：2026-10-15
 
 `SlayTheModelDataCollector` 是与自动打牌 Adapter 分离的只读 Mod。它观察玩家在单人跑局中的局内、局外决策，把一局数据持续写入本地 JSONL；它不会替玩家点击、不会启动 MCTS，也没有上传或网络代码。
 
 ## 数据生命周期
+
+2026-10-15 新增分幕奖励的精确审计证据 `act_reward_boundary`：在原生
+`Hook.BeforeCombatStart` 前记录战前 HP/maxHP、永久牌组升级数和当前遗物数；
+在 `CombatWon`（自动战后效果结算后）记录战后 HP/maxHP 与真实幕胜利。
+死亡有 `CombatEnded` / 原生终局前兜底，按同一 combat ID 去重。
+此数据只用于离线奖励计算，原 `whole-run-v2` reward 组件不变；它不是把奖励公式
+固化进采集器。旧 JSONL 不补写，但可由已有公开状态、通用 HP transition、战斗生命
+周期和原生终局离线重建奖励；改公式时重跑转换即可。完整规则见
+[分幕奖励说明](spireformer-act-reward-v1.md)。
+新捕获路径已构建及隔离原生对象 smoke 检查，尚未安装或实机跑局复测。
+
+### MCTS 来源与直接选择回调（2026-10-15）
+
+同时更新 Adapter 与 DataCollector 后，采集器可以订阅可选的只读来源事件。
+普通策略动作在入队前冻结原生前态与合法集，并绑定实际的同一个 `GameAction`；
+来源明确写入 `action_submitted.policy`，不再把全部操作笼统标为自动化。
+`native-mcts` 的 `teacher_information=native_checkpoint_privileged`，
+`first-legal` 为 `public_observation`。来源、搜索摘要与构建哈希只用于审计，
+不进入模型特征，也不记录 checkpoint/RNG 内容或伪造根节点 visits。
+无法确认来源的自动化域仍保留 `observed-automation`；手动配置的局外操作保持人工来源。
+
+MCTS 的 `ICardSelector` 直接返回选中卡，原生路径不会发出人工选择器通常使用的
+`PlayerChoiceSynchronizer` 回执。新增路径核对请求时冻结的候选、限制及实际返回对象，
+以真实回调作为完成证据。转为人工界面时复用同一个选择请求，核对点击/确认、
+界面 Task 与最终回调；合法空集也须有真实确认。失败、未完成、选择集合不一致
+仍记缺口；普通原生人工选择器仍核对原有同步回执。
+
+`episode_started.metadata` 保存采集能力版本与采集 DLL 的 SHA-256，便于区分
+“源码已经修改”与“实际装了哪个构建”。`information-mode` 仍需显式选择；
+`auto` 不自动改为 no-SL，旧原始日志不回填。隔离的原生无窗口整链路已用两张防御、
+头槌及其弃牌选择验证：4 组 decision/action/result/reward 全部保留
+`native-mcts` / `native_checkpoint_privileged` 且没有 gap。更新后的可见整局仍需实机验收。
+
+### 统一决策事件
 
 一局游戏对应一个 `episode_id` 和一条统一时间线。每个决策在逻辑上经历以下阶段；快速排队时，不同决策的事件行可以交错，须按 decision/attempt ID 关联：
 

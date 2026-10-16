@@ -29,11 +29,11 @@ from .trajectory import Trajectory, TrajectoryStep, collate_trajectories
 
 
 TENSOR_DATASET_SCHEMA_VERSION = 1
-TENSOR_SHARD_SCHEMA_VERSION = 1
+TENSOR_SHARD_SCHEMA_VERSION = 2
 TENSOR_DATASET_MANIFEST = "manifest.json"
 TENSOR_SHARD_FORMAT = "spireformer.tensor-shard"
 
-_SHARD_KEYS = frozenset(
+_SHARD_KEYS_V1 = frozenset(
     {
         "format",
         "schema_version",
@@ -55,6 +55,18 @@ _SHARD_KEYS = frozenset(
         "value_target_mask",
         "teacher_policy",
         "teacher_policy_mask",
+    }
+)
+_SHARD_KEYS_V2 = _SHARD_KEYS_V1 | frozenset(
+    {
+        "set_candidate_offsets",
+        "set_candidate_features",
+        "set_selected_mask",
+        "set_min_select",
+        "set_max_select",
+        "set_step_mask",
+        "set_target_mask",
+        "executed_action_features",
     }
 )
 
@@ -392,6 +404,12 @@ def _validate_source_trajectory(
                 raise TypeError("teacher_policy must use a floating-point dtype")
             if not torch.isfinite(step.teacher_policy).all():
                 raise ValueError("teacher_policy contains NaN or infinity")
+        if step.set_candidate_features is not None:
+            if not torch.isfinite(step.set_candidate_features).all():
+                raise ValueError("set candidate features contain NaN or infinity")
+        if step.executed_action_features is not None:
+            if not torch.isfinite(step.executed_action_features).all():
+                raise ValueError("executed action features contain NaN or infinity")
 
 
 def _pack_trajectories(
@@ -411,6 +429,7 @@ def _pack_trajectories(
     trajectory_step_offsets = [0]
     entity_offsets = [0]
     action_offsets = [0]
+    set_candidate_offsets = [0]
     entity_features: list[Tensor] = []
     action_features: list[Tensor] = []
     selected_action_indices: list[int] = []
@@ -421,6 +440,13 @@ def _pack_trajectories(
     value_target_mask: list[bool] = []
     teacher_policy: list[Tensor] = []
     teacher_policy_mask: list[bool] = []
+    set_candidate_features: list[Tensor] = []
+    set_selected_mask: list[Tensor] = []
+    set_min_select: list[int] = []
+    set_max_select: list[int] = []
+    set_step_mask: list[bool] = []
+    set_target_mask: list[bool] = []
+    executed_action_features: list[Tensor] = []
 
     for trajectory in trajectories:
         for step in trajectory.steps:
@@ -436,6 +462,44 @@ def _pack_trajectories(
             action_features.append(actions)
             entity_offsets.append(entity_offsets[-1] + entities.shape[0])
             action_offsets.append(action_offsets[-1] + actions.shape[0])
+            if step.set_candidate_features is None:
+                set_candidate_offsets.append(set_candidate_offsets[-1])
+                set_min_select.append(0)
+                set_max_select.append(0)
+                set_step_mask.append(False)
+                set_target_mask.append(False)
+            else:
+                assert (
+                    step.set_min_select is not None and step.set_max_select is not None
+                )
+                candidates = (
+                    step.set_candidate_features.detach()
+                    .to(device="cpu", dtype=dtype)
+                    .contiguous()
+                )
+                set_candidate_features.append(candidates)
+                set_selected_mask.append(
+                    step.set_selected_mask.detach().to(device="cpu").contiguous()
+                    if step.set_selected_mask is not None
+                    else torch.zeros(candidates.shape[0], dtype=torch.bool)
+                )
+                set_candidate_offsets.append(
+                    set_candidate_offsets[-1] + candidates.shape[0]
+                )
+                set_min_select.append(step.set_min_select)
+                set_max_select.append(step.set_max_select)
+                set_step_mask.append(True)
+                set_target_mask.append(step.set_selected_mask is not None)
+            executed_action_features.append(
+                (
+                    step.executed_action_features
+                    if step.executed_action_features is not None
+                    else step.legal_action_features[step.selected_action_index]
+                )
+                .detach()
+                .to(device="cpu", dtype=dtype)
+                .contiguous()
+            )
             selected_action_indices.append(step.selected_action_index)
             returns_to_go.append(step.return_to_go)
             timesteps.append(step.timestep)
@@ -472,8 +536,24 @@ def _pack_trajectories(
         ),
         "entity_offsets": torch.tensor(entity_offsets, dtype=torch.int64),
         "action_offsets": torch.tensor(action_offsets, dtype=torch.int64),
+        "set_candidate_offsets": torch.tensor(set_candidate_offsets, dtype=torch.int64),
         "entity_features": torch.cat(entity_features, dim=0),
         "legal_action_features": torch.cat(action_features, dim=0),
+        "set_candidate_features": (
+            torch.cat(set_candidate_features, dim=0)
+            if set_candidate_features
+            else torch.empty((0, entity_feature_dim), dtype=dtype)
+        ),
+        "set_selected_mask": (
+            torch.cat(set_selected_mask, dim=0)
+            if set_selected_mask
+            else torch.empty((0,), dtype=torch.bool)
+        ),
+        "set_min_select": torch.tensor(set_min_select, dtype=torch.int64),
+        "set_max_select": torch.tensor(set_max_select, dtype=torch.int64),
+        "set_step_mask": torch.tensor(set_step_mask, dtype=torch.bool),
+        "set_target_mask": torch.tensor(set_target_mask, dtype=torch.bool),
+        "executed_action_features": torch.stack(executed_action_features, dim=0),
         "selected_action_indices": torch.tensor(
             selected_action_indices, dtype=torch.int64
         ),
@@ -501,14 +581,23 @@ def _require_tensor(
 
 
 def _validate_offsets(
-    offsets: Tensor, *, expected_length: int, expected_end: int, name: str
+    offsets: Tensor,
+    *,
+    expected_length: int,
+    expected_end: int,
+    name: str,
+    allow_equal: bool = False,
 ) -> None:
     if offsets.shape != (expected_length,):
         raise ValueError(f"{name} must have shape [{expected_length}]")
     if offsets[0].item() != 0 or offsets[-1].item() != expected_end:
         raise ValueError(f"{name} endpoints do not match packed data")
-    if offsets.numel() > 1 and torch.any(offsets[1:] <= offsets[:-1]):
-        raise ValueError(f"{name} must be strictly increasing")
+    if offsets.numel() > 1 and torch.any(
+        (offsets[1:] < offsets[:-1]) if allow_equal else (offsets[1:] <= offsets[:-1])
+    ):
+        raise ValueError(
+            f"{name} must be {'nondecreasing' if allow_equal else 'strictly increasing'}"
+        )
 
 
 def _validate_shard_payload(
@@ -522,21 +611,21 @@ def _validate_shard_payload(
 ) -> Mapping[str, object]:
     if type(payload) is not dict:
         raise TypeError("tensor shard root must be a plain dictionary")
-    if set(payload) != _SHARD_KEYS:
+    version = payload.get("schema_version")
+    if not _is_plain_int(version):
+        raise TypeError("tensor shard schema_version must be an integer")
+    if version not in (1, TENSOR_SHARD_SCHEMA_VERSION):
+        raise ValueError(f"unsupported tensor shard schema {version!r}")
+    expected_keys = _SHARD_KEYS_V1 if version == 1 else _SHARD_KEYS_V2
+    if set(payload) != expected_keys:
         raise ValueError(
-            f"invalid tensor shard keys: expected {sorted(_SHARD_KEYS)}, "
+            f"invalid tensor shard keys: expected {sorted(expected_keys)}, "
             f"got {sorted(payload)}"
         )
     if not isinstance(payload["format"], str):
         raise TypeError("tensor shard format must be a string")
     if payload["format"] != TENSOR_SHARD_FORMAT:
         raise ValueError("not a SpireFormer tensor shard")
-    if not _is_plain_int(payload["schema_version"]):
-        raise TypeError("tensor shard schema_version must be an integer")
-    if payload["schema_version"] != TENSOR_SHARD_SCHEMA_VERSION:
-        raise ValueError(
-            f"unsupported tensor shard schema {payload['schema_version']!r}"
-        )
     scalar_expectations = {
         "entity_feature_dim": entity_feature_dim,
         "action_feature_dim": action_feature_dim,
@@ -659,6 +748,76 @@ def _validate_shard_payload(
         raise ValueError("a disabled teacher policy row must contain only zero")
     if torch.any(~value_mask & (values != 0)):
         raise ValueError("disabled value targets must be serialized as zero")
+    if version == 2:
+        set_offsets = _require_tensor(
+            payload, "set_candidate_offsets", dtype=torch.int64, ndim=1
+        )
+        set_features = _require_tensor(
+            payload, "set_candidate_features", dtype=dtype, ndim=2
+        )
+        set_selected = _require_tensor(
+            payload, "set_selected_mask", dtype=torch.bool, ndim=1
+        )
+        set_min = _require_tensor(payload, "set_min_select", dtype=torch.int64, ndim=1)
+        set_max = _require_tensor(payload, "set_max_select", dtype=torch.int64, ndim=1)
+        set_steps = _require_tensor(payload, "set_step_mask", dtype=torch.bool, ndim=1)
+        set_targets = _require_tensor(
+            payload, "set_target_mask", dtype=torch.bool, ndim=1
+        )
+        executed = _require_tensor(
+            payload, "executed_action_features", dtype=dtype, ndim=2
+        )
+        if set_features.shape[1] != entity_feature_dim:
+            raise ValueError("set candidate feature width does not match manifest")
+        if set_selected.shape != (set_features.shape[0],):
+            raise ValueError("set_selected_mask must have one value per candidate")
+        if executed.shape != (step_count, action_feature_dim):
+            raise ValueError(
+                "executed_action_features must have shape [steps, F_action]"
+            )
+        for name, tensor in (
+            ("set_min_select", set_min),
+            ("set_max_select", set_max),
+            ("set_step_mask", set_steps),
+            ("set_target_mask", set_targets),
+        ):
+            if tensor.shape != (step_count,):
+                raise ValueError(f"{name} must have shape [steps]")
+        _validate_offsets(
+            set_offsets,
+            expected_length=step_count + 1,
+            expected_end=set_features.shape[0],
+            name="set_candidate_offsets",
+            allow_equal=True,
+        )
+        set_counts = set_offsets[1:] - set_offsets[:-1]
+        if torch.any(
+            (~set_steps) & ((set_counts != 0) | (set_min != 0) | (set_max != 0))
+        ):
+            raise ValueError("non-set steps must have empty set fields")
+        if torch.any(set_targets & ~set_steps):
+            raise ValueError("set target cannot enable a non-set step")
+        if torch.any(
+            set_steps & ((set_min < 0) | (set_max < set_min) | (set_max > set_counts))
+        ):
+            raise ValueError("set selection bounds are invalid")
+        selected_prefix = torch.cat(
+            (
+                torch.zeros(1, dtype=torch.int64),
+                set_selected.to(torch.int64).cumsum(dim=0),
+            )
+        )
+        selected_counts = (
+            selected_prefix[set_offsets[1:]] - selected_prefix[set_offsets[:-1]]
+        )
+        if torch.any(
+            set_targets & ((selected_counts < set_min) | (selected_counts > set_max))
+        ):
+            raise ValueError("selected set cardinality violates bounds")
+        if torch.any(~set_targets & (selected_counts != 0)):
+            raise ValueError("disabled set targets must have no selected candidates")
+        if not torch.isfinite(set_features).all() or not torch.isfinite(executed).all():
+            raise ValueError("set or executed action features contain NaN or infinity")
     return payload
 
 
@@ -678,6 +837,15 @@ def _unpack_trajectories(payload: Mapping[str, object]) -> Iterator[Trajectory]:
     value_mask = cast(Tensor, payload["value_target_mask"])
     teacher = cast(Tensor, payload["teacher_policy"])
     teacher_mask = cast(Tensor, payload["teacher_policy_mask"])
+    is_v2 = cast(int, payload["schema_version"]) >= 2
+    set_offsets = cast(Tensor, payload["set_candidate_offsets"]) if is_v2 else None
+    set_features = cast(Tensor, payload["set_candidate_features"]) if is_v2 else None
+    set_selected = cast(Tensor, payload["set_selected_mask"]) if is_v2 else None
+    set_min = cast(Tensor, payload["set_min_select"]) if is_v2 else None
+    set_max = cast(Tensor, payload["set_max_select"]) if is_v2 else None
+    set_steps = cast(Tensor, payload["set_step_mask"]) if is_v2 else None
+    set_targets = cast(Tensor, payload["set_target_mask"]) if is_v2 else None
+    executed = cast(Tensor, payload["executed_action_features"]) if is_v2 else None
     trajectory_count = cast(int, payload["trajectory_count"])
 
     for trajectory_index in range(trajectory_count):
@@ -689,6 +857,17 @@ def _unpack_trajectories(payload: Mapping[str, object]) -> Iterator[Trajectory]:
             entity_end = int(entity_offsets[step_index + 1].item())
             action_start = int(action_offsets[step_index].item())
             action_end = int(action_offsets[step_index + 1].item())
+            is_set = set_steps is not None and bool(set_steps[step_index].item())
+            set_start = (
+                int(set_offsets[step_index].item())
+                if is_set and set_offsets is not None
+                else 0
+            )
+            set_end = (
+                int(set_offsets[step_index + 1].item())
+                if is_set and set_offsets is not None
+                else 0
+            )
             steps.append(
                 TrajectoryStep(
                     entity_features=entity_features[entity_start:entity_end],
@@ -706,6 +885,32 @@ def _unpack_trajectories(payload: Mapping[str, object]) -> Iterator[Trajectory]:
                         teacher[action_start:action_end]
                         if bool(teacher_mask[step_index].item())
                         else None
+                    ),
+                    set_candidate_features=(
+                        set_features[set_start:set_end]
+                        if is_set and set_features is not None
+                        else None
+                    ),
+                    set_selected_mask=(
+                        set_selected[set_start:set_end]
+                        if is_set
+                        and set_selected is not None
+                        and set_targets is not None
+                        and bool(set_targets[step_index].item())
+                        else None
+                    ),
+                    set_min_select=(
+                        int(set_min[step_index].item())
+                        if is_set and set_min is not None
+                        else None
+                    ),
+                    set_max_select=(
+                        int(set_max[step_index].item())
+                        if is_set and set_max is not None
+                        else None
+                    ),
+                    executed_action_features=(
+                        executed[step_index] if executed is not None else None
                     ),
                 )
             )

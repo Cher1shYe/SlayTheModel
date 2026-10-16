@@ -17,10 +17,10 @@ from spireformer.presets import (
 
 
 EXPECTED_REFERENCE_COUNTS = {
-    "tiny": 2_882_818,
-    "small": 100_801_538,
-    "medium": 707_891_714,
-    "large": 2_033_487_362,
+    "tiny": 2_916_099,
+    "small": 101_984_259,
+    "medium": 712_616_451,
+    "large": 2_044_113_411,
 }
 
 

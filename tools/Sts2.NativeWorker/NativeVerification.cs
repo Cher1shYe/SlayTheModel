@@ -91,6 +91,88 @@ public static class NativeVerification
         Godot.GD.Print("SLAY_WORKER_COMBAT_SOLVER_CHOICES_MATCH purity=15 independent nodes; continuation matched native");
         await BurningPactChoiceAsync(session, cancellation);
         await DarkEmbraceUppercutAsync(session, cancellation);
+        await HeadbuttChoiceAsync(session, cancellation);
+    }
+
+    private static async Task HeadbuttChoiceAsync(
+        NativeSession session,
+        CancellationToken cancellation)
+    {
+        foreach (var variant in new[] { "ethereal", "enchanted", "identical" })
+        {
+            session.Checkpoint = null;
+            session.ChoiceFixture = true;
+            session.ChoiceFixtureCards =
+                ["HEADBUTT", "DEFEND_IRONCLAD", "DEFEND_IRONCLAD", "STRIKE_IRONCLAD", "BASH"];
+            await session.ResetAsync("HEADBUTT-CHOICE", cancellation);
+            var defends = session.CombatStateForSimulation.Players[0]
+                .PlayerCombatState!.Hand.Cards
+                .Where(card => card.Id.Entry == "DEFEND_IRONCLAD")
+                .ToArray();
+            if (variant == "ethereal")
+            {
+                defends[1].AddKeyword(
+                    MegaCrit.Sts2.Core.Entities.Cards.CardKeyword.Ethereal);
+            }
+            if (variant == "enchanted")
+            {
+                MegaCrit.Sts2.Core.Commands.CardCmd.Enchant(
+                    MegaCrit.Sts2.Core.Models.ModelDb
+                        .Enchantment<MegaCrit.Sts2.Core.Models.Enchantments.Nimble>()
+                        .ToMutable(),
+                    defends[1],
+                    2m);
+            }
+
+            await session.StepAsync(session.ActionForCard("DEFEND_IRONCLAD"), cancellation);
+            await session.StepAsync(session.ActionForCard("DEFEND_IRONCLAD"), cancellation);
+            using var environment = new CombatSolverReplayEnvironment();
+            environment.Capture(session.CombatStateForSimulation, session.EntryHp);
+            var play = environment.LegalActions().First(action =>
+                action.Native.CardId == "HEADBUTT");
+            environment.Promote(play);
+            await session.StepAsync(session.ToLiveSearchAction(play), cancellation);
+            var choices = environment.LegalActions();
+            session.ValidateSimulationActions(choices);
+            var selected = variant == "identical"
+                ? choices[0]
+                : choices.First(action =>
+                    action.Native.SelectedCards![0].OptionOccurrence == 1);
+            if (variant != "identical"
+                && session.ToLiveSearchAction(selected).Selection is not [1])
+            {
+                throw new InvalidDataException(
+                    "Headbutt must select the second model occurrence.");
+            }
+
+            var invalid = selected.Native with
+            {
+                SelectedCards =
+                    [selected.Native.SelectedCards![0] with { StateKey = "invalid-state" }],
+            };
+            try
+            {
+                session.ToLiveSearchAction(new CombatSolverMctsAction(invalid));
+                throw new InvalidDataException(
+                    "Headbutt accepted a mismatched semantic state.");
+            }
+            catch (InvalidOperationException) { }
+
+            await environment.ApplyAsync(selected, cancellation);
+            var predicted = environment.CurrentContinuationKey;
+            await session.StepAsync(session.ToLiveSearchAction(selected), cancellation);
+            var actual = CombatSolver.Api.NativeMctsSimulationApi
+                .CaptureLiveContinuationKey(session.CombatStateForSimulation);
+            if (predicted != actual)
+            {
+                throw new InvalidDataException(
+                    "Headbutt choice continuation differs from native execution.");
+            }
+
+            session.ChoiceFixture = false;
+            Godot.GD.Print(
+                $"SLAY_WORKER_HEADBUTT_CHOICE_MATCH {variant}: discard identities and continuation matched native; invalid state rejected");
+        }
     }
 
     private static async Task DarkEmbraceUppercutAsync(NativeSession session, CancellationToken cancellation)

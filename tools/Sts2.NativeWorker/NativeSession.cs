@@ -25,6 +25,8 @@ using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using CombatSolver.Api;
 
+public sealed record NativeReplayDeckCard(string ModelId, int UpgradeLevel);
+
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
 public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment<SearchAction>
@@ -38,6 +40,18 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
+    public string CharacterId { get; set; } = "IRONCLAD";
+    public int AscensionLevel { get; set; }
+    public int? InitialHp { get; set; }
+    public int? InitialMaxHp { get; set; }
+    public int? InitialGold { get; set; }
+    public int? InitialActFloor { get; set; }
+    public IReadOnlyList<NativeReplayDeckCard> InitialDeck { get; set; } = [];
+    public IReadOnlyList<string> InitialRelicIds { get; set; } = [];
+    public IReadOnlyList<(int Slot, string ModelId)> InitialPotions { get; set; } = [];
+    internal Action<GameAction>? BeforeActionEnqueuedForVerification { get; set; }
+    internal Action<object, CardModel[], int, int>? ChoiceRequestedForVerification { get; set; }
+    internal Action<object, CardModel[]?, Exception?>? ChoiceCompletedForVerification { get; set; }
     private Player _player = null!;
     private CombatState _state = null!;
     private TaskCompletionSource<IEnumerable<CardModel>>? _choice;
@@ -47,6 +61,8 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     private GameAction? _action;
     private IDisposable? _selector;
     private CancellationToken _activeCancellation;
+    private object? _verificationChoiceRequest;
+    private (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] _rewardEnemies = [];
     public int Hp => _player.Creature.CurrentHp;
     public int Round => _state.RoundNumber;
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
@@ -54,6 +70,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public long Transitions { get; private set; }
     public CombatState CombatStateForSimulation => _state;
     public bool HasPendingChoice => _choice != null;
+    public IReadOnlyList<CardModel> PendingChoiceOptions => _options;
+    public int PendingChoiceMin => _min;
+    public int PendingChoiceMax => _max;
     public string ChoiceSignature => _choice == null
         ? ""
         // The native selector may retain its requested maximum even when fewer
@@ -65,6 +84,23 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public Task ApplyAsync(SearchAction action, CancellationToken cancellation) => StepAsync(action, cancellation);
     public IReadOnlyList<SearchAction> LegalActions() => Actions();
     public string StateKey() => Fingerprint();
+
+    public async Task AttachCurrentCombatAsync(CancellationToken cancellation)
+    {
+        _activeCancellation = cancellation;
+        cancellation.ThrowIfCancellationRequested();
+        await DrainActiveActionAsync();
+        _selector?.Dispose();
+        RunState run = RunManager.Instance.DebugOnlyGetState()
+            ?? throw new InvalidOperationException("No native run is available to attach.");
+        _player = run.Players.Single(player => player.NetId == LocalContext.NetId);
+        _selector = CardSelectCmd.PushSelector(this);
+        _state = CombatManager.Instance.DebugOnlyGetState()
+            ?? throw new InvalidOperationException("No native combat is available to attach.");
+        EntryHp = _player.Creature.CurrentHp;
+        await SettleAsync(cancellation);
+        CaptureRewardEnemies();
+    }
 
     internal static string FormatChoiceSignature(
         int minSelect, int maxSelect, IReadOnlyCollection<CardModel> options)
@@ -107,7 +143,21 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         foreach (var action in actions) _ = ToLiveSearchAction(action);
     }
 
-    public double EvaluateTerminal() => Won ? 0.5 + Math.Atan((Hp - EntryHp) / 20.0) / Math.PI : -1;
+    public double EnemyDamageFraction
+    {
+        get
+        {
+            var total = _rewardEnemies.Sum(enemy => (double)enemy.MaxHp);
+            var lost = _rewardEnemies.Sum(enemy =>
+                (double)enemy.MaxHp - Math.Clamp(enemy.Identity.CurrentHp, 0, enemy.MaxHp));
+            return total == 0 ? 0 : Math.Clamp(lost / total, 0, 1);
+        }
+    }
+
+    public double EvaluateTerminal()
+        => CombatRolloutReward.Evaluate(Won, Hp <= 0, Hp, EntryHp, EnemyDamageFraction);
+
+    public double EvaluateCutoff() => EvaluateTerminal();
     public SearchAction RolloutAction(IReadOnlyList<SearchAction> actions, Random random) =>
         random.Next(2) == 0 ? Heuristic(actions) : AttackFirst(actions);
 
@@ -125,7 +175,52 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         _action = null;
         if (Checkpoint is null)
         {
-            _player = Player.CreateForNewRun<Ironclad>(UnlockState.all, 1);
+            _player = CharacterId.ToUpperInvariant() switch
+            {
+                "IRONCLAD" => Player.CreateForNewRun<Ironclad>(UnlockState.all, 1),
+                "SILENT" => Player.CreateForNewRun<Silent>(UnlockState.all, 1),
+                "DEFECT" => Player.CreateForNewRun<Defect>(UnlockState.all, 1),
+                "NECROBINDER" => Player.CreateForNewRun<Necrobinder>(UnlockState.all, 1),
+                "REGENT" => Player.CreateForNewRun<Regent>(UnlockState.all, 1),
+                _ => throw new InvalidDataException("Unknown replay character " + CharacterId),
+            };
+            if (InitialMaxHp is { } maxHp)
+                _player.Creature.SetMaxHpInternal(maxHp);
+            if (InitialHp is { } hp)
+                _player.Creature.SetCurrentHpInternal(hp);
+            if (InitialGold is { } gold)
+                _player.Gold = gold;
+            if (InitialDeck.Count > 0)
+            {
+                _player.Deck.Clear(silent: true);
+                foreach (NativeReplayDeckCard replayCard in InitialDeck)
+                {
+                    CardModel card = ModelDb.AllCards.Single(model =>
+                        model.Id.Entry == replayCard.ModelId).ToMutable();
+                    for (int level = 0; level < replayCard.UpgradeLevel; level++)
+                    {
+                        HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
+                        HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);
+                    }
+                    _player.Deck.AddInternal(card);
+                }
+            }
+            if (InitialRelicIds.Count > 0)
+            {
+                foreach (RelicModel relic in _player.Relics.ToArray())
+                    _player.RemoveRelicInternal(relic, silent: true);
+                foreach (string relicId in InitialRelicIds)
+                {
+                    RelicModel relic = ModelDb.AllRelics.Single(model => model.Id.Entry == relicId).ToMutable();
+                    _player.AddRelicInternal(relic, silent: true);
+                }
+            }
+            foreach ((int slot, string potionId) in InitialPotions)
+            {
+                PotionModel potion = ModelDb.AllPotions.Single(model => model.Id.Entry == potionId).ToMutable();
+                if (!_player.AddPotionInternal(potion, slot, silent: true).success)
+                    throw new InvalidDataException($"Could not restore potion {potionId} in slot {slot}.");
+            }
             if (ChoiceFixture)
             {
                 _player.Deck.Clear();
@@ -141,7 +236,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
                     _player.Deck.AddInternal(card);
                 }
             }
-            var run = RunState.CreateForTest([_player], seed: seed);
+            var run = RunState.CreateForTest([_player], ascensionLevel: AscensionLevel, seed: seed);
+            if (InitialActFloor is { } actFloor)
+                run.ActFloor = actFloor;
             RunManager.Instance.SetUpTest(run, new NetSingleplayerGameService());
             _selector = CardSelectCmd.PushSelector(this);
             var encounter = ModelDb.All.OfType<EncounterModel>().Single(candidate =>
@@ -155,6 +252,18 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         }
         _state = CombatManager.Instance.DebugOnlyGetState() ?? throw new InvalidOperationException("Combat not created.");
         await SettleAsync(cancellation);
+        CaptureRewardEnemies();
+    }
+
+    private void CaptureRewardEnemies()
+    {
+        // Freeze the root cohort. A creature that leaves the active roster
+        // remains a stable identity for endpoint progress; a revival reads its
+        // restored current HP and therefore removes earlier progress.
+        _rewardEnemies = _state.Enemies
+            .Where(enemy => enemy.MaxHp > 0)
+            .Select(enemy => (enemy, enemy.MaxHp))
+            .ToArray();
     }
 
     private async Task DrainActiveActionAsync()
@@ -259,11 +368,17 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             var pending = _choice ?? throw new InvalidOperationException("No pending selection.");
             var selected = indices.Select(index => _options[index]).ToArray();
             _choice = null;
+            if (_verificationChoiceRequest is { } request)
+            {
+                ChoiceCompletedForVerification?.Invoke(request, selected, null);
+                _verificationChoiceRequest = null;
+            }
             pending.SetResult(selected);
         }
         else
         {
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
+            BeforeActionEnqueuedForVerification?.Invoke(_action);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
         try { await SettleAsync(cancellation); }
@@ -271,6 +386,12 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         {
             var pendingChoice = _choice;
             _choice = null;
+            if (_verificationChoiceRequest is { } request)
+            {
+                ChoiceCompletedForVerification?.Invoke(
+                    request, null, new OperationCanceledException(cancellation));
+                _verificationChoiceRequest = null;
+            }
             pendingChoice?.TrySetCanceled(cancellation);
             await DrainActiveActionAsync();
             // Completion tasks can schedule additional continuations onto
@@ -362,6 +483,12 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         _options = options.ToArray();
         _min = minSelect;
         _max = maxSelect;
+        if (ChoiceRequestedForVerification is not null)
+        {
+            _verificationChoiceRequest = new object();
+            ChoiceRequestedForVerification(
+                _verificationChoiceRequest, _options.ToArray(), minSelect, maxSelect);
+        }
         _choice = new TaskCompletionSource<IEnumerable<CardModel>>(TaskCreationOptions.RunContinuationsAsynchronously);
         return _choice.Task;
     }

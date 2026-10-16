@@ -80,6 +80,8 @@ class SpireFormerOutput:
     policy_logits: Tensor
     state_value: Tensor
     state_context: Tensor
+    set_candidate_logits: Tensor | None = None
+    set_count_logits: Tensor | None = None
 
 
 class SpireFormer(nn.Module):
@@ -140,6 +142,11 @@ class SpireFormer(nn.Module):
             nn.Linear(config.model_dim * 3, config.model_dim),
             nn.GELU(),
             nn.Dropout(config.dropout),
+            nn.Linear(config.model_dim, 1),
+        )
+        self.set_count_head = nn.Sequential(
+            nn.Linear(config.model_dim * 2 + 2, config.model_dim),
+            nn.GELU(),
             nn.Linear(config.model_dim, 1),
         )
         self.value_head = nn.Sequential(
@@ -233,22 +240,78 @@ class SpireFormer(nn.Module):
             key_padding_mask=entity_padding_mask,
         ).reshape(batch_size, steps, action_count, self.config.model_dim)
 
-        query = self.policy_query(policy_context).unsqueeze(2)
-        keys = self.policy_key(contextual_actions)
-        dot_product = (query * keys).sum(dim=-1) / sqrt(self.config.model_dim)
-        expanded_context = policy_context.unsqueeze(2).expand_as(contextual_actions)
-        interaction = self.policy_interaction(
-            torch.cat(
+        policy_logits = self._score_candidates(policy_context, contextual_actions)
+        policy_logits = policy_logits.masked_fill(~batch.legal_action_mask, -torch.inf)
+        set_candidate_logits: Tensor | None = None
+        set_count_logits: Tensor | None = None
+        if batch.set_candidate_features is not None:
+            assert batch.set_candidate_mask is not None
+            assert batch.set_min_select is not None and batch.set_max_select is not None
+            assert batch.set_step_mask is not None
+            set_count = batch.set_candidate_features.shape[2]
+            flat_set_candidates = batch.set_candidate_features.reshape(
+                flattened_steps, set_count, self.config.entity_feature_dim
+            )
+            set_padding_mask = (~batch.set_candidate_mask).reshape(
+                flattened_steps, set_count
+            )
+            # Reuse the entity set encoder: candidate cards are a small set
+            # of visible entities, not exponentially many subset actions.
+            candidate_embeddings = self.set_encoder.encode_entities(
+                flat_set_candidates, set_padding_mask
+            )
+            candidate_embeddings = candidate_embeddings + domain_embeddings.reshape(
+                flattened_steps, 1, self.config.model_dim
+            )
+            contextual_candidates = self.action_entity_attention(
+                candidate_embeddings,
+                entity_embeddings,
+                query_padding_mask=set_padding_mask,
+                key_padding_mask=entity_padding_mask,
+            ).reshape(batch_size, steps, set_count, self.config.model_dim)
+            set_candidate_logits = self._score_candidates(
+                policy_context, contextual_candidates
+            ).masked_fill(~batch.set_candidate_mask, -torch.inf)
+
+            candidate_mask_float = batch.set_candidate_mask.unsqueeze(-1)
+            candidate_summary = contextual_candidates.masked_fill(
+                ~candidate_mask_float, 0.0
+            ).sum(dim=2) / candidate_mask_float.sum(dim=2).clamp_min(1)
+            candidate_counts = batch.set_candidate_mask.sum(dim=-1)
+            count_values = torch.arange(
+                set_count + 1, device=policy_context.device
+            ).view(1, 1, set_count + 1)
+            count_scale = candidate_counts.clamp_min(1).unsqueeze(-1)
+            count_features = torch.stack(
                 (
-                    expanded_context,
-                    contextual_actions,
-                    expanded_context * contextual_actions,
+                    count_values.expand(batch_size, steps, -1) / count_scale,
+                    count_values.expand(batch_size, steps, -1)
+                    / (count_values.expand(batch_size, steps, -1) + 1),
+                ),
+                dim=-1,
+            ).to(policy_context.dtype)
+            count_context = torch.cat(
+                (
+                    policy_context.unsqueeze(2).expand(-1, -1, set_count + 1, -1),
+                    candidate_summary.unsqueeze(2).expand(-1, -1, set_count + 1, -1),
+                    count_features,
                 ),
                 dim=-1,
             )
-        ).squeeze(-1)
-        policy_logits = dot_product + interaction
-        policy_logits = policy_logits.masked_fill(~batch.legal_action_mask, -torch.inf)
+            set_count_logits = self.set_count_head(count_context).squeeze(-1)
+            valid_counts = (
+                batch.set_step_mask.unsqueeze(-1)
+                & (count_values >= batch.set_min_select.unsqueeze(-1))
+                & (count_values <= batch.set_max_select.unsqueeze(-1))
+                & (count_values <= candidate_counts.unsqueeze(-1))
+            )
+            set_count_logits = set_count_logits.masked_fill(~valid_counts, -torch.inf)
+        else:
+            # Keep the new head in the backward graph on batches containing
+            # only ordinary decisions. DDP can then run with the existing
+            # find_unused_parameters=False setting.
+            dummy = policy_context.new_zeros((1, self.config.model_dim * 2 + 2))
+            policy_logits = policy_logits + self.set_count_head(dummy).sum() * 0.0
         state_value = self.value_head(value_context).squeeze(-1)
         state_value = state_value.masked_fill(~batch.step_mask, 0.0)
 
@@ -256,7 +319,19 @@ class SpireFormer(nn.Module):
             policy_logits=policy_logits,
             state_value=state_value,
             state_context=policy_context,
+            set_candidate_logits=set_candidate_logits,
+            set_count_logits=set_count_logits,
         )
+
+    def _score_candidates(self, context: Tensor, candidates: Tensor) -> Tensor:
+        query = self.policy_query(context).unsqueeze(2)
+        keys = self.policy_key(candidates)
+        dot_product = (query * keys).sum(dim=-1) / sqrt(self.config.model_dim)
+        expanded = context.unsqueeze(2).expand_as(candidates)
+        interaction = self.policy_interaction(
+            torch.cat((expanded, candidates, expanded * candidates), dim=-1)
+        ).squeeze(-1)
+        return dot_product + interaction
 
     @staticmethod
     def select_actions(output: SpireFormerOutput, step_mask: Tensor) -> Tensor:
@@ -268,6 +343,36 @@ class SpireFormer(nn.Module):
             raise TypeError("step_mask must use torch.bool")
         selected = output.policy_logits.argmax(dim=-1)
         return selected.masked_fill(~step_mask, -1)
+
+    @staticmethod
+    def select_sets(output: SpireFormerOutput, batch: SpireFormerBatch) -> Tensor:
+        """Choose the most likely count, then its highest-scored candidates.
+
+        This two-stage greedy decoder is exact for a fixed-count choice.  For
+        variable counts it need not be the joint MAP subset; the training
+        likelihood remains properly normalized over all legal subsets.
+        """
+
+        if output.set_candidate_logits is None or output.set_count_logits is None:
+            raise ValueError("set-choice logits are unavailable")
+        if batch.set_candidate_mask is None or batch.set_step_mask is None:
+            raise ValueError("batch has no set-choice candidates")
+        if output.set_candidate_logits.shape != batch.set_candidate_mask.shape:
+            raise ValueError("set candidate logits do not match candidate mask")
+        if output.set_count_logits.shape != (
+            *batch.set_step_mask.shape,
+            batch.set_candidate_mask.shape[-1] + 1,
+        ):
+            raise ValueError("set count logits have incorrect shape")
+        counts = output.set_count_logits.argmax(dim=-1)
+        ranks = output.set_candidate_logits.argsort(dim=-1, descending=True).argsort(
+            dim=-1
+        )
+        return (
+            (ranks < counts.unsqueeze(-1))
+            & batch.set_candidate_mask
+            & batch.set_step_mask.unsqueeze(-1)
+        )
 
 
 __all__ = [

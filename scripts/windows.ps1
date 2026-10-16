@@ -136,8 +136,15 @@ try {
     Invoke-Dotnet @('--version')
     if ($Action -eq 'Check') { return }
     if ($Action -eq 'Test') {
-        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Outside.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
-            Invoke-Dotnet @('run', '--project', "smoke/$project/$project.csproj", '-c', 'Release')
+        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Outside.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke', 'SlayTheModel.Collector.Smoke')) {
+            if ($project -eq 'SlayTheModel.Collector.Smoke') {
+                Invoke-Dotnet @(
+                    'build', "smoke/$project/$project.csproj", '-c', 'Release',
+                    '-m:1', '-nodeReuse:false', '-p:UseSharedCompilation=false')
+                Invoke-Dotnet @("smoke/$project/bin/Release/net9.0/$project.dll")
+            } else {
+                Invoke-Dotnet @('run', '--project', "smoke/$project/$project.csproj", '-c', 'Release')
+            }
         }
         return
     }

@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'benchmark', 'solver-mcts-benchmark', 'native-throughput', 'whole-run-api-probe', 'whole-run-speed-probe', 'whole-run-speed-probe-legacy', 'spire-codex-combat-replay')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -69,14 +69,64 @@ try {
         Copy-Item -LiteralPath (Join-Path $managed 'GodotSharp.dll') -Destination $output -Force
         Copy-Item -LiteralPath (Join-Path $game 'SlayTheSpire2.exe') -Destination (Join-Path $stage 'NativeWorker.exe') -Force
         Copy-Item -LiteralPath (Join-Path $game 'release_info.json') -Destination $stage -Force
+        if ($Mode -eq 'collector-policy-verify') {
+            & $dotnet build (Join-Path $repo 'src/SlayTheModel.Sts2.DataCollector/SlayTheModel.Sts2.DataCollector.csproj') -c Release "-p:Sts2ManagedDir=$managed" -m:1 -nr:false
+            if ($LASTEXITCODE -ne 0) { throw 'Collector verification build failed.' }
+            & $dotnet build (Join-Path $repo 'src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj') -c Release "-p:Sts2ManagedDir=$managed" -m:1 -nr:false
+            if ($LASTEXITCODE -ne 0) { throw 'Adapter verification build failed.' }
+        }
+    }
+    $collectorTestDll = Join-Path $repo 'src/SlayTheModel.Sts2.DataCollector/bin/Release/net9.0/SlayTheModelDataCollector.dll'
+    $adapterTestDll = Join-Path $repo 'src/SlayTheModel.Sts2.ModAdapter/bin/Release/net9.0/SlayTheModelAdapter.dll'
+    if ($Mode -eq 'collector-policy-verify' -and (-not (Test-Path -LiteralPath $collectorTestDll) -or -not (Test-Path -LiteralPath $adapterTestDll))) {
+        throw 'collector-policy-verify requires current Release builds of the collector and adapter.'
     }
     $savedPack = $env:STS2_GAME_PACK
     $savedMode = $env:STS2_WORKER_MODE
     $savedOutput = $env:STS2_BENCHMARK_OUT
+    $savedCollectorTestDll = $env:STS2_COLLECTOR_TEST_DLL
+    $savedAdapterTestDll = $env:STS2_ADAPTER_TEST_DLL
     try {
         $env:STS2_GAME_PACK = Join-Path $game 'SlayTheSpire2.pck'
         $env:STS2_WORKER_MODE = $Mode
-        $env:STS2_BENCHMARK_OUT = Join-Path $stage 'benchmark.json'
+        $env:STS2_COLLECTOR_TEST_DLL = $collectorTestDll
+        $env:STS2_ADAPTER_TEST_DLL = $adapterTestDll
+        if ($Mode -eq 'spire-codex-combat-replay') {
+            if (-not $env:STS2_SPIRE_CODEX_PLAN -or -not (Test-Path -LiteralPath $env:STS2_SPIRE_CODEX_PLAN)) {
+                throw 'STS2_SPIRE_CODEX_PLAN must name an existing internal combat-plan JSON.'
+            }
+            if ($env:STS2_SPIRE_CODEX_NEXT_PLAN -and -not (Test-Path -LiteralPath $env:STS2_SPIRE_CODEX_NEXT_PLAN)) {
+                throw 'STS2_SPIRE_CODEX_NEXT_PLAN must name an existing internal combat-plan JSON.'
+            }
+        }
+        $benchmarkFile = if ($Mode -eq 'native-throughput') {'native-throughput.json'} elseif ($Mode -eq 'whole-run-api-probe') {'whole-run-api-probe.txt'} elseif ($Mode -eq 'whole-run-speed-probe') {'whole-run-speed-probe.json'} elseif ($Mode -eq 'whole-run-speed-probe-legacy') {'whole-run-speed-probe-legacy.json'} elseif ($Mode -eq 'spire-codex-combat-replay') {'spire-codex-combat-replay.json'} else {'benchmark.json'}
+        if ($env:STS2_PROBE_GENERIC -eq '1') {
+            if ($Mode -ne 'whole-run-speed-probe' -or $env:STS2_PROBE_ROUTE -or $env:STS2_PROBE_LONG_PATH -eq '1' -or $env:STS2_PROBE_REPLAY_TRACE -or $env:STS2_PROBE_COLLECTOR_REPLAY) {
+                throw 'STS2_PROBE_GENERIC=1 requires canonical whole-run-speed-probe without route, long-path, or replay flags.'
+            }
+            $probeSeed = if ($env:STS2_PROBE_SEED) {$env:STS2_PROBE_SEED} else {'STM-WHOLE-RUN-SPEED-1'}
+            $safeProbeSeed = $probeSeed -replace '[^A-Za-z0-9_-]', '-'
+            $probePolicySuffix = if ($env:STS2_PROBE_USE_POTIONS -eq '1') {'-potions'} else {''}
+            $benchmarkFile = "whole-run-speed-probe-generic-$safeProbeSeed$probePolicySuffix.json"
+        }
+        if ($Mode -in @('whole-run-speed-probe', 'whole-run-speed-probe-legacy') -and $env:STS2_PROBE_ROUTE) {
+            $route = $env:STS2_PROBE_ROUTE
+            if ($route -notin @('event', 'shop', 'rest')) { throw "Invalid STS2_PROBE_ROUTE: $route" }
+            if ($Mode -eq 'whole-run-speed-probe' -and $route -ne 'event') { throw 'shop/rest require whole-run-speed-probe-legacy.' }
+            if ($Mode -eq 'whole-run-speed-probe-legacy' -and $route -eq 'event') { throw 'event requires whole-run-speed-probe.' }
+            $suffix = if ($route -eq 'event' -and $env:STS2_PROBE_EVENT_OPTION -and $env:STS2_PROBE_EVENT_OPTION -ne '0') { "-event-$($env:STS2_PROBE_EVENT_OPTION)" } else { "-$route" }
+            $benchmarkFile = [IO.Path]::GetFileNameWithoutExtension($benchmarkFile) + $suffix + '.json'
+        }
+        if ($env:STS2_PROBE_COLLECTOR_REPLAY) {
+            if ($Mode -ne 'whole-run-speed-probe' -or $env:STS2_PROBE_ROUTE -or $env:STS2_PROBE_LONG_PATH -eq '1' -or $env:STS2_PROBE_REPLAY_TRACE -or -not (Test-Path -LiteralPath $env:STS2_PROBE_COLLECTOR_REPLAY)) {
+                throw 'STS2_PROBE_COLLECTOR_REPLAY requires an existing collector JSONL and canonical whole-run-speed-probe without route, long-path, or terminal replay flags.'
+            }
+            if ($env:STS2_PROBE_PROGRESS_SAVE -and -not (Test-Path -LiteralPath $env:STS2_PROBE_PROGRESS_SAVE)) {
+                throw 'STS2_PROBE_PROGRESS_SAVE must name an existing progress.save file.'
+            }
+            $benchmarkFile = 'whole-run-speed-probe-collector-replay.json'
+        }
+        $env:STS2_BENCHMARK_OUT = Join-Path $stage $benchmarkFile
         $process = Start-Process -FilePath (Join-Path $stage 'NativeWorker.exe') -ArgumentList @('--headless', '--path', ('"' + $project + '"')) -WindowStyle Hidden -RedirectStandardOutput (Join-Path $stage 'stdout.txt') -RedirectStandardError (Join-Path $stage 'stderr.txt') -PassThru
         # Windows PowerShell must open the process handle before the process exits
         # or ExitCode can remain unavailable on the returned Process object.
@@ -96,5 +146,7 @@ try {
         $env:STS2_GAME_PACK = $savedPack
         $env:STS2_WORKER_MODE = $savedMode
         $env:STS2_BENCHMARK_OUT = $savedOutput
+        $env:STS2_COLLECTOR_TEST_DLL = $savedCollectorTestDll
+        $env:STS2_ADAPTER_TEST_DLL = $savedAdapterTestDll
     }
 } finally { Pop-Location }

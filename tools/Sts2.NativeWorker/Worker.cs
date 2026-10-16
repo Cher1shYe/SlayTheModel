@@ -35,6 +35,77 @@ public partial class Worker : Node
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
+            string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "summon-reward-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode == "reward-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await MinionRewardVerification.RunAsync(session, timeout.Token);
+                await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
+                await RewardVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode == "collector-policy-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                string collectorDll = System.Environment.GetEnvironmentVariable(
+                        "STS2_COLLECTOR_TEST_DLL")
+                    ?? throw new InvalidOperationException(
+                        "STS2_COLLECTOR_TEST_DLL is required.");
+                string adapterDll = System.Environment.GetEnvironmentVariable(
+                        "STS2_ADAPTER_TEST_DLL")
+                    ?? throw new InvalidOperationException(
+                        "STS2_ADAPTER_TEST_DLL is required.");
+                await CollectorPolicyVerification.RunAsync(
+                    session, collectorDll, adapterDll, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode == "spire-codex-combat-replay")
+            {
+                string plan = System.Environment.GetEnvironmentVariable("STS2_SPIRE_CODEX_PLAN")
+                    ?? throw new InvalidOperationException("STS2_SPIRE_CODEX_PLAN is required.");
+                string output = System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT")
+                    ?? "spire-codex-combat-replay.json";
+                string? nextPlan = System.Environment.GetEnvironmentVariable("STS2_SPIRE_CODEX_NEXT_PLAN");
+                if (string.IsNullOrWhiteSpace(nextPlan))
+                    await SpireCodexCombatReplayPilot.RunAsync(session, plan, output, timeout.Token);
+                else
+                    await SpireCodexCombatReplayPilot.RunSequentialAsync(
+                        this, session, plan, nextPlan, output, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode is "whole-run-speed-probe" or "whole-run-speed-probe-legacy")
+            {
+                await WholeRunSpeedProbe.RunAsync(this, System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT")
+                    ?? "whole-run-speed-probe.json", legacyRawSeed: workerMode == "whole-run-speed-probe-legacy");
+                GetTree().Quit();
+                return;
+            }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "whole-run-api-probe")
+            {
+                WholeRunApiProbe.Write(System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT")
+                    ?? "whole-run-api-probe.txt");
+                GetTree().Quit();
+                return;
+            }
+            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "native-throughput")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                await NativeThroughputBenchmark.RunAsync(session,
+                    System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT") ?? "native-throughput.json",
+                    timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "solver-mcts-benchmark")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;

@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## SlayTheModel Native MCTS 集成（2026-10-15）
+
+- `scripts/native-worker-*.{sh,ps1}` 的 `reward-verify` 覆盖女王与开场仆从、`OVICOPTER_NORMAL`、`FOGMOG_NORMAL`、`FABRICATOR_NORMAL` 的召唤和复活边界；逐步比较终点净缺血比例与原生/预测 continuation key。
+- 默认 native worker verify 的头槌夹具覆盖普通/虚无、普通/附魔和完全相同的同名副本；核对第二实例索引、完整 continuation key，并确认错误语义状态被拒绝。
+- 主工程 ReplaySearch smoke 覆盖失败/深度截断进度、胜利/存活/失败价值带、取消、树复用及中断 rollout 不回传。
+- 当前验证用于确认评分机制和身份解析，不代表整局胜率提高，也未穷举所有怪物、分裂阶段和第三方 Mod。
+
 ## 0.43.3：余像路线与战后掉药预测
 
 - 药水奖励机会成本：更新纯合同，概率 100%/40% 但结果未知的满栏情形额度均为 0；确定掉药按预测药水档位抵扣一次，确定不掉、药栏未满和禁用获得药水时额度为 0。UI 本地化合同新增搜索刚开始即显示预测掉药/不掉药，关闭预测时清空；英/简/繁分别核对。本地 Release 构建 0 警告、0 错误，自动部署的 DLL 与构建 DLL SHA256 一致。没有运行无人游戏合同或可见实机。结构门禁本次失败：`CombatBeamSolver.BlockPotionInsertion.cs` 缺少脚本硬编码的 `ReplayInsertedRoute(`，但当前 HEAD 的该文件原本就命名为 `ReplayAdjustedRoute(`，本次未改动该文件；不把门禁当作通过。

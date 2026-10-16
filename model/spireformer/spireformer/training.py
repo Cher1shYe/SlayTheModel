@@ -115,6 +115,8 @@ class StepMetrics:
     learning_rate: float
     did_optimizer_step: bool
     grad_norm: float | None = None
+    set_loss: float = 0.0
+    set_targets: int = 0
 
 
 @dataclass(frozen=True, slots=True)
@@ -141,6 +143,8 @@ class AggregatedMetrics:
     value_targets: int
     global_step: int
     learning_rate: float
+    set_loss: float = 0.0
+    set_targets: int = 0
 
 
 class MetricAccumulator:
@@ -154,14 +158,17 @@ class MetricAccumulator:
         self._policy_loss_sum = 0.0
         self._value_loss_sum = 0.0
         self._entropy_sum = 0.0
+        self._set_loss_sum = 0.0
         self._microbatches = 0
         self._optimizer_steps = 0
         self._active_weight = 0
         self._policy_weight = 0
         self._value_weight = 0
+        self._set_weight = 0
         self._active_steps = 0
         self._policy_targets = 0
         self._value_targets = 0
+        self._set_targets = 0
         self._global_step = 0
         self._learning_rate = 0.0
 
@@ -169,18 +176,22 @@ class MetricAccumulator:
         active_weight = metrics.active_steps
         policy_weight = metrics.policy_targets
         value_weight = metrics.value_targets
+        set_weight = metrics.set_targets
         self._total_loss_sum += metrics.total_loss * active_weight
         self._policy_loss_sum += metrics.policy_loss * policy_weight
         self._value_loss_sum += metrics.value_loss * value_weight
         self._entropy_sum += metrics.entropy * policy_weight
+        self._set_loss_sum += metrics.set_loss * set_weight
         self._microbatches += 1
         self._optimizer_steps += int(metrics.did_optimizer_step)
         self._active_weight += active_weight
         self._policy_weight += policy_weight
         self._value_weight += value_weight
+        self._set_weight += set_weight
         self._active_steps += metrics.active_steps
         self._policy_targets += metrics.policy_targets
         self._value_targets += metrics.value_targets
+        self._set_targets += metrics.set_targets
         self._global_step = metrics.global_step
         self._learning_rate = metrics.learning_rate
 
@@ -205,6 +216,8 @@ class MetricAccumulator:
                 value_targets=0,
                 global_step=self._global_step,
                 learning_rate=self._learning_rate,
+                set_loss=0.0,
+                set_targets=0,
             )
         else:
             result = AggregatedMetrics(
@@ -235,6 +248,10 @@ class MetricAccumulator:
                 value_targets=self._value_targets,
                 global_step=self._global_step,
                 learning_rate=self._learning_rate,
+                set_loss=(
+                    self._set_loss_sum / self._set_weight if self._set_weight else 0.0
+                ),
+                set_targets=self._set_targets,
             )
         if reset:
             self.reset()
@@ -288,7 +305,7 @@ def create_warmup_cosine_scheduler(
 def _target_counts(
     batch: SpireFormerBatch,
     targets: SpireFormerTargets,
-) -> tuple[int, int, int]:
+) -> tuple[int, int, int, int]:
     policy_mask = batch.step_mask
     if targets.policy_target_mask is not None:
         policy_mask = policy_mask & targets.policy_target_mask
@@ -299,6 +316,11 @@ def _target_counts(
         int(batch.step_mask.sum().item()),
         int(policy_mask.sum().item()),
         int(value_mask.sum().item()),
+        (
+            int(targets.set_target_mask.sum().item())
+            if targets.set_target_mask is not None
+            else 0
+        ),
     )
 
 
@@ -450,7 +472,9 @@ class SpireFormerTrainer:
             if did_step
             else None
         )
-        active_steps, policy_targets, value_targets = _target_counts(batch, targets)
+        active_steps, policy_targets, value_targets, set_targets = _target_counts(
+            batch, targets
+        )
         metrics = StepMetrics(
             total_loss=float(loss.total.detach().float().item()),
             policy_loss=float(loss.policy.detach().float().item()),
@@ -466,6 +490,8 @@ class SpireFormerTrainer:
             grad_norm=(
                 None if optimizer_result is None else optimizer_result.grad_norm
             ),
+            set_loss=float(loss.set_selection.detach().float().item()),
+            set_targets=set_targets,
         )
         self.train_metrics.update(metrics)
         return metrics
@@ -502,7 +528,9 @@ class SpireFormerTrainer:
                 loss: SpireFormerLoss = self.criterion(output, batch, targets)
         finally:
             self.model.train(was_training)
-        active_steps, policy_targets, value_targets = _target_counts(batch, targets)
+        active_steps, policy_targets, value_targets, set_targets = _target_counts(
+            batch, targets
+        )
         metrics = StepMetrics(
             total_loss=float(loss.total.detach().float().item()),
             policy_loss=float(loss.policy.detach().float().item()),
@@ -516,6 +544,8 @@ class SpireFormerTrainer:
             learning_rate=self.learning_rate,
             did_optimizer_step=False,
             grad_norm=None,
+            set_loss=float(loss.set_selection.detach().float().item()),
+            set_targets=set_targets,
         )
         self.eval_metrics.update(metrics)
         return metrics

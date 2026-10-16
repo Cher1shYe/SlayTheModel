@@ -16,7 +16,7 @@ var choiceContext = new OutsideCombatChoiceContext(
     Cancelable: true,
     RequiresConfirmation: true);
 var observation = new OutsideCombatObservation(
-    OutsideCombatObservation.CurrentSchemaVersion,
+    SchemaVersion: 1,
     OutsideCombatSurfaceKind.MerchantCardRemoval,
     choiceContext,
     ActIndex: 0,
@@ -73,6 +73,67 @@ const string expectedFingerprint =
 if (fingerprint != expectedFingerprint)
     throw new Exception(
         $"Outside fingerprint contract changed without a schema update: {fingerprint}.");
+var visibleRelicObservation = observation with
+{
+    SchemaVersion = 2,
+    Players = observation.Players.Select(player => player with
+    {
+        Relics = [new OutsideRunRelicObservation("BURNING_BLOOD")
+        {
+            Display = new RelicDisplayObservation("Active", false, false, 0,
+                "Heal 6 HP at the end of combat."),
+        }],
+    }).ToArray(),
+};
+visibleRelicObservation.Validate();
+var visibleRelicJson = ProtocolJson.Serialize(visibleRelicObservation);
+if (visibleRelicJson.Contains("stack_count", StringComparison.Ordinal)
+    || visibleRelicJson.Contains("is_used_up", StringComparison.Ordinal)
+    || visibleRelicJson.Contains("display_amount", StringComparison.Ordinal)
+    || visibleRelicJson.Contains("crystal_sphere", StringComparison.Ordinal)
+    || !visibleRelicJson.Contains("\"visible_counter\":0", StringComparison.Ordinal))
+    throw new Exception("Outside v2 relic projection exposed native state or lost visible zero.");
+ProtocolJson.Deserialize<OutsideCombatObservation>(visibleRelicJson).Validate();
+var enchantmentObservation = visibleRelicObservation with
+{
+    SchemaVersion = 4,
+    Players = visibleRelicObservation.Players.Select(player => player with
+    {
+        Deck = player.Deck.Select(card => card.DeckIndex == 0
+            ? card with
+            {
+                EnchantmentId = "SHARP",
+                EnchantmentDisplay = new CardEnchantmentDisplayObservation(
+                    "Sharp", "Increases damage.", VisibleAmount: 2, "normal"),
+            }
+            : card).ToArray(),
+    }).ToArray(),
+};
+enchantmentObservation.Validate();
+var enchantmentJson = ProtocolJson.Serialize(enchantmentObservation);
+if (!enchantmentJson.Contains("\"visible_amount\":2", StringComparison.Ordinal)
+    || enchantmentJson.Contains("\"enchantment_amount\"", StringComparison.Ordinal))
+    throw new Exception("Outside v4 lost visible enchantment presentation or exposed native amount.");
+ProtocolJson.Deserialize<OutsideCombatObservation>(enchantmentJson).Validate();
+var orphanEnchantmentRejected = false;
+try
+{
+    (enchantmentObservation with
+    {
+        Players = enchantmentObservation.Players.Select(player => player with
+        {
+            Deck = player.Deck.Select(card => card.DeckIndex == 0
+                ? card with { EnchantmentId = null }
+                : card).ToArray(),
+        }).ToArray(),
+    }).Validate();
+}
+catch (InvalidDataException)
+{
+    orphanEnchantmentRejected = true;
+}
+if (!orphanEnchantmentRejected)
+    throw new Exception("Outside v4 accepted an enchantment display without an enchantment.");
 var decision = new OutsideCombatDecisionPoint(
     OutsideCombatDecisionPoint.CurrentSchemaVersion,
     build,
@@ -81,6 +142,104 @@ var decision = new OutsideCombatDecisionPoint(
     observation,
     legalActions);
 decision.Validate();
+
+var rewardPotionObservation = observation with
+{
+    Surface = OutsideCombatSurfaceKind.Rewards,
+    ChoiceContext = choiceContext with
+    {
+        ContextId = "rewards",
+        Phase = OutsideCombatChoicePhase.Default,
+        MinSelections = null,
+        MaxSelections = null,
+        Cancelable = false,
+        RequiresConfirmation = false,
+    },
+    Players = observation.Players.Select(player => player with
+    {
+        Potions = [new PotionObservation(0, "POTION.AMBERGRIS")],
+    }).ToArray(),
+};
+var rewardPotionActions = new OutsideCombatActionDescriptor[]
+{
+    new("claimreward:0:gold:10", OutsideCombatActionKind.ClaimReward, 0, "gold:10"),
+    new("proceed:1:proceed", OutsideCombatActionKind.Proceed, 1, "proceed"),
+    new("usepotion:2:0:POTION.AMBERGRIS", OutsideCombatActionKind.UsePotion, 2,
+        "POTION.AMBERGRIS") { PotionSlotIndex = 0 },
+    new("discardpotion:3:0:POTION.AMBERGRIS", OutsideCombatActionKind.DiscardPotion, 3,
+        "POTION.AMBERGRIS") { PotionSlotIndex = 0 },
+};
+var rewardPotionDecision = new OutsideCombatDecisionPoint(
+    OutsideCombatDecisionPoint.CurrentSchemaVersion,
+    build,
+    DecisionIndex: 8,
+    ProtocolJson.ComputeOutsideStateFingerprint(
+        build, rewardPotionObservation, rewardPotionActions),
+    rewardPotionObservation,
+    rewardPotionActions);
+rewardPotionDecision.Validate();
+ProtocolJson.Deserialize<OutsideCombatDecisionPoint>(
+    ProtocolJson.Serialize(rewardPotionDecision)).Validate();
+var wrongPotionActions = rewardPotionActions.ToArray();
+wrongPotionActions[2] = wrongPotionActions[2] with { TargetId = "POTION.OTHER" };
+var wrongPotionDecision = rewardPotionDecision with
+{
+    LegalActions = wrongPotionActions,
+    StateFingerprint = ProtocolJson.ComputeOutsideStateFingerprint(
+        build, rewardPotionObservation, wrongPotionActions),
+};
+try
+{
+    wrongPotionDecision.Validate();
+    throw new Exception("Reward potion action accepted a mismatched slot/model.");
+}
+catch (InvalidDataException)
+{
+}
+var wrongPotionSlotActions = rewardPotionActions.ToArray();
+wrongPotionSlotActions[2] = wrongPotionSlotActions[2] with { PotionSlotIndex = 1 };
+var wrongPotionSlotDecision = rewardPotionDecision with
+{
+    LegalActions = wrongPotionSlotActions,
+    StateFingerprint = ProtocolJson.ComputeOutsideStateFingerprint(
+        build, rewardPotionObservation, wrongPotionSlotActions),
+};
+try
+{
+    wrongPotionSlotDecision.Validate();
+    throw new Exception("Reward potion action accepted a mismatched slot.");
+}
+catch (InvalidDataException)
+{
+}
+
+var merchantPotionObservation = rewardPotionObservation with
+{
+    Surface = OutsideCombatSurfaceKind.Merchant,
+    ChoiceContext = rewardPotionObservation.ChoiceContext with
+    {
+        ContextId = "merchant_inventory",
+    },
+};
+var merchantPotionActions = new OutsideCombatActionDescriptor[]
+{
+    new("leavemerchant:0:leave", OutsideCombatActionKind.LeaveMerchant, 0, "leave"),
+    new("usepotion:1:0:POTION.AMBERGRIS", OutsideCombatActionKind.UsePotion, 1,
+        "POTION.AMBERGRIS") { PotionSlotIndex = 0 },
+    new("discardpotion:2:0:POTION.AMBERGRIS", OutsideCombatActionKind.DiscardPotion, 2,
+        "POTION.AMBERGRIS") { PotionSlotIndex = 0 },
+};
+var merchantPotionDecision = new OutsideCombatDecisionPoint(
+    OutsideCombatDecisionPoint.CurrentSchemaVersion,
+    build,
+    DecisionIndex: 9,
+    ProtocolJson.ComputeOutsideStateFingerprint(
+        build, merchantPotionObservation, merchantPotionActions),
+    merchantPotionObservation,
+    merchantPotionActions);
+merchantPotionDecision.Validate();
+ProtocolJson.Deserialize<OutsideCombatDecisionPoint>(
+    ProtocolJson.Serialize(merchantPotionDecision)).Validate();
 
 IOutsideCombatPolicy policy = new FirstLegalOutsideCombatPolicy();
 var selected = policy.SelectAction(decision);
@@ -174,6 +333,154 @@ foreach (var (surface, action) in surfaceFixtures)
     if (policy.SelectAction(fixture).ActionId != action.ActionId)
         throw new Exception($"First-legal failed the {surface} action fixture.");
 }
+
+var sphereBoard = new CrystalSphereBoardObservation(
+    Width: 2,
+    Height: 1,
+    DivinationsRemaining: 2,
+    SelectedTool: "small",
+    IsFinished: false,
+    Cells:
+    [
+        new CrystalSphereCellObservation(0, 0, IsHidden: true, IsHighlighted: false),
+        new CrystalSphereCellObservation(1, 0, IsHidden: false, IsHighlighted: true,
+            RevealedItemKind: "Gold", RevealedVisualId: "icon:res://gold.png"),
+    ]);
+var sphereObservation = visibleRelicObservation with
+{
+    SchemaVersion = 3,
+    Surface = OutsideCombatSurfaceKind.CrystalSphere,
+    ChoiceContext = choiceContext with { ContextId = "crystal_sphere:cell" },
+    CrystalSphere = sphereBoard,
+};
+var sphereActions = new OutsideCombatActionDescriptor[]
+{
+    new("crystal_sphere:cell:0,0", OutsideCombatActionKind.ChooseMinigameOption,
+        0, "cell:0,0"),
+};
+var sphereDecision = new OutsideCombatDecisionPoint(
+    OutsideCombatDecisionPoint.CurrentSchemaVersion,
+    build,
+    DecisionIndex: 9,
+    ProtocolJson.ComputeOutsideStateFingerprint(build, sphereObservation, sphereActions),
+    sphereObservation,
+    sphereActions);
+sphereDecision.Validate();
+var sphereJson = ProtocolJson.Serialize(sphereDecision);
+if (!sphereJson.Contains("\"crystal_sphere\"", StringComparison.Ordinal)
+    || !sphereJson.Contains("\"revealed_item_kind\":\"Gold\"", StringComparison.Ordinal)
+    || !sphereJson.Contains("\"revealed_visual_id\":\"icon:res://gold.png\"",
+        StringComparison.Ordinal)
+    || ProtocolJson.Serialize(ProtocolJson.Deserialize<OutsideCombatDecisionPoint>(sphereJson)) != sphereJson)
+    throw new Exception("Crystal Sphere v3 observation did not round-trip byte-stably.");
+
+var newlyRevealed = sphereObservation with
+{
+    CrystalSphere = sphereBoard with
+    {
+        Cells =
+        [
+            new CrystalSphereCellObservation(0, 0, IsHidden: false, IsHighlighted: true,
+                RevealedItemKind: "Potion"),
+            sphereBoard.Cells[1],
+        ],
+    },
+};
+if (ProtocolJson.ComputeOutsideStateFingerprint(build, newlyRevealed, sphereActions)
+    == sphereDecision.StateFingerprint)
+    throw new Exception("Revealing a Crystal Sphere cell did not change the fingerprint.");
+
+try
+{
+    (sphereBoard with
+    {
+        Cells =
+        [
+            new CrystalSphereCellObservation(0, 0, IsHidden: true, IsHighlighted: false,
+                RevealedItemKind: "SecretRelic"),
+            sphereBoard.Cells[1],
+        ],
+    }).Validate();
+    throw new Exception("Crystal Sphere observation leaked a covered item.");
+}
+catch (InvalidDataException) { }
+
+try
+{
+    (sphereBoard with
+    {
+        Cells =
+        [
+            new CrystalSphereCellObservation(0, 0, IsHidden: true, IsHighlighted: false,
+                RevealedVisualId: "icon:res://hidden.png"),
+            sphereBoard.Cells[1],
+        ],
+    }).Validate();
+    throw new Exception("Crystal Sphere observation leaked a covered visual ID.");
+}
+catch (InvalidDataException) { }
+
+var multiObservation = observation with
+{
+    Surface = OutsideCombatSurfaceKind.CardGridChoice,
+    ChoiceContext = choiceContext with
+    {
+        ContextId = "card_selection:choose_two",
+        MinSelections = 2,
+        MaxSelections = 2,
+        Cancelable = false,
+    },
+};
+var multiActions = new OutsideCombatActionDescriptor[]
+{
+    new("choose_card_set:0:0,1", OutsideCombatActionKind.ChooseCardSet, 0,
+        SelectedCards:
+        [
+            new OutsideSelectedCardReference(0, "ANGER", 0),
+            new OutsideSelectedCardReference(1, "DEFEND", 1),
+        ]),
+};
+var multiDecision = decision with
+{
+    Observation = multiObservation,
+    LegalActions = multiActions,
+    StateFingerprint = ProtocolJson.ComputeOutsideStateFingerprint(
+        build, multiObservation, multiActions),
+};
+multiDecision.Validate();
+ProtocolJson.Deserialize<OutsideCombatDecisionPoint>(
+    ProtocolJson.Serialize(multiDecision)).Validate();
+var removalSet = multiActions[0] with
+{
+    Kind = OutsideCombatActionKind.RemoveCardSet,
+};
+removalSet.Validate();
+try
+{
+    (removalSet with
+    {
+        SelectedCards =
+        [
+            new OutsideSelectedCardReference(0, "ANGER", 0),
+            new OutsideSelectedCardReference(0, "DEFEND", 1),
+        ],
+    }).Validate();
+    throw new Exception("Duplicate card-set option indexes were accepted.");
+}
+catch (InvalidDataException)
+{
+}
+
+var bundleAction = new OutsideCombatActionDescriptor(
+    "bundle:0", OutsideCombatActionKind.ChooseCardBundle, 0,
+    BundleCards:
+    [
+        new OutsideBundleCardReference("ANGER", 0),
+        new OutsideBundleCardReference("STRIKE", 1),
+    ]);
+bundleAction.Validate();
+ProtocolJson.Deserialize<OutsideCombatActionDescriptor>(
+    ProtocolJson.Serialize(bundleAction)).Validate();
 
 var step = new OutsideCombatStepRequest(Guid.NewGuid(), fingerprint, selected.ActionId);
 if (OutsideCombatStepGuard.RequireCurrentAction(step, decision) != selected)

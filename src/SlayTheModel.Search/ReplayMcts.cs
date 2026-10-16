@@ -11,6 +11,7 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
     string StateKey();
     bool Terminal { get; }
     double EvaluateTerminal();
+    double EvaluateCutoff() => -0.5;
     TAction RolloutAction(IReadOnlyList<TAction> actions, Random random);
 }
 
@@ -104,7 +105,9 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                 }
                 deadline.Token.ThrowIfCancellationRequested();
                 // Depth-limited rollouts are unresolved, never a zero-loss victory.
-                var value = environment.Terminal ? environment.EvaluateTerminal() : -0.5;
+                var value = environment.Terminal
+                    ? environment.EvaluateTerminal()
+                    : environment.EvaluateCutoff();
                 if (!double.IsFinite(value) || value < -1 || value > 1)
                     throw new InvalidDataException("Expected a finite utility in [-1, 1].");
                 foreach (var visited in path)

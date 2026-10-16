@@ -1,0 +1,25 @@
+config_version=5
+_custom_features="dotnet"
+
+[application]
+config/name="SlayTheModel Headless"
+config/features=PackedStringArray("4.5", "C#")
+run/main_scene="res://Host.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="SlayTheModelHeadless"
+
+[dotnet]
+project/assembly_name="HeadlessHost"
+
+[display]
+window/size/viewport_width=1920
+window/size/viewport_height=1080
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+
+[sentry]
+enabled=false
+
+[Fmod]
+General/is_live_update_enabled=false

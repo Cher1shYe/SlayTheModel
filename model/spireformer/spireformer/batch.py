@@ -51,6 +51,14 @@ class SpireFormerBatch:
     timesteps: Tensor
     domain_ids: Tensor
     step_mask: Tensor
+    # Set-valued choices use one ordinary action-template slot plus a separate
+    # candidate set.  The candidate axis is linear in cards, never in the
+    # number of possible card combinations.
+    set_candidate_features: Tensor | None = None
+    set_candidate_mask: Tensor | None = None
+    set_min_select: Tensor | None = None
+    set_max_select: Tensor | None = None
+    set_step_mask: Tensor | None = None
 
     @property
     def batch_size(self) -> int:
@@ -87,6 +95,12 @@ class SpireFormerBatch:
         def move_discrete(tensor: Tensor) -> Tensor:
             return tensor.to(device=device, non_blocking=non_blocking)
 
+        def move_optional_float(tensor: Tensor | None) -> Tensor | None:
+            return None if tensor is None else move_float(tensor)
+
+        def move_optional_discrete(tensor: Tensor | None) -> Tensor | None:
+            return None if tensor is None else move_discrete(tensor)
+
         return SpireFormerBatch(
             entity_features=move_float(self.entity_features),
             entity_mask=move_discrete(self.entity_mask),
@@ -97,6 +111,11 @@ class SpireFormerBatch:
             timesteps=move_discrete(self.timesteps),
             domain_ids=move_discrete(self.domain_ids),
             step_mask=move_discrete(self.step_mask),
+            set_candidate_features=move_optional_float(self.set_candidate_features),
+            set_candidate_mask=move_optional_discrete(self.set_candidate_mask),
+            set_min_select=move_optional_discrete(self.set_min_select),
+            set_max_select=move_optional_discrete(self.set_max_select),
+            set_step_mask=move_optional_discrete(self.set_step_mask),
         )
 
     def validate(self, entity_feature_dim: int, action_feature_dim: int) -> None:
@@ -215,6 +234,62 @@ class SpireFormerBatch:
         if any(tensor.dtype != reference_dtype for _, tensor in floating_tensors):
             raise TypeError("all floating-point batch tensors must use the same dtype")
 
+        set_fields = (
+            self.set_candidate_features,
+            self.set_candidate_mask,
+            self.set_min_select,
+            self.set_max_select,
+            self.set_step_mask,
+        )
+        if all(field is None for field in set_fields):
+            return
+        if any(field is None for field in set_fields):
+            raise ValueError("set-choice batch fields must be supplied together")
+        candidates, candidate_mask, min_select, max_select, set_steps = set_fields
+        assert candidates is not None and candidate_mask is not None
+        assert (
+            min_select is not None and max_select is not None and set_steps is not None
+        )
+        if candidates.ndim != 4 or candidates.shape[:2] != expected_step_shape:
+            raise ValueError(
+                "set_candidate_features must have shape [B, T, C, F_entity]"
+            )
+        if candidates.shape[2] < 1 or candidates.shape[3] != entity_feature_dim:
+            raise ValueError("set candidate slots and feature width are invalid")
+        if candidate_mask.shape != candidates.shape[:3]:
+            raise ValueError("set_candidate_mask must have shape [B, T, C]")
+        for name, tensor in (
+            ("set_min_select", min_select),
+            ("set_max_select", max_select),
+            ("set_step_mask", set_steps),
+        ):
+            if tensor.shape != expected_step_shape:
+                raise ValueError(f"{name} must have shape [B, T]")
+        if candidate_mask.dtype is not torch.bool or set_steps.dtype is not torch.bool:
+            raise TypeError("set candidate/step masks must use torch.bool")
+        if min_select.dtype not in (
+            torch.int32,
+            torch.int64,
+        ) or max_select.dtype not in (torch.int32, torch.int64):
+            raise TypeError("set selection bounds must use integer tensors")
+        if not candidates.is_floating_point() or candidates.dtype != reference_dtype:
+            raise TypeError(
+                "set candidate features must share the batch floating dtype"
+            )
+        if not torch.isfinite(candidates).all():
+            raise ValueError("set_candidate_features contains NaN or infinity")
+        if any(tensor.device != reference_device for tensor in set_fields):
+            raise ValueError("set-choice tensors must be on the batch device")
+        if torch.any(set_steps & ~self.step_mask):
+            raise ValueError("set_step_mask cannot enable a padded step")
+        if torch.any(candidate_mask & ~set_steps.unsqueeze(-1)):
+            raise ValueError("non-set steps cannot contain set candidates")
+        candidate_counts = candidate_mask.sum(dim=-1)
+        if torch.any(set_steps & ((min_select < 0) | (max_select < min_select))):
+            raise ValueError("set selection bounds must satisfy 0 <= min <= max")
+        if torch.any(set_steps & (max_select > candidate_counts)):
+            raise ValueError("set maximum cannot exceed visible candidate count")
+
 
 @dataclass(frozen=True, slots=True)
 class SpireFormerTargets:
@@ -225,6 +300,8 @@ class SpireFormerTargets:
     teacher_policy: Tensor | None = None
     policy_target_mask: Tensor | None = None
     value_target_mask: Tensor | None = None
+    set_selected_mask: Tensor | None = None
+    set_target_mask: Tensor | None = None
 
     def to(
         self,
@@ -261,6 +338,8 @@ class SpireFormerTargets:
             teacher_policy=move_optional_float(self.teacher_policy),
             policy_target_mask=move_optional_discrete(self.policy_target_mask),
             value_target_mask=move_optional_discrete(self.value_target_mask),
+            set_selected_mask=move_optional_discrete(self.set_selected_mask),
+            set_target_mask=move_optional_discrete(self.set_target_mask),
         )
 
     def validate(self, batch: SpireFormerBatch) -> None:
@@ -360,3 +439,42 @@ class SpireFormerTargets:
                 rtol=1e-5,
             ):
                 raise ValueError("each active teacher_policy row must sum to one")
+
+        if (self.set_selected_mask is None) != (self.set_target_mask is None):
+            raise ValueError("set selected and target masks must be supplied together")
+        if self.set_selected_mask is None:
+            return
+        if batch.set_candidate_mask is None or batch.set_step_mask is None:
+            raise ValueError("set targets require set-choice batch fields")
+        selected = self.set_selected_mask
+        target_mask = self.set_target_mask
+        assert target_mask is not None
+        if selected.shape != batch.set_candidate_mask.shape:
+            raise ValueError("set_selected_mask must have shape [B, T, C]")
+        if target_mask.shape != expected_step_shape:
+            raise ValueError("set_target_mask must have shape [B, T]")
+        if selected.dtype is not torch.bool or target_mask.dtype is not torch.bool:
+            raise TypeError("set target masks must use torch.bool")
+        if (
+            selected.device != batch.entity_features.device
+            or target_mask.device != batch.entity_features.device
+        ):
+            raise ValueError("set target tensors must be on the batch device")
+        if torch.any(target_mask & ~batch.set_step_mask):
+            raise ValueError("set target cannot enable a non-set step")
+        if torch.any(target_mask & ~policy_active):
+            raise ValueError("set target requires an enabled ordinary template target")
+        if torch.any(selected & ~batch.set_candidate_mask):
+            raise ValueError("set target selects a non-candidate")
+        if torch.any(selected & ~target_mask.unsqueeze(-1)):
+            raise ValueError("disabled set target rows must have no selected cards")
+        selected_counts = selected.sum(dim=-1)
+        assert batch.set_min_select is not None and batch.set_max_select is not None
+        if torch.any(
+            target_mask
+            & (
+                (selected_counts < batch.set_min_select)
+                | (selected_counts > batch.set_max_select)
+            )
+        ):
+            raise ValueError("selected set cardinality violates choice bounds")
