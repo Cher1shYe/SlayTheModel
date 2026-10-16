@@ -11,6 +11,14 @@ public static class CombatRolloutReward
             return 0.5 + Math.Atan(((double)playerHp - entryHp) / 20.0) / Math.PI;
         // Damage is net HP removed from a fixed root cohort, not accumulated
         // damage events. Death cannot outrank an unresolved living rollout.
-        return (dead ? -1.0 : -0.5) + 0.49 * enemyDamageFraction;
+        if (dead)
+            return -1.0 + 0.49 * enemyDamageFraction;
+        if (entryHp <= 0)
+            throw new ArgumentOutOfRangeException(nameof(entryHp));
+        // Net loss relative to combat entry: healing removes the penalty,
+        // without rewarding healing beyond entry HP. Equal percentage weights
+        // stay inside the living-cutoff band [-0.5, -0.01].
+        var playerLossFraction = Math.Clamp(((double)entryHp - playerHp) / entryHp, 0.0, 1.0);
+        return -0.255 + 0.245 * (enemyDamageFraction - playerLossFraction);
     }
 }

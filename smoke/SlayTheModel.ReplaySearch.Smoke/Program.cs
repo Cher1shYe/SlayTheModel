@@ -52,7 +52,30 @@ if (!(bestFailure < untouchedCutoff && bestCutoff < costlyWin))
 if (CombatRolloutReward.Evaluate(false, false, 50, 80, 0.2)
     >= CombatRolloutReward.Evaluate(false, false, 50, 80, 0.8))
     throw new Exception("Healing away enemy damage must reduce progress reward.");
-Console.WriteLine("replay search: preference, reuse, mismatch, cancellation, interrupted rollout, damage-shaped failure/cutoff and victory ordering passed");
+var safer = await new ReplayMcts<int>(new HealthTradeoffToy()).SearchAsync([], "root", budget, budget, maxDepth: 1);
+if (safer.Action != 1)
+    throw new Exception("Cutoff search must prefer 40% damage without HP loss over 50% damage costing 50% HP.");
+var wounded = CombatRolloutReward.Evaluate(false, false, 40, 80, 0.5);
+var healed = CombatRolloutReward.Evaluate(false, false, 60, 80, 0.5);
+var full = CombatRolloutReward.Evaluate(false, false, 80, 80, 0.5);
+if (!(wounded < healed && healed < full)
+    || full != CombatRolloutReward.Evaluate(false, false, 100, 80, 0.5)
+    || wounded != CombatRolloutReward.Evaluate(false, false, 20, 40, 0.5))
+    throw new Exception("Player penalty must use net proportional HP loss, with healing capped at entry HP.");
+Console.WriteLine("replay search: preference, reuse, mismatch, cancellation, interrupted rollout, damage-shaped failure/cutoff, player HP tradeoff, healing and victory ordering passed");
+
+sealed class HealthTradeoffToy : IReplayEnvironment<int>
+{
+    private int action = -1;
+    public bool Terminal => false;
+    public Task RestoreAsync(IReadOnlyList<int> prefix, CancellationToken cancellation) { action = -1; return Task.CompletedTask; }
+    public Task ApplyAsync(int value, CancellationToken cancellation) { action = value; return Task.CompletedTask; }
+    public IReadOnlyList<int> LegalActions() => [0, 1];
+    public string StateKey() => action < 0 ? "root" : action.ToString();
+    public double EvaluateTerminal() => throw new InvalidOperationException("This fixture only exercises cutoff evaluation.");
+    public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, action == 0 ? 40 : 80, 80, action == 0 ? 0.5 : 0.4);
+    public int RolloutAction(IReadOnlyList<int> actions, Random random) => actions[0];
+}
 
 sealed class ProgressToy(bool dead) : IReplayEnvironment<int>
 {

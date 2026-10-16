@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 自身战损评分（2026-10-16）
+
+- 上层 ReplaySearch smoke：深度截断选择无损 40% 敌方伤害而非自身损血 50% 的 50% 敌方伤害；验证回血抵消惩罚、入战 HP 比例归一化及胜负区间。
+- 上层 `reward-verify` 复用原生 Boss、仆从和幻象复活对账；`collector-policy-verify` 验证 ae612c3 的精确 MCTS 来源采集。证据分别保存在上层 `artifacts/verification/mcts-player-loss-20261016.txt` 和 `collector-policy-20261016.txt`，不据此声称实机整局胜率提高。
+
 ## SlayTheModel Native MCTS 进度评分（2026-10-15）
 
 - **最新口径替代下方旧过滤断言**：用户要求按末尾总缺血／总血量，仆从正常计入。`-Mode reward-verify` 已通过女王总血量 599、仆从受伤／死亡贡献、卵／机器人捕获后计分、利齿之眼 0 HP 根捕获→复活→再次死亡（两次比例均 0.075，不累计），各步原生／预测完整 continuation key 相等；原三个短搜回归通过。日志 `artifacts/verification/mcts-endpoint-reward-20261015.txt` 位于上层仓库。
