@@ -11,8 +11,8 @@ from sts2_env.az.content import BOSS_CONTENT
 from sts2_env.az.coordinator import TrainingConfig
 from sts2_env.az.entity_encoder import SCHEMA_HASH
 from sts2_env.az.network import code_digest
-from sts2_env.az.rewards import V6
-from sts2_env.az.search_config import DYNAMIC
+from sts2_env.az.rewards import V7
+from sts2_env.az.search_config import DYNAMIC_RISK
 from sts2_env.az.transformer_course import VERSION,SMOKE_VERSION,configuration,generate,preparation_manifest
 
 
@@ -21,8 +21,8 @@ def config(seed=42,smoke=False):
         episodes_per_iteration=180,simulations=4 if smoke else 8,eval_simulations=4 if smoke else 8,
         validation_count=256,capacity=200_000,batch_size=32 if smoke else 64,
         updates=4 if smoke else 16,iterations=2 if smoke else 3,
-        content_version=BOSS_CONTENT,reward_version=V6,
-        sampling_version=SMOKE_VERSION if smoke else VERSION,search_version=DYNAMIC)
+        content_version=BOSS_CONTENT,reward_version=V7,
+        sampling_version=SMOKE_VERSION if smoke else VERSION,search_version=DYNAMIC_RISK)
 
 
 def documents():
@@ -38,24 +38,26 @@ def documents():
         result[f'{name}-train-hashes.json']={f'{s}/{i}':content_hash([
             generate(s,i,j,smoke=smoke).to_dict() for j in range(180)]) for s in seeds for i in range(rounds)}
     result['plan.json']={
-        'version':'transformer-t3-preparation-v3','status':'prepared_not_started','code_digest':code_digest(),
+        'version':'transformer-t3-preparation-v4','status':'prepared_not_started','code_digest':code_digest(),
         'schema_hash':SCHEMA_HASH,'spec':'spec_1.md sections 9.2 and 11',
         'initialization':'independent random S per seed; no MLP/champion transfer',
         'optimizer':{'name':'AdamW','learning_rate':.0003,'weight_decay':.0001,'betas':[.9,.999],
                      'eps':1e-8,'scheduler':None,'gradient_clip_norm':1.0,'precision':'FP32'},
         'loss':'state-averaged policy CE + value MSE',
+        'search_reward':'V7 root-HP-relative leaf cutoff; visible next-wave risk; visit ties use Q then prior',
+        'value_target':'V7 actual episode outcome; battle-start HP baseline; max-HP win normalization',
         'resources':{'device':'CPU','workers':2,'threads_per_worker':1,'microbatch':8,
             'oom_policy':'stop; revise microbatch explicitly while preserving effective batch; no automatic hardware change',
             'full_run_peak_memory_and_duration':'unmeasured; smoke evidence required'},
         'promotion':{'policy':'network-utility-v1','criterion':'utility-only-v1','paired_validation_count':256,
-            'primary_metric':'mean network terminal V6 utility; not predicted value-head output',
+            'primary_metric':'mean network terminal V7 utility; not predicted value-head output',
             'threshold':'paired utility difference bootstrap 95% lower bound > 0',
             'bootstrap_samples':10000,'statistics_seed':1729,
             'win_rate_role':'diagnostic only; no veto or tie-break', 'search_role':'observation only',
             'integrity':'all paired scenarios, valid rewards, no exceptions or illegal actions required'},
         'budget':{'smoke':{'seeds':[42],'rounds':2,'episodes_per_round':180,'updates':4,'batch':32,'simulations':4},
                   'formal':{'seeds':[42,43],'rounds':3,'episodes_per_round':180,'updates':16,'batch':64,'simulations':8}},
-        'gates':['User explicitly requests experiments; previous no-training instruction remains active.',
+        'gates':['Experiments require explicit user authorization; archived V6 evidence cannot authorize this V7 run.',
                  'Use run_az_transformer_t3.py; explicit mode and --start-experiment required.',
                  'S two-round smoke must pass with same code/schema/config before either formal seed starts.',
                  'Freeze both final champion hashes before materializing final test recipes.'],
@@ -83,7 +85,7 @@ def prepare(output):
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--output',default='configs/az_transformer_t3_v1')
+    parser.add_argument('--output',default='configs/az_transformer_t3_v2')
     args=parser.parse_args()
     plan=prepare(args.output)
     print(json.dumps({'status':plan['status'],'output':args.output,'final_test_generated':False}))

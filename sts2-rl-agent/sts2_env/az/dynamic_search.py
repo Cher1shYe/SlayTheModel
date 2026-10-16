@@ -11,6 +11,7 @@ from .observable_puct import ActionEdge, OutcomeNode
 from sts2_env.cards import base as card_base
 
 VERSION = 'dynamic-key-puct-v1'
+from .search_config import DYNAMIC_RISK, DYNAMIC_VERSIONS
 
 
 @dataclass
@@ -28,14 +29,17 @@ class DynamicSearchResult:
 
 def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_seed=0,
                    budget=64, c_puct=1.5, max_depth=128, training=False,
-                   epsilon=.25, alpha=.3, temperature=0, search_version=VERSION):
-    if (search_version != VERSION or not model_version or type(budget) is not int or budget < 1
+                   epsilon=.25, alpha=.3, temperature=0, search_version=VERSION, cutoff_reward=None):
+    if (search_version not in DYNAMIC_VERSIONS or not model_version or type(budget) is not int or budget < 1
             or type(max_depth) is not int or max_depth < 1 or temperature not in (0, 1)
             or (not training and temperature != 0) or not np.isfinite([c_puct, epsilon, alpha]).all()
             or c_puct < 0 or not 0 <= epsilon <= 1 or alpha <= 0):
         raise ValueError('Invalid dynamic search configuration')
     if info.terminal_value() is not None:
         raise ValueError('Terminal state has no dynamic policy')
+    risk_search = search_version == DYNAMIC_RISK
+    if risk_search != (cutoff_reward is not None):
+        raise ValueError('Risk search requires its explicit cutoff/terminal evaluator')
     started = perf_counter()
     rng = np.random.default_rng(search_seed)
 
@@ -86,6 +90,8 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
                 successor = particle.step(action)
                 path.append(edge)
                 value = successor.terminal_value()
+                if risk_search and value is not None:
+                    value = cutoff_reward(info, successor)
                 if value is not None:
                     if not np.isfinite(value) or not -1 <= value <= 1:
                         raise ValueError('Invalid terminal utility')
@@ -100,16 +106,20 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
                     raise ValueError('Same successor has inconsistent candidates')
                 if new:
                     value = expand(successor, node)
+                    if risk_search: value = cutoff_reward(info, successor)
                     break
                 if depth == max_depth:
                     _, value = predict(successor, node.legal_mask)
+                    if risk_search: value = cutoff_reward(info, successor)
+            if not np.isfinite(value) or not -1 <= value <= 1:
+                raise ValueError('Invalid backed-up utility')
             for edge in path:
                 edge.visits += 1
                 edge.total_value += value
         visits = {k: root.edges[k].visits for k in root.legal_mask}
         target = {k: v / budget for k, v in visits.items()}
         action = (root.legal_mask[int(rng.choice(len(target), p=list(target.values())))] if temperature
-                  else max(root.legal_mask, key=lambda k: (visits[k], root.edges[k].prior)))
+                  else max(root.legal_mask, key=lambda k: (visits[k], root.edges[k].q, root.edges[k].prior) if risk_search else (visits[k], root.edges[k].prior)))
         return DynamicSearchResult(action, visits, target, {k: e.prior for k, e in root.edges.items()},
                                    budget, perf_counter()-started, False, model_version, root)
     finally:
@@ -139,6 +149,13 @@ def plan_dynamic(info, model, **kwargs):
         raise ValueError('Dynamic planner requires a Transformer model')
     if (model.content_version,model.reward_version) != (info.content_version,info.reward_version):
         raise ValueError('Dynamic planner content/reward mismatch')
+    from .rewards import V7
+    requested = kwargs.get('search_version', VERSION)
+    if (requested == DYNAMIC_RISK) != (info.reward_version == V7):
+        raise ValueError('Search/reward versions must match')
+    if requested == DYNAMIC_RISK:
+        from .risk_reward import search_utility
+        kwargs['cutoff_reward'] = search_utility
     encode_entities(info)
     sampler = BeliefSampler()
     return search_dynamic(info, lambda public, rng: KeyedParticle(sampler.sample(public, rng)),

@@ -170,7 +170,9 @@ class InformationState:
             from .summon import ledger_from_slots, ledger_rows
             rows = phase_rows(self.boss.phase) if self.boss else ledger_rows(ledger_from_slots(self.enemies))
             initial, hp, maximum = rows_summary(rows)
-            return terminal_reward(self.termination_reason, self.player_hp, self.initial_hp, hp, maximum, self.reward_version, enemy_initial_hp=initial, enemy_roster=rows)
+            from .risk_reward import public_risk
+            return terminal_reward(self.termination_reason, self.player_hp, self.initial_hp, hp, maximum, self.reward_version, enemy_initial_hp=initial, enemy_roster=rows,
+                                   player_max_hp=self.player_max_hp, incoming_risk=public_risk(self))
         if self.content_version == SUMMON_CONTENT:
             # The frozen primary-roster-hp-v5 contract: the ledger decides the
             # terminal budget, and scalar HP never includes minion HP.

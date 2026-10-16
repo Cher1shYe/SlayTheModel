@@ -3,7 +3,7 @@ from dataclasses import dataclass, asdict
 import torch
 from torch import nn
 
-from .entity_encoder import SCHEMA, SCHEMA_HASH, KINDS, ZONES, NUMERIC_FIELDS, ACTION_TYPES, SUPPORTED
+from .entity_encoder import SCHEMA, SCHEMA_HASH, KINDS, ZONES, NUMERIC_FIELDS, ACTION_TYPES, SUPPORTED, supported_reward
 from .mechanic_registry import OPS, TARGETS, TIMINGS, CONDITIONS
 from .network import masked_log_probs, policy_value_loss
 
@@ -88,7 +88,7 @@ class TransformerPolicyValueNetwork(nn.Module):
         self.information_mode = 'observable'
         self.reward_version = reward_version or SUPPORTED.get(content_version)
         self.content_version = content_version
-        if content_version not in SUPPORTED or SUPPORTED[content_version] != self.reward_version:
+        if not supported_reward(content_version, self.reward_version):
             raise ValueError('Unsupported Transformer content/reward')
         d = config.d_model
         self.op = nn.Embedding(len(OPS), 32)

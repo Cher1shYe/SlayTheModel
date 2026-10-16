@@ -62,7 +62,7 @@ def test_coordinator_generator_dispatch_without_running(smoke):
     c.config=config(smoke=smoke)
     assert c.generator_config()==course.configuration(smoke)
     assert c.config.batch_size%c.config.microbatch_size==0
-    assert c.config.search_version=='dynamic-key-puct-v1'
+    assert c.config.search_version=='dynamic-risk-puct-v2'
 
 
 @pytest.mark.parametrize('args',[ (42,3,0), (43,0,0), (42,0,180)])

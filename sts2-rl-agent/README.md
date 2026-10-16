@@ -2,6 +2,12 @@
 
 A reinforcement learning agent for **Slay the Spire 2**, built on a high-performance headless combat simulator and a Gymnasium training environment. Includes a C# bridge mod for connecting the trained agent to the real game.
 
+## Transformer T3 当前进度（2026-10-16）
+
+V6 S 两轮 smoke 已完成：360 场、8 次更新，工程证据复核通过，但两轮 network 效用均为 −1，学习增益未通过。诊断确认贪心策略持续结束回合，以及低预算 MCTS 同票忽略 Q。旧双 seed 正式任务已停止并保留现场。
+
+已接入统一 V7 风险奖励（搜索、value 标签、network 验收）和新版 Q 同票规则；详见 [诊断与修订报告](docs/AZ_TRANSFORMER_V7_DIAGNOSIS.md)。新版冻结配置位于 `configs/az_transformer_t3_v2`。旧 smoke 证据不能用于新版正式任务；新版尚未启动训练，不能宣称 network 学习增益。
+
 ## Architecture
 
 ```

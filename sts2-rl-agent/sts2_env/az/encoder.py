@@ -8,7 +8,7 @@ import numpy as np
 
 from .scenarios import STARTER  # engine registration order
 from .config import ACTION_VERSION, CONTENT_VERSION, atomic_json, content_hash
-from .rewards import V1, V2, V3, V4, V5, V6, validate_reward
+from .rewards import V1, V2, V3, V4, V5, V6, V7, validate_reward
 from .content import M6_CONTENT, M6_INFORMATION, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, PROFILES, EXTRA_MOVES, validate_content
 from .content import BOSS_CONTENT
 from sts2_env.gym_env.action_space import get_action_mask
@@ -172,11 +172,11 @@ def schema_for(mode, reward_version=V1, content_version=CONTENT_VERSION):
     if content_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
         expected_reward = (V6 if content_version == BOSS_CONTENT else V5 if content_version == SUMMON_CONTENT
                            else V4 if content_version == MULTI_CONTENT else V3)
-        if mode != "observable" or reward_version != expected_reward:
+        if mode != "observable" or (reward_version != expected_reward and not (content_version == BOSS_CONTENT and reward_version == V7)):
             raise ValueError("Deck content requires its versioned observable reward")
         from .deck_observation import schema
         return schema(content_version)
-    if reward_version in (V3, V4, V5, V6):
+    if reward_version in (V3, V4, V5, V6, V7):
         raise ValueError("Reward v3 requires deck content schema")
     if content_version == M6_CONTENT:
         if mode != "observable" or reward_version != V2:

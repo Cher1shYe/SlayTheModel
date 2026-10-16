@@ -10,16 +10,23 @@ V5 = "primary-roster-hp-v5"
 
 
 V6 = "finite-primary-phases-v6"
+V7 = "risk-terminal-v7"
 
 def validate_reward(version):
-    if version not in (V1, V2, V3, V4, V5, V6):
+    if version not in (V1, V2, V3, V4, V5, V6, V7):
         raise ValueError("Unsupported reward version")
     return version
 
 
-def terminal_reward(reason, final_hp, initial_hp, enemy_hp, enemy_max_hp, version=V1, *, enemy_initial_hp=None, enemy_roster=None):
+def terminal_reward(reason, final_hp, initial_hp, enemy_hp, enemy_max_hp, version=V1, *, enemy_initial_hp=None, enemy_roster=None, player_max_hp=None, incoming_risk=None):
     import math
     validate_reward(version)
+    if version == V7:
+        from .boss import reward_from_rows
+        from .risk_reward import progress, utility
+        # Reuse lifecycle validation, but never the V6 numeric result.
+        reward_from_rows(reason, final_hp, initial_hp, enemy_initial_hp, enemy_hp, enemy_max_hp, enemy_roster)
+        return utility(reason, final_hp, initial_hp, player_max_hp, progress(enemy_roster), incoming_risk)
     if version == V6:
         from .boss import reward_from_rows
         return reward_from_rows(reason, final_hp, initial_hp, enemy_initial_hp, enemy_hp, enemy_max_hp, enemy_roster)

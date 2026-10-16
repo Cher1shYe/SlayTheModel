@@ -61,7 +61,7 @@ def collect_episode(job):
         _models.clear()
         _models[key] = model.requires_grad_(False).eval()
     model = _models[key]
-    if job.search_version == 'dynamic-key-puct-v1':
+    if job.search_version in ('dynamic-key-puct-v1', 'dynamic-risk-puct-v2'):
         from .transformer_network import TransformerPolicyValueNetwork
         from .entity_transition import collect_entity_episode
         if not isinstance(model, TransformerPolicyValueNetwork):

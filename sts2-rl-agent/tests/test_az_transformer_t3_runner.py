@@ -196,7 +196,7 @@ def audit_fixture(root,monkeypatch):
     monkeypatch.setattr(runner,'checkpoint',checkpoint)
     validation=[r for r in records if r['split']=='validation']
     rows=[dict(scenario_id=r['scenario_id'],family_id=r['family_id'],encounter_id=r['encounter_id'],
-               initial_hp=r['player_hp'],reward_version=runner.V6,search_version=c.search_version) for r in validation]
+               initial_hp=r['player_hp'],reward_version=runner.V7,search_version=c.search_version) for r in validation]
     report=dict(promote=False,modes={m:dict(champion=rows,candidate=rows,gate={'clean':True}) for m in ('network','search')})
     for i in range(2): atomic_json(root/f'evaluation-{i}.json',report)
     monkeypatch.setattr(runner,'compare',lambda *a,**kw:report)
@@ -268,7 +268,7 @@ def test_resume_committed_partial_state_without_repeating_round(preparation,tmp_
 def test_evaluation_rows_bind_recipe_and_versions():
     c=config()
     records=[dict(scenario_id='a',family_id='f',encounter_id='e',player_hp=40)]
-    rows=[dict(scenario_id='a',family_id='f',encounter_id='e',initial_hp=40,reward_version=runner.V6,search_version=c.search_version)]
+    rows=[dict(scenario_id='a',family_id='f',encounter_id='e',initial_hp=40,reward_version=runner.V7,search_version=c.search_version)]
     runner.verify_rows(rows,records,c)
     for key in ('scenario_id','family_id','encounter_id','initial_hp','reward_version','search_version'):
         bad=deepcopy(rows); bad[0][key]='wrong'

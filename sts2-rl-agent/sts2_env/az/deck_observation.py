@@ -7,7 +7,7 @@ import numpy as np
 from .content import DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, EXPANDED_PROFILES, EXPANDED_MOVES, HARD_PROFILES, HARD_MOVES, PROFILES, EXTRA_MOVES
 from .content import BOSS_CONTENT
 from .decks import EXPANDED_FACTORIES, FACTORIES, MIN_DECK_SIZE, MAX_DECK_SIZE, MAX_COPIES, make_token, card_token
-from .rewards import V3, V4, V5, V6
+from .rewards import V3, V4, V5, V6, V7
 from sts2_env.cards import base as card_base
 
 TOKENS = tuple(name + suffix for name in FACTORIES for suffix in ("", "+"))
@@ -89,7 +89,7 @@ def validate_memory(info):
     from .content import SUMMON_CONTENT
     expected = (V6 if info.content_version == BOSS_CONTENT else V5 if info.content_version == SUMMON_CONTENT
                 else V4 if info.content_version == MULTI_CONTENT else V3)
-    if info.reward_version != expected:
+    if info.reward_version != expected and not (info.content_version == BOSS_CONTENT and info.reward_version == V7):
         raise ValueError("Deck content requires the versioned HP reward")
     if (type(info.enemy_initial_hp) is not int or not 0 < info.enemy_initial_hp <= info.enemy_max_hp
             or not MIN_DECK_SIZE <= len(info.known_deck) <= MAX_DECK_SIZE

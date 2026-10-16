@@ -32,7 +32,7 @@ class ReplayBuffer:
         atomic_json(self.directory / 'episodes' / f'{identity}.json', payload)
 
     def __init__(self, directory, capacity=200_000, information_mode="observable", reward_version=REWARD_VERSION, content_version=CONTENT_VERSION, search_version=LEGACY):
-        if search_version == 'dynamic-key-puct-v1':
+        if search_version in ('dynamic-key-puct-v1', 'dynamic-risk-puct-v2'):
             raise ValueError('Dynamic search labels require EntityReplayBuffer')
         self.search_version = validate_search(search_version)
         if type(capacity) is not int or capacity < 1:

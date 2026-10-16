@@ -1,0 +1,54 @@
+{
+  "scope": "diagnostic first decisions only; no training or learning-gain claim",
+  "checkpoints": {
+    "initial.pt": {
+      "sha256": "00d81de91b5ba00817200d66a9bc4b30af58ac2e79dbf31f4fd1cc1975d346c9",
+      "summary": {
+        "old": {
+          "end_turn": 252,
+          "play": 4
+        },
+        "q_tie_only": {
+          "play": 255,
+          "end_turn": 1
+        },
+        "new": {
+          "play": 255,
+          "end_turn": 1
+        }
+      }
+    },
+    "candidate-0.pt": {
+      "sha256": "4a06f3c944a5a00b9596cf9fa28e5d1f73b0ec47878a18f602c6a1ebcac2fed1",
+      "summary": {
+        "old": {
+          "end_turn": 256
+        },
+        "q_tie_only": {
+          "play": 45,
+          "end_turn": 211
+        },
+        "new": {
+          "play": 255,
+          "end_turn": 1
+        }
+      }
+    },
+    "candidate-1.pt": {
+      "sha256": "72de8a86a02ceeac44f06b70863fe4ee1835c24407c0dc00ffb5cd53f88e2124",
+      "summary": {
+        "old": {
+          "end_turn": 256
+        },
+        "q_tie_only": {
+          "end_turn": 254,
+          "play": 2
+        },
+        "new": {
+          "play": 255,
+          "end_turn": 1
+        }
+      }
+    }
+  }
+}

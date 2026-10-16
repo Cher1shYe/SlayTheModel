@@ -9,10 +9,13 @@ import tempfile
 import numpy as np
 
 from .config import atomic_replace, canonical_json, content_hash, CONTENT_VERSION, REWARD_VERSION
-from .entity_encoder import Entity, ActionCandidate, EntityObservation, SCHEMA, SCHEMA_HASH, NUMERIC_FIELDS, KINDS, ZONES, SUPPORTED
+from .entity_encoder import Entity, ActionCandidate, EntityObservation, SCHEMA, SCHEMA_HASH, NUMERIC_FIELDS, KINDS, ZONES, SUPPORTED, supported_reward
 from .mechanic_registry import Operation, OPS, TARGETS, TIMINGS, CONDITIONS
 from .replay_buffer import ReplayBuffer, episode_digest
 from .dynamic_search import VERSION
+from .search_config import DYNAMIC_RISK
+from .rewards import V7
+from .risk_reward import public_risk
 
 REPLAY_VERSION = 'typed-entity-replay-v2'
 
@@ -56,20 +59,21 @@ def unpack_observation(data):
 class EntityReplayBuffer(ReplayBuffer):
     @staticmethod
     def compatibility_for(content_version=CONTENT_VERSION,reward_version=REWARD_VERSION):
-        return dict(format_version=REPLAY_VERSION, schema_hash=SCHEMA_HASH, search_version=VERSION,
+        return dict(format_version=REPLAY_VERSION, schema_hash=SCHEMA_HASH, search_version=DYNAMIC_RISK if reward_version == V7 else VERSION,
                     information_mode='observable', reward_version=reward_version, content_version=content_version)
 
     def __init__(self, directory, capacity=200_000, **kwargs):
         content=kwargs.get('content_version',CONTENT_VERSION)
         reward=kwargs.get('reward_version',SUPPORTED.get(content))
-        if content not in SUPPORTED or SUPPORTED[content] != reward:
+        if not supported_reward(content, reward):
             raise ValueError('Unsupported entity replay content/reward')
-        if kwargs.get('search_version', VERSION) != VERSION or kwargs.get('information_mode', 'observable') != 'observable':
+        search = DYNAMIC_RISK if reward == V7 else VERSION
+        if kwargs.get('search_version', search) != search or kwargs.get('information_mode', 'observable') != 'observable':
             raise ValueError('Entity replay requires dynamic observable search')
         if type(capacity) is not int or capacity < 1:
             raise ValueError('Positive replay capacity required')
         self.directory, self.capacity = Path(directory), capacity
-        self.content_version, self.search_version = content, VERSION
+        self.content_version, self.search_version = content, search
         self.compatibility = self.compatibility_for(content,reward)
         self.episodes, self.committed = [], {}
         path = self.directory / 'manifest.json'
@@ -120,10 +124,13 @@ class EntityReplayBuffer(ReplayBuffer):
         from .rewards import terminal_reward
         settled = terminal_reward(outcome['termination_reason'],outcome['final_hp'],outcome['initial_hp'],
             outcome['enemy_final_hp'],outcome['enemy_max_hp'],final.reward_version,
-            enemy_initial_hp=outcome.get('enemy_initial_hp'),enemy_roster=outcome.get('enemy_roster'))
+            enemy_initial_hp=outcome.get('enemy_initial_hp'),enemy_roster=outcome.get('enemy_roster'),
+            player_max_hp=outcome.get('player_max_hp'),incoming_risk=outcome.get('incoming_risk'))
         if (z is None or final.content_version!=self.content_version or final.reward_version!=self.compatibility['reward_version']
                 or outcome['reward'] != z or settled != z or final.history.decisions != len(rows)
                 or final.termination_reason != outcome['termination_reason'] or final.player_hp != outcome['final_hp']
+                or (final.reward_version == 'risk-terminal-v7' and (outcome.get('player_max_hp') != final.player_max_hp
+                    or outcome.get('incoming_risk') != public_risk(final)))
                 or final.turn != outcome['turns']):
             raise ValueError('Final public state/outcome mismatch')
         for i, row in enumerate(rows):

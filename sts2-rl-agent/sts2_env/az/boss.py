@@ -3,7 +3,7 @@ from dataclasses import replace
 from collections import Counter
 
 from .content import BOSS_CONTENT, SUMMON_CONTENT
-from .rewards import V5, V6
+from .rewards import V5, V6, V7
 from .boss_phases import BossPhaseState, FORM_HP, KNOCKOUT, DEFEAT, RESPAWN, CLAW, POUNCE, GROWL
 from .boss_reconstruction import BossEnemySnapshot, capture_enemy, create_enemy, restore_enemy
 from .card_generation import CardGeneration
@@ -128,7 +128,7 @@ def capture(world, history, initial_hp):
 
 
 def validate(info):
-    if info.reward_version != V6 or info.limits.max_turns > 100 or info.limits.max_decisions > 400:
+    if info.reward_version not in (V6, V7) or info.limits.max_turns > 100 or info.limits.max_decisions > 400:
         raise ValueError("Boss content requires V6 and proven capacity budgets")
     if info.monster_id != MONSTER:
         if info.boss is not None or info.history.boss_events:

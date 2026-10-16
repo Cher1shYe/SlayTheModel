@@ -25,7 +25,7 @@ from sts2_env.az.evaluation import compare,evaluate_parallel,promotion_gate,summ
 from sts2_env.az.model_factory import load_transformer_checkpoint
 from sts2_env.az.network import code_digest
 from sts2_env.az.content import BOSS_CONTENT
-from sts2_env.az.rewards import V6
+from sts2_env.az.rewards import V7
 from sts2_env.az.run_lock import RunLock
 from sts2_env.az.scenarios import save_manifest,load_manifest
 from sts2_env.az.self_play import Collector,file_digest
@@ -60,7 +60,7 @@ def finite(value):
 
 
 def checkpoint(path,c):
-    model,payload=load_transformer_checkpoint(path,'S',BOSS_CONTENT,V6)
+    model,payload=load_transformer_checkpoint(path,'S',BOSS_CONTENT,V7)
     del model
     if payload['code_digest']!=code_digest() or payload['run_config']!=asdict(c) or payload['torch_version']!=str(torch.__version__):
         raise ValueError('Checkpoint implementation/config mismatch')
@@ -73,7 +73,7 @@ def verify_rows(rows,records,c):
         raise ValueError('Evaluation recipe mismatch')
     if any(any(row[k]!=by_id[row['scenario_id']][k] for k in ('family_id','encounter_id'))
            or row['initial_hp']!=by_id[row['scenario_id']]['player_hp']
-           or row.get('reward_version')!=V6 or row.get('search_version')!=c.search_version for row in rows):
+           or row.get('reward_version')!=V7 or row.get('search_version')!=c.search_version for row in rows):
         raise ValueError('Evaluation metadata mismatch')
 
 
@@ -100,7 +100,7 @@ def audit_seed(root,c):
     champion_version=initial['model_version']
     rounds=[]
     # Capacity 1 avoids loading the active replay into RAM; audit each committed file below.
-    replay=EntityReplayBuffer(root/'audit-unused',capacity=1,content_version=BOSS_CONTENT,reward_version=V6)
+    replay=EntityReplayBuffer(root/'audit-unused',capacity=1,content_version=BOSS_CONTENT,reward_version=V7)
     replay.directory=root/'replay'
     manifest=read(replay.directory/'manifest.json')
     if manifest['compatibility']!=replay.compatibility or manifest['capacity']!=c.capacity:
@@ -161,7 +161,7 @@ def audit_seed(root,c):
                 rows=report['modes'][mode][role]
                 verify_rows(rows,validation,c)
         rebuilt=compare(None,None,'audit','audit',[CombatScenario.from_dict(r) for r in validation],
-            simulations=c.eval_simulations,reward_version=V6,search_version=c.search_version,
+            simulations=c.eval_simulations,reward_version=V7,search_version=c.search_version,
             promotion_policy=c.promotion_policy,evaluation_runner=lambda role,b:report['modes']['network' if b==0 else 'search'][role])
         if rebuilt!=report or not all(m['gate']['clean'] for m in rebuilt['modes'].values()):
             raise ValueError('Evaluation gate/summary/integrity mismatch')
@@ -245,9 +245,9 @@ def final_evaluation(root,frozen_models,pool,c):
         reports[seed]={}
         for mode,budget in (('network',0),('search',c.eval_simulations)):
             old,new=[evaluate_parallel(pool,root/paths[role],recipes,budget,123,EpisodeLimits(),
-                root/'test_cache',reward_version=V6,search_version=c.search_version) for role in ('initial','final')]
+                root/'test_cache',reward_version=V7,search_version=c.search_version) for role in ('initial','final')]
             for rows in (old,new): verify_rows(rows,[r.to_dict() for r in recipes],c)
-            gate=promotion_gate(old,new,required_count=216,reward_version=V6,criterion='utility-only-v1')
+            gate=promotion_gate(old,new,required_count=216,reward_version=V7,criterion='utility-only-v1')
             if not gate['clean']: raise ValueError('Unclean final evaluation')
             result=dict(initial=old,final=new,initial_summary=summarize(old),final_summary=summarize(new),
                         paired=gate,strata=stratified_pairs(old,new))
@@ -326,7 +326,7 @@ def run(output,preparation,mode,smoke_evidence=None):
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mode',choices=['verify-smoke','smoke','formal'])
-    parser.add_argument('--preparation',default='configs/az_transformer_t3_v1')
+    parser.add_argument('--preparation',default='configs/az_transformer_t3_v2')
     parser.add_argument('--output')
     parser.add_argument('--smoke-evidence')
     parser.add_argument('--start-experiment',action='store_true')

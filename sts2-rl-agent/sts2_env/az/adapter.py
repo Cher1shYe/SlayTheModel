@@ -34,6 +34,8 @@ class Transition:
     enemy_max_hp: int = 40
     enemy_initial_hp: int | None = None
     enemy_roster: tuple = ()
+    player_max_hp: int = 80
+    incoming_risk: float = 0.0
 
 
 class CombatAdapter:
@@ -50,8 +52,8 @@ class CombatAdapter:
         self.enemy_slots = tuple(self.world.enemies)
         self.initial_hp_roster = tuple(max(0, e.current_hp) for e in self.world.enemies)
         if recipe.content_manifest_version == BOSS_CONTENT:
-            from .rewards import V6
-            if self.reward_version != V6:
+            from .rewards import V6, V7
+            if self.reward_version not in (V6, V7):
                 raise ValueError("Boss content requires reward V6")
         if recipe.content_manifest_version == MULTI_CONTENT:
             from .rewards import V4
@@ -96,13 +98,17 @@ class CombatAdapter:
                 raise CombatInterfaceError("Fixed enemy slots changed")
             roster = capture_health(world, self.initial_roster)
             _, enemy_hp, enemy_max = validate_health(roster)
+        from .rewards import V7
+        from .risk_reward import world_risk
+        risk = world_risk(world) if self.reward_version == V7 else 0.0
         reward = terminal_reward(reason, world.player.current_hp, self.recipe.player_hp,
                                  enemy_hp, enemy_max, self.reward_version,
-                                 enemy_initial_hp=self.enemy_initial_hp, enemy_roster=roster)
+                                 enemy_initial_hp=self.enemy_initial_hp, enemy_roster=roster,
+                                 player_max_hp=world.player.max_hp, incoming_risk=risk)
         return Transition(reward,
                           reason is not None, reason, max(0, world.player.current_hp),
                           min(world.turn_count, self.limits.max_turns), len(self.actions), self.recipe.player_hp,
-                          enemy_hp, enemy_max, self.enemy_initial_hp, roster)
+                          enemy_hp, enemy_max, self.enemy_initial_hp, roster, world.player.max_hp, risk)
 
     def legal_mask(self):
         if self.failed:

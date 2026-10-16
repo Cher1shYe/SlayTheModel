@@ -8,7 +8,7 @@ from .expanded_mechanics import describe_card, monster_program
 from .mechanic_registry import Operation as O, POWER_RULES
 from .boss_cards import CODEC
 from .lifecycle import attack_count
-from .rewards import V6
+from .rewards import V6, V7
 
 STAGES = {
  'SHRINKER_BEETLE': ('SHRINKER_MOVE','CHOMP_MOVE','STOMP_MOVE'),
@@ -41,7 +41,7 @@ def card_entity(ref, state, zone, count=1, slot=0, position=0, selected=False, o
 
 
 def encode_expanded(info):
-    if info.reward_version != V6: raise ValueError('G2.3e requires frozen V6 reward')
+    if info.reward_version not in (V6, V7): raise ValueError('G2.3e requires frozen V6 reward')
     info.validate()
     if info.terminal_value() is not None: raise ValueError('Terminal state has no decision policy')
     attacks = attack_count(info.history)

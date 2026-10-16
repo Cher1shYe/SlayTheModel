@@ -21,8 +21,13 @@ KINDS = ('state', 'player', 'enemy', 'card', 'choice')
 ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending')
 ACTION_TYPES = ('end_turn','play','choose','choose_set','confirm_choice')
 from .content import BOSS_CONTENT
-from .rewards import V6
+from .rewards import V6, V7
 SUPPORTED = {CONTENT_VERSION: REWARD_VERSION, BOSS_CONTENT: V6}
+
+
+def supported_reward(content, reward):
+    return SUPPORTED.get(content) == reward or (content == BOSS_CONTENT and reward == V7)
+
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
 SCHEMA = {'version': 'public-entities-g23e-v3', 'action_version': 'dynamic-actions-v2',
@@ -76,7 +81,7 @@ class EntityObservation:
     def validate(self):
         if self.schema_hash != SCHEMA_HASH:
             raise ValueError('Entity schema mismatch')
-        if SUPPORTED.get(self.content_version) != self.reward_version:
+        if not supported_reward(self.content_version, self.reward_version):
             raise ValueError('Unsupported observation content/reward')
         if not 1 <= len(self.entities) <= SCHEMA['max_entities'] or not 1 <= len(self.actions) <= SCHEMA['max_actions']:
             raise ValueError('Public length overflow or empty state/actions; truncation forbidden')

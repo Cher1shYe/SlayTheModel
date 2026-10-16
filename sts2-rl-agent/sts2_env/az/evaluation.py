@@ -9,7 +9,7 @@ from .adapter import ObservableCombatAdapter
 from .config import EpisodeLimits, atomic_json, content_hash, derive_seed
 from .encoder import encode_information
 from .observable_puct import plan_observable
-from .rewards import V1, V2, V3, V4, V5, V6, terminal_reward, validate_reward
+from .rewards import V1, V2, V3, V4, V5, V6, V7, terminal_reward, validate_reward
 from .search_config import LEGACY, validate_search
 
 
@@ -26,10 +26,21 @@ def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, req
         if old["scenario_id"] != new["scenario_id"]:
             raise ValueError("Unpaired validation results")
         for row in (old, new):
+            if reward_version == V7:
+                from .entity_transition import public_from_dict
+                from .risk_reward import public_risk
+                public = public_from_dict(row['final_public'])
+                if (public.reward_version != V7 or public.terminal_value() != row['reward']
+                        or public.player_max_hp != row['player_max_hp']
+                        or public.player_hp != row['final_hp'] or public.initial_hp != row['initial_hp']
+                        or public.termination_reason != row['termination_reason']
+                        or public_risk(public) != row['incoming_risk']):
+                    raise ValueError('V7 evaluation facts disagree with final public state')
             expected = (terminal_reward(row["termination_reason"], row["final_hp"], row["initial_hp"],
                                        row["enemy_final_hp"], row["enemy_max_hp"], reward_version,
-                                       enemy_initial_hp=row.get("enemy_initial_hp"), enemy_roster=row.get("enemy_roster"))
-                        if reward_version in (V2, V3, V4, V5, V6) else row["reward"])
+                                       enemy_initial_hp=row.get("enemy_initial_hp"), enemy_roster=row.get("enemy_roster"),
+                                       player_max_hp=row.get("player_max_hp"), incoming_risk=row.get("incoming_risk"))
+                        if reward_version in (V2, V3, V4, V5, V6, V7) else row["reward"])
             if (not np.isfinite(row["reward"]) or not -1 <= row["reward"] <= 1
                     or row["reward"] != expected or (reward_version == V1 and row["reward"] not in (-1, 1))):
                 raise ValueError("Invalid evaluation utility")
@@ -44,7 +55,7 @@ def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, req
     for i, (old, new) in enumerate(zip(champion, candidate)):
         if old.get("encounter_id") != new.get("encounter_id"):
             raise ValueError("Paired encounter mismatch")
-        if reward_version in (V3, V4, V5, V6):
+        if reward_version in (V3, V4, V5, V6, V7):
             stratum = tuple(old[k] for k in ("family_id", "encounter_id", "initial_hp"))
             if stratum != tuple(new[k] for k in ("family_id", "encounter_id", "initial_hp")):
                 raise ValueError("Paired stratum mismatch")
@@ -97,7 +108,7 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
                 elif policy == "oracle_mcts":
                     from sts2_env.search.mcts import search
                     action = search(env.world, simulations=simulations, seed=decision_seed).action
-                elif search_version == 'dynamic-key-puct-v1':
+                elif search_version in ('dynamic-key-puct-v1', 'dynamic-risk-puct-v2'):
                     from .dynamic_search import plan_dynamic
                     from .entity_encoder import encode_entities
                     from .action_candidates import action_candidates
@@ -129,6 +140,9 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
         results.append(dict(outcome, scenario_id=recipe.scenario_id, family_id=recipe.family_id,
                             errors=0, illegal_actions=0, decision_seconds=latencies, reward_version=reward_version,
                             encounter_id=recipe.encounter_id))
+        if reward_version == V7:
+            from .entity_transition import public_snapshot
+            results[-1]['final_public'] = public_snapshot(env.information)
         if search_version != LEGACY:
             results[-1]["search_version"] = search_version
     return results
@@ -185,7 +199,7 @@ def compare(champion, candidate, champion_version, candidate_version, recipes, s
             by_encounter={enc: dict(champion=summarize([r for r in old if r["encounter_id"] == enc]),
                                    candidate=summarize([r for r in new if r["encounter_id"] == enc]))
                           for enc in sorted({r["encounter_id"] for r in old})})
-    if reward_version in (V3, V4, V5, V6):
+    if reward_version in (V3, V4, V5, V6, V7):
         for report in reports.values():
             report["by_stratum"] = stratified_pairs(report["champion"], report["candidate"])
     return dict(modes=reports, promote=reports["network"]["gate"]["promote"],

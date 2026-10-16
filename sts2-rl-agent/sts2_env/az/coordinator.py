@@ -57,13 +57,15 @@ class TrainingConfig:
         if any(type(v) is not int or v < 1 for k, v in asdict(self).items() if k not in ("seed", "reward_version", "content_version", "sampling_version", "initial_checkpoint", "search_version", "model_tier", "promotion_policy")):
             raise ValueError("Positive integer training settings required")
         from .transformer_network import TIERS
-        from .search_config import DYNAMIC
+        from .search_config import DYNAMIC, DYNAMIC_RISK, DYNAMIC_VERSIONS
         if self.model_tier != 'mlp':
-            from .entity_encoder import SUPPORTED
-            if self.model_tier not in TIERS or self.search_version != DYNAMIC or SUPPORTED.get(self.content_version) != self.reward_version:
+            from .entity_encoder import SUPPORTED, supported_reward
+            if self.model_tier not in TIERS or self.search_version not in DYNAMIC_VERSIONS or not supported_reward(self.content_version, self.reward_version):
                 raise ValueError('Transformer requires supported starter content and explicit dynamic search')
-        elif self.search_version == DYNAMIC:
+        elif self.search_version in DYNAMIC_VERSIONS:
             raise ValueError('Dynamic search cannot use an MLP')
+        if (self.search_version == DYNAMIC_RISK) != (self.reward_version == 'risk-terminal-v7'):
+            raise ValueError('V7 requires matching risk search and reward versions')
         if self.sampling_version != "standard":
             from .boss_curriculum import VERSION
             if self.sampling_version not in (VERSION,"boss-search-course-v1","transformer-g23e-course-v1","transformer-g23e-smoke-v1") or self.content_version != BOSS_CONTENT or self.episodes_per_iteration != 180:
@@ -79,10 +81,10 @@ class TrainingConfig:
         if self.validation_count > 256:
             raise ValueError("Promotion manifest has exactly 256 slots")
         if self.content_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
-            from .rewards import V3, V4, V5, V6
+            from .rewards import V3, V4, V5, V6, V7
             expected = (V6 if self.content_version == BOSS_CONTENT else V5 if self.content_version == SUMMON_CONTENT
                         else V4 if self.content_version == MULTI_CONTENT else V3)
-            if self.reward_version != expected or not 0 <= self.seed < 1024 or self.iterations > 1024 or self.episodes_per_iteration > 1024:
+            if (self.reward_version != expected and not (self.content_version == BOSS_CONTENT and self.reward_version == V7)) or not 0 <= self.seed < 1024 or self.iterations > 1024 or self.episodes_per_iteration > 1024:
                 raise ValueError("Incompatible deck generator configuration")
 
 
