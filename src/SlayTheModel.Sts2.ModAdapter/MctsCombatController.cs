@@ -255,7 +255,8 @@ internal sealed class MctsCombatController : ICardSelector
             // action. Cards such as Burning Pact can synchronously open a
             // choice from inside ExecuteAsync.
             _choiceTriggerAction = result.Action!;
-            var execution = CombatActionExecutor.ExecuteAsync(_state, action);
+            var execution = CombatActionExecutor.ExecuteAsync(
+                _state, action, PolicyTraceMetadata.NativeMcts(result));
             try { await execution; }
             catch
             {
@@ -332,6 +333,8 @@ internal sealed class MctsCombatController : ICardSelector
     {
         _choosing = true;
         var cards = options.ToArray();
+        var request = new object();
+        PolicyDecisionTelemetry.NotifyCardChoiceRequested(request, cards, minSelect, maxSelect);
         try
         {
             if (!_paused)
@@ -361,7 +364,7 @@ internal sealed class MctsCombatController : ICardSelector
                     if (response.NextStateKey != null)
                         StartPondering(response.NextStateKey, _prefix.ToArray(), response.Action!, _generation.Token);
                     var policySelected = indices.Select(i => cards[i]).ToArray();
-                    PolicyChoiceCapture.Record(cards, minSelect, maxSelect, policySelected);
+                    PolicyDecisionTelemetry.NotifyCardChoiceCompleted(request, policySelected);
                     return policySelected;
                 }
                 catch (OperationCanceledException) when (_paused || _state == null) { }
@@ -372,15 +375,27 @@ internal sealed class MctsCombatController : ICardSelector
                     Pause(exception.ToString());
                 }
             }
-            if (_state == null || CombatManager.Instance.IsOverOrEnding) return [];
+            if (_state == null || CombatManager.Instance.IsOverOrEnding)
+            {
+                PolicyDecisionTelemetry.NotifyCardChoiceCompleted(request, null,
+                    new OperationCanceledException("Combat ended before the card choice completed."));
+                return [];
+            }
             // Retain a usable native UI when search is paused or a choice cannot be simulated.
             var prefs = new CardSelectorPrefs(new MegaCrit.Sts2.Core.Localization.LocString("gameplay_ui", "CHOOSE_CARD_HEADER"), minSelect, maxSelect);
             var screen = NSimpleCardSelectScreen.Create(cards, prefs);
+            PolicyDecisionTelemetry.NotifyCardChoiceManualFallback(request, screen);
             (NOverlayStack.Instance ?? throw new InvalidOperationException("Manual selection UI unavailable.")).Push(screen);
             var selected = (await screen.CardsSelected()).ToArray();
             var selectedIndices = selected.Select(card => Array.IndexOf(cards, card)).ToArray();
             AppendPrefix(new SearchAction("choose:" + string.Join(",", selectedIndices), Selection: selectedIndices));
+            PolicyDecisionTelemetry.NotifyCardChoiceCompleted(request, selected);
             return selected;
+        }
+        catch (Exception exception)
+        {
+            PolicyDecisionTelemetry.NotifyCardChoiceCompleted(request, null, exception);
+            throw;
         }
         finally { _choosing = false; }
     }

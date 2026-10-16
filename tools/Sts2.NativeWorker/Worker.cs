@@ -35,19 +35,36 @@ public partial class Worker : Node
             SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.EnableCapture();
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
-            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "summon-reward-verify")
+            string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "summon-reward-verify")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
                 await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
                 GetTree().Quit();
                 return;
             }
-            if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "reward-verify")
+            if (workerMode == "reward-verify")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
                 await MinionRewardVerification.RunAsync(session, timeout.Token);
                 await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
                 await RewardVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode == "collector-policy-verify")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                string collectorDll = System.Environment.GetEnvironmentVariable(
+                        "STS2_COLLECTOR_TEST_DLL")
+                    ?? throw new InvalidOperationException(
+                        "STS2_COLLECTOR_TEST_DLL is required.");
+                string adapterDll = System.Environment.GetEnvironmentVariable(
+                        "STS2_ADAPTER_TEST_DLL")
+                    ?? throw new InvalidOperationException(
+                        "STS2_ADAPTER_TEST_DLL is required.");
+                await CollectorPolicyVerification.RunAsync(
+                    session, collectorDll, adapterDll, timeout.Token);
                 GetTree().Quit();
                 return;
             }
@@ -105,8 +122,6 @@ public partial class Worker : Node
             await RewardVerification.RunAsync(session, timeout.Token);
             await MinionRewardVerification.RunAsync(session, timeout.Token);
             await MinionRewardVerification.LateSummonsAsync(session, timeout.Token);
-            if (System.Environment.GetEnvironmentVariable("STS2_COLLECTOR_TEST_DLL") is { Length: > 0 } collectorDll)
-                await CollectorVerification.RunAsync(session, collectorDll, timeout.Token);
             if (System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE") == "benchmark")
                 await Benchmark.RunAsync(session, System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT") ?? "benchmark.json", timeout.Token);
             GetTree().Quit();

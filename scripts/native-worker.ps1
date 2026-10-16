@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'
@@ -69,14 +69,29 @@ try {
         Copy-Item -LiteralPath (Join-Path $managed 'GodotSharp.dll') -Destination $output -Force
         Copy-Item -LiteralPath (Join-Path $game 'SlayTheSpire2.exe') -Destination (Join-Path $stage 'NativeWorker.exe') -Force
         Copy-Item -LiteralPath (Join-Path $game 'release_info.json') -Destination $stage -Force
+        if ($Mode -eq 'collector-policy-verify') {
+            & $dotnet build (Join-Path $repo 'src/SlayTheModel.Sts2.DataCollector/SlayTheModel.Sts2.DataCollector.csproj') -c Release "-p:Sts2ManagedDir=$managed" -m:1 -nr:false
+            if ($LASTEXITCODE -ne 0) { throw 'Collector verification build failed.' }
+            & $dotnet build (Join-Path $repo 'src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj') -c Release "-p:Sts2ManagedDir=$managed" -m:1 -nr:false
+            if ($LASTEXITCODE -ne 0) { throw 'Adapter verification build failed.' }
+        }
+    }
+    $collectorTestDll = Join-Path $repo 'src/SlayTheModel.Sts2.DataCollector/bin/Release/net9.0/SlayTheModelDataCollector.dll'
+    $adapterTestDll = Join-Path $repo 'src/SlayTheModel.Sts2.ModAdapter/bin/Release/net9.0/SlayTheModelAdapter.dll'
+    if ($Mode -eq 'collector-policy-verify' -and (-not (Test-Path -LiteralPath $collectorTestDll) -or -not (Test-Path -LiteralPath $adapterTestDll))) {
+        throw 'collector-policy-verify requires current Release builds of the collector and adapter.'
     }
     $savedPack = $env:STS2_GAME_PACK
     $savedMode = $env:STS2_WORKER_MODE
     $savedOutput = $env:STS2_BENCHMARK_OUT
+    $savedCollectorTestDll = $env:STS2_COLLECTOR_TEST_DLL
+    $savedAdapterTestDll = $env:STS2_ADAPTER_TEST_DLL
     try {
         $env:STS2_GAME_PACK = Join-Path $game 'SlayTheSpire2.pck'
         $env:STS2_WORKER_MODE = $Mode
         $env:STS2_BENCHMARK_OUT = Join-Path $stage 'benchmark.json'
+        $env:STS2_COLLECTOR_TEST_DLL = $collectorTestDll
+        $env:STS2_ADAPTER_TEST_DLL = $adapterTestDll
         $process = Start-Process -FilePath (Join-Path $stage 'NativeWorker.exe') -ArgumentList @('--headless', '--path', ('"' + $project + '"')) -WindowStyle Hidden -RedirectStandardOutput (Join-Path $stage 'stdout.txt') -RedirectStandardError (Join-Path $stage 'stderr.txt') -PassThru
         # Windows PowerShell must open the process handle before the process exits
         # or ExitCode can remain unavailable on the returned Process object.
@@ -96,5 +111,7 @@ try {
         $env:STS2_GAME_PACK = $savedPack
         $env:STS2_WORKER_MODE = $savedMode
         $env:STS2_BENCHMARK_OUT = $savedOutput
+        $env:STS2_COLLECTOR_TEST_DLL = $savedCollectorTestDll
+        $env:STS2_ADAPTER_TEST_DLL = $savedAdapterTestDll
     }
 } finally { Pop-Location }

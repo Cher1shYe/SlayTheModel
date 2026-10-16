@@ -53,7 +53,8 @@ internal sealed record PreparedCombatChoice(
     DecisionReceipt Receipt,
     DateTimeOffset ObservedAtUtc,
     RunMetrics BeforeMetrics,
-    string InputKind);
+    string InputKind,
+    PolicyTrace? PolicyOverride = null);
 
 internal sealed record StagedExecution(
     CollectorActionDraft Draft,
@@ -375,6 +376,10 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
             var metadata = new SortedDictionary<string, string>(StringComparer.Ordinal)
             {
                 ["actor"] = _configuration.Actor,
+                ["configured_combat_policy"] = _configuration.CombatPolicy,
+                ["configured_outside_combat_policy"] = _configuration.OutsideCombatPolicy,
+                ["policy_provenance_version"] = "1",
+                ["policy_capture"] = "native-action-identity-v1",
                 ["ascension"] = state.AscensionLevel.ToString(),
                 ["character_id"] = state.Players[0].Character.Id.ToString(),
                 ["episode_start_current_hp"] = state.Players[0].Creature.CurrentHp
@@ -475,7 +480,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
     internal CollectorActionDraft DraftCombat(
         CapturedCombatDecision captured,
         int selectedActionIndex,
-        string inputKind)
+        string inputKind,
+        PolicyTrace? policyOverride = null)
     {
         var input = DecisionInput.FromCombat(
             Guid.NewGuid(),
@@ -501,7 +507,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
                        selectedActionIndex,
                        observedAt,
                        metrics,
-                       inputKind)
+                       inputKind,
+                       policyOverride: policyOverride)
                    ?? throw new InvalidOperationException(
                        "Combat action did not match its recorded legal set.");
         }
@@ -510,7 +517,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
     internal CollectorActionDraft DraftQueuedCombat(
         CapturedCombatDecision captured,
         int selectedActionIndex,
-        string inputKind)
+        string inputKind,
+        PolicyTrace? policyOverride = null)
     {
         var input = DecisionInput.FromCombat(
             Guid.NewGuid(),
@@ -538,7 +546,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
                        selectedActionIndex,
                        observedAt,
                        metrics,
-                       inputKind)
+                       inputKind,
+                       policyOverride: policyOverride)
                    ?? throw new InvalidOperationException(
                        "Queued combat input did not match its click-time legal set.");
         }
@@ -562,7 +571,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
 
     internal PreparedCombatChoice PrepareCombatChoice(
         CapturedCombatDecision captured,
-        string inputKind)
+        string inputKind,
+        PolicyTrace? policyOverride = null)
     {
         var input = DecisionInput.FromCombat(
             Guid.NewGuid(),
@@ -592,14 +602,16 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
                 receipt,
                 observedAt,
                 metrics,
-                inputKind);
+                inputKind,
+                policyOverride);
         }
     }
 
     internal CollectorActionDraft? ResolveCombatChoice(
         PreparedCombatChoice prepared,
         int selectedActionIndex,
-        JsonElement? selectedAction = null)
+        JsonElement? selectedAction = null,
+        PolicyTrace? policyOverride = null)
     {
         ArgumentNullException.ThrowIfNull(prepared);
         lock (_gate)
@@ -611,7 +623,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
                 prepared.ObservedAtUtc,
                 prepared.BeforeMetrics,
                 prepared.InputKind,
-                selectedAction);
+                selectedAction,
+                policyOverride ?? prepared.PolicyOverride);
         }
     }
 
@@ -1067,7 +1080,8 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
         DateTimeOffset observedAtUtc,
         RunMetrics beforeMetrics,
         string inputKind,
-        JsonElement? selectedAction = null)
+        JsonElement? selectedAction = null,
+        PolicyTrace? policyOverride = null)
     {
         var session = _session
             ?? throw new InvalidOperationException("No collector episode is active.");
@@ -1097,15 +1111,7 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
             attemptId,
             selectedActionIndex,
             actionKey,
-            new PolicyTrace(
-                ActionActorForConfiguration(),
-                string.Equals(
-                    _configuration.Actor,
-                    "automation_or_unknown",
-                    StringComparison.Ordinal)
-                    ? "observed-automation"
-                    : "human-demonstration",
-                ModelRevision: null),
+            policyOverride ?? DefaultPolicyForDomain(decision.Domain),
             selectedAction));
         return new CollectorActionDraft(
             decision,
@@ -1460,13 +1466,16 @@ internal sealed class CollectorEpisodeCoordinator : IDisposable
             _ => InformationRegime.Unknown,
         };
 
-    private ActionActor ActionActorForConfiguration() =>
-        string.Equals(
-            _configuration.Actor,
-            "automation_or_unknown",
-            StringComparison.Ordinal)
-            ? ActionActor.Policy
-            : ActionActor.Human;
+    private PolicyTrace DefaultPolicyForDomain(CollectorDecisionDomain domain)
+    {
+        // A known automation configuration is not evidence that any particular
+        // action came from that policy. Exact automation uses the per-action
+        // bridge. Native manual APIs in an automated domain remain unproven;
+        // this also avoids calling a paused/foreign controller "human" by guess.
+        var configuredPolicy = domain == CollectorDecisionDomain.Combat
+            ? _configuration.CombatPolicy : _configuration.OutsideCombatPolicy;
+        return CollectorPolicyOrigin.UnattributedInput(configuredPolicy);
+    }
 
     private SaveLoadKind SaveLoadKindForObservedCheckpoint(bool checkpointMatches) =>
         _configuration.InformationMode switch

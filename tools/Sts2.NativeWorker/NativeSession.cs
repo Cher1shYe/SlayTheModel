@@ -38,6 +38,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
+    internal Action<GameAction>? BeforeActionEnqueuedForVerification { get; set; }
+    internal Action<object, CardModel[], int, int>? ChoiceRequestedForVerification { get; set; }
+    internal Action<object, CardModel[]?, Exception?>? ChoiceCompletedForVerification { get; set; }
     private Player _player = null!;
     private CombatState _state = null!;
     private TaskCompletionSource<IEnumerable<CardModel>>? _choice;
@@ -47,6 +50,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     private GameAction? _action;
     private IDisposable? _selector;
     private CancellationToken _activeCancellation;
+    private object? _verificationChoiceRequest;
     private (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] _rewardEnemies = [];
     public int Hp => _player.Creature.CurrentHp;
     public int Round => _state.RoundNumber;
@@ -272,12 +276,17 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             var pending = _choice ?? throw new InvalidOperationException("No pending selection.");
             var selected = indices.Select(index => _options[index]).ToArray();
             _choice = null;
+            if (_verificationChoiceRequest is { } request)
+            {
+                ChoiceCompletedForVerification?.Invoke(request, selected, null);
+                _verificationChoiceRequest = null;
+            }
             pending.SetResult(selected);
         }
         else
         {
             _action = CombatActionExecutor.CreateGameAction(_state, input.Combat!);
-            PolicyChoiceCapture.BeforeAction(_action);
+            BeforeActionEnqueuedForVerification?.Invoke(_action);
             RunManager.Instance.ActionQueueSet.EnqueueWithoutSynchronizing(_action);
         }
         try { await SettleAsync(cancellation); }
@@ -285,6 +294,12 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         {
             var pendingChoice = _choice;
             _choice = null;
+            if (_verificationChoiceRequest is { } request)
+            {
+                ChoiceCompletedForVerification?.Invoke(
+                    request, null, new OperationCanceledException(cancellation));
+                _verificationChoiceRequest = null;
+            }
             pendingChoice?.TrySetCanceled(cancellation);
             await DrainActiveActionAsync();
             // Completion tasks can schedule additional continuations onto
@@ -376,6 +391,12 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         _options = options.ToArray();
         _min = minSelect;
         _max = maxSelect;
+        if (ChoiceRequestedForVerification is not null)
+        {
+            _verificationChoiceRequest = new object();
+            ChoiceRequestedForVerification(
+                _verificationChoiceRequest, _options.ToArray(), minSelect, maxSelect);
+        }
         _choice = new TaskCompletionSource<IEnumerable<CardModel>>(TaskCreationOptions.RunContinuationsAsynchronously);
         return _choice.Task;
     }

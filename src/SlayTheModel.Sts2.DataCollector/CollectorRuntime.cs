@@ -112,25 +112,6 @@ internal sealed record CardRewardExtraOption(string OptionId, bool IsSkip);
 internal static partial class CollectorRuntime
 {
     private static readonly Dictionary<GameAction, CollectorActionDraft> PendingCombatActions = [];
-    private static readonly Dictionary<GameAction, CapturedCombatDecision?> PendingPolicyCaptures = [];
-
-    internal static void PreparePolicyAction(GameAction action)
-    {
-        if (_stopping || _episodes?.HasActiveEpisode != true
-            || _configuration?.Actor != "automation_or_unknown") return;
-        PendingPolicyCaptures[action] = null;
-        try
-        {
-            var state = CombatManager.Instance.DebugOnlyGetState()
-                ?? throw new InvalidOperationException("No combat state for policy action.");
-            PendingPolicyCaptures[action] = CollectorCombatProjector.Capture(state, _episodes.NextSourceDecisionIndex());
-        }
-        catch (Exception exception)
-        {
-            RecordCoverageGap("policy_action_capture_failed", new { error = exception.ToString() },
-                invalidatePendingDecision: false);
-        }
-    }
     private static readonly Dictionary<GameAction, CollectorActionDraft> PendingOutsidePotionActions = [];
     private static readonly HashSet<object> PendingOutsideOperations =
         new(ReferenceEqualityComparer.Instance);
@@ -164,6 +145,7 @@ internal static partial class CollectorRuntime
         _episodes = new CollectorEpisodeCoordinator(configuration);
         CollectorHarmony.Install();
         CollectorManualCombatInput.Install();
+        CollectorPolicyTelemetry.Install();
 
         var runManager = RunManager.Instance;
         runManager.RunStarted += OnRunStarted;
@@ -1821,6 +1803,7 @@ internal static partial class CollectorRuntime
         _actionQueue = manager.ActionQueueSet;
         _actionQueue.ActionEnqueued += OnActionEnqueued;
         _actionExecutor = manager.ActionExecutor;
+        _actionExecutor.BeforeActionExecuted += OnPolicyActionStarting;
         _actionExecutor.BeforeActionExecuted += OnManualCombatActionStarting;
         _actionExecutor.AfterActionExecuted += OnActionExecuted;
         _choiceSynchronizer = manager.PlayerChoiceSynchronizer;
@@ -1839,6 +1822,7 @@ internal static partial class CollectorRuntime
 
         if (_actionExecutor is not null)
         {
+            _actionExecutor.BeforeActionExecuted -= OnPolicyActionStarting;
             _actionExecutor.BeforeActionExecuted -= OnManualCombatActionStarting;
             _actionExecutor.AfterActionExecuted -= OnActionExecuted;
             _actionExecutor = null;
@@ -1851,7 +1835,7 @@ internal static partial class CollectorRuntime
         }
 
         PendingCombatActions.Clear();
-        PendingPolicyCaptures.Clear();
+        ClearPolicyActionInputs();
         PendingOutsidePotionActions.Clear();
         PendingManualCombatIntents.Clear();
         ClearCombatChoiceState();
@@ -2252,6 +2236,10 @@ internal static partial class CollectorRuntime
     {
         DrainCompletedSelectors();
         var manualInput = CollectorManualCombatInput.Consume(action);
+        if (TryCapturePolicyAction(action, manualInput is not null))
+        {
+            return;
+        }
         // PotionModel.EnqueueManualUse and the discard popup are native manual
         // entry points outside combat. Record an independent action only when
         // their click-time surface and legal set were frozen; otherwise keep
@@ -2342,19 +2330,6 @@ internal static partial class CollectorRuntime
             : new HashSet<Guid>();
         try
         {
-            if (PendingPolicyCaptures.Remove(action, out var policyCapture))
-            {
-                if (policyCapture is null) return;
-                var policyIndex = CollectorCombatProjector.FindAction(policyCapture.Decision.LegalActions, descriptor);
-                if (policyIndex < 0)
-                {
-                    RecordCoverageGap("policy_action_not_in_legal_set", new { action = action.ToString() },
-                        invalidatePendingDecision: false);
-                    return;
-                }
-                PendingCombatActions[action] = _episodes!.DraftCombat(policyCapture, policyIndex, "policy_action");
-                return;
-            }
             // Only a native manual-play/end-turn/potion entry point proves a
             // human submission. Card effects can enqueue the same action
             // classes while their parent is still resolving.
@@ -2460,6 +2435,7 @@ internal static partial class CollectorRuntime
 
     private static void OnActionExecuted(GameAction action)
     {
+        CapturedPolicyActions.Remove(action);
         try
         {
             // Native CombatCard callbacks are synchronous and precede action
@@ -2532,6 +2508,8 @@ internal static partial class CollectorRuntime
         {
             return;
         }
+
+        CapturedPolicyActions.Remove(action);
 
         try
         {

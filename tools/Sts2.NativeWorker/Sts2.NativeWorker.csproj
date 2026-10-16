@@ -53,8 +53,8 @@
              Link="Bridge/NativeMctsMessages.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerClient.cs"
              Link="Bridge/NativeWorkerClient.cs" />
-    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PolicyChoiceCapture.cs"
-             Link="Bridge/PolicyChoiceCapture.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/PolicyDecisionTelemetry.cs"
+             Link="Bridge/PolicyDecisionTelemetry.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs"
              Link="Bridge/NativeWorkerLaunch.cs" />
     <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs"

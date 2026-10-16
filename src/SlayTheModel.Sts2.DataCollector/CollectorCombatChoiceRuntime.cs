@@ -46,36 +46,19 @@ internal sealed class PendingCombatCardChoice(
     internal uint? ParentActionId { get; set; }
     internal bool HandConfirmationObserved { get; set; }
     internal IReadOnlyList<CardModel>? HandConfirmedCards { get; set; }
+    internal bool IsMctsRequest { get; set; }
+    internal object? ManualFallbackSelector { get; set; }
+    internal Task<IEnumerable<CardModel>>? ManualFallbackTask { get; set; }
+    internal PolicyTrace? PolicyOverride { get; set; }
 }
 
 internal static partial class CollectorRuntime
 {
-    internal static void RecordPolicyChoice(
-        CardModel[] options, int minSelect, int maxSelect, CardModel[] selected)
-    {
-        // ICardSelector returns directly to CardSelectCmd, bypassing both the
-        // visible selector and the multiplayer receipt used by human inputs.
-        // Observe its exact returned objects before the native effect resumes.
-        if (_configuration?.Actor != "automation_or_unknown") return;
-        try
-        {
-            var pending = PrepareCombatCardChoice(new object(), options, minSelect, maxSelect,
-                canCancel: false, expectsNativeCombatCardResult: false, description: "mcts_card_choice");
-            if (pending is null) return;
-            NativeCombatChoiceTickets.Remove(pending);
-            MarkCombatChoiceManualInput(pending.Selector);
-            CompleteCombatChoice(pending, selected);
-        }
-        catch (Exception exception)
-        {
-            RecordCoverageGap("policy_choice_capture_failed", new { error = exception.ToString() },
-                invalidatePendingDecision: false);
-        }
-    }
-
     private static readonly Dictionary<object, PendingCombatCardChoice> PendingCombatChoices =
         new(ReferenceEqualityComparer.Instance);
     private static readonly List<PendingCombatCardChoice> NativeCombatChoiceTickets = [];
+    private static readonly Dictionary<object, PendingCombatCardChoice> MctsFallbackChoices =
+        new(ReferenceEqualityComparer.Instance);
     private static readonly HashSet<GameAction> EarlySettledCombatActions =
         new(ReferenceEqualityComparer.Instance);
     private static (uint ChoiceId, uint? ParentActionId, Guid CombatId, long Generation)?
@@ -199,7 +182,8 @@ internal static partial class CollectorRuntime
         bool canCancel,
         bool expectsNativeCombatCardResult,
         string description,
-        bool requiresManualConfirmation = true)
+        bool requiresManualConfirmation = true,
+        bool requiresNativeReceipt = true)
     {
         if (_stopping || _episodes?.HasActiveEpisode != true
             || !RunManager.Instance.IsInProgress
@@ -207,6 +191,10 @@ internal static partial class CollectorRuntime
         {
             return null;
         }
+
+        // A native UI shown by the MCTS callback is the same choice. Its task
+        // is supporting evidence; the callback return is the actual receipt.
+        if (MctsFallbackChoices.TryGetValue(selector, out var fallback)) return fallback;
 
         DrainCompletedSelectors();
         if (PendingCombatChoices.ContainsKey(selector))
@@ -224,7 +212,7 @@ internal static partial class CollectorRuntime
         // can still carry a native Index result, so retain any reservation for
         // either result kind.
         var lastReservedNativeChoice = _lastReservedNativeChoice;
-        var nativeChoiceId = TakeReservedNativeChoiceId(parentActionId);
+        var nativeChoiceId = requiresNativeReceipt ? TakeReservedNativeChoiceId(parentActionId) : null;
         if (expectsNativeCombatCardResult && nativeChoiceId is null)
         {
             RecordDiagnostic("native_combat_choice_id_unbound_at_open", new
@@ -331,7 +319,8 @@ internal static partial class CollectorRuntime
         // Index receipts can arrive after a selector was frozen without a
         // reserved native choice ID. Keep that selector available for a
         // later reservation or a uniquely matched manual Index receipt.
-        if (captured is not null || expectsNativeCombatCardResult || nativeChoiceId.HasValue)
+        if (requiresNativeReceipt
+            && (captured is not null || expectsNativeCombatCardResult || nativeChoiceId.HasValue))
         {
             NativeCombatChoiceTickets.Add(pending);
         }
@@ -343,7 +332,7 @@ internal static partial class CollectorRuntime
         object selector,
         IReadOnlyList<CardModel>? selectedCards)
     {
-        if (PendingCombatChoices.TryGetValue(selector, out var pending)
+        if (TryGetCombatChoice(selector, out var pending)
             && pending.RuntimeGeneration == _runGeneration)
         {
             // The native confirm handler submits this exact list to its Task.
@@ -357,7 +346,7 @@ internal static partial class CollectorRuntime
 
     internal static void MarkCombatChoiceManualInput(object selector)
     {
-        if (!PendingCombatChoices.TryGetValue(selector, out var pending)
+        if (!TryGetCombatChoice(selector, out var pending)
             || pending.RuntimeGeneration != _runGeneration
             || pending.Prepared is not null
             || pending.Captured is null)
@@ -373,7 +362,7 @@ internal static partial class CollectorRuntime
             {
                 pending.Captured = CollectorCombatProjector.WithChoiceDisplays(
                     pending.Captured,
-                    pending.Selector,
+                    pending.ManualFallbackSelector ?? pending.Selector,
                     pending.Options);
             }
             catch (Exception exception) when (exception is not OutOfMemoryException)
@@ -467,6 +456,78 @@ internal static partial class CollectorRuntime
         return _episodes.HasActiveEpisode;
     }
 
+    private static bool TryGetCombatChoice(object selector, out PendingCombatCardChoice pending) =>
+        PendingCombatChoices.TryGetValue(selector, out pending!)
+        || MctsFallbackChoices.TryGetValue(selector, out pending!);
+
+    internal static void ObserveMctsCardChoiceRequested(
+        object request, CardModel[] cards, int minSelect, int maxSelect)
+    {
+        var pending = PrepareCombatCardChoice(
+            request, cards, minSelect, maxSelect, canCancel: false,
+            expectsNativeCombatCardResult: false, "card_selector",
+            requiresManualConfirmation: true, requiresNativeReceipt: false);
+        if (pending is null) return;
+        pending.IsMctsRequest = true;
+        pending.PolicyOverride = new PolicyTrace(ActionActor.Policy, "native-mcts", CollectorPolicyTelemetry.AdapterRevision,
+            TeacherInformation: "native_checkpoint_privileged");
+        RecordDiagnostic("mcts_card_choice_requested", new
+        {
+            min_select = minSelect, max_select = maxSelect, option_count = cards.Length,
+            receipt_kind = "selector_callback_return",
+        });
+    }
+
+    internal static void ObserveMctsCardChoiceManualFallback(object request, object selector)
+    {
+        if (!PendingCombatChoices.TryGetValue(request, out var pending)
+            || !pending.IsMctsRequest || pending.RuntimeGeneration != _runGeneration) return;
+        if (pending.ManualFallbackSelector is not null || MctsFallbackChoices.ContainsKey(selector))
+        {
+            RecordCombatChoiceFailure(pending, "mcts_card_choice_fallback_reentered",
+                new { pending.Description });
+            return;
+        }
+        pending.ManualFallbackSelector = selector;
+        pending.PolicyOverride = new PolicyTrace(ActionActor.Human, "human-demonstration", null,
+            TeacherInformation: "public_observation");
+        MctsFallbackChoices.Add(selector, pending);
+        RecordDiagnostic("mcts_card_choice_manual_fallback", new { pending.Description });
+    }
+
+    internal static void ObserveMctsCardChoiceCompleted(
+        object request, CardModel[]? cards, Exception? exception)
+    {
+        if (!PendingCombatChoices.TryGetValue(request, out var pending)
+            || !pending.IsMctsRequest || pending.RuntimeGeneration != _runGeneration) return;
+        if (exception is null && cards is null)
+            exception = new InvalidDataException("MCTS callback returned neither cards nor a failure.");
+        if (exception is null && pending.ManualFallbackSelector is not null)
+        {
+            // A UI task may finish just before its awaiting MCTS continuation.
+            // Require both real return values, not a fabricated network receipt.
+            if (pending.ManualFallbackTask is not { Status: TaskStatus.RanToCompletion } task
+                || !TryMapSelectedCombatOptions(pending.Options, task.Result.ToArray(), out var uiIndexes)
+                || !TryMapSelectedCombatOptions(pending.Options, cards!, out var callbackIndexes)
+                || !uiIndexes.SequenceEqual(callbackIndexes))
+                exception = new InvalidDataException("MCTS fallback UI and callback results do not match.");
+        }
+        if (exception is null && pending.ManualFallbackSelector is null && pending.Captured is not null)
+        {
+            // This is an actual policy callback, not synthetic manual input.
+            if (SettleCombatParentAtChoiceBoundary(pending))
+                pending.Prepared = _episodes!.PrepareCombatChoice(pending.Captured, pending.Description);
+        }
+        RecordDiagnostic("mcts_card_choice_returned", new
+        {
+            pending.Description,
+            selected_count = cards?.Length,
+            manual_fallback = pending.ManualFallbackSelector is not null,
+            succeeded = exception is null,
+        });
+        CompleteCombatChoice(pending, cards, exception);
+    }
+
     internal static void AttachCombatChoiceTask(
         PendingCombatCardChoice? pending,
         Task<IEnumerable<CardModel>> task)
@@ -477,6 +538,12 @@ internal static partial class CollectorRuntime
             || !PendingCombatChoices.TryGetValue(pending.Selector, out var current)
             || !ReferenceEquals(current, pending))
         {
+            return;
+        }
+
+        if (pending.IsMctsRequest)
+        {
+            pending.ManualFallbackTask = task;
             return;
         }
 
@@ -517,21 +584,21 @@ internal static partial class CollectorRuntime
                 return; // The unsupported or automatic path was already audited.
             }
 
-            if (pending.Prepared is null)
-            {
-                RecordCoverageGap(
-                    "combat_choice_without_manual_input_evidence",
-                    new { pending.Description, selected_count = selected?.Count },
-                    invalidatePendingDecision: false);
-                return;
-            }
-
             if (exception is not null)
             {
                 RecordCombatChoiceFailure(
                     pending,
                     "combat_choice_task_failed",
                     new { pending.Description, error = exception.ToString() });
+                return;
+            }
+
+            if (pending.Prepared is null)
+            {
+                RecordCoverageGap(
+                    "combat_choice_without_manual_input_evidence",
+                    new { pending.Description, selected_count = selected?.Count },
+                    invalidatePendingDecision: false);
                 return;
             }
 
@@ -562,7 +629,8 @@ internal static partial class CollectorRuntime
             // For native hand selectors the confirmation button submits the
             // current selected CardModel objects to this same Task. Compare
             // the interface state at confirmation with the completed result.
-            if (choice.MaxSelections > 1 && pending.Selector is NPlayerHand)
+            if (choice.MaxSelections > 1 && pending.Selector is NPlayerHand
+                || pending.ManualFallbackSelector is not null)
             {
                 // Native SelectCardInSimpleMode only updates the selected list
                 // and confirmation button. Reaching MaxSelect does not prove
@@ -668,7 +736,7 @@ internal static partial class CollectorRuntime
             }
 
             var draft = _episodes?.ResolveCombatChoice(
-                pending.Prepared, ordinal, selectedAction);
+                pending.Prepared, ordinal, selectedAction, pending.PolicyOverride);
             if (draft is not null)
             {
                 pending.SubmittedAttemptId = draft.AttemptId;
@@ -688,6 +756,8 @@ internal static partial class CollectorRuntime
         {
             pending.Completed = true;
             PendingCombatChoices.Remove(pending.Selector);
+            if (pending.ManualFallbackSelector is { } fallbackSelector)
+                MctsFallbackChoices.Remove(fallbackSelector);
             FinishPendingRun();
         }
     }
@@ -935,6 +1005,11 @@ internal static partial class CollectorRuntime
 
     private static void CloseNativeChoiceTicketsAtCombatEnd()
     {
+        foreach (var pending in PendingCombatChoices.Values.Where(item => item.IsMctsRequest).ToArray())
+        {
+            CompleteCombatChoice(pending, null,
+                new OperationCanceledException("Combat ended before the MCTS selector returned."));
+        }
         foreach (var pending in NativeCombatChoiceTickets.ToArray())
         {
             CloseNativeChoiceTicket(pending, "combat_ended");
@@ -1047,6 +1122,7 @@ internal static partial class CollectorRuntime
     private static void ClearCombatChoiceState()
     {
         PendingCombatChoices.Clear();
+        MctsFallbackChoices.Clear();
         NativeCombatChoiceTickets.Clear();
         EarlySettledCombatActions.Clear();
         _lastReservedNativeChoice = null;

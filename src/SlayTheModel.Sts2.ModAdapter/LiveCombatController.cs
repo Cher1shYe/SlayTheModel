@@ -104,7 +104,8 @@ internal static class LiveCombatController
             // including any choices it triggers, and restore it before continuing.
             using (CardSelectCmd.PushSelector(new FirstLegalCardSelector()))
             {
-                await CombatActionExecutor.ExecuteAsync(state, action);
+                await CombatActionExecutor.ExecuteAsync(
+                    state, action, PolicyTraceMetadata.FirstLegal());
             }
         }
         catch (StaleCombatStateException exception)

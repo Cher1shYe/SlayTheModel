@@ -16,7 +16,7 @@ Usage: ./scripts/native-worker-macos.sh [options]
 
   --game-app PATH
   --ritsu-lib-root PATH
-  --mode verify|benchmark
+  --mode verify|collector-policy-verify|benchmark
   --timeout-seconds NUMBER
   --skip-build
 EOF
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-case "$mode" in verify|benchmark) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in verify|collector-policy-verify|benchmark) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
 if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
     echo "--timeout-seconds must be a positive integer." >&2
     exit 2
@@ -73,6 +73,8 @@ worker_contents="$worker_app/Contents"
 worker_exe="$worker_contents/MacOS/NativeWorker"
 worker_data="$worker_contents/Resources/data_NativeWorker_macos_arm64"
 build_output="$project_dir/.godot/mono/temp/bin/ExportRelease"
+collector_test_dll="$repo_dir/src/SlayTheModel.Sts2.DataCollector/bin/Release/net9.0/SlayTheModelDataCollector.dll"
+adapter_test_dll="$repo_dir/src/SlayTheModel.Sts2.ModAdapter/bin/Release/net9.0/SlayTheModelAdapter.dll"
 
 # Validate third-party source and binary inputs before starting the expensive
 # Godot build. This keeps path/setup mistakes separate from compiler failures.
@@ -118,6 +120,12 @@ if [[ "$skip_build" == "0" ]]; then
         "-p:RitsuWorkshopRoot=$ritsu_root" \
         "-p:RitsuLibDir=$ritsu_root/compat/0.111.0" \
         -p:CopyModOnBuild=false
+    if [[ "$mode" == collector-policy-verify ]]; then
+        dotnet build "$repo_dir/src/SlayTheModel.Sts2.DataCollector/SlayTheModel.Sts2.DataCollector.csproj" \
+            -c Release "-p:Sts2ManagedDir=$managed_dir" -m:1 -nr:false
+        dotnet build "$repo_dir/src/SlayTheModel.Sts2.ModAdapter/SlayTheModel.Sts2.ModAdapter.csproj" \
+            -c Release "-p:Sts2ManagedDir=$managed_dir" -m:1 -nr:false
+    fi
 
     # Reuse the game's matching self-contained ARM64 runtime and dependency
     # manifest, then add the worker assembly. This avoids mixing MegaDot with a
@@ -168,6 +176,11 @@ if [[ "$skip_build" == "0" ]]; then
     cp "$game_resources/release_info.json" "$worker_contents/Resources/release_info.json"
 fi
 
+if [[ "$mode" == collector-policy-verify && ( ! -f "$collector_test_dll" || ! -f "$adapter_test_dll" ) ]]; then
+    echo 'collector-policy-verify requires current Release builds of the collector and adapter.' >&2
+    exit 1
+fi
+
 if [[ ! -x "$worker_exe" || ! -f "$worker_data/NativeWorker.dll" ]]; then
     echo "Native worker build is incomplete: $worker_app" >&2
     exit 1
@@ -181,6 +194,8 @@ env -u SENTRY_GODOT_LIB_PATH \
     STS2_GAME_PACK="$game_pack" \
     STS2_WORKER_MODE="$mode" \
     STS2_BENCHMARK_OUT="$benchmark_out" \
+    STS2_COLLECTOR_TEST_DLL="$collector_test_dll" \
+    STS2_ADAPTER_TEST_DLL="$adapter_test_dll" \
     "$worker_exe" --headless --path "$project_dir" --log-file "$godot_log" >"$stdout_log" 2>"$stderr_log" &
 worker_pid=$!
 deadline=$((SECONDS + timeout_seconds))
