@@ -74,7 +74,9 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
 
     internal static string FormatChoiceSignature(
         int minSelect, int maxSelect, IReadOnlyCollection<CardModel> options)
-        => $"{Math.Min(minSelect, options.Count)}:{Math.Min(maxSelect, options.Count)}:"
+        // FromChooseACardScreen passes 0..1 to selectors even when canSkip=false.
+        // Knowledge Demon's generated curses are a mandatory one-card choice.
+        => $"{Math.Min(options.Count > 0 && options.All(card => card is MegaCrit.Sts2.Core.Models.Monsters.KnowledgeDemon.IChoosable) ? 1 : minSelect, options.Count)}:{Math.Min(maxSelect, options.Count)}:"
             + string.Join(',', options.Select(card => card.Id.Entry).Distinct().Order());
 
     public SearchAction ToLiveSearchAction(CombatSolverMctsAction action)
@@ -136,7 +138,13 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         pendingChoice?.TrySetCanceled();
         await DrainActiveActionAsync();
         _selector?.Dispose();
+        var previousTurnLoop = (Task?)HarmonyLib.AccessTools.Property(
+            typeof(CombatManager), "DebugOnlyCurrentTurnLoopTask").GetValue(CombatManager.Instance);
         RunManager.Instance.CleanUp(false);
+        // Enemy-turn choices belong to the turn loop, not the action executor.
+        // Drain that cancelled loop before exposing a new run to its continuations.
+        if (previousTurnLoop != null)
+            await ObserveCleanupAsync(previousTurnLoop, "Previous combat turn loop did not stop during reconstruction.");
         LocalContext.NetId = 1;
         _action = null;
         if (Checkpoint is null)

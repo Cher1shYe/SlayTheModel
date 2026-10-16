@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 知识恶魔（2026-10-16）
+
+- 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode knowledge-demon-verify`：旧版结束回合后 native 0..1 DISINTEGRATION/MIND_ROT、预测为空选项；冷 worker 在同一选择处报 PendingChoiceSignature 空引用，均已保存失败基线。
+- 修复验证：知识恶魔三轮选择全部两种选项，分别走瓦解路线和 MIND_ROT/SLOTH/WASTE_AWAY 路线，两条各 9 回合，每步完整 continuation 相等；为了覆盖第三轮，测试专用角色 HP 设为 1000，不代表真实整场胜率。另以正常 HP 通过实际 IPC 冷 worker 恢复敌方选择并返回合法选牌；原有 NativeVerification.ChoicesAsync（含头槌虚无、附魔、相同副本及拒绝错误身份）通过。
+- 日志位于上层 `artifacts/verification/knowledge-demon-before-20261016.txt`、`knowledge-demon-restart-before-20261016.txt`、`knowledge-demon-after-20261016.txt`。Windows 无头验证已执行；macOS 模式入口已同步，未实测；未执行可见整场战斗。
+
 ## SlayTheModel 事件战斗快照（2026-10-16）
 
 - 上层 `scripts/native-worker.ps1 -GameDir <游戏目录> -Mode event-checkpoint-verify`：按茂密植被事件房间→原生休息回血→带父事件 ID 的四扭动虫战斗构造无头复现。旧代码因未完成事件房间禁止序列化而没有 checkpoint；修复后完整网络状态及 continuation key 往返相等，MCTS 动作和敌方回合完整对账相等，普通战斗快照哨兵通过。日志见上层 `artifacts/verification/event-checkpoint-before-20261016.txt` 和 `event-checkpoint-after-20261016.txt`。未执行可见 UI 点击测试；macOS 模式入口已同步，未在本机执行。

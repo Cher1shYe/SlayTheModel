@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'event-checkpoint-verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'event-checkpoint-verify', 'knowledge-demon-verify', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'

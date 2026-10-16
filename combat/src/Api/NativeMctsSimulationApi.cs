@@ -21,7 +21,8 @@ public sealed record NativeMctsAction(
     decimal Damage = 0,
     int? TargetHp = null,
     string? ChoiceKey = null,
-    IReadOnlyList<NativeMctsSelectedCard>? SelectedCards = null);
+    IReadOnlyList<NativeMctsSelectedCard>? SelectedCards = null,
+    int? KnowledgeCurseCounter = null);
 
 public sealed record NativeMctsState(
     string Key,
@@ -244,7 +245,7 @@ public sealed class NativeMctsSimulationSession : IDisposable
     }
 
     private static int ChoiceCount(PlanAction action)
-        => action.GetActionChoicesInExecutionOrder().Count;
+        => NativeMctsSimulation.ExecutionChoices(action).Count;
 
     private static void ReleaseBranches(IEnumerable<PendingChoiceBranch> branches)
     {
@@ -313,7 +314,13 @@ public static class NativeMctsSimulationApi
                 if (occurrence-- == 0) { found = index; break; }
             }
             if (found < 0) throw new InvalidOperationException($"Live choice identity {selected.StateKey} is unavailable.");
-            if (!string.Equals(CardChoiceSupport.ChoiceCardKey(options[found]), selected.StateKey, StringComparison.Ordinal))
+            bool knowledgeToken = selected.StateKey.Length == 0 && action.KnowledgeCurseCounter is { } counter
+                && counter is >= 0 and <= 2
+                && options[found] is MegaCrit.Sts2.Core.Models.Monsters.KnowledgeDemon.IChoosable
+                && (selected.CardId == "DISINTEGRATION"
+                    ? options[found].DynamicVars["DisintegrationPower"].BaseValue == 6 + counter
+                    : selected.CardId == new[] { "MIND_ROT", "SLOTH", "WASTE_AWAY" }[counter]);
+            if (!knowledgeToken && !string.Equals(CardChoiceSupport.ChoiceCardKey(options[found]), selected.StateKey, StringComparison.Ordinal))
                 throw new InvalidOperationException($"Live choice state differs for {selected.CardId}+{selected.UpgradeLevel}#{selected.OptionOccurrence}.");
             if (result.Contains(found))
                 throw new InvalidOperationException("A live choice cannot select the same card twice.");

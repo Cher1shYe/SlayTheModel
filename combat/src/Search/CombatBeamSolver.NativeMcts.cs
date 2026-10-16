@@ -268,14 +268,25 @@ internal static class NativeMctsSimulation
             new BattleDamageSnapshot(0, 0, 0, []), policy);
     }
 
+    // End-turn plans include enemy-turn and next-turn choices in TurnStartChoices.
+    // The ordinary action helper intentionally excludes that separate phase.
+    internal static IReadOnlyList<PlanCardChoice> ExecutionChoices(PlanAction action)
+        => [.. action.GetActionChoicesInExecutionOrder(), .. action.TurnStartChoices ?? []];
+
+    private static int? KnowledgeCurseCounter(PlanCardChoice? choice)
+        => choice?.Effect == PlanChoiceEffect.ApplyKnowledgeCurse
+            ? int.Parse(choice.SourceId.Split(':')[2], System.Globalization.CultureInfo.InvariantCulture)
+            : null;
+
     internal static NativeMctsAction ToPublicAction(PlanAction action, string? key = null,
         string cardType = "", bool gainsBlock = false, decimal damage = 0,
         int? targetHp = null, string? choiceKey = null, int choiceIndex = 0) => new(
         key ?? ActionKey(action), action.Kind.ToString(), action.CardId, action.CardOccurrence,
         action.CardStateKey, action.CardStateOccurrence, action.CardUpgradeLevel,
         action.CardEnchantmentId, action.TargetCombatId, cardType, gainsBlock, damage, targetHp, choiceKey,
-        action.GetActionChoicesInExecutionOrder().ElementAtOrDefault(choiceIndex)?.Cards.Select(card => new NativeMctsSelectedCard(
-            card.CardId, card.UpgradeLevel, card.StateKey, card.OptionOccurrence)).ToArray());
+        ExecutionChoices(action).ElementAtOrDefault(choiceIndex)?.Cards.Select(card => new NativeMctsSelectedCard(
+            card.CardId, card.UpgradeLevel, card.StateKey, card.OptionOccurrence)).ToArray(),
+        KnowledgeCurseCounter(ExecutionChoices(action).ElementAtOrDefault(choiceIndex)));
 
     internal static string ActionKey(PlanAction action) => string.Join(':',
         action.Kind, action.CardId, action.CardOccurrence, action.CardStateKey,
@@ -284,7 +295,7 @@ internal static class NativeMctsSimulation
 
     internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1)
     {
-        var choices = resolved.GetActionChoicesInExecutionOrder();
+        var choices = ExecutionChoices(resolved);
         if (choiceIndex >= 0 && choiceIndex < choices.Count)
         {
             string step = System.Text.Json.JsonSerializer.Serialize(choices[choiceIndex]);

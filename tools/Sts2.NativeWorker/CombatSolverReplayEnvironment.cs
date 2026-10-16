@@ -51,7 +51,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     }
 
     private string PendingChoiceSignature()
-        => state.PendingChoice
+        => state?.PendingChoice == true
             ? $"{state.LegalActions.Min(action => action.SelectedCards?.Count ?? 0)}:"
                 + $"{state.LegalActions.Max(action => action.SelectedCards?.Count ?? 0)}:"
                 + string.Join(',', state.LegalActions

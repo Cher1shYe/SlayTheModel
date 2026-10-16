@@ -7,6 +7,32 @@ using SlayTheModel.Sts2.Protocol;
 
 public static class WorkerServer
 {
+    private static async Task RebuildChoiceRootAsync(NativeSession session,
+        CombatSolverReplayEnvironment simulation, NativeMctsRequest request)
+    {
+        // Suspended actions cannot be captured: replay from the stable entry root.
+        await session.RestoreAsync([], CancellationToken.None);
+        if (session.HasPendingChoice)
+            throw new InvalidDataException("Combat entry itself has an unsupported pending choice.");
+        simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+        foreach (var recorded in request.Prefix)
+        {
+            var matched = simulation.LegalActions().Single(candidate =>
+            {
+                var live = session.ToLiveSearchAction(candidate);
+                return recorded.Selection is { } selection
+                    ? live.Selection is { } other && selection.SequenceEqual(other)
+                    : live.Selection == null && live.Combat == recorded.Combat;
+            });
+            simulation.Promote(matched);
+            await session.ApplyAsync(recorded, CancellationToken.None);
+        }
+        if (session.StateKey() != request.StateKey
+            || !session.HasPendingChoice
+            || !simulation.MatchesLiveRoot(session.CombatStateForSimulation, true, session.ChoiceSignature))
+            throw new InvalidDataException("Replayed choice boundary does not match the requested native state.");
+    }
+
     public static async Task RunAsync(Node host, NativeSession session, string directory, int parentId)
     {
         using var simulation = new CombatSolverReplayEnvironment();
@@ -74,15 +100,14 @@ public static class WorkerServer
                 if (!reused)
                 {
                     if (session.HasPendingChoice)
-                        throw new InvalidDataException(
-                            "Cannot align the Combat Solver tree with the restored native choice boundary. "
-                            + $"native={session.ChoiceSignature} simulated={simulation.ChoiceSignature} "
-                            + $"choiceDiagnostics={simulation.ChoiceDiagnostics}");
+                        await RebuildChoiceRootAsync(session, simulation, request);
                     // A request without PreviousAction may be a native choice boundary whose
                     // ponder key did not match. The restored session is authoritative; never
                     // search the previous play-state root at a new choice boundary.
-                    simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
+                    else
+                        simulation.Capture(session.CombatStateForSimulation, request.EntryHp);
                     tree.Reset();
+                    returnedActions.Clear();
                 }
                 session.ValidateSimulationActions(simulation.LegalActions());
 
