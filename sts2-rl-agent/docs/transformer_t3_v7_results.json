@@ -1,0 +1,1960 @@
+{
+  "date": "2026-10-17",
+  "source_run": "az_transformer_t3_v7_formal_20261016",
+  "engineering": "passed",
+  "learning_gain": "passed",
+  "quality_acceptance": "not_claimed",
+  "binding": {
+    "code_digest": "f5e54c313e9e40e87c8301ea16424490442064b2676206166a38be95070ae2d7",
+    "plan_hash": "dc206f372c73747e0527deb71f59f469f13c9446f99e46025659d8cce0659b3b",
+    "prepare_digest": "25c41c012b640db4f6515e5f7928f294e1dab3b6715d2f8a6931dfc03823d554",
+    "runner_digest": "8e9faf644f989a8e46d99c6088bfe2f67d8502c9225eebda7a9363bfe9f1608f",
+    "runtime": {
+      "numpy": "2.5.3",
+      "python": "3.12.14",
+      "torch": "2.14.1+cpu"
+    },
+    "version": "transformer-t3-run-v1"
+  },
+  "resources": {
+    "measurement": "200 ms sampled sum RSS; shared pages may be counted twice",
+    "peak_process_tree_rss_bytes": 1875173376,
+    "seconds": 6886.545683899894
+  },
+  "frozen_models": {
+    "42": {
+      "final": "seed-42/candidate-1.pt",
+      "final_sha256": "1156793828cb6cde637604ccc0b25a7564166b39f794a1a4d145683411eec05f",
+      "initial": "seed-42/initial.pt",
+      "initial_sha256": "bab21ec0ede0ddb77917e01c3932c5535b97be99e4c239c81ac1770d4e5b20de"
+    },
+    "43": {
+      "final": "seed-43/candidate-2.pt",
+      "final_sha256": "e4f1528917d1565033eddab9e5aa498ba9c2804ff0b911afa339f4713363a94e",
+      "initial": "seed-43/initial.pt",
+      "initial_sha256": "b9e4e4bf942fd49072d77fbdc77c412989b9cd7895360a219b14ab535bbf41aa"
+    }
+  },
+  "training": {
+    "42": {
+      "rounds": [
+        {
+          "iteration": 0,
+          "promote": true,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              1.0666064453125,
+              1.0666064453125
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 1.0666064453125,
+            "mean_win_difference": 0.55078125,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.55078125,
+              0.55078125
+            ],
+            "win_priority_satisfied": true
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              -0.0025097656249999994,
+              -0.0025097656249999994
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": -0.0025097656250000003,
+            "mean_win_difference": -0.00390625,
+            "primary_metric": "mean_terminal_utility",
+            "promote": false,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              -0.00390625,
+              -0.00390625
+            ],
+            "win_priority_satisfied": false
+          },
+          "decisions": 5086,
+          "max_entities": 26,
+          "max_actions": 120,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        },
+        {
+          "iteration": 1,
+          "promote": true,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.037128906249999996,
+              0.037128906249999996
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.03712890625,
+            "mean_win_difference": 0.01953125,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.01953125,
+              0.01953125
+            ],
+            "win_priority_satisfied": true
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.013925781250000002,
+              0.013925781250000002
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.013925781250000002,
+            "mean_win_difference": 0.0078125,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0078125,
+              0.0078125
+            ],
+            "win_priority_satisfied": true
+          },
+          "decisions": 5057,
+          "max_entities": 29,
+          "max_actions": 120,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        },
+        {
+          "iteration": 2,
+          "promote": false,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              -0.0073095703124999994,
+              -0.0073095703124999994
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": -0.0073095703124999994,
+            "mean_win_difference": -0.00390625,
+            "primary_metric": "mean_terminal_utility",
+            "promote": false,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              -0.00390625,
+              -0.00390625
+            ],
+            "win_priority_satisfied": false
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.015327148437500002,
+              0.015327148437500002
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.0153271484375,
+            "mean_win_difference": 0.0078125,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0078125,
+              0.0078125
+            ],
+            "win_priority_satisfied": true
+          },
+          "decisions": 5035,
+          "max_entities": 27,
+          "max_actions": 219,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        }
+      ],
+      "episodes": 540,
+      "updates": 48,
+      "decisions": 15178,
+      "max_entities": 29,
+      "max_actions": 219,
+      "boss_phases": [
+        0,
+        1,
+        2
+      ],
+      "timeout_episode_ids": [],
+      "initial": "initial.pt",
+      "initial_sha256": "bab21ec0ede0ddb77917e01c3932c5535b97be99e4c239c81ac1770d4e5b20de",
+      "final": "candidate-1.pt",
+      "final_sha256": "1156793828cb6cde637604ccc0b25a7564166b39f794a1a4d145683411eec05f"
+    },
+    "43": {
+      "rounds": [
+        {
+          "iteration": 0,
+          "promote": true,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.13893554687499998,
+              0.13893554687499998
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.138935546875,
+            "mean_win_difference": 0.0703125,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0703125,
+              0.0703125
+            ],
+            "win_priority_satisfied": true
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              -0.006972656249999996,
+              -0.006972656249999996
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": -0.006972656249999999,
+            "mean_win_difference": -0.00390625,
+            "primary_metric": "mean_terminal_utility",
+            "promote": false,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              -0.00390625,
+              -0.00390625
+            ],
+            "win_priority_satisfied": false
+          },
+          "decisions": 5157,
+          "max_entities": 25,
+          "max_actions": 382,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        },
+        {
+          "iteration": 1,
+          "promote": false,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              -0.0001562499999999984,
+              -0.0001562499999999984
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": -0.00015625000000000014,
+            "mean_win_difference": 0.0,
+            "primary_metric": "mean_terminal_utility",
+            "promote": false,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0,
+              0.0
+            ],
+            "win_priority_satisfied": false
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.00016601562500000427,
+              0.023061523437500002
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.007797851562500006,
+            "mean_win_difference": 0.00390625,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0,
+              0.01171875
+            ],
+            "win_priority_satisfied": false
+          },
+          "decisions": 5221,
+          "max_entities": 34,
+          "max_actions": 219,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        },
+        {
+          "iteration": 2,
+          "promote": true,
+          "network": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              0.029765624999999997,
+              0.029765624999999997
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": 0.029765625,
+            "mean_win_difference": 0.015625,
+            "primary_metric": "mean_terminal_utility",
+            "promote": true,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.015625,
+              0.015625
+            ],
+            "win_priority_satisfied": true
+          },
+          "search": {
+            "bootstrap_samples": 10000,
+            "clean": true,
+            "confidence_interval": [
+              -0.0005419921874999928,
+              -0.0005419921874999928
+            ],
+            "criterion": "utility-only-v1",
+            "eligible": true,
+            "mean_utility_difference": -0.0005419921874999997,
+            "mean_win_difference": 0.0,
+            "primary_metric": "mean_terminal_utility",
+            "promote": false,
+            "reward_version": "risk-terminal-v7",
+            "scenarios": 256,
+            "statistics_seed": 1729,
+            "win_difference_ci95": [
+              0.0,
+              0.0
+            ],
+            "win_priority_satisfied": false
+          },
+          "decisions": 5001,
+          "max_entities": 29,
+          "max_actions": 120,
+          "boss_phases": [
+            0,
+            1,
+            2
+          ],
+          "timeout_episode_ids": []
+        }
+      ],
+      "episodes": 540,
+      "updates": 48,
+      "decisions": 15379,
+      "max_entities": 34,
+      "max_actions": 382,
+      "boss_phases": [
+        0,
+        1,
+        2
+      ],
+      "timeout_episode_ids": [],
+      "initial": "initial.pt",
+      "initial_sha256": "b9e4e4bf942fd49072d77fbdc77c412989b9cd7895360a219b14ab535bbf41aa",
+      "final": "candidate-2.pt",
+      "final_sha256": "e4f1528917d1565033eddab9e5aa498ba9c2804ff0b911afa339f4713363a94e"
+    }
+  },
+  "evaluation": {
+    "42": {
+      "network": {
+        "initial": {
+          "death_rate": 1.0,
+          "decision_seconds_p50": 0.007425999967381358,
+          "decision_seconds_p95": 0.010011659981682896,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 4.569444444444445,
+          "mean_final_hp": 0.0,
+          "mean_turns": 4.569444444444445,
+          "mean_utility": -1.0,
+          "mean_winning_hp": null,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.0
+        },
+        "final": {
+          "death_rate": 0.3148148148148148,
+          "decision_seconds_p50": 0.007516300014685839,
+          "decision_seconds_p95": 0.010397835006006054,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 18.24074074074074,
+          "mean_final_hp": 19.23148148148148,
+          "mean_turns": 4.412037037037037,
+          "mean_utility": 0.32589120370370367,
+          "mean_winning_hp": 28.06756756756757,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.6851851851851852
+        },
+        "gate": {
+          "promote": true,
+          "eligible": true,
+          "criterion": "utility-only-v1",
+          "primary_metric": "mean_terminal_utility",
+          "reward_version": "risk-terminal-v7",
+          "win_priority_satisfied": true,
+          "mean_win_difference": 0.6851851851851852,
+          "win_difference_ci95": [
+            0.6851851851851852,
+            0.6851851851851852
+          ],
+          "mean_utility_difference": 1.3258912037037036,
+          "confidence_interval": [
+            1.3258912037037036,
+            1.3258912037037036
+          ],
+          "scenarios": 216,
+          "bootstrap_samples": 10000,
+          "statistics_seed": 1729,
+          "clean": true
+        },
+        "exploratory_overall_paired_ci95": [
+          1.2075342881944446,
+          1.4426507523148149
+        ],
+        "encounters": {
+          "setup_bygone_effigy_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 5.0,
+              "mean_decisions": 5.0,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006992699985858053,
+              "decision_seconds_p95": 0.012932254985207685
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.5555555555555556,
+              "mean_utility": 0.07465277777777782,
+              "mean_final_hp": 15.277777777777779,
+              "mean_winning_hp": 27.5,
+              "mean_turns": 4.722222222222222,
+              "mean_decisions": 20.166666666666668,
+              "death_rate": 0.4444444444444444,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006843299954198301,
+              "decision_seconds_p95": 0.00834792002569884
+            }
+          },
+          "setup_byrdonis_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.0,
+              "mean_decisions": 4.0,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006689150002785027,
+              "decision_seconds_p95": 0.008391374954953791
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.8333333333333334,
+              "mean_utility": 0.6088194444444445,
+              "mean_final_hp": 20.38888888888889,
+              "mean_winning_hp": 24.466666666666665,
+              "mean_turns": 4.055555555555555,
+              "mean_decisions": 16.11111111111111,
+              "death_rate": 0.16666666666666666,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006591050012502819,
+              "decision_seconds_p95": 0.008175770024536178
+            }
+          },
+          "setup_cubex_construct_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 5.666666666666667,
+              "mean_decisions": 5.666666666666667,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0072527999873273075,
+              "decision_seconds_p95": 0.008837060007499531
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.835486111111111,
+              "mean_final_hp": 32.833333333333336,
+              "mean_winning_hp": 34.76470588235294,
+              "mean_turns": 4.555555555555555,
+              "mean_decisions": 16.88888888888889,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007285850064363331,
+              "decision_seconds_p95": 0.009261465078452599
+            }
+          },
+          "setup_fogmog_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 6.611111111111111,
+              "mean_decisions": 6.611111111111111,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.008655799902044237,
+              "decision_seconds_p95": 0.011152919940650463
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9488194444444447,
+              "mean_final_hp": 39.05555555555556,
+              "mean_winning_hp": 39.05555555555556,
+              "mean_turns": 4.333333333333333,
+              "mean_decisions": 13.666666666666666,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.00781089992960915,
+              "decision_seconds_p95": 0.009638575022108853
+            }
+          },
+          "setup_fuzzy_wurm_crawler_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.333333333333333,
+              "mean_decisions": 4.333333333333333,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0070758500369265676,
+              "decision_seconds_p95": 0.0089770550141111
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9263194444444444,
+              "mean_final_hp": 21.055555555555557,
+              "mean_winning_hp": 21.055555555555557,
+              "mean_turns": 3.0,
+              "mean_decisions": 10.555555555555555,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006859099958091974,
+              "decision_seconds_p95": 0.008034099970245732
+            }
+          },
+          "setup_mawler_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 5.888888888888889,
+              "mean_decisions": 5.888888888888889,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0073233500006608665,
+              "decision_seconds_p95": 0.010122474952368066
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9491666666666665,
+              "mean_final_hp": 39.333333333333336,
+              "mean_winning_hp": 39.333333333333336,
+              "mean_turns": 3.8333333333333335,
+              "mean_decisions": 12.944444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007227299967780709,
+              "decision_seconds_p95": 0.008963719988241789
+            }
+          },
+          "setup_nibbits_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.666666666666667,
+              "mean_decisions": 4.666666666666667,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007568050001282245,
+              "decision_seconds_p95": 0.010075705009512603
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7218055555555556,
+              "mean_final_hp": 26.333333333333332,
+              "mean_winning_hp": 29.625,
+              "mean_turns": 4.888888888888889,
+              "mean_decisions": 18.88888888888889,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0072564000729471445,
+              "decision_seconds_p95": 0.008734759915387259
+            }
+          },
+          "setup_nibbits_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 3.6666666666666665,
+              "mean_decisions": 3.6666666666666665,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006912899960298091,
+              "decision_seconds_p95": 0.008221349911764264
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9190972222222222,
+              "mean_final_hp": 15.277777777777779,
+              "mean_winning_hp": 15.277777777777779,
+              "mean_turns": 2.8333333333333335,
+              "mean_decisions": 9.944444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006919900071807206,
+              "decision_seconds_p95": 0.008357130037620663
+            }
+          },
+          "setup_shrinker_beetle_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.0,
+              "mean_decisions": 4.0,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007052699977066368,
+              "decision_seconds_p95": 0.00848737996420823
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9265277777777778,
+              "mean_final_hp": 21.22222222222222,
+              "mean_winning_hp": 21.22222222222222,
+              "mean_turns": 2.5,
+              "mean_decisions": 8.777777777777779,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006581549940165132,
+              "decision_seconds_p95": 0.008127730048727244
+            }
+          },
+          "setup_test_subject_boss": {
+            "initial": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 3.6666666666666665,
+              "mean_decisions": 3.6666666666666665,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007794250035658479,
+              "decision_seconds_p95": 0.00931354000349529
+            },
+            "final": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 6.074074074074074,
+              "mean_decisions": 30.314814814814813,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.008138900040648878,
+              "decision_seconds_p95": 0.012634259997867043
+            }
+          }
+        }
+      },
+      "search": {
+        "initial": {
+          "death_rate": 0.33796296296296297,
+          "decision_seconds_p50": 0.1185352000175044,
+          "decision_seconds_p95": 0.14326227004057726,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 21.194444444444443,
+          "mean_final_hp": 16.23611111111111,
+          "mean_turns": 5.398148148148148,
+          "mean_utility": 0.27816550925925926,
+          "mean_winning_hp": 24.524475524475523,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.6620370370370371
+        },
+        "final": {
+          "death_rate": 0.2916666666666667,
+          "decision_seconds_p50": 0.12063135002972558,
+          "decision_seconds_p95": 0.15469389001373196,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 21.453703703703702,
+          "mean_final_hp": 21.689814814814813,
+          "mean_turns": 4.962962962962963,
+          "mean_utility": 0.3729456018518519,
+          "mean_winning_hp": 30.62091503267974,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.7083333333333334
+        },
+        "gate": {
+          "promote": true,
+          "eligible": true,
+          "criterion": "utility-only-v1",
+          "primary_metric": "mean_terminal_utility",
+          "reward_version": "risk-terminal-v7",
+          "win_priority_satisfied": true,
+          "mean_win_difference": 0.046296296296296294,
+          "win_difference_ci95": [
+            0.046296296296296294,
+            0.046296296296296294
+          ],
+          "mean_utility_difference": 0.0947800925925926,
+          "confidence_interval": [
+            0.0947800925925926,
+            0.0947800925925926
+          ],
+          "scenarios": 216,
+          "bootstrap_samples": 10000,
+          "statistics_seed": 1729,
+          "clean": true
+        },
+        "exploratory_overall_paired_ci95": [
+          0.040891059027777774,
+          0.15628486689814816
+        ],
+        "encounters": {
+          "setup_bygone_effigy_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.3888888888888889,
+              "mean_utility": -0.2475,
+              "mean_final_hp": 10.88888888888889,
+              "mean_winning_hp": 28.0,
+              "mean_turns": 5.333333333333333,
+              "mean_decisions": 21.72222222222222,
+              "death_rate": 0.6111111111111112,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11003849992994219,
+              "decision_seconds_p95": 0.13432940002530813
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.6666666666666666,
+              "mean_utility": 0.2850694444444445,
+              "mean_final_hp": 14.722222222222221,
+              "mean_winning_hp": 22.083333333333332,
+              "mean_turns": 4.888888888888889,
+              "mean_decisions": 20.166666666666668,
+              "death_rate": 0.3333333333333333,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1119990999577567,
+              "decision_seconds_p95": 0.1360767300473526
+            }
+          },
+          "setup_byrdonis_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.7777777777777778,
+              "mean_utility": 0.505763888888889,
+              "mean_final_hp": 22.38888888888889,
+              "mean_winning_hp": 28.785714285714285,
+              "mean_turns": 4.277777777777778,
+              "mean_decisions": 16.11111111111111,
+              "death_rate": 0.2222222222222222,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10826100001577288,
+              "decision_seconds_p95": 0.1421138299512677
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7166666666666667,
+              "mean_final_hp": 22.22222222222222,
+              "mean_winning_hp": 25.0,
+              "mean_turns": 4.333333333333333,
+              "mean_decisions": 17.0,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10976459999801591,
+              "decision_seconds_p95": 0.14088822502526455
+            }
+          },
+          "setup_cubex_construct_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8359027777777778,
+              "mean_final_hp": 33.166666666666664,
+              "mean_winning_hp": 35.11764705882353,
+              "mean_turns": 4.777777777777778,
+              "mean_decisions": 16.833333333333332,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1139794000191614,
+              "decision_seconds_p95": 0.14312320995377376
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9456250000000002,
+              "mean_final_hp": 36.5,
+              "mean_winning_hp": 36.5,
+              "mean_turns": 4.555555555555555,
+              "mean_decisions": 17.72222222222222,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11703419999685138,
+              "decision_seconds_p95": 0.15333858006633816
+            }
+          },
+          "setup_fogmog_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9265277777777777,
+              "mean_final_hp": 21.22222222222222,
+              "mean_winning_hp": 21.22222222222222,
+              "mean_turns": 6.333333333333333,
+              "mean_decisions": 19.444444444444443,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12510885001393035,
+              "decision_seconds_p95": 0.16687308502732778
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9545833333333333,
+              "mean_final_hp": 43.666666666666664,
+              "mean_winning_hp": 43.666666666666664,
+              "mean_turns": 4.166666666666667,
+              "mean_decisions": 14.555555555555555,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12364169995998964,
+              "decision_seconds_p95": 0.16852915500639937
+            }
+          },
+          "setup_fuzzy_wurm_crawler_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9233333333333332,
+              "mean_final_hp": 18.666666666666668,
+              "mean_winning_hp": 18.666666666666668,
+              "mean_turns": 3.7222222222222223,
+              "mean_decisions": 10.61111111111111,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.110578199964948,
+              "decision_seconds_p95": 0.12978605000535026
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9272916666666666,
+              "mean_final_hp": 21.833333333333332,
+              "mean_winning_hp": 21.833333333333332,
+              "mean_turns": 3.1666666666666665,
+              "mean_decisions": 10.88888888888889,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11021585005801171,
+              "decision_seconds_p95": 0.13683049997780472
+            }
+          },
+          "setup_mawler_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9411805555555556,
+              "mean_final_hp": 32.94444444444444,
+              "mean_winning_hp": 32.94444444444444,
+              "mean_turns": 4.888888888888889,
+              "mean_decisions": 14.777777777777779,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11765925004146993,
+              "decision_seconds_p95": 0.13552259997231886
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9565972222222222,
+              "mean_final_hp": 45.27777777777778,
+              "mean_winning_hp": 45.27777777777778,
+              "mean_turns": 3.8333333333333335,
+              "mean_decisions": 13.944444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11667590006254613,
+              "decision_seconds_p95": 0.1521328499657102
+            }
+          },
+          "setup_nibbits_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.8333333333333334,
+              "mean_utility": 0.6069444444444445,
+              "mean_final_hp": 18.88888888888889,
+              "mean_winning_hp": 22.666666666666668,
+              "mean_turns": 5.888888888888889,
+              "mean_decisions": 17.77777777777778,
+              "death_rate": 0.16666666666666666,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11606700002448633,
+              "decision_seconds_p95": 0.13984490997972898
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8389583333333334,
+              "mean_final_hp": 35.611111111111114,
+              "mean_winning_hp": 37.705882352941174,
+              "mean_turns": 4.388888888888889,
+              "mean_decisions": 16.944444444444443,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11795950005762279,
+              "decision_seconds_p95": 0.14955674004741015
+            }
+          },
+          "setup_nibbits_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9184027777777778,
+              "mean_final_hp": 14.722222222222221,
+              "mean_winning_hp": 14.722222222222221,
+              "mean_turns": 3.5555555555555554,
+              "mean_decisions": 9.444444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10985900001833215,
+              "decision_seconds_p95": 0.13041834502364508
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9205555555555556,
+              "mean_final_hp": 16.444444444444443,
+              "mean_winning_hp": 16.444444444444443,
+              "mean_turns": 2.888888888888889,
+              "mean_decisions": 9.11111111111111,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10802140005398542,
+              "decision_seconds_p95": 0.1446803650469519
+            }
+          },
+          "setup_shrinker_beetle_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9274305555555556,
+              "mean_final_hp": 21.944444444444443,
+              "mean_winning_hp": 21.944444444444443,
+              "mean_turns": 2.9444444444444446,
+              "mean_decisions": 9.166666666666666,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10808149992953986,
+              "decision_seconds_p95": 0.12804443994536996
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9300000000000002,
+              "mean_final_hp": 24.0,
+              "mean_winning_hp": 24.0,
+              "mean_turns": 2.388888888888889,
+              "mean_decisions": 7.666666666666667,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1053847000002861,
+              "decision_seconds_p95": 0.1285771149559878
+            }
+          },
+          "setup_test_subject_boss": {
+            "initial": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 7.685185185185185,
+              "mean_decisions": 39.48148148148148,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1234270500135608,
+              "decision_seconds_p95": 0.14266424500383437
+            },
+            "final": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 8.314814814814815,
+              "mean_decisions": 43.148148148148145,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1268752499599941,
+              "decision_seconds_p95": 0.16085207993746709
+            }
+          }
+        }
+      }
+    },
+    "43": {
+      "network": {
+        "initial": {
+          "death_rate": 0.39351851851851855,
+          "decision_seconds_p50": 0.007381499977782369,
+          "decision_seconds_p95": 0.0092762999702245,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 13.11574074074074,
+          "mean_final_hp": 15.472222222222221,
+          "mean_turns": 3.9537037037037037,
+          "mean_utility": 0.17165509259259262,
+          "mean_winning_hp": 25.51145038167939,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.6064814814814815
+        },
+        "final": {
+          "death_rate": 0.3055555555555556,
+          "decision_seconds_p50": 0.0074414999689906836,
+          "decision_seconds_p95": 0.011678919987753033,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 16.35648148148148,
+          "mean_final_hp": 20.310185185185187,
+          "mean_turns": 3.8981481481481484,
+          "mean_utility": 0.34483217592592585,
+          "mean_winning_hp": 29.246666666666666,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.6944444444444444
+        },
+        "gate": {
+          "promote": true,
+          "eligible": true,
+          "criterion": "utility-only-v1",
+          "primary_metric": "mean_terminal_utility",
+          "reward_version": "risk-terminal-v7",
+          "win_priority_satisfied": true,
+          "mean_win_difference": 0.08796296296296297,
+          "win_difference_ci95": [
+            0.08796296296296297,
+            0.08796296296296297
+          ],
+          "mean_utility_difference": 0.17317708333333334,
+          "confidence_interval": [
+            0.17317708333333334,
+            0.17317708333333334
+          ],
+          "scenarios": 216,
+          "bootstrap_samples": 10000,
+          "statistics_seed": 1729,
+          "clean": true
+        },
+        "exploratory_overall_paired_ci95": [
+          0.10307277199074076,
+          0.24613425925925925
+        ],
+        "encounters": {
+          "setup_bygone_effigy_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.5555555555555556,
+              "mean_utility": 0.07138888888888889,
+              "mean_final_hp": 12.666666666666666,
+              "mean_winning_hp": 22.8,
+              "mean_turns": 4.722222222222222,
+              "mean_decisions": 16.833333333333332,
+              "death_rate": 0.4444444444444444,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0069154000375419855,
+              "decision_seconds_p95": 0.008449319971259682
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.6666666666666666,
+              "mean_utility": 0.2897222222222222,
+              "mean_final_hp": 18.444444444444443,
+              "mean_winning_hp": 27.666666666666668,
+              "mean_turns": 4.555555555555555,
+              "mean_decisions": 18.88888888888889,
+              "death_rate": 0.3333333333333333,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0070054500247351825,
+              "decision_seconds_p95": 0.010137470084009692
+            }
+          },
+          "setup_byrdonis_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.6111111111111112,
+              "mean_utility": 0.17916666666666667,
+              "mean_final_hp": 14.444444444444445,
+              "mean_winning_hp": 23.636363636363637,
+              "mean_turns": 3.7777777777777777,
+              "mean_decisions": 12.944444444444445,
+              "death_rate": 0.3888888888888889,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006678000092506409,
+              "decision_seconds_p95": 0.008353380020707846
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.7777777777777778,
+              "mean_utility": 0.5022916666666667,
+              "mean_final_hp": 19.61111111111111,
+              "mean_winning_hp": 25.214285714285715,
+              "mean_turns": 3.8333333333333335,
+              "mean_decisions": 15.11111111111111,
+              "death_rate": 0.2222222222222222,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006750249944161624,
+              "decision_seconds_p95": 0.009949949994916094
+            }
+          },
+          "setup_cubex_construct_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8330555555555557,
+              "mean_final_hp": 30.88888888888889,
+              "mean_winning_hp": 32.705882352941174,
+              "mean_turns": 4.444444444444445,
+              "mean_decisions": 13.777777777777779,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007445049996022135,
+              "decision_seconds_p95": 0.010217059962451458
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8377777777777777,
+              "mean_final_hp": 34.666666666666664,
+              "mean_winning_hp": 36.705882352941174,
+              "mean_turns": 4.444444444444445,
+              "mean_decisions": 17.0,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.00742580002406612,
+              "decision_seconds_p95": 0.014259274932555854
+            }
+          },
+          "setup_fogmog_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.6111111111111112,
+              "mean_utility": 0.1823611111111111,
+              "mean_final_hp": 17.0,
+              "mean_winning_hp": 27.818181818181817,
+              "mean_turns": 5.722222222222222,
+              "mean_decisions": 18.5,
+              "death_rate": 0.3888888888888889,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007830900023691356,
+              "decision_seconds_p95": 0.009440859989263115
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9536111111111113,
+              "mean_final_hp": 42.888888888888886,
+              "mean_winning_hp": 42.888888888888886,
+              "mean_turns": 4.055555555555555,
+              "mean_decisions": 14.11111111111111,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.008164600003510714,
+              "decision_seconds_p95": 0.013772989978315308
+            }
+          },
+          "setup_fuzzy_wurm_crawler_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9254166666666666,
+              "mean_final_hp": 20.333333333333332,
+              "mean_winning_hp": 20.333333333333332,
+              "mean_turns": 2.888888888888889,
+              "mean_decisions": 8.777777777777779,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006908899988047779,
+              "decision_seconds_p95": 0.008026000048266726
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9270138888888889,
+              "mean_final_hp": 21.61111111111111,
+              "mean_winning_hp": 21.61111111111111,
+              "mean_turns": 2.9444444444444446,
+              "mean_decisions": 10.38888888888889,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0069694999838247895,
+              "decision_seconds_p95": 0.01054811000358313
+            }
+          },
+          "setup_mawler_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9463194444444445,
+              "mean_final_hp": 37.05555555555556,
+              "mean_winning_hp": 37.05555555555556,
+              "mean_turns": 3.888888888888889,
+              "mean_decisions": 11.722222222222221,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0073111000237986445,
+              "decision_seconds_p95": 0.009413500025402755
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9511805555555556,
+              "mean_final_hp": 40.94444444444444,
+              "mean_winning_hp": 40.94444444444444,
+              "mean_turns": 3.6666666666666665,
+              "mean_decisions": 13.944444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007524100015871227,
+              "decision_seconds_p95": 0.01331905002007261
+            }
+          },
+          "setup_nibbits_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.6666666666666666,
+              "mean_utility": 0.2890972222222222,
+              "mean_final_hp": 17.944444444444443,
+              "mean_winning_hp": 26.916666666666668,
+              "mean_turns": 4.388888888888889,
+              "mean_decisions": 13.833333333333334,
+              "death_rate": 0.3333333333333333,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007404900039546192,
+              "decision_seconds_p95": 0.008867139997892081
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.83,
+              "mean_final_hp": 28.444444444444443,
+              "mean_winning_hp": 30.11764705882353,
+              "mean_turns": 4.777777777777778,
+              "mean_decisions": 18.11111111111111,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007355000008828938,
+              "decision_seconds_p95": 0.013029249996179715
+            }
+          },
+          "setup_nibbits_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7050000000000001,
+              "mean_final_hp": 12.88888888888889,
+              "mean_winning_hp": 14.5,
+              "mean_turns": 2.5555555555555554,
+              "mean_decisions": 7.833333333333333,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007112400024197996,
+              "decision_seconds_p95": 0.008854199899360538
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9187500000000001,
+              "mean_final_hp": 15.0,
+              "mean_winning_hp": 15.0,
+              "mean_turns": 2.6666666666666665,
+              "mean_decisions": 9.222222222222221,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.00685689999954775,
+              "decision_seconds_p95": 0.011279924976406619
+            }
+          },
+          "setup_shrinker_beetle_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9280555555555554,
+              "mean_final_hp": 22.444444444444443,
+              "mean_winning_hp": 22.444444444444443,
+              "mean_turns": 2.388888888888889,
+              "mean_decisions": 7.277777777777778,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006874799961224198,
+              "decision_seconds_p95": 0.008889799937605858
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.927638888888889,
+              "mean_final_hp": 22.11111111111111,
+              "mean_winning_hp": 22.11111111111111,
+              "mean_turns": 2.4444444444444446,
+              "mean_decisions": 8.444444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.006713600014336407,
+              "decision_seconds_p95": 0.011060705024283374
+            }
+          },
+          "setup_test_subject_boss": {
+            "initial": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.222222222222222,
+              "mean_decisions": 15.296296296296296,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.0076852000202052295,
+              "decision_seconds_p95": 0.009816800011321902
+            },
+            "final": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 4.462962962962963,
+              "mean_decisions": 23.685185185185187,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.007591700064949691,
+              "decision_seconds_p95": 0.009495860012248157
+            }
+          }
+        }
+      },
+      "search": {
+        "initial": {
+          "death_rate": 0.3148148148148148,
+          "decision_seconds_p50": 0.11932955001248047,
+          "decision_seconds_p95": 0.15746117500239054,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 21.62037037037037,
+          "mean_final_hp": 20.708333333333332,
+          "mean_turns": 5.101851851851852,
+          "mean_utility": 0.32773726851851853,
+          "mean_winning_hp": 30.222972972972972,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.6851851851851852
+        },
+        "final": {
+          "death_rate": 0.2962962962962963,
+          "decision_seconds_p50": 0.12270835001254454,
+          "decision_seconds_p95": 0.16660322496318258,
+          "episodes": 216,
+          "exception_rate": 0.0,
+          "illegal_actions": 0,
+          "mean_decisions": 20.12037037037037,
+          "mean_final_hp": 21.14351851851852,
+          "mean_turns": 4.717592592592593,
+          "mean_utility": 0.3634664351851851,
+          "mean_winning_hp": 30.04605263157895,
+          "time_limit_rate": 0.0,
+          "win_rate": 0.7037037037037037
+        },
+        "gate": {
+          "promote": true,
+          "eligible": true,
+          "criterion": "utility-only-v1",
+          "primary_metric": "mean_terminal_utility",
+          "reward_version": "risk-terminal-v7",
+          "win_priority_satisfied": true,
+          "mean_win_difference": 0.018518518518518517,
+          "win_difference_ci95": [
+            0.018518518518518517,
+            0.018518518518518517
+          ],
+          "mean_utility_difference": 0.035729166666666666,
+          "confidence_interval": [
+            0.035729166666666666,
+            0.035729166666666666
+          ],
+          "scenarios": 216,
+          "bootstrap_samples": 10000,
+          "statistics_seed": 1729,
+          "clean": true
+        },
+        "exploratory_overall_paired_ci95": [
+          -0.017812500000000005,
+          0.09004094328703703
+        ],
+        "encounters": {
+          "setup_bygone_effigy_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.6666666666666666,
+              "mean_utility": 0.2884027777777778,
+              "mean_final_hp": 17.38888888888889,
+              "mean_winning_hp": 26.083333333333332,
+              "mean_turns": 5.0,
+              "mean_decisions": 20.27777777777778,
+              "death_rate": 0.3333333333333333,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11190430005080998,
+              "decision_seconds_p95": 0.1620512200286612
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.6666666666666666,
+              "mean_utility": 0.2875,
+              "mean_final_hp": 16.666666666666668,
+              "mean_winning_hp": 25.0,
+              "mean_turns": 4.777777777777778,
+              "mean_decisions": 19.555555555555557,
+              "death_rate": 0.3333333333333333,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11659624997992069,
+              "decision_seconds_p95": 0.15822470003040506
+            }
+          },
+          "setup_byrdonis_elite": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.7777777777777778,
+              "mean_utility": 0.5059722222222223,
+              "mean_final_hp": 22.555555555555557,
+              "mean_winning_hp": 29.0,
+              "mean_turns": 3.888888888888889,
+              "mean_decisions": 14.88888888888889,
+              "death_rate": 0.2222222222222222,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10903245001100004,
+              "decision_seconds_p95": 0.1571509849571157
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7173611111111111,
+              "mean_final_hp": 22.77777777777778,
+              "mean_winning_hp": 25.625,
+              "mean_turns": 4.111111111111111,
+              "mean_decisions": 15.833333333333334,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11709580000024289,
+              "decision_seconds_p95": 0.1645558799849823
+            }
+          },
+          "setup_cubex_construct_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9480555555555557,
+              "mean_final_hp": 38.44444444444444,
+              "mean_winning_hp": 38.44444444444444,
+              "mean_turns": 4.388888888888889,
+              "mean_decisions": 16.666666666666668,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11716470000101253,
+              "decision_seconds_p95": 0.17051119502284565
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8395833333333332,
+              "mean_final_hp": 36.111111111111114,
+              "mean_winning_hp": 38.23529411764706,
+              "mean_turns": 4.444444444444445,
+              "mean_decisions": 17.11111111111111,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12086159992031753,
+              "decision_seconds_p95": 0.18999873501015827
+            }
+          },
+          "setup_fogmog_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7274305555555556,
+              "mean_final_hp": 30.833333333333332,
+              "mean_winning_hp": 34.6875,
+              "mean_turns": 5.944444444444445,
+              "mean_decisions": 22.666666666666668,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1239730499801226,
+              "decision_seconds_p95": 0.1750283149362076
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9565277777777779,
+              "mean_final_hp": 45.22222222222222,
+              "mean_winning_hp": 45.22222222222222,
+              "mean_turns": 4.0,
+              "mean_decisions": 14.11111111111111,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1261464999988675,
+              "decision_seconds_p95": 0.20497835492133157
+            }
+          },
+          "setup_fuzzy_wurm_crawler_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.928888888888889,
+              "mean_final_hp": 23.11111111111111,
+              "mean_winning_hp": 23.11111111111111,
+              "mean_turns": 2.9444444444444446,
+              "mean_decisions": 9.666666666666666,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10858324996661395,
+              "decision_seconds_p95": 0.14399629502440803
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9279166666666667,
+              "mean_final_hp": 22.333333333333332,
+              "mean_winning_hp": 22.333333333333332,
+              "mean_turns": 3.0555555555555554,
+              "mean_decisions": 10.777777777777779,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11171994992764667,
+              "decision_seconds_p95": 0.17897953996434807
+            }
+          },
+          "setup_mawler_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9548611111111112,
+              "mean_final_hp": 43.888888888888886,
+              "mean_winning_hp": 43.888888888888886,
+              "mean_turns": 3.7777777777777777,
+              "mean_decisions": 13.38888888888889,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11861780006438494,
+              "decision_seconds_p95": 0.16652999992948025
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9528472222222223,
+              "mean_final_hp": 42.27777777777778,
+              "mean_winning_hp": 42.27777777777778,
+              "mean_turns": 3.5555555555555554,
+              "mean_decisions": 13.166666666666666,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.1208354999544099,
+              "decision_seconds_p95": 0.15369972004555166
+            }
+          },
+          "setup_nibbits_normal": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 0.8888888888888888,
+              "mean_utility": 0.7275,
+              "mean_final_hp": 30.88888888888889,
+              "mean_winning_hp": 34.75,
+              "mean_turns": 4.555555555555555,
+              "mean_decisions": 16.944444444444443,
+              "death_rate": 0.1111111111111111,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11776309995912015,
+              "decision_seconds_p95": 0.15171714005991818
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 0.9444444444444444,
+              "mean_utility": 0.8311805555555556,
+              "mean_final_hp": 29.38888888888889,
+              "mean_winning_hp": 31.11764705882353,
+              "mean_turns": 4.722222222222222,
+              "mean_decisions": 18.833333333333332,
+              "death_rate": 0.05555555555555555,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12153009988833219,
+              "decision_seconds_p95": 0.1538470098981633
+            }
+          },
+          "setup_nibbits_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9209722222222223,
+              "mean_final_hp": 16.77777777777778,
+              "mean_winning_hp": 16.77777777777778,
+              "mean_turns": 2.7222222222222223,
+              "mean_decisions": 8.444444444444445,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10794620000524446,
+              "decision_seconds_p95": 0.13291082498035392
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9202083333333333,
+              "mean_final_hp": 16.166666666666668,
+              "mean_winning_hp": 16.166666666666668,
+              "mean_turns": 2.7222222222222223,
+              "mean_decisions": 8.833333333333334,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11047499999403954,
+              "decision_seconds_p95": 0.14557170999469232
+            }
+          },
+          "setup_shrinker_beetle_weak": {
+            "initial": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.930763888888889,
+              "mean_final_hp": 24.61111111111111,
+              "mean_winning_hp": 24.61111111111111,
+              "mean_turns": 2.4444444444444446,
+              "mean_decisions": 7.833333333333333,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.10646069992799312,
+              "decision_seconds_p95": 0.13432150008156896
+            },
+            "final": {
+              "episodes": 18,
+              "win_rate": 1.0,
+              "mean_utility": 0.9284722222222224,
+              "mean_final_hp": 22.77777777777778,
+              "mean_winning_hp": 22.77777777777778,
+              "mean_turns": 2.5555555555555554,
+              "mean_decisions": 8.666666666666666,
+              "death_rate": 0.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.11497764999512583,
+              "decision_seconds_p95": 0.15504064998822287
+            }
+          },
+          "setup_test_subject_boss": {
+            "initial": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 8.518518518518519,
+              "mean_decisions": 42.888888888888886,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12319144996581599,
+              "decision_seconds_p95": 0.1520846500643529
+            },
+            "final": {
+              "episodes": 54,
+              "win_rate": 0.0,
+              "mean_utility": -1.0,
+              "mean_final_hp": 0.0,
+              "mean_winning_hp": null,
+              "mean_turns": 7.555555555555555,
+              "mean_decisions": 38.18518518518518,
+              "death_rate": 1.0,
+              "time_limit_rate": 0.0,
+              "exception_rate": 0.0,
+              "illegal_actions": 0,
+              "decision_seconds_p50": 0.12631050002528355,
+              "decision_seconds_p95": 0.165727800008608
+            }
+          }
+        }
+      }
+    }
+  },
+  "source_sha256": {
+    "test-42-network.json": "3db126fb3fb0440eb809054ee28f73e6b5f5599c01f00857034ea9be2333b081",
+    "test-42-search.json": "2c4dfd93d6016a52a0cec95f4d94ca723369188d1e05821bed184e21f804ffd8",
+    "test-43-network.json": "f0d74a127b6c42bbe134e1efc7246e76e8f23ea0d8a1a219dcb9fe9a26a2bfbc",
+    "test-43-search.json": "92abb69895d58e0bb1dab9d0bfb4b0fcf270c3562f9a494f1f43df2867eaf4a5",
+    "run.json": "cdc0c34b087a39c76c5024c47dadef6263bf0a63d25e1453388d232768068351",
+    "report.json": "7d0bcb31fef8db4bcc3f46e81261a531817b8ea9ca20b229316a47984e9785af",
+    "resources.json": "31121f14b61085f2a575cb50a4d1ee3eab88421385df58171ef7de21b018f393",
+    "timings.json": "fa14db6a26c85db3578558ebc24bc108e952a4109b7e68e5f42fbbaa9213df51",
+    "frozen_final_models.json": "01bae2e5352bad85603f771d3bc8bece9cb93bfe7fe5375a9f1c3395bfe104aa",
+    "test-manifest.json": "cc42451ae1242f02bb78a3211e8835e73f549edd36d1206b55c3f56b1628a892"
+  },
+  "audit_status": "independently_recomputed",
+  "sensitivity_note": "Post-hoc overall recipe-paired bootstrap, 10000 samples seed1729; diagnostic only, not a replacement gate or training-seed/generalization CI."
+}

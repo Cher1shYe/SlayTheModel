@@ -2,11 +2,18 @@
 
 A reinforcement learning agent for **Slay the Spire 2**, built on a high-performance headless combat simulator and a Gymnasium training environment. Includes a C# bridge mod for connecting the trained agent to the real game.
 
-## Transformer T3 当前进度（2026-10-16）
+## Transformer T3 当前进度（2026-10-17）
 
-V6 S 两轮 smoke 已完成：360 场、8 次更新，工程证据复核通过，但两轮 network 效用均为 −1，学习增益未通过。诊断确认贪心策略持续结束回合，以及低预算 MCTS 同票忽略 Q。旧双 seed 正式任务已停止并保留现场。
+V7 S 两轮 smoke 与正式 seed 42/43 各三轮已完成：正式采集 1,080 场、30,557 个决策、96 次更新。工程工件及最终评估已复算；两个 seed 均通过冻结的 network 终局效用增益门槛。
 
-已接入统一 V7 风险奖励（搜索、value 标签、network 验收）和新版 Q 同票规则；详见 [诊断与修订报告](docs/AZ_TRANSFORMER_V7_DIAGNOSIS.md)。新版冻结配置位于 `configs/az_transformer_t3_v2`。旧 smoke 证据不能用于新版正式任务；新版尚未启动训练，不能宣称 network 学习增益。
+| seed | 最终测试初始效用 | 最终冠军效用 | 增益 |
+|---|---:|---:|---:|
+| 42 | −1.000000 | +0.325891 | +1.325891 |
+| 43 | +0.171655 | +0.344832 | +0.173177 |
+
+每 seed 最终测试 216 场。Boss 子集各 54 场全部死亡；未见组合、未见 ID 与通用质量尚未验收。冻结分层 bootstrap 出现零宽度，报告提供补充敏感性分析并明确其局限。V7 同时改变了奖励和搜索，不能据此归因为 Transformer 相对旧 MLP 的架构收益。
+
+完整结果见 [T3 V7 结果报告](docs/AZ_TRANSFORMER_T3_V7_RESULTS.md) 与 [可复算结果摘要](docs/transformer_t3_v7_results.json)；修订背景见 [持续结束回合诊断](docs/AZ_TRANSFORMER_V7_DIAGNOSIS.md)。下一步按 `spec_1.md` 进入 T4：先做 G2.3f Boss 可解性/自然后期轨迹审计，再冻结合法组合与 ID 留出。当前无训练运行，不自动追加轮数或启动 M/L/XL。
 
 ## Architecture
 
