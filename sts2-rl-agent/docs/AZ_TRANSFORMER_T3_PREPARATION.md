@@ -6,7 +6,7 @@
 
 ## 冻结配置
 
-配置目录：`configs/az_transformer_t3_v1/`。准备方案版本 `transformer-t3-preparation-v2`；目录 v1 表示首批实验，v2 方案记录本轮启动前的效用门槛修订，没有改动已运行结果。
+配置目录：`configs/az_transformer_t3_v1/`。准备方案已更新至 `transformer-t3-preparation-v3`；目录 v1 表示首批实验，v2 引入效用门槛，v3 接入专用运行入口。均为启动前修订，没有改动已运行结果。
 
 | 项目 | S smoke | S 正式验证 |
 |---|---|---|
@@ -48,8 +48,7 @@
 
 本轮 **295 项测试通过（55.11 秒）**，结果见 `transformer_t3_preparation_tests.txt`：准备幂等/防覆盖、最终测试未访问、配方不变与 seed 隔离、配置拒绝、协调器课程接线、新效用门槛、search 不影响晋级，以及 T2/G2.3e/恢复/旧效用契约回归。特别验证效用提升而胜率下降仍可晋级，胜率增加而效用下降不能晋级。
 
-## 启动前剩余项
+## 后续运行入口（2026-10-16 补充）
 
-- 完成专用 Transformer smoke/正式运行编排及工件复算入口：旧 `run_alphazero_continuous.py` 仍含历史 MLP 冠军继承路径，不能直接用于这批配置。
-- 为正式运行绑定同代码/schema/config 的已通过 smoke 证据；实现两个冠军冻结后的最终评估顺序。
+- 已补齐 `run_az_transformer_t3.py` 的专用编排、smoke 底层工件复算及联合冠军冻结后的最终评估，详见 `AZ_TRANSFORMER_T3_RUNNER.md`。旧 `run_alphazero_continuous.py` 不用于这批配置。
 - 用户明确要求启动实验后，才运行两轮 S smoke；正式训练还需 smoke 通过。当前准备文件不是实验通过证据。

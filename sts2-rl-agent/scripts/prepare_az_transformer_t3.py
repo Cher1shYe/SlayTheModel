@@ -38,7 +38,7 @@ def documents():
         result[f'{name}-train-hashes.json']={f'{s}/{i}':content_hash([
             generate(s,i,j,smoke=smoke).to_dict() for j in range(180)]) for s in seeds for i in range(rounds)}
     result['plan.json']={
-        'version':'transformer-t3-preparation-v2','status':'prepared_not_started','code_digest':code_digest(),
+        'version':'transformer-t3-preparation-v3','status':'prepared_not_started','code_digest':code_digest(),
         'schema_hash':SCHEMA_HASH,'spec':'spec_1.md sections 9.2 and 11',
         'initialization':'independent random S per seed; no MLP/champion transfer',
         'optimizer':{'name':'AdamW','learning_rate':.0003,'weight_decay':.0001,'betas':[.9,.999],
@@ -56,7 +56,7 @@ def documents():
         'budget':{'smoke':{'seeds':[42],'rounds':2,'episodes_per_round':180,'updates':4,'batch':32,'simulations':4},
                   'formal':{'seeds':[42,43],'rounds':3,'episodes_per_round':180,'updates':16,'batch':64,'simulations':8}},
         'gates':['User explicitly requests experiments; previous no-training instruction remains active.',
-                 'Dedicated Transformer smoke/formal orchestration and artifact verification must be completed before launch.',
+                 'Use run_az_transformer_t3.py; explicit mode and --start-experiment required.',
                  'S two-round smoke must pass with same code/schema/config before either formal seed starts.',
                  'Freeze both final champion hashes before materializing final test recipes.'],
         'final_test':{'count':216,'master':287,'generated':False,'read':False,'claim':'new environment seeds; existing composition distribution, not unseen combinations'},
