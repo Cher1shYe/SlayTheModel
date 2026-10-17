@@ -39,6 +39,7 @@
 | P3f | runner CLI/preflight/resume；训练后 checkpoint 复评 64/64 | 已完成 |
 | P3g | 幻象复活/眩晕/砂坑公开状态：parity 75，准入 74，验证 64/64 | 已完成 |
 | P3h | 玩家朝向公开簿记：parity 76，准入 75，验证 64/64 | 已完成 |
+| P3i | runner 基线/配对增益/耗时报告与 `--no-baseline` | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -208,3 +209,10 @@
 - 结果：parity **76 通过 + 2 采样 + 1 专用契约 + 2 待补**（kaiser crab 转通过；剩余 knowledge demon、lagavulin）；鲁棒性 **75/76 稳定**；生成器准入 **75 遭遇**，重新冻结 `configs/az_all_xs_v1/{config,protocol}.json`。
 - 新协议复评：验证集 **64/64 完成、0 契约拒绝**，mean V7 utility 0.347、胜率 34.4%、0 非法动作（随机初始化 XS，仅管线证据）。
 - 回归：**1190 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
+
+### 步骤 20（2026-10-18）runner 基线、配对增益与耗时报告（P3i）
+
+- `all_runner.paired_gain`：按 `scenario_id` 配对的 bootstrap（均值增益、95% 区间、P(gain>0)），仅作描述性报告，不自动做晋升决策。
+- `run` 在首轮更新前评估一次**初始模型基线**并写入 `report.baseline`；每轮记录 `paired_vs_baseline` 与 `seconds{collect,update,evaluate,total}`；新增 `--no-baseline`。
+- 报告字段与语义更新至 `docs/AZ_ALL_XS_PLAN.md` §5；新增 2 项 runner 测试（配对确定性/不匹配拒绝、基线+耗时+配对端到端）。
+- 回归：**1192 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。

@@ -1,4 +1,4 @@
-"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
+﻿"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
 
 The runner is deliberately in-process and sequential: one frozen XS model plays
 seeded arbitrary-deck fights against native monsters with dynamic search, the
@@ -10,6 +10,7 @@ from __future__ import annotations
 
 from dataclasses import replace
 import json
+import time
 from pathlib import Path
 
 import numpy as np
@@ -153,9 +154,27 @@ def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns
                 ready=not training_errors and not validation_errors)
 
 
+def paired_gain(baseline, candidate, *, seed=1729, samples=2000):
+    """Descriptive paired bootstrap of the mean V7 utility gain.
+
+    Episodes are paired by scenario id, so both evaluations must cover the same
+    recipes. This is reporting only; no promotion decision is derived here.
+    """
+    old = {row['scenario_id']: row['reward'] for row in baseline}
+    new = {row['scenario_id']: row['reward'] for row in candidate}
+    if set(old) != set(new) or not old:
+        raise ValueError('Paired comparison needs identical episode sets')
+    gains = np.array([new[key] - old[key] for key in sorted(old)], dtype=float)
+    rng = np.random.default_rng(seed)
+    means = gains[rng.integers(0, len(gains), size=(samples, len(gains)))].mean(axis=1)
+    return dict(episodes=int(len(gains)), mean_gain=float(gains.mean()),
+                ci95=[float(np.percentile(means, 2.5)), float(np.percentile(means, 97.5))],
+                probability_positive=float((means > 0).mean()))
+
+
 def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, updates=1, budget=4,
         batch_size=16, learning_rate=None, seed=0, max_turns=6, max_decisions=24,
-        include_test=False, resume=False, log=print):
+        include_test=False, resume=False, compare_baseline=True, log=print):
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
     training = config['training']
@@ -166,6 +185,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
     out.mkdir(parents=True, exist_ok=True)
     history = []
     start_iteration = 0
+    baseline_summary, baseline_rows = None, []
     if resume and (out / 'report.json').exists():
         previous = json.loads((out / 'report.json').read_text(encoding='utf-8'))
         if previous.get('version') != VERSION:
@@ -174,13 +194,22 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         start_iteration = len(history)
         checkpoint = out / history[-1]['checkpoint']
         model, _ = load_transformer_checkpoint(checkpoint, TIER, ALL_CONTENT, V7)
+        baseline_summary = previous.get('baseline')
         log(f'resume from iteration {start_iteration} ({checkpoint.name})')
     else:
         model = fresh_model(config)
     replay = EntityReplayBuffer(out / 'replay', capacity=50_000, content_version=ALL_CONTENT,
                                 reward_version=V7)
     validation = protocol_recipes(protocol, 'validation')
+    if baseline_summary is None and compare_baseline:
+        # Frozen reference for relative reporting: the initial (unupdated) model.
+        baseline_summary, baseline_rows = evaluate_recipes(
+            fresh_model(config), validation, version=f'{version}-baseline',
+            error_dir=out / 'errors', limits=limits)
+        log(f"baseline: mean utility {baseline_summary['mean_utility']:.3f} "
+            f"rejections {baseline_summary['contract_rejections']}")
     for iteration in range(start_iteration, iterations):
+        started = time.perf_counter()
         recipes = training_recipes(iteration, episodes)
         failures = []
         collected = collect(model, recipes, iteration=iteration, budget=budget,
@@ -188,20 +217,33 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
                             seed=seed * 100_000 + iteration * 1_000, failures=failures)
         for episode in collected:
             replay.commit(episode)
+        collected_at = time.perf_counter()
         model, update_history = update(model, replay, learning_rate=learning_rate,
                                        batch_size=batch_size, updates=updates,
                                        seed=seed * 1_000 + iteration)
-        validation_summary, _ = evaluate_recipes(model, validation, version=version,
-                                                 error_dir=out / 'errors', limits=limits)
+        updated_at = time.perf_counter()
+        validation_summary, validation_rows = evaluate_recipes(
+            model, validation, version=version, error_dir=out / 'errors', limits=limits)
+        evaluated_at = time.perf_counter()
         checkpoint = out / f'iteration-{iteration:03d}.pt'
         save_transformer_checkpoint(checkpoint, model, f'{version}-iter{iteration:03d}',
                                     config=config, statistics=validation_summary,
                                     iteration=iteration)
+        comparison = None
+        if compare_baseline and baseline_rows:
+            common = {row['scenario_id'] for row in validation_rows}
+            if all(row['scenario_id'] in common for row in baseline_rows):
+                comparison = paired_gain(baseline_rows, validation_rows)
         record = dict(version=VERSION, iteration=iteration,
                       episodes=[episode['episode_id'] for episode in collected],
                       outcomes=[episode['outcome']['termination_reason'] for episode in collected],
                       replay_size=replay.size, updates=update_history,
                       rejected_recipes=failures,
+                      seconds=dict(collect=round(collected_at - started, 3),
+                                   update=round(updated_at - collected_at, 3),
+                                   evaluate=round(evaluated_at - updated_at, 3),
+                                   total=round(evaluated_at - started, 3)),
+                      paired_vs_baseline=comparison,
                       validation=validation_summary, checkpoint=checkpoint.name)
         atomic_json(out / f'iteration-{iteration:03d}.json', record)
         history.append(record)
@@ -212,7 +254,8 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
     report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
                   iteration_budget=dict(iterations=iterations, episodes=episodes,
                                         updates=updates, budget=budget, batch_size=batch_size),
-                  history=history, final_validation=history[-1]['validation'])
+                  baseline=baseline_summary, history=history,
+                  final_validation=history[-1]['validation'])
     if include_test:
         test = protocol_recipes(protocol, 'test')
         summary, _ = evaluate_recipes(model, test, version=version, error_dir=out / 'errors',
@@ -238,6 +281,7 @@ def main(argv=None):
     parser.add_argument('--max-decisions', type=int, default=24)
     parser.add_argument('--include-test', action='store_true')
     parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--no-baseline', action='store_true')
     parser.add_argument('--preflight-only', action='store_true')
     args = parser.parse_args(argv)
     if args.preflight_only:
@@ -249,12 +293,14 @@ def main(argv=None):
                      episodes=args.episodes, updates=args.updates, budget=args.budget,
                      batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
                      max_decisions=args.max_decisions, include_test=args.include_test,
-                     resume=args.resume)
+                     resume=args.resume, compare_baseline=not args.no_baseline)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}
     print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == '__main__':
     main()
+
+
 
 

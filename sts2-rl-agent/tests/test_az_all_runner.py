@@ -1,4 +1,4 @@
-"""P3 all-content runner contract: reproducible episodes and honest rejections."""
+﻿"""P3 all-content runner contract: reproducible episodes and honest rejections."""
 import numpy as np
 import pytest
 
@@ -87,6 +87,67 @@ def test_collection_is_reproducible_for_a_seed(tmp_path):
            [row['policy_target'] for row in second['rows']]
 
 
+def test_paired_gain_is_deterministic_and_needs_matching_episodes():
+    baseline = [{'scenario_id': f's{index}', 'reward': 0.0} for index in range(10)]
+    candidate = [{'scenario_id': f's{index}', 'reward': 0.1} for index in range(10)]
+    first = all_runner.paired_gain(baseline, candidate)
+    second = all_runner.paired_gain(baseline, candidate)
+    assert first == second
+    assert first['mean_gain'] == pytest.approx(0.1)
+    assert first['episodes'] == 10
+    with pytest.raises(ValueError):
+        all_runner.paired_gain(baseline, candidate[:9])
+
+
+def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    protocol = json.loads((Path(__file__).resolve().parents[1] / PROTOCOL).read_text(
+        encoding='utf-8'))
+    calls = {'evaluate': 0}
+
+    def fake_collect(model, recipes, **kwargs):
+        return [dict(episode_id='a' * 64, rows=[{}, {}],
+                     outcome={'termination_reason': 'win'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.5}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        calls['evaluate'] += 1
+        base = calls['evaluate'] == 1
+        rows = [dict(scenario_id=recipe.scenario_id,
+                     encounter_id=recipe.encounter_id,
+                     reward=0.1 if base else 0.2, termination_reason='win',
+                     final_hp=50, turns=3, decisions=5, decision_seconds=[0.01],
+                     errors=0, illegal_actions=0) for recipe in recipes]
+        summary = dict(episodes=len(rows), win_rate=1.0,
+                       mean_utility=sum(row['reward'] for row in rows) / len(rows),
+                       contract_rejections=0, contract_rejected=[])
+        return summary, rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += len(episode['rows'])
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
+                            updates=1, budget=1, seed=0, log=lambda *args: None)
+    assert report['baseline']['mean_utility'] == pytest.approx(0.1)
+    record = report['history'][0]
+    assert set(record['seconds']) == {'collect', 'update', 'evaluate', 'total'}
+    assert record['paired_vs_baseline']['mean_gain'] == pytest.approx(0.1)
+    assert record['paired_vs_baseline']['episodes'] == 64
+    assert (tmp_path / 'report.json').exists()
+
+
 def test_one_episode_update_changes_weights(tmp_path):
     import torch
     config = all_runner.load_frozen_config(CONFIG)
@@ -105,5 +166,6 @@ def test_one_episode_update_changes_weights(tmp_path):
                                          updates=1, seed=0)
     assert history and np.isfinite(history[0]['loss'])
     assert any(not torch.equal(a, b) for a, b in zip(before, updated.parameters()))
+
 
 
