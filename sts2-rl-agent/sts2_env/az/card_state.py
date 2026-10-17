@@ -21,6 +21,7 @@ class CardStatePolicy:
     max_x_energy_spent: int = 3
     generated_metadata: bool = False
     return_to_hand: bool = False
+    afflictions: bool = False
     state_version: str = CARD_STATE_VERSION
 
 
@@ -37,6 +38,7 @@ class PublicCardState:
     version: str = CARD_STATE_VERSION
     turn_star_cost: int | None = None
     is_clone: bool = False
+    affliction: str | None = None
 
 
 class CardStateCodec:
@@ -67,6 +69,8 @@ class CardStateCodec:
         dynamic = {"instance_id", "cost", "combat_vars", "single_turn_retain"}
         if self.policy.effect_changes:
             dynamic |= {"base_damage", "base_block", "effect_vars"}
+        if self.policy.afflictions:
+            dynamic |= {"bound"}
         for field in fields(reference):
             if field.name not in dynamic and getattr(card, field.name) != getattr(reference, field.name):
                 raise ValueError(f"Unaudited card mutation: {field.name}")
@@ -79,6 +83,7 @@ class CardStateCodec:
         allowed={"_turn_cost_override", "_stars_spent_for_play"}
         if self.policy.generated_metadata:allowed|={"_turn_star_cost_override","_is_clone"}
         if self.policy.return_to_hand:allowed|={"_return_before_hand_draw_round"}
+        if self.policy.afflictions:allowed|={"_affliction"}
         if set(card.combat_vars) - allowed:
             raise ValueError("Unaudited combat variable")
         if card.combat_vars.get("_stars_spent_for_play", 0) != 0:
@@ -89,7 +94,8 @@ class CardStateCodec:
         state = PublicCardState(token, card.cost, card.original_cost, card.base_damage,
                                 card.base_block, tuple(sorted(card.effect_vars.items())),
                                 turn_cost, card.single_turn_retain,self.policy.state_version,
-                                card.combat_vars.get('_turn_star_cost_override'),bool(card.combat_vars.get('_is_clone',0)))
+                                card.combat_vars.get('_turn_star_cost_override'),bool(card.combat_vars.get('_is_clone',0)),
+                                getattr(card, 'affliction', None))
         if card.combat_vars.get('_is_clone',0) not in (0,1):raise ValueError('Invalid clone flag')
         self.validate(state)
         return state
@@ -98,6 +104,9 @@ class CardStateCodec:
         if type(state) is not PublicCardState or state.version != self.policy.state_version:
             raise ValueError("Unsupported card state version/type")
         if type(state.is_clone)is not bool or (state.is_clone and not self.policy.generated_metadata):raise ValueError('Clone state not admitted')
+        if state.affliction is not None and (not self.policy.afflictions
+                or state.affliction not in ('bound', 'entangled')):
+            raise ValueError('Card affliction state not admitted')
         if state.turn_star_cost is not None and (not self.policy.generated_metadata or type(state.turn_star_cost)is not int or state.turn_star_cost!=0):raise ValueError('Star cost state not admitted')
         reference = self._reference(state.token)
         if (type(state.cost) is not int or type(state.original_cost) is not int
@@ -135,4 +144,7 @@ class CardStateCodec:
             card.set_temporary_cost_for_turn(state.turn_cost)
         if state.turn_star_cost is not None:card.set_temporary_star_cost_for_turn(state.turn_star_cost)
         if state.is_clone:card.combat_vars['_is_clone']=1
+        if state.affliction is not None:
+            card.combat_vars['_affliction'] = state.affliction
+            card.bound = state.affliction == 'bound'
         return card

@@ -18,6 +18,10 @@ MULTI_CONTENT = "g2-multi-v1"
 BOSS_CONTENT = "g2-boss-v1"
 EXPANSION_CONTENT = "ironclad-colorless-foundation-v4"
 SUMMON_CONTENT = "g2-summon-v1"  # inherits g2-multi-v1 and adds the audited Fogmog/Eye encounter
+# All act1-act4 combat encounters on the same card contract as V4.  Kept as a
+# separate version so V4 replays/checkpoints stay byte-compatible.
+ALL_CONTENT = "ironclad-colorless-all-v6"
+ALL_INFORMATION = "ironclad-colorless-all-information-v1"
 PROFILES = {
     "SHRINKER_BEETLE": dict(encounter="setup_shrinker_beetle_weak", hp=(38, 40),
                            cycle=("SHRINKER_MOVE", "CHOMP_MOVE", "STOMP_MOVE"), strength=0),
@@ -75,6 +79,9 @@ SUMMON_PROFILES = {**MULTI_PROFILES, "FOGMOG": dict(encounter="setup_fogmog_norm
 BOSS_PROFILES = {**SUMMON_PROFILES, "TEST_SUBJECT": dict(encounter="setup_test_subject_boss", hp=(100, 100), cycle="public finite phases", strength=0)}
 
 def profiles(version):
+    if version == ALL_CONTENT:
+        from .monster_registry import ENCOUNTERS
+        return {name: dict(encounter=name) for name in ENCOUNTERS}
     if version in (BOSS_CONTENT, EXPANSION_CONTENT):
         return BOSS_PROFILES
     if version == SUMMON_CONTENT:
@@ -87,7 +94,7 @@ def profiles(version):
 
 
 def validate_content(version):
-    if version not in (CONTENT_VERSION, M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
+    if version not in (CONTENT_VERSION, M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
         raise ValueError("Unsupported content version")
     return version
 

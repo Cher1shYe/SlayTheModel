@@ -25,7 +25,8 @@
 | P1d | 剩余 5 张范围暂缓（药水/跨职业生成/隐藏身份）归档 | 已完成 |
 | P2a | 全怪物静态清单与通用接入判据（122 怪物 / 81 遭遇；121+80 通过判据） | 已完成 |
 | P2b | 通用公开阵容 roster：capture/validate/create/restore + 原生遭遇构造 + 逐步 parity | 已完成 |
-| P2c | roster 接入 information/粒子/MCTS（新内容版本）+ 实体编码 | 进行中 |
+| P2c | all-content 版本：观测/校验/公开回合历史 + 场景与牌库接入 | 已完成 |
+| P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 进行中 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -84,3 +85,12 @@
 - `create_slots` 以**原生遭遇 setup 作为构造 oracle**：按观测阵容重采样 setup（含 Exoskeleton 位置等逐槽参数），其余后召唤槽用怪物构造变体兜底；`restore_slots` 恢复 AI 状态日志/当前招式/能力/HP/格挡。
 - 新增 `tests/test_az_roster.py`（19 项）：15 个跨幕遭遇（含女王、凯撒蟹、造门者、瀑布巨人 Boss、4 槽阵容）的捕获→校验→粒子重建往返，以及推进回合后与真实世界的逐槽 parity（对齐随机流作为 parity oracle）。
 - 静态审计保持：121/122 怪物、80/81 遭遇通过判据（TEST_SUBJECT 由 Boss 专用契约处理）。
+
+### 步骤 6（2026-10-18）all-content 内容版本与公开回合历史（P2c）
+
+- 新增内容版本 `ironclad-colorless-all-v6`（信息版本 `ironclad-colorless-all-information-v1`），与 V4 共享**同一套卡牌契约**，仅把敌人半边换成通用 roster；V4 权重/Replay 不受影响。
+- 新增 `sts2_env/az/all_content.py`：`observe_all`（卡牌半边复用 V4 编解码 + 通用 roster 捕获）、`validate_all`（卡牌半边以 V4 视图校验 + roster 校验 + 终局奖励账本）、`finish_history`（合并可见日志、按 `enemy_action` 事件追加实际出招，不读私有 AI 游标）、`roster_rows`。
+- 接入：`content` 版本常量与 profiles、`scenarios`（全部 act1–act4 遭遇可用）、`decks`（共享 V4 卡池）、`information`（observe/validate/terminal_value 分派、`encounter` 字段、ALL_CONTENT 公开回合分支）。
+- 卡牌契约补充：`SLIMED` 状态牌（史莱姆生成，含消耗/抽 1）、卡牌 `affliction`（bound/entangled）公开状态与恢复。
+- 新增 `tests/test_az_all_content.py`（28 项）：13 个跨幕遭遇的初始观测与一整个公开回合校验；明确记录 Queen 暂缓原因（ChainsOfBinding 的公开 affliction 账本未实现），不静默接受。
+- 未完成：粒子采样、实体编码、适配器与动态 MCTS 的 ALL_CONTENT 分派（P2d）。

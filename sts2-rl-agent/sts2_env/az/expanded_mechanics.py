@@ -18,7 +18,7 @@ VARIABLES = {
  'ANGER': (), 'ARMAMENTS': (), 'HEADBUTT': (), 'STOMP': (),
  'RESTLESSNESS': ('cards','energy'), 'WHIRLWIND': (), 'PURITY': ('cards',),
  'EQUILIBRIUM': ('equilibrium',), 'PRIMAL_FORCE': (), 'REAVE': ('cards',),
- 'GIANT_ROCK': (), 'SOUL': ('cards',), 'DAZED': (), 'BURN': ('damage',), 'WOUND': (),
+ 'GIANT_ROCK': (), 'SOUL': ('cards',), 'DAZED': (), 'BURN': ('damage',), 'WOUND': (), 'SLIMED': ('cards',),
 }
 
 
@@ -27,6 +27,13 @@ def describe_card(token):
     from .content_expansion import FACTORIES, descriptor
     if token.removesuffix('+') in FACTORIES:
         return descriptor(token)
+    if token.removesuffix('+') == 'SLIMED':
+        # Inherited status dependency admitted by the V4/V5 card codec (slimes).
+        from .content_expansion import CODEC as EXPANSION_CODEC
+        c = EXPANSION_CODEC._reference(token)
+        return MechanicDescriptor(c.card_type.value, c.cost, 'none', (
+            O('draw', 'self', 'on_play', c.effect_vars['cards']).validate(),
+            O('exhaust', 'self', 'after_play', 1).validate()))
     from .boss_cards import CODEC
     if token not in CODEC.factories:
         raise ValueError(f'Unsupported mechanic path: cards/{token}')
@@ -76,6 +83,7 @@ def describe_card(token):
                    op('draw',soul.effect_vars['cards'],'self','generated_on_play'),op('exhaust',1,'generated','generated_after_play')]
     elif name == 'SOUL': effects = [draw]
     elif name == 'BURN': effects = [op('damage_unpowered',v['damage'],'self','turn_end_hand')]
+    elif name == 'SLIMED': effects = [op('draw',v['cards'],'self')]
     elif name in ('DAZED','WOUND'): effects = []
     else: raise ValueError(f'Unimplemented descriptor: {token}')
     for keyword in sorted(c.keywords):

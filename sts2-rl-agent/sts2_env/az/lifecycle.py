@@ -16,7 +16,7 @@ def attack_count(history):
 
 
 def restore_token(token, history):
-    if token in ("DAZED", "BURN", "WOUND"):
+    if token in ("DAZED", "BURN", "WOUND", "SLIMED"):
         from sts2_env.cards import status
         return getattr(status, "make_" + token.lower())()
     card = make_token(token)

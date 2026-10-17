@@ -1,4 +1,4 @@
-"""Frozen M6.2 recipes and explicitly audited Ironclad factories.
+﻿"""Frozen M6.2 recipes and explicitly audited Ironclad factories.
 
 This content version is distinct from both historical starter versions. The
 factory contract does not imply support by an information/encoder schema.
@@ -8,7 +8,7 @@ from types import MappingProxyType
 
 from sts2_env.cards import ironclad
 from .content import DECK_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-from .content import BOSS_CONTENT, EXPANSION_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT
 
 MIN_DECK_SIZE = 6
 MAX_DECK_SIZE = 20
@@ -119,10 +119,10 @@ MORPH_FAMILY_CARDS = MappingProxyType({k: (*v, "REAVE", "PRIMAL_FORCE") if k != 
 
 def validate_deck(deck, family, content_version=DECK_CONTENT):
     """Validate before allocating any engine card IDs; never normalize silently."""
-    families = MORPH_FAMILIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FAMILIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FAMILIES if content_version == LIFE_CONTENT else TOP_FAMILIES if content_version == TOP_CONTENT else UP_FAMILIES if content_version == UP_CONTENT else GEN_FAMILIES if content_version == GEN_CONTENT else G1_FAMILIES if content_version == G1_CONTENT else EXPANDED_FAMILIES if content_version == EXPANDED_CONTENT else FAMILIES
-    family_cards = MORPH_FAMILY_CARDS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FAMILY_CARDS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FAMILY_CARDS if content_version == LIFE_CONTENT else TOP_FAMILY_CARDS if content_version == TOP_CONTENT else UP_FAMILY_CARDS if content_version == UP_CONTENT else GEN_FAMILY_CARDS if content_version == GEN_CONTENT else G1_FAMILY_CARDS if content_version == G1_CONTENT else EXPANDED_FAMILY_CARDS if content_version == EXPANDED_CONTENT else FAMILY_CARDS
-    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
-    if content_version == EXPANSION_CONTENT:
+    families = MORPH_FAMILIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FAMILIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FAMILIES if content_version == LIFE_CONTENT else TOP_FAMILIES if content_version == TOP_CONTENT else UP_FAMILIES if content_version == UP_CONTENT else GEN_FAMILIES if content_version == GEN_CONTENT else G1_FAMILIES if content_version == G1_CONTENT else EXPANDED_FAMILIES if content_version == EXPANDED_CONTENT else FAMILIES
+    family_cards = MORPH_FAMILY_CARDS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FAMILY_CARDS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FAMILY_CARDS if content_version == LIFE_CONTENT else TOP_FAMILY_CARDS if content_version == TOP_CONTENT else UP_FAMILY_CARDS if content_version == UP_CONTENT else GEN_FAMILY_CARDS if content_version == GEN_CONTENT else G1_FAMILY_CARDS if content_version == G1_CONTENT else EXPANDED_FAMILY_CARDS if content_version == EXPANDED_CONTENT else FAMILY_CARDS
+    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    if content_version in (EXPANSION_CONTENT, ALL_CONTENT):
         from .content_expansion import initial_factories
         factories = initial_factories()
         families = {'ironclad-colorless-audit': ()}
@@ -154,8 +154,8 @@ def validate_deck(deck, family, content_version=DECK_CONTENT):
 
 def create_deck(deck, family, content_version=DECK_CONTENT):
     validate_deck(deck, family, content_version)
-    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
-    if content_version == EXPANSION_CONTENT:
+    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    if content_version in (EXPANSION_CONTENT, ALL_CONTENT):
         from .content_expansion import initial_factories
         factories = initial_factories()
     return [factories[entry.card_id](upgraded=entry.upgraded)
@@ -179,3 +179,5 @@ def make_token(token):
 def deck_tokens(deck):
     return tuple(sorted(entry.card_id + ("+" if entry.upgraded else "")
                         for entry in deck for _ in range(entry.count)))
+
+

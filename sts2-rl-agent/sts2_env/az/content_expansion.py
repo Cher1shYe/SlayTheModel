@@ -8,6 +8,7 @@ from dataclasses import replace
 from .selection_batch import SIMPLE_MAX_PUBLIC_ENERGY
 
 from sts2_env.cards import ironclad, colorless
+from sts2_env.cards.status import make_slimed
 from .card_state import CardStateCodec
 from .boss_cards import CODEC as BASE_CODEC
 
@@ -51,11 +52,11 @@ class ExpansionCardStateCodec(CardStateCodec):
         if state.base_block!=ref.base_block or dict(state.effect_vars)!=ref.effect_vars:raise ValueError('Unaudited effect mutation')
         return state
 
-CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, **{
+CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, 'SLIMED': make_slimed, **{
     name + suffix: partial(factory, upgraded=bool(suffix))
     for name, factory in FACTORIES.items() for suffix in ('', '+')
 }}, replace(BASE_CODEC.policy, effect_changes=True, generated_metadata=True,
-    return_to_hand=True,
+    return_to_hand=True, afflictions=True,
     state_version='az-public-card-state-v2',max_x_energy_spent=SIMPLE_MAX_PUBLIC_ENERGY))
 TOKENS = tuple(CODEC.factories)
 

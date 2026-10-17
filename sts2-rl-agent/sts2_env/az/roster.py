@@ -39,6 +39,56 @@ class EnemySlot:
     moves: tuple
     escaped: bool
 
+    # Read-only compatibility surface for shared public helpers that were written
+    # against the older single-intent slot shape.  Values still come only from
+    # the public power list / intent list.
+    def _amount(self, name):
+        return dict(self.powers).get(name, 0)
+
+    @property
+    def strength(self):
+        return self._amount('STRENGTH')
+
+    @property
+    def vulnerable(self):
+        return self._amount('VULNERABLE')
+
+    @property
+    def slow(self):
+        return self._amount('SLOW')
+
+    @property
+    def territorial(self):
+        return self._amount('TERRITORIAL')
+
+    @property
+    def artifact(self):
+        return self._amount('ARTIFACT')
+
+    @property
+    def illusion(self):
+        return self._amount('ILLUSION')
+
+    @property
+    def minion(self):
+        return self._amount('MINION')
+
+    @property
+    def primary(self):
+        return self.minion == 0
+
+    @property
+    def spawned(self):
+        return False
+
+    @property
+    def reviving(self):
+        return self.hp == 0 and self.illusion > 0
+
+    @property
+    def intent(self):
+        return self.intents[0] if self.intents else ('ATTACK', 0, 1)
+
 
 def intent_signal(ai):
     return tuple((i.intent_type.name, int(i.damage), int(i.hits)) for i in ai.current_move.intents)
@@ -55,6 +105,9 @@ def capture_slots(world, history, initial_hp):
     """Project the real roster; verifies that every move is publicly derivable."""
     if not 1 <= len(world.enemies) <= MAX_SLOTS:
         raise ValueError('Roster size outside the admitted engine capacity')
+    if initial_hp is None:
+        # First observation: the visible starting HP is the current HP.
+        initial_hp = tuple(max(0, enemy.current_hp) for enemy in world.enemies)
     if type(initial_hp) is not tuple or len(initial_hp) != len(world.enemies):
         raise ValueError('Initial HP for every slot required')
     histories = history.roster_moves or ((),) * len(world.enemies)
