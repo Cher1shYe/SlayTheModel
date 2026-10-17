@@ -772,10 +772,10 @@ def fire_after_card_exhausted(card: object, combat: CombatState) -> None:
     record_card_exhausted = getattr(combat, "record_card_exhausted", None)
     if callable(record_card_exhausted):
         record_card_exhausted(card)
-    for owner, power in _iter_power_listeners(combat):
-        power.after_card_exhausted(owner, card, combat)
-    for owner, relic in _iter_relic_listeners(combat):
-        relic.after_card_exhausted(owner, card, combat)
+    from sts2_env.powers.base import PowerInstance
+    tasks=[(owner,power,"after_card_exhausted",(card,)) for owner,power in _iter_power_listeners(combat) if type(power).after_card_exhausted is not PowerInstance.after_card_exhausted]
+    tasks += [(owner,relic,"after_card_exhausted",(card,)) for owner,relic in _iter_relic_listeners(combat)]
+    combat.run_hook_tasks(tasks)
 
 
 def fire_after_card_discarded(card: object, combat: CombatState) -> None:
@@ -853,6 +853,12 @@ def fire_before_turn_end(side: CombatSide, combat: CombatState) -> None:
 
 
 def fire_after_turn_end(side: CombatSide, combat: CombatState) -> None:
+    if side==CombatSide.PLAYER and not list(_iter_relic_listeners(combat)):
+        from sts2_env.powers.base import PowerInstance
+        tasks=[(owner,power,"after_turn_end",(side,)) for owner,power in _iter_power_listeners(combat) if type(power).after_turn_end is not PowerInstance.after_turn_end]
+        tasks += [(owner,power,"after_turn_end_late",(side,)) for owner,power in _iter_power_listeners(combat) if type(power).after_turn_end_late is not PowerInstance.after_turn_end_late]
+        combat.run_hook_tasks(tasks)
+        return
     from sts2_env.powers.base import PowerInstance
 
     for owner, power in _iter_power_listeners(combat):
@@ -894,12 +900,9 @@ def fire_before_hand_draw(drawing_owner: Creature, combat: CombatState) -> None:
 
 
 def fire_before_hand_draw_late(drawing_owner: Creature, combat: CombatState) -> None:
-    for owner, power in _iter_power_listeners(combat):
-        if owner is drawing_owner:
-            power.before_hand_draw_late(owner, combat)
-    for owner, relic in _iter_relic_listeners(combat):
-        if owner is drawing_owner:
-            relic.before_hand_draw_late(owner, combat)
+    combat._pending_hand_draw_hooks.extend((owner,power) for owner,power in _iter_power_listeners(combat) if owner is drawing_owner)
+    combat._pending_hand_draw_hooks.extend((owner,relic) for owner,relic in _iter_relic_listeners(combat) if owner is drawing_owner)
+    combat._continue_hand_draw_hooks()
 
 
 def fire_after_player_turn_start(drawing_owner: Creature, combat: CombatState) -> None:

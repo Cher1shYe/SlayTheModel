@@ -28,6 +28,9 @@ def public_from_dict(data):
     from .selection_batch import TurnPayment
     for name,cls in [('generated',CardGeneration),('upgraded',CardUpgrade),('transformed',CardTransformation),('payments',TurnPayment)]:
         history[name]=tuple(cls(**v) for v in history[name])
+    history['public_events']=tuple(tuple(v) for v in history.get('public_events', ()))
+    history['basic_plays']=tuple(tuple(v) for v in history.get('basic_plays', ()))
+    values['basic_statuses']=tuple(tuple(v) for v in values.get('basic_statuses', ()))
     history['ability_plays']=tuple(tuple(v) for v in history.get('ability_plays', ()))
     values['player_abilities']=tuple(tuple(v) for v in values.get('player_abilities', ()))
     history['roster_moves']=tuple(tuple(v) for v in history['roster_moves'])

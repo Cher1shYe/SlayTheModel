@@ -174,8 +174,15 @@ class CombatState:
         self._pending_retain_count: dict[int, int] = {}
         self.pending_choice: PendingCardChoice | None = None
         self._pending_play: dict[str, object] | None = None
+        self._play_continuations: list[dict[str, object]] = []
+        self.visible_card_events: list[tuple] = []
         self._pending_draw: dict[str, object] | None = None
         self._pending_turn_setup: Callable[[], None] | None = None
+        self._pending_turn_cursor: tuple[int, str] | None = None
+        self._pending_hand_draw_hooks = []
+        self._pending_end_turn = False
+        self._pending_end_turn_stage = 'cleanup'
+        self._pending_pile_operation: dict | None = None
         self._end_turn_after_play: bool = False
         self.in_play_phase: bool = False
         self._damage_events_this_turn: list[tuple[Creature | None, Creature, ValueProp]] = []
@@ -762,6 +769,7 @@ class CombatState:
         state.stars = 0
         state.hand.clear()
         for card in state.starting_deck:
+            card.owner = state.creature
             reset_combat_enchantments(card)
         state.draw[:] = list(state.starting_deck)
         state.discard.clear()
@@ -781,6 +789,7 @@ class CombatState:
             if not state.draw or len(state.hand) >= MAX_HAND_SIZE:
                 break
             card = state.draw.pop(0)
+            self.visible_card_events.append(("draw_remove",self._visible_card_token(card),"top",self.turn_count,card.public_state_blob()))
             card.owner = state.creature
             state.hand.append(card)
 
@@ -845,9 +854,18 @@ class CombatState:
 
         fire_before_side_turn_start(CombatSide.PLAYER, self)
         if self.pending_choice is not None:
-            self._pending_turn_setup = self._continue_player_turn_setup
+            self._set_pending_turn_setup(0,"block")
             return
         self._continue_player_turn_setup()
+
+    def _continue_hand_draw_hooks(self) -> None:
+        while self._pending_hand_draw_hooks and self.pending_choice is None and not self.is_over:
+            owner,listener=self._pending_hand_draw_hooks.pop(0)
+            listener.before_hand_draw_late(owner,self)
+
+    def _set_pending_turn_setup(self, index: int, stage: str) -> None:
+        self._pending_turn_cursor = (index, stage)
+        self._pending_turn_setup = lambda: self._continue_player_turn_setup(index, stage)
 
     def _continue_player_turn_setup(self, player_index: int = 0, stage: str = "block") -> None:
         from sts2_env.core.hooks import (
@@ -879,14 +897,14 @@ class CombatState:
 
                     fire_after_energy_reset(self, owner)
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "before_hand_draw")
+                        self._set_pending_turn_setup(player_index,"before_hand_draw")
                         return
                     stage = "before_hand_draw"
 
                 if stage == "before_hand_draw":
                     fire_before_hand_draw(owner, self)
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "card_before_hand_draw")
+                        self._set_pending_turn_setup(player_index,"card_before_hand_draw")
                         return
                     stage = "card_before_hand_draw"
 
@@ -895,7 +913,7 @@ class CombatState:
                     if self.is_over:
                         return
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "before_hand_draw_late")
+                        self._set_pending_turn_setup(player_index,"before_hand_draw_late")
                         return
                     stage = "before_hand_draw_late"
 
@@ -904,7 +922,7 @@ class CombatState:
                     if self.is_over:
                         return
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "draw")
+                        self._set_pending_turn_setup(player_index,"draw")
                         return
                     stage = "draw"
 
@@ -913,7 +931,7 @@ class CombatState:
                     draw_count = self._prepare_opening_draw_for_owner(owner, draw_count)
                     self._draw_cards_for_creature(owner, draw_count, from_hand_draw=True)
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "after_player_turn_start")
+                        self._set_pending_turn_setup(player_index,"after_player_turn_start")
                         return
                     stage = "after_player_turn_start"
 
@@ -922,7 +940,7 @@ class CombatState:
                     if self.is_over:
                         return
                     if self.pending_choice is not None:
-                        self._pending_turn_setup = lambda idx=player_index: self._continue_player_turn_setup(idx, "post_after_player_turn_start")
+                        self._set_pending_turn_setup(player_index,"post_after_player_turn_start")
                         return
                     stage = "post_after_player_turn_start"
 
@@ -1063,6 +1081,10 @@ class CombatState:
             zones["discard"].append(card)
         else:
             raise ValueError(f"Unsupported generated card pile: {pile_name}")
+        self.visible_card_events.append(("generated",self._visible_card_token(card),pile_name,self.turn_count))
+        self.visible_card_events.append(("generated_state",card.public_state_blob(),self.turn_count))
+        if pile_name == "draw":
+            self.visible_card_events.append(("draw_insert",self._visible_card_token(card),"unknown" if random_position else "bottom" if bottom_position else "top",self.turn_count,card.public_state_blob()))
         self._apply_card_after_card_entered_combat(card, owner)
         self._apply_card_after_card_generated_for_combat(card, owner, added_by_player)
 
@@ -1116,8 +1138,16 @@ class CombatState:
         state = self.combat_player_state_for(owner)
         if state is None:
             return
+        mark=len(self.visible_card_events)
         for card in self.unique_cards_in_piles(state.all_piles):
             fire_card_before_card_played(card, played_card, owner, self)
+        changes=self.visible_card_events[mark:]
+        if changes:
+            import json
+            if all(e[0]=='card_state_change' and json.loads(e[1])['token'].removesuffix('+')=='STOMP' for e in changes):
+                # Simultaneous whole-pile cost updates disclose the multiset,
+                # never the traversal order of hidden draw cards.
+                self.visible_card_events[mark:]=sorted(changes)
 
     def _apply_card_after_card_played(self, played_card: CardInstance, owner: Creature) -> None:
         state = self.combat_player_state_for(owner)
@@ -1342,6 +1372,10 @@ class CombatState:
         finally:
             self.in_play_phase = previous_in_play_phase
 
+    @staticmethod
+    def _visible_card_token(card: CardInstance) -> str:
+        return card.card_id.name + ("+" if card.upgraded else "")
+
     def _execute_card_play(
         self,
         card: CardInstance,
@@ -1396,6 +1430,10 @@ class CombatState:
         if not spend_energy:
             energy_value = owner_state.energy if card.has_energy_cost_x else self.modified_card_cost(owner, card)
 
+        parent = self._pending_play
+        parent_frame = {"kind": "play", "context": parent} if parent is not None else None
+        if parent_frame is not None:
+            self._play_continuations.append(parent_frame)
         self._pending_play = {
             "card": card,
             "target": target,
@@ -1407,13 +1445,67 @@ class CombatState:
             "force_exhaust": force_exhaust,
             "is_auto_play": not spend_energy if is_auto_play is None else is_auto_play,
             "awaiting_after_hook": False,
+            "post_draw_effects": [],
         }
         self._resume_pending_play()
+        if self.pending_choice is None and parent_frame is not None:
+            self._play_continuations.remove(parent_frame)
+            self._pending_play = parent if not self.is_over else None
+
+    def after_draw_effect(self, card: CardInstance, effect: tuple) -> None:
+        if self.pending_choice is None:
+            self._run_post_draw_effect(card,effect)
+            return
+        contexts=([self._pending_play] if self._pending_play else [])+[f["context"] for f in self._play_continuations if f["kind"]=="play"]
+        ctx=next(c for c in contexts if c["card"] is card)
+        ctx.setdefault("post_draw_effects",[]).append(effect)
+
+    def _run_post_draw_effect(self, card: CardInstance, effect) -> None:
+        if effect[0]=="power":
+            self.apply_power_to(getattr(card,"owner",None) or self.player,PowerId[effect[1]],effect[2])
+        elif effect[0]=="topdeck_hand":
+            if self.hand:
+                self.request_card_choice(prompt="Choose a hand card to put back on draw pile",cards=list(self.hand),
+                    source_pile="hand",resolver=lambda selected:self.insert_card_into_draw_pile(selected,random_position=False))
+        elif effect[0]=='exhaust_card':self.exhaust_card(effect[1])
+        elif effect[0]=='draw':self.draw_cards(getattr(card,'owner',None) or self.player,effect[1])
+        elif effect[0]=='energy':self.gain_energy(getattr(card,'owner',None) or self.player,effect[1])
+        elif effect[0]=='power_target':
+            target=self.player if effect[1]==-1 else self.enemies[effect[1]]
+            before=target.get_power_amount(PowerId[effect[2]])
+            self.apply_power_to(target,PowerId[effect[2]],effect[3])
+            if card.card_id.name=='BRAND' and effect[1]==-1 and effect[2]=='STRENGTH':
+                self.visible_card_events.append(('brand_strength',target.get_power_amount(PowerId.STRENGTH)-before,self.turn_count))
+        elif effect[0]=='block':
+            from sts2_env.core.damage import calculate_block
+            from sts2_env.core.hooks import fire_after_block_gained
+            owner=getattr(card,'owner',None) or self.player
+            before=owner.block
+            owner.gain_block(calculate_block(effect[1],owner,ValueProp.MOVE,self,card_source=card))
+            if owner.block>before:fire_after_block_gained(owner,owner.block-before,self,ValueProp.MOVE,self.active_card_play_token)
+        elif effect[0]=='damage':
+            from sts2_env.core.damage import calculate_damage,apply_damage
+            owner=getattr(card,'owner',None) or self.player
+            target=self.enemies[effect[1]]
+            if not owner.is_dead and not target.is_dead:
+                apply_damage(target,calculate_damage(effect[2],owner,target,ValueProp.MOVE,self),ValueProp.MOVE,self,owner)
+        else:raise ValueError("Unknown post-draw continuation")
+
+    def run_card_steps(self,card,steps) -> None:
+        """Execute ordered effects and retain the suffix if a nested choice opens."""
+        for index,effect in enumerate(steps):
+            if self.is_over:return
+            if self.pending_choice is not None:
+                for pending in steps[index:]:self.after_draw_effect(card,pending)
+                return
+            self._run_post_draw_effect(card,effect)
 
     def _resume_pending_play(self) -> None:
         from sts2_env.core.hooks import fire_after_card_played, fire_before_card_played
 
         while self._pending_play is not None:
+            if self.pending_choice is not None:
+                return
             ctx = self._pending_play
             card = ctx["card"]
             target = ctx["target"]
@@ -1423,6 +1515,9 @@ class CombatState:
             if ctx["awaiting_after_hook"]:
                 if self.pending_choice is not None:
                     return
+                while ctx.get("post_draw_effects"):
+                    self._run_post_draw_effect(card,ctx["post_draw_effects"].pop(0))
+                    if self.pending_choice is not None:return
                 self._finish_card_play(card, owner)
                 with self.acting_player_view(owner):
                     fire_after_card_played(card, self)
@@ -1450,8 +1545,8 @@ class CombatState:
                     is_auto_play=ctx["is_auto_play"],
                     energy_value=ctx["energy_value"],
                 )
-                self._move_card_to_play_result(owner, card, result)
                 self._pending_play = None
+                self._move_card_to_play_result(owner, card, result)
                 if self._end_turn_after_play and self.current_side == CombatSide.PLAYER and not self.is_over:
                     self._end_turn_after_play = False
                     self.end_player_turn()
@@ -1465,6 +1560,10 @@ class CombatState:
                 CardPlayStartedEntry(card, is_first_in_series, ctx["energy_value"])
             )
             ctx["remaining_plays"] -= 1
+            self.visible_card_events.append(("start", self._visible_card_token(card), self.turn_count,
+                ctx["energy_spent"] if is_first_in_series else 0,
+                self.enemies.index(target) if target in self.enemies else -1, bool(ctx["is_auto_play"])))
+            self.visible_card_events.append(('play_start_meta',self.turn_count,is_first_in_series,ctx['energy_value']))
             previous_card_source = self._active_card_source
             self._active_card_source = card
             try:
@@ -1488,6 +1587,8 @@ class CombatState:
                 return
 
     def _finish_card_play(self, card: CardInstance, owner: Creature) -> None:
+        self.visible_card_events.append(("finish",self._visible_card_token(card),self.turn_count,bool(self.is_over)))
+        if card.is_power:self.visible_card_events.append(("power_removed_state",card.public_state_blob(),self.turn_count))
         self._played_cards_this_turn.append(card)
         self._played_cards_combat.append(card)
         self._card_play_finished_entries_combat.append(
@@ -1515,6 +1616,17 @@ class CombatState:
         if self.is_over:
             return
 
+        if self.pending_choice is not None:
+            self._pending_end_turn = True
+            return
+        self._continue_end_player_turn()
+
+    def _continue_end_player_turn(self) -> None:
+        from sts2_env.core.hooks import fire_after_turn_end
+        if self._pending_end_turn_stage=='finish':
+            self._pending_end_turn_stage='cleanup'
+            self._finish_end_player_turn()
+            return
         for state in self.combat_player_states:
             if state.orb_queue is not None:
                 with self.acting_player_view(state.creature):
@@ -1530,6 +1642,13 @@ class CombatState:
 
         self._cleanup_cards_end_of_turn()
         fire_after_turn_end(CombatSide.PLAYER, self)
+        if self.pending_choice is not None:
+            self._pending_end_turn=True
+            self._pending_end_turn_stage='finish'
+            return
+        self._finish_end_player_turn()
+
+    def _finish_end_player_turn(self) -> None:
         self._apply_card_after_turn_end(CombatSide.PLAYER)
         self._check_combat_end()
         if self.is_over:
@@ -1668,6 +1787,7 @@ class CombatState:
             enemy = enemies[index]
             ai = self.enemy_ais[enemy.combat_id]
             move = ai.current_move
+            self.visible_card_events.append(("enemy_action",self.enemies.index(enemy),self.turn_count))
             move.perform(self)
             if self.pending_choice is not None:
                 self._pending_turn_setup = lambda enemy=enemy, index=index: self._finish_enemy_move_after_choice(enemy, index)
@@ -1736,6 +1856,8 @@ class CombatState:
         if not should_draw(self, owner, from_hand_draw):
             return []
 
+        draw_parent=self._pending_play
+        draw_depth=len(self._play_continuations)
         drawn_cards: list[CardInstance] = []
         remaining = max(0, count)
         while remaining > 0:
@@ -1753,6 +1875,7 @@ class CombatState:
                 break
             remaining -= 1
             card = state.draw.pop(0)
+            self.visible_card_events.append(("draw_remove",self._visible_card_token(card),"top",self.turn_count,card.public_state_blob()))
             setattr(card, "owner", owner)
             state.hand.append(card)
             drawn_cards.append(card)
@@ -1761,6 +1884,13 @@ class CombatState:
             self._apply_card_after_card_drawn_early(card, owner)
             fire_after_card_drawn(card, from_hand_draw, self)
             apply_enchantment_on_card_drawn(card, self, from_hand_draw)
+            if self.pending_choice is not None:
+                if remaining:
+                    pending={"owner":owner,"remaining":remaining,"from_hand_draw":from_hand_draw}
+                    if self._pending_play is not draw_parent:
+                        self._play_continuations.insert(draw_depth+int(draw_parent is not None),dict(kind="draw",**pending))
+                    else:self._pending_draw=pending
+                return drawn_cards
         return drawn_cards
 
     def _resume_pending_draw(self) -> None:
@@ -1784,6 +1914,7 @@ class CombatState:
             state.discard.clear()
             self.shuffle_rng.shuffle(state.draw)
             apply_enchantment_shuffle_order(state.draw, is_initial_shuffle=False)
+            self.visible_card_events.append(("shuffle",len(state.draw),self.turn_count))
             fire_after_shuffle(self, state.creature)
 
     def add_card_to_discard(
@@ -1959,16 +2090,33 @@ class CombatState:
         self.exhaust_from_draw_pile(owner, 1)
 
     def exhaust_from_draw_pile(self, owner: Creature, count: int) -> None:
-        from sts2_env.core.hooks import fire_after_card_exhausted
+        self._continue_pile_operation(dict(kind="exhaust_draw",owner=owner,remaining=max(0,count),cards=[],force_exhaust=False))
 
-        zones = self._zones_for_creature(owner)
-        for _ in range(max(0, count)):
-            self._shuffle_if_needed(owner)
-            if not zones["draw"]:
-                break
-            card = zones["draw"].pop(0)
-            zones["exhaust"].append(card)
-            fire_after_card_exhausted(card, self)
+    def _continue_pile_operation(self, operation: dict) -> None:
+        from sts2_env.core.hooks import fire_after_card_exhausted
+        state=self.combat_player_state_for(operation["owner"])
+        if state is None:return
+        while operation["remaining"]>0 and not self.is_over:
+            self._shuffle_if_needed(operation["owner"])
+            if self.pending_choice is not None:
+                self._pending_pile_operation=operation
+                return
+            if not state.draw:break
+            card=state.draw.pop(0)
+            card.owner=operation["owner"]
+            self.visible_card_events.append(("draw_remove",self._visible_card_token(card),"top",self.turn_count,card.public_state_blob()))
+            operation["remaining"]-=1
+            if operation["kind"]=="exhaust_draw":
+                state.exhaust.append(card)
+                fire_after_card_exhausted(card,self)
+                if self.pending_choice is not None:
+                    self._pending_pile_operation=operation
+                    return
+            else:
+                state.play.append(card)
+                operation["cards"].append(card)
+        if operation["kind"]=="auto_draw":
+            self.auto_play_sequence(operation["cards"],force_exhaust=operation["force_exhaust"])
 
     # ---- Target resolution ----
 
@@ -2263,6 +2411,8 @@ class CombatState:
     ) -> None:
         self._damage_events_this_turn.append((dealer, target, props))
         self._damage_events_combat.append((dealer, target, props, unblocked_damage))
+        if target is self.player:
+            self.visible_card_events.append(("player_damage",self.turn_count,int(props),unblocked_damage))
 
     def count_powered_hits_this_turn(self, dealer: Creature, target: Creature) -> int:
         return sum(
@@ -2361,6 +2511,7 @@ class CombatState:
 
     def record_card_exhausted(self, card: CardInstance) -> None:
         self._exhaust_events_this_turn.append(card)
+        self.visible_card_events.append(("exhaust",self._visible_card_token(card),self.turn_count))
 
     def was_card_exhausted_this_turn(self, owner: Creature) -> bool:
         return any(getattr(card, "owner", None) is owner for card in self._exhaust_events_this_turn)
@@ -2528,13 +2679,24 @@ class CombatState:
             self.pending_choice = None
             choice.resolver(selected_cards)
 
+        if self.pending_choice is None and self._pending_pile_operation is not None:
+            operation=self._pending_pile_operation
+            self._pending_pile_operation=None
+            self._continue_pile_operation(operation)
         if self.pending_choice is None and self._pending_draw is not None:
             self._resume_pending_draw()
         if self.pending_choice is None and self._pending_play is not None:
             self._resume_pending_play()
+        self._resume_play_continuations()
+        if self.pending_choice is None:
+            self._continue_hand_draw_hooks()
+        if self.pending_choice is None and self._pending_end_turn and not self.is_over:
+            self._pending_end_turn = False
+            self._continue_end_player_turn()
         if self.pending_choice is None and self._pending_turn_setup is not None:
             pending_setup = self._pending_turn_setup
             self._pending_turn_setup = None
+            self._pending_turn_cursor = None
             pending_setup()
         self._check_combat_end()
         return True
@@ -2576,6 +2738,8 @@ class CombatState:
             max_count=required,
             owner=owner,
         )
+        if self.pending_choice is not None:
+            self.pending_choice.mechanism = "STRATAGEM"
 
     def stable_shuffle_cards(self, cards: list[CardInstance], rng: Rng) -> None:
         cards.sort(key=lambda card: (card.card_id.name, card.upgraded))
@@ -2652,6 +2816,7 @@ class CombatState:
             zones["draw"].insert(insert_at, card)
         else:
             zones["draw"].insert(0, card)
+        self.visible_card_events.append(("draw_insert",self._visible_card_token(card),"unknown" if random_position else "top",self.turn_count,card.public_state_blob()))
         if not was_in_combat:
             self._apply_card_after_card_entered_combat(card, creature)
 
@@ -2659,6 +2824,8 @@ class CombatState:
         for state in self.combat_player_states:
             for pile in state.all_piles:
                 if card in pile:
+                    if pile is state.draw:
+                        self.visible_card_events.append(("draw_remove",self._visible_card_token(card),"unknown",self.turn_count,card.public_state_blob()))
                     pile.remove(card)
                     return
 
@@ -2699,6 +2866,8 @@ class CombatState:
         if not upgraded.upgraded:
             return card
 
+        previous_state=card.public_state_blob()
+        prior_token = self._visible_card_token(card)
         current_cost = card.cost
         had_turn_override = "_turn_cost_override" in card.combat_vars
         card.card_type = upgraded.card_type
@@ -2721,7 +2890,14 @@ class CombatState:
             card.cost = current_cost
         else:
             card.cost = upgraded.cost
-        restore_self_mutating_card_progress(card, progress)
+        self._suppress_card_state_events=True
+        try:
+            restore_self_mutating_card_progress(card, progress)
+        finally:
+            self._suppress_card_state_events=False
+        card.log_public_state_change(previous_state)
+        if self._is_card_in_combat(card):
+            self.visible_card_events.append(("upgrade",prior_token,self._visible_card_token(card),self.turn_count))
         return card
 
     def transform_card(self, old_card: CardInstance | None, new_card: CardInstance | None) -> CardInstance | None:
@@ -2744,6 +2920,8 @@ class CombatState:
         owner = getattr(old_card, "owner", None) or self.primary_player
         new_card.owner = owner
         target_pile[target_index] = new_card
+        self.visible_card_events.append(("transform",self._visible_card_token(old_card),self._visible_card_token(new_card),self.turn_count))
+        self.visible_card_events.append(("card_state_change",old_card.public_state_blob(),new_card.public_state_blob(),self.turn_count))
         self._generated_cards_combat.append((owner, True))
         self._apply_card_after_card_entered_combat(new_card, owner)
         self._apply_card_after_card_generated_for_combat(new_card, owner, True)
@@ -3020,6 +3198,8 @@ class CombatState:
             self._check_combat_end()
             return True
         creature._death_processed = True
+        if creature in self.enemies:
+            self.visible_card_events.append(("enemy_knockout",self.enemies.index(creature),creature.max_hp,self.turn_count))
         should_remove_power: dict[PowerId, bool] = {}
         should_remove_creature = True
         original_powers = list(creature.powers.values())
@@ -3517,26 +3697,83 @@ class CombatState:
         self._end_turn_after_play = True
 
     def auto_play_from_draw(self, owner: Creature, count: int, *, force_exhaust: bool = False) -> None:
-        state = self.combat_player_state_for(owner)
-        if state is None or count <= 0 or self.is_over:
-            return
+        if count>0 and not self.is_over:
+            self._continue_pile_operation(dict(kind="auto_draw",owner=owner,remaining=count,cards=[],force_exhaust=force_exhaust))
 
-        cards: list[CardInstance] = []
-        for _ in range(max(0, count)):
-            self._shuffle_if_needed(owner)
-            if not state.draw:
-                break
-            card = state.draw.pop(0)
-            card.owner = owner
-            state.play.append(card)
-            cards.append(card)
-
-        for card in cards:
+    def auto_play_sequence(self, cards: list[CardInstance], *, force_exhaust: bool = False, random_targets: bool = False, limit: int | None = None) -> None:
+        """Preserve the remaining public auto-play batch across a choice."""
+        depth = len(self._play_continuations)
+        parent = self._pending_play
+        count=len(cards) if limit is None else min(limit,len(cards))
+        for index, card in enumerate(cards[:count]):
             if self.is_over:
                 break
-            self.auto_play_card(card, force_exhaust=force_exhaust)
+            target=self.random_enemy_of(getattr(card,"owner",None) or self.player) if random_targets and card.target_type==TargetType.ANY_ENEMY else None
+            self.auto_play_card(card, target=target, force_exhaust=force_exhaust)
             if self.pending_choice is not None:
-                break
+                remaining = cards[index + 1:]
+                if remaining and index+1<count:
+                    self._play_continuations.insert(depth + int(parent is not None),
+                        ({"kind":"random_batch","cards":remaining,"remaining":count-index-1} if limit is not None else
+                         {"kind": "auto_batch", "cards": remaining, "force_exhaust": force_exhaust, "random_targets":random_targets}))
+                return
+
+    def run_hook_tasks(self,tasks) -> None:
+        """Suspend listener order around a nested selection without callbacks."""
+        depth=len(self._play_continuations);parent=self._pending_play
+        for index,(owner,listener,method,args) in enumerate(tasks):
+            if method=='after_turn_end_late' and owner.powers.get(listener.power_id) is not listener:continue
+            getattr(listener,method)(owner,*args,self)
+            if method=='after_turn_end':
+                from sts2_env.powers.base import PowerInstance
+                side=args[0]
+                used=type(listener).after_turn_end is not PowerInstance.after_turn_end
+                if side==CombatSide.ENEMY and not used and type(listener).on_turn_end_enemy_side is not PowerInstance.on_turn_end_enemy_side:
+                    listener.on_turn_end_enemy_side(owner);used=True
+                empty=listener.amount==0 if listener.allow_negative else listener.amount<=0
+                if used and empty and owner.powers.get(listener.power_id) is listener:self._remove_power(owner,listener.power_id)
+            if self.pending_choice is not None and index+1<len(tasks):
+                if parent is not None and self._pending_play is parent:
+                    self._play_continuations.insert(depth,dict(kind='play',context=parent))
+                    self._pending_play=None
+                self._play_continuations.insert(depth+int(parent is not None),dict(kind='hooks',tasks=tasks[index+1:]))
+                return
+
+    def _resume_play_continuations(self) -> None:
+        while self._play_continuations and self.pending_choice is None and not self.is_over:
+            frame = self._play_continuations.pop()
+            if frame["kind"] == "play":
+                self._pending_play = frame["context"]
+                self._resume_pending_play()
+            elif frame["kind"] == "auto_batch":
+                self.auto_play_sequence(frame["cards"], force_exhaust=frame["force_exhaust"],random_targets=frame["random_targets"])
+            elif frame['kind']=='random_batch':
+                self.auto_play_sequence(frame['cards'],random_targets=True,limit=frame['remaining'])
+            elif frame['kind']=='hooks':self.run_hook_tasks(frame['tasks'])
+            elif frame["kind"]=="draw":
+                self._draw_cards_for_creature(frame["owner"],frame["remaining"],from_hand_draw=frame["from_hand_draw"])
+            elif frame["kind"] in ("random_draw","random_hand_attack"):
+                self.auto_play_repeated(frame["kind"],frame["remaining"])
+            else:
+                raise RuntimeError("Unknown card execution continuation")
+
+    def auto_play_repeated(self, kind: str, count: int) -> None:
+        depth=len(self._play_continuations)
+        parent=self._pending_play
+        for index in range(max(0,count)):
+            if self.is_over:break
+            if kind=="random_hand_attack":
+                self.auto_play_random_attack_from_hand(self.player)
+            elif kind=="random_draw":
+                candidates=[c for c in self.draw_pile if not c.is_unplayable] or list(self.draw_pile)
+                if not candidates:break
+                self.stable_shuffle_cards(candidates,self.shuffle_rng)
+                self.auto_play_card(candidates[0])
+            else:raise ValueError("Unknown auto-play source")
+            if self.pending_choice is not None:
+                if index+1<count:
+                    self._play_continuations.insert(depth+int(parent is not None),{"kind":kind,"remaining":count-index-1})
+                return
 
     def auto_play_random_attack_from_hand(self, owner: Creature) -> bool:
         state = self.combat_player_state_for(owner)
@@ -3816,10 +4053,13 @@ class CombatState:
         self.auto_play_card(card)
 
     def _cleanup_cards_end_of_turn(self) -> None:
+        mark=len(self.visible_card_events)
         for state in self.combat_player_states:
             for pile in state.all_piles:
                 for card in pile:
                     card.end_of_turn_cleanup()
+        changes=self.visible_card_events[mark:]
+        if all(e[0]=='card_state_change' for e in changes):self.visible_card_events[mark:]=sorted(changes)
 
     def _has_turn_end_in_hand_effect(self, card: CardInstance) -> bool:
         return card.has_turn_end_in_hand_effect

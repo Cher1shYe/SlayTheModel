@@ -151,8 +151,9 @@ class DarkEmbracePower(PowerInstance):
         if side != CombatSide.PLAYER:
             return
         if self._ethereal_exhaust_count > 0:
-            combat.draw_cards(owner, self.amount * self._ethereal_exhaust_count)
+            count=self.amount*self._ethereal_exhaust_count
             self._ethereal_exhaust_count = 0
+            combat.draw_cards(owner,count)
 
 
 # ---------------------------------------------------------------------------
@@ -282,14 +283,18 @@ class RupturePower(PowerInstance):
         if card is not None and id(card) in self._pending_by_card:
             self._pending_by_card[id(card)] += self.amount
             return
+        before=owner.get_power_amount(PowerId.STRENGTH)
         owner.apply_power(PowerId.STRENGTH, self.amount)
+        combat.visible_card_events.append(('rupture_strength',owner.get_power_amount(PowerId.STRENGTH)-before,combat.turn_count))
 
     def after_card_played(self, owner: Creature, card: object, combat: CombatState) -> None:
         if getattr(card, "owner", None) is not owner:
             return
         amount = self._pending_by_card.pop(id(card), 0)
         if amount > 0:
+            before=owner.get_power_amount(PowerId.STRENGTH)
             owner.apply_power(PowerId.STRENGTH, amount)
+            combat.visible_card_events.append(('rupture_strength',owner.get_power_amount(PowerId.STRENGTH)-before,combat.turn_count))
 
 
 # ---------------------------------------------------------------------------

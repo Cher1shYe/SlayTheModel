@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from .card_state import PublicCardState
 
 CHOICE_STATE_VERSION = "az-public-choice-v1"
-VISIBLE_PILES = ("hand", "discard", "exhaust")
+VISIBLE_PILES = ("hand", "discard", "exhaust", "revealed")
 
 
 @dataclass(frozen=True)

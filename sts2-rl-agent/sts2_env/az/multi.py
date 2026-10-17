@@ -173,7 +173,7 @@ def validate_enemies(info):
         if info.shrink != expected_shrink:
             raise ValueError("Invalid Shrink lifecycle")
     target = info.history.pending_target
-    if info.choice and info.pending_card.token.removesuffix("+") == "HEADBUTT":
+    if info.choice and info.pending_card and info.pending_card.token.removesuffix("+") == "HEADBUTT":
         if type(target) is not int or not 0 <= target < len(info.enemies):
             raise ValueError("Headbutt continuation lost its public target")
     elif target is not None:

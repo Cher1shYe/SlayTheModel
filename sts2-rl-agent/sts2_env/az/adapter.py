@@ -180,6 +180,7 @@ class ObservableCombatAdapter(CombatAdapter):
         self.public_initial = ((deck_tokens(recipe.deck), tuple(e[1] for e in self.initial_roster)
                                if recipe.content_manifest_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else self.enemy_initial_hp)
                                if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ((), None))
+        self.world.visible_card_events = []  # Initial hand is already represented in the initial public state.
         self._information = observe(self.world, PublicHistory(), self.limits, recipe.player_hp, self.reward_version,
                                     recipe.content_manifest_version, *self.public_initial)
 

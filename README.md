@@ -1,3 +1,13 @@
+## 最新机制接入：战士／无色状态、续接与原生生成池（2026-10-17）
+
+本批新增 **50 张及升级版**，累计 **120/151**（战士 **83/87**、无色 **37/64**），剩余 **31**。补齐基础状态、选择后的结算、检索与牌堆消耗、嵌套自动打出、触发能力、实例成长，以及实体编码、动态动作和 MCTS 重建。
+
+战士原生战斗候选 **79 个全部闭合**；Jackpot、Infernal Blade、Discovery、Calamity 保留完整原生池。**Splash、Jack of All Trades、Entropy 暂缓**，后两者依赖含 Splash 的无色生成／变换池，不做支持性裁剪。
+
+[本批报告](sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_FOUNDATION.md) · [逐牌清单](sts2-rl-agent/docs/IRONCLAD_COLORLESS_COVERAGE.md) · [原生池审计](sts2-rl-agent/docs/ironclad_colorless_generation_pools.json) · [测试证据](sts2-rl-agent/docs/ironclad_colorless_foundation_evidence.json)
+
+必要测试 **5,111 项全部通过**，失败／错误／跳过均为 0；源码稳定、用例无遗漏和证据摘要校验通过。V4 内容／schema 与旧权重和 Replay 不直接兼容。没有启动训练或使用最终留出；后续继续按实际 network 整场 V7 效用验收。本批只验证工程机制，不宣称策略效用提升。下一步盘点剩余 31 张的独立机制，战士剩余 Corruption、Demonic Shield、Feed、Tank。下文为历史进度。
+
 ## 最新机制接入：战士／无色即时效果与公开计数（2026-10-17）
 
 本批新增 **20 张及升级版**，累计 **70/151**（战士 50、无色 20），待接入 **81**。覆盖普通消耗、抽牌、随机攻击、X 费、先天、公开条件伤害／格挡，以及 Battle Trance／Stone Armor；同步补齐实体编码、动态合法动作和 MCTS 重建。

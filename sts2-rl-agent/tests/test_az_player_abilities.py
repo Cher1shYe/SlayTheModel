@@ -148,8 +148,8 @@ def test_ethereal_burn_plating_order_controls_boss_wounds_and_risk():
     before = N(monster_id=MONSTER, boss=N(phase=N(cursor=(1,'alive',CLAW,0))),
         player_block=2, player_hp=80, player_vulnerable=0, enemy_strength=0,
         player_abilities=(('PLATING',7),('FEEL_NO_PAIN',3)), hand=('DAZED','BURN'),
-        content_version=EXPANSION_CONTENT, intent=('ATTACK',8,2),
-        enemies=(N(hp=100,reviving=False,intent=('ATTACK',8,2),strength=0),))
+        content_version=EXPANSION_CONTENT, intent=('ATTACK',8,2),basic_statuses=(),
+        enemies=(N(hp=100,reviving=False,intent=('ATTACK',8,2),strength=0,slot=0,vulnerable=0),))
     assert block_before_enemy(before) == 10  # 2 + 7 + 3 - 2
     assert generation_after(before, False, 1)[0].count == 1
     assert public_risk(before) == 6/80

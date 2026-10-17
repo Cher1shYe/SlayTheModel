@@ -22,17 +22,31 @@ OPS += ('damage_per_finished_attack','energy_per_hand_attack','damage_per_strike
         'exhaust_hand','damage_per_exhausted_hand','exhaust_nonattacks_with_block','draw_per_exhausted_hand',
         'require_exhaust_count','no_draw','innate','block_from_damage_result','damage_per_draw_card',
         'splash_damage_result','damage_per_debuff_type','strike_tag')
+OPS += ('weak','temporary_strength','dexterity','vulnerable_multiplier_bonus','vulnerable_attacker_mitigation','duration','no_block','vigor','max_energy')
+OPS += ('choose_draw_type','reveal_random_draw','choose_to_hand','exhaust_draw_top','retrieve_rarity','rarity')
+OPS += ('auto_play_draw','force_exhaust_played','retrieve_upgrade_attacks','auto_play_self','auto_play_random_draw','auto_play_discard_attacks','random_target','auto_play_drawn_strikes','auto_play_hand_attack','damage_per_received_hit','generate_character_zero_cost','upgrade_generated','grow_self_damage','random_exhaust_attack','grow_from_exhausted_damage')
+OPS += ('draw_on_vulnerable','generate_character_attack')
+OPS += ('choose_generated_character',)
+OPS += ('resume_exhaust_hook','resume_turn_end_hook','resume_turn_end_late_hook','finish_end_turn')
+OPS += ('strength_on_hp_loss','deferred_strength','double_first_block','block_gain_event')
+OPS += ('copy_third_attack','replay_attack','block_unpowered','damage_all_on_hp_loss')
+OPS += ('resume_draw','resume_end_turn','resume_exhaust_draw','resume_auto_draw','resume_random_batch',
+        'resume_block','resume_before_hand_draw','resume_card_before_hand_draw','resume_before_hand_draw_late',
+        'resume_after_player_turn_start','resume_post_after_player_turn_start','resume_post_draw_power','resume_post_draw_topdeck')
+OPS += ('retaliate_attack','damage_on_applier_block','free_attack','damage_random_on_block')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
-TARGETS += ('random_enemy','other_enemies')
+TARGETS += ('random_enemy','other_enemies','draw','exhaust')
 TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_turn',
            'outgoing_powered_attack', 'incoming_powered_attack', 'enemy_turn_end', 'applier_death')
 TIMINGS += ('after_play', 'turn_end_hand', 'before_attack_play', 'generated_card', 'generated_on_play',
             'generated_after_play', 'on_skill_play', 'on_card_play', 'on_unblocked_hit', 'on_death', 'turn_start')
 TIMINGS += ('player_turn_end', 'after_attack_play', 'on_exhaust', 'powered_card_block')
 TIMINGS += ('after_play_damage','after_exhaust','playability','outside_hand_draw','opening_hand')
+TIMINGS += ('after_choice','before_side_turn_start','before_hand_draw_late','after_shuffle','before_hand_draw','on_draw')
+TIMINGS += ('after_block',)
 CONDITIONS = ('always', 'hand_empty', 'phase0', 'phase1', 'phase2', 'alive', 'if_hand_nonempty', 'unupgraded', 'reviving')
-CONDITIONS += ('target_vulnerable', 'target_alive','exhausted_this_turn','combat_active','no_attacks_in_hand')
+CONDITIONS += ('target_vulnerable', 'target_alive','exhausted_this_turn','combat_active','no_attacks_in_hand','player_damaged_this_turn')
 
 
 @dataclass(frozen=True)
@@ -80,7 +94,7 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'ironclad-colorless-mechanics-v3'
+REGISTRY_VERSION = 'ironclad-colorless-mechanics-v4'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},

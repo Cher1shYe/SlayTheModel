@@ -55,7 +55,8 @@ SUMMON_CODEC = CardStateCodec({**MORPH_CODEC.factories, "DAZED": make_dazed}, MO
 
 
 def allowed_choices(content):
-    return (("TRUE_GRIT+", "BURNING_PACT", "BURNING_PACT+")
+    from .extended_choices import CHOICES
+    return (tuple(t+s for t in CHOICES for s in ("","+")) if content == EXPANSION_CONTENT else ()) + (("TRUE_GRIT+", "BURNING_PACT", "BURNING_PACT+")
             + (("ARMAMENTS",) if content in (UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ())
             + (("PURITY", "PURITY+") if content in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ())
             + (("HEADBUTT", "HEADBUTT+") if content in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ()))
@@ -77,12 +78,18 @@ def observe_choice(world, content_version=G1_CONTENT):
     CODEC = codec_for(content_version)
     if world.pending_choice is None:
         return None, None
-    if len(world.play_pile) != 1:
+    if content_version == EXPANSION_CONTENT and world.pending_choice.mechanism == "STRATAGEM":
+        from .power_choices import capture
+        return capture(world,CODEC)
+    if len(world.play_pile) != 1 and content_version != EXPANSION_CONTENT:
         raise ValueError("G1 requires one publicly pending card")
-    card = CODEC.capture(world.play_pile[0])
+    card = CODEC.capture(world._pending_play["card"] if content_version == EXPANSION_CONTENT and world._pending_play else world.play_pile[0])
     from .actions import action_size
     if card.token not in allowed_choices(content_version):
         raise ValueError("Unaudited choice continuation")
+    from .extended_choices import CHOICES, observe_choice as capture_extended
+    if content_version == EXPANSION_CONTENT and card.token.removesuffix("+") in CHOICES:
+        return capture_extended(world,CODEC)
     is_discard = card.token.removesuffix("+") == "HEADBUTT"
     pile_name, pile = ("discard", world.discard_pile) if is_discard else ("hand", world.hand)
     choice = capture_choice(world.pending_choice, {pile_name: pile}, CODEC,
@@ -99,6 +106,12 @@ def restore_continuation(world, info):
     CODEC = codec_for(info.content_version)
     if info.choice is None:
         return
+    if info.choice.mechanism == "power:STRATAGEM":
+        from .power_choices import restore
+        return restore(world,info,CODEC)
+    from .extended_choices import CHOICES, restore as restore_extended
+    if info.content_version == EXPANSION_CONTENT and info.pending_card.token.removesuffix("+") in CHOICES:
+        return restore_extended(world,info)
     card = CODEC.restore(info.pending_card)
     card.owner = world.player
     paid = info.history.payments[-1].energy if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else card.cost
@@ -108,6 +121,9 @@ def restore_continuation(world, info):
     cards = info.choice.bind_options({"hand": world.hand, "discard": world.discard_pile}, CODEC, action_size(info.content_version))
 
     def resolve(selected):
+        if card.card_id.name=='BURNING_PACT':
+            world.run_card_steps(card,([('exhaust_card',selected)] if selected is not None else [])+[('draw',card.effect_vars['cards'])])
+            return
         if selected is not None:
             if card.card_id.name == "HEADBUTT":
                 world.insert_card_into_draw_pile(selected, random_position=False)
@@ -115,12 +131,10 @@ def restore_continuation(world, info):
                 world.upgrade_card(selected)
             else:
                 world.exhaust_card(selected)
-        if card.card_id.name == "BURNING_PACT":
-            world.draw_cards(world.player, card.effect_vars["cards"])
 
     if card.card_id.name == "PURITY":
         world.request_multi_card_choice(prompt="Resolve public multi choice", cards=cards,
-            source_pile="hand", resolver=lambda selected: [world.exhaust_card(c) for c in selected],
+            source_pile="hand", resolver=lambda selected: world.run_card_steps(card,[('exhaust_card',c) for c in selected]),
             min_count=info.choice.min_choices, max_count=info.choice.max_choices, allow_skip=info.choice.allow_skip)
         world.pending_choice.selected_indices = set(info.choice.selected)
     else:

@@ -27,6 +27,11 @@ def restore_token(token, history):
 
 
 def validate_state(state, history):
+    if state.version=='az-public-card-state-v2':
+        # V4 individual faces, including generated Stomps, are verified against
+        # the full public event inventory by card_memory.validate.
+        if state.single_turn_retain:raise ValueError('Granted retain is not admitted')
+        return state
     expected = max(0, 3 - attack_count(history)) if attack_count(history) else None
     if state.token.removesuffix("+") != "STOMP":
         expected = None

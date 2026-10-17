@@ -432,7 +432,7 @@ def _validate_dazed(info):
     if len(events) != eye_distract_count(info.enemies):
         raise ValueError("Dazed ledger disagrees with the public Eye move history")
     target = info.history.pending_target
-    if info.choice and info.pending_card.token.removesuffix("+") == "HEADBUTT":
+    if info.choice and info.pending_card and info.pending_card.token.removesuffix("+") in ("HEADBUTT","SEEKER_STRIKE"):
         if type(target) is not int or not 0 <= target < len(info.enemies):
             raise ValueError("Headbutt continuation lost its public target")
     elif target is not None:

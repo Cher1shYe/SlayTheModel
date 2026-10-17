@@ -1019,10 +1019,7 @@ class StampedePower(PowerInstance):
     def before_turn_end(self, owner: Creature, side: CombatSide, combat: CombatState) -> None:
         if side != owner.side:
             return
-        auto_play = getattr(combat, "auto_play_random_attack_from_hand", None)
-        if auto_play is not None:
-            for _ in range(self.amount):
-                auto_play(owner)
+        combat.auto_play_repeated("random_hand_attack", self.amount)
 
 
 # ---------------------------------------------------------------------------

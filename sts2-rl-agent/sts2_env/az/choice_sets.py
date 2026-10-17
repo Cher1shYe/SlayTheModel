@@ -35,7 +35,7 @@ def public_choice_mask(choice, codec, content):
 def is_set_choice(world, content):
     from .content import SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
     return (content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and world.pending_choice is not None
-            and len(world.play_pile) == 1 and world.play_pile[0].card_id.name == "PURITY")
+            and world._pending_play is not None and world._pending_play["card"].card_id.name == "PURITY")
 
 
 def resolve_choice(world, action, content):

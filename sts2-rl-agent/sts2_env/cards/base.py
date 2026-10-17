@@ -47,15 +47,19 @@ def _reference_card_base_values(card_id: CardId, upgraded: bool) -> tuple[int | 
 
 
 def increase_base_damage(card: CardInstance, amount: int) -> None:
+    previous=card.public_state_blob()
     card.base_damage = (card.base_damage or 0) + amount
     if "damage" in card.effect_vars:
         card.effect_vars["damage"] += amount
+    card.log_public_state_change(previous)
 
 
 def increase_base_block(card: CardInstance, amount: int) -> None:
+    previous=card.public_state_blob()
     card.base_block = (card.base_block or 0) + amount
     if "block" in card.effect_vars:
         card.effect_vars["block"] += amount
+    card.log_public_state_change(previous)
 
 
 def capture_self_mutating_card_progress(card: CardInstance) -> dict[str, int]:
@@ -413,12 +417,32 @@ class CardInstance:
     def energy_cost(self, value: int) -> None:
         self.cost = value
 
+    def public_state_blob(self) -> str:
+        """Card face/lifecycle data only; excludes owner, instance identity and RNG."""
+        import json
+        return json.dumps(dict(token=self.card_id.name+("+" if self.upgraded else ""),cost=self.cost,
+            original_cost=self.original_cost,base_damage=self.base_damage,base_block=self.base_block,
+            effect_vars=sorted(self.effect_vars.items()),turn_cost=self.combat_vars.get("_turn_cost_override"),
+            single_turn_retain=self.single_turn_retain,turn_star_cost=self.combat_vars.get('_turn_star_cost_override'),
+            is_clone=bool(self.combat_vars.get('_is_clone',0))),sort_keys=True,separators=(",",":"))
+
+    def log_public_state_change(self, previous: str) -> None:
+        world=getattr(getattr(self,"owner",None),"combat_state",None)
+        current=self.public_state_blob()
+        if (world is not None and not getattr(world,"_suppress_card_state_events",False)
+            and world._is_card_in_combat(self) and previous!=current):
+            world.visible_card_events.append(("card_state_change",previous,current,world.turn_count))
+
     def set_temporary_cost_for_turn(self, cost: int) -> None:
+        previous=self.public_state_blob()
         self.combat_vars["_turn_cost_override"] = cost
         self.cost = cost
+        self.log_public_state_change(previous)
 
     def set_temporary_star_cost_for_turn(self, cost: int) -> None:
+        previous=self.public_state_blob()
         self.combat_vars["_turn_star_cost_override"] = cost
+        self.log_public_state_change(previous)
 
     def set_temporary_free_this_turn(self) -> None:
         self.set_temporary_cost_for_turn(0)
@@ -489,6 +513,7 @@ class CardInstance:
         return modify_card_rest_site_options(self, owner, options, run_state)
 
     def end_of_turn_cleanup(self) -> None:
+        previous=self.public_state_blob()
         self.single_turn_retain = False
         self.bound = False
         if self.combat_vars.get("_affliction") == "bound":
@@ -498,6 +523,7 @@ class CardInstance:
             self.combat_vars.pop("_turn_cost_override", None)
             self.cost = self.original_cost if self.original_cost is not None else self.cost
         self.combat_vars.pop("_turn_star_cost_override", None)
+        self.log_public_state_change(previous)
 
     def __repr__(self) -> str:
         name = self.card_id.name

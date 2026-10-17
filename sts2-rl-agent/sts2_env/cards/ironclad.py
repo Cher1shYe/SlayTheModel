@@ -589,8 +589,7 @@ def thunderclap(card: CardInstance, combat: CombatState, target: Creature | None
     for enemy in list(combat.hittable_enemies):
         damage = calculate_damage(card.base_damage, owner, enemy, ValueProp.MOVE, combat)
         apply_damage(enemy, damage, ValueProp.MOVE, combat, owner)
-    for enemy in list(combat.hittable_enemies):
-        combat.apply_power_to(enemy, PowerId.VULNERABLE, vuln)
+    combat.run_card_steps(card,[("power_target",combat.enemies.index(enemy),"VULNERABLE",vuln) for enemy in combat.hittable_enemies])
 
 
 def make_thunderclap(upgraded: bool = False) -> CardInstance:
@@ -722,7 +721,7 @@ def make_ashen_strike(upgraded: bool = False) -> CardInstance:
 def battle_trance(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     draw = card.effect_vars.get("cards", 3)
     _draw_cards(combat, draw)
-    combat.apply_power_to(_owner(card, combat), PowerId.NO_DRAW, 1)
+    combat.after_draw_effect(card,("power","NO_DRAW",1))
 
 
 def make_battle_trance(upgraded: bool = False) -> CardInstance:
@@ -797,9 +796,7 @@ def burning_pact(card: CardInstance, combat: CombatState, target: Creature | Non
         return
 
     def _resolver(selected: CardInstance | None) -> None:
-        if selected is not None:
-            combat.exhaust_card(selected)
-        _draw_cards(combat, card.effect_vars.get("cards", 2), owner)
+        combat.run_card_steps(card,([("exhaust_card",selected)] if selected is not None else [])+[("draw",card.effect_vars.get("cards",2))])
 
     combat.request_card_choice(
         prompt="Choose a hand card to exhaust",
@@ -890,7 +887,10 @@ def dominate(card: CardInstance, combat: CombatState, target: Creature | None) -
     strength_per = card.effect_vars.get("strength_per_vulnerable", 1)
     vuln = target.get_power_amount(PowerId.VULNERABLE)
     if vuln > 0:
-        combat.apply_power_to(_owner(card, combat), PowerId.STRENGTH, strength_per * vuln)
+        owner = _owner(card, combat)
+        previous = owner.get_power_amount(PowerId.STRENGTH)
+        combat.apply_power_to(owner, PowerId.STRENGTH, strength_per * vuln)
+        combat.visible_card_events.append(("dominate_strength",owner.get_power_amount(PowerId.STRENGTH)-previous,combat.turn_count))
 
 
 def make_dominate(upgraded: bool = False) -> CardInstance:
@@ -913,7 +913,7 @@ def make_dominate(upgraded: bool = False) -> CardInstance:
 def drum_of_battle(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     draw = card.effect_vars.get("cards", 2)
     _draw_cards(combat, draw)
-    combat.apply_power_to(_owner(card, combat), PowerId.DRUM_OF_BATTLE, card.effect_vars.get("drum_of_battle_power", 1))
+    combat.after_draw_effect(card,("power","DRUM_OF_BATTLE",card.effect_vars.get("drum_of_battle_power",1)))
 
 
 def make_drum_of_battle(upgraded: bool = False) -> CardInstance:
@@ -1348,18 +1348,7 @@ def second_wind(card: CardInstance, combat: CombatState, target: Creature | None
     # Exhaust all non-attack cards from hand, gain block for each
     to_exhaust = [c for c in combat.hand if not c.is_attack]
     owner = _owner(card, combat)
-    for c in to_exhaust:
-        combat.exhaust_card(c)
-        if combat.is_over:
-            return
-        block = calculate_block(block_per, owner, ValueProp.MOVE, combat, card_source=card)
-        before = owner.block
-        owner.gain_block(block)
-        gained = owner.block - before
-        if gained > 0:
-            from sts2_env.core.hooks import fire_after_block_gained
-
-            fire_after_block_gained(owner, gained, combat, ValueProp.MOVE, combat.active_card_play_token)
+    combat.run_card_steps(card,[step for c in to_exhaust for step in (("exhaust_card",c),("block",block_per))])
 
 
 def make_second_wind(upgraded: bool = False) -> CardInstance:
@@ -1648,13 +1637,11 @@ def brand(card: CardInstance, combat: CombatState, target: Creature | None) -> N
     if combat.is_over:
         return
     if not combat.hand:
-        combat.apply_power_to(_owner(card, combat), PowerId.STRENGTH, card.effect_vars.get("strength", 1))
+        combat.run_card_steps(card,[("power_target",-1,"STRENGTH",card.effect_vars.get("strength",1))])
         return
 
     def _resolver(selected):
-        if selected is not None:
-            combat.exhaust_card(selected)
-        combat.apply_power_to(_owner(card, combat), PowerId.STRENGTH, card.effect_vars.get("strength", 1))
+        combat.run_card_steps(card,([("exhaust_card",selected)] if selected is not None else [])+[("power_target",-1,"STRENGTH",card.effect_vars.get("strength",1))])
 
     combat.request_card_choice(
         prompt="Choose a hand card to exhaust",
@@ -1872,13 +1859,7 @@ def fiend_fire(card: CardInstance, combat: CombatState, target: Creature | None)
     assert target is not None
     owner = _owner(card, combat)
     cards_to_exhaust = list(combat.hand)
-    for c in cards_to_exhaust:
-        combat.exhaust_card(c)
-    for _ in range(len(cards_to_exhaust)):
-        if owner.is_dead or target.is_dead:
-            break
-        damage = calculate_damage(card.base_damage, owner, target, ValueProp.MOVE, combat)
-        apply_damage(target, damage, ValueProp.MOVE, combat, owner)
+    combat.run_card_steps(card,[("exhaust_card",c) for c in cards_to_exhaust]+[("damage",combat.enemies.index(target),card.base_damage)]*len(cards_to_exhaust))
 
 
 def make_fiend_fire(upgraded: bool = False) -> CardInstance:
@@ -2098,9 +2079,7 @@ def make_pyre(upgraded: bool = False) -> CardInstance:
 @register_effect(CardId.STOKE)
 def stoke(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     count = len(combat.hand)
-    for hand_card in list(combat.hand):
-        combat.exhaust_card(hand_card)
-    _draw_cards(combat, count)
+    combat.run_card_steps(card,[("exhaust_card",c) for c in list(combat.hand)]+[("draw",count)])
 
 
 def make_stoke(upgraded: bool = False) -> CardInstance:

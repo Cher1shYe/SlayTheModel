@@ -17,9 +17,14 @@ NUMERIC_FIELDS += ('strength','slow','territorial','artifact','illusion','minion
     'phase','claws','intangible','nemesis','enrage','adaptable','painful_stabs','known_position',
     'choice_min','choice_max','choice_skip','choice_selected','choice_option','pending_target',
     'pending_energy','remaining_forms_hp','roar_used','last_stage')
-NUMERIC_FIELDS += ('exhausted_this_turn',)
-KINDS = ('state', 'player', 'enemy', 'card', 'choice')
-ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending')
+NUMERIC_FIELDS += ('exhausted_this_turn','execution_depth','execution_remaining','execution_total',
+    'execution_auto','execution_force_exhaust','execution_after_hook','execution_queue_position',
+    'execution_target','received_unblocked_hits','player_damaged_this_turn')
+NUMERIC_FIELDS += ('is_clone','has_turn_star_cost')
+NUMERIC_FIELDS += ('power_order','power_counter','from_hand_draw')
+NUMERIC_FIELDS += ('execution_card_reference',)
+KINDS = ('state', 'player', 'enemy', 'card', 'choice','power','continuation')
+ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending', 'revealed')
 ACTION_TYPES = ('end_turn','play','choose','choose_set','confirm_choice')
 from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from .rewards import V6, V7
@@ -31,9 +36,9 @@ def supported_reward(content, reward):
 
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
-SCHEMA = {'version': 'public-entities-ironclad-colorless-v3', 'action_version': 'dynamic-actions-v2',
+SCHEMA = {'version': 'public-entities-ironclad-colorless-v4', 'action_version': 'dynamic-actions-v2',
           'numeric': NUMERIC_FIELDS, 'kinds': KINDS, 'zones': ZONES,
-          'max_entities': MAX_CARDS + 16, 'max_actions': MAX_CARDS + 1, 'max_effects': 64,
+          'max_entities': 2 * MAX_CARDS + 128, 'max_actions': MAX_CARDS + 1, 'max_effects': 128,
           'supported': SUPPORTED, 'action_types': ACTION_TYPES,
           'rules': RULES_VERSION, 'content': CONTENT_VERSION, 'reward': REWARD_VERSION,
           'mechanics': REGISTRY_HASH, 'mode': 'network-and-search', 'search': 'dynamic-key-puct-v1',

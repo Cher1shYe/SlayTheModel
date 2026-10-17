@@ -217,14 +217,7 @@ def believe_in_you(card: CardInstance, combat: CombatState, target: Creature | N
 
 @register_effect(CardId.CATASTROPHE)
 def catastrophe(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
-    for _ in range(card.effect_vars.get(CATASTROPHE_CARDS_KEY, CATASTROPHE_CARDS)):
-        candidates = [c for c in combat.draw_pile if not c.is_unplayable]
-        if not candidates:
-            candidates = list(combat.draw_pile)
-        if not candidates:
-            break
-        combat.stable_shuffle_cards(candidates, combat.shuffle_rng)
-        combat.auto_play_card(candidates[0])
+    combat.auto_play_repeated("random_draw", card.effect_vars.get(CATASTROPHE_CARDS_KEY, CATASTROPHE_CARDS))
 
 
 @register_effect(CardId.COORDINATE_CARD)
@@ -494,7 +487,7 @@ def purity(card: CardInstance, combat: CombatState, target: Creature | None) -> 
         prompt="Choose any number of hand cards to exhaust",
         cards=cards,
         source_pile="hand",
-        resolver=lambda selected_cards: [combat.exhaust_card(selected) for selected in selected_cards],
+        resolver=lambda selected_cards: combat.run_card_steps(card,[("exhaust_card",selected) for selected in selected_cards]),
         min_count=0,
         max_count=card.effect_vars.get("cards", 3),
         allow_skip=True,
@@ -507,8 +500,7 @@ def restlessness(card: CardInstance, combat: CombatState, target: Creature | Non
         return
     cards = card.effect_vars.get(RESTLESSNESS_CARDS_KEY, RESTLESSNESS_CARDS)
     energy = card.effect_vars.get(RESTLESSNESS_ENERGY_KEY, RESTLESSNESS_ENERGY)
-    combat._draw_cards(cards)
-    combat.gain_energy(_owner(card, combat), energy)
+    combat.run_card_steps(card,[("draw",cards),("energy",energy)])
 
 
 @register_effect(CardId.SEEKER_STRIKE)
@@ -531,9 +523,7 @@ def seeker_strike(card: CardInstance, combat: CombatState, target: Creature | No
 @register_effect(CardId.SHOCKWAVE)
 def shockwave(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     amount = card.effect_vars.get(SHOCKWAVE_POWER_KEY, SHOCKWAVE_POWER)
-    for enemy in list(combat.hittable_enemies):
-        combat.apply_power_to(enemy, PowerId.WEAK, amount)
-        combat.apply_power_to(enemy, PowerId.VULNERABLE, amount)
+    combat.run_card_steps(card,[("power_target",combat.enemies.index(enemy),power,amount) for enemy in combat.hittable_enemies for power in ("WEAK","VULNERABLE")])
 
 
 @register_effect(CardId.SPLASH)
@@ -614,14 +604,7 @@ def the_bomb_card(card: CardInstance, combat: CombatState, target: Creature | No
 def thinking_ahead(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     cards = card.effect_vars.get("cards", 2)
     combat._draw_cards(cards)
-    if not combat.hand:
-        return
-    combat.request_card_choice(
-        prompt="Choose a hand card to put back on draw pile",
-        cards=list(combat.hand),
-        source_pile="hand",
-        resolver=lambda selected: combat.insert_card_into_draw_pile(selected, random_position=False),
-    )
+    combat.after_draw_effect(card,("topdeck_hand",))
 
 
 @register_effect(CardId.THRUMMING_HATCHET)
@@ -688,11 +671,7 @@ def beat_down(card: CardInstance, combat: CombatState, target: Creature | None) 
     discard = combat._zones_for_creature(owner)["discard"]  # noqa: SLF001
     candidates = [c for c in discard if c.card_type == CardType.ATTACK and not c.is_unplayable]
     combat.stable_shuffle_cards(candidates, combat.shuffle_rng)
-    for selected in candidates[:cards]:
-        if combat.is_over:
-            break
-        resolved_target = combat.random_enemy_of(owner) if selected.target_type == TargetType.ANY_ENEMY else None
-        combat.auto_play_card(selected, target=resolved_target)
+    combat.auto_play_sequence(candidates, random_targets=True,limit=cards)
 
 
 @register_effect(CardId.BOLAS)

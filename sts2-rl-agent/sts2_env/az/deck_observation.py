@@ -117,6 +117,8 @@ def validate_memory(info):
     if info.content_version == EXPANSION_CONTENT:
         from .player_abilities import demon_strength
         strength += demon_strength(info)
+        from .foundation import strength as basic_strength
+        strength += basic_strength(info)
     bonus = info.history.dominate_strength
     if type(bonus) is not int or bonus < 0 or (info.content_version != EXPANSION_CONTENT and bonus != 0):
         raise ValueError('Invalid public Dominate strength history')

@@ -27,7 +27,7 @@ def upgrades_after(info, action, combat_ended):
     if combat_ended:
         return ()
     if info.choice is not None:
-        if info.pending_card.token != "ARMAMENTS":
+        if info.pending_card is None or info.pending_card.token != "ARMAMENTS":
             return ()
         option = info.choice.options[action - 1]
         if not upgradable(option.card.token):

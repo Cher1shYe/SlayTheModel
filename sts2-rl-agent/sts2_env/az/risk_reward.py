@@ -40,6 +40,14 @@ def public_risk(info):
     from .content import EXPANSION_CONTENT
     from .player_abilities import block_before_enemy
     block = block_before_enemy(info) if info.content_version == EXPANSION_CONTENT else info.player_block
+    if info.content_version == EXPANSION_CONTENT:
+        from .foundation import amount
+        damage=sum(max(0,math.floor((e.intent[1]+e.strength)
+            *(.75 if amount(info,e.slot,'WEAK') else 1)
+            *(1.5 if info.player_vulnerable else 1)
+            *(.5 if amount(info,-1,'COLOSSUS') and e.vulnerable else 1)))*e.intent[2]
+            for e in info.enemies if e.hp>0 and not e.reviving and 'ATTACK' in e.intent[0])
+        return min(1.,max(0.,damage-block)/info.player_hp) if info.player_hp>0 else 0.
     return incoming_risk(info.player_hp, block, info.player_vulnerable, attacks)
 
 
@@ -61,6 +69,17 @@ def world_risk(world, content_version=None):
         block = max(0, block + amount(world.player, PowerId.PLATING)
             + amount(world.player, PowerId.FEEL_NO_PAIN) * sum(c.is_ethereal for c in world.hand)
             - 2 * sum(c.card_id.name == 'BURN' for c in world.hand))
+    if content_version == EXPANSION_CONTENT:
+        damage=0
+        for e in world.enemies:
+            if e.current_hp<=0:continue
+            for i in world.enemy_ais[e.combat_id].current_move.intents:
+                if 'ATTACK' not in i.intent_type.name:continue
+                damage+=max(0,math.floor((i.damage+amount(e,PowerId.STRENGTH))
+                    *(.75 if amount(e,PowerId.WEAK) else 1)
+                    *(1.5 if amount(world.player,PowerId.VULNERABLE) else 1)
+                    *(.5 if amount(world.player,PowerId.COLOSSUS) and amount(e,PowerId.VULNERABLE) else 1)))*i.hits
+        return min(1.,max(0.,damage-block)/world.player.current_hp) if world.player.current_hp>0 else 0.
     return incoming_risk(world.player.current_hp, block,
                          amount(world.player, PowerId.VULNERABLE), attacks)
 

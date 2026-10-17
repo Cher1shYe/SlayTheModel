@@ -78,13 +78,14 @@ def validate(info):
     expected = {k:v for k,v in expected.items() if v}
     if info.termination_reason != 'death':
         current = Counter(t for t, turn in events if turn == info.turn)
-        played = Counter(t for t in info.history.played_this_turn if t.removesuffix('+') in CARD_POWER)
+        played = Counter(e[1] for e in info.history.public_events if e[0]=='finish' and e[2]==info.turn and e[1].removesuffix('+') in CARD_POWER)
         if current != played: raise ValueError('Ability plays disagree with current turn history')
-    if len(events) > info.history.decisions:
+    if len(events) > info.history.decisions and not info.history.public_events:
         raise ValueError('Ability plays exceed decisions')
     from .deck_observation import prototype
     removed = Counter(t for t, _ in events if prototype(t).is_power)
-    actual = Counter(t for t in info.history.removed_powers if t.removesuffix('+') != 'INFLAME')
+    from .foundation import FACTORIES as BASIC_FACTORIES
+    actual = Counter(t for t in info.history.removed_powers if t.removesuffix('+') != 'INFLAME' and t.removesuffix('+') not in BASIC_FACTORIES)
     if removed != actual: raise ValueError('Ability ledger and removed power cards disagree')
     # Death may clear powers and abort a round before its tick/start hooks.
     if info.termination_reason != 'death' and dict(abilities) != expected:

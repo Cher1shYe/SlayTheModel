@@ -17,7 +17,10 @@ POWER_FACTORIES = {
     'FASTEN': colorless.make_fasten, 'ETERNAL_ARMOR': colorless.make_eternal_armor,
 }
 from .simple_cards import FACTORIES as SIMPLE_FACTORIES
-FACTORIES = {**POWER_FACTORIES, **SIMPLE_FACTORIES,
+from .foundation import FACTORIES as FOUNDATION_FACTORIES
+from .extended_choices import FACTORIES as CHOICE_FACTORIES
+from .execution import FACTORIES as EXECUTION_FACTORIES
+FACTORIES = {**EXECUTION_FACTORIES, **CHOICE_FACTORIES, **FOUNDATION_FACTORIES, **POWER_FACTORIES, **SIMPLE_FACTORIES,
     'BLOOD_WALL': ironclad.make_blood_wall,
     'BREAKTHROUGH': ironclad.make_breakthrough,
     'TREMBLE': ironclad.make_tremble,
@@ -36,10 +39,21 @@ FACTORIES = {**POWER_FACTORIES, **SIMPLE_FACTORIES,
     'DOMINATE': ironclad.make_dominate,
     'MOLTEN_FIST': ironclad.make_molten_fist,
 }
-CODEC = CardStateCodec({**BASE_CODEC.factories, **{
+class ExpansionCardStateCodec(CardStateCodec):
+    def validate(self,state):
+        super().validate(state)
+        ref=self._reference(state.token)
+        if state.token.removesuffix('+') in ('RAMPAGE','THRASH'):
+            if state.base_damage is None or not ref.base_damage<=state.base_damage<=1000000:raise ValueError('Invalid growth damage')
+        elif state.base_damage!=ref.base_damage:raise ValueError('Unaudited damage mutation')
+        if state.base_block!=ref.base_block or dict(state.effect_vars)!=ref.effect_vars:raise ValueError('Unaudited effect mutation')
+        return state
+
+CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, **{
     name + suffix: partial(factory, upgraded=bool(suffix))
     for name, factory in FACTORIES.items() for suffix in ('', '+')
-}}, replace(BASE_CODEC.policy, max_x_energy_spent=SIMPLE_MAX_PUBLIC_ENERGY))
+}}, replace(BASE_CODEC.policy, effect_changes=True, generated_metadata=True,
+    state_version='az-public-card-state-v2',max_x_energy_spent=SIMPLE_MAX_PUBLIC_ENERGY))
 TOKENS = tuple(CODEC.factories)
 
 
@@ -55,6 +69,15 @@ def descriptor(token):
     from .mechanic_registry import Operation as O, MechanicDescriptor
     c = CODEC._reference(token)
     name, v = token.removesuffix('+'), c.effect_vars
+    if name in EXECUTION_FACTORIES:
+        from .execution import descriptor as execution_descriptor
+        return execution_descriptor(c)
+    if name in CHOICE_FACTORIES:
+        from .extended_choices import descriptor as choice_descriptor
+        return choice_descriptor(c)
+    if name in FOUNDATION_FACTORIES:
+        from .foundation import descriptor as foundation_descriptor
+        return foundation_descriptor(c)
     if name in SIMPLE_FACTORIES:
         from .simple_cards import descriptor as simple_descriptor
         return simple_descriptor(c)

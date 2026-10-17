@@ -20,6 +20,10 @@ from sts2_env.az.boss_cards import CODEC as OLD_CODEC
 from sts2_env.az.expanded_mechanics import describe_card
 from sts2_env.az.config import content_hash, atomic_json
 from sts2_env.az.content import EXPANSION_CONTENT
+from sts2_env.az.foundation import FACTORIES as FOUNDATION_FACTORIES
+from sts2_env.az.extended_choices import FACTORIES as CHOICE_FACTORIES
+from sts2_env.az.execution import FACTORIES as EXECUTION_FACTORIES
+from sts2_env.az.generation_contract import DEFERRED
 
 
 def inventory():
@@ -44,6 +48,7 @@ def inventory():
             blockers = [] if supported else [f'mechanic_descriptor/cards/{cid.name}',
                 'public_state_and_action_admission', 'particle_reconstruction_and_interaction_parity']
             if not supported and hooks: blockers += ['registered_hooks/' + ','.join(sorted(hooks))]
+            if cid.name in DEFERRED:blockers.insert(0,'scope_deferred/'+DEFERRED[cid.name])
             if not supported and dependencies: blockers += ['power_dependencies/' + ','.join(dependencies)]
             if not supported and (c.star_cost or c.has_star_cost_x): blockers += ['star_resource']
             if not supported and c.target_type.name in ('ANY_ALLY', 'ANY_PLAYER', 'ALL_ALLIES'):
@@ -61,12 +66,12 @@ def inventory():
                 network='admitted' if supported else 'blocked',
                 belief_search='admitted' if supported else 'blocked',
                 tests='new-batch-parity' if cid.name in FACTORIES else 'existing-g23e' if supported else 'native-only-unreviewed',
-                batch='simple-v3' if cid.name in SIMPLE_FACTORIES else 'powers-v2' if cid.name in POWER_FACTORIES else 'batch1-v1' if cid.name in FACTORIES else 'existing' if supported else 'pending',
+                batch='foundation-v4' if cid.name in (*FOUNDATION_FACTORIES,*CHOICE_FACTORIES,*EXECUTION_FACTORIES) else 'simple-v3' if cid.name in SIMPLE_FACTORIES else 'powers-v2' if cid.name in POWER_FACTORIES else 'batch1-v1' if cid.name in FACTORIES else 'existing' if supported else 'pending',
                 native_source=f'{Path(inspect.getsourcefile(effect)).relative_to(ROOT).as_posix()}:{inspect.getsourcelines(effect)[1]}' if effect else None,
                 registered_hook_source_hashes=hooks, effect_source_sha256=content_hash(source), keywords=sorted(c.keywords),
                 direct_power_symbols=dependencies, direct_combat_calls=calls,
                 effect_variables=sorted(c.effect_vars), descriptor_hashes=variants, blockers=blockers))
-    return dict(version='ironclad-colorless-coverage-v3', content=EXPANSION_CONTENT,
+    return dict(version='ironclad-colorless-coverage-v4', content=EXPANSION_CONTENT,
         scope='87 Ironclad + 64 Colorless IDs from native card pools; upgrades listed separately',
         status_meaning='registered is not engine parity; admitted is limited to documented single-player dependencies',
         original_admitted=sum(r['id'] in OLD_CODEC.factories for r in rows),

@@ -60,7 +60,7 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
     drawn = 0
     if before.choice is not None:
         token = before.pending_card.token.removesuffix("+")
-        if token == "HEADBUTT":
+        if token in ("HEADBUTT","THINKING_AHEAD"):
             top = (before.choice.options[action - 1].card.token,) + top
             total += 1
         elif token == "BURNING_PACT":
@@ -86,7 +86,7 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
             total += 1
         elif token == "STOKE":
             drawn = len(after_hand)
-        elif token in ("PILLAGE","IMPATIENCE","BATTLE_TRANCE","POMMEL_STRIKE", "SHRUG_IT_OFF", "OFFERING", "BURNING_PACT", "RESTLESSNESS", "FINESSE", "FLASH_OF_STEEL", "MASTER_OF_STRATEGY", "SCRAWL", "SOUL"):
+        elif token in ("THINKING_AHEAD","PILLAGE","IMPATIENCE","BATTLE_TRANCE","POMMEL_STRIKE", "SHRUG_IT_OFF", "OFFERING", "BURNING_PACT", "RESTLESSNESS", "FINESSE", "FLASH_OF_STEEL", "MASTER_OF_STRATEGY", "SCRAWL", "SOUL"):
             drawn = len(after_hand) - len(before.hand) + 1
             if token == "BURNING_PACT" and len(before.hand) == 2:
                 drawn += 1

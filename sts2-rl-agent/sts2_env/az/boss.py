@@ -82,6 +82,13 @@ def generation_after(before, ended, decision):
     from .player_abilities import block_before_enemy
     block = block_before_enemy(before)
     damage = int((before.intent[1] + before.enemy_strength) * (1.5 if before.player_vulnerable else 1))
+    if before.content_version == EXPANSION_CONTENT:
+        from .foundation import amount
+        import math
+        damage=max(0,math.floor((before.intent[1]+before.enemy_strength)
+            *(1.5 if before.player_vulnerable else 1)
+            *(.75 if amount(before,0,'WEAK') else 1)
+            *(.5 if amount(before,-1,'COLOSSUS') and before.vulnerable else 1)))
     count = 0
     for _ in range(before.intent[2]):
         count += int(damage > block)
@@ -103,6 +110,12 @@ def finish_history(before, world, history, action):
     if before.content_version == EXPANSION_CONTENT:
         from .simple_cards import finish_history as finish_simple
         history = finish_simple(before, world, history)
+        from .extended_choices import finish_history as finish_choices
+        history = finish_choices(before,world,history,action)
+        from .execution import finish_history as finish_execution
+        history = finish_execution(before,world,history)
+        from .public_rounds import finish
+        return finish(before,world,history)
     if before.monster_id != MONSTER:
         return history
     events = before.history.boss_events

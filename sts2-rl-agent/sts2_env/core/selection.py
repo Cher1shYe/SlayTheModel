@@ -31,6 +31,7 @@ class PendingCardChoice:
     min_choices: int = 1
     max_choices: int = 1
     selected_indices: set[int] = field(default_factory=set)
+    mechanism: str = ""
 
     @property
     def num_options(self) -> int:

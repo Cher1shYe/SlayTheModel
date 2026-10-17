@@ -44,7 +44,7 @@ def particle(env, rng):
     for attr in ('draw_pile', 'discard_pile'):
         pool = list(getattr(p.world, attr)); ordered = []
         for c in getattr(env.world, attr):
-            twin = next(x for x in pool if (x.card_id, x.upgraded) == (c.card_id, c.upgraded))
+            twin = next(x for x in pool if CODEC.capture(x) == CODEC.capture(c))
             pool.remove(twin); ordered.append(twin)
         setattr(p.world, attr, ordered)
     p.world.rng = clone_state(env.world.rng)
@@ -86,7 +86,7 @@ def test_version_and_scope_rejection():
         replace(recipe(['FINESSE']*3 + ['STRIKE_IRONCLAD']*3), content_manifest_version=BOSS_CONTENT)
     with pytest.raises(ValueError): recipe(['SKIM']*3 + ['STRIKE_IRONCLAD']*3)
     with pytest.raises(ValueError): recipe(['REAVE']*3 + ['STRIKE_IRONCLAD']*3)
-    with pytest.raises(ValueError): descriptor('RAMPAGE')
+    with pytest.raises(ValueError): descriptor('SPLASH')
 
 
 @pytest.mark.parametrize('name', FACTORIES)
