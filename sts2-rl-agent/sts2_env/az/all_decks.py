@@ -1,0 +1,154 @@
+﻿"""Seeded arbitrary-deck scenarios for all-content self-play.
+
+Every recipe is a pure function of ``(split, master_seed, iteration, job_id)``.
+Training seeds live in a fresh namespace; validation/test use fixed masters so a
+frozen manifest can be replayed exactly.  Only encounters that pass the public
+parity audit are admitted, and only cards in the admitted initial pool are used.
+"""
+from __future__ import annotations
+
+from collections import Counter
+from hashlib import sha256
+import json
+from pathlib import Path
+import random
+
+from .config import RULES_VERSION, SCHEMA_VERSION
+from .content import ALL_CONTENT
+from .content_expansion import initial_factories
+from .monster_registry import ENCOUNTERS
+from .scenarios import CombatScenario, DeckEntry
+
+VERSION = 'all-decks-v1'
+FAMILY = 'all-content-arbitrary-v1'
+MIN_DECK_SIZE = 8
+MAX_DECK_SIZE = 30
+MAX_COPIES = 4
+UPGRADE_PROBABILITY = 0.3
+DUPLICATE_PROBABILITY = 0.25
+PLAYER_HP = 80
+# Fresh namespace below 2^31 (scenario seeds are capped at 2^31).  Earlier
+# generators occupy [0, 2^30), so this contract starts at exactly 2^30.
+TRAIN_SEED_OFFSET = 2**30
+TRAIN_SEED_SPAN = 2**29
+VALIDATION_SEED_OFFSET = TRAIN_SEED_OFFSET + TRAIN_SEED_SPAN
+TEST_SEED_OFFSET = VALIDATION_SEED_OFFSET + 2**28
+HELDOUT_SEED_SPAN = 2**28
+HELDOUT_MASTER_SEEDS = {'validation': 189, 'test': 287}
+PARITY_REPORT = Path(__file__).resolve().parents[2] / 'docs' / 'all_encounter_parity.json'
+
+
+def card_pool():
+    """Sorted base tokens admitted as initial player cards (146 in v6)."""
+    return tuple(sorted(initial_factories()))
+
+
+def admitted_encounters():
+    """Encounters whose public parity audit passed, frozen by the report."""
+    if not PARITY_REPORT.exists():
+        raise ValueError('Encounter parity report is required before generating recipes')
+    report = json.loads(PARITY_REPORT.read_text(encoding='utf-8'))
+    if report.get('content') != ALL_CONTENT or not report.get('results'):
+        raise ValueError('Encounter parity report belongs to another content version')
+    passed = tuple(sorted(name for name, entry in report['results'].items()
+                          if entry.get('status') == 'pass'))
+    if not passed or set(passed) - set(ENCOUNTERS):
+        raise ValueError('Encounter parity report contains unknown encounters')
+    return passed
+
+
+def _rng(*coordinates):
+    digest = sha256(('|'.join(str(value) for value in (VERSION, *coordinates)))
+                    .encode('utf-8')).digest()
+    return random.Random(int.from_bytes(digest, 'big'))
+
+
+def _seed(split, master_seed, iteration, job_id):
+    base, span = {'train': (TRAIN_SEED_OFFSET, TRAIN_SEED_SPAN),
+                  'validation': (VALIDATION_SEED_OFFSET, HELDOUT_SEED_SPAN),
+                  'test': (TEST_SEED_OFFSET, HELDOUT_SEED_SPAN)}[split]
+    digest = sha256(f'{VERSION}|{split}|{master_seed}|{iteration}|{job_id}'.encode()).digest()
+    return base + int.from_bytes(digest[:8], 'big') % span
+
+
+def sample_deck(rng):
+    """Any admitted cards, bounded size and copies; upgrade flag per entry."""
+    pool = list(card_pool())
+    size = rng.randint(MIN_DECK_SIZE, MAX_DECK_SIZE)
+    entries = Counter()
+    if rng.random() < DUPLICATE_PROBABILITY:
+        copies = Counter()
+        while sum(copies.values()) < size:
+            token = pool[rng.randrange(len(pool))]
+            if copies[token] >= MAX_COPIES:
+                continue
+            copies[token] += 1
+            entries[(token, rng.random() < UPGRADE_PROBABILITY)] += 1
+    else:
+        rng.shuffle(pool)
+        for token in pool[:size]:
+            entries[(token, rng.random() < UPGRADE_PROBABILITY)] += 1
+    return tuple(DeckEntry(token, upgraded, count)
+                 for (token, upgraded), count in sorted(entries.items()))
+
+
+def generate_recipe(master_seed, iteration, job_id, split='train'):
+    if (type(master_seed) is not int or not 0 <= master_seed < 1024
+            or type(iteration) is not int or not 0 <= iteration < 1024
+            or type(job_id) is not int or not 0 <= job_id < 1024
+            or split not in ('train', 'validation', 'test')):
+        raise ValueError('Unsupported generator coordinates')
+    if split != 'train' and iteration != 0:
+        raise ValueError('Held-out recipes are fixed at iteration zero')
+    rng = _rng(split, master_seed, iteration, job_id)
+    encounters = admitted_encounters()
+    encounter = encounters[rng.randrange(len(encounters))]
+    deck = sample_deck(rng)
+    recipe = CombatScenario(
+        SCHEMA_VERSION, f'all-{split}-{master_seed:04d}-{iteration:04d}-{job_id:04d}',
+        FAMILY, split, 'Ironclad', 0, encounter, deck, PLAYER_HP, PLAYER_HP, (), (),
+        _seed(split, master_seed, iteration, job_id), RULES_VERSION, ALL_CONTENT)
+    validate_recipe(recipe)
+    return recipe
+
+
+def validate_recipe(recipe):
+    if type(recipe) is not CombatScenario or recipe.content_manifest_version != ALL_CONTENT:
+        raise ValueError('Recipe is not all-content')
+    if recipe.encounter_id not in admitted_encounters():
+        raise ValueError('Recipe encounter has not passed the parity audit')
+    pool = set(card_pool())
+    total = sum(entry.count for entry in recipe.deck)
+    if not MIN_DECK_SIZE <= total <= MAX_DECK_SIZE:
+        raise ValueError('Recipe deck size outside the arbitrary-deck bounds')
+    copies = Counter()
+    seen = set()
+    for entry in recipe.deck:
+        if (entry.card_id not in pool or type(entry.upgraded) is not bool
+                or type(entry.count) is not int or entry.count < 1):
+            raise ValueError('Recipe card is outside the admitted pool')
+        key = (entry.card_id, entry.upgraded)
+        if key in seen:
+            raise ValueError('Duplicate deck entry')
+        seen.add(key)
+        copies[entry.card_id] += entry.count
+    if max(copies.values()) > MAX_COPIES:
+        raise ValueError('Recipe exceeds the copy limit')
+    return recipe
+
+
+def frozen_manifest():
+    pool = card_pool()
+    return {
+        'version': VERSION, 'content': ALL_CONTENT, 'family': FAMILY,
+        'pool_size': len(pool), 'pool': list(pool),
+        'encounters': list(admitted_encounters()),
+        'deck_size': [MIN_DECK_SIZE, MAX_DECK_SIZE], 'max_copies': MAX_COPIES,
+        'upgrade_probability': UPGRADE_PROBABILITY,
+        'duplicate_probability': DUPLICATE_PROBABILITY,
+        'train_seed_offset': TRAIN_SEED_OFFSET, 'heldout_master_seeds': dict(HELDOUT_MASTER_SEEDS),
+        'seed_ranges': 'train [2^30, 1.5*2^30); validation [1.5*2^30, 2^30+3*2^26); test [2^30+3*2^26, 2^31)', 'seed_cap': 2**31,
+        'note': 'Only parity-passing encounters and admitted initial cards; '
+                'held-out splits never share coordinates with training.',
+    }
+

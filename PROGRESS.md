@@ -31,6 +31,7 @@
 | P2f | 差异收敛：65 通过 + 2 采样 + 1 专用契约 + 13 待补 | 已完成 |
 | P2g | affliction 公开事件：68 通过 + 2 采样 + 1 专用契约 + 10 待补 | 已完成 |
 | P2h | 有符号临时状态与被偷牌事件：71 通过 + 2 采样 + 1 专用契约 + 7 待补 | 已完成 |
+| P3a | 任意卡组生成器 + XS 冻结配置/协议（未训练） | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -139,3 +140,12 @@
 - Thieving Hopper 偷牌写入公开 `steal` 事件（牌面 + 回合），公开库存与已知位置同步更新；洗牌事件按原生规则重置位置；thieving hopper 转通过。
 - 扫描结果：**71 通过 + 2 采样 + 1 专用契约 + 7 待补**；剩余为粒子敌人槽位（3）、召唤槽位（1）、回合侧（1）、意图唯一性（1）、Boss 伤害修正（1）。
 - 回归：引擎 parity + 卡牌/all-content **1287 项通过（1 xfailed）**。
+
+### 步骤 12（2026-10-18）任意卡组生成器与 P3 冻结配置（P3a）
+
+- 新增 `sts2_env/az/all_decks.py`：`all-decks-v1` 任意卡组生成器。卡池为 146 张已准入初始卡（延迟卡不出现），卡组 8–30 张、同名最多 4 张、升级概率 0.3；遭遇仅取公开一致性扫描通过的 71 个；种子空间：训练 `[2^30,1.5·2^30)`、验证 `[1.5·2^30,·)`、测试 `[2^30+3·2^26,2^31)`，坐标为纯函数。
+- `decks.py` 新增任意卡组校验（ALL_CONTENT）；`deck_observation` 对 ALL_CONTENT 放行到 30 张。
+- 抽样证据 `docs/all_deck_generator.json`：192 train + 64 validation + 64 test；训练覆盖 **146/146 张卡、66/71 个遭遇**，卡组 8–30（均值 18.9），升级率 29.4%。
+- 冻结 `configs/az_all_xs_v1/config.json`（`az-all-xs-v1`，XS 全新初始化、搜索预算 8、8 轮 × 48 局、batch 64、lr 3e-4、value 0.1）与 `protocol.json`（64 验证 + 64 测试配方、生成器清单 SHA、训练坐标规则）。
+- 设计/诚实性约束见 `docs/AZ_ALL_XS_PLAN.md`；新增测试 `tests/test_az_all_decks.py`（9 项）与 `tests/test_az_all_xs_config.py`（4 项）。
+- 回归：卡牌/all-content/transformer **1036 项通过（1 xfailed）**。本步**未启动训练**，不宣称任何学习增益。

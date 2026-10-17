@@ -1,4 +1,4 @@
-﻿"""Frozen M6.2 recipes and explicitly audited Ironclad factories.
+"""Frozen M6.2 recipes and explicitly audited Ironclad factories.
 
 This content version is distinct from both historical starter versions. The
 factory contract does not imply support by an information/encoder schema.
@@ -12,6 +12,8 @@ from .content import BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT
 
 MIN_DECK_SIZE = 6
 MAX_DECK_SIZE = 20
+ALL_MIN_DECK_SIZE = 8
+ALL_MAX_DECK_SIZE = 30
 MAX_COPIES = 5
 
 # No discovery by getattr/card registry: adding content requires explicit review.
@@ -117,7 +119,33 @@ MORPH_FAMILY_CARDS = MappingProxyType({k: (*v, "REAVE", "PRIMAL_FORCE") if k != 
                                       for k,v in SEL_FAMILY_CARDS.items()})
 
 
+def validate_any_deck(deck):
+    """Arbitrary admitted deck: token, copy and size bounds only."""
+    from .content_expansion import initial_factories
+    pool = set(initial_factories())
+    if type(deck) is not tuple or not deck:
+        raise ValueError("Deck must be a nonempty tuple")
+    counts, entries = Counter(), set()
+    for entry in deck:
+        if (type(entry.card_id) is not str or entry.card_id not in pool
+                or type(entry.upgraded) is not bool or type(entry.count) is not int
+                or entry.count < 1):
+            raise ValueError("Unsupported card for arbitrary deck")
+        key = (entry.card_id, entry.upgraded)
+        if key in entries:
+            raise ValueError("Duplicate deck entry; combine counts explicitly")
+        entries.add(key)
+        counts[entry.card_id] += entry.count
+    if not ALL_MIN_DECK_SIZE <= sum(counts.values()) <= ALL_MAX_DECK_SIZE:
+        raise ValueError("Unsupported arbitrary deck size")
+    if max(counts.values()) > MAX_COPIES:
+        raise ValueError("Card copy limit exceeded across upgrade variants")
+    return deck
+
+
 def validate_deck(deck, family, content_version=DECK_CONTENT):
+    if content_version == ALL_CONTENT:
+        return validate_any_deck(deck)
     """Validate before allocating any engine card IDs; never normalize silently."""
     families = MORPH_FAMILIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FAMILIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FAMILIES if content_version == LIFE_CONTENT else TOP_FAMILIES if content_version == TOP_CONTENT else UP_FAMILIES if content_version == UP_CONTENT else GEN_FAMILIES if content_version == GEN_CONTENT else G1_FAMILIES if content_version == G1_CONTENT else EXPANDED_FAMILIES if content_version == EXPANDED_CONTENT else FAMILIES
     family_cards = MORPH_FAMILY_CARDS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else SEL_FAMILY_CARDS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else LIFE_FAMILY_CARDS if content_version == LIFE_CONTENT else TOP_FAMILY_CARDS if content_version == TOP_CONTENT else UP_FAMILY_CARDS if content_version == UP_CONTENT else GEN_FAMILY_CARDS if content_version == GEN_CONTENT else G1_FAMILY_CARDS if content_version == G1_CONTENT else EXPANDED_FAMILY_CARDS if content_version == EXPANDED_CONTENT else FAMILY_CARDS
@@ -190,6 +218,7 @@ def make_any_token(token):
 def deck_tokens(deck):
     return tuple(sorted(entry.card_id + ("+" if entry.upgraded else "")
                         for entry in deck for _ in range(entry.count)))
+
 
 
 
