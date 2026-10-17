@@ -192,12 +192,19 @@ class ObservableCombatAdapter(CombatAdapter):
         self.public_initial = ((deck_tokens(recipe.deck), tuple(e[1] for e in self.initial_roster)
                                if recipe.content_manifest_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else self.enemy_initial_hp)
                                if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else ((), None))
-        self.world.visible_card_events = []  # Initial hand is already represented in the initial public state.
+        # The initial hand is already represented in the initial public state;
+        # combat-start card-state mutations (afflictions, downgrades) are not,
+        # so only those events enter the initial public history.
         if all_content:
-            # All-content journals combat-start card mutations (for example the
-            # Knights' Dampen downgrade) even before cards enter a combat zone.
-            self.world._az_all_content = True
-        self._information = observe(self.world, PublicHistory(), self.limits, recipe.player_hp, self.reward_version,
+            start_events = tuple(event for event in self.world.visible_card_events
+                                 if event[0] in ('card_state_change', 'upgrade', 'generated_state'))
+            self.world.visible_card_events = list(start_events)
+            history = PublicHistory(public_events=start_events)
+        else:
+            start_events = ()
+            self.world.visible_card_events = []
+            history = PublicHistory()
+        self._information = observe(self.world, history, self.limits, recipe.player_hp, self.reward_version,
                                     recipe.content_manifest_version, *self.public_initial,
                                     encounter=recipe.encounter_id if all_content else '')
 

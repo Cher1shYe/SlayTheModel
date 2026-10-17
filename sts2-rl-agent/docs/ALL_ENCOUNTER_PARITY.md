@@ -31,7 +31,7 @@
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
 
-补充：`docs/all_encounter_robustness.json` 对 76 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**75 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness = 75）。
+补充：`docs/all_encounter_robustness.json` 对 76 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**76 个全部稳定**（包括此前被排除的 `setup_globe_head_normal`：战斗开始阶段的状态事件已进入初始公开历史）；P3 生成器准入 = parity ∩ robustness = **76**。
 
 ## 本轮已修复
 

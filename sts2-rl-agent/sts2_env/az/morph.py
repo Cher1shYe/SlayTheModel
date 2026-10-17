@@ -77,7 +77,10 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
         if before.retain_hand:
             retained += tuple(t for t in survivors if not prototype(t).is_retain)
         if after_hand[:len(retained)] != retained:
-            raise ValueError("Retained order mismatch")
+            # Turn-end effects may remove or add cards before the retained
+            # prefix is fixed; forget the known order instead of asserting one
+            # that the visible hand cannot confirm.
+            return (), ()
         drawn = len(after_hand) - len(retained)
     else:
         index, _ = action_to_card_and_target(action)

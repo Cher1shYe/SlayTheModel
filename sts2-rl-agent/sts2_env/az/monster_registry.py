@@ -252,25 +252,29 @@ def move_from_intents(monster_id, previous_move, intents):
         return 'REVIVE_MOVE'
     info = info_for(monster_id)
     signatures = dict(info.intent_signatures)
+    successors = dict(info.successors)
     if previous_move is None:
-        candidates = info.initial_moves
+        candidates = list(info.initial_moves)
     elif previous_move in ('STUNNED', 'REVIVE_MOVE'):
-        # After a stun the script resumes; the visible intent must identify one
-        # legal move on its own.
-        candidates = tuple(signatures)
+        # After a stun/revive the script resumes; the visible intent must
+        # identify one legal move on its own.
+        candidates = list(signatures)
     else:
-        successors = dict(info.successors)
         if previous_move not in successors:
             raise ValueError(f'Unknown {monster_id} move: {previous_move}')
-        candidates = successors[previous_move]
+        candidates = list(successors[previous_move])
+        # Publicly indistinguishable variants may have advanced instead of the
+        # canonical record; admit the successors of every same-signature variant.
+        for variant in signatures:
+            if variant != previous_move and signatures.get(variant) == signatures.get(previous_move):
+                candidates.extend(successors.get(variant, ()))
+    candidates = tuple(dict.fromkeys(candidates))
     matches = [move for move in candidates if signatures[move] == tuple(intents)]
     if len(matches) != 1:
         # State-dependent transitions (HP gates, phase changes) are not always in
         # the static graph, but a unique signature over the whole move set still
         # identifies the observed move from public intents alone.
-        global_matches = [move for move in signatures if signatures[move] == tuple(intents)]
-        if len(global_matches) == 1:
-            matches = global_matches
+        matches = [move for move in signatures if signatures[move] == tuple(intents)]
     if len(matches) > 1 and len({signatures[move] for move in matches}) == 1:
         # Several script states are publicly indistinguishable (same visible
         # intents). Record one canonical move deterministically; the private

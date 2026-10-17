@@ -1,4 +1,4 @@
-﻿"""Explicit, narrowly whitelisted world recipes. Never pass recipes to a planner."""
+"""Explicit, narrowly whitelisted world recipes. Never pass recipes to a planner."""
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
@@ -99,6 +99,9 @@ def make_scenario(recipe):
     from sts2_env.encounters import act1
     if recipe.content_manifest_version == ALL_CONTENT:
         from .monster_registry import ENCOUNTERS
+        # Combat-start card mutations (a monster's affliction or downgrade) are
+        # visible in this fight and must reach the public journal.
+        world._az_all_content = True
         ENCOUNTERS[recipe.encounter_id](world, Rng(recipe.environment_seed))
     elif recipe.encounter_id == "setup_test_subject_boss":
         from sts2_env.encounters.act3 import setup_test_subject_boss
