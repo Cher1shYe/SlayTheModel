@@ -345,3 +345,60 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
     assert sum(row['episodes'] for row in breakdown.values()) == 64
     assert all(0.0 <= row['win_rate'] <= 1.0 for row in breakdown.values())
 
+
+def test_resume_keeps_paired_comparison_from_baseline_evidence(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    from sts2_env.az.config import atomic_json
+    from sts2_env.az.model_factory import save_transformer_checkpoint
+
+    config = all_runner.load_frozen_config(CONFIG)
+    model = all_runner.fresh_model(config)
+    save_transformer_checkpoint(tmp_path / 'iteration-000.pt', model, 'az-all-xs-runner-v1-resume',
+                                config=config, iteration=0)
+    protocol = json.loads((Path(__file__).resolve().parents[1] / PROTOCOL).read_text(
+        encoding='utf-8'))
+    validation = all_runner.protocol_recipes(protocol, 'validation')
+    baseline_rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                          reward=0.1, termination_reason='win') for recipe in validation]
+    baseline_summary = dict(episodes=64, win_rate=1.0, mean_utility=0.1,
+                            contract_rejections=0, contract_rejected=[])
+    atomic_json(tmp_path / 'baseline.json', dict(summary=baseline_summary, rows=baseline_rows))
+    atomic_json(tmp_path / 'report.json', dict(
+        version=all_runner.VERSION, baseline=baseline_summary,
+        history=[dict(version=all_runner.VERSION, iteration=0, episodes=['f' * 64],
+                      outcomes=['win'], replay_size=1, updates=[{'loss': 0.5}],
+                      rejected_recipes=[], validation=baseline_summary, seconds={},
+                      checkpoint='iteration-000.pt')]))
+
+    def fake_collect(model, recipes, **kwargs):
+        return [dict(episode_id='g' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.5}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.2, termination_reason='win', final_hp=40, turns=2,
+                     decisions=4, decision_seconds=[0.01], errors=0, illegal_actions=0)
+                for recipe in recipes]
+        return dict(episodes=len(rows), win_rate=1.0, mean_utility=0.2,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += 1
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=2, episodes=1, updates=1,
+                            budget=1, seed=0, resume=True, log=lambda *args: None)
+    comparison = report['history'][1]['paired_vs_baseline']
+    assert comparison['episodes'] == 64
+    assert comparison['mean_gain'] == pytest.approx(0.1)

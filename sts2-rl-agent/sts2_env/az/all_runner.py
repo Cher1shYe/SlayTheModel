@@ -277,6 +277,9 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         checkpoint = out / history[-1]['checkpoint']
         model, _ = load_transformer_checkpoint(checkpoint, TIER, ALL_CONTENT, V7)
         baseline_summary = previous.get('baseline')
+        evidence = out / 'baseline.json'
+        if evidence.exists():
+            baseline_rows = json.loads(evidence.read_text(encoding='utf-8'))['rows']
         log(f'resume from iteration {start_iteration} ({checkpoint.name})')
     else:
         model = fresh_model(config)
@@ -288,6 +291,11 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         baseline_summary, baseline_rows = evaluate_recipes(
             fresh_model(config), validation, version=f'{version}-baseline',
             error_dir=out / 'errors', limits=limits)
+        atomic_json(out / 'baseline.json', dict(
+            summary=baseline_summary,
+            rows=[dict(scenario_id=row['scenario_id'], encounter_id=row['encounter_id'],
+                       reward=row['reward'], termination_reason=row['termination_reason'])
+                  for row in baseline_rows]))
         log(f"baseline: mean utility {baseline_summary['mean_utility']:.3f} "
             f"rejections {baseline_summary['contract_rejections']}")
     collector = None

@@ -44,6 +44,7 @@
 | P3k | 并行采集（`--workers`，权重冻结 + 池复用），与串行轨迹一致 | 已完成 |
 | P3l | 测试集门槛强制 + 断点恢复回归测试 | 已完成 |
 | P3m | 验证集按遭遇分组诊断 + preflight 清单漂移/测试集校验 | 已完成 |
+| P3n | 基线证据持久化（`baseline.json`）+ resume 配对比较不丢失 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -245,3 +246,9 @@
 - 每轮验证新增 `validation_by_encounter`：按遭遇汇总 episodes / win_rate / mean_utility / death_rate，便于定位拉低效用的怪物。
 - `preflight` 硬化：校验协议中的生成器清单 SHA 与当前 `frozen_manifest` 一致（漂移直接拒绝），并额外探测 64 个测试配方可编码；`ready` 同时要求训练/验证/测试均无错误。
 - 新增 2 项 runner 测试（验证分组覆盖全部 64 局、协议清单漂移拒绝）；回归 **1197 项通过（1 xfailed）**。仍不启动正式训练。
+
+### 步骤 25（2026-10-18）基线证据持久化与 resume 配对（P3n）
+
+- 首轮更新前把初始基线写成 `baseline.json`（summary + 每局 scenario/encounter/reward/终局原因），事后可复核；`--resume` 会加载该证据，恢复后的每轮 `paired_vs_baseline` 不再丢失（此前 resume 后比较为空）。
+- 新增 1 项测试（resume 后配对增益仍为 +0.1、覆盖 64 局）；回归 **1198 项通过（1 xfailed）**。
+- 另：`setup_fogmog_normal` 的 2 个既有 EXPANSION 粒子测试根因定位——`summon.acts_this_round` 把 `reviving` 槽位视为出手，而 `generation_after` 只在 `hp>0` 时记录 Dazed，幻象复活后两者不一致；修复需改动 EXPANSION 冻结语义，未在本轮实施（保持既有失败记录）。
