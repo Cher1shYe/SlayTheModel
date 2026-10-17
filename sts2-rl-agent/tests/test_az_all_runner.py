@@ -120,7 +120,7 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
     calls = {'evaluate': 0}
 
     def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='a' * 64, rows=[{}, {}],
+        return [dict(episode_id='a' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)] * 2,
                      outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
@@ -223,7 +223,7 @@ def test_resume_continues_from_the_last_checkpoint(tmp_path, monkeypatch):
 
     def fake_collect(model, recipes, **kwargs):
         calls['collect'] += 1
-        return [dict(episode_id='c' * 64, rows=[{}],
+        return [dict(episode_id='c' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)],
                      outcome={'termination_reason': 'death'})]
 
     def fake_update(model, replay, **kwargs):
@@ -259,7 +259,7 @@ def test_resume_continues_from_the_last_checkpoint(tmp_path, monkeypatch):
 
 def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkeypatch):
     def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='d' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+        return [dict(episode_id='d' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
         return model, [{'loss': 0.5}]
@@ -311,7 +311,7 @@ def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkey
 
 def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeypatch):
     def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='e' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+        return [dict(episode_id='e' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
         return model, [{'loss': 0.5}]
@@ -372,7 +372,7 @@ def test_resume_keeps_paired_comparison_from_baseline_evidence(tmp_path, monkeyp
                       checkpoint='iteration-000.pt')]))
 
     def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='g' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+        return [dict(episode_id='g' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
         return model, [{'loss': 0.5}]
@@ -420,7 +420,7 @@ def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
     from pathlib import Path
 
     def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='h' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+        return [dict(episode_id='h' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
         return model, [{'loss': 0.5}]
@@ -456,3 +456,15 @@ def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
     assert provenance['generator_manifest_sha']
     assert provenance['content'] == 'ironclad-colorless-all-v6'
     assert provenance['reward'] == 'risk-terminal-v7'
+
+def test_target_stats_summarize_search_signal():
+    stats = all_runner.target_stats([
+        dict(rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False),
+                   dict(policy_target={'play:hand/0': 0.5, 'end_turn': 0.5}, forced_action=True)])
+    ])
+    assert stats['rows'] == 2
+    assert stats['mean_entropy'] == pytest.approx((0.0 + 0.693147) / 2)
+    assert stats['mean_max_prob'] == pytest.approx(0.75)
+    assert stats['forced_fraction'] == pytest.approx(0.5)
+    assert all_runner.target_stats([])['rows'] == 0
+

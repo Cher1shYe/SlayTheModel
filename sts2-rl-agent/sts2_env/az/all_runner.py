@@ -145,6 +145,24 @@ def update(model, replay, *, learning_rate, batch_size, updates, seed):
     return learner.model.eval(), history
 
 
+def target_stats(episodes):
+    """Search-target signal diagnostics: entropy, peak mass and forced actions."""
+    rows = [row for episode in episodes for row in episode.get('rows', [])]
+    if not rows:
+        return dict(rows=0, mean_entropy=None, mean_max_prob=None, forced_fraction=None)
+    entropies, peaks = [], []
+    for row in rows:
+        probabilities = np.array([row['policy_target'][key] for key in sorted(row['policy_target'])],
+                                 dtype=float)
+        positive = probabilities[probabilities > 0]
+        entropies.append(float(-(positive * np.log(positive)).sum()))
+        peaks.append(float(probabilities.max()))
+    return dict(rows=len(rows),
+                mean_entropy=float(np.mean(entropies)),
+                mean_max_prob=float(np.mean(peaks)),
+                forced_fraction=float(np.mean([bool(row['forced_action']) for row in rows])))
+
+
 def evaluate_recipes(model, recipes, *, version, error_dir, limits=None):
     """Network-only evaluation; contract-rejected episodes are counted, not hidden."""
     kept, rejected = [], []
@@ -344,6 +362,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
                       replay_size=replay.size, updates=update_history,
                       rejected_recipes=failures,
                       validation_by_encounter=breakdown,
+                      target_stats=target_stats(collected),
                       seconds=dict(collect=round(collected_at - started, 3),
                                    update=round(updated_at - collected_at, 3),
                                    evaluate=round(evaluated_at - updated_at, 3),
@@ -424,6 +443,7 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 
