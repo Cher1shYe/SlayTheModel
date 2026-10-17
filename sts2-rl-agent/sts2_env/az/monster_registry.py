@@ -160,6 +160,106 @@ def _creators():
 CREATORS = _creators()
 
 
+def _creator_variants():
+    """Every construction variant of every monster, with boolean keyword combos.
+
+    Encounters pass flags such as Nibbit's ``is_alone``/``is_front``; the public
+    state only keeps the resulting creature and its move graph.  The variant is
+    therefore re-derived by matching the observed move ids against the graphs
+    each construction produces.
+    """
+    import inspect
+    import itertools
+
+    variants = {}
+    for creator_name, creator in CREATORS.items():
+        params = inspect.signature(creator).parameters
+        if any(p.kind is inspect.Parameter.POSITIONAL_ONLY for p in params.values()):
+            continue
+        flags = []
+        for name, spec in params.items():
+            if name in ('rng', 'ascension_level'):
+                continue
+            if spec.default in (True, False):
+                flags.append((name, (False, True)))
+            elif type(spec.default) is int and 0 <= spec.default <= 3:
+                # Positional-family arguments such as Exoskeleton's ``slot``.
+                flags.append((name, (0, 1, 2, 3)))
+        combos = 1
+        for _, values in flags:
+            combos *= len(values)
+        if combos > 64:
+            continue
+        for values in itertools.product(*(values for _, values in flags)):
+            kwargs = dict(zip((name for name, _ in flags), values))
+            try:
+                enemy, ai = creator(Rng(0), **kwargs)
+            except Exception:  # noqa: BLE001 - variant simply does not build
+                continue
+            moves = tuple(sid for sid, state in ai.states.items() if isinstance(state, MoveState))
+            if not moves:
+                continue
+            key = enemy.monster_id
+            entry = (creator_name, kwargs, moves, ai._current_state_id)
+            variants.setdefault(key, {})
+            if (moves, ai._current_state_id) not in variants[key]:
+                variants[key][(moves, ai._current_state_id)] = entry
+    return {name: tuple(entries.values()) for name, entries in variants.items()}
+
+
+CREATOR_VARIANTS = _creator_variants()
+
+INFO = {}
+
+
+def variants_for(monster_id):
+    return CREATOR_VARIANTS.get(monster_id, ())
+
+
+def info_for(monster_id):
+    """Cached public move graph for one monster id (union of its variants)."""
+    if monster_id not in INFO:
+        variants = variants_for(monster_id)
+        if not variants:
+            raise ValueError(f'Unknown monster: {monster_id}')
+        import dataclasses
+        info = describe_monster(monster_id, CREATORS[variants[0][0]], **variants[0][1])
+        initials = tuple(dict.fromkeys(
+            tuple(entry[3] for entry in variants)
+            + tuple(ENCOUNTER_INITIAL_MOVES.get(monster_id, ()))
+            + info.initial_moves))
+        signatures = dict(info.intent_signatures)
+        groups = {}
+        for move in initials:
+            groups.setdefault(signatures.get(move), []).append(move)
+        extra = tuple((sig[0][0] if sig else 'unknown', ids[0], ids[1])
+                      for sig, ids in groups.items() if len(ids) > 1)
+        INFO[monster_id] = dataclasses.replace(info, initial_moves=initials,
+                                               ambiguous_pairs=info.ambiguous_pairs + extra)
+    return INFO[monster_id]
+
+
+def move_from_intents(monster_id, previous_move, intents):
+    """Which move a visible intent refers to, from the public move history.
+
+    ``previous_move`` is None for the initial state.  The caller has already
+    checked that the intent is unambiguous; a missing match raises.
+    """
+    info = info_for(monster_id)
+    signatures = dict(info.intent_signatures)
+    if previous_move is None:
+        candidates = info.initial_moves
+    else:
+        successors = dict(info.successors)
+        if previous_move not in successors:
+            raise ValueError(f'Unknown {monster_id} move: {previous_move}')
+        candidates = successors[previous_move]
+    matches = [move for move in candidates if signatures[move] == tuple(intents)]
+    if len(matches) != 1:
+        raise ValueError(f'Intent does not identify one {monster_id} move: {matches}')
+    return matches[0]
+
+
 def _encounters():
     from sts2_env.encounters import act1, act2, act3, act4
 
@@ -172,6 +272,33 @@ def _encounters():
 
 
 ENCOUNTERS = _encounters()
+
+
+def _sample_initial_moves(samples=4):
+    """Initial moves actually produced by the native encounter tables.
+
+    Per-slot consumer arguments (Exoskeleton positions, Nibbit rows) are passed
+    by the encounters themselves, so this is the public source of truth for
+    which first moves can appear.
+    """
+    from sts2_env.core.combat import CombatState
+
+    observed = {}
+    for name, setup in ENCOUNTERS.items():
+        for seed in range(samples):
+            world = CombatState(80, 80, [], seed, relics=[], potions=[], character_id='Ironclad')
+            try:
+                setup(world, Rng(seed))
+                world.start_combat()
+            except Exception:  # noqa: BLE001 - not every seed must set up
+                continue
+            for enemy in world.enemies:
+                ai = world.enemy_ais[enemy.combat_id]
+                observed.setdefault(enemy.monster_id, set()).add(ai._current_state_id)
+    return {name: tuple(sorted(moves)) for name, moves in observed.items()}
+
+
+ENCOUNTER_INITIAL_MOVES = _sample_initial_moves()
 ACT_OF = {}
 
 
@@ -218,9 +345,12 @@ def audit():
     described = {}
     for monster_id, creator_name in monsters.items():
         try:
-            described[monster_id] = describe_monster(monster_id, CREATORS[creator_name])
-        except Exception:  # noqa: BLE001
-            continue
+            described[monster_id] = info_for(monster_id)
+        except Exception:  # noqa: BLE001 - no public construction variant
+            try:
+                described[monster_id] = describe_monster(monster_id, CREATORS[creator_name])
+            except Exception:  # noqa: BLE001
+                continue
     encounters = {}
     for name, setup in ENCOUNTERS.items():
         error, rosters = sample_roster(setup)

@@ -24,7 +24,8 @@
 | P1c | 计数/延迟 7 张接入（NOSTALGIA/PROLONG/GAMBIT/AUTOMATION/PANACHE/ROLLING_BOULDER/BOMB），累计 146/151 | 已完成 |
 | P1d | 剩余 5 张范围暂缓（药水/跨职业生成/隐藏身份）归档 | 已完成 |
 | P2a | 全怪物静态清单与通用接入判据（122 怪物 / 81 遭遇；121+80 通过判据） | 已完成 |
-| P2b | 通用公开阵容（roster）capture/restore/validate + 粒子与 MCTS 接入 | 进行中 |
+| P2b | 通用公开阵容 roster：capture/validate/create/restore + 原生遭遇构造 + 逐步 parity | 已完成 |
+| P2c | roster 接入 information/粒子/MCTS（新内容版本）+ 实体编码 | 进行中 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -75,3 +76,11 @@
 - 结果：**121/122 怪物、80/81 遭遇**满足判据；唯一例外 `TEST_SUBJECT`（三形态同意图）由既有 `boss_phases` 专用契约处理，不用通用规则猜测。
 - 新增 `scripts/audit_monster_coverage.py` 生成 `docs/MONSTER_COVERAGE.md` 与 `docs/monster_coverage.json`（逐遭遇阵容、逐怪物招式/歧义/多意图）。
 - 新增 `tests/test_az_monster_registry.py`（7 项：遭遇表枚举、招式图不变量、容量上限、TEST_SUBJECT 显式拒绝）。
+
+### 步骤 5（2026-10-18）通用公开阵容 roster（P2b）
+
+- 新增 `sts2_env/az/roster.py`：`EnemySlot` 公共槽位（怪物 ID、血量/格挡、公开能力、可见意图列表、由意图+历史推导的当前招式、已执行招式历史、逃跑标记）。
+- 当前招式**从公开信息推导**（`move_from_intents`），原生私有状态机 ID 只用于校验推导一致；推导失败或存在歧义即拒绝，不做猜测。
+- `create_slots` 以**原生遭遇 setup 作为构造 oracle**：按观测阵容重采样 setup（含 Exoskeleton 位置等逐槽参数），其余后召唤槽用怪物构造变体兜底；`restore_slots` 恢复 AI 状态日志/当前招式/能力/HP/格挡。
+- 新增 `tests/test_az_roster.py`（19 项）：15 个跨幕遭遇（含女王、凯撒蟹、造门者、瀑布巨人 Boss、4 槽阵容）的捕获→校验→粒子重建往返，以及推进回合后与真实世界的逐槽 parity（对齐随机流作为 parity oracle）。
+- 静态审计保持：121/122 怪物、80/81 遭遇通过判据（TEST_SUBJECT 由 Boss 专用契约处理）。
