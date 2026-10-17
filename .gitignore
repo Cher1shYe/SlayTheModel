@@ -1,2 +1,5 @@
 .handoffs/
 scripts/__pycache__/
+
+# Local scratch probes
+_tmp_*.py
