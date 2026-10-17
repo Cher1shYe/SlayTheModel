@@ -13,6 +13,8 @@ sys.path.insert(0, str(ROOT))
 from sts2_env.core.card_pools import CardPoolId, CHARACTER_CARD_POOLS_BY_ID, COLORLESS_CARD_POOL
 from sts2_env.cards.factory import _factory_registry, create_card
 from sts2_env.cards.registry import _CARD_EFFECTS
+from sts2_env.cards import registry as card_registry
+from sts2_env.az.simple_cards import FACTORIES as SIMPLE_FACTORIES
 from sts2_env.az.content_expansion import FACTORIES, POWER_FACTORIES, CODEC
 from sts2_env.az.boss_cards import CODEC as OLD_CODEC
 from sts2_env.az.expanded_mechanics import describe_card
@@ -30,6 +32,10 @@ def inventory():
             effect = _CARD_EFFECTS.get(cid)
             source = inspect.getsource(effect) if effect else ''
             supported = cid.name in CODEC.factories
+            hooks = {name: content_hash(inspect.getsource(table[cid]))
+                for name, table in vars(card_registry).items()
+                if name.startswith('_CARD_') and name != '_CARD_EFFECTS'
+                and isinstance(table, dict) and cid in table and callable(table[cid])}
             dependencies = sorted(set(re.findall(r'PowerId\.([A-Z_]+)', source)))
             calls = sorted({n.func.attr for n in ast.walk(ast.parse(source))
                 if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute)
@@ -37,6 +43,7 @@ def inventory():
             # Hints are direct source symbols, not an inferred semantic description.
             blockers = [] if supported else [f'mechanic_descriptor/cards/{cid.name}',
                 'public_state_and_action_admission', 'particle_reconstruction_and_interaction_parity']
+            if not supported and hooks: blockers += ['registered_hooks/' + ','.join(sorted(hooks))]
             if not supported and dependencies: blockers += ['power_dependencies/' + ','.join(dependencies)]
             if not supported and (c.star_cost or c.has_star_cost_x): blockers += ['star_resource']
             if not supported and c.target_type.name in ('ANY_ALLY', 'ANY_PLAYER', 'ALL_ALLIES'):
@@ -54,12 +61,12 @@ def inventory():
                 network='admitted' if supported else 'blocked',
                 belief_search='admitted' if supported else 'blocked',
                 tests='new-batch-parity' if cid.name in FACTORIES else 'existing-g23e' if supported else 'native-only-unreviewed',
-                batch='powers-v2' if cid.name in POWER_FACTORIES else 'batch1-v1' if cid.name in FACTORIES else 'existing' if supported else 'pending',
+                batch='simple-v3' if cid.name in SIMPLE_FACTORIES else 'powers-v2' if cid.name in POWER_FACTORIES else 'batch1-v1' if cid.name in FACTORIES else 'existing' if supported else 'pending',
                 native_source=f'{Path(inspect.getsourcefile(effect)).relative_to(ROOT).as_posix()}:{inspect.getsourcelines(effect)[1]}' if effect else None,
-                effect_source_sha256=content_hash(source), keywords=sorted(c.keywords),
+                registered_hook_source_hashes=hooks, effect_source_sha256=content_hash(source), keywords=sorted(c.keywords),
                 direct_power_symbols=dependencies, direct_combat_calls=calls,
                 effect_variables=sorted(c.effect_vars), descriptor_hashes=variants, blockers=blockers))
-    return dict(version='ironclad-colorless-coverage-v2', content=EXPANSION_CONTENT,
+    return dict(version='ironclad-colorless-coverage-v3', content=EXPANSION_CONTENT,
         scope='87 Ironclad + 64 Colorless IDs from native card pools; upgrades listed separately',
         status_meaning='registered is not engine parity; admitted is limited to documented single-player dependencies',
         original_admitted=sum(r['id'] in OLD_CODEC.factories for r in rows),

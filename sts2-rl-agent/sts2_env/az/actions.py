@@ -39,6 +39,14 @@ def public_mask(world, content):
     if world.pending_choice is None:
         result = np.zeros(size, dtype=np.int8)
         result[:115] = get_action_mask(world)
+        if content == EXPANSION_CONTENT:
+            from sts2_env.core.enums import TargetType
+            from sts2_env.core.constants import MAX_HAND_SIZE, MAX_ENEMIES
+            for slot, card in enumerate(world.hand):
+                if card.target_type == TargetType.RANDOM_ENEMY:
+                    aliases = [1 + MAX_HAND_SIZE + slot * MAX_ENEMIES + i for i in range(MAX_ENEMIES)]
+                    legal = [i for i in aliases if result[i]]
+                    for i in legal[1:]: result[i] = 0
         return result
     choice = world.pending_choice
     from .choice_sets import is_set_choice, set_mask

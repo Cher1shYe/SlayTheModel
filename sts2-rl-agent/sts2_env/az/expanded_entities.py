@@ -36,6 +36,7 @@ def card_entity(ref, state, zone, count=1, slot=0, position=0, selected=False, o
     d = describe_card(state.token)
     from sts2_env.core.enums import CardTag
     tags = (O('defend_tag','self','powered_card_block',1),) if CardTag.DEFEND in CODEC._reference(state.token).tags else ()
+    if CardTag.STRIKE in CODEC._reference(state.token).tags: tags += (O('strike_tag','self','on_play',1),)
     return Entity(ref,'card',zone,'player',numeric(count=count,hand_slot=slot,known_position=position,
         base_cost=d.cost,current_cost=state.cost,original_cost=state.original_cost,card_type=d.card_type,
         upgraded=int(state.token.endswith('+')),turn_cost=state.turn_cost or 0,has_turn_cost=int(state.turn_cost is not None),
@@ -51,7 +52,7 @@ def encode_expanded(info):
     entities = [Entity('state','state','none',None,numeric(turn=info.turn,decisions=info.history.decisions,
         max_decisions=info.limits.max_decisions,max_turns=info.limits.max_turns,initial_hp=info.initial_hp,
         played_this_turn=len(info.history.played_this_turn),attack_count=attacks,completed_plays=completed,
-        enemy_rounds=len(info.history.enemy_moves),
+        enemy_rounds=len(info.history.enemy_moves),exhausted_this_turn=len(info.history.exhausted_this_turn),
         pending_energy=info.history.payments[-1].energy if info.choice and info.history.payments else 0))]
     peffects = ((POWER_RULES['shrink'] if info.shrink else ()) + (POWER_RULES['vulnerable'] if info.player_vulnerable else ())
         + ((O('strength','self','outgoing_powered_attack',info.player_strength),) if info.player_strength else ())

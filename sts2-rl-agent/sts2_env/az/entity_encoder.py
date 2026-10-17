@@ -17,6 +17,7 @@ NUMERIC_FIELDS += ('strength','slow','territorial','artifact','illusion','minion
     'phase','claws','intangible','nemesis','enrage','adaptable','painful_stabs','known_position',
     'choice_min','choice_max','choice_skip','choice_selected','choice_option','pending_target',
     'pending_energy','remaining_forms_hp','roar_used','last_stage')
+NUMERIC_FIELDS += ('exhausted_this_turn',)
 KINDS = ('state', 'player', 'enemy', 'card', 'choice')
 ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending')
 ACTION_TYPES = ('end_turn','play','choose','choose_set','confirm_choice')
@@ -30,7 +31,7 @@ def supported_reward(content, reward):
 
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
-SCHEMA = {'version': 'public-entities-ironclad-colorless-v2', 'action_version': 'dynamic-actions-v2',
+SCHEMA = {'version': 'public-entities-ironclad-colorless-v3', 'action_version': 'dynamic-actions-v2',
           'numeric': NUMERIC_FIELDS, 'kinds': KINDS, 'zones': ZONES,
           'max_entities': MAX_CARDS + 16, 'max_actions': MAX_CARDS + 1, 'max_effects': 64,
           'supported': SUPPORTED, 'action_types': ACTION_TYPES,

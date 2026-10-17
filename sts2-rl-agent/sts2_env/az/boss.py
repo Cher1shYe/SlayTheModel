@@ -99,6 +99,10 @@ def after_round(before, ended):
 
 def finish_history(before, world, history, action):
     """Actual public HP confirms knockout; do not inspect hidden AI memory."""
+    from .content import EXPANSION_CONTENT
+    if before.content_version == EXPANSION_CONTENT:
+        from .simple_cards import finish_history as finish_simple
+        history = finish_simple(before, world, history)
     if before.monster_id != MONSTER:
         return history
     events = before.history.boss_events

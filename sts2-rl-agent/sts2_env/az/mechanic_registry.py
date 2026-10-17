@@ -18,15 +18,21 @@ OPS += ('hits_per_claw', 'untargetable', 'clear_debuffs', 'prevent_combat_end')
 OPS += ('clear_form_powers', 'advance_phase', 'draw_to_hand_limit')
 OPS += ('damage_per_vulnerable', 'damage_conditional_hits', 'strength_from_target_vulnerable', 'multiply_vulnerable')
 OPS += ('keep_block', 'block_per_attack', 'block_per_exhaust', 'defend_block_bonus', 'plating', 'defend_tag')
+OPS += ('damage_per_finished_attack','energy_per_hand_attack','damage_per_strike_card','draw_until_nonattack',
+        'exhaust_hand','damage_per_exhausted_hand','exhaust_nonattacks_with_block','draw_per_exhausted_hand',
+        'require_exhaust_count','no_draw','innate','block_from_damage_result','damage_per_draw_card',
+        'splash_damage_result','damage_per_debuff_type','strike_tag')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
+TARGETS += ('random_enemy','other_enemies')
 TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_turn',
            'outgoing_powered_attack', 'incoming_powered_attack', 'enemy_turn_end', 'applier_death')
 TIMINGS += ('after_play', 'turn_end_hand', 'before_attack_play', 'generated_card', 'generated_on_play',
             'generated_after_play', 'on_skill_play', 'on_card_play', 'on_unblocked_hit', 'on_death', 'turn_start')
 TIMINGS += ('player_turn_end', 'after_attack_play', 'on_exhaust', 'powered_card_block')
+TIMINGS += ('after_play_damage','after_exhaust','playability','outside_hand_draw','opening_hand')
 CONDITIONS = ('always', 'hand_empty', 'phase0', 'phase1', 'phase2', 'alive', 'if_hand_nonempty', 'unupgraded', 'reviving')
-CONDITIONS += ('target_vulnerable', 'target_alive')
+CONDITIONS += ('target_vulnerable', 'target_alive','exhausted_this_turn','combat_active','no_attacks_in_hand')
 
 
 @dataclass(frozen=True)
@@ -74,7 +80,7 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'ironclad-colorless-mechanics-v2'
+REGISTRY_VERSION = 'ironclad-colorless-mechanics-v3'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},

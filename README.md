@@ -1,3 +1,11 @@
+## 最新机制接入：战士／无色即时效果与公开计数（2026-10-17）
+
+本批新增 **20 张及升级版**，累计 **70/151**（战士 50、无色 20），待接入 **81**。覆盖普通消耗、抽牌、随机攻击、X 费、先天、公开条件伤害／格挡，以及 Battle Trance／Stone Armor；同步补齐实体编码、动态合法动作和 MCTS 重建。
+
+[本批报告](sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_SIMPLE.md) · [逐牌清单](sts2-rl-agent/docs/IRONCLAD_COLORLESS_COVERAGE.md) · [测试证据](sts2-rl-agent/docs/ironclad_colorless_simple_evidence.json)
+
+必要测试 **3,849 项通过**。新内容与 schema 升级 V3，旧权重和 Replay 不直接兼容。下一批优先补 Weak 等基础状态依赖，再处理延迟触发、回手和实例成长。本次未启动训练或使用最终留出；后续继续按实际 network 整场 V7 效用验收。下文为历史进度。
+
 ## 最新进度：战士／无色第三批（2026-10-17）
 
 已接通 50/151 张（战士 37、无色 13），本批新增六张持久能力／触发牌及升级版，剩余 101。补齐公开能力状态、实体语义、动态动作和 MCTS 重建。详见 [第三批报告](sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_POWERS.md) 与 [覆盖清单](sts2-rl-agent/docs/IRONCLAD_COLORLESS_COVERAGE.md)。未启动训练、未使用最终留出集；后续按 network V7 效用验收。下一批为 Dark Embrace／Rupture 延迟触发。

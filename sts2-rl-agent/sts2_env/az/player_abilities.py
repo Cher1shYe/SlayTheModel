@@ -8,10 +8,10 @@ from .content import EXPANSION_CONTENT
 from .mechanic_registry import Operation as O
 from sts2_env.core.enums import PowerId
 
-POWER_IDS = {n: PowerId[n] for n in ('BARRICADE', 'RAGE', 'FEEL_NO_PAIN', 'DEMON_FORM', 'FASTEN', 'PLATING')}
+POWER_IDS = {n: PowerId[n] for n in ('BARRICADE', 'RAGE', 'FEEL_NO_PAIN', 'DEMON_FORM', 'FASTEN', 'PLATING','NO_DRAW')}
 CARD_POWER = {'BARRICADE_CARD': ('BARRICADE', None), 'RAGE_CARD': ('RAGE', 'power'),
     'FEEL_NO_PAIN_CARD': ('FEEL_NO_PAIN', 'power'), 'DEMON_FORM_CARD': ('DEMON_FORM', 'strength'),
-    'FASTEN': ('FASTEN', 'extra_block'), 'ETERNAL_ARMOR': ('PLATING', 'plating')}
+    'FASTEN': ('FASTEN', 'extra_block'), 'ETERNAL_ARMOR': ('PLATING', 'plating'), 'STONE_ARMOR': ('PLATING','plating'), 'BATTLE_TRANCE': ('NO_DRAW',None)}
 
 
 def rules(name, amount):
@@ -20,6 +20,7 @@ def rules(name, amount):
     if name == 'FEEL_NO_PAIN': return (O('block_per_exhaust', 'self', 'on_exhaust', amount),)
     if name == 'DEMON_FORM': return (O('strength_per_turn', 'self', 'turn_start', amount),)
     if name == 'FASTEN': return (O('defend_block_bonus', 'self', 'powered_card_block', amount),)
+    if name == 'NO_DRAW': return (O('no_draw','self','outside_hand_draw',1), O('remove','self','player_turn_end',1))
     if name == 'PLATING': return (O('plating', 'self', 'player_turn_end', amount), O('decrement', 'self', 'enemy_turn_end', 1))
     raise ValueError('Unsupported public player ability')
 
@@ -66,13 +67,13 @@ def validate(info):
             raise ValueError('Invalid public ability play ledger')
         token, turn = row
         if turn > last:
-            expected.pop('RAGE', None)
+            expected.pop('RAGE', None); expected.pop('NO_DRAW', None)
             expected['PLATING'] = max(0, expected.get('PLATING', 0) - (turn-last))
         name, amount = value(token)
-        expected[name] = 1 if name == 'BARRICADE' else expected.get(name, 0) + amount
+        expected[name] = 1 if name in ('BARRICADE','NO_DRAW') else expected.get(name, 0) + amount
         last = turn
     if info.turn > last:
-        expected.pop('RAGE', None)
+        expected.pop('RAGE', None); expected.pop('NO_DRAW', None)
         expected['PLATING'] = max(0, expected.get('PLATING', 0) - (info.turn-last))
     expected = {k:v for k,v in expected.items() if v}
     if info.termination_reason != 'death':
@@ -81,7 +82,8 @@ def validate(info):
         if current != played: raise ValueError('Ability plays disagree with current turn history')
     if len(events) > info.history.decisions:
         raise ValueError('Ability plays exceed decisions')
-    removed = Counter(t for t, _ in events if t.removesuffix('+') != 'RAGE_CARD')
+    from .deck_observation import prototype
+    removed = Counter(t for t, _ in events if prototype(t).is_power)
     actual = Counter(t for t in info.history.removed_powers if t.removesuffix('+') != 'INFLAME')
     if removed != actual: raise ValueError('Ability ledger and removed power cards disagree')
     # Death may clear powers and abort a round before its tick/start hooks.

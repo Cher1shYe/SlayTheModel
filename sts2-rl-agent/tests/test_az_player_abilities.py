@@ -119,7 +119,7 @@ def test_ability_contract_rejects_duplicates_unknown_and_old_content():
     play(env,'RAGE_CARD')
     for powers in [(('RAGE',3),('RAGE',3)), (('DARK_EMBRACE',1),), (('RAGE',True),)]:
         with pytest.raises(ValueError): replace(env.information, player_abilities=powers).validate()
-    with pytest.raises(ValueError): replace(recipe(['FASTEN']*3+['BASH']*3), content_manifest_version='ironclad-colorless-batch1-v1')
+    with pytest.raises(ValueError): replace(recipe(['FASTEN']*3+['BASH']*3), content_manifest_version='ironclad-colorless-powers-v2')
 
 
 @pytest.mark.parametrize('name', POWER_FACTORIES)

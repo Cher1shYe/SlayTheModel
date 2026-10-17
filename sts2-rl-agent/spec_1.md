@@ -1,3 +1,5 @@
+最新切片（2026-10-17，优先于下文历史下一步）：按用户要求优先接入简单效果，本批新增 20 张及升级版，累计 70/151（战士 50、无色 20），剩余 81。内容 ironclad-colorless-simple-v3；覆盖机制描述、公开消耗计数、实体、动态动作和 MCTS 重建。报告 docs/AZ_IRONCLAD_COLORLESS_SIMPLE.md；下一批优先 Weak 等基础状态依赖，再处理延迟触发／回手／实例成长。不启动训练、不使用最终留出；后续按实际 network 整场 V7 效用验收。
+
 最新切片（2026-10-17，优先于下文历史下一步）：战士／无色第三批持久能力接入完成，当前 50/151、待接通 101；`ironclad-colorless-powers-v2` 覆盖 Barricade、Rage、Feel No Pain、Demon Form、Fasten、Eternal Armor 的基础／升级版、公开状态、实体机制、动态动作和搜索重建。见 `docs/AZ_IRONCLAD_COLORLESS_POWERS.md`。下一批处理 Dark Embrace／Rupture 的延迟触发与选择续接。没有启动训练或使用最终留出；network 整场 V7 效用仍为后续实验主验收标准。
 
 # STS2 通用出牌策略：Transformer 分档模型规格

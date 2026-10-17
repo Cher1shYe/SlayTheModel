@@ -4,6 +4,8 @@ The original Boss registry remains frozen. This version adds no relic, potion,
 character-resource or multiplayer capability and has no training manifest.
 """
 from functools import partial
+from dataclasses import replace
+from .selection_batch import SIMPLE_MAX_PUBLIC_ENERGY
 
 from sts2_env.cards import ironclad, colorless
 from .card_state import CardStateCodec
@@ -14,7 +16,8 @@ POWER_FACTORIES = {
     'FEEL_NO_PAIN_CARD': ironclad.make_feel_no_pain, 'DEMON_FORM_CARD': ironclad.make_demon_form,
     'FASTEN': colorless.make_fasten, 'ETERNAL_ARMOR': colorless.make_eternal_armor,
 }
-FACTORIES = {**POWER_FACTORIES,
+from .simple_cards import FACTORIES as SIMPLE_FACTORIES
+FACTORIES = {**POWER_FACTORIES, **SIMPLE_FACTORIES,
     'BLOOD_WALL': ironclad.make_blood_wall,
     'BREAKTHROUGH': ironclad.make_breakthrough,
     'TREMBLE': ironclad.make_tremble,
@@ -36,7 +39,7 @@ FACTORIES = {**POWER_FACTORIES,
 CODEC = CardStateCodec({**BASE_CODEC.factories, **{
     name + suffix: partial(factory, upgraded=bool(suffix))
     for name, factory in FACTORIES.items() for suffix in ('', '+')
-}}, BASE_CODEC.policy)
+}}, replace(BASE_CODEC.policy, max_x_energy_spent=SIMPLE_MAX_PUBLIC_ENERGY))
 TOKENS = tuple(CODEC.factories)
 
 
@@ -52,6 +55,9 @@ def descriptor(token):
     from .mechanic_registry import Operation as O, MechanicDescriptor
     c = CODEC._reference(token)
     name, v = token.removesuffix('+'), c.effect_vars
+    if name in SIMPLE_FACTORIES:
+        from .simple_cards import descriptor as simple_descriptor
+        return simple_descriptor(c)
     variables = {'BLOOD_WALL': ('hp_loss',), 'BREAKTHROUGH': ('hp_loss',),
         'TREMBLE': ('vulnerable',), 'TAUNT': ('vulnerable',),
         'FINESSE': ('cards',), 'FLASH_OF_STEEL': ('cards',),

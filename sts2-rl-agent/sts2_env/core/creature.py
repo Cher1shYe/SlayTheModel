@@ -240,8 +240,8 @@ class Creature:
                 return
 
         existing = self.powers.get(power_id)
-        # Barricade is Single in the reference: replaying it must not stack.
-        if power_id == PowerId.BARRICADE and existing is not None:
+        # Audited Single abilities: repeated applications must not stack.
+        if power_id in (PowerId.BARRICADE, PowerId.NO_DRAW) and existing is not None:
             return
         applied_delta = 0
         if existing is not None:
