@@ -20,7 +20,7 @@ FEATURES = ("present", "upgraded", "cost/3", "original_cost/3", "x_cost", "damag
 def prototype(token):
     saved = card_base._next_instance_id
     try:
-        if token in ("DAZED", "BURN", "WOUND"):
+        if token in ("DAZED", "BURN", "WOUND", "SLIMED"):
             from sts2_env.cards import status
             return getattr(status, "make_" + token.lower())()
         return make_token(token)

@@ -1,4 +1,4 @@
-"""Public-only starter and frozen G2.3e entity/action schema."""
+﻿"""Public-only starter and frozen G2.3e entity/action schema."""
 from collections import Counter
 from dataclasses import dataclass, asdict
 import math
@@ -26,13 +26,13 @@ NUMERIC_FIELDS += ('execution_card_reference',)
 KINDS = ('state', 'player', 'enemy', 'card', 'choice','power','continuation')
 ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending', 'revealed')
 ACTION_TYPES = ('end_turn','play','choose','choose_set','confirm_choice')
-from .content import BOSS_CONTENT, EXPANSION_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT
 from .rewards import V6, V7
-SUPPORTED = {CONTENT_VERSION: REWARD_VERSION, BOSS_CONTENT: V6, EXPANSION_CONTENT: V7}
+SUPPORTED = {CONTENT_VERSION: REWARD_VERSION, BOSS_CONTENT: V6, EXPANSION_CONTENT: V7, ALL_CONTENT: V7}
 
 
 def supported_reward(content, reward):
-    return SUPPORTED.get(content) == reward or (content in (BOSS_CONTENT, EXPANSION_CONTENT) and reward == V7)
+    return SUPPORTED.get(content) == reward or (content in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) and reward == V7)
 
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
@@ -136,7 +136,7 @@ def encode_entities(info, diagnostic_dir='output/az_transformer_errors'):
 
 
 def _encode_entities(info):
-    if info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
+    if info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
         from .expanded_entities import encode_expanded
         return encode_expanded(info)
     if info.content_version != CONTENT_VERSION or info.reward_version != REWARD_VERSION:
@@ -167,3 +167,4 @@ def _encode_entities(info):
     from .action_candidates import starter_candidates
     actions, _ = starter_candidates(info)
     return EntityObservation(tuple(entities), actions).validate()
+

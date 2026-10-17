@@ -252,7 +252,9 @@ def restore_slots(world, slots, rng):
                 power._instances = [(amount, world.player)]
             if name == 'SLOW':
                 power._slow_amount = len(world._played_cards_this_turn)
-            power.skip_next_tick = name in ('WEAK', 'VULNERABLE', 'FRAIL')
+            # Enemy-side statuses were applied during the player turn, so their
+            # first enemy-turn tick is due; only player-side debuffs skip it.
+            power.skip_next_tick = False
             enemy.powers[PowerId[name]] = power
     return world
 

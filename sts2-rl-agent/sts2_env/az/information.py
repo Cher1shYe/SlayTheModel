@@ -1,4 +1,4 @@
-﻿"""Observable starter/Shrinker sufficient state and independently sampled worlds.
+"""Observable starter/Shrinker sufficient state and independently sampled worlds.
 
 No world, recipe, environment seed, instance ID or simulator RNG is retained in
 InformationState. Unknown draw composition is inferred by card conservation.
@@ -584,7 +584,11 @@ class SearchParticle:
                     raise ValueError("Particle choice rejected")
             else:
                 apply_action(self.world, action)
-            if self.info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
+            if self.info.content_version == ALL_CONTENT:
+                from .all_content import check_transition
+                check_transition(self.info, self.world, self.enemy_slots)
+                self.enemy_slots = tuple(self.world.enemies)
+            elif self.info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
                 from .boss import check_transition
                 check_transition(self.info, self.world, self.enemy_slots)
                 self.enemy_slots = tuple(self.world.enemies)
@@ -596,7 +600,10 @@ class SearchParticle:
                 check_transition(self.info, self.world, self.enemy_slots)
                 self.enemy_slots = tuple(self.world.enemies)
             history = self.info.history.after_action(self.info, action, combat_ended=self.world.is_over, after_hand=tuple(card_token(c) for c in self.world.hand))
-            if self.info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
+            if self.info.content_version == ALL_CONTENT:
+                from .all_content import finish_history
+                history = finish_history(self.info, self.world, history, action)
+            elif self.info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
                 from .boss import finish_history
                 history = finish_history(self.info, self.world, history, action)
             self.next_card_id = card_base._next_instance_id
@@ -607,7 +614,8 @@ class SearchParticle:
                           tuple(e.initial_hp for e in self.info.enemies if not e.spawned)
                           if self.info.content_version in (SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else self.info.enemy_initial_hp)
             self.info = observe(self.world, history, self.info.limits, self.info.initial_hp, self.info.reward_version, self.info.content_version,
-                                self.info.known_deck, initial_hp)
+                                self.info.known_deck, initial_hp,
+                                encounter=self.info.encounter if self.info.content_version == ALL_CONTENT else '')
             return self.info
         finally:
             card_base._next_instance_id = saved_id
@@ -617,6 +625,9 @@ class BeliefSampler:
     def sample(self, info, search_rng):
         if type(info) is not InformationState:
             raise TypeError("BeliefSampler accepts only InformationState, never WorldState/recipe")
+        if info.content_version == ALL_CONTENT:
+            from .all_content import sample_particle
+            return sample_particle(info, search_rng)
         info.validate()
         if info.terminal_value() is not None:
             raise ValueError("Cannot sample a terminal information state")

@@ -26,7 +26,7 @@
 | P2a | 全怪物静态清单与通用接入判据（122 怪物 / 81 遭遇；121+80 通过判据） | 已完成 |
 | P2b | 通用公开阵容 roster：capture/validate/create/restore + 原生遭遇构造 + 逐步 parity | 已完成 |
 | P2c | all-content 版本：观测/校验/公开回合历史 + 场景与牌库接入 | 已完成 |
-| P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 进行中 |
+| P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 已完成（3 遭遇全链路，5 个已知差异待修） |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -96,3 +96,13 @@
 - 未完成：粒子采样、实体编码、适配器与动态 MCTS 的 ALL_CONTENT 分派（P2d）。
 - 回归：卡牌/roster/all-content 1003 项、Transformer 287 项串行通过。
 - 已知快照遗留：`tests/test_az_t4_course.py` 有 5 项在改动前就失败（冻结 witness 缺 `exhausted_this_turn` 等新字段，`public_from_dict` 抛 KeyError）；已用 `git stash` 在未改动树上复现，确认不是本轮引入，未在本轮修复。
+
+### 步骤 7（2026-10-18）all-content 粒子与 MCTS 全链路（P2d）
+
+- `all_content.sample_particle`：从公开状态重建整场粒子（遭遇构造 → 牌堆/牌面记忆 → 玩家能力/状态 → 执行栈 → 通用敌人恢复），恢复后与根状态逐字段相等。
+- `information` 分派：`BeliefSampler` 与 `SearchParticle.step` 走 all-content 的 `check_transition`/`finish_history`，不触碰 V4 路径。
+- 实体编码：`all_entities.enemy_entities` 逐槽编码可见意图（攻击值→damage、其余意图图标→intent_* 操作）、公开能力、招式图位置与后继；`expanded_entities` 对 ALL_CONTENT 跳过旧十怪循环并复用卡牌半边；新增 intent_* / public_power 词表（registry v6）。
+- 适配器/动作：`adapter`（奖励账本、公共初始、回合日志）、`actions`（4096 动作空间与随机目标别名归一）、`action_candidates` 全部支持 ALL_CONTENT。
+- 修复：敌人状态 `skip_next_tick` 恢复时机、玩家侧怪物减益的首跳消耗（对齐 V4 口径）、SLIMED 在 `prototype`/出牌记忆中的构造。
+- 测试 `tests/test_az_all_mcts.py`：**13 项通过**（nibbits/cultists/chompers 的逐步粒子 parity、编码确定性、XS 动态 MCTS 可重复性、奖励账本、内容不匹配拒绝）；**5 项 xfail 且写明原因**，逐项记录仍与真实世界有差异的遭遇（slimes 分裂、bowlbugs 位置脚本、axebots 逐槽构造、waterfall giant 多目标减益时序、kaiser crab 奖励账本/槽位能力）。
+- 回归：卡牌/all-content 1016 项通过（5 xfailed）、Transformer 287 项通过；V4 路径未被改动。

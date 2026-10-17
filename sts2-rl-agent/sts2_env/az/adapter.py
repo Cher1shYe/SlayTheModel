@@ -9,7 +9,7 @@ import numpy as np
 from .actions import action_size, action_version, public_mask
 from .decks import card_token
 from .content import G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-from .content import BOSS_CONTENT, EXPANSION_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT
 from .config import ACTION_VERSION, REWARD_VERSION, EpisodeLimits, atomic_json
 from .scenarios import make_scenario
 from .rewards import terminal_reward, validate_reward
@@ -51,7 +51,7 @@ class CombatAdapter:
         self.initial_roster = tuple((e.monster_id, e.current_hp, e.max_hp) for e in self.world.enemies)
         self.enemy_slots = tuple(self.world.enemies)
         self.initial_hp_roster = tuple(max(0, e.current_hp) for e in self.world.enemies)
-        if recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
+        if recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
             from .rewards import V6, V7
             if self.reward_version not in (V6, V7):
                 raise ValueError("Boss content requires reward V6")
@@ -77,7 +77,13 @@ class CombatAdapter:
         enemy = world.enemies[0]
         roster = ()
         enemy_hp, enemy_max = max(0, enemy.current_hp), enemy.max_hp
-        if self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
+        if self.recipe.content_manifest_version == ALL_CONTENT:
+            from .all_content import roster_ledger
+            from .summon import ledger_rows, primary_summary
+            ledger = roster_ledger(world, self.initial_hp_roster)
+            roster = ledger_rows(ledger)
+            self.enemy_initial_hp, enemy_hp, enemy_max = primary_summary(ledger)
+        elif self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
             from .boss import capture_reward, rows_summary
             if tuple(world.enemies)[:len(self.enemy_slots)] != self.enemy_slots:
                 raise CombatInterfaceError("Boss roster identity changed")
@@ -115,7 +121,7 @@ class CombatAdapter:
             raise CombatInterfaceError("Adapter failed; replay the recorded recipe after fixing the error")
         if self.outcome().done:
             return np.zeros(action_size(self.recipe.content_manifest_version), dtype=np.int8)
-        if self.world.pending_choice is not None and self.recipe.content_manifest_version not in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
+        if self.world.pending_choice is not None and self.recipe.content_manifest_version not in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
             raise CombatInterfaceError("Choice phase is not supported by the M0 content contract")
         if len(self.world.hand) > MAX_HAND_SIZE or len(self.world.enemies) > MAX_ENEMIES:
             raise CombatInterfaceError("Action schema capacity exceeded")
@@ -177,12 +183,14 @@ class ObservableCombatAdapter(CombatAdapter):
         super().__init__(recipe, limits, error_dir, reward_version)
         from .content import DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
         from .decks import deck_tokens
+        all_content = self.recipe.content_manifest_version == ALL_CONTENT
         self.public_initial = ((deck_tokens(recipe.deck), tuple(e[1] for e in self.initial_roster)
-                               if recipe.content_manifest_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else self.enemy_initial_hp)
-                               if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ((), None))
+                               if recipe.content_manifest_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else self.enemy_initial_hp)
+                               if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else ((), None))
         self.world.visible_card_events = []  # Initial hand is already represented in the initial public state.
         self._information = observe(self.world, PublicHistory(), self.limits, recipe.player_hp, self.reward_version,
-                                    recipe.content_manifest_version, *self.public_initial)
+                                    recipe.content_manifest_version, *self.public_initial,
+                                    encounter=recipe.encounter_id if all_content else '')
 
     @property
     def information(self):
@@ -195,7 +203,11 @@ class ObservableCombatAdapter(CombatAdapter):
         before = self._information
         result = super().step(action)
         try:
-            if self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
+            if self.recipe.content_manifest_version == ALL_CONTENT:
+                from .all_content import check_transition as check_all
+                check_all(before, self.world, self.enemy_slots)
+                self.enemy_slots = tuple(self.world.enemies)
+            elif self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
                 from .boss import check_transition
                 check_transition(before, self.world, self.enemy_slots)
                 self.enemy_slots = tuple(self.world.enemies)
@@ -207,14 +219,20 @@ class ObservableCombatAdapter(CombatAdapter):
                 check_transition(before, self.world, self.enemy_slots)
                 self.enemy_slots = tuple(self.world.enemies)
             history = before.history.after_action(before, int(action), combat_ended=self.world.is_over, after_hand=tuple(card_token(c) for c in self.world.hand))
-            if self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
+            if self.recipe.content_manifest_version == ALL_CONTENT:
+                from .all_content import finish_history as finish_all
+                history = finish_all(before, self.world, history, action)
+            elif self.recipe.content_manifest_version in (BOSS_CONTENT, EXPANSION_CONTENT):
                 from .boss import finish_history
                 history = finish_history(before, self.world, history, action)
             self._information = observe(self.world, history, self.limits, self.recipe.player_hp, self.reward_version,
-                                        self.recipe.content_manifest_version, *self.public_initial)
+                                        self.recipe.content_manifest_version, *self.public_initial,
+                                        encounter=self.recipe.encounter_id if self.recipe.content_manifest_version == ALL_CONTENT else '')
             return result
         except Exception as exc:
             self.failed = True
             atomic_json(self.error_dir / f"{uuid.uuid4().hex}.json",
                         {"trace": self.trace(), "error": repr(exc), "stage": "observer"})
             raise
+
+

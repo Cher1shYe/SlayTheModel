@@ -36,6 +36,9 @@ OPS += ('resume_draw','resume_end_turn','resume_exhaust_draw','resume_auto_draw'
 OPS += ('retaliate_attack','damage_on_applier_block','free_attack','damage_random_on_block')
 OPS += ('skill_cost_zero','skill_exhaust','gain_max_hp','knockdown','tag_team','gold','return_to_hand',
         'ally_guard','to_draw_top','lethal_on_unblocked','defer_block','energy_per_draws','damage_per_plays')
+# Generic visible-intent and public-power vocabulary for the all-encounter roster.
+OPS += ('intent_defend','intent_buff','intent_debuff','intent_status','intent_summon','intent_heal',
+        'intent_sleep','intent_stun','intent_other','public_power')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
 TARGETS += ('random_enemy','other_enemies','draw','exhaust','ally','allies')
@@ -97,7 +100,7 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'ironclad-colorless-mechanics-v5'
+REGISTRY_VERSION = 'ironclad-colorless-mechanics-v6'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},

@@ -54,9 +54,9 @@ def encode_expanded(info):
     info.validate()
     if info.terminal_value() is not None: raise ValueError('Terminal state has no decision policy')
     attacks = attack_count(info.history)
-    from .content import EXPANSION_CONTENT
+    from .content import EXPANSION_CONTENT, ALL_CONTENT
     completed = (sum(e[0]=="finish" and e[2]==info.turn for e in info.history.public_events)
-        if info.content_version==EXPANSION_CONTENT else len(info.history.played_this_turn)-int(info.choice is not None))
+        if info.content_version in (EXPANSION_CONTENT, ALL_CONTENT) else len(info.history.played_this_turn)-int(info.choice is not None))
     entities = [Entity('state','state','none',None,numeric(received_unblocked_hits=sum(e[0]=='player_damage' and e[3]>0 for e in info.history.public_events),
         player_damaged_this_turn=int(any(e[0]=='player_damage' and e[1]==info.turn and e[3]>0 for e in info.history.public_events)),turn=info.turn,decisions=info.history.decisions,
         max_decisions=info.limits.max_decisions,max_turns=info.limits.max_turns,initial_hp=info.initial_hp,
@@ -95,12 +95,15 @@ def encode_expanded(info):
             elif name=='STRENGTH':effects=(O('strength','self','outgoing_powered_attack',info.player_strength),)
             elif name=='RETAIN_HAND':effects=(O('retain_hand','self','turn_end_hand',info.retain_hand),)
             elif name in ('SHRINK','VULNERABLE'):effects=POWER_RULES[name.lower()]
-            else:raise ValueError('Power lacks entity mechanics')
+            else:effects=(O('public_power','self','on_play',dict(info.player_abilities).get(name,0)),)
             counter=memory['counters'].get(name,0)
             if name in ('CRIMSON_MANTLE','INFERNO'):effects+=(O('hp_loss','self','turn_start',counter),)
             entities.append(Entity(f'power/{i}','power','none','player',numeric(power_order=i+1,power_counter=counter),effects))
     from .summon import public_move
-    for enemy in info.enemies:
+    if info.content_version == ALL_CONTENT:
+        from .all_entities import enemy_entities
+        entities.extend(enemy_entities(info))
+    for enemy in (() if info.content_version == ALL_CONTENT else info.enemies):
         name = enemy.monster_id
         powers = dict(info.boss.powers) if info.boss is not None else {}
         phase, claws, remaining = 0,0,0
@@ -138,9 +141,9 @@ def encode_expanded(info):
             phase=phase,claws=claws,remaining_forms_hp=remaining,
             intangible=powers.get('INTANGIBLE',0),nemesis=powers.get('NEMESIS',0),enrage=powers.get('ENRAGE',0),
             adaptable=powers.get('ADAPTABLE',0),painful_stabs=powers.get('PAINFUL_STABS',0)),tuple(effects)))
-    from .content import EXPANSION_CONTENT
+    from .content import EXPANSION_CONTENT, ALL_CONTENT
     memory=None
-    if info.content_version==EXPANSION_CONTENT:
+    if info.content_version in (EXPANSION_CONTENT, ALL_CONTENT):
         from .card_memory import read
         memory=read(info.card_memory,CODEC)
     options = {(o.pile,o.index):i for i,o in enumerate(info.choice.options)} if info.choice else {}

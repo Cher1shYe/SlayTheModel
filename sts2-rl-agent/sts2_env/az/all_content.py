@@ -88,10 +88,14 @@ def observe_all(world, history, limits=None, initial_hp=80, reward_version=V7,
     mask = (tuple(bool(v) for v in public_mask(world, EXPANSION_CONTENT)) if reason is None
             else (False,) * action_size(EXPANSION_CONTENT))
     from .card_memory import capture as capture_card_memory
-    from .player_abilities import POWER_IDS
+    from .foundation import PLAYER
     from .power_memory import capture as capture_power_memory
     from .foundation import capture as capture_basic
     from sts2_env.core.enums import PowerId
+    # Player powers exposed by their own fields are excluded here to avoid
+    # duplication: shrink/vulnerable/strength/retain and basic statuses.
+    handled = (PowerId.SHRINK, PowerId.VULNERABLE, PowerId.STRENGTH, PowerId.RETAIN_HAND,
+               *(PowerId[name] for name in PLAYER))
     first = enemies[0]
     return InformationState(
         player.current_hp, player.max_hp, player.block, world.energy, world.max_energy,
@@ -110,7 +114,8 @@ def observe_all(world, history, limits=None, initial_hp=80, reward_version=V7,
         enemy_slow=dict(first.powers).get('SLOW', 0), enemy_territorial=dict(first.powers).get('TERRITORIAL', 0),
         enemy_artifact=dict(first.powers).get('ARTIFACT', 0),
         player_vulnerable=player.powers[PowerId.VULNERABLE].amount if PowerId.VULNERABLE in player.powers else 0,
-        player_abilities=tuple((p.name, obj.amount) for p, obj in player.powers.items() if p in POWER_IDS.values()),
+        player_abilities=tuple((p.name, obj.amount) for p, obj in player.powers.items()
+                               if p not in handled),
         player_strength=player.powers[PowerId.STRENGTH].amount if PowerId.STRENGTH in player.powers else 0,
         encounter=encounter,
     ).validate()
@@ -149,7 +154,7 @@ def validate_all(info):
         raise ValueError('All-content roster must not carry boss phases')
     if type(info.enemies) is not tuple or len({slot.slot for slot in info.enemies}) != len(info.enemies):
         raise ValueError('Duplicate roster slots')
-    validate_abilities(view)
+    _validate_player_powers(info)
     validate_basic(view)
     read_power_memory(view)
     validate_card_memory(view, _codes()[0])
@@ -170,6 +175,34 @@ def validate_all(info):
     if info.terminal_value() is None and not any(info.legal_mask):
         raise ValueError('Nonterminal state needs a legal action')
     return info
+
+
+def _validate_player_powers(info):
+    """Every visible player power must be exposed and ordered consistently."""
+    from sts2_env.core.enums import PowerId
+
+    from .foundation import PLAYER
+    from .power_memory import read as read_power_memory
+
+    abilities = info.player_abilities
+    if (type(abilities) is not tuple
+            or any(type(row) is not tuple or len(row) != 2 or row[0] not in PowerId.__members__
+                   or type(row[1]) is not int or not -100000 <= row[1] <= 100000 for row in abilities)
+            or len({name for name, _ in abilities}) != len(abilities)):
+        raise ValueError('Invalid public player powers')
+    memory = read_power_memory(info)
+    basic = {name for _, name, _ in info.basic_statuses}
+    exposed = basic | {name for name, _ in abilities}
+    if info.shrink:
+        exposed.add('SHRINK')
+    if info.player_vulnerable:
+        exposed.add('VULNERABLE')
+    if info.player_strength:
+        exposed.add('STRENGTH')
+    if info.retain_hand:
+        exposed.add('RETAIN_HAND')
+    if set(memory['order']) != exposed:
+        raise ValueError('Public power order disagrees with the exposed powers')
 
 
 def roster_rows(enemies):
@@ -235,6 +268,22 @@ def finish_history(before, world, history, action):
     return _replace(history, enemy_moves=roster[0], roster_moves=roster)
 
 
+def roster_ledger(world, initial_hp):
+    """Reward ledger straight from the finished world (no move validation)."""
+    from .enemy_lifecycle import EnemyLife, EnemyLedger
+
+    entries = []
+    for slot, enemy in enumerate(world.enemies):
+        powers = {p.name: obj.amount for p, obj in enemy.powers.items()}
+        hp = max(0, enemy.current_hp)
+        phase = 'alive' if hp > 0 else ('reviving' if powers.get('ILLUSION', 0) > 0 else 'defeated')
+        entries.append(EnemyLife(slot, enemy.monster_id, 'MINION' not in powers,
+                                 initial_hp[slot], enemy.max_hp, hp, phase, False))
+    ledger = EnemyLedger(tuple(entries))
+    ledger.validate()
+    return ledger
+
+
 def create_enemies(world, info, rng):
     from .roster import create_slots
     return create_slots(world, info.enemies, rng, encounter=info.encounter or None)
@@ -243,3 +292,149 @@ def create_enemies(world, info, rng):
 def restore_enemies(world, info, rng):
     from .roster import restore_slots
     return restore_slots(world, info.enemies, rng)
+
+
+def sample_particle(info, search_rng):
+    """Build one causal hypothetical world from public state only."""
+    from sts2_env.cards import base as card_base
+    from sts2_env.core.combat import CombatState
+    from sts2_env.core.enums import PowerId
+    from sts2_env.core.rng import Rng
+
+    from .card_memory import restore as restore_card_memory
+    from .decks import make_token
+    from .execution import restore as restore_execution
+    from .foundation import restore as restore_foundation
+    from .g1 import codec_for, restore_continuation
+    from .information import InformationState, SearchParticle
+    from .lifecycle import restore_token
+    from .power_memory import restore as restore_power_memory
+
+    if type(info) is not InformationState:
+        raise TypeError('BeliefSampler accepts only InformationState, never WorldState/recipe')
+    if info.content_version != ALL_CONTENT:
+        raise ValueError('All-content sampler requires its version')
+    info.validate()
+    if info.terminal_value() is not None:
+        raise ValueError('Cannot sample a terminal information state')
+    saved_id = card_base._next_instance_id
+    try:
+        card_base._next_instance_id = 0
+        rng = Rng(int(search_rng.integers(0, 2 ** 31)))
+        world = CombatState(info.player_hp, info.player_max_hp, [], 0, relics=[], potions=[],
+                            character_id='Ironclad')
+        create_enemies(world, info, rng)
+        world.start_combat()
+        world.rng = rng
+        world.player.block = info.player_block
+        world.energy = info.energy
+        world.turn_count = world.round_number = info.turn
+        state = world.current_player_state
+        for attr, names in (('hand', info.hand), ('draw_pile', info.draw_composition),
+                            ('discard_pile', info.discard), ('exhaust_pile', info.exhaust)):
+            cards = [restore_token(name, info.history) for name in names]
+            for card in cards:
+                card.owner = world.player
+            setattr(world, attr, cards)
+        prefix, suffix = [], []
+        for token in info.known_top:
+            card = next(c for c in world.draw_pile if card_token_matches(c, token))
+            world.draw_pile.remove(card)
+            prefix.append(card)
+        for token in info.known_bottom:
+            card = next(c for c in world.draw_pile if card_token_matches(c, token))
+            world.draw_pile.remove(card)
+            suffix.append(card)
+        rng.shuffle(world.draw_pile)
+        world.draw_pile = prefix + world.draw_pile + suffix
+        CODEC, _ = _codes()
+        restore_card_memory(world, info, CODEC)
+        from .all_cards import RETURNING
+        for token in set(info.history.played_this_turn):
+            remaining = info.history.played_this_turn.count(token)
+            if token.removesuffix('+') not in RETURNING or not remaining:
+                continue
+            for card in reversed(list(world.discard_pile)):
+                if remaining <= 0:
+                    break
+                if _token(card) == token:
+                    card.combat_vars['_return_before_hand_draw_round'] = info.turn + 1
+                    remaining -= 1
+            for card in list(world.hand):
+                if remaining <= 0:
+                    break
+                if _token(card) == token:
+                    card.combat_vars['_return_before_hand_draw_round'] = info.turn + 1
+                    remaining -= 1
+        world._played_cards_combat = [_play_token(e[1]) for e in info.history.public_events
+                                      if e[0] == 'start']
+        for card in world._played_cards_combat:
+            card.owner = world.player
+        all_cards = world.hand + world.draw_pile + world.discard_pile + world.exhaust_pile
+        state.starting_deck = list(all_cards)
+        state.player_state.deck = list(all_cards)
+        world._energy_spent_this_turn[world.player] = sum(p.energy for p in info.history.payments)
+        if info.retain_hand:
+            world.apply_power_to(world.player, PowerId.RETAIN_HAND, info.retain_hand, applier=world.player)
+        if info.player_vulnerable:
+            world.apply_power_to(world.player, PowerId.VULNERABLE, info.player_vulnerable, applier=world.enemies[0])
+            world.player.powers[PowerId.VULNERABLE].skip_next_tick = False
+        if info.player_strength:
+            world.apply_power_to(world.player, PowerId.STRENGTH, info.player_strength, applier=world.player)
+        if info.history.exhausted_this_turn:
+            pool = list(world.exhaust_pile)
+            for token in info.history.exhausted_this_turn:
+                card = next(c for c in pool if _token(c) == token)
+                pool.remove(card)
+                world._exhaust_events_this_turn.append(card)
+        if info.player_abilities:
+            from sts2_env.core.enums import PowerId as _PowerId
+            for name, amount in info.player_abilities:
+                world.apply_power_to(world.player, _PowerId[name], amount, applier=world.player)
+                # A visible player power is observed at a player decision, so the
+                # enemy turn that applied it has already ended and its first
+                # duration tick has been consumed.
+                world.player.powers[_PowerId[name]].skip_next_tick = False
+        available = list(world.discard_pile)
+        for name in (info.history.played_this_turn[:-1] if info.choice else info.history.played_this_turn):
+            card = _play_token(name)
+            card.owner = world.player
+            world._played_cards_this_turn.append(card)
+        CODEC_CARDS = codec_for(EXPANSION_CONTENT)
+        world.hand = [CODEC_CARDS.restore(c) for c in info.hand_states]
+        for card in world.hand:
+            card.owner = world.player
+        restore_continuation(world, card_view(info))
+        all_cards = world.hand + world.draw_pile + world.discard_pile + world.exhaust_pile + world.play_pile
+        state.starting_deck = list(all_cards)
+        state.player_state.deck = list(all_cards)
+        restore_enemies(world, info, rng)
+        restore_foundation(world, info)
+        restore_execution(world, info, CODEC)
+        restore_power_memory(world, info)
+        projected = observe_all(world, info.history, info.limits, info.initial_hp,
+                                info.reward_version, ALL_CONTENT, info.known_deck,
+                                tuple(slot.initial_hp for slot in info.enemies), info.encounter)
+        if projected != info:
+            raise ValueError('Particle does not reproduce the root public state/legal actions')
+        return SearchParticle(world, projected, card_base._next_instance_id)
+    finally:
+        card_base._next_instance_id = saved_id
+
+
+def _token(card):
+    from .decks import card_token
+    return card_token(card)
+
+
+def _play_token(token):
+    """Card factory for played-card memory, including inherited status tokens."""
+    if token in ('DAZED', 'BURN', 'WOUND', 'SLIMED'):
+        from sts2_env.cards import status
+        return getattr(status, 'make_' + token.lower())()
+    from .decks import make_token
+    return make_token(token)
+
+
+def card_token_matches(card, token):
+    return _token(card) == token

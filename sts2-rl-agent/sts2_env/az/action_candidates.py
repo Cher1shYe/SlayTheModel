@@ -1,4 +1,4 @@
-"""Legacy execution mapping lives here, never in the dynamic neural network."""
+﻿"""Legacy execution mapping lives here, never in the dynamic neural network."""
 from .entity_encoder import ActionCandidate
 from .mechanic_registry import card_descriptor
 from sts2_env.core.constants import MAX_HAND_SIZE, MAX_ENEMIES
@@ -28,10 +28,10 @@ def execute_candidate(adapter, action_key):
 
 
 def action_candidates(info):
-    from .content import BOSS_CONTENT, EXPANSION_CONTENT
+    from .content import BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT
     from .config import CONTENT_VERSION
     if info.content_version == CONTENT_VERSION: return starter_candidates(info)
-    if info.content_version not in (BOSS_CONTENT, EXPANSION_CONTENT): raise ValueError('Unsupported dynamic action content')
+    if info.content_version not in (BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT): raise ValueError('Unsupported dynamic action content')
     from sts2_env.gym_env.action_space import action_to_card_and_target
     rows=[]
     for native,legal in enumerate(info.legal_mask):
@@ -61,3 +61,4 @@ def action_candidates(info):
         rows.append((action,native))
     if len({a.action_key for a,_ in rows})!=len(rows): raise ValueError('Duplicate dynamic action keys')
     return tuple(a for a,_ in rows),{a.action_key:n for a,n in rows}
+
