@@ -20,17 +20,17 @@ NUMERIC_FIELDS += ('strength','slow','territorial','artifact','illusion','minion
 KINDS = ('state', 'player', 'enemy', 'card', 'choice')
 ZONES = ('none', 'hand', 'draw', 'discard', 'exhaust', 'draw_top', 'draw_bottom', 'pending')
 ACTION_TYPES = ('end_turn','play','choose','choose_set','confirm_choice')
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from .rewards import V6, V7
-SUPPORTED = {CONTENT_VERSION: REWARD_VERSION, BOSS_CONTENT: V6}
+SUPPORTED = {CONTENT_VERSION: REWARD_VERSION, BOSS_CONTENT: V6, EXPANSION_CONTENT: V7}
 
 
 def supported_reward(content, reward):
-    return SUPPORTED.get(content) == reward or (content == BOSS_CONTENT and reward == V7)
+    return SUPPORTED.get(content) == reward or (content in (BOSS_CONTENT, EXPANSION_CONTENT) and reward == V7)
 
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
-SCHEMA = {'version': 'public-entities-g23e-v3', 'action_version': 'dynamic-actions-v2',
+SCHEMA = {'version': 'public-entities-ironclad-colorless-v1', 'action_version': 'dynamic-actions-v2',
           'numeric': NUMERIC_FIELDS, 'kinds': KINDS, 'zones': ZONES,
           'max_entities': MAX_CARDS + 16, 'max_actions': MAX_CARDS + 1, 'max_effects': 64,
           'supported': SUPPORTED, 'action_types': ACTION_TYPES,
@@ -130,7 +130,7 @@ def encode_entities(info, diagnostic_dir='output/az_transformer_errors'):
 
 
 def _encode_entities(info):
-    if info.content_version == BOSS_CONTENT:
+    if info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .expanded_entities import encode_expanded
         return encode_expanded(info)
     if info.content_version != CONTENT_VERSION or info.reward_version != REWARD_VERSION:

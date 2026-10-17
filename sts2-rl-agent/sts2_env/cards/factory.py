@@ -367,6 +367,7 @@ def _build_reference_card(
     can_upgrade = definition.upgrade_text != "Cannot be upgraded"
     card = CardInstance(
         card_id=card_id,
+        instance_id=card_base._get_next_id(),
         cost=cost,
         card_type=card_type,
         target_type=TargetType[_camel_to_snake(definition.target).upper()],

@@ -6,7 +6,7 @@ from functools import lru_cache
 from .entity_encoder import Entity, EntityObservation, numeric
 from .expanded_mechanics import describe_card, monster_program
 from .mechanic_registry import Operation as O, POWER_RULES
-from .boss_cards import CODEC
+from .content_expansion import CODEC
 from .lifecycle import attack_count
 from .rewards import V6, V7
 

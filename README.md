@@ -2,6 +2,12 @@
 
 当前快照：2026-10-17。目标是在明确支持的游戏规则范围内，构建使用公开信息、可审计、能泛化到合法卡牌与怪物组合的战斗策略模型。
 
+## 当前内容扩展范围（2026-10-17）
+
+当前优先战士 87 张和无色 64 张。前两批新增 17 张及升级版，实体编码、动态动作与 MCTS 重建现接通 **44/151**；**107 张仍待接通**。修复参考工厂重复实例 ID、Dominate 力量历史与抽牌已知位置恢复。新内容版本 `ironclad-colorless-batch1-v1`。
+
+详见 [覆盖清单](sts2-rl-agent/docs/IRONCLAD_COLORLESS_COVERAGE.md) 和 [实现／测试报告](sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_EXPANSION.md)。本次不训练、不使用最终留出；后续继续按实际 network V7 效用验收。下文为历史阶段记录。
+
 ## 项目结构
 
 - `sts2-rl-agent/`：Python 战斗模拟、公开信息投影、粒子搜索、AlphaZero 风格采集/Replay/训练/评估，以及新增 Transformer。

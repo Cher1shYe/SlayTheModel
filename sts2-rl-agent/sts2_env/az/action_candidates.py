@@ -28,10 +28,10 @@ def execute_candidate(adapter, action_key):
 
 
 def action_candidates(info):
-    from .content import BOSS_CONTENT
+    from .content import BOSS_CONTENT, EXPANSION_CONTENT
     from .config import CONTENT_VERSION
     if info.content_version == CONTENT_VERSION: return starter_candidates(info)
-    if info.content_version != BOSS_CONTENT: raise ValueError('Unsupported dynamic action content')
+    if info.content_version not in (BOSS_CONTENT, EXPANSION_CONTENT): raise ValueError('Unsupported dynamic action content')
     from sts2_env.gym_env.action_space import action_to_card_and_target
     rows=[]
     for native,legal in enumerate(info.legal_mask):

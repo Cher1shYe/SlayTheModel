@@ -6,7 +6,7 @@ from .choice_state import capture_choice
 from .selection_batch import validate_choice_shape, MAX_PUBLIC_ENERGY
 from .decks import G1_FACTORIES, GEN_FACTORIES, UP_FACTORIES, TOP_FACTORIES, LIFE_FACTORIES, SEL_FACTORIES, MORPH_FACTORIES
 from .content import G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 
 TOKENS = tuple(name + suffix for name in G1_FACTORIES for suffix in ("", "+"))
 CODEC = CardStateCodec({name + suffix: partial(factory, upgraded=bool(suffix))
@@ -56,16 +56,19 @@ SUMMON_CODEC = CardStateCodec({**MORPH_CODEC.factories, "DAZED": make_dazed}, MO
 
 def allowed_choices(content):
     return (("TRUE_GRIT+", "BURNING_PACT", "BURNING_PACT+")
-            + (("ARMAMENTS",) if content in (UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else ())
-            + (("PURITY", "PURITY+") if content in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else ())
-            + (("HEADBUTT", "HEADBUTT+") if content in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else ()))
+            + (("ARMAMENTS",) if content in (UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ())
+            + (("PURITY", "PURITY+") if content in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ())
+            + (("HEADBUTT", "HEADBUTT+") if content in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else ()))
 
 
 def codec_for(version):
-    if version == BOSS_CONTENT:
+    if version == EXPANSION_CONTENT:
+        from .content_expansion import CODEC as EXPANSION_CODEC
+        return EXPANSION_CODEC
+    if version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .boss_cards import CODEC as BOSS_CODEC
         return BOSS_CODEC
-    if version not in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if version not in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         raise ValueError("Unknown G1 codec content")
     return SUMMON_CODEC if version == SUMMON_CONTENT else MORPH_CODEC if version in (MORPH_CONTENT, MULTI_CONTENT) else SEL_CODEC if version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT) else LIFE_CODEC if version == LIFE_CONTENT else TOP_CODEC if version == TOP_CONTENT else UP_CODEC if version == UP_CONTENT else GEN_CODEC if version == GEN_CONTENT else CODEC
 
@@ -98,7 +101,7 @@ def restore_continuation(world, info):
         return
     card = CODEC.restore(info.pending_card)
     card.owner = world.player
-    paid = info.history.payments[-1].energy if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else card.cost
+    paid = info.history.payments[-1].energy if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else card.cost
     card.energy_spent = paid
     world.play_pile.append(card)
     from .actions import action_size
@@ -125,6 +128,6 @@ def restore_continuation(world, info):
                                   source_pile=info.choice.options[0].pile, resolver=resolve)
     # Admitted cards pause after their immediate effect and before the after-play
     # hooks. Energy/block before the choice were already applied and are not replayed.
-    world._pending_play = dict(card=card, target=world.enemies[info.history.pending_target if info.content_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else 0] if card.card_id.name == "HEADBUTT" else None, owner=world.player,
+    world._pending_play = dict(card=card, target=world.enemies[info.history.pending_target if info.content_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else 0] if card.card_id.name == "HEADBUTT" else None, owner=world.player,
         remaining_plays=0, play_count=1, energy_spent=paid, energy_value=paid,
         force_exhaust=False, is_auto_play=False, awaiting_after_hook=True)

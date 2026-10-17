@@ -8,7 +8,7 @@ from types import MappingProxyType
 
 from sts2_env.cards import ironclad
 from .content import DECK_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 
 MIN_DECK_SIZE = 6
 MAX_DECK_SIZE = 20
@@ -119,9 +119,14 @@ MORPH_FAMILY_CARDS = MappingProxyType({k: (*v, "REAVE", "PRIMAL_FORCE") if k != 
 
 def validate_deck(deck, family, content_version=DECK_CONTENT):
     """Validate before allocating any engine card IDs; never normalize silently."""
-    families = MORPH_FAMILIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else SEL_FAMILIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else LIFE_FAMILIES if content_version == LIFE_CONTENT else TOP_FAMILIES if content_version == TOP_CONTENT else UP_FAMILIES if content_version == UP_CONTENT else GEN_FAMILIES if content_version == GEN_CONTENT else G1_FAMILIES if content_version == G1_CONTENT else EXPANDED_FAMILIES if content_version == EXPANDED_CONTENT else FAMILIES
-    family_cards = MORPH_FAMILY_CARDS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else SEL_FAMILY_CARDS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else LIFE_FAMILY_CARDS if content_version == LIFE_CONTENT else TOP_FAMILY_CARDS if content_version == TOP_CONTENT else UP_FAMILY_CARDS if content_version == UP_CONTENT else GEN_FAMILY_CARDS if content_version == GEN_CONTENT else G1_FAMILY_CARDS if content_version == G1_CONTENT else EXPANDED_FAMILY_CARDS if content_version == EXPANDED_CONTENT else FAMILY_CARDS
-    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    families = MORPH_FAMILIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FAMILIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FAMILIES if content_version == LIFE_CONTENT else TOP_FAMILIES if content_version == TOP_CONTENT else UP_FAMILIES if content_version == UP_CONTENT else GEN_FAMILIES if content_version == GEN_CONTENT else G1_FAMILIES if content_version == G1_CONTENT else EXPANDED_FAMILIES if content_version == EXPANDED_CONTENT else FAMILIES
+    family_cards = MORPH_FAMILY_CARDS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FAMILY_CARDS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FAMILY_CARDS if content_version == LIFE_CONTENT else TOP_FAMILY_CARDS if content_version == TOP_CONTENT else UP_FAMILY_CARDS if content_version == UP_CONTENT else GEN_FAMILY_CARDS if content_version == GEN_CONTENT else G1_FAMILY_CARDS if content_version == G1_CONTENT else EXPANDED_FAMILY_CARDS if content_version == EXPANDED_CONTENT else FAMILY_CARDS
+    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    if content_version == EXPANSION_CONTENT:
+        from .content_expansion import initial_factories
+        factories = initial_factories()
+        families = {'ironclad-colorless-audit': ()}
+        family_cards = {'ironclad-colorless-audit': tuple(factories)}
     if family not in families:
         raise ValueError("Unsupported deck family")
     if type(deck) is not tuple or not deck:
@@ -149,7 +154,10 @@ def validate_deck(deck, family, content_version=DECK_CONTENT):
 
 def create_deck(deck, family, content_version=DECK_CONTENT):
     validate_deck(deck, family, content_version)
-    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    factories = MORPH_FACTORIES if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_FACTORIES if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else LIFE_FACTORIES if content_version == LIFE_CONTENT else TOP_FACTORIES if content_version == TOP_CONTENT else UP_FACTORIES if content_version == UP_CONTENT else GEN_FACTORIES if content_version == GEN_CONTENT else G1_FACTORIES if content_version == G1_CONTENT else EXPANDED_FACTORIES if content_version == EXPANDED_CONTENT else FACTORIES
+    if content_version == EXPANSION_CONTENT:
+        from .content_expansion import initial_factories
+        factories = initial_factories()
     return [factories[entry.card_id](upgraded=entry.upgraded)
             for entry in deck for _ in range(entry.count)]
 
@@ -160,6 +168,9 @@ def card_token(card):
 
 def make_token(token):
     name = token.removesuffix("+")
+    from .content_expansion import FACTORIES as EXTRA
+    if name in EXTRA:
+        return EXTRA[name](upgraded=token.endswith('+'))
     if name not in MORPH_FACTORIES:
         raise ValueError("Unsupported card token")
     return MORPH_FACTORIES[name](upgraded=token.endswith("+"))

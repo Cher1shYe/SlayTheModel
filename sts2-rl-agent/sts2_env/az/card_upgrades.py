@@ -1,5 +1,5 @@
 """Public upgrade events and chronological inventory accounting."""
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from collections import Counter
 from dataclasses import dataclass
 
@@ -55,7 +55,9 @@ def inventory(known_deck, generated, upgraded, decisions, content_version=None, 
     from .g1 import UP_TOKENS, TOP_TOKENS, LIFE_TOKENS, SEL_TOKENS, MORPH_TOKENS
     from .content import TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT
     from .summon import DAZED_MECHANISM, SUMMON_CONTENT
-    tokens = MORPH_TOKENS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) else SEL_TOKENS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT) else LIFE_TOKENS if content_version == LIFE_CONTENT else TOP_TOKENS if content_version == TOP_CONTENT else UP_TOKENS
+    tokens = MORPH_TOKENS if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else SEL_TOKENS if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT) else LIFE_TOKENS if content_version == LIFE_CONTENT else TOP_TOKENS if content_version == TOP_CONTENT else UP_TOKENS
+    if content_version == EXPANSION_CONTENT:
+        from .content_expansion import TOKENS as tokens
     last = (0, -1)
     for event in upgraded:
         if (type(event) is not CardUpgrade or type(event.decision) is not int
@@ -67,7 +69,7 @@ def inventory(known_deck, generated, upgraded, decisions, content_version=None, 
             raise ValueError("Invalid upgrade event")
         last = (event.decision, event.hand_index)
     from .morph import validate_transformations
-    if transformed and content_version not in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if transformed and content_version not in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         raise ValueError("Transformations in legacy content")
     validate_transformations(transformed, decisions, tokens)
     counts = Counter(known_deck)
@@ -81,7 +83,7 @@ def inventory(known_deck, generated, upgraded, decisions, content_version=None, 
         kinds[decision] = kind
         if kind == 0 and type(event) is CardGeneration and event.mechanism in (DAZED_MECHANISM, "boss-wound-v1", "boss-burn-v1"):
             # An audited enemy move has no deck source: it adds its own copies.
-            if content_version not in (SUMMON_CONTENT, BOSS_CONTENT):
+            if content_version not in (SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
                 raise ValueError("Enemy-generated cards require the summon content")
             counts[event.result_token] += event.count
             continue

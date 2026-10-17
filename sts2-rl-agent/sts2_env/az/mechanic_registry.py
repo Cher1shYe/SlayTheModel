@@ -15,7 +15,8 @@ OPS += ('draw', 'energy', 'hp_loss', 'strength', 'exhaust', 'retain', 'ethereal'
         'random_branch', 'summon', 'revive', 'secondary', 'artifact', 'strength_per_skill', 'strength_per_turn',
         'damage_per_play', 'clear_turn', 'damage_cap', 'finite_forms', 'wound_per_unblocked_hit', 'alternate_intangible')
 OPS += ('hits_per_claw', 'untargetable', 'clear_debuffs', 'prevent_combat_end')
-OPS += ('clear_form_powers', 'advance_phase')
+OPS += ('clear_form_powers', 'advance_phase', 'draw_to_hand_limit')
+OPS += ('damage_per_vulnerable', 'damage_conditional_hits', 'strength_from_target_vulnerable', 'multiply_vulnerable')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
 TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_turn',
@@ -23,6 +24,7 @@ TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_
 TIMINGS += ('after_play', 'turn_end_hand', 'before_attack_play', 'generated_card', 'generated_on_play',
             'generated_after_play', 'on_skill_play', 'on_card_play', 'on_unblocked_hit', 'on_death', 'turn_start')
 CONDITIONS = ('always', 'hand_empty', 'phase0', 'phase1', 'phase2', 'alive', 'if_hand_nonempty', 'unupgraded', 'reviving')
+CONDITIONS += ('target_vulnerable', 'target_alive')
 
 
 @dataclass(frozen=True)
@@ -70,7 +72,7 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'g23e-mechanics-v2'
+REGISTRY_VERSION = 'ironclad-colorless-mechanics-v1'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},

@@ -2,7 +2,7 @@
 from dataclasses import replace
 from collections import Counter
 
-from .content import BOSS_CONTENT, SUMMON_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT, SUMMON_CONTENT
 from .rewards import V5, V6, V7
 from .boss_phases import BossPhaseState, FORM_HP, KNOCKOUT, DEFEAT, RESPAWN, CLAW, POUNCE, GROWL
 from .boss_reconstruction import BossEnemySnapshot, capture_enemy, create_enemy, restore_enemy
@@ -56,7 +56,7 @@ def capture_reward(world, initial_hp):
 
 
 def admitted_generation(event, content):
-    return (content == BOSS_CONTENT and type(event) is CardGeneration
+    return (content in (BOSS_CONTENT, EXPANSION_CONTENT) and type(event) is CardGeneration
             and event.destination == "discard" and type(event.count) is int and event.count > 0
             and ((event.source_token == "TEST_SUBJECT.PAINFUL_STABS" and event.result_token == "WOUND"
                   and event.mechanism == "boss-wound-v1" and event.count <= 52)

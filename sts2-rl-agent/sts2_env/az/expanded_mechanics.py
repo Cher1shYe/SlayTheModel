@@ -24,6 +24,9 @@ VARIABLES = {
 
 @lru_cache(maxsize=128)
 def describe_card(token):
+    from .content_expansion import FACTORIES, descriptor
+    if token.removesuffix('+') in FACTORIES:
+        return descriptor(token)
     from .boss_cards import CODEC
     if token not in CODEC.factories:
         raise ValueError(f'Unsupported mechanic path: cards/{token}')
@@ -137,7 +140,7 @@ def monster_program(name, history=()):
 
 def registry_manifest():
     from dataclasses import asdict
-    from .boss_cards import CODEC
+    from .content_expansion import CODEC
     from .content import profiles, BOSS_CONTENT
     from pathlib import Path
     return {'cards': {t:asdict(describe_card(t)) for t in CODEC.factories},

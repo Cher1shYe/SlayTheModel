@@ -12,7 +12,7 @@ from sts2_env.core.rng import Rng
 from sts2_env.encounters.act1 import setup_shrinker_beetle_weak
 from .config import SCHEMA_VERSION, RULES_VERSION, CONTENT_VERSION, atomic_json, content_hash
 from .content import M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, PROFILES, profiles, validate_content
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from .decks import create_deck, validate_deck
 
 STARTER = (("STRIKE_IRONCLAD", False, 5), ("DEFEND_IRONCLAD", False, 4), ("BASH", False, 1))
@@ -49,17 +49,17 @@ class CombatScenario:
             raise ValueError("Incompatible scenario versions")
         if self.character_id != "Ironclad" or type(self.ascension) is not int or self.ascension != 0:
             raise ValueError("Only Ironclad ascension 0 is supported")
-        allowed = ([p["encounter"] for p in profiles(self.content_manifest_version).values()] if self.content_manifest_version in (M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT)
+        allowed = ([p["encounter"] for p in profiles(self.content_manifest_version).values()] if self.content_manifest_version in (M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT)
                    else ["setup_shrinker_beetle_weak"])
         if self.encounter_id not in allowed or self.relics or self.potions:
             raise ValueError("Unsupported encounter, relics or potions")
         if self.split not in ("train", "validation", "test") or not self.scenario_id:
             raise ValueError("Invalid scenario identity/split")
-        if self.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+        if self.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
             validate_deck(self.deck, self.family_id, self.content_manifest_version)
         elif self.family_id != "ironclad-starter":
             raise ValueError("Unsupported deck family")
-        if self.content_manifest_version not in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and tuple((c.card_id, c.upgraded, c.count) for c in self.deck) != STARTER:
+        if self.content_manifest_version not in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and tuple((c.card_id, c.upgraded, c.count) for c in self.deck) != STARTER:
             raise ValueError("Only the ordered, unupgraded starter recipe is supported")
         if any(type(c.upgraded) is not bool or type(c.count) is not int for c in self.deck):
             raise ValueError("Invalid deck field types")
@@ -135,13 +135,13 @@ def balanced_selection(recipes, count):
     groups = {}
     for recipe in recipes:
         key = (recipe.family_id, recipe.encounter_id)
-        if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+        if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
             key += (recipe.player_hp,)
         groups.setdefault(key, []).append(recipe)
     if count < 1 or not groups:
         raise ValueError("Nonempty strata required")
     keys = sorted(groups)
-    if recipes and all(r.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) for r in recipes):
+    if recipes and all(r.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) for r in recipes):
         if count > len(recipes):
             raise ValueError("Insufficient recipes for balanced selection")
         # Frozen strata may have unequal quotas (256 is not divisible by 36).

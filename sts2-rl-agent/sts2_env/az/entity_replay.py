@@ -131,7 +131,9 @@ class EntityReplayBuffer(ReplayBuffer):
                 or final.termination_reason != outcome['termination_reason'] or final.player_hp != outcome['final_hp']
                 or (final.reward_version == 'risk-terminal-v7' and (outcome.get('player_max_hp') != final.player_max_hp
                     or outcome.get('incoming_risk') != public_risk(final)))
-                or final.turn != outcome['turns']):
+                # Public turn is the actual boundary (max_turns + 1 after
+                # ending the last playable turn); outcome counts playable turns.
+                or min(final.turn, final.limits.max_turns) != outcome['turns']):
             raise ValueError('Final public state/outcome mismatch')
         for i, row in enumerate(rows):
             obs = unpack_observation(row['observation'])

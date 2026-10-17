@@ -5,7 +5,7 @@ from functools import lru_cache
 import numpy as np
 
 from .content import DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, EXPANDED_PROFILES, EXPANDED_MOVES, HARD_PROFILES, HARD_MOVES, PROFILES, EXTRA_MOVES
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from .decks import EXPANDED_FACTORIES, FACTORIES, MIN_DECK_SIZE, MAX_DECK_SIZE, MAX_COPIES, make_token, card_token
 from .rewards import V3, V4, V5, V6, V7
 from sts2_env.cards import base as card_base
@@ -38,11 +38,14 @@ def card_capacity(content_version):
     """Public combat-card ceiling for the versioned schema/encoder."""
     from .content import SUMMON_CONTENT
     from .actions import MAX_SUMMON_CARDS
-    return 2145 if content_version == BOSS_CONTENT else MAX_SUMMON_CARDS if content_version == SUMMON_CONTENT else 420
+    return 2145 if content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else MAX_SUMMON_CARDS if content_version == SUMMON_CONTENT else 420
 
 
 def token_vocabulary(content_version):
-    if content_version == BOSS_CONTENT:
+    if content_version == EXPANSION_CONTENT:
+        from .content_expansion import TOKENS
+        return TOKENS
+    if content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .boss_cards import TOKENS as BOSS_TOKENS
         return BOSS_TOKENS
     """Frozen public card token vocabulary for one content version."""
@@ -51,9 +54,9 @@ def token_vocabulary(content_version):
                      MORPH_TOKENS, SUMMON_TOKENS)
     if content_version == SUMMON_CONTENT:
         return SUMMON_TOKENS
-    if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         return MORPH_TOKENS
-    if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         return SEL_TOKENS
     if content_version == LIFE_CONTENT:
         return LIFE_TOKENS
@@ -64,13 +67,13 @@ def token_vocabulary(content_version):
     if content_version == GEN_CONTENT:
         return GEN_TOKENS
     if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT,
-                           SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+                           SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         return G1_TOKENS
     return EXPANDED_TOKENS if content_version == EXPANDED_CONTENT else TOKENS
 
 
 def validate_card(card, content_version=DECK_CONTENT):
-    if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         from .g1 import codec_for
         return codec_for(content_version).capture(card).token
     token = card_token(card)
@@ -87,15 +90,20 @@ def validate_card(card, content_version=DECK_CONTENT):
 
 def validate_memory(info):
     from .content import SUMMON_CONTENT
-    expected = (V6 if info.content_version == BOSS_CONTENT else V5 if info.content_version == SUMMON_CONTENT
+    if info.content_version == EXPANSION_CONTENT:
+        from .content_expansion import initial_factories
+        allowed = initial_factories()
+        if any(t.removesuffix('+') not in allowed for t in info.known_deck):
+            raise ValueError('Initial deck outside Ironclad/colorless admission')
+    expected = (V6 if info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else V5 if info.content_version == SUMMON_CONTENT
                 else V4 if info.content_version == MULTI_CONTENT else V3)
-    if info.reward_version != expected and not (info.content_version == BOSS_CONTENT and info.reward_version == V7):
+    if info.reward_version != expected and not (info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT) and info.reward_version == V7):
         raise ValueError("Deck content requires the versioned HP reward")
     if (type(info.enemy_initial_hp) is not int or not 0 < info.enemy_initial_hp <= info.enemy_max_hp
             or not MIN_DECK_SIZE <= len(info.known_deck) <= MAX_DECK_SIZE
             or tuple(sorted(info.known_deck)) != info.known_deck):
         raise ValueError("Invalid initial public deck/HP")
-    if info.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and any(t.removesuffix("+") in ("SOUL", "GIANT_ROCK", "DAZED", "BURN", "WOUND") for t in info.known_deck):
+    if info.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and any(t.removesuffix("+") in ("SOUL", "GIANT_ROCK", "DAZED", "BURN", "WOUND") for t in info.known_deck):
         raise ValueError("Generated tokens cannot be in the initial deck")
     vocabulary = token_vocabulary(info.content_version)
     tokens = info.known_deck + info.history.played_this_turn + info.history.removed_powers
@@ -106,6 +114,10 @@ def validate_memory(info):
     if any(t not in ("INFLAME", "INFLAME+") for t in info.history.removed_powers):
         raise ValueError("Unsupported removed card")
     strength = sum(3 if t.endswith("+") else 2 for t in info.history.removed_powers)
+    bonus = info.history.dominate_strength
+    if type(bonus) is not int or bonus < 0 or (info.content_version != EXPANSION_CONTENT and bonus != 0):
+        raise ValueError('Invalid public Dominate strength history')
+    strength += bonus
     if info.player_strength != strength and not (info.termination_reason == "death" and info.player_strength == 0):
         raise ValueError("Strength does not match public power plays")
 
@@ -135,8 +147,10 @@ EXPANDED_NUMERIC += tuple(f"{pile}.{token}/20" for pile in ("draw", "discard", "
 
 
 def schema(content_version=DECK_CONTENT, capacity=None):
+    if content_version == EXPANSION_CONTENT:
+        raise ValueError("Expansion content requires the entity Transformer schema")
     capacity = capacity or card_capacity(content_version)
-    if content_version == BOSS_CONTENT:
+    if content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .boss_cards import TOKENS as BOSS_TOKENS
         from .boss import numeric_names
         result = schema(MORPH_CONTENT, capacity)
@@ -202,7 +216,7 @@ def schema(content_version=DECK_CONTENT, capacity=None):
                       constraints="6..20 cards; <=5 copies per ID; 16 audited IDs, both upgrades; no choices")
         result["shapes"]["numeric"] = [len(result["numeric_features"])]
         result["shapes"]["card_features"] = [10, len(result["card_features"])]
-    if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         from .g1 import TOKENS as G1_TOKENS, GEN_TOKENS, UP_TOKENS, TOP_TOKENS, LIFE_TOKENS, SEL_TOKENS, MORPH_TOKENS
         result = schema(EXPANDED_CONTENT, capacity)
         result.update(encoder_version="az-g1-encoder-v1", information_version="g1-information-v1",
@@ -247,7 +261,7 @@ def schema(content_version=DECK_CONTENT, capacity=None):
                       constraints="23 cards; Stomp costs derived in all piles from public attack count; Restlessness static retain",
                       unsupported=["other temporary costs", "granted retain", "arbitrary transformations", "known bottom", "other choices"])
         result["shapes"]["numeric"] = [len(result["numeric_features"])]
-    if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         result = schema(LIFE_CONTENT, capacity)
         result.update(encoder_version="az-selection-encoder-v1", information_version="selection-information-v1",
                       content_manifest_version=content_version, card_vocabulary=["PAD", *SEL_TOKENS],
@@ -256,13 +270,13 @@ def schema(content_version=DECK_CONTENT, capacity=None):
                       constraints="26 cards; Whirlwind X payment; Equilibrium timed retain; Purity optional multi-select",
                       unsupported=["other X effects", "per-card granted retain", "other powers", "arbitrary transformations", "known bottom"])
         result["shapes"]["numeric"] = [len(result["numeric_features"])]
-    if content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         result.update(encoder_version="az-selection-encoder-v2", information_version="selection-information-v2",
                       action_schema_version="combat-set512-v2", action_size=512,
                       choice_actions="Purity: 9-bit complete candidate subset; zero skips; native reconcile and confirm once",
                       constraints="26 cards; <=9 Purity candidates; <=5 selected; atomic final-set choice")
         result["shapes"]["legal_mask"] = [512]
-    if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         result.update(encoder_version="az-morph-encoder-v1", information_version="morph-information-v1",
                       card_vocabulary=["PAD", *MORPH_TOKENS],
                       numeric_features=[*result["numeric_features"][:-1], *morph_numeric(capacity), "initial_hp/80"],
@@ -341,8 +355,8 @@ def g1_numeric():
 
 def encode(info):
     from .encoder import EncodedObservation
-    expanded = info.content_version in (EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT)
-    g1 = info.content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT)
+    expanded = info.content_version in (EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT)
+    g1 = info.content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT)
     tokens = token_vocabulary(info.content_version)
     cap = card_capacity(info.content_version)
     features = (*FEATURES, *EXPANDED_FEATURES) if expanded else FEATURES
@@ -354,7 +368,7 @@ def encode(info):
         card = prototype(token)
         e = card.effect_vars
         ids[i] = tokens.index(token) + 1
-        base = [1, card.upgraded, card.cost / 3, card.original_cost / 3, int(info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and card.has_energy_cost_x),
+        base = [1, card.upgraded, card.cost / 3, card.original_cost / 3, int(info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and card.has_energy_cost_x),
                     (card.base_damage or 0) / 10, (card.base_block or 0) / 10, e.get("vulnerable", 0) / 3,
                     e.get("cards", 0) / 5, e.get("energy", 0) / 3, e.get("hp_loss", 0) / 6,
                     e.get("strength", 0) / 3, "exhaust" in card.keywords, card.is_power]
@@ -362,8 +376,8 @@ def encode(info):
             name = token.removesuffix("+")
             base += [(2 if name == "TWIN_STRIKE" else 1 if card.is_attack else 0) / 2,
                      name == "BODY_SLAM", e.get("extra_damage", 0) / 4 if name == "ASHEN_STRIKE" else 0,
-                     name == "THUNDERCLAP" or (info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and name in ("STOMP", "WHIRLWIND"))]
-        if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and card.has_energy_cost_x:
+                     name == "THUNDERCLAP" or (info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and name in ("STOMP", "WHIRLWIND"))]
+        if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and card.has_energy_cost_x:
             base[14] = info.energy / 2  # potential hit count before paying X
         if g1:
             state = info.hand_states[i]
@@ -371,7 +385,7 @@ def encode(info):
             option = next((j for j,o in enumerate(info.choice.options) if o.pile == "hand" and o.index == i), None) if info.choice else None
             base += [option is not None, (option + 1) / 10 if option is not None else 0,
                      option in info.choice.selected if option is not None else False,
-                     state.single_turn_retain or (info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and card.is_retain) or (info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and info.retain_hand > 0), state.turn_cost is not None, (state.turn_cost or 0) / 3]
+                     state.single_turn_retain or (info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and card.is_retain) or (info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and info.retain_hand > 0), state.turn_cost is not None, (state.turn_cost or 0) / 3]
         cards[i] = base
     intent, damage, hits = info.intent
     values = [info.player_hp / 80, info.player_max_hp / 80, info.player_block / 100, info.energy / 20,
@@ -386,7 +400,7 @@ def encode(info):
                  info.history.removed_powers, info.history.played_this_turn):
         counts = Counter(pile)
         values += [counts[token] / 20 for token in TOKENS]
-    if info.content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         values += [info.monster_id == "BYGONE_EFFIGY", info.monster_id == "BYRDONIS", info.enemy_slow,
                    (len(info.history.played_this_turn) - int(info.choice is not None)) / 20 if info.enemy_slow else 0,
                    info.enemy_territorial, intent == "SLEEP", intent == "MULTI_ATTACK"]
@@ -412,7 +426,7 @@ def encode(info):
         values += [choice.min_choices / 10 if choice else 0, choice.max_choices / 10 if choice else 0,
                    choice.allow_skip if choice else False]
         values += [bool(info.pending_card and info.pending_card.token == t) for t in ("TRUE_GRIT+", "BURNING_PACT", "BURNING_PACT+")]
-    if info.content_version in (GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
             counts = Counter(pile)
@@ -420,7 +434,7 @@ def encode(info):
         counts = Counter(e.result_token for e in info.history.generated)
         values += [counts["ANGER"] / 400, counts["ANGER+"] / 400,
                    (len(info.known_deck) + generated_card_count(info)) / cap]
-    if info.content_version in (UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         from .decks import UP_FACTORIES
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
@@ -429,7 +443,7 @@ def encode(info):
         values += [bool(info.pending_card and info.pending_card.token == "ARMAMENTS")]
         counts = Counter(e.source_token for e in info.history.upgraded)
         values += [counts[name] / 4000 for name in UP_FACTORIES]
-    if info.content_version in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
             counts = Counter(pile)
@@ -441,7 +455,7 @@ def encode(info):
             if len(pile) > cap:
                 raise ValueError("Ordered public pile exceeds schema capacity")
             values += [(tokens.index(t) + 1) / 42 for t in pile] + [0] * (cap - len(pile))
-    if info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         from .lifecycle import attack_count
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
@@ -450,7 +464,7 @@ def encode(info):
         values += [sum(e.source_token == t for e in info.history.upgraded) / 4000 for t in ("STOMP", "RESTLESSNESS")]
         count = attack_count(info.history)
         values += [count / 400, bool(count), max(0, 3 - count) / 3]
-    if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
             counts = Counter(pile)
@@ -463,7 +477,7 @@ def encode(info):
                    sum(p.energy for p in payments if p.token.removesuffix("+") == "WHIRLWIND")/1203,
                    sum(p.token.removesuffix("+") == "WHIRLWIND" for p in payments)/400]
         values += [sum(e.source_token == t for e in info.history.upgraded)/4000 for t in ("WHIRLWIND", "PURITY", "EQUILIBRIUM")]
-    if info.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if info.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         from .morph import MORPH_EXTRA
         for pile in (info.draw_composition, info.discard, info.exhaust, info.known_deck,
                      info.history.removed_powers, info.history.played_this_turn):
@@ -473,7 +487,7 @@ def encode(info):
         values += [sum(e.result_token == t for e in info.history.generated)/400 for t in ("SOUL", "SOUL+")]
         values += [len(info.history.transformed)/4000, len(info.known_bottom)/cap]
         values += [(tokens.index(t)+1)/60 for t in info.known_bottom] + [0]*(cap-len(info.known_bottom))
-    if info.content_version == BOSS_CONTENT:
+    if info.content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .boss import encode as encode_boss
         values += encode_boss(info)
     elif info.content_version == SUMMON_CONTENT:

@@ -3,7 +3,7 @@
 Action bits identify public candidate positions, including duplicate cards.
 No engine rule changes: reconcile native toggles, then confirm exactly once.
 """
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from functools import lru_cache
 
 SET_ACTION_SIZE = 512
@@ -26,7 +26,7 @@ def public_choice_mask(choice, codec, content):
     from .actions import action_size
     from .content import SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
     choice.validate(codec, action_size(content))
-    if content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and choice.mechanism.removesuffix("+") == "PURITY":
+    if content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and choice.mechanism.removesuffix("+") == "PURITY":
         return set_mask(len(choice.options), choice.min_choices, choice.max_choices, choice.allow_skip,
                         action_size(content))
     return choice.legal_mask(codec, action_size(content))
@@ -34,7 +34,7 @@ def public_choice_mask(choice, codec, content):
 
 def is_set_choice(world, content):
     from .content import SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-    return (content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT) and world.pending_choice is not None
+    return (content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and world.pending_choice is not None
             and len(world.play_pile) == 1 and world.play_pile[0].card_id.name == "PURITY")
 
 

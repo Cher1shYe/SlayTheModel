@@ -5,7 +5,7 @@ move adds several identical cards at the same public decision, so a
 version-gated ``count`` field carries that multiplicity instead of inventing
 extra decisions or silently bypassing conservation validation.
 """
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from dataclasses import dataclass
 
 # C# EyeWithTeeth.DistractMove: AddToCombatAndPreview<Dazed>(targets, Discard, 3)
@@ -35,11 +35,11 @@ def generated_tokens(events, decisions, content_version=None):
                        and event.result_token == event.source_token
                        and event.destination == "discard" and event.mechanism == "anger-copy-v1")
         valid_reave = (type(event) is CardGeneration and single
-                       and content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT)
+                       and content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT)
                        and event.source_token in ("REAVE", "REAVE+")
                        and event.result_token == ("SOUL+" if event.source_token.endswith("+") else "SOUL")
                        and event.destination == "draw_bottom" and event.mechanism == "reave-soul-v1")
-        valid_dazed = admitted_generated(event, SUMMON_CONTENT if content_version == BOSS_CONTENT else content_version)
+        valid_dazed = admitted_generated(event, SUMMON_CONTENT if content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else content_version)
         from .boss import admitted_generation
         valid_boss = admitted_generation(event, content_version)
         if (type(event) is not CardGeneration or type(event.count) is not int or type(event.decision) is not int

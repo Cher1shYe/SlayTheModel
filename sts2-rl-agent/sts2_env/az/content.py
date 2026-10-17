@@ -16,6 +16,7 @@ SET_CONTENT = "g1-selection-v2"
 MORPH_CONTENT = "g1-morph-v1"
 MULTI_CONTENT = "g2-multi-v1"
 BOSS_CONTENT = "g2-boss-v1"
+EXPANSION_CONTENT = "ironclad-colorless-batch1-v1"
 SUMMON_CONTENT = "g2-summon-v1"  # inherits g2-multi-v1 and adds the audited Fogmog/Eye encounter
 PROFILES = {
     "SHRINKER_BEETLE": dict(encounter="setup_shrinker_beetle_weak", hp=(38, 40),
@@ -74,7 +75,7 @@ SUMMON_PROFILES = {**MULTI_PROFILES, "FOGMOG": dict(encounter="setup_fogmog_norm
 BOSS_PROFILES = {**SUMMON_PROFILES, "TEST_SUBJECT": dict(encounter="setup_test_subject_boss", hp=(100, 100), cycle="public finite phases", strength=0)}
 
 def profiles(version):
-    if version == BOSS_CONTENT:
+    if version in (BOSS_CONTENT, EXPANSION_CONTENT):
         return BOSS_PROFILES
     if version == SUMMON_CONTENT:
         return SUMMON_PROFILES
@@ -86,7 +87,7 @@ def profiles(version):
 
 
 def validate_content(version):
-    if version not in (CONTENT_VERSION, M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+    if version not in (CONTENT_VERSION, M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
         raise ValueError("Unsupported content version")
     return version
 

@@ -1,7 +1,7 @@
 """Versioned AZ actions; normal actions retain native indices, choices do not truncate."""
 import numpy as np
 from .content import TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, EXPANSION_CONTENT
 from .config import ACTION_VERSION
 
 MAX_COMBAT_CARDS = 420  # <=20 initial cards + <=400 one-copy Anger decisions
@@ -12,7 +12,7 @@ MAX_SUMMON_CARDS = 720
 
 
 def action_size(content):
-    if content == BOSS_CONTENT:
+    if content in (BOSS_CONTENT, EXPANSION_CONTENT):
         return 4096
     if content == SUMMON_CONTENT:
         return 1024
@@ -22,7 +22,7 @@ def action_size(content):
 
 
 def action_version(content):
-    if content == BOSS_CONTENT:
+    if content in (BOSS_CONTENT, EXPANSION_CONTENT):
         return "combat-boss4096-v1"
     if content == SUMMON_CONTENT:
         return "combat-summon1024-v4"

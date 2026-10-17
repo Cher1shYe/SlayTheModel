@@ -2,6 +2,25 @@
 
 A reinforcement learning agent for **Slay the Spire 2**, built on a high-performance headless combat simulator and a Gymnasium training environment. Includes a C# bridge mod for connecting the trained agent to the real game.
 
+## 战士与无色牌内容扩展（2026-10-17）
+
+按最新范围完成 151 张卡牌的分层盘点，并接通前两批 17 张基础牌及升级版。当前实体／动态动作／MCTS 链路覆盖战士 33/87、无色 11/64，合计 **44/151**；其余 **107 张仍待实现，不能按全覆盖使用**。修复参考工厂重复实例 ID、Dominate 跨回合力量历史及新增抽牌的已知顺序恢复。新内容版本 `ironclad-colorless-batch1-v1`，旧冻结实验不可直接续跑。
+
+- [逐牌覆盖清单](docs/IRONCLAD_COLORLESS_COVERAGE.md)
+- [分批实现、测试与剩余工作报告](docs/AZ_IRONCLAD_COLORLESS_EXPANSION.md)
+
+本次未启动训练，未使用最终留出集；后续仍按实际 network V7 效用验收。当前优先继续补齐持久能力和触发器，再处理逐卡变化、复杂选择与自动出牌。以下为历史阶段记录。
+
+## T4 多 seed 短程确认已完成（2026-10-17）
+
+value=0.1、MCTS=8 的新 seed 44/45 两轮确认及证据复核完成，共 720 条轨迹、16 次更新。最终冠军 network 效用分别 0.322412 / 0.123696，均通过相对初始化的增益门槛，但第二轮均未晋级。Boss 各 84 场验证全部死亡；seed 45 采集到一条合法获胜后缀，却未在第二轮四次更新中抽到。下一步优先版本化成功轨迹的训练覆盖，正式训练未启动。详见 [确认结果与建议](docs/AZ_TRANSFORMER_T4_VALUE01_CONFIRMATION_RESULTS.md)。以下章节保留历史进度。
+
+## T4 最新状态与多 seed 确认（2026-10-17）
+
+T4 两轮 smoke 已完成，第一轮冠军 network 效用 0.252700；第二轮候选退步，未晋级。单因素消融独立审计通过：value=0.1 为 0.235308、search=32 为 0.237246，均改善失败第二轮的 0.152759，但均未超过第一轮冠军，Boss 仍未通过。详见 [消融结果](docs/AZ_TRANSFORMER_T4_ABLATION_RESULTS.md)。以下旧章节保留阶段历史，以本节为当前状态。
+
+用户决定跳过 value=0.1/search=32 组合补测，采用 value=0.1、MCTS=8 开展全新 seed 44/45 的 S 两轮短程确认。每 seed 每轮 135 整场＋45 后期、4 次更新，batch 48/16，CPU 单线程；总计 720 条记录、16 次更新。课程与 network 效用门槛保持不变。新配置 configs/az_transformer_t4_value01_confirmation_v1/execution.json，入口 scripts/run_t4_value_confirmation.py；实时进度 T4_VALUE_CONFIRMATION_PROGRESS.md。没有授权或启动正式训练，不自动打开最终留出。
+
 ## Transformer T3 当前进度（2026-10-17）
 
 V7 S 两轮 smoke 与正式 seed 42/43 各三轮已完成：正式采集 1,080 场、30,557 个决策、96 次更新。工程工件及最终评估已复算；两个 seed 均通过冻结的 network 终局效用增益门槛。

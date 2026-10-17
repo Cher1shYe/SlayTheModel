@@ -84,7 +84,7 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
         elif token == "HEADBUTT" and len(before.discard) == 1:
             top = before.discard + top
             total += 1
-        elif token in ("POMMEL_STRIKE", "SHRUG_IT_OFF", "OFFERING", "BURNING_PACT", "RESTLESSNESS", "SOUL"):
+        elif token in ("POMMEL_STRIKE", "SHRUG_IT_OFF", "OFFERING", "BURNING_PACT", "RESTLESSNESS", "FINESSE", "FLASH_OF_STEEL", "MASTER_OF_STRATEGY", "SCRAWL", "SOUL"):
             drawn = len(after_hand) - len(before.hand) + 1
             if token == "BURNING_PACT" and len(before.hand) == 2:
                 drawn += 1
