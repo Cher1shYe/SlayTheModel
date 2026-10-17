@@ -192,3 +192,88 @@ def test_scope_still_rejects_deferred_tokens():
             descriptor(token)
         with pytest.raises(ValueError):
             recipe([token] * 3 + FILLER)
+
+
+def test_nostalgia_returns_first_attack_to_draw_top():
+    env = arranged(['NOSTALGIA_CARD'] * 2 + FILLER, ['NOSTALGIA_CARD', 'STRIKE_IRONCLAD'])
+    play(env, 'NOSTALGIA_CARD')
+    assert dict(env.information.player_abilities)['NOSTALGIA'] == 1
+    play(env, 'STRIKE_IRONCLAD')
+    assert env.information.known_top == ('STRIKE_IRONCLAD',)
+    info = end_turn(env)
+    assert 'STRIKE_IRONCLAD' in info.hand and not info.known_top
+
+
+def test_prolong_defers_current_block_to_next_turn():
+    env = arranged(['PROLONG'] * 2 + ['DEFEND_IRONCLAD'] * 2 + ['STRIKE_IRONCLAD'] * 2,
+                   ['DEFEND_IRONCLAD', 'DEFEND_IRONCLAD', 'PROLONG'])
+    play(env, 'DEFEND_IRONCLAD'); play(env, 'DEFEND_IRONCLAD'); play(env, 'PROLONG')
+    assert dict(env.information.player_abilities)['BLOCK_NEXT_TURN'] == 10
+    info = end_turn(env)
+    assert info.player_block == 10 and not info.player_abilities
+    particle(env, np.random.default_rng(12))
+
+
+def test_gambit_kills_on_unblocked_powered_attack():
+    env = arranged(['THE_GAMBIT'] * 2 + ['DEFEND_IRONCLAD'] * 2 + ['STRIKE_IRONCLAD'] * 2,
+                   ['THE_GAMBIT'], encounter='setup_shrinker_beetle_weak')
+    play(env, 'THE_GAMBIT')
+    assert dict(env.information.player_abilities)['THE_GAMBIT'] == 1
+    end_turn(env)
+    info = end_turn(env)
+    assert info.termination_reason == 'death' and info.player_hp == 0
+
+
+def test_next_turn_block_requires_current_turn_prolong_play():
+    env = arranged(['PROLONG'] * 2 + FILLER, ['PROLONG'])
+    env._information = replace(env.information, player_abilities=(('BLOCK_NEXT_TURN', 5),))
+    with pytest.raises(ValueError):
+        env.information.validate()
+
+
+def test_automation_and_panache_public_counters_roundtrip():
+    env = arranged(['AUTOMATION'] * 2 + FILLER, ['AUTOMATION', 'DEFEND_IRONCLAD'])
+    play(env, 'AUTOMATION')
+    assert dict(env.information.player_abilities)['AUTOMATION'] == 1
+    particle(env, np.random.default_rng(13))
+    with pytest.raises(ValueError):
+        replace(env.information, player_abilities=()).validate()
+
+
+def test_rolling_boulder_hits_at_turn_start_and_grows():
+    env = arranged(['ROLLING_BOULDER'] * 2 + ['DEFEND_IRONCLAD'] * 2 + ['STRIKE_IRONCLAD'] * 2,
+                   ['ROLLING_BOULDER'], encounter='setup_bygone_effigy_elite')
+    play(env, 'ROLLING_BOULDER')
+    assert dict(env.information.player_abilities)['ROLLING_BOULDER'] == 5
+    hp = env.information.enemy_hp
+    info = end_turn(env)
+    assert hp - info.enemy_hp == 5
+    assert dict(info.player_abilities)['ROLLING_BOULDER'] == 10
+
+
+def test_the_bomb_countdown_and_explosion():
+    env = arranged(['THE_BOMB_CARD'] * 2 + ['DEFEND_IRONCLAD'] * 2 + ['STRIKE_IRONCLAD'] * 2,
+                   ['THE_BOMB_CARD'], encounter='setup_bygone_effigy_elite')
+    play(env, 'THE_BOMB_CARD')
+    assert dict(env.information.player_abilities)['THE_BOMB'] == 3
+    first = end_turn(env)
+    assert dict(first.player_abilities)['THE_BOMB'] == 2
+    second = end_turn(env)
+    assert dict(second.player_abilities)['THE_BOMB'] == 1
+    hp = second.enemy_hp
+    third = end_turn(env)
+    assert hp - third.enemy_hp == 40 and 'THE_BOMB' not in dict(third.player_abilities)
+
+
+def test_panache_triggers_on_fifth_play_after_application():
+    # Panache resets its counter at every turn end, so five zero-cost plays are
+    # made in a single turn; the fifth play after the application triggers.
+    env = arranged(['PANACHE_CARD'] + ['FINESSE'] * 5,
+                   ['PANACHE_CARD'] + ['FINESSE'] * 5, encounter='setup_bygone_effigy_elite')
+    play(env, 'PANACHE_CARD')
+    hp = env.information.enemy_hp
+    for _ in range(5):
+        slot = env.information.hand.index('FINESSE')
+        assert env.information.legal_mask[1 + slot]
+        play(env, 'FINESSE')
+    assert hp - env.information.enemy_hp == 10

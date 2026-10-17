@@ -35,6 +35,13 @@ FACTORIES = {
     'BOLAS': colorless.make_bolas,
     'THRUMMING_HATCHET': colorless.make_thrumming_hatchet,
     'BEACON_OF_HOPE': colorless.make_beacon_of_hope,
+    'NOSTALGIA_CARD': colorless.make_nostalgia_card,
+    'THE_GAMBIT': colorless.make_the_gambit,
+    'PROLONG': colorless.make_prolong,
+    'AUTOMATION': colorless.make_automation,
+    'PANACHE_CARD': colorless.make_panache_card,
+    'ROLLING_BOULDER': colorless.make_rolling_boulder,
+    'THE_BOMB_CARD': colorless.make_the_bomb_card,
     'DEMONIC_SHIELD': ironclad.make_demonic_shield,
     'BELIEVE_IN_YOU': colorless.make_believe_in_you,
     'COORDINATE_CARD': colorless.make_coordinate_card,
@@ -47,7 +54,9 @@ FACTORIES = {
 
 # Powers are executed through the audited player-ability registry; the card
 # descriptor is supplied by player_abilities.card_effects, not here.
-POWER_CARDS = ('CORRUPTION_CARD', 'TANK_CARD', 'BEACON_OF_HOPE')
+POWER_CARDS = ('CORRUPTION_CARD', 'TANK_CARD', 'BEACON_OF_HOPE',
+               'NOSTALGIA_CARD', 'THE_GAMBIT', 'PROLONG',
+               'AUTOMATION', 'PANACHE_CARD', 'ROLLING_BOULDER', 'THE_BOMB_CARD')
 
 # Native ANY_ALLY effects; unplayable while the owner has no living ally.
 ALLY_REQUIRED = ('DEMONIC_SHIELD', 'BELIEVE_IN_YOU', 'COORDINATE_CARD',

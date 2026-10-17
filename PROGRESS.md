@@ -21,7 +21,8 @@
 | P0 | 拉取仓库、切工作分支、复制 `.venv-az`、恢复可跑测试 | 已完成 |
 | P1a | 剩余 31 张牌语义盘点与分类（19 可接入 / 8 多人语义 / 4+1 暂缓） | 已完成 |
 | P1b | 19 张牌六链路 + MCTS 重建接入（累计 139/151） | 已完成 |
-| P1c | 剩余 12 张：7 张公共计数/延迟契约 + 5 张范围暂缓 | 进行中 |
+| P1c | 计数/延迟 7 张接入（NOSTALGIA/PROLONG/GAMBIT/AUTOMATION/PANACHE/ROLLING_BOULDER/BOMB），累计 146/151 | 已完成 |
+| P1d | 剩余 5 张范围暂缓（药水/跨职业生成/隐藏身份）归档 | 已完成 |
 | P2 | 全怪物通用公开状态 + 粒子重建 + MCTS 接入（新版本契约） | 未开始 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
@@ -57,3 +58,11 @@
 - 覆盖审计脚本升级 `ironclad-colorless-coverage-v5`，新增逐张 `notes`；重新生成清单：**139/151 接通（战士 87/87、无色 52/64），待接通 12**。
 - 新增 `tests/test_az_ironclad_colorless_all.py`（112 项：描述/编码往返、XS 动态 MCTS 重建、粒子轨迹、逐机制行为断言）。
 - 报告：`sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_ALL.md`。
+
+### 步骤 3（2026-10-17）计数／延迟 7 张接入（P1c/P1d，累计 146/151）
+
+- 玩家能力新增：`NOSTALGIA`（牌顶回手）、`BLOCK_NEXT_TURN`（下回合格挡）、`THE_GAMBIT`（未格挡强化攻击即死）、`AUTOMATION`（每 10 抽 +能量）、`PANACHE`（每 5 次出牌伤害）、`ROLLING_BOULDER`（回合开始伤害递增）、`THE_BOMB`（3 回合倒计时爆炸）。
+- `power_memory` 增加 `extras` 公共簿记（`_instances`/`_started`/`cards_left`/`damage`），并由出牌/抽牌/回合历史恢复；`player_abilities` 校验存在性与倒计时生命周期（THE_BOMB 只在出牌后 3 回合内存在）。
+- 引擎公开日志补漏：打出牌被放回抽牌堆顶（Nostalgia）现在写入 `draw_insert` 事件；`BLOCK_NEXT_TURN` / `THE_BOMB` 结算后移除自身能力。
+- 覆盖清单重新生成：**146/151 接通（战士 87/87、无色 59/64），剩余 5 张全部范围暂缓**（ALCHEMIZE 药水、ENTROPY/JACK_OF_ALL_TRADES/SPLASH 跨职业生成、HIDDEN_GEM 隐藏抽牌堆身份）。
+- 新增测试并入 `tests/test_az_ironclad_colorless_all.py`（共 155 项）；报告与覆盖文档同步更新。

@@ -687,6 +687,7 @@ class TheBombPower(PowerInstance):
             self.amount, self.damage = remaining_instances[-1]
         else:
             self.amount = 0
+            combat._remove_power(owner, self.power_id)
 
 
 class TemporaryStrengthPower(PowerInstance):
@@ -856,11 +857,13 @@ class BlockNextTurnPower(PowerInstance):
         if creature is owner and self.amount > 0:
             _gain_unpowered_block(owner, self.amount, combat)
             self.amount = 0
+            combat._remove_power(owner, self.power_id)
 
     def after_side_turn_start(self, owner: Creature, side: CombatSide, combat: CombatState) -> None:
         if side == owner.side and owner.block == 0 and self.amount > 0:
             _gain_unpowered_block(owner, self.amount, combat)
             self.amount = 0
+            combat._remove_power(owner, self.power_id)
 
 
 class RetainHandPower(PowerInstance):

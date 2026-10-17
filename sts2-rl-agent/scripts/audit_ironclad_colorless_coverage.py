@@ -31,13 +31,6 @@ from sts2_env.az.generation_contract import DEFERRED
 BATCH5_DEFERRED = {
     'ALCHEMIZE': 'potions are outside the combat scope (in-combat potion inventory)',
     'HIDDEN_GEM': 'random hidden draw-pile card identity mutation has no public face contract',
-    'AUTOMATION': 'public per-draw counter contract not implemented yet',
-    'NOSTALGIA_CARD': 'per-turn top-deck return contract not implemented yet',
-    'PANACHE_CARD': 'per-turn fifth-play counter contract not implemented yet',
-    'PROLONG': 'next-turn block power contract not implemented yet',
-    'ROLLING_BOULDER': 'turn-start counter power contract not implemented yet',
-    'THE_BOMB_CARD': 'delayed multi-turn damage contract not implemented yet',
-    'THE_GAMBIT': 'combat-lethal debuff contract not implemented yet',
 }
 BATCH5_NOTES = {
     'ALLY_REQUIRED': 'native ANY_ALLY effect needs another player; unplayable in single-player',

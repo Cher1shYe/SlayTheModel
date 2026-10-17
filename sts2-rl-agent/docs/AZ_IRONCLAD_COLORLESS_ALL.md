@@ -1,6 +1,6 @@
-# 战士／无色 V5：剩余 19 张单人可执行牌接入
+# 战士／无色 V5：剩余 26 张单人可执行牌接入
 
-日期：2026-10-17。本轮目标（用户指定）：向“全战士 87 + 全无色 64”推进，并完成 MCTS/粒子重建接入。本批新增 **19 张及升级版**，累计 **139/151**（战士 **87/87**、无色 **52/64**），剩余 **12**。逐牌状态见 [覆盖清单](IRONCLAD_COLORLESS_COVERAGE.md) 与 `ironclad_colorless_coverage.json`。
+日期：2026-10-17。本轮目标（用户指定）：向“全战士 87 + 全无色 64”推进，并完成 MCTS/粒子重建接入。本批新增 **26 张及升级版**，累计 **146/151**（战士 **87/87**、无色 **59/64**），剩余 **5**。逐牌状态见 [覆盖清单](IRONCLAD_COLORLESS_COVERAGE.md) 与 `ironclad_colorless_coverage.json`。
 
 本批不训练、不读取最终留出集，**不宣称策略学习增益**；验收工程链路与单人语义。
 
@@ -11,6 +11,7 @@
 | 类别 | 牌 | 单人语义 | 验证 |
 |---|---|---|---|
 | 真实单人机制 | FEED、CORRUPTION、TANK、KNOCKDOWN、TAG_TEAM、GANG_UP、HAND_OF_GREED、GOLD_AXE、BOLAS、THRUMMING_HATCHET、BEACON_OF_HOPE | 伤害/格挡/最大生命/状态/能力/回手按原生规则执行 | 原生行为 + 粒子逐步对照 + MCTS 重建 |
+| 计数/延迟能力 | NOSTALGIA、PROLONG、THE_GAMBIT、AUTOMATION、PANACHE、ROLLING_BOULDER、THE_BOMB | 牌顶回手、下回合格挡、未格挡即死、每 10 抽能量、每 5 次出牌伤害、回合开始伤害递增、3 回合倒计时爆炸 | 行为断言 + 公共计数恢复 + 粒子对照 |
 | 多人牌（ANY_ALLY） | DEMONIC_SHIELD、BELIEVE_IN_YOU、COORDINATE、INTERCEPT、LIFT、MIMIC | 单人无合法队友目标，**不可出牌**；描述保留 `ally_required` 条件 | 合法动作表为空；信息状态与粒子不变 |
 | 多人牌（ALL_ALLIES） | HUDDLE_UP、RALLY | 可出牌，但所有目标都是队友，**单人无效果**（仅消耗能量/进弃牌堆） | 出牌前后除能量与牌堆外无差异 |
 | 战斗外奖励 | HAND_OF_GREED | 20/25 伤害照常；金币属于战斗外进程状态，不进入战斗观测 | 伤害断言；奖励不入编码 |
@@ -34,6 +35,8 @@
 3. `CardStatePolicy` 增加 `return_to_hand` 开关：允许回手标记存在但不进入卡面状态；其余卡面字段与 V4 完全一致。
 4. 动态动作仍完全由原生合法掩码 + 卡牌描述生成候选，没有新增按 ID 的策略输出头；ANY_ALLY 牌天然没有候选。
 5. 粒子重建：新增能力/状态经 `player_abilities`、`power_memory`、`foundation` 恢复；`_played_cards_combat` 与回手标记按公开历史恢复；恢复后 `observe` 与根状态逐字段相等。
+6. 计数能力：`power_memory` 增加 `extras`（`AUTOMATION._instances`/`cards_left`、`PANACHE._instances`/`_started`/`_cards_left`、`ROLLING_BOULDER._instances`、`THE_BOMB._instances`/`damage`）。这些值由公开的出牌/抽牌/回合数决定，恢复后行为与真实世界一致；`player_abilities` 对其“存在性/倒计时生命周期”做公开校验（THE_BOMB 只在出牌后 3 回合内存在）。
+7. 引擎公开日志补漏：`NostalgiaPower` 把打出的牌放回抽牌堆顶时，`_move_card_to_play_result` 现在写入 `draw_insert` 公开事件，AZ 才能推导 `known_top`；`BlockNextTurnPower` 与 `TheBombPower` 在结算后移除自身，避免残留 0 层能力。
 
 ## 验证
 
@@ -43,9 +46,10 @@
 
 ## 明确未完成
 
-剩余 12 张：
+剩余 5 张，全部为范围暂缓（不是实现失败）：
 
-- 需要新增公开计数/延迟结算契约（7）：AUTOMATION（每 10 次抽牌 +1 能量）、NOSTALGIA（每回合前 N 张攻击/技能回牌顶）、PANACHE（每 5 张出牌造成伤害）、PROLONG（下回合格挡）、ROLLING_BOULDER（回合开始伤害并递增）、THE_BOMB（倒计时范围伤害）、THE_GAMBIT（受到未格挡强化攻击即死）。
-- 范围暂缓（5）：ALCHEMIZE（药水不在战斗范围）、ENTROPY / JACK_OF_ALL_TRADES / SPLASH（跨职业生成池）、HIDDEN_GEM（隐藏抽牌堆身份变异没有公开牌面契约）。
+- ALCHEMIZE：药水不在战斗范围（战斗中药水库存）。
+- ENTROPY / JACK_OF_ALL_TRADES / SPLASH：跨职业生成池（含 Splash），与已发布 V4 的暂缓口径一致。
+- HIDDEN_GEM：随机隐藏抽牌堆身份变异，没有公开牌面契约（无法在不泄露隐藏身份的前提下重建）。
 
-下一步：补齐上述 7 张的公共计数契约，再进入全怪物 MCTS 接入（P2）。
+下一步：进入全怪物 MCTS 接入（P2）：通用公开怪物状态 + 粒子重建 + 动态搜索，先覆盖 act1–act4 全部战斗遭遇，再扩到任意卡组训练编排（P3，XS 档）。

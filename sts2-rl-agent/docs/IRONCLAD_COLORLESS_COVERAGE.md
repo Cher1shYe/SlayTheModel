@@ -1,6 +1,6 @@
 # 战士与无色牌覆盖清单
 
-范围：151 个 ID（战士 87、无色 64）。当前接通 139，待接通 12。
+范围：151 个 ID（战士 87、无色 64）。当前接通 146，待接通 5。
 
 engine 的 registered 仅表示原生工厂及效果函数存在，不等于完整机制正确性。
 接通仅限单人 Ironclad、无遗物药水、既有十个遭遇；本次未运行训练或最终留出。
@@ -99,7 +99,7 @@ batch5-v5 中：多人牌在单人无合法目标（ALLY 目标牌不可出，AL
 | Ironclad | WHIRLWIND | existing | engine 注册；其余已接通 | — | — |
 | Colorless | ALCHEMIZE | pending | engine 注册；其余待审计 | — | scope_deferred/potions are outside the combat scope (in-combat potion inventory); mechanic_descriptor/cards/ALCHEMIZE; public_state_and_action_admission; particle_reconstruction_and_interaction_parity |
 | Colorless | ANOINTED | foundation-v4 | engine 注册；其余已接通 | — | — |
-| Colorless | AUTOMATION | pending | engine 注册；其余待审计 | — | scope_deferred/public per-draw counter contract not implemented yet; mechanic_descriptor/cards/AUTOMATION; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/AUTOMATION |
+| Colorless | AUTOMATION | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | BEACON_OF_HOPE | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | BEAT_DOWN | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | BELIEVE_IN_YOU | batch5-v5 | engine 注册；其余已接通 | single-player-unplayable/native ANY_ALLY effect needs another player; unplayable in single-player | — |
@@ -132,19 +132,19 @@ batch5-v5 中：多人牌在单人无合法目标（ALLY 目标牌不可出，AL
 | Colorless | MAYHEM_CARD | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | MIMIC | batch5-v5 | engine 注册；其余已接通 | single-player-unplayable/native ANY_ALLY effect needs another player; unplayable in single-player | — |
 | Colorless | MIND_BLAST | simple-v3 | engine 注册；其余已接通 | — | — |
-| Colorless | NOSTALGIA_CARD | pending | engine 注册；其余待审计 | — | scope_deferred/per-turn top-deck return contract not implemented yet; mechanic_descriptor/cards/NOSTALGIA_CARD; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/NOSTALGIA |
+| Colorless | NOSTALGIA_CARD | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | OMNISLICE | simple-v3 | engine 注册；其余已接通 | — | — |
-| Colorless | PANACHE_CARD | pending | engine 注册；其余待审计 | — | scope_deferred/per-turn fifth-play counter contract not implemented yet; mechanic_descriptor/cards/PANACHE_CARD; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/PANACHE |
+| Colorless | PANACHE_CARD | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | PANIC_BUTTON | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | PREP_TIME | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | PRODUCTION | batch1-v1 | engine 注册；其余已接通 | — | — |
-| Colorless | PROLONG | pending | engine 注册；其余待审计 | — | scope_deferred/next-turn block power contract not implemented yet; mechanic_descriptor/cards/PROLONG; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/BLOCK_NEXT_TURN |
+| Colorless | PROLONG | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | PROWESS | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | PURITY | existing | engine 注册；其余已接通 | — | — |
 | Colorless | RALLY | batch5-v5 | engine 注册；其余已接通 | single-player-noop/native ALL_ALLIES effect targets teammates only; playable no-op in single-player | — |
 | Colorless | REND | simple-v3 | engine 注册；其余已接通 | — | — |
 | Colorless | RESTLESSNESS | existing | engine 注册；其余已接通 | — | — |
-| Colorless | ROLLING_BOULDER | pending | engine 注册；其余待审计 | — | scope_deferred/turn-start counter power contract not implemented yet; mechanic_descriptor/cards/ROLLING_BOULDER; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/ROLLING_BOULDER |
+| Colorless | ROLLING_BOULDER | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | SALVO | batch1-v1 | engine 注册；其余已接通 | — | — |
 | Colorless | SCRAWL | batch1-v1 | engine 注册；其余已接通 | — | — |
 | Colorless | SECRET_TECHNIQUE | foundation-v4 | engine 注册；其余已接通 | — | — |
@@ -154,8 +154,8 @@ batch5-v5 中：多人牌在单人无合法目标（ALLY 目标牌不可出，AL
 | Colorless | SPLASH | pending | engine 注册；其余待审计 | — | scope_deferred/cross-character generation outside scope; mechanic_descriptor/cards/SPLASH; public_state_and_action_admission; particle_reconstruction_and_interaction_parity |
 | Colorless | STRATAGEM | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | TAG_TEAM | batch5-v5 | engine 注册；其余已接通 | — | — |
-| Colorless | THE_BOMB_CARD | pending | engine 注册；其余待审计 | — | scope_deferred/delayed multi-turn damage contract not implemented yet; mechanic_descriptor/cards/THE_BOMB_CARD; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/THE_BOMB |
-| Colorless | THE_GAMBIT | pending | engine 注册；其余待审计 | — | scope_deferred/combat-lethal debuff contract not implemented yet; mechanic_descriptor/cards/THE_GAMBIT; public_state_and_action_admission; particle_reconstruction_and_interaction_parity; power_dependencies/THE_GAMBIT |
+| Colorless | THE_BOMB_CARD | batch5-v5 | engine 注册；其余已接通 | — | — |
+| Colorless | THE_GAMBIT | batch5-v5 | engine 注册；其余已接通 | — | — |
 | Colorless | THINKING_AHEAD | foundation-v4 | engine 注册；其余已接通 | — | — |
 | Colorless | THRUMMING_HATCHET | batch5-v5 | engine 注册；其余已接通 | return-to-hand/returns to hand before the next hand draw | — |
 | Colorless | ULTIMATE_DEFEND | batch1-v1 | engine 注册；其余已接通 | — | — |

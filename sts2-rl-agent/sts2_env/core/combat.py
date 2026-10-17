@@ -1327,6 +1327,14 @@ class CombatState:
             target_pile.insert(self.shuffle_rng.next_int(0, len(target_pile)), card)
         else:
             target_pile.append(card)
+        if result.pile_type == PileType.DRAW:
+            # A played card redirected to the draw pile is publicly visible; the
+            # journal must record where it landed (e.g. NostalgiaPower).
+            position = ("top" if result.position == CardPilePosition.TOP
+                        else "bottom" if result.position == CardPilePosition.BOTTOM
+                        else "unknown")
+            self.visible_card_events.append(("draw_insert", self._visible_card_token(card),
+                                             position, self.turn_count, card.public_state_blob()))
 
     def play_card(self, hand_index: int, target_index: int | None = None) -> bool:
         return self.play_card_from_creature(self.primary_player, hand_index, target_index)

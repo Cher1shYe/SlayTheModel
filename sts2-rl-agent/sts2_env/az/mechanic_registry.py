@@ -35,7 +35,7 @@ OPS += ('resume_draw','resume_end_turn','resume_exhaust_draw','resume_auto_draw'
         'resume_after_player_turn_start','resume_post_after_player_turn_start','resume_post_draw_power','resume_post_draw_topdeck')
 OPS += ('retaliate_attack','damage_on_applier_block','free_attack','damage_random_on_block')
 OPS += ('skill_cost_zero','skill_exhaust','gain_max_hp','knockdown','tag_team','gold','return_to_hand',
-        'ally_guard')
+        'ally_guard','to_draw_top','lethal_on_unblocked','defer_block','energy_per_draws','damage_per_plays')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
 TARGETS += ('random_enemy','other_enemies','draw','exhaust','ally','allies')

@@ -1,9 +1,38 @@
-"""Visible power order and explicitly audited secondary counters."""
+"""Visible power order, secondary counters and public per-power bookkeeping.
+
+Every value stored here is a function of public history: visible power order,
+displayed amounts, per-turn play counts and draw counts.  Nothing reads a
+hidden card index or the simulator RNG.
+"""
 import json
 from .config import canonical_json
 
 COUNTERS={'DARK_EMBRACE':'_ethereal_exhaust_count','CRIMSON_MANTLE':'self_damage','INFERNO':'self_damage',
-          'JUGGLING':'_attacks_played_this_turn'}
+          'JUGGLING':'_attacks_played_this_turn',
+          'AUTOMATION':'cards_left','PANACHE':'_cards_left','THE_BOMB':'damage'}
+# Compound public bookkeeping.  Each attribute is still derived from visible
+# plays/draws/turns; only its representation differs from a single integer.
+#   pairs   : list[[int, int]]
+#   triples : list[[int, int, bool]]
+#   ints    : list[int]
+EXTRAS={'AUTOMATION':{'_instances':'pairs'},'PANACHE':{'_started':'bool','_instances':'triples'},
+        'ROLLING_BOULDER':{'_instances':'ints'},'THE_BOMB':{'_instances':'pairs'}}
+
+
+def _check(value, shape):
+    if shape == 'bool':
+        return type(value) is bool
+    if not isinstance(value, list) or not 0 <= len(value) <= 64:
+        return False
+    if shape == 'ints':
+        return all(type(v) is int and 0 <= v <= 100000 for v in value)
+    if shape == 'pairs':
+        return all(isinstance(v, list) and len(v) == 2
+                   and all(type(n) is int and 0 <= n <= 100000 for n in v) for v in value)
+    if shape == 'triples':
+        return all(isinstance(v, list) and len(v) == 3 and type(v[0]) is int and type(v[1]) is int
+                   and type(v[2]) is bool and 0 <= v[1] <= 100000 for v in value)
+    return False
 
 def capture(world):
     from sts2_env.core.enums import PowerId
@@ -27,16 +56,38 @@ def capture(world):
             index=next((i for i,c in enumerate(world.play_pile) if id(c)==key),None)
             if index is None:raise ValueError('Rupture source outside public play stack')
             pending.append([index,value])
+    extras={}
+    for power, obj in world.player.powers.items():
+        if power.name not in EXTRAS:
+            continue
+        rows = {}
+        for attr in EXTRAS[power.name]:
+            value = getattr(obj, attr)
+            if isinstance(value, bool):
+                rows[attr] = value
+            elif isinstance(value, list):
+                rows[attr] = [[int(x) if not isinstance(x, bool) else x for x in row]
+                              if isinstance(row, (list, tuple)) else int(row) for row in value]
+            else:
+                rows[attr] = int(value)
+        extras[power.name] = rows
     return canonical_json(dict(order=[p.name for p in world.player.powers],
-        calamity=sorted(attack_sources),blocks=blocks,rupture=sorted(pending),counters={p.name:getattr(v,COUNTERS[p.name]) for p,v in world.player.powers.items() if p.name in COUNTERS}))
+        calamity=sorted(attack_sources),blocks=blocks,rupture=sorted(pending),
+        counters={p.name:getattr(v,COUNTERS[p.name]) for p,v in world.player.powers.items() if p.name in COUNTERS},
+        extras=extras))
 
 def read(info):
     data=json.loads(info.power_memory)
-    if set(data)!={'order','counters','rupture','blocks','calamity'} or type(data['order'])is not list or len(set(data['order']))!=len(data['order']):raise ValueError('Invalid public power order')
+    if set(data)!={'order','counters','extras','rupture','blocks','calamity'} or type(data['order'])is not list or len(set(data['order']))!=len(data['order']):raise ValueError('Invalid public power order')
     from sts2_env.core.enums import PowerId
     if any(n not in PowerId.__members__ for n in data['order']):raise ValueError('Unknown ordered power')
     expected={n for n in data['order'] if n in COUNTERS}
     if set(data['counters'])!=expected or any(type(v)is not int or not 0<=v<=100000 for v in data['counters'].values()):raise ValueError('Invalid secondary power counter')
+    expected_extras={n for n in data['order'] if n in EXTRAS}
+    if type(data['extras']) is not dict or set(data['extras'])!=expected_extras:raise ValueError('Invalid public power extras')
+    for name,attrs in data['extras'].items():
+        if set(attrs)!=set(EXTRAS[name]) or not all(_check(value,EXTRAS[name][attr]) for attr,value in attrs.items()):
+            raise ValueError('Invalid public power bookkeeping')
     from .execution import states
     from .content_expansion import CODEC
     size=len(states(info.execution,CODEC)[1]) if info.execution else 0
@@ -59,6 +110,11 @@ def restore(world,info):
     if set(data['order'])!={p.name for p in world.player.powers}:raise ValueError('Public power order disagrees with powers')
     world.player.powers={PowerId[n]:world.player.powers[PowerId[n]] for n in data['order']}
     for n,v in data['counters'].items():setattr(world.player.powers[PowerId[n]],COUNTERS[n],v)
+    for name,attrs in data['extras'].items():
+        power=world.player.powers[PowerId[name]]
+        for attr,value in attrs.items():
+            setattr(power,attr,[tuple(row) if isinstance(row,list) else row for row in value]
+                    if isinstance(value,list) else value)
     if PowerId.RUPTURE in world.player.powers:
         world.player.powers[PowerId.RUPTURE]._pending_by_card={id(world.play_pile[i]):v for i,v in data['rupture']}
     if PowerId.CALAMITY in world.player.powers:
