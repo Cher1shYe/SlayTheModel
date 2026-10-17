@@ -430,7 +430,7 @@ def sample_particle(info, search_rng):
                 detail = '; ' + ', '.join(
                     f'slot {a.slot}: hp {a.hp}/{b.hp} init {a.initial_hp}/{b.initial_hp} '
                     f'max {a.max_hp}/{b.max_hp} block {a.block}/{b.block} '
-                    f'spawned={a.spawned}/{b.spawned} powers={a.powers == b.powers} '
+                    f'spawned={a.spawned}/{b.spawned} powers={a.powers}/{b.powers} '
                     f'power_state={a.power_state == b.power_state} '
                     f'intents={a.intents == b.intents} moves={a.moves == b.moves} '
                     f'move={a.move}/{b.move} escaped={a.escaped}/{b.escaped}'

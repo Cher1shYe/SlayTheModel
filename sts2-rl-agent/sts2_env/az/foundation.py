@@ -1,4 +1,4 @@
-﻿"""Explicit public basic status contract; no RNG or hidden card order."""
+"""Explicit public basic status contract; no RNG or hidden card order."""
 from dataclasses import replace
 from copy import copy
 from sts2_env.cards import ironclad, colorless
@@ -171,9 +171,18 @@ def restore(world,info):
         # These cards apply during the player turn; the first enemy-end tick is due.
         p.skip_next_tick=False
         c.powers[PowerId[n]]=p
+    from .content import ALL_CONTENT
     for c,e in zip(world.enemies,info.enemies):
-        c.powers.pop(PowerId.STRENGTH,None)
-        if e.strength:c.powers[PowerId.STRENGTH]=create_power(PowerId.STRENGTH,e.strength)
+        if info.content_version == ALL_CONTENT:
+            # All-content slot powers are the exact visible list; a zero-amount
+            # Strength power is still present in the engine until it is cleaned.
+            powers = dict(e.powers)
+            c.powers.pop(PowerId.STRENGTH, None)
+            if 'STRENGTH' in powers:
+                c.powers[PowerId.STRENGTH] = create_power(PowerId.STRENGTH, powers['STRENGTH'])
+        else:
+            c.powers.pop(PowerId.STRENGTH,None)
+            if e.strength:c.powers[PowerId.STRENGTH]=create_power(PowerId.STRENGTH,e.strength)
 
 
 def strength(info):
