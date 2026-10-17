@@ -45,6 +45,7 @@
 | P3l | 测试集门槛强制 + 断点恢复回归测试 | 已完成 |
 | P3m | 验证集按遭遇分组诊断 + preflight 清单漂移/测试集校验 | 已完成 |
 | P3n | 基线证据持久化（`baseline.json`）+ resume 配对比较不丢失 | 已完成 |
+| P3o | 全流程同 seed 可复现 + 报告 provenance | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -252,3 +253,9 @@
 - 首轮更新前把初始基线写成 `baseline.json`（summary + 每局 scenario/encounter/reward/终局原因），事后可复核；`--resume` 会加载该证据，恢复后的每轮 `paired_vs_baseline` 不再丢失（此前 resume 后比较为空）。
 - 新增 1 项测试（resume 后配对增益仍为 +0.1、覆盖 64 局）；回归 **1198 项通过（1 xfailed）**。
 - 另：`setup_fogmog_normal` 的 2 个既有 EXPANSION 粒子测试根因定位——`summon.acts_this_round` 把 `reviving` 槽位视为出手，而 `generation_after` 只在 `hp>0` 时记录 Dazed，幻象复活后两者不一致；修复需改动 EXPANSION 冻结语义，未在本轮实施（保持既有失败记录）。
+
+### 步骤 26（2026-10-18）全流程可复现与 provenance（P3o）
+
+- 新增短程全流程复现测试：同一 seed 两次 `run`（采集→更新→基线/候选验证→配对）得到相同 episode id/终局/验证效用/配对增益（30s 内完成）。
+- `report.json` 新增 `provenance`：config/protocol 的 SHA-256、生成器清单 SHA、内容/奖励/规则版本，便于事后核对训练证据与冻结配置的对应关系。
+- 新增 2 项测试；回归 **1200 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。

@@ -1,4 +1,4 @@
-"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
+﻿"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
 
 The runner is deliberately in-process and sequential: one frozen XS model plays
 seeded arbitrary-deck fights against native monsters with dynamic search, the
@@ -17,7 +17,7 @@ import numpy as np
 import torch
 
 from .all_decks import (FAMILY, generate_recipe, recipe_from_document)
-from .config import EpisodeLimits, atomic_json
+from .config import EpisodeLimits, RULES_VERSION, atomic_json
 from .content import ALL_CONTENT
 from .entity_replay import EntityReplayBuffer
 from .entity_transition import collect_entity_episode
@@ -358,7 +358,13 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         collector.__exit__(None, None, None)
     if not history:
         raise ValueError('No iteration completed')
+    import hashlib
     report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
+                  provenance=dict(
+                      config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest(),
+                      protocol_sha256=hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),
+                      generator_manifest_sha=protocol.get('generator_manifest_sha'),
+                      content=ALL_CONTENT, reward=V7, rules=RULES_VERSION),
                   iteration_budget=dict(iterations=iterations, episodes=episodes,
                                         updates=updates, budget=budget, batch_size=batch_size),
                   baseline=baseline_summary, history=history,
@@ -418,6 +424,7 @@ def main(argv=None):
 
 if __name__ == '__main__':
     main()
+
 
 
 

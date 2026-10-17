@@ -402,3 +402,57 @@ def test_resume_keeps_paired_comparison_from_baseline_evidence(tmp_path, monkeyp
     comparison = report['history'][1]['paired_vs_baseline']
     assert comparison['episodes'] == 64
     assert comparison['mean_gain'] == pytest.approx(0.1)
+
+def test_short_run_is_reproducible_for_a_seed(tmp_path):
+    kwargs = dict(iterations=1, episodes=2, updates=1, budget=1, batch_size=8, seed=5,
+                  max_turns=2, max_decisions=6, log=lambda *args: None)
+    first = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'a', **kwargs)
+    second = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'b', **kwargs)
+    assert first['history'][0]['episodes'] == second['history'][0]['episodes']
+    assert first['history'][0]['outcomes'] == second['history'][0]['outcomes']
+    assert first['final_validation']['mean_utility'] == pytest.approx(
+        second['final_validation']['mean_utility'])
+    assert first['history'][0]['paired_vs_baseline'] == \
+           second['history'][0]['paired_vs_baseline']
+
+def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
+    import hashlib
+    from pathlib import Path
+
+    def fake_collect(model, recipes, **kwargs):
+        return [dict(episode_id='h' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.5}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.1, termination_reason='win', final_hp=40, turns=2,
+                     decisions=4, decision_seconds=[0.01], errors=0,
+                     illegal_actions=0) for recipe in recipes]
+        return dict(episodes=len(rows), win_rate=1.0, mean_utility=0.1,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += 1
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
+                            budget=1, seed=0, log=lambda *args: None)
+    provenance = report['provenance']
+    root = Path(__file__).resolve().parents[1]
+    assert provenance['config_sha256'] == hashlib.sha256(
+        (root / CONFIG).read_bytes()).hexdigest()
+    assert provenance['protocol_sha256'] == hashlib.sha256(
+        (root / PROTOCOL).read_bytes()).hexdigest()
+    assert provenance['generator_manifest_sha']
+    assert provenance['content'] == 'ironclad-colorless-all-v6'
+    assert provenance['reward'] == 'risk-terminal-v7'
