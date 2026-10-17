@@ -104,6 +104,26 @@ def test_intent_must_match_the_public_move():
         validate_slots(bad)
 
 
+def test_stunned_slot_is_public_and_resumes_the_script():
+    from types import SimpleNamespace
+
+    from sts2_env.az.roster import _legal_transition, intent_signal
+    from sts2_env.az.monster_registry import move_from_intents
+    ai = SimpleNamespace(_current_state_id='STUNNED', current_move=SimpleNamespace(intents=[]))
+    signal = intent_signal(ai)
+    assert signal == (('STUNNED', 0, 1),)
+    assert move_from_intents('CORPSE_SLUG', None, signal) == 'STUNNED'
+    assert move_from_intents('CORPSE_SLUG', 'GLOMP_MOVE', signal) == 'STUNNED'
+    assert _legal_transition('CORPSE_SLUG', 'STUNNED', 'GLOMP_MOVE')
+    assert _legal_transition('CORPSE_SLUG', 'GLOMP_MOVE', 'STUNNED')
+    world = build('setup_corpse_slugs_normal')
+    slots = capture(world, history_for(world))
+    stunned = (EnemySlot(slots[0].slot, slots[0].monster_id, slots[0].initial_hp, slots[0].hp,
+                         slots[0].max_hp, slots[0].block, slots[0].powers, (('STUNNED', 0, 1),),
+                         'STUNNED', (), False),) + slots[1:]
+    validate_slots(stunned)
+
+
 def test_test_subject_requires_the_boss_contract():
     world = CombatState(80, 80, create_ironclad_starter_deck(), 5, relics=[], potions=[],
                         character_id='Ironclad')

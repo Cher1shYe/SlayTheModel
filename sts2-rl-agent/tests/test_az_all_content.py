@@ -1,4 +1,4 @@
-﻿"""All-encounter content version: generic public roster observation contract.
+"""All-encounter content version: generic public roster observation contract.
 
 The card contract is shared with V4; these tests cover the observation path and
 the public move-history loop for encounters outside the ten audited V4 profiles.
@@ -30,6 +30,23 @@ def build(encounter, seed=11):
     world.rng = Rng(seed + 1)
     known = tuple(c.card_id.name + ('+' if c.upgraded else '') for c in deck)
     return world, known
+
+
+def test_zero_strength_is_hidden_but_negative_dexterity_is_public():
+    import json
+
+    from sts2_env.az.power_memory import capture as capture_powers
+    from sts2_env.core.enums import PowerId
+    world, known = build('setup_nibbits_normal')
+    world.apply_power_to(world.player, PowerId.STRENGTH, 0, applier=world.player)
+    world.apply_power_to(world.player, PowerId.DEXTERITY, -1, applier=world.player)
+    order = json.loads(capture_powers(world))['order']
+    assert 'STRENGTH' not in order
+    assert 'DEXTERITY' in order
+    info = observe_all(world, PublicHistory(), None, 80, V7, known_deck=known,
+                       encounter='setup_nibbits_normal')
+    assert (-1, 'DEXTERITY', -1) in info.basic_statuses
+    validate_all(info)
 
 
 @pytest.mark.parametrize('encounter', SAMPLE)
