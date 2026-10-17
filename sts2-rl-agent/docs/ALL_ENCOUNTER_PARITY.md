@@ -1,4 +1,4 @@
-# 全遭遇 MCTS 公开状态一致性扫描
+﻿# 全遭遇 MCTS 公开状态一致性扫描
 
 日期：2026-10-18。范围：act1–act4 原生战斗遭遇 **81 个**；内容版本 `ironclad-colorless-all-v6`。
 
@@ -17,10 +17,10 @@
 
 | 状态 | 数量 | 说明 |
 |---|---:|---|
-| 通过 | **75** | 8 步（或终局前）逐步一致 |
+| 通过 | **76** | 8 步（或终局前）逐步一致 |
 | 采样差异 | 2 | 召唤槽位的构造随机流不可见（fabricator/ovicopter），粒子只能采样；槽位出现后即为公开状态 |
 | 专用契约 | 1 | `setup_test_subject_boss` 三形态走 `boss_phases`，不进入通用判据 |
-| 待处理 | **3** | 见下表，逐条记录原因 |
+| 待处理 | **2** | 见下表，逐条记录原因 |
 
 ## 待处理遭遇与原因
 
@@ -28,14 +28,14 @@
 |---|---|---|---|
 | 回合侧 | knowledge_demon_boss | Not a public player decision | 敌方侧决策/额外行动未纳入公开回合契约 |
 | 意图唯一性 | lagavulin_matriarch_boss | Intent does not identify one move | 睡眠/唤醒形态的可见意图无法唯一确定招式 |
-| Boss 修正 | kaiser_crab_boss | player_hp/history | Crusher/Rocket 的 BACK_ATTACK + CRAB_RAGE 伤害修正 |
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
 
-补充：`docs/all_encounter_robustness.json` 对 75 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**74 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness = 74）。
+补充：`docs/all_encounter_robustness.json` 对 76 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**75 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness = 75）。
 
 ## 本轮已修复
 
+- Kaiser Crab 的 `SURROUNDED.facing` 进入公开能力簿记（玩家朝向是可见的），Crusher/Rocket 的背击伤害倍率在粒子中一致。
 - 被击倒（STUNNED）与幻象复活（REVIVE_MOVE，HEAL 意图）纳入公开招式/意图状态，可打断并恢复脚本；`spawned` 槽位以生成时的最大 HP 作为初始 HP。
 - Summon 槽位的 SANDPIT 恢复目标玩家，FRANTIC_ESCAPE 的公开费用增长与 Dampen 降级事件闭合库存。
 - fogmog / living fog / the obscura / the insatiable 由此转为 parity 通过。
@@ -57,3 +57,4 @@
 ```
 
 输出逐遭遇状态与 `docs/all_encounter_parity.json` 汇总。
+

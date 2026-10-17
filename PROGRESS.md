@@ -38,6 +38,7 @@
 | P3e | 验证集 64/64 全可评估：Dampen 降级公开事件 | 已完成 |
 | P3f | runner CLI/preflight/resume；训练后 checkpoint 复评 64/64 | 已完成 |
 | P3g | 幻象复活/眩晕/砂坑公开状态：parity 75，准入 74，验证 64/64 | 已完成 |
+| P3h | 玩家朝向公开簿记：parity 76，准入 75，验证 64/64 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -200,3 +201,10 @@
 - 复评：新协议验证集 **64/64 完成、0 契约拒绝**，mean V7 utility 0.357、0 非法动作；preflight 训练/验证全部可编码。
 - 已知快照遗留（本轮用 `git stash` 在 HEAD 复现）：`test_az_content_expansion.py` 的 2 个 `setup_fogmog_normal` particle 轨迹用例在改动前即失败（Dazed ledger 与 Eye 招式历史不符），未在本轮修复。
 - 回归：**1190 项通过（1 xfailed）**（排除上述 2 个既有失败用例）。仍不启动正式训练。
+
+### 步骤 19（2026-10-18）玩家朝向公开簿记与准入 75（P3h）
+
+- 新增 `SURROUNDED.facing` 公开能力簿记：玩家朝向由“攻击了哪一侧”决定并影响背击 1.5× 伤害，属于可见信息；粒子恢复后 Kaiser Crab 的 Crusher/Rocket 伤害与真实世界一致。
+- 结果：parity **76 通过 + 2 采样 + 1 专用契约 + 2 待补**（kaiser crab 转通过；剩余 knowledge demon、lagavulin）；鲁棒性 **75/76 稳定**；生成器准入 **75 遭遇**，重新冻结 `configs/az_all_xs_v1/{config,protocol}.json`。
+- 新协议复评：验证集 **64/64 完成、0 契约拒绝**，mean V7 utility 0.347、胜率 34.4%、0 非法动作（随机初始化 XS，仅管线证据）。
+- 回归：**1190 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。

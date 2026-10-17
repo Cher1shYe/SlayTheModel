@@ -1,4 +1,4 @@
-"""Visible power order, secondary counters and public per-power bookkeeping.
+﻿"""Visible power order, secondary counters and public per-power bookkeeping.
 
 Every value stored here is a function of public history: visible power order,
 displayed amounts, per-turn play counts and draw counts.  Nothing reads a
@@ -21,7 +21,9 @@ EXTRAS={'AUTOMATION':{'_instances':'pairs'},'PANACHE':{'_started':'bool','_insta
         'CHAINS_OF_BINDING':{'_bound_card_played':'bool'},
         # Per-turn trigger sets: the player can see whether the spark already paid
         # out this turn (their own energy), so only the count is public.
-        'VITAL_SPARK':{'_triggered_players_this_turn':'count'}}
+        'VITAL_SPARK':{'_triggered_players_this_turn':'count'},
+        # Facing direction is visible (the player turns toward the attacked side).
+        'SURROUNDED':{'facing':'count'}}
 
 
 def _check(value, shape):
@@ -190,3 +192,4 @@ def restore(world,info):
         play=next((c for c in contexts if c['card'] is world.play_pile[index]),None) if index>=0 else object()
         if index>=0 and play is None:raise ValueError('Block source is not an active frame')
         world._block_events_this_turn.append((world.player,ValueProp(props),play))
+
