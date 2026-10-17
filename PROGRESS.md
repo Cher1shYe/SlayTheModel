@@ -23,7 +23,8 @@
 | P1b | 19 张牌六链路 + MCTS 重建接入（累计 139/151） | 已完成 |
 | P1c | 计数/延迟 7 张接入（NOSTALGIA/PROLONG/GAMBIT/AUTOMATION/PANACHE/ROLLING_BOULDER/BOMB），累计 146/151 | 已完成 |
 | P1d | 剩余 5 张范围暂缓（药水/跨职业生成/隐藏身份）归档 | 已完成 |
-| P2 | 全怪物通用公开状态 + 粒子重建 + MCTS 接入（新版本契约） | 未开始 |
+| P2a | 全怪物静态清单与通用接入判据（122 怪物 / 81 遭遇；121+80 通过判据） | 已完成 |
+| P2b | 通用公开阵容（roster）capture/restore/validate + 粒子与 MCTS 接入 | 进行中 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -66,3 +67,11 @@
 - 引擎公开日志补漏：打出牌被放回抽牌堆顶（Nostalgia）现在写入 `draw_insert` 事件；`BLOCK_NEXT_TURN` / `THE_BOMB` 结算后移除自身能力。
 - 覆盖清单重新生成：**146/151 接通（战士 87/87、无色 59/64），剩余 5 张全部范围暂缓**（ALCHEMIZE 药水、ENTROPY/JACK_OF_ALL_TRADES/SPLASH 跨职业生成、HIDDEN_GEM 隐藏抽牌堆身份）。
 - 新增测试并入 `tests/test_az_ironclad_colorless_all.py`（共 155 项）；报告与覆盖文档同步更新。
+
+### 步骤 4（2026-10-18）全怪物静态清单与通用接入判据（P2a）
+
+- 新增 `sts2_env/az/monster_registry.py`：从原生 act1–act4 遭遇表枚举 **81 个战斗遭遇**、**122 个怪物**，只读静态数据（工厂 + 招式图），不跑任务、不读世界。
+- 通用接入判据（可复算）：① 当前招式能由可见意图唯一确定——不存在两个可及后继（含初始招式 64 次构造采样）显示相同意图签名；② 粒子能用公开招式历史重建同一 AI 状态。
+- 结果：**121/122 怪物、80/81 遭遇**满足判据；唯一例外 `TEST_SUBJECT`（三形态同意图）由既有 `boss_phases` 专用契约处理，不用通用规则猜测。
+- 新增 `scripts/audit_monster_coverage.py` 生成 `docs/MONSTER_COVERAGE.md` 与 `docs/monster_coverage.json`（逐遭遇阵容、逐怪物招式/歧义/多意图）。
+- 新增 `tests/test_az_monster_registry.py`（7 项：遭遇表枚举、招式图不变量、容量上限、TEST_SUBJECT 显式拒绝）。
