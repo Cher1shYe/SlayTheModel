@@ -245,10 +245,16 @@ def move_from_intents(monster_id, previous_move, intents):
     ``previous_move`` is None for the initial state.  The caller has already
     checked that the intent is unambiguous; a missing match raises.
     """
+    if tuple(intents) == (('STUNNED', 0, 1),):
+        return 'STUNNED'
     info = info_for(monster_id)
     signatures = dict(info.intent_signatures)
     if previous_move is None:
         candidates = info.initial_moves
+    elif previous_move == 'STUNNED':
+        # After a stun the script resumes; the visible intent must identify one
+        # legal move on its own.
+        candidates = tuple(signatures)
     else:
         successors = dict(info.successors)
         if previous_move not in successors:
@@ -372,5 +378,7 @@ def audit():
                 total_encounters=len(encounters),
                 admitted_monsters=sorted(m for m, d in described.items() if d.admitted),
                 total_monsters=len(described))
+
+
 
 

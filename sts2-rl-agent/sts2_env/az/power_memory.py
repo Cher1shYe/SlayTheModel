@@ -129,10 +129,13 @@ def capture(world):
             else:
                 rows[attr] = int(value)
         extras[power.name] = rows
-    return canonical_json(dict(order=[p.name for p in world.player.powers],
+    visible = [p for p in world.player.powers
+               if not (p.name in ('STRENGTH', 'DEXTERITY')
+                       and world.player.powers[p].amount == 0)]
+    return canonical_json(dict(order=[p.name for p in visible],
         calamity=sorted(attack_sources),blocks=blocks,rupture=sorted(pending),
-        counters={p.name:getattr(v,COUNTERS[p.name]) for p,v in world.player.powers.items() if p.name in COUNTERS},
-        extras=extras))
+        counters={p.name:getattr(world.player.powers[p],COUNTERS[p.name]) for p in visible if p.name in COUNTERS},
+        extras={p.name: extras[p.name] for p in visible if p.name in extras}))
 
 def read(info):
     data=json.loads(info.power_memory)

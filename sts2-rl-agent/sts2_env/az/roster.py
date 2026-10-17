@@ -1,4 +1,4 @@
-"""Generic public roster for all act combat encounters.
+﻿"""Generic public roster for all act combat encounters.
 
 The observer only keeps facts a player can see: creature identity, health,
 block, visible powers, the displayed intent list, the completed move history
@@ -21,7 +21,7 @@ from .monster_registry import (CREATORS, ENCOUNTERS, info_for, move_from_intents
                                variants_for)
 
 MAX_SLOTS = 5
-INTENT_NAMES = tuple(name for name in IntentType.__members__)
+INTENT_NAMES = tuple(name for name in IntentType.__members__) + ('STUNNED',)
 MAX_POWERS = 64
 
 
@@ -89,11 +89,18 @@ class EnemySlot:
 
 
 def intent_signal(ai):
+    """Visible intent; a knocked-down move exposes the public stun state."""
+    if getattr(ai, '_current_state_id', None) == 'STUNNED' or not ai.current_move.intents:
+        if getattr(ai, '_current_state_id', None) == 'STUNNED':
+            return (('STUNNED', 0, 1),)
     return tuple((i.intent_type.name, int(i.damage), int(i.hits)) for i in ai.current_move.intents)
 
 
 def _legal_transition(monster_id, previous, current):
     info = info_for(monster_id)
+    # A stun can interrupt any script step and resumes the script afterwards.
+    if previous == 'STUNNED' or current == 'STUNNED':
+        return current == 'STUNNED' or previous == 'STUNNED'
     if previous is None:
         return current in info.initial_moves
     successors = dict(info.successors)
@@ -184,7 +191,10 @@ def validate_slots(slots):
         if type(slot.moves) is not tuple or len(slot.moves) > 200:
             raise ValueError('Invalid public move history')
         signatures = dict(info.intent_signatures)
-        if signatures.get(slot.move) != slot.intents:
+        if slot.move == 'STUNNED':
+            if slot.intents != (('STUNNED', 0, 1),):
+                raise ValueError('Intent does not match the public move')
+        elif signatures.get(slot.move) != slot.intents:
             raise ValueError('Intent does not match the public move')
         for before, after in zip(slot.moves, slot.moves[1:]):
             if not _legal_transition(slot.monster_id, before, after):
@@ -193,7 +203,7 @@ def validate_slots(slots):
         if slot.moves:
             if not _legal_transition(slot.monster_id, previous, slot.move):
                 raise ValueError('Current move is not reachable from the public history')
-        elif slot.move not in info.initial_moves:
+        elif slot.move not in info.initial_moves and slot.move != 'STUNNED':
             raise ValueError('Current move cannot be the initial move')
         if slot.hp == 0 and slot.monster_id == 'TEST_SUBJECT':
             raise ValueError('Boss phase forms require the dedicated contract')
@@ -293,3 +303,5 @@ def after_round(before, ended):
     """
     return tuple(slot.moves + ((slot.move,) if slot.hp > 0 and not ended and not slot.escaped else ())
                  for slot in before)
+
+

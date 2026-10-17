@@ -1,4 +1,4 @@
-"""Entity projection for the all-encounter roster.
+﻿"""Entity projection for the all-encounter roster.
 
 Card entities are shared with the V4 projection; only enemies come from the
 generic public roster.  Each enemy exposes the visible intents (attack values as
@@ -14,7 +14,7 @@ from .mechanic_registry import Operation as O
 INTENT_OPS = {
     'DEFEND': 'intent_defend', 'BUFF': 'intent_buff', 'DEBUFF': 'intent_debuff',
     'DEBUFF_STRONG': 'intent_debuff', 'STATUS_CARD': 'intent_status', 'SUMMON': 'intent_summon',
-    'HEAL': 'intent_heal', 'SLEEP': 'intent_sleep', 'STUN': 'intent_stun',
+    'HEAL': 'intent_heal', 'SLEEP': 'intent_sleep', 'STUN': 'intent_stun', 'STUNNED': 'intent_stun',
     'ATTACK_BUFF': 'intent_buff', 'ATTACK_DEFEND': 'intent_defend', 'ATTACK_DEBUFF': 'intent_debuff',
 }
 POWER_OPS = {
@@ -62,3 +62,4 @@ def enemy_entities(info):
             cycle_step=max(0, stage), last_stage=last,
             pending_target=int(info.history.pending_target == slot.slot)), tuple(effects)))
     return result
+
