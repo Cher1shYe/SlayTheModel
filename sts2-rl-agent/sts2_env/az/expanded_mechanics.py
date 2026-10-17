@@ -22,18 +22,31 @@ VARIABLES = {
 }
 
 
+INHERITED_STATUS = {
+    'SLIMED': lambda c: [O('draw', 'self', 'on_play', c.effect_vars['cards']),
+                         O('exhaust', 'self', 'after_play', 1)],
+    'TOXIC': lambda c: [O('damage_unpowered', 'self', 'turn_end_hand', c.effect_vars['damage']),
+                        O('exhaust', 'self', 'after_play', 1)],
+    'INFECTION': lambda c: [O('damage_unpowered', 'self', 'turn_end_hand', c.effect_vars['damage']),
+                            O('unplayable', 'self', 'generated_card', 1)],
+    'BECKON': lambda c: [O('hp_loss', 'self', 'turn_end_hand', c.effect_vars['hp_loss'])],
+    'FRANTIC_ESCAPE': lambda c: [O('cost', 'self', 'after_play', 1)],
+}
+
+
 @lru_cache(maxsize=128)
 def describe_card(token):
     from .content_expansion import FACTORIES, descriptor
     if token.removesuffix('+') in FACTORIES:
         return descriptor(token)
-    if token.removesuffix('+') == 'SLIMED':
-        # Inherited status dependency admitted by the V4/V5 card codec (slimes).
+    name = token.removesuffix('+')
+    if name in INHERITED_STATUS and not token.endswith('+'):
+        # Inherited combat-generated status cards admitted by the card codec.
         from .content_expansion import CODEC as EXPANSION_CODEC
         c = EXPANSION_CODEC._reference(token)
-        return MechanicDescriptor(c.card_type.value, c.cost, 'none', (
-            O('draw', 'self', 'on_play', c.effect_vars['cards']).validate(),
-            O('exhaust', 'self', 'after_play', 1).validate()))
+        return MechanicDescriptor(c.card_type.value, c.cost,
+                                  {'NONE': 'none', 'SELF': 'self'}[c.target_type.name],
+                                  tuple(e.validate() for e in INHERITED_STATUS[name](c)))
     from .boss_cards import CODEC
     if token not in CODEC.factories:
         raise ValueError(f'Unsupported mechanic path: cards/{token}')
@@ -155,3 +168,4 @@ def registry_manifest():
             'monsters': {n:[asdict(o) for o in monster_program(n)] for n in
                 [k for k,v in profiles(BOSS_CONTENT).items() if 'members' not in v]+['EYE_WITH_TEETH']},
             'program_source': Path(__file__).read_text(encoding='utf-8')}
+

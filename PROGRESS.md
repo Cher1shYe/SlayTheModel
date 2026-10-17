@@ -26,7 +26,8 @@
 | P2a | 全怪物静态清单与通用接入判据（122 怪物 / 81 遭遇；121+80 通过判据） | 已完成 |
 | P2b | 通用公开阵容 roster：capture/validate/create/restore + 原生遭遇构造 + 逐步 parity | 已完成 |
 | P2c | all-content 版本：观测/校验/公开回合历史 + 场景与牌库接入 | 已完成 |
-| P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 已完成（3 遭遇全链路，5 个已知差异待修） |
+| P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 已完成 |
+| P2e | 全遭遇一致性扫描：81 遭遇中 64 通过 + 1 专用契约 + 16 待补 | 已完成（16 项已知差异归档） |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -106,3 +107,11 @@
 - 修复：敌人状态 `skip_next_tick` 恢复时机、玩家侧怪物减益的首跳消耗（对齐 V4 口径）、SLIMED 在 `prototype`/出牌记忆中的构造。
 - 测试 `tests/test_az_all_mcts.py`：**13 项通过**（nibbits/cultists/chompers 的逐步粒子 parity、编码确定性、XS 动态 MCTS 可重复性、奖励账本、内容不匹配拒绝）；**5 项 xfail 且写明原因**，逐项记录仍与真实世界有差异的遭遇（slimes 分裂、bowlbugs 位置脚本、axebots 逐槽构造、waterfall giant 多目标减益时序、kaiser crab 奖励账本/槽位能力）。
 - 回归：卡牌/all-content 1016 项通过（5 xfailed）、Transformer 287 项通过；V4 路径未被改动。
+
+### 步骤 8（2026-10-18）全遭遇 MCTS 一致性扫描（P2e）
+
+- 新增 `scripts/audit_all_encounter_parity.py`：对全部 81 个 act1–act4 遭遇，逐步采样动作、重建粒子、与真实世界逐字段对比（对齐随机流仅作 parity oracle）。
+- 结果：**64 通过 + 1 专用契约（TEST_SUBJECT）+ 16 待处理**；报告 `docs/ALL_ENCOUNTER_PARITY.md`，原始结果 `docs/all_encounter_parity.json`。
+- 本轮修复：玩家 SHRINK 观测/粒子恢复、死亡槽位不得再获得公开出招（slimes/bowlbugs 复活出招问题）、召唤槽位 append-only 的初始 HP 与奖励账本、终局 V7 风险的公开入参、继承状态牌 `TOXIC`/`INFECTION`/`BECKON`/`FRANTIC_ESCAPE` 的描述与构造、`execution` 恢复使用状态牌工厂。
+- 16 个待处理遭遇按类别归档（卡牌关键词/战斗变量/库存、负值临时状态、召唤槽位、能量、Boss 修正、粒子根状态、回合侧、意图唯一性、洗牌），全部为**显式拒绝**而非静默通过。
+- 回归：卡牌/all-content **1020 项通过（1 xfailed）**、Transformer **287 项通过**。

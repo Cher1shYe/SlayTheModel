@@ -1,4 +1,4 @@
-"""All-encounter content version: same card contract, generic public roster.
+﻿"""All-encounter content version: same card contract, generic public roster.
 
 The card half of the contract is identical to V4 (``ironclad-colorless-foundation-v4``),
 so the audited card codecs are reused.  Only the enemy half changes: instead of
@@ -97,9 +97,10 @@ def observe_all(world, history, limits=None, initial_hp=80, reward_version=V7,
     handled = (PowerId.SHRINK, PowerId.VULNERABLE, PowerId.STRENGTH, PowerId.RETAIN_HAND,
                *(PowerId[name] for name in PLAYER))
     first = enemies[0]
+    shrink = player.powers[PowerId.SHRINK].amount if PowerId.SHRINK in player.powers else 0
     return InformationState(
         player.current_hp, player.max_hp, player.block, world.energy, world.max_energy,
-        world.turn_count, hand, draw, discard, exhaust, 0,
+        world.turn_count, hand, draw, discard, exhaust, shrink,
         first.hp, first.max_hp, first.block, dict(first.powers).get('VULNERABLE', 0),
         first.intents[0] if first.intents else ('ATTACK', 0, 1), history, mask, limits, reason,
         enemies=enemies, boss=None, execution=execution,
@@ -225,10 +226,12 @@ def roster_rows(enemies):
 def terminal_value_all(info):
     if info.termination_reason is None:
         return None
+    from .risk_reward import public_risk
+
     ledger, rows, (initial, final, maximum) = roster_rows(info.enemies)
     return terminal_reward(info.termination_reason, info.player_hp, info.initial_hp, final, maximum,
                            info.reward_version, enemy_initial_hp=initial, enemy_roster=rows,
-                           player_max_hp=info.player_max_hp)
+                           player_max_hp=info.player_max_hp, incoming_risk=public_risk(info))
 
 
 def check_transition(before, world, slots):
@@ -376,6 +379,8 @@ def sample_particle(info, search_rng):
         world._energy_spent_this_turn[world.player] = sum(p.energy for p in info.history.payments)
         if info.retain_hand:
             world.apply_power_to(world.player, PowerId.RETAIN_HAND, info.retain_hand, applier=world.player)
+        if info.shrink:
+            world.apply_power_to(world.player, PowerId.SHRINK, info.shrink, applier=world.enemies[0])
         if info.player_vulnerable:
             world.apply_power_to(world.player, PowerId.VULNERABLE, info.player_vulnerable, applier=world.enemies[0])
             world.player.powers[PowerId.VULNERABLE].skip_next_tick = False
@@ -429,7 +434,7 @@ def _token(card):
 
 def _play_token(token):
     """Card factory for played-card memory, including inherited status tokens."""
-    if token in ('DAZED', 'BURN', 'WOUND', 'SLIMED'):
+    if token in ('DAZED', 'BURN', 'WOUND', 'SLIMED', 'TOXIC', 'INFECTION', 'BECKON', 'FRANTIC_ESCAPE'):
         from sts2_env.cards import status
         return getattr(status, 'make_' + token.lower())()
     from .decks import make_token
@@ -438,3 +443,4 @@ def _play_token(token):
 
 def card_token_matches(card, token):
     return _token(card) == token
+

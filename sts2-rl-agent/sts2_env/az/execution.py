@@ -1,4 +1,4 @@
-"""Public nested play frames. JSON contains data only, never native callbacks."""
+﻿"""Public nested play frames. JSON contains data only, never native callbacks."""
 import json
 from dataclasses import asdict,replace
 from collections import Counter
@@ -168,11 +168,11 @@ def restore(world,info,codec):
     world._damage_events_combat=[(None,world.player,ValueProp(e[2]),e[3]) for e in info.history.public_events if e[0]=="player_damage"]
     world._damage_events_this_turn=[(None,world.player,ValueProp(e[2])) for e in info.history.public_events if e[0]=="player_damage" and e[1]==info.turn]
     if info.history.public_events:
-        from .decks import make_token
+        from .decks import make_any_token
         world._played_cards_this_turn=[]
         for e in info.history.public_events:
             if e[0]=='finish' and e[2]==info.turn:
-                c=make_token(e[1]);c.owner=world.player;world._played_cards_this_turn.append(c)
+                c=make_any_token(e[1]);c.owner=world.player;world._played_cards_this_turn.append(c)
         from sts2_env.core.enums import PowerId
         for enemy in world.enemies:
             if PowerId.SLOW in enemy.powers:enemy.powers[PowerId.SLOW]._slow_amount=len(world._played_cards_this_turn)
@@ -183,7 +183,7 @@ def restore(world,info,codec):
             if e[0]=='start':last=e
             elif e[0]=='play_start_meta' and e[1]==info.turn:
                 if last is None or last[2]!=e[1]:raise ValueError('Play metadata without start')
-                c=make_token(last[1]);c.owner=world.player
+                c=make_any_token(last[1]);c.owner=world.player
                 world._card_play_starts_this_turn.append(CardPlayStartedEntry(c,e[2],e[3]))
     if not info.execution:return
     d,states_=states(info.execution,codec)
@@ -328,3 +328,4 @@ def positions(before,events):
         if len(top)+len(bottom)==total:top,bottom=top+bottom,[]
     return tuple(s.token for s in top),tuple(s.token for s in bottom),canonical_json(
         dict(top=[asdict(s) for s in top],bottom=[asdict(s) for s in bottom]))
+

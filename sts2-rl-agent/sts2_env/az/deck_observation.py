@@ -1,4 +1,4 @@
-"""Public features for the frozen eight-card pool, including consumed powers."""
+﻿"""Public features for the frozen eight-card pool, including consumed powers."""
 from collections import Counter
 from dataclasses import fields
 from functools import lru_cache
@@ -20,7 +20,7 @@ FEATURES = ("present", "upgraded", "cost/3", "original_cost/3", "x_cost", "damag
 def prototype(token):
     saved = card_base._next_instance_id
     try:
-        if token in ("DAZED", "BURN", "WOUND", "SLIMED"):
+        if token in ("DAZED", "BURN", "WOUND", "SLIMED", "TOXIC", "INFECTION", "BECKON", "FRANTIC_ESCAPE"):
             from sts2_env.cards import status
             return getattr(status, "make_" + token.lower())()
         return make_token(token)
@@ -516,4 +516,5 @@ def encode(info):
     values += [info.initial_hp / 80]
     return EncodedObservation(ids, cards, np.asarray(values, dtype=np.float32),
                               np.asarray(info.legal_mask, dtype=bool), "observable", info.reward_version, info.content_version)
+
 

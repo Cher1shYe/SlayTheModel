@@ -80,6 +80,11 @@ class CombatAdapter:
         if self.recipe.content_manifest_version == ALL_CONTENT:
             from .all_content import roster_ledger
             from .summon import ledger_rows, primary_summary
+            if len(self.initial_hp_roster) < len(world.enemies):
+                # First observation of a summoned slot: its spawn HP is visible.
+                self.initial_hp_roster = self.initial_hp_roster + tuple(
+                    max(0, enemy.current_hp)
+                    for enemy in world.enemies[len(self.initial_hp_roster):])
             ledger = roster_ledger(world, self.initial_hp_roster)
             roster = ledger_rows(ledger)
             self.enemy_initial_hp, enemy_hp, enemy_max = primary_summary(ledger)

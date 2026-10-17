@@ -1,4 +1,4 @@
-"""Explicit Ironclad/colorless admission; factories alone never grant support.
+﻿"""Explicit Ironclad/colorless admission; factories alone never grant support.
 
 The original Boss registry remains frozen. This version adds no relic, potion,
 character-resource or multiplayer capability and has no training manifest.
@@ -8,7 +8,8 @@ from dataclasses import replace
 from .selection_batch import SIMPLE_MAX_PUBLIC_ENERGY
 
 from sts2_env.cards import ironclad, colorless
-from sts2_env.cards.status import make_slimed
+from sts2_env.cards.status import (make_beckon, make_frantic_escape, make_infection,
+                                   make_slimed, make_toxic)
 from .card_state import CardStateCodec
 from .boss_cards import CODEC as BASE_CODEC
 
@@ -52,7 +53,9 @@ class ExpansionCardStateCodec(CardStateCodec):
         if state.base_block!=ref.base_block or dict(state.effect_vars)!=ref.effect_vars:raise ValueError('Unaudited effect mutation')
         return state
 
-CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, 'SLIMED': make_slimed, **{
+INHERITED_STATUS = {'SLIMED': make_slimed, 'TOXIC': make_toxic, 'INFECTION': make_infection,
+                    'BECKON': make_beckon, 'FRANTIC_ESCAPE': make_frantic_escape}
+CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, **INHERITED_STATUS, **{
     name + suffix: partial(factory, upgraded=bool(suffix))
     for name, factory in FACTORIES.items() for suffix in ('', '+')
 }}, replace(BASE_CODEC.policy, effect_changes=True, generated_metadata=True,
@@ -135,3 +138,4 @@ def descriptor(token):
     if 'exhaust' in c.keywords: effects.append(O('exhaust', 'self', 'after_play', 1))
     if 'retain' in c.keywords: effects.append(O('retain', 'self', 'turn_end_hand', 1))
     return MechanicDescriptor(c.card_type.value, c.cost, target, tuple(o.validate() for o in effects))
+

@@ -1,4 +1,4 @@
-"""Audited lifecycle derivation from public turn history, never hidden piles.
+﻿"""Audited lifecycle derivation from public turn history, never hidden piles.
 
 Remaining Stomp copies are present from combat start; no admitted effect creates
 new Stomps. Primal Force may replace copies with Giant Rocks. Every attack updates
@@ -16,7 +16,7 @@ def attack_count(history):
 
 
 def restore_token(token, history):
-    if token in ("DAZED", "BURN", "WOUND", "SLIMED"):
+    if token in ("DAZED", "BURN", "WOUND", "SLIMED", "TOXIC", "INFECTION", "BECKON", "FRANTIC_ESCAPE"):
         from sts2_env.cards import status
         return getattr(status, "make_" + token.lower())()
     card = make_token(token)
@@ -40,3 +40,4 @@ def validate_state(state, history):
     if state.single_turn_retain:
         raise ValueError("Granted retain is not admitted")
     return state
+

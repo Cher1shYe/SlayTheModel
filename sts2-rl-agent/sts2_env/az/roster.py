@@ -38,6 +38,7 @@ class EnemySlot:
     move: str
     moves: tuple
     escaped: bool
+    spawned: bool = False
 
     # Read-only compatibility surface for shared public helpers that were written
     # against the older single-intent slot shape.  Values still come only from
@@ -78,10 +79,6 @@ class EnemySlot:
         return self.minion == 0
 
     @property
-    def spawned(self):
-        return False
-
-    @property
     def reviving(self):
         return self.hp == 0 and self.illusion > 0
 
@@ -108,9 +105,18 @@ def capture_slots(world, history, initial_hp):
     if initial_hp is None:
         # First observation: the visible starting HP is the current HP.
         initial_hp = tuple(max(0, enemy.current_hp) for enemy in world.enemies)
-    if type(initial_hp) is not tuple or len(initial_hp) != len(world.enemies):
+    if type(initial_hp) is not tuple or len(initial_hp) > len(world.enemies):
         raise ValueError('Initial HP for every slot required')
-    histories = history.roster_moves or ((),) * len(world.enemies)
+    initial_count = len(initial_hp)
+    if initial_count < len(world.enemies):
+        # A summoned slot appeared after the initial roster: its obligation
+        # starts at its visible spawn HP and the roster stays append-only.
+        initial_hp = initial_hp + tuple(max(0, enemy.current_hp)
+                                        for enemy in world.enemies[initial_count:])
+    histories = history.roster_moves
+    if len(histories) > len(world.enemies):
+        raise ValueError('Public roster history exceeds the roster size')
+    histories = histories + ((),) * (len(world.enemies) - len(histories))
     if len(histories) != len(world.enemies):
         raise ValueError('Public roster history does not match the roster size')
     slots = []
@@ -127,13 +133,16 @@ def capture_slots(world, history, initial_hp):
         powers = tuple(sorted((p.name, int(obj.amount)) for p, obj in enemy.powers.items()))
         slots.append(EnemySlot(slot, enemy.monster_id, int(hp), max(0, int(enemy.current_hp)),
                                int(enemy.max_hp), int(enemy.block), powers, intents, move,
-                               tuple(past), bool(enemy.escaped and enemy.current_hp > 0)))
+                               tuple(past), bool(enemy.escaped), slot >= initial_count))
     return tuple(slots)
 
 
 def validate_slots(slots):
     if not isinstance(slots, tuple) or not 1 <= len(slots) <= MAX_SLOTS:
         raise ValueError('Explicit public roster required')
+    first_spawn = next((slot.slot for slot in slots if slot.spawned), len(slots))
+    if any(not slot.spawned for slot in slots[first_spawn:]):
+        raise ValueError('Summoned slots must be an append-only suffix')
     for index, slot in enumerate(slots):
         if type(slot) is not EnemySlot or slot.slot != index:
             raise ValueError('Public roster slots must be ordered and immutable')
@@ -260,6 +269,9 @@ def restore_slots(world, slots, rng):
 
 
 def after_round(before, ended):
-    """Append exactly the moves the enemy round performed, per public slot."""
+    """Append exactly the moves the enemy round performed, per public slot.
+
+    A dead or escaped slot takes no turn, so it must not gain a public move.
+    """
     return tuple(slot.moves + ((slot.move,) if slot.hp > 0 and not ended and not slot.escaped else ())
                  for slot in before)

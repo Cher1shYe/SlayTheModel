@@ -176,8 +176,20 @@ def make_token(token):
     return MORPH_FACTORIES[name](upgraded=token.endswith("+"))
 
 
+STATUS_TOKENS = ('DAZED', 'BURN', 'WOUND', 'SLIMED', 'TOXIC', 'INFECTION', 'BECKON', 'FRANTIC_ESCAPE')
+
+
+def make_any_token(token):
+    """Token factory that also covers inherited combat-generated status cards."""
+    if token in STATUS_TOKENS:
+        from sts2_env.cards import status
+        return getattr(status, 'make_' + token.lower())()
+    return make_token(token)
+
+
 def deck_tokens(deck):
     return tuple(sorted(entry.card_id + ("+" if entry.upgraded else "")
                         for entry in deck for _ in range(entry.count)))
+
 
 

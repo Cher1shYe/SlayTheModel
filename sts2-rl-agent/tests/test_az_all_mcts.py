@@ -31,11 +31,7 @@ ENCOUNTERS = ['setup_nibbits_normal', 'setup_slimes_weak', 'setup_cultists_norma
 # Encounters whose public-state reconstruction still diverges from the native
 # oracle; tracked explicitly instead of being silently dropped.
 KNOWN_PARITY_GAPS = {
-    'setup_slimes_weak': 'slime split/merge bookkeeping',
-    'setup_bowlbugs_normal': 'Bowlbug position-dependent scripts',
-    'setup_axebots_normal': 'Axebot per-slot construction parity',
-    'setup_waterfall_giant_boss': 'multi-target boss debuff timing',
-    'setup_kaiser_crab_boss': 'boss reward ledger and slot powers',
+    'setup_kaiser_crab_boss': 'Crusher/Rocket BACK_ATTACK + CRAB_RAGE damage modifiers',
 }
 
 
