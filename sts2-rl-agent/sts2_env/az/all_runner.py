@@ -1,4 +1,4 @@
-﻿"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
+"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
 
 The runner is deliberately in-process and sequential: one frozen XS model plays
 seeded arbitrary-deck fights against native monsters with dynamic search, the
@@ -176,10 +176,18 @@ def _probe_recipe(recipe, limits):
 
 
 def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns=6,
-              max_decisions=24, validation_limit=None):
+              max_decisions=24, validation_limit=None, check_test=True):
     """Validate planned training and held-out recipes before any training run."""
+    import hashlib
+    from .all_decks import frozen_manifest
+
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
+    manifest = frozen_manifest()
+    expected_sha = protocol.get('generator_manifest_sha')
+    actual_sha = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
+    if expected_sha != actual_sha:
+        raise ValueError('Protocol does not match the current generator manifest')
     limits = EpisodeLimits(max_turns=max_turns, max_decisions=max_decisions)
     training_ok, training_errors = 0, []
     for iteration in range(iterations):
@@ -203,12 +211,28 @@ def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns
             validation_errors.append(dict(scenario_id=recipe.scenario_id,
                                           encounter=recipe.encounter_id,
                                           error=f'{type(exc).__name__}: {exc}'))
+    test_check = None
+    if check_test and 'test' in protocol:
+        test_recipes = protocol_recipes(protocol, 'test')
+        test_ok, test_errors = 0, []
+        for recipe in test_recipes:
+            try:
+                _probe_recipe(recipe, limits)
+                test_ok += 1
+            except Exception as exc:  # noqa: BLE001
+                test_errors.append(dict(scenario_id=recipe.scenario_id,
+                                        encounter=recipe.encounter_id,
+                                        error=f'{type(exc).__name__}: {exc}'))
+        test_check = {'checked': len(test_recipes), 'ok': test_ok, 'errors': test_errors}
     return dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
+                generator_manifest_sha=actual_sha,
                 training={'planned': iterations * episodes, 'ok': training_ok,
                           'errors': training_errors},
                 validation={'checked': len(validation), 'ok': validation_ok,
                             'errors': validation_errors},
-                ready=not training_errors and not validation_errors)
+                test=test_check,
+                ready=not training_errors and not validation_errors
+                and (test_check is None or not test_check['errors']))
 
 
 def paired_gain(baseline, candidate, *, seed=1729, samples=2000):
@@ -297,11 +321,21 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
             common = {row['scenario_id'] for row in validation_rows}
             if all(row['scenario_id'] in common for row in baseline_rows):
                 comparison = paired_gain(baseline_rows, validation_rows)
+        by_encounter = {}
+        for row in validation_rows:
+            by_encounter.setdefault(row['encounter_id'], []).append(row)
+        breakdown = {encounter: dict(
+            episodes=len(rows), win_rate=sum(row['termination_reason'] == 'win'
+                                             for row in rows) / len(rows),
+            mean_utility=float(np.mean([row['reward'] for row in rows])),
+            death_rate=sum(row['termination_reason'] == 'death' for row in rows) / len(rows))
+            for encounter, rows in sorted(by_encounter.items())}
         record = dict(version=VERSION, iteration=iteration,
                       episodes=[episode['episode_id'] for episode in collected],
                       outcomes=[episode['outcome']['termination_reason'] for episode in collected],
                       replay_size=replay.size, updates=update_history,
                       rejected_recipes=failures,
+                      validation_by_encounter=breakdown,
                       seconds=dict(collect=round(collected_at - started, 3),
                                    update=round(updated_at - collected_at, 3),
                                    evaluate=round(evaluated_at - updated_at, 3),

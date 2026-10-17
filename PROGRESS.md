@@ -43,6 +43,7 @@
 | P3j | 剩余 2 个 parity 差距定位（Boss 问题选择、Lagavulin 唤醒意图） | 已完成（归档，不接入） |
 | P3k | 并行采集（`--workers`，权重冻结 + 池复用），与串行轨迹一致 | 已完成 |
 | P3l | 测试集门槛强制 + 断点恢复回归测试 | 已完成 |
+| P3m | 验证集按遭遇分组诊断 + preflight 清单漂移/测试集校验 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -238,3 +239,9 @@
 - `run(include_test=True)` 默认强制验证门槛：只有最近一轮相对初始基线的配对 `mean_gain > 0` 才打开 64 个测试配方；否则记录 `test_gate.passed=false` 且不评估测试集；`--force-test` 可显式覆盖并在报告中标注 `forced=true`。
 - 新增 2 项 runner 测试：`resume` 从上一轮 checkpoint 续跑（历史保留、只采集新轮）、测试集门槛正/负两种结果。
 - 回归：**1195 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
+
+### 步骤 24（2026-10-18）验证诊断与 preflight 硬化（P3m）
+
+- 每轮验证新增 `validation_by_encounter`：按遭遇汇总 episodes / win_rate / mean_utility / death_rate，便于定位拉低效用的怪物。
+- `preflight` 硬化：校验协议中的生成器清单 SHA 与当前 `frozen_manifest` 一致（漂移直接拒绝），并额外探测 64 个测试配方可编码；`ready` 同时要求训练/验证/测试均无错误。
+- 新增 2 项 runner 测试（验证分组覆盖全部 64 局、协议清单漂移拒绝）；回归 **1197 项通过（1 xfailed）**。仍不启动正式训练。

@@ -68,8 +68,21 @@ def test_preflight_accepts_the_frozen_plan():
                                   max_turns=3, max_decisions=8)
     assert result['ready'] is True
     assert result['training'] == {'planned': 1, 'ok': 1, 'errors': []}
-    assert result['validation']['checked'] == 64
-    assert result['validation']['ok'] == 64
+    assert result['validation'] == {'checked': 64, 'ok': 64, 'errors': []}
+    assert result['test'] == {'checked': 64, 'ok': 64, 'errors': []}
+    assert result['generator_manifest_sha']
+
+
+def test_preflight_rejects_protocol_manifest_drift(tmp_path):
+    import json
+    from pathlib import Path
+    protocol = json.loads((Path(__file__).resolve().parents[1] / PROTOCOL).read_text(
+        encoding='utf-8'))
+    protocol['generator_manifest_sha'] = '0' * 64
+    path = tmp_path / 'protocol.json'
+    path.write_text(json.dumps(protocol), encoding='utf-8')
+    with pytest.raises(ValueError):
+        all_runner.preflight(CONFIG, str(path), iterations=1, episodes=1, check_test=False)
 
 
 def test_collection_is_reproducible_for_a_seed(tmp_path):
@@ -294,4 +307,41 @@ def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkey
                              log=lambda *args: None)
     assert blocked['test_gate']['passed'] is False
     assert 'test' not in blocked
+
+
+def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeypatch):
+    def fake_collect(model, recipes, **kwargs):
+        return [dict(episode_id='e' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.5}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        baseline = 'baseline' in version
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.1 if baseline else 0.2,
+                     termination_reason='win' if index % 2 == 0 else 'time_limit',
+                     final_hp=40, turns=2, decisions=4, decision_seconds=[0.01],
+                     errors=0, illegal_actions=0)
+                for index, recipe in enumerate(recipes)]
+        return dict(episodes=len(rows), win_rate=0.5, mean_utility=0.15,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += 1
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
+                            updates=1, budget=1, seed=0, log=lambda *args: None)
+    breakdown = report['history'][0]['validation_by_encounter']
+    assert sum(row['episodes'] for row in breakdown.values()) == 64
+    assert all(0.0 <= row['win_rate'] <= 1.0 for row in breakdown.values())
 
