@@ -8,10 +8,16 @@ from .content import EXPANSION_CONTENT
 from .mechanic_registry import Operation as O
 from sts2_env.core.enums import PowerId
 
-POWER_IDS = {n: PowerId[n] for n in ('BARRICADE', 'RAGE', 'FEEL_NO_PAIN', 'DEMON_FORM', 'FASTEN', 'PLATING','NO_DRAW')}
+POWER_IDS = {n: PowerId[n] for n in ('BARRICADE', 'RAGE', 'FEEL_NO_PAIN', 'DEMON_FORM', 'FASTEN', 'PLATING','NO_DRAW',
+                                     'TANK', 'CORRUPTION', 'BEACON_OF_HOPE')}
 CARD_POWER = {'BARRICADE_CARD': ('BARRICADE', None), 'RAGE_CARD': ('RAGE', 'power'),
     'FEEL_NO_PAIN_CARD': ('FEEL_NO_PAIN', 'power'), 'DEMON_FORM_CARD': ('DEMON_FORM', 'strength'),
-    'FASTEN': ('FASTEN', 'extra_block'), 'ETERNAL_ARMOR': ('PLATING', 'plating'), 'STONE_ARMOR': ('PLATING','plating'), 'BATTLE_TRANCE': ('NO_DRAW',None)}
+    'FASTEN': ('FASTEN', 'extra_block'), 'ETERNAL_ARMOR': ('PLATING', 'plating'), 'STONE_ARMOR': ('PLATING','plating'), 'BATTLE_TRANCE': ('NO_DRAW',None),
+    'TANK_CARD': ('TANK', None), 'CORRUPTION_CARD': ('CORRUPTION', None), 'BEACON_OF_HOPE': ('BEACON_OF_HOPE', None)}
+# Powers whose public amount saturates at one; others accumulate every play.
+# TANK/CORRUPTION are declared single in the native C# but this simulator keeps
+# increasing their amount, so the public ledger follows the executed engine.
+SINGLE_POWERS = frozenset({'BARRICADE', 'NO_DRAW'})
 
 
 def rules(name, amount):
@@ -22,6 +28,9 @@ def rules(name, amount):
     if name == 'FASTEN': return (O('defend_block_bonus', 'self', 'powered_card_block', amount),)
     if name == 'NO_DRAW': return (O('no_draw','self','outside_hand_draw',1), O('remove','self','player_turn_end',1))
     if name == 'PLATING': return (O('plating', 'self', 'player_turn_end', amount), O('decrement', 'self', 'enemy_turn_end', 1))
+    if name == 'TANK': return (O('damage_multiplier', 'self', 'incoming_powered_attack', 2),)
+    if name == 'CORRUPTION': return (O('skill_cost_zero', 'hand', 'playability', 1), O('skill_exhaust', 'hand', 'after_play', 1))
+    if name == 'BEACON_OF_HOPE': return (O('ally_guard', 'ally', 'after_block', amount),)
     raise ValueError('Unsupported public player ability')
 
 
@@ -70,7 +79,7 @@ def validate(info):
             expected.pop('RAGE', None); expected.pop('NO_DRAW', None)
             expected['PLATING'] = max(0, expected.get('PLATING', 0) - (turn-last))
         name, amount = value(token)
-        expected[name] = 1 if name in ('BARRICADE','NO_DRAW') else expected.get(name, 0) + amount
+        expected[name] = 1 if name in SINGLE_POWERS else expected.get(name, 0) + amount
         last = turn
     if info.turn > last:
         expected.pop('RAGE', None); expected.pop('NO_DRAW', None)

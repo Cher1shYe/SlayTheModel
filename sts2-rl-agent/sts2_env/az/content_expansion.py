@@ -20,7 +20,9 @@ from .simple_cards import FACTORIES as SIMPLE_FACTORIES
 from .foundation import FACTORIES as FOUNDATION_FACTORIES
 from .extended_choices import FACTORIES as CHOICE_FACTORIES
 from .execution import FACTORIES as EXECUTION_FACTORIES
-FACTORIES = {**EXECUTION_FACTORIES, **CHOICE_FACTORIES, **FOUNDATION_FACTORIES, **POWER_FACTORIES, **SIMPLE_FACTORIES,
+from .all_cards import FACTORIES as ALL_FACTORIES, POWER_CARDS as ALL_POWER_CARDS
+POWER_FACTORIES = {**POWER_FACTORIES, **{name: ALL_FACTORIES[name] for name in ALL_POWER_CARDS}}
+FACTORIES = {**ALL_FACTORIES, **EXECUTION_FACTORIES, **CHOICE_FACTORIES, **FOUNDATION_FACTORIES, **POWER_FACTORIES, **SIMPLE_FACTORIES,
     'BLOOD_WALL': ironclad.make_blood_wall,
     'BREAKTHROUGH': ironclad.make_breakthrough,
     'TREMBLE': ironclad.make_tremble,
@@ -53,6 +55,7 @@ CODEC = ExpansionCardStateCodec({**BASE_CODEC.factories, **{
     name + suffix: partial(factory, upgraded=bool(suffix))
     for name, factory in FACTORIES.items() for suffix in ('', '+')
 }}, replace(BASE_CODEC.policy, effect_changes=True, generated_metadata=True,
+    return_to_hand=True,
     state_version='az-public-card-state-v2',max_x_energy_spent=SIMPLE_MAX_PUBLIC_ENERGY))
 TOKENS = tuple(CODEC.factories)
 
@@ -69,6 +72,9 @@ def descriptor(token):
     from .mechanic_registry import Operation as O, MechanicDescriptor
     c = CODEC._reference(token)
     name, v = token.removesuffix('+'), c.effect_vars
+    if name in ALL_FACTORIES:
+        from .all_cards import descriptor as all_descriptor
+        return all_descriptor(c)
     if name in EXECUTION_FACTORIES:
         from .execution import descriptor as execution_descriptor
         return execution_descriptor(c)

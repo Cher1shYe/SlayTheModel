@@ -108,9 +108,11 @@ def test_dynamic_mcts_rebuild_and_network_shape(name):
     assert before == env.information
 
 
-def arranged(names, hand, *, discard=(), upgraded=False, hp=80, encounter='setup_bygone_effigy_elite'):
+def arranged(names, hand, *, discard=(), upgraded=False, hp=80, encounter='setup_bygone_effigy_elite',
+             limits=None):
     from sts2_env.az.information import observe
-    env = ObservableCombatAdapter(recipe(names, upgraded, encounter), reward_version=V7)
+    env = ObservableCombatAdapter(recipe(names, upgraded, encounter), reward_version=V7,
+                                  limits=limits)
     pool = env.world.hand + env.world.draw_pile
     def take(tokens):
         result = []

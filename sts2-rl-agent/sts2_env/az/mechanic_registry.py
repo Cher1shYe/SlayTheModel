@@ -34,9 +34,11 @@ OPS += ('resume_draw','resume_end_turn','resume_exhaust_draw','resume_auto_draw'
         'resume_block','resume_before_hand_draw','resume_card_before_hand_draw','resume_before_hand_draw_late',
         'resume_after_player_turn_start','resume_post_after_player_turn_start','resume_post_draw_power','resume_post_draw_topdeck')
 OPS += ('retaliate_attack','damage_on_applier_block','free_attack','damage_random_on_block')
+OPS += ('skill_cost_zero','skill_exhaust','gain_max_hp','knockdown','tag_team','gold','return_to_hand',
+        'ally_guard')
 TARGETS = ('none', 'self', 'enemy', 'player')
 TARGETS += ('all_enemies', 'hand', 'discard', 'draw_bottom', 'generated', 'applier')
-TARGETS += ('random_enemy','other_enemies','draw','exhaust')
+TARGETS += ('random_enemy','other_enemies','draw','exhaust','ally','allies')
 TIMINGS = ('none', 'on_play', 'first_enemy_turn', 'odd_enemy_turn', 'even_enemy_turn',
            'outgoing_powered_attack', 'incoming_powered_attack', 'enemy_turn_end', 'applier_death')
 TIMINGS += ('after_play', 'turn_end_hand', 'before_attack_play', 'generated_card', 'generated_on_play',
@@ -47,6 +49,7 @@ TIMINGS += ('after_choice','before_side_turn_start','before_hand_draw_late','aft
 TIMINGS += ('after_block',)
 CONDITIONS = ('always', 'hand_empty', 'phase0', 'phase1', 'phase2', 'alive', 'if_hand_nonempty', 'unupgraded', 'reviving')
 CONDITIONS += ('target_vulnerable', 'target_alive','exhausted_this_turn','combat_active','no_attacks_in_hand','player_damaged_this_turn')
+CONDITIONS += ('ally_required','ally_present')
 
 
 @dataclass(frozen=True)
@@ -94,7 +97,7 @@ SHRINKER = (
     Operation('damage', 'player', 'odd_enemy_turn', 7),
     Operation('damage', 'player', 'even_enemy_turn', 13),
 )
-REGISTRY_VERSION = 'ironclad-colorless-mechanics-v4'
+REGISTRY_VERSION = 'ironclad-colorless-mechanics-v5'
 REGISTRY_HASH = content_hash({'version': REGISTRY_VERSION, 'cards': {k: asdict(v) for k, v in CARDS.items()},
                               'shrinker': [asdict(v) for v in SHRINKER],
                               'powers': {k: [asdict(v) for v in ops] for k, ops in POWER_RULES.items()},

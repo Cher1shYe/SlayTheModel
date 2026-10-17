@@ -17,7 +17,7 @@ for module,names in ((ironclad,'uppercut setup_strike mangle fight_me cruelty co
         finally: base._next_instance_id=saved
 PLAYER=('SETUP_STRIKE','DEXTERITY','CRUELTY','COLOSSUS','NO_BLOCK','PREP_TIME','VIGOR','PYRE','AGGRESSION','DRUM_OF_BATTLE','STRATAGEM','HELLRAISER','MAYHEM','STAMPEDE','FLAME_BARRIER','FREE_ATTACK','JUGGERNAUT','CRIMSON_MANTLE','INFERNO','JUGGLING','ONE_TWO_PUNCH','RUPTURE')
 PLAYER+=('UNMOVABLE','VICIOUS','DARK_EMBRACE','CALAMITY')
-ENEMY=('WEAK','MANGLE','DARK_SHACKLES','GRAPPLE')
+ENEMY=('WEAK','MANGLE','DARK_SHACKLES','GRAPPLE','KNOCKDOWN','TAG_TEAM')
 
 def descriptor(card):
     n,v=card.card_id.name,card.effect_vars
@@ -105,9 +105,11 @@ def effects(info,slot):
           'STAMPEDE':('auto_play_hand_attack','player_turn_end',a),
           'HELLRAISER':('auto_play_drawn_strikes','on_draw',a),
           'STRATAGEM':('choose_to_hand','after_shuffle',a),
-          'DRUM_OF_BATTLE':('exhaust_draw_top','before_hand_draw_late',a)}
+          'DRUM_OF_BATTLE':('exhaust_draw_top','before_hand_draw_late',a),
+          'KNOCKDOWN':('knockdown','incoming_powered_attack',a),
+          'TAG_TEAM':('tag_team','incoming_powered_attack',a)}
         k,t,v=ops[n];result.append(O(k,'self',t,v))
-        if n in ('COLOSSUS','NO_BLOCK','WEAK'):result.append(O('duration','self','enemy_turn_end',a))
+        if n in ('COLOSSUS','NO_BLOCK','WEAK','KNOCKDOWN','TAG_TEAM'):result.append(O('duration','self','enemy_turn_end',a))
     return tuple(result)
 
 def validate(info):
@@ -163,6 +165,9 @@ def restore(world,info):
         c=world.player if slot==-1 else world.enemies[slot]
         p=create_power(PowerId[n],a);p.applier=world.player
         if n=='GRAPPLE':p._instances=[(a,world.player)]
+        # Knockdown only spares damage dealt by its applier; the player applied
+        # it, so the reconstructed instance carries that public applier.
+        if n=='KNOCKDOWN':p._instances=[(a,world.player)]
         # These cards apply during the player turn; the first enemy-end tick is due.
         p.skip_next_tick=False
         c.powers[PowerId[n]]=p

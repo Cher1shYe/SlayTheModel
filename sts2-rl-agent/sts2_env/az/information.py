@@ -288,10 +288,10 @@ class InformationState:
             raise ValueError("Public numeric fields must be exact integers")
         if (not 0 <= self.energy <= (SIMPLE_MAX_PUBLIC_ENERGY if self.content_version == EXPANSION_CONTENT else MAX_PUBLIC_ENERGY if self.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else 100 if expanded else 3) or self.turn < 1 or self.player_block < 0 or self.enemy_block < 0
                 or not hp_min <= self.enemy_max_hp <= hp_max or self.enemy_hp > self.enemy_max_hp or (self.enemy_strength < 0 and self.content_version != EXPANSION_CONTENT)
-                or self.player_hp > 80 or self.vulnerable < 0 or self.shrink not in (0, -1)
+                or not self.player_hp <= self.player_max_hp or self.vulnerable < 0 or self.shrink not in (0, -1)
                 or (self.history.decisions < len(self.history.enemy_moves) + len(self.history.played_this_turn) and not self.history.public_events)):
             raise ValueError("Invalid public numeric ranges/history")
-        expected_info_version = "ironclad-colorless-information-v4" if self.content_version == EXPANSION_CONTENT else "boss-information-v1" if self.content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else "summon-information-v1" if self.content_version == SUMMON_CONTENT else "multi-information-v1" if self.content_version == MULTI_CONTENT else "morph-information-v1" if self.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v2" if self.content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v1" if self.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "lifecycle-information-v1" if self.content_version == LIFE_CONTENT else "topdeck-information-v1" if self.content_version == TOP_CONTENT else "upgrades-information-v1" if self.content_version == UP_CONTENT else "generated-information-v1" if self.content_version == GEN_CONTENT else "g1-information-v1" if self.content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "expanded-information-v3" if self.content_version in (EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "hard-information-v2" if self.content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "decks-information-v1" if expanded else M6_INFORMATION if self.content_version == M6_CONTENT else INFORMATION_VERSION
+        expected_info_version = "ironclad-colorless-information-v5" if self.content_version == EXPANSION_CONTENT else "boss-information-v1" if self.content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else "summon-information-v1" if self.content_version == SUMMON_CONTENT else "multi-information-v1" if self.content_version == MULTI_CONTENT else "morph-information-v1" if self.content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v2" if self.content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v1" if self.content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "lifecycle-information-v1" if self.content_version == LIFE_CONTENT else "topdeck-information-v1" if self.content_version == TOP_CONTENT else "upgrades-information-v1" if self.content_version == UP_CONTENT else "generated-information-v1" if self.content_version == GEN_CONTENT else "g1-information-v1" if self.content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "expanded-information-v3" if self.content_version in (EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "hard-information-v2" if self.content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "decks-information-v1" if expanded else M6_INFORMATION if self.content_version == M6_CONTENT else INFORMATION_VERSION
         if (self.information_version, self.rules_version) != (expected_info_version, RULES_VERSION):
             raise ValueError("Unsupported information versions")
         if self.content_version in (TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT):
@@ -304,7 +304,7 @@ class InformationState:
                 raise ValueError("Invalid known draw prefix/capacity")
         elif self.known_top or self.known_bottom or self.history.known_top:
             raise ValueError("Known-position effects require a new content/encoder schema")
-        if (self.exhaust and not expanded) or len(self.hand) > 10 or self.player_max_hp != 80 or (self.max_energy != 3 and self.content_version != EXPANSION_CONTENT):
+        if (self.exhaust and not expanded) or len(self.hand) > 10 or not 80 <= self.player_max_hp <= 80 + 1000 or (self.max_energy != 3 and self.content_version != EXPANSION_CONTENT):
             raise ValueError("Unsupported starter state")
         if expanded:
             from .deck_observation import validate_memory
@@ -539,7 +539,7 @@ Bash and has no skipped tick. No hidden AI state exists in this audited cycle.
                             retain_hand=player.powers[PowerId.RETAIN_HAND].amount if PowerId.RETAIN_HAND in player.powers else 0,
                             known_top=history.known_top, known_bottom=history.known_bottom, hand_states=hand_states, pending_card=pending_card, choice=choice,
                             initial_hp=initial_hp, reward_version=reward_version, content_version=content_version,
-                            information_version="ironclad-colorless-information-v4" if content_version == EXPANSION_CONTENT else "boss-information-v1" if content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else "summon-information-v1" if content_version == SUMMON_CONTENT else "multi-information-v1" if content_version == MULTI_CONTENT else "morph-information-v1" if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v2" if content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v1" if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "lifecycle-information-v1" if content_version == LIFE_CONTENT else "topdeck-information-v1" if content_version == TOP_CONTENT else "upgrades-information-v1" if content_version == UP_CONTENT else "generated-information-v1" if content_version == GEN_CONTENT else "g1-information-v1" if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "expanded-information-v3" if content_version == EXPANDED_CONTENT else "hard-information-v2" if content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "decks-information-v1" if expanded else M6_INFORMATION if content_version == M6_CONTENT else INFORMATION_VERSION,
+                            information_version="ironclad-colorless-information-v5" if content_version == EXPANSION_CONTENT else "boss-information-v1" if content_version in (BOSS_CONTENT, EXPANSION_CONTENT) else "summon-information-v1" if content_version == SUMMON_CONTENT else "multi-information-v1" if content_version == MULTI_CONTENT else "morph-information-v1" if content_version in (MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v2" if content_version in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "selection-information-v1" if content_version in (SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "lifecycle-information-v1" if content_version == LIFE_CONTENT else "topdeck-information-v1" if content_version == TOP_CONTENT else "upgrades-information-v1" if content_version == UP_CONTENT else "generated-information-v1" if content_version == GEN_CONTENT else "g1-information-v1" if content_version in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "expanded-information-v3" if content_version == EXPANDED_CONTENT else "hard-information-v2" if content_version in (HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) else "decks-information-v1" if expanded else M6_INFORMATION if content_version == M6_CONTENT else INFORMATION_VERSION,
                             monster_id=enemy.monster_id, enemy_strength=strength.amount if strength else 0,
                             known_deck=known_deck, enemy_initial_hp=enemy_initial_hp,
                             enemy_slow=enemy.powers[PowerId.SLOW].amount if PowerId.SLOW in enemy.powers else 0,
@@ -687,6 +687,37 @@ class BeliefSampler:
                 from .card_memory import restore as restore_card_memory
                 from .content_expansion import CODEC as MEMORY_CODEC
                 restore_card_memory(world,info,MEMORY_CODEC)
+                from .all_cards import RETURNING
+                # One returning face per play made this turn.  Played copies sit
+                # in the discard pile first; a redrawn copy is matched in hand by
+                # its identical public face, so no hidden instance identity is used.
+                for token in set(info.history.played_this_turn):
+                    remaining = info.history.played_this_turn.count(token)
+                    if token.removesuffix('+') not in RETURNING or not remaining:
+                        continue
+                    # Played copies are appended to the discard pile in play
+                    # order, so the most recent matching faces are exactly the
+                    # ones that carry the return marker.  Pile order matters for
+                    # the next shuffle, so this is not interchangeable with an
+                    # arbitrary same-face choice.
+                    for card in reversed(list(world.discard_pile)):
+                        if remaining <= 0:
+                            break
+                        if card_token(card) == token:
+                            card.combat_vars['_return_before_hand_draw_round'] = info.turn + 1
+                            remaining -= 1
+                    for card in list(world.hand):
+                        if remaining <= 0:
+                            break
+                        if card_token(card) == token:
+                            card.combat_vars['_return_before_hand_draw_round'] = info.turn + 1
+                            remaining -= 1
+                # Combat-wide play count is public through the start/finish
+                # journal; only counts and card types are ever read from it.
+                world._played_cards_combat = [make_token(e[1]) for e in info.history.public_events
+                                              if e[0] == 'start']
+                for card in world._played_cards_combat:
+                    card.owner = world.player
             all_cards = world.hand + world.draw_pile + world.discard_pile + world.exhaust_pile
             state = world.current_player_state
             state.starting_deck = list(all_cards)

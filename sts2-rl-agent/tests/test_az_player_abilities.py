@@ -102,7 +102,9 @@ def test_plating_ticks_expire_and_reward_risk_matches():
 @pytest.mark.parametrize('encounter', [v['encounter'] for v in BOSS_PROFILES.values()])
 @pytest.mark.parametrize('seed', [12, 18, 22])
 def test_mixed_abilities_exhaust_and_boss_trajectory(encounter, seed):
-    names = list(POWER_FACTORIES) + ['OFFERING','BLOODLETTING','BODY_SLAM','BODY_SLAM',
+    # Deck-size bound (MAX_DECK_SIZE=20); the batch-5 power cards are exercised
+    # separately in tests/test_az_ironclad_colorless_all.py.
+    names = list(POWER_FACTORIES)[:6] + ['OFFERING','BLOODLETTING','BODY_SLAM','BODY_SLAM',
         'TRUE_GRIT','PURITY','BURNING_PACT','HEADBUTT','FASTEN','ULTIMATE_DEFEND',
         'DEFEND_IRONCLAD','INFLAME','DOMINATE','TREMBLE']
     env = ObservableCombatAdapter(recipe(names, seed % 2 == 0, encounter, seed), reward_version=V7,

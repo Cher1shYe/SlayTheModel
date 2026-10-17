@@ -19,7 +19,9 @@
 | 阶段 | 内容 | 状态 |
 |---|---|---|
 | P0 | 拉取仓库、切工作分支、复制 `.venv-az`、恢复可跑测试 | 已完成 |
-| P1 | 补齐剩余 31 张牌（战士 4 + 无色 27）的六链路与 MCTS 重建 | 进行中 |
+| P1a | 剩余 31 张牌语义盘点与分类（19 可接入 / 8 多人语义 / 4+1 暂缓） | 已完成 |
+| P1b | 19 张牌六链路 + MCTS 重建接入（累计 139/151） | 已完成 |
+| P1c | 剩余 12 张：7 张公共计数/延迟契约 + 5 张范围暂缓 | 进行中 |
 | P2 | 全怪物通用公开状态 + 粒子重建 + MCTS 接入（新版本契约） | 未开始 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
@@ -36,8 +38,22 @@
 
 ### 步骤 1（2026-10-17）剩余 31 张牌的原生语义盘点
 
-用 `scripts/_tmp_card_audit.py`（临时脚本）逐张读取原生工厂与效果函数，得到可行性分类（详见下一条提交的 P1 清单文档）。初步结论：
+用 `scripts/_tmp_card_audit.py`（临时脚本）逐张读取原生工厂与效果函数，并按单人语义分类：
 
-- 单人可执行、需新增公开状态/机制：Corruption（技能 0 费+消耗）、Demonic Shield（自伤+格挡，ANY_ALLY）、Feed（击杀提升最大生命）、Tank（TANK 能力）、Automation/Beacon of Hope/Nostalgia/Panache/Rolling Boulder/Prolong/The Bomb/The Gambit/Tag Team/Knockdown（能力或延迟结算）、Bolas/Thrumming Hatchet（回手）、Gold Axe（按本场出牌数）、Hand of Greed（金币在战斗外）、Gang Up（协同攻击）、Demonic Shield。
-- 依赖多人队友的 ANY_ALLY/ALL_ALLIES：Believe in You、Coordinate、Huddle Up、Intercept、Lift、Mimic、Rally —— 需确认单人解析规则后再决定接入或显式拒绝。
-- 明确暂缓（跨职业生成/药水）：Alchemize（药水不在战斗范围）、Entropy、Jack of All Trades、Splash。
+- **真实单人机制（19）**：FEED、CORRUPTION、TANK、KNOCKDOWN、TAG_TEAM、GANG_UP、HAND_OF_GREED、GOLD_AXE、BOLAS、THRUMMING_HATCHET、BEACON_OF_HOPE（能力/延迟）、DEMONIC_SHIELD 等。
+- **多人语义（8）**：ANY_ALLY 六张（DEMONIC_SHIELD、BELIEVE_IN_YOU、COORDINATE、INTERCEPT、LIFT、MIMIC）单人无合法目标 → 不可出；ALL_ALLIES 两张（HUDDLE_UP、RALLY）可出但只作用于队友 → 单人空操作。
+- **暂缓（5）**：ALCHEMIZE（药水）、ENTROPY/JACK_OF_ALL_TRADES/SPLASH（跨职业生成）、HIDDEN_GEM（隐藏抽牌堆身份变异）。
+- **待补契约（7）**：AUTOMATION、NOSTALGIA、PANACHE、PROLONG、ROLLING_BOULDER、THE_BOMB、THE_GAMBIT。
+
+### 步骤 2（2026-10-17）19 张牌接入（P1b）
+
+- 新增 `sts2_env/az/all_cards.py`：19 张牌的工厂表、机制描述、单人语义分组（`ALLY_REQUIRED`/`ALLY_ONLY`/`OUT_OF_COMBAT`/`RETURNING`）。
+- 机制词表 v5：新增 `skill_cost_zero`、`skill_exhaust`、`gain_max_hp`、`knockdown`、`tag_team`、`gold`、`return_to_hand`、`ally_guard`，目标 `ally`/`allies`，条件 `ally_required`/`ally_present`。
+- 玩家能力：新增 `TANK`（强化攻击受伤 ×2）、`CORRUPTION`（技能 0 费+消耗）、`BEACON_OF_HOPE`（单人无队友无效果）；公共账本按引擎实际累加。
+- 敌人公开状态：新增 `KNOCKDOWN`、`TAG_TEAM`（可见但单人不触发），恢复时补 `_instances` 施加者。
+- FEED：`player_max_hp` 放宽到 80..1080，粒子按公开值恢复；击杀提升最大生命。
+- GOLD_AXE：粒子重建补回 `_played_cards_combat`（仅公开 `start` 事件计数）。
+- BOLAS / THRUMMING_HATCHET：回手标记由公开出牌历史推导，按“最近打出”恢复同面牌（洗牌顺序相关）。
+- 覆盖审计脚本升级 `ironclad-colorless-coverage-v5`，新增逐张 `notes`；重新生成清单：**139/151 接通（战士 87/87、无色 52/64），待接通 12**。
+- 新增 `tests/test_az_ironclad_colorless_all.py`（112 项：描述/编码往返、XS 动态 MCTS 重建、粒子轨迹、逐机制行为断言）。
+- 报告：`sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_ALL.md`。

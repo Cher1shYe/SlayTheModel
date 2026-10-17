@@ -20,6 +20,7 @@ class CardStatePolicy:
     effect_changes: bool = False
     max_x_energy_spent: int = 3
     generated_metadata: bool = False
+    return_to_hand: bool = False
     state_version: str = CARD_STATE_VERSION
 
 
@@ -77,6 +78,7 @@ class CardStateCodec:
             raise ValueError("Unaudited energy spending")
         allowed={"_turn_cost_override", "_stars_spent_for_play"}
         if self.policy.generated_metadata:allowed|={"_turn_star_cost_override","_is_clone"}
+        if self.policy.return_to_hand:allowed|={"_return_before_hand_draw_round"}
         if set(card.combat_vars) - allowed:
             raise ValueError("Unaudited combat variable")
         if card.combat_vars.get("_stars_spent_for_play", 0) != 0:
