@@ -105,7 +105,7 @@ class EntityObservation:
             raise ValueError('Duplicate action key or no legal action')
         for a in self.actions:
             if (not a.action_key or a.action_type not in ACTION_TYPES or type(a.legal) is not bool
-                    or a.public_parameters or len(a.target_refs) > 2 or len(a.choice_refs) > 9
+                    or a.public_parameters or len(a.target_refs) > 5 or len(a.choice_refs) > 9
                     or len(set(a.choice_refs)) != len(a.choice_refs)
                     or any(r not in refs for r in ((a.source_ref,) if a.source_ref else ()) + a.target_refs + a.choice_refs)):
                 raise ValueError(f'Unsupported action or dangling reference: {a.action_key}')
@@ -167,4 +167,6 @@ def _encode_entities(info):
     from .action_candidates import starter_candidates
     actions, _ = starter_candidates(info)
     return EntityObservation(tuple(entities), actions).validate()
+
+
 

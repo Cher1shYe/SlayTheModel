@@ -31,13 +31,25 @@
 - `protocol.json`：64 个验证配方 + 64 个测试配方（完整卡组/遭遇/种子），生成器清单 SHA；训练坐标规则 `master=iteration%32, job=episode%16`。
 - 测试 `tests/test_az_all_decks.py`、`tests/test_az_all_xs_config.py` 校验：确定性、池/遭遇准入、种子空间、协议可重放、训练/留出不相交。
 
-## 4. 训练与验收流程（尚未运行）
+## 4. 训练与验收流程（已实现，尚未正式运行）
 
-1. **自对弈采集**：每个训练配方在原生怪物上跑完整战斗；信息状态 + 实体编码、动态动作、粒子信念；搜索预算 8 生成访问分布与 V7 终局标签。
-2. **网络更新**：XS 策略/价值联合损失；Replay 按内容与配方 ID 隔离；不混用旧版本数据。
-3. **验证**：64 个验证配方整场 network-only（argmax 合法动作）V7 效用；与冻结基线配对比较。
+1. **自对弈采集**（`all_runner.collect`）：每个训练配方在原生怪物上跑完整战斗；实体编码 + 动态动作 + 粒子信念；搜索预算 8 生成访问分布与 V7 终局标签。公开契约拒绝的配方会被**记录并跳过**（不静默转换）。
+2. **网络更新**（`all_runner.update`）：XS 策略/价值联合损失；Replay 为 `typed-entity-replay-v2`，按内容/奖励版本隔离；不混用旧版本数据。
+3. **验证**（`all_runner.evaluate_recipes`）：64 个验证配方整场 network-only（动作经 `action_candidates` 映射）V7 效用；契约拒绝单独计数。
 4. **门槛**：验证集效用增益达到冻结门槛后才打开 64 个测试配方；测试集只用于最终一次报告。
-5. **证据**：每轮损失、验证效用、Replay 哈希、权重 SHA、随机种子全部落盘；失败也保留原始工件。
+5. **证据**：每轮 `output/<run>/iteration-NNN.json`（episode id、终局、replay 大小、损失、验证汇总、checkpoint）与 `report.json`；失败配方同样落盘。
+
+### 4.1 冒烟结果（仅验证管线，不构成学习增益）
+
+以 `iterations=1, episodes=2, budget=3, updates=1, max_turns=4` 跑通：
+
+- 采集 2 局（1 win / 1 time_limit），replay 22 行，1 次更新，权重/损失有限。
+- 验证 64 配方中 **34 局完成、30 局被公开契约拒绝**（如 exoskeleton 的隐藏招式转移、3+ 目标动作等）；完成局 mean V7 utility 0.328、胜率 17.6%、无非法动作。拒绝项在 `contract_rejected` 中逐条记录。
+- 该结果只说明管线可运行；不训练、不使用最终留出、不宣称任何策略提升。
+
+### 4.2 遭遇鲁棒性（`docs/all_encounter_robustness.json`）
+
+对 71 个 parity 通过遭遇各用两套固定卡组随机合法动作探测 6 步：**70 个稳定**；`setup_globe_head_normal` 在第二套卡组下触发未建模的 affliction 状态，已从生成器准入集中排除（`all_decks.admitted_encounters()` 取 parity ∩ robustness）。
 
 ## 5. 诚实性约束
 

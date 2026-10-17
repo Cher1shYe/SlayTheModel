@@ -192,7 +192,7 @@ def _validate_player_powers(info):
             or len({name for name, _ in abilities}) != len(abilities)):
         raise ValueError('Invalid public player powers')
     memory = read_power_memory(info)
-    basic = {name for _, name, _ in info.basic_statuses}
+    basic = {name for slot, name, _ in info.basic_statuses if slot == -1}
     exposed = basic | {name for name, _ in abilities}
     if info.shrink:
         exposed.add('SHRINK')

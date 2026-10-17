@@ -36,6 +36,7 @@ TEST_SEED_OFFSET = VALIDATION_SEED_OFFSET + 2**28
 HELDOUT_SEED_SPAN = 2**28
 HELDOUT_MASTER_SEEDS = {'validation': 189, 'test': 287}
 PARITY_REPORT = Path(__file__).resolve().parents[2] / 'docs' / 'all_encounter_parity.json'
+ROBUSTNESS_REPORT = Path(__file__).resolve().parents[2] / 'docs' / 'all_encounter_robustness.json'
 
 
 def card_pool():
@@ -44,17 +45,24 @@ def card_pool():
 
 
 def admitted_encounters():
-    """Encounters whose public parity audit passed, frozen by the report."""
+    """Parity-passing encounters that also survive varied-deck robustness probes."""
     if not PARITY_REPORT.exists():
         raise ValueError('Encounter parity report is required before generating recipes')
     report = json.loads(PARITY_REPORT.read_text(encoding='utf-8'))
     if report.get('content') != ALL_CONTENT or not report.get('results'):
         raise ValueError('Encounter parity report belongs to another content version')
-    passed = tuple(sorted(name for name, entry in report['results'].items()
-                          if entry.get('status') == 'pass'))
-    if not passed or set(passed) - set(ENCOUNTERS):
+    passed = {name for name, entry in report['results'].items() if entry.get('status') == 'pass'}
+    if not passed or passed - set(ENCOUNTERS):
         raise ValueError('Encounter parity report contains unknown encounters')
-    return passed
+    robustness = json.loads(ROBUSTNESS_REPORT.read_text(encoding='utf-8'))
+    if robustness.get('content') != ALL_CONTENT or not robustness.get('robust'):
+        raise ValueError('Encounter robustness report belongs to another content version')
+    robust = set(robustness['robust'])
+    if not robust <= passed:
+        raise ValueError('Robustness report contains encounters that failed parity')
+    if robust != passed and set(robustness.get('unstable', ())) != passed - robust:
+        raise ValueError('Robustness report does not explain every excluded encounter')
+    return tuple(sorted(robust))
 
 
 def _rng(*coordinates):
@@ -137,6 +145,19 @@ def validate_recipe(recipe):
     return recipe
 
 
+def recipe_from_document(document):
+    """Rebuild a frozen protocol recipe from its stored document."""
+    parts = document['scenario_id'].split('-')
+    if len(parts) < 2 or parts[0] != 'all' or parts[1] not in ('train', 'validation', 'test'):
+        raise ValueError('Unrecognised frozen recipe identity')
+    deck = tuple(DeckEntry(card, upgraded, count)
+                 for card, upgraded, count in document['deck'])
+    return validate_recipe(CombatScenario(
+        SCHEMA_VERSION, document['scenario_id'], FAMILY, parts[1], 'Ironclad', 0,
+        document['encounter'], deck, document['player_hp'], document['player_hp'], (), (),
+        document['seed'], RULES_VERSION, ALL_CONTENT))
+
+
 def frozen_manifest():
     pool = card_pool()
     return {
@@ -151,4 +172,5 @@ def frozen_manifest():
         'note': 'Only parity-passing encounters and admitted initial cards; '
                 'held-out splits never share coordinates with training.',
     }
+
 

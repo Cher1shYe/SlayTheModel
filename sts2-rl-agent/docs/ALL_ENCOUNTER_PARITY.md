@@ -34,6 +34,8 @@
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
 
+补充：`docs/all_encounter_robustness.json` 对 71 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**70 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness）。
+
 ## 本轮已修复
 
 - 玩家 SHRINK 的观测与粒子恢复（功率顺序一致）。

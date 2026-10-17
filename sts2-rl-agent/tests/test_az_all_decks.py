@@ -1,4 +1,4 @@
-"""Arbitrary-deck generator contract for all-content self-play."""
+﻿"""Arbitrary-deck generator contract for all-content self-play."""
 import json
 from pathlib import Path
 
@@ -17,12 +17,13 @@ def test_card_pool_is_the_admitted_initial_pool():
         assert deferred not in pool
 
 
-def test_admitted_encounters_come_from_the_parity_report():
+def test_admitted_encounters_come_from_the_parity_and_robustness_reports():
     report = json.loads(all_decks.PARITY_REPORT.read_text(encoding='utf-8'))
-    passed = sorted(name for name, entry in report['results'].items()
-                    if entry['status'] == 'pass')
-    assert all_decks.admitted_encounters() == tuple(passed)
-    assert len(passed) >= 60
+    passed = {name for name, entry in report['results'].items() if entry['status'] == 'pass'}
+    robustness = json.loads(all_decks.ROBUSTNESS_REPORT.read_text(encoding='utf-8'))
+    assert all_decks.admitted_encounters() == tuple(sorted(robustness['robust']))
+    assert set(all_decks.admitted_encounters()) <= passed
+    assert len(all_decks.admitted_encounters()) >= 60
 
 
 def test_recipes_are_deterministic_functions_of_coordinates():
@@ -102,3 +103,4 @@ def test_generated_recipe_builds_an_observable_environment():
         assert len(env.information.known_deck) == sum(e.count for e in recipe.deck)
         legal = [i for i, allowed in enumerate(env.information.legal_mask) if allowed]
         assert legal
+

@@ -71,7 +71,7 @@ class CardStateCodec:
             dynamic |= {"base_damage", "base_block", "effect_vars"}
         if self.policy.afflictions:
             dynamic |= {"bound", "keywords"}
-            allowed_afflictions = ('bound', 'entangled', 'hexed', 'smog')
+            allowed_afflictions = ('bound', 'entangled', 'hexed', 'smog', 'galvanized')
             affliction = getattr(card, 'affliction', None)
             if affliction is not None and affliction not in allowed_afflictions:
                 raise ValueError("Unaudited affliction")
@@ -95,7 +95,7 @@ class CardStateCodec:
         allowed={"_turn_cost_override", "_stars_spent_for_play"}
         if self.policy.generated_metadata:allowed|={"_turn_star_cost_override","_is_clone"}
         if self.policy.return_to_hand:allowed|={"_return_before_hand_draw_round"}
-        if self.policy.afflictions:allowed|={"_affliction","_smoggy","cost_increase"}
+        if self.policy.afflictions:allowed|={"_affliction","_smoggy","cost_increase","_galvanized"}
         if set(card.combat_vars) - allowed:
             raise ValueError("Unaudited combat variable")
         if card.combat_vars.get("_stars_spent_for_play", 0) != 0:
@@ -117,7 +117,7 @@ class CardStateCodec:
             raise ValueError("Unsupported card state version/type")
         if type(state.is_clone)is not bool or (state.is_clone and not self.policy.generated_metadata):raise ValueError('Clone state not admitted')
         if state.affliction is not None and (not self.policy.afflictions
-                or state.affliction not in ('bound', 'entangled', 'hexed', 'smog')):
+                or state.affliction not in ('bound', 'entangled', 'hexed', 'smog', 'galvanized')):
             raise ValueError('Card affliction state not admitted')
         if state.turn_star_cost is not None and (not self.policy.generated_metadata or type(state.turn_star_cost)is not int or state.turn_star_cost!=0):raise ValueError('Star cost state not admitted')
         reference = self._reference(state.token)
@@ -167,7 +167,10 @@ class CardStateCodec:
                 card.keywords = frozenset(set(card.keywords) | {'ethereal'})
             if state.affliction == 'smog':
                 card.combat_vars['_smoggy'] = True
+            if state.affliction == 'galvanized':
+                card.combat_vars['_galvanized'] = 1
         delta = state.cost - self._reference(state.token).cost
         if delta > 0 and state.token.removesuffix('+') == 'FRANTIC_ESCAPE':
             card.combat_vars['cost_increase'] = delta
         return card
+

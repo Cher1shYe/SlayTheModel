@@ -32,6 +32,7 @@
 | P2g | affliction 公开事件：68 通过 + 2 采样 + 1 专用契约 + 10 待补 | 已完成 |
 | P2h | 有符号临时状态与被偷牌事件：71 通过 + 2 采样 + 1 专用契约 + 7 待补 | 已完成 |
 | P3a | 任意卡组生成器 + XS 冻结配置/协议（未训练） | 已完成 |
+| P3b | 自对弈采集→XS 更新→验证 runner 打通（冒烟，未正式训练） | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -149,3 +150,12 @@
 - 冻结 `configs/az_all_xs_v1/config.json`（`az-all-xs-v1`，XS 全新初始化、搜索预算 8、8 轮 × 48 局、batch 64、lr 3e-4、value 0.1）与 `protocol.json`（64 验证 + 64 测试配方、生成器清单 SHA、训练坐标规则）。
 - 设计/诚实性约束见 `docs/AZ_ALL_XS_PLAN.md`；新增测试 `tests/test_az_all_decks.py`（9 项）与 `tests/test_az_all_xs_config.py`（4 项）。
 - 回归：卡牌/all-content/transformer **1036 项通过（1 xfailed）**。本步**未启动训练**，不宣称任何学习增益。
+
+### 步骤 13（2026-10-18）P3 runner 打通与遭遇鲁棒性（P3b）
+
+- 新增 `sts2_env/az/all_runner.py`：`collect`（原生怪物 + 粒子信念 + 动态搜索采集，公开契约拒绝的配方记录并跳过）→ `update`（XS 策略/价值联合损失，实体 replay）→ `evaluate_recipes`（network-only V7 效用，契约拒绝单独计数）→ 每轮 `iteration-NNN.json`/`report.json` 证据与 checkpoint。
+- `entity_transition.public_from_dict` 支持 ALL_CONTENT 槽位（`EnemySlot`）解码；`entity_encoder` 允许最多 5 个目标引用（多敌全体攻击）。
+- 修复 `_validate_player_powers` 把敌人基础状态误并入玩家暴露集合（MANGLE 等）的问题；`galvanized` affliction 与 `_galvanized` 标记纳入卡牌公开状态。
+- 新增 `scripts/audit_encounter_robustness.py`：71 个通过遭遇 × 2 卡组 × 6 步 → **70 稳定**，`globe_head` 排除；生成器准入改为 parity ∩ robustness（**70 遭遇**），重新生成 `docs/all_deck_generator.json` 与 `configs/az_all_xs_v1/{config,protocol}.json`。
+- 管线冒烟（1 轮 / 2 局 / 预算 3 / 1 次更新）：采集与更新成功；验证 64 配方中 34 局完成、30 局被公开契约拒绝（逐条记录），完成局 mean V7 utility 0.328、无非法动作。**仅验证管线，不构成学习增益**。
+- 新增 `tests/test_az_all_runner.py`（4 项）；回归：卡牌/all-content/transformer + runner 见下。

@@ -1,9 +1,10 @@
-"""Public audit codec and complete episode collection for the entity backend."""
+﻿"""Public audit codec and complete episode collection for the entity backend."""
 from dataclasses import asdict, fields
 from .config import EpisodeLimits, content_hash, derive_seed
 from .information import InformationState, PublicHistory
 from .entity_encoder import encode_entities
 from .entity_replay import pack_observation, EntityReplayBuffer
+from .content import ALL_CONTENT
 from .action_candidates import action_candidates
 from .dynamic_search import plan_dynamic
 
@@ -49,7 +50,15 @@ def public_from_dict(data):
         c=values['choice']
         values['choice']=PublicChoiceState(**{**c,'selected':tuple(c['selected']),
             'options':tuple(PublicChoiceOption(o['pile'],o['index'],card(o['card'])) for o in c['options'])})
-    if values['enemies']:
+    if values['content_version'] == ALL_CONTENT:
+        # All-content rosters carry visible intents per slot plus append-only
+        # spawn metadata and per-power public bookkeeping.
+        from .roster import EnemySlot
+        values['enemies'] = tuple(EnemySlot(**{
+            **e, 'powers': tuple(tuple(p) for p in e['powers']),
+            'intents': tuple(tuple(i) for i in e['intents']), 'moves': tuple(e['moves'])})
+            for e in values['enemies'])
+    elif values['enemies']:
         from .summon import SlotState
         values['enemies']=tuple(SlotState(**{**e,'intent':tuple(e['intent']),'moves':tuple(e['moves'])}) for e in values['enemies'])
     if values['boss'] is not None:
@@ -110,3 +119,4 @@ def _collect_entity_episode(job, model, diagnostic):
     return dict(episode_id=identity, complete=True, split=recipe.split, rows=rows, outcome=outcome,
                 final_public=public_snapshot(env.information),
                 compatibility=EntityReplayBuffer.compatibility_for(info.content_version,info.reward_version), job_id=job.job_id, iteration=job.iteration)
+
