@@ -28,6 +28,8 @@ def public_from_dict(data):
     from .selection_batch import TurnPayment
     for name,cls in [('generated',CardGeneration),('upgraded',CardUpgrade),('transformed',CardTransformation),('payments',TurnPayment)]:
         history[name]=tuple(cls(**v) for v in history[name])
+    history['ability_plays']=tuple(tuple(v) for v in history.get('ability_plays', ()))
+    values['player_abilities']=tuple(tuple(v) for v in values.get('player_abilities', ()))
     history['roster_moves']=tuple(tuple(v) for v in history['roster_moves'])
     values['history'] = PublicHistory(**history)
     values['limits'] = EpisodeLimits(**values['limits'])

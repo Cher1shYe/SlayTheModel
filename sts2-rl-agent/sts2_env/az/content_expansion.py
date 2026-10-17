@@ -9,7 +9,12 @@ from sts2_env.cards import ironclad, colorless
 from .card_state import CardStateCodec
 from .boss_cards import CODEC as BASE_CODEC
 
-FACTORIES = {
+POWER_FACTORIES = {
+    'BARRICADE_CARD': ironclad.make_barricade, 'RAGE_CARD': ironclad.make_rage,
+    'FEEL_NO_PAIN_CARD': ironclad.make_feel_no_pain, 'DEMON_FORM_CARD': ironclad.make_demon_form,
+    'FASTEN': colorless.make_fasten, 'ETERNAL_ARMOR': colorless.make_eternal_armor,
+}
+FACTORIES = {**POWER_FACTORIES,
     'BLOOD_WALL': ironclad.make_blood_wall,
     'BREAKTHROUGH': ironclad.make_breakthrough,
     'TREMBLE': ironclad.make_tremble,
@@ -53,7 +58,9 @@ def descriptor(token):
         'MASTER_OF_STRATEGY': ('cards',), 'PRODUCTION': ('energy',),
         'ULTIMATE_DEFEND': (), 'ULTIMATE_STRIKE': (), 'SALVO': ('damage',), 'SCRAWL': (),
         'BREAK': ('vulnerable',), 'BULLY': ('calc_base', 'extra_damage'), 'DISMANTLE': ('hits',),
-        'DOMINATE': ('strength_per_vulnerable',), 'MOLTEN_FIST': ()}
+        'DOMINATE': ('strength_per_vulnerable',), 'MOLTEN_FIST': (),
+        'BARRICADE_CARD': (), 'RAGE_CARD': ('power',), 'FEEL_NO_PAIN_CARD': ('power',),
+        'DEMON_FORM_CARD': ('strength',), 'FASTEN': ('extra_block',), 'ETERNAL_ARMOR': ('plating',)}
     if name not in variables or set(v) != set(variables[name]):
         raise ValueError(f'Unaudited expansion variables: cards/{token}')
     if set(c.keywords) - {'exhaust', 'retain'} or c.enchantments or c.bound or c.base_replay_count or c.star_cost or c.has_star_cost_x:
@@ -64,7 +71,10 @@ def descriptor(token):
     draw = O('draw', 'self', 'on_play', v.get('cards', 0))
     hp = O('hp_loss', 'self', 'on_play', v.get('hp_loss', 0))
     vuln = O('vulnerable', target, 'on_play', v.get('vulnerable', 0))
-    if name == 'BLOOD_WALL': effects = [hp, O('block', 'self', 'on_play', c.base_block, condition='alive')]
+    if name in POWER_FACTORIES:
+        from .player_abilities import card_effects
+        effects = list(card_effects(name, v))
+    elif name == 'BLOOD_WALL': effects = [hp, O('block', 'self', 'on_play', c.base_block, condition='alive')]
     elif name == 'BREAKTHROUGH': effects = [hp, O('damage', target, 'on_play', c.base_damage, condition='alive')]
     elif name == 'TREMBLE': effects = [vuln]
     elif name == 'TAUNT': effects = [block, vuln]

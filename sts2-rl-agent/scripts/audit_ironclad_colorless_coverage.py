@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT))
 from sts2_env.core.card_pools import CardPoolId, CHARACTER_CARD_POOLS_BY_ID, COLORLESS_CARD_POOL
 from sts2_env.cards.factory import _factory_registry, create_card
 from sts2_env.cards.registry import _CARD_EFFECTS
-from sts2_env.az.content_expansion import FACTORIES, CODEC
+from sts2_env.az.content_expansion import FACTORIES, POWER_FACTORIES, CODEC
 from sts2_env.az.boss_cards import CODEC as OLD_CODEC
 from sts2_env.az.expanded_mechanics import describe_card
 from sts2_env.az.config import content_hash, atomic_json
@@ -54,12 +54,12 @@ def inventory():
                 network='admitted' if supported else 'blocked',
                 belief_search='admitted' if supported else 'blocked',
                 tests='new-batch-parity' if cid.name in FACTORIES else 'existing-g23e' if supported else 'native-only-unreviewed',
-                batch='new' if cid.name in FACTORIES else 'existing' if supported else 'pending',
+                batch='powers-v2' if cid.name in POWER_FACTORIES else 'batch1-v1' if cid.name in FACTORIES else 'existing' if supported else 'pending',
                 native_source=f'{Path(inspect.getsourcefile(effect)).relative_to(ROOT).as_posix()}:{inspect.getsourcelines(effect)[1]}' if effect else None,
                 effect_source_sha256=content_hash(source), keywords=sorted(c.keywords),
                 direct_power_symbols=dependencies, direct_combat_calls=calls,
                 effect_variables=sorted(c.effect_vars), descriptor_hashes=variants, blockers=blockers))
-    return dict(version='ironclad-colorless-coverage-v1', content=EXPANSION_CONTENT,
+    return dict(version='ironclad-colorless-coverage-v2', content=EXPANSION_CONTENT,
         scope='87 Ironclad + 64 Colorless IDs from native card pools; upgrades listed separately',
         status_meaning='registered is not engine parity; admitted is limited to documented single-player dependencies',
         original_admitted=sum(r['id'] in OLD_CODEC.factories for r in rows),

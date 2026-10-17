@@ -34,10 +34,12 @@ def pile_state(token, attacks):
 def card_entity(ref, state, zone, count=1, slot=0, position=0, selected=False, option=False):
     CODEC.validate(state)
     d = describe_card(state.token)
+    from sts2_env.core.enums import CardTag
+    tags = (O('defend_tag','self','powered_card_block',1),) if CardTag.DEFEND in CODEC._reference(state.token).tags else ()
     return Entity(ref,'card',zone,'player',numeric(count=count,hand_slot=slot,known_position=position,
         base_cost=d.cost,current_cost=state.cost,original_cost=state.original_cost,card_type=d.card_type,
         upgraded=int(state.token.endswith('+')),turn_cost=state.turn_cost or 0,has_turn_cost=int(state.turn_cost is not None),
-        choice_selected=int(selected),choice_option=int(option)),d.effects)
+        choice_selected=int(selected),choice_option=int(option)),d.effects + tags)
 
 
 def encode_expanded(info):
@@ -54,6 +56,8 @@ def encode_expanded(info):
     peffects = ((POWER_RULES['shrink'] if info.shrink else ()) + (POWER_RULES['vulnerable'] if info.player_vulnerable else ())
         + ((O('strength','self','outgoing_powered_attack',info.player_strength),) if info.player_strength else ())
         + ((O('retain_hand','self','turn_end_hand',info.retain_hand),) if info.retain_hand else ()))
+    from .player_abilities import active_effects
+    peffects += active_effects(info.player_abilities)
     entities.append(Entity('player','player','none',None,numeric(hp=info.player_hp,max_hp=info.player_max_hp,
         block=info.player_block,energy=info.energy,max_energy=info.max_energy,shrink=info.shrink,
         vulnerable=info.player_vulnerable,strength=info.player_strength,retain_turns=info.retain_hand),peffects))

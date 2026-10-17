@@ -16,7 +16,7 @@ SET_CONTENT = "g1-selection-v2"
 MORPH_CONTENT = "g1-morph-v1"
 MULTI_CONTENT = "g2-multi-v1"
 BOSS_CONTENT = "g2-boss-v1"
-EXPANSION_CONTENT = "ironclad-colorless-batch1-v1"
+EXPANSION_CONTENT = "ironclad-colorless-powers-v2"
 SUMMON_CONTENT = "g2-summon-v1"  # inherits g2-multi-v1 and adds the audited Fogmog/Eye encounter
 PROFILES = {
     "SHRINKER_BEETLE": dict(encounter="setup_shrinker_beetle_weak", hp=(38, 40),

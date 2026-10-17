@@ -1,3 +1,7 @@
+## 最新进度：战士／无色第三批（2026-10-17）
+
+已接通 50/151 张（战士 37、无色 13），本批新增六张持久能力／触发牌及升级版，剩余 101。补齐公开能力状态、实体语义、动态动作和 MCTS 重建。详见 [第三批报告](sts2-rl-agent/docs/AZ_IRONCLAD_COLORLESS_POWERS.md) 与 [覆盖清单](sts2-rl-agent/docs/IRONCLAD_COLORLESS_COVERAGE.md)。未启动训练、未使用最终留出集；后续按 network V7 效用验收。下一批为 Dark Embrace／Rupture 延迟触发。
+
 # SlayTheModel — STS2 战斗策略研究工作区
 
 当前快照：2026-10-17。目标是在明确支持的游戏规则范围内，构建使用公开信息、可审计、能泛化到合法卡牌与怪物组合的战斗策略模型。

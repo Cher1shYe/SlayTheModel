@@ -79,7 +79,8 @@ def generation_after(before, ended, decision):
         return ()
     # Only these player powers are admitted. Burn consumes block before the
     # enemy attacks. Vulnerable ticks at enemy turn end, after all hits.
-    block = max(0, before.player_block - 2 * before.hand.count("BURN"))
+    from .player_abilities import block_before_enemy
+    block = block_before_enemy(before)
     damage = int((before.intent[1] + before.enemy_strength) * (1.5 if before.player_vulnerable else 1))
     count = 0
     for _ in range(before.intent[2]):

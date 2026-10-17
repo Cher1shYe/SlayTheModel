@@ -37,10 +37,13 @@ def incoming_risk(hp, block, vulnerable, attacks):
 def public_risk(info):
     attacks = [(e.intent[1], e.intent[2], e.strength) for e in info.enemies
                if e.hp > 0 and not e.reviving and 'ATTACK' in e.intent[0]]
-    return incoming_risk(info.player_hp, info.player_block, info.player_vulnerable, attacks)
+    from .content import EXPANSION_CONTENT
+    from .player_abilities import block_before_enemy
+    block = block_before_enemy(info) if info.content_version == EXPANSION_CONTENT else info.player_block
+    return incoming_risk(info.player_hp, block, info.player_vulnerable, attacks)
 
 
-def world_risk(world):
+def world_risk(world, content_version=None):
     # The same visible intent/base damage used by observe(); no private AI memory.
     from sts2_env.core.enums import PowerId
     def amount(creature, power):
@@ -52,7 +55,13 @@ def world_risk(world):
         for intent in world.enemy_ais[enemy.combat_id].current_move.intents:
             if 'ATTACK' in intent.intent_type.name:
                 attacks.append((intent.damage, intent.hits, amount(enemy, PowerId.STRENGTH)))
-    return incoming_risk(world.player.current_hp, world.player.block,
+    from .content import EXPANSION_CONTENT
+    block = world.player.block
+    if content_version == EXPANSION_CONTENT:
+        block = max(0, block + amount(world.player, PowerId.PLATING)
+            + amount(world.player, PowerId.FEEL_NO_PAIN) * sum(c.is_ethereal for c in world.hand)
+            - 2 * sum(c.card_id.name == 'BURN' for c in world.hand))
+    return incoming_risk(world.player.current_hp, block,
                          amount(world.player, PowerId.VULNERABLE), attacks)
 
 

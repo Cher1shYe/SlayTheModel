@@ -1,3 +1,11 @@
+## 最新机制接入：战士／无色持久能力（2026-10-17）
+
+新增 Barricade、Rage、Feel No Pain、Demon Form、Fasten、Eternal Armor 及升级版，已接通 **50/151**（战士 37、无色 13），剩余 **101**。内容升级为 `ironclad-colorless-powers-v2`，补齐公开能力状态、实体机制与 Defend 标签、动态动作、粒子与 MCTS 重建；修复重复 Barricade 叠加及回合末格挡对 Boss 伤口／V7 风险的影响。
+
+[本批报告](docs/AZ_IRONCLAD_COLORLESS_POWERS.md) · [覆盖清单](docs/IRONCLAD_COLORLESS_COVERAGE.md) · [测试与摘要证据](docs/ironclad_colorless_powers_evidence.json)
+
+必要测试 **3,264 项通过**，源码与证据摘要校验通过。本次未训练、未使用最终留出集；下一批为 Dark Embrace／Rupture 的延迟触发与续接。后续仍按 network 整场 V7 效用验收。下文较早批次计数为历史记录，旧权重与 Replay 不能直接用于新 schema。
+
 # STS2 RL Agent
 
 A reinforcement learning agent for **Slay the Spire 2**, built on a high-performance headless combat simulator and a Gymnasium training environment. Includes a C# bridge mod for connecting the trained agent to the real game.

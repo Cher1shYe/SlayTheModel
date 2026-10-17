@@ -30,7 +30,7 @@ def supported_reward(content, reward):
 
 from .boss_cards import MAX_CARDS
 # Conservative audited card bound plus player/enemies/choice/global overhead.
-SCHEMA = {'version': 'public-entities-ironclad-colorless-v1', 'action_version': 'dynamic-actions-v2',
+SCHEMA = {'version': 'public-entities-ironclad-colorless-v2', 'action_version': 'dynamic-actions-v2',
           'numeric': NUMERIC_FIELDS, 'kinds': KINDS, 'zones': ZONES,
           'max_entities': MAX_CARDS + 16, 'max_actions': MAX_CARDS + 1, 'max_effects': 64,
           'supported': SUPPORTED, 'action_types': ACTION_TYPES,

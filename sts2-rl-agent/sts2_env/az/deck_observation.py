@@ -111,9 +111,12 @@ def validate_memory(info):
         raise ValueError("Unknown public card memory")
     if max(Counter(t.removesuffix("+") for t in info.known_deck).values()) > MAX_COPIES:
         raise ValueError("Public deck copy capacity exceeded")
-    if any(t not in ("INFLAME", "INFLAME+") for t in info.history.removed_powers):
+    if any(not prototype(t).is_power for t in info.history.removed_powers):
         raise ValueError("Unsupported removed card")
-    strength = sum(3 if t.endswith("+") else 2 for t in info.history.removed_powers)
+    strength = sum(3 if t.endswith("+") else 2 for t in info.history.removed_powers if t.removesuffix("+") == "INFLAME")
+    if info.content_version == EXPANSION_CONTENT:
+        from .player_abilities import demon_strength
+        strength += demon_strength(info)
     bonus = info.history.dominate_strength
     if type(bonus) is not int or bonus < 0 or (info.content_version != EXPANSION_CONTENT and bonus != 0):
         raise ValueError('Invalid public Dominate strength history')

@@ -100,7 +100,7 @@ class CombatAdapter:
             _, enemy_hp, enemy_max = validate_health(roster)
         from .rewards import V7
         from .risk_reward import world_risk
-        risk = world_risk(world) if self.reward_version == V7 else 0.0
+        risk = world_risk(world, self.recipe.content_manifest_version) if self.reward_version == V7 else 0.0
         reward = terminal_reward(reason, world.player.current_hp, self.recipe.player_hp,
                                  enemy_hp, enemy_max, self.reward_version,
                                  enemy_initial_hp=self.enemy_initial_hp, enemy_roster=roster,
