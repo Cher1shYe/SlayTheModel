@@ -16,12 +16,17 @@ COUNTERS={'DARK_EMBRACE':'_ethereal_exhaust_count','CRIMSON_MANTLE':'self_damage
 #   triples : list[[int, int, bool]]
 #   ints    : list[int]
 EXTRAS={'AUTOMATION':{'_instances':'pairs'},'PANACHE':{'_started':'bool','_instances':'triples'},
-        'ROLLING_BOULDER':{'_instances':'ints'},'THE_BOMB':{'_instances':'pairs'}}
+        'ROLLING_BOULDER':{'_instances':'ints'},'THE_BOMB':{'_instances':'pairs'},
+        # Per-turn trigger sets: the player can see whether the spark already paid
+        # out this turn (their own energy), so only the count is public.
+        'VITAL_SPARK':{'_triggered_players_this_turn':'count'}}
 
 
 def _check(value, shape):
     if shape == 'bool':
         return type(value) is bool
+    if shape == 'count':
+        return type(value) is int and 0 <= value <= 8
     if not isinstance(value, list) or not 0 <= len(value) <= 64:
         return False
     if shape == 'ints':
@@ -33,6 +38,53 @@ def _check(value, shape):
         return all(isinstance(v, list) and len(v) == 3 and type(v[0]) is int and type(v[1]) is int
                    and type(v[2]) is bool and 0 <= v[1] <= 100000 for v in value)
     return False
+
+def capture_creature(creature):
+    """Per-power public bookkeeping for one creature (enemy or player)."""
+    rows = {}
+    for power, obj in creature.powers.items():
+        if power.name not in EXTRAS:
+            continue
+        entry = {}
+        for attr in EXTRAS[power.name]:
+            value = getattr(obj, attr)
+            if isinstance(value, bool):
+                entry[attr] = value
+            elif isinstance(value, (set, frozenset)):
+                entry[attr] = len(value)
+            elif isinstance(value, int):
+                entry[attr] = int(value)
+            elif isinstance(value, list):
+                entry[attr] = [[int(x) if not isinstance(x, bool) else x for x in row]
+                               if isinstance(row, (list, tuple)) else int(row) for row in value]
+        rows[power.name] = entry
+    return canonical_json(rows)
+
+
+def read_creature(blob):
+    data = json.loads(blob)
+    if type(data) is not dict or any(name not in EXTRAS for name in data):
+        raise ValueError('Invalid creature power bookkeeping')
+    for name, attrs in data.items():
+        if set(attrs) != set(EXTRAS[name]) or not all(
+                _check(value, EXTRAS[name][attr]) for attr, value in attrs.items()):
+            raise ValueError('Invalid creature power bookkeeping')
+    return data
+
+
+def restore_creature(creature, blob, player=None):
+    from sts2_env.core.enums import PowerId
+    for name, attrs in read_creature(blob).items():
+        power = creature.powers.get(PowerId[name])
+        if power is None:
+            raise ValueError('Creature power bookkeeping without its power')
+        for attr, value in attrs.items():
+            if attr == '_triggered_players_this_turn':
+                power._triggered_players_this_turn = {player} if value else set()
+                continue
+            setattr(power, attr, [tuple(row) if isinstance(row, list) else row for row in value]
+                    if isinstance(value, list) else value)
+
 
 def capture(world):
     from sts2_env.core.enums import PowerId
@@ -65,6 +117,10 @@ def capture(world):
             value = getattr(obj, attr)
             if isinstance(value, bool):
                 rows[attr] = value
+            elif isinstance(value, (set, frozenset)):
+                rows[attr] = len(value)
+            elif isinstance(value, int):
+                rows[attr] = int(value)
             elif isinstance(value, list):
                 rows[attr] = [[int(x) if not isinstance(x, bool) else x for x in row]
                               if isinstance(row, (list, tuple)) else int(row) for row in value]
@@ -113,6 +169,9 @@ def restore(world,info):
     for name,attrs in data['extras'].items():
         power=world.player.powers[PowerId[name]]
         for attr,value in attrs.items():
+            if name == 'VITAL_SPARK' and attr == '_triggered_players_this_turn':
+                power._triggered_players_this_turn = {world.player} if value else set()
+                continue
             setattr(power,attr,[tuple(row) if isinstance(row,list) else row for row in value]
                     if isinstance(value,list) else value)
     if PowerId.RUPTURE in world.player.powers:

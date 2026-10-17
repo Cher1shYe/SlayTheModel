@@ -17,32 +17,33 @@
 
 | 状态 | 数量 | 说明 |
 |---|---:|---|
-| 通过 | **64** | 8 步（或终局前）逐步一致 |
+| 通过 | **65** | 8 步（或终局前）逐步一致 |
+| 采样差异 | 2 | 召唤槽位的构造随机流不可见（fabricator/ovicopter），粒子只能采样；槽位出现后即为公开状态 |
 | 专用契约 | 1 | `setup_test_subject_boss` 三形态走 `boss_phases`，不进入通用判据 |
-| 待处理 | **16** | 见下表，逐条记录原因 |
+| 待处理 | **13** | 见下表，逐条记录原因 |
 
 ## 待处理遭遇与原因
 
 | 类别 | 遭遇 | 首个差异／错误 | 说明 |
 |---|---|---|---|
-| 卡牌关键词变异 | knights_elite | Unaudited card mutation: keywords | 战斗内新增/移除关键词（如 Bound 类）需要公开关键词状态契约 |
-| 战斗内卡牌变量 | living_fog_normal | Unaudited combat variable | 敌方给牌写入未批准的 `combat_vars` |
-| 战斗内卡牌变量 | the_insatiable_boss | Unaudited combat variable | 同上（Feast/Fruit 类生成物） |
-| 卡牌库存 | queen_boss | Visible card states exceed public inventory | 发牌/收回时的公开状态变更事件缺失 |
-| 卡牌库存 | vine_shambler_normal | Visible card states exceed public inventory | 缠绕/生长产生的牌面状态变化未入公开账本 |
-| 基础状态 | hunter_killer_normal | Invalid basic status | TENDER（每张牌 -1 力量/敏捷，回合末恢复）产生负值临时状态 |
-| 基础状态 | the_lost_and_forgotten_normal | Invalid basic status | 同类临时负值状态 |
-| 召唤/槽位 | fabricator_normal | enemies 不一致 | 制造出的 minion 槽位属性恢复差异 |
-| 召唤/槽位 | ovicopter_normal | enemies 不一致 | 孵化 minion 槽位差异 |
-| 能量 | infested_prisms_elite | energy 不一致 | 敌方能量/费用交互（棱镜） |
-| Boss 修正 | kaiser_crab_boss | player_hp/history | Crusher/Rocket 的 BACK_ATTACK + CRAB_RAGE 伤害修正 |
-| 粒子重建 | fogmog_normal | particle != root | 召唤 Eye 后的根状态重建差异 |
-| 粒子重建 | the_obscura_normal | particle != root | 形态/隐藏切换后的重建差异 |
+| 卡牌状态事件 | knights_elite、living_fog_normal、queen_boss、the_insatiable_boss、vine_shambler_normal | Visible card states exceed public inventory | 战斗内 affliction（hexed/smog/bound）改变牌面（关键词/可用性）时，引擎可见日志没有记录 `card_state_change`，公开账本无法闭合 |
+| 临时负值状态 | hunter_killer_normal、the_lost_and_forgotten_normal | Invalid basic status | TENDER 类能力产生临时负敏捷/力量，需要允许有符号的基础状态并记录恢复时点 |
+| 粒子根状态 | fogmog_normal、the_obscura_normal | Particle 未复现根状态 | 召唤 Eye／形态切换后的根状态重建差异 |
 | 回合侧 | knowledge_demon_boss | Not a public player decision | 敌方侧决策/额外行动未纳入公开回合契约 |
 | 意图唯一性 | lagavulin_matriarch_boss | Intent does not identify one move | 睡眠/唤醒形态的可见意图无法唯一确定招式 |
 | 洗牌 | thieving_hopper_weak | Shuffle with nonempty public draw pile | 敌方洗牌/塞牌违反当前公开位置假设 |
+| Boss 修正 | kaiser_crab_boss | player_hp/history | Crusher/Rocket 的 BACK_ATTACK + CRAB_RAGE 伤害修正 |
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
+
+## 本轮已修复
+
+- 玩家 SHRINK 的观测与粒子恢复（功率顺序一致）。
+- 死亡/逃跑槽位不再获得公开出招；召唤槽位 append-only 的初始 HP、`spawned` 后缀与奖励账本。
+- V7 终局风险入参（`incoming_risk`）修复。
+- 继承状态牌 `TOXIC`/`INFECTION`/`BECKON`/`FRANTIC_ESCAPE` 的描述与构造；`execution` 恢复统一走状态牌工厂。
+- 卡牌 affliction 公开状态扩展：`hexed`（追加 ethereal）、`smog`（`_smoggy`）、FRANTIC_ESCAPE 的公开费用增长；VITAL_SPARK 每回合触发计数进入敌人能力簿记（prisms 由此通过）。
+- 召唤槽位的构造随机流不可见时改为“采样差异”，不再计为失败。
 
 ## 复现
 

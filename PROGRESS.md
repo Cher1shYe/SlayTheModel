@@ -28,6 +28,7 @@
 | P2c | all-content 版本：观测/校验/公开回合历史 + 场景与牌库接入 | 已完成 |
 | P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 已完成 |
 | P2e | 全遭遇一致性扫描：81 遭遇中 64 通过 + 1 专用契约 + 16 待补 | 已完成（16 项已知差异归档） |
+| P2f | 差异收敛：65 通过 + 2 采样 + 1 专用契约 + 13 待补 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -115,3 +116,10 @@
 - 本轮修复：玩家 SHRINK 观测/粒子恢复、死亡槽位不得再获得公开出招（slimes/bowlbugs 复活出招问题）、召唤槽位 append-only 的初始 HP 与奖励账本、终局 V7 风险的公开入参、继承状态牌 `TOXIC`/`INFECTION`/`BECKON`/`FRANTIC_ESCAPE` 的描述与构造、`execution` 恢复使用状态牌工厂。
 - 16 个待处理遭遇按类别归档（卡牌关键词/战斗变量/库存、负值临时状态、召唤槽位、能量、Boss 修正、粒子根状态、回合侧、意图唯一性、洗牌），全部为**显式拒绝**而非静默通过。
 - 回归：卡牌/all-content **1020 项通过（1 xfailed）**、Transformer **287 项通过**。
+
+### 步骤 9（2026-10-18）差异收敛与敌人能力簿记（P2f）
+
+- 修复并转入通过：infested prisms（VITAL_SPARK 每回合触发计数进入敌人能力簿记 `EnemySlot.power_state`）、fabricator/ovicopter 归类为“召唤槽构造随机流不可见”的采样差异（槽位出现后即公开）、FRANTIC_ESCAPE 公开费用增长、`hexed`/`smog` 卡牌 affliction 状态（关键词与 `_smoggy`）。
+- 扫描结果更新：**65 通过 + 2 采样差异 + 1 专用契约 + 13 待补**（报告 `docs/ALL_ENCOUNTER_PARITY.md`）。
+- 13 项待补按原因收敛为：卡牌状态事件缺失（5）、临时负值基础状态（2）、粒子根状态（2）、回合侧（1）、意图唯一性（1）、洗牌（1）、Boss 伤害修正（1）。
+- 回归：卡牌/all-content **1020 项通过（1 xfailed）**。

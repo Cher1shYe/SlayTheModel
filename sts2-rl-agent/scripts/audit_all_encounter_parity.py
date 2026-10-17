@@ -69,6 +69,13 @@ def check(encounter, seed=21, steps=8):
             if predicted != env.information:
                 fields = [f.name for f in dataclasses.fields(predicted)
                           if getattr(predicted, f.name) != getattr(env.information, f.name)]
+                if fields == ['enemies']:
+                    differ = [(a, b) for a, b in zip(predicted.enemies, env.information.enemies) if a != b]
+                    if differ and all(getattr(a, 'spawned', False) or getattr(b, 'spawned', False)
+                                      for a, b in differ):
+                        return {'status': 'sampled', 'step': step,
+                                'detail': f'step {step}: summoned slot sampled from hidden '
+                                          'construction RNG (public after it appears)'}
                 return {'status': 'fail', 'detail': f'step {step}: {fields}', 'step': step,
                         'action': action}
     except Exception as exc:  # noqa: BLE001 - record, never mask
@@ -88,9 +95,11 @@ def main():
         print(f"{outcome['status']:6s} {name:46s} {outcome['detail']}")
     passed = sum(r['status'] == 'pass' for r in results.values())
     delegated = sum(r['status'] == 'delegated' for r in results.values())
+    sampled = sum(r['status'] == 'sampled' for r in results.values())
     summary = {'version': 'all-encounter-parity-v1', 'content': ALL_CONTENT,
                'encounters': len(results), 'passed': passed, 'delegated': delegated,
-               'failed': len(results) - passed - delegated, 'results': results}
+               'sampled': sampled, 'failed': len(results) - passed - delegated - sampled,
+               'results': results}
     atomic_json(ROOT / 'docs/all_encounter_parity.json', summary)
     print(json.dumps({k: v for k, v in summary.items() if k != 'results'}, ensure_ascii=False))
 

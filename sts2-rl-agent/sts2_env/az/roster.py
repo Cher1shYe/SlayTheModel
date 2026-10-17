@@ -39,6 +39,7 @@ class EnemySlot:
     moves: tuple
     escaped: bool
     spawned: bool = False
+    power_state: str = '{}'
 
     # Read-only compatibility surface for shared public helpers that were written
     # against the older single-intent slot shape.  Values still come only from
@@ -131,9 +132,11 @@ def capture_slots(world, history, initial_hp):
             if not _legal_transition(enemy.monster_id, before, after):
                 raise ValueError(f'Illegal public transition: {enemy.monster_id}')
         powers = tuple(sorted((p.name, int(obj.amount)) for p, obj in enemy.powers.items()))
+        from .power_memory import capture_creature
         slots.append(EnemySlot(slot, enemy.monster_id, int(hp), max(0, int(enemy.current_hp)),
                                int(enemy.max_hp), int(enemy.block), powers, intents, move,
-                               tuple(past), bool(enemy.escaped), slot >= initial_count))
+                               tuple(past), bool(enemy.escaped), slot >= initial_count,
+                               capture_creature(enemy)))
     return tuple(slots)
 
 
@@ -155,6 +158,10 @@ def validate_slots(slots):
             raise ValueError('Invalid public roster health')
         if type(slot.escaped) is not bool:
             raise ValueError('Invalid public escape flag')
+        from .power_memory import read_creature
+        state = read_creature(slot.power_state)
+        if not set(state) <= {name for name, _ in slot.powers}:
+            raise ValueError('Power bookkeeping without the public power')
         if (type(slot.powers) is not tuple or len(slot.powers) > MAX_POWERS
                 or any(type(p) is not tuple or len(p) != 2 or type(p[0]) is not str
                        or p[0] not in PowerId.__members__ or type(p[1]) is not int
@@ -265,6 +272,9 @@ def restore_slots(world, slots, rng):
             # first enemy-turn tick is due; only player-side debuffs skip it.
             power.skip_next_tick = False
             enemy.powers[PowerId[name]] = power
+        if slot.power_state and slot.power_state != '{}':
+            from .power_memory import restore_creature
+            restore_creature(enemy, slot.power_state, world.player)
     return world
 
 

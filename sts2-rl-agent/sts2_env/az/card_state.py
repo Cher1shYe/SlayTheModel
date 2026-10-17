@@ -70,7 +70,19 @@ class CardStateCodec:
         if self.policy.effect_changes:
             dynamic |= {"base_damage", "base_block", "effect_vars"}
         if self.policy.afflictions:
-            dynamic |= {"bound"}
+            dynamic |= {"bound", "keywords"}
+            allowed_afflictions = ('bound', 'entangled', 'hexed', 'smog')
+            affliction = getattr(card, 'affliction', None)
+            if affliction is not None and affliction not in allowed_afflictions:
+                raise ValueError("Unaudited affliction")
+            reference_keywords = set(reference.keywords)
+            current_keywords = set(card.keywords)
+            # Only the affliction's own public keyword effect may change keywords:
+            # Hexed makes the card Ethereal while the affliction is active.
+            expected_added = {"ethereal"} if affliction == 'hexed' else set()
+            if current_keywords - reference_keywords != expected_added or (
+                    reference_keywords - current_keywords):
+                raise ValueError("Unaudited card mutation: keywords")
         for field in fields(reference):
             if field.name not in dynamic and getattr(card, field.name) != getattr(reference, field.name):
                 raise ValueError(f"Unaudited card mutation: {field.name}")
@@ -83,7 +95,7 @@ class CardStateCodec:
         allowed={"_turn_cost_override", "_stars_spent_for_play"}
         if self.policy.generated_metadata:allowed|={"_turn_star_cost_override","_is_clone"}
         if self.policy.return_to_hand:allowed|={"_return_before_hand_draw_round"}
-        if self.policy.afflictions:allowed|={"_affliction"}
+        if self.policy.afflictions:allowed|={"_affliction","_smoggy","cost_increase"}
         if set(card.combat_vars) - allowed:
             raise ValueError("Unaudited combat variable")
         if card.combat_vars.get("_stars_spent_for_play", 0) != 0:
@@ -105,7 +117,7 @@ class CardStateCodec:
             raise ValueError("Unsupported card state version/type")
         if type(state.is_clone)is not bool or (state.is_clone and not self.policy.generated_metadata):raise ValueError('Clone state not admitted')
         if state.affliction is not None and (not self.policy.afflictions
-                or state.affliction not in ('bound', 'entangled')):
+                or state.affliction not in ('bound', 'entangled', 'hexed', 'smog')):
             raise ValueError('Card affliction state not admitted')
         if state.turn_star_cost is not None and (not self.policy.generated_metadata or type(state.turn_star_cost)is not int or state.turn_star_cost!=0):raise ValueError('Star cost state not admitted')
         reference = self._reference(state.token)
@@ -128,7 +140,11 @@ class CardStateCodec:
                     or state.turn_cost < 0 or state.cost != state.turn_cost):
                 raise ValueError("Temporary cost not admitted or inconsistent")
         elif state.cost != reference.cost and not self.policy.combat_cost:
-            raise ValueError("Combat cost not admitted")
+            # Frantic Escape raises its own cost through a public counter; the
+            # stored cost is the only public fact, so the increase is admitted.
+            if not (state.token.removesuffix('+') == 'FRANTIC_ESCAPE'
+                    and state.cost > reference.cost):
+                raise ValueError("Combat cost not admitted")
         if state.single_turn_retain and not self.policy.retain:
             raise ValueError("Temporary retain not admitted")
         return state
@@ -147,4 +163,11 @@ class CardStateCodec:
         if state.affliction is not None:
             card.combat_vars['_affliction'] = state.affliction
             card.bound = state.affliction == 'bound'
+            if state.affliction == 'hexed':
+                card.keywords = frozenset(set(card.keywords) | {'ethereal'})
+            if state.affliction == 'smog':
+                card.combat_vars['_smoggy'] = True
+        delta = state.cost - self._reference(state.token).cost
+        if delta > 0 and state.token.removesuffix('+') == 'FRANTIC_ESCAPE':
+            card.combat_vars['cost_increase'] = delta
         return card
