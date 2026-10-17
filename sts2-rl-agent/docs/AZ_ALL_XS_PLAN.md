@@ -36,7 +36,7 @@
 1. **自对弈采集**（`all_runner.collect`）：每个训练配方在原生怪物上跑完整战斗；实体编码 + 动态动作 + 粒子信念；搜索预算 8 生成访问分布与 V7 终局标签。公开契约拒绝的配方会被**记录并跳过**（不静默转换）。
 2. **网络更新**（`all_runner.update`）：XS 策略/价值联合损失；Replay 为 `typed-entity-replay-v2`，按内容/奖励版本隔离；不混用旧版本数据。
 3. **验证**（`all_runner.evaluate_recipes`）：64 个验证配方整场 network-only（动作经 `action_candidates` 映射）V7 效用；契约拒绝单独计数。
-4. **门槛**：验证集效用增益达到冻结门槛后才打开 64 个测试配方；测试集只用于最终一次报告。
+4. **门槛**：验证集效用增益达到冻结门槛后才打开 64 个测试配方；`run(include_test=True)` 默认强制该门槛（要求最近一轮相对初始基线的配对 `mean_gain > 0`），未通过时只记录 `test_gate.passed=false` 而不打开测试集；`--force-test` 可显式覆盖并在报告中标注 `forced=true`。
 5. **证据**：每轮 `output/<run>/iteration-NNN.json`（episode id、终局、replay 大小、损失、验证汇总、checkpoint）与 `report.json`；失败配方同样落盘。
 
 ### 4.1 冒烟结果（仅验证管线，不构成学习增益）

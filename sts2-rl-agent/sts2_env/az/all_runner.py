@@ -231,7 +231,8 @@ def paired_gain(baseline, candidate, *, seed=1729, samples=2000):
 
 def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, updates=1, budget=4,
         batch_size=16, learning_rate=None, seed=0, max_turns=6, max_decisions=24,
-        include_test=False, resume=False, compare_baseline=True, workers=1, log=print):
+        include_test=False, resume=False, compare_baseline=True, workers=1,
+        enforce_test_gate=True, log=print):
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
     training = config['training']
@@ -321,10 +322,18 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
                   baseline=baseline_summary, history=history,
                   final_validation=history[-1]['validation'])
     if include_test:
-        test = protocol_recipes(protocol, 'test')
-        summary, _ = evaluate_recipes(model, test, version=version, error_dir=out / 'errors',
-                                      limits=limits)
-        report['test'] = summary
+        comparison = history[-1].get('paired_vs_baseline')
+        gate_passed = bool(comparison and comparison['mean_gain'] > 0)
+        report['test_gate'] = dict(required='validation mean gain > 0', passed=gate_passed,
+                                   comparison=comparison, enforced=enforce_test_gate,
+                                   forced=not enforce_test_gate)
+        if gate_passed or not enforce_test_gate:
+            test = protocol_recipes(protocol, 'test')
+            summary, _ = evaluate_recipes(model, test, version=version, error_dir=out / 'errors',
+                                          limits=limits)
+            report['test'] = summary
+        else:
+            log('test split not opened: validation gate failed')
     atomic_json(out / 'report.json', report)
     return report
 
@@ -344,6 +353,7 @@ def main(argv=None):
     parser.add_argument('--max-turns', type=int, default=6)
     parser.add_argument('--max-decisions', type=int, default=24)
     parser.add_argument('--include-test', action='store_true')
+    parser.add_argument('--force-test', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--no-baseline', action='store_true')
     parser.add_argument('--workers', type=int, default=1)
@@ -359,13 +369,14 @@ def main(argv=None):
                      batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
                      max_decisions=args.max_decisions, include_test=args.include_test,
                      resume=args.resume, compare_baseline=not args.no_baseline,
-                     workers=args.workers)
+                     workers=args.workers, enforce_test_gate=not args.force_test)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}
     print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == '__main__':
     main()
+
 
 
 

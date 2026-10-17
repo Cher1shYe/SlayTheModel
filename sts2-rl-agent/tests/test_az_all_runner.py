@@ -1,4 +1,4 @@
-"""P3 all-content runner contract: reproducible episodes and honest rejections."""
+﻿"""P3 all-content runner contract: reproducible episodes and honest rejections."""
 import numpy as np
 import pytest
 
@@ -184,4 +184,114 @@ def test_one_episode_update_changes_weights(tmp_path):
     assert any(not torch.equal(a, b) for a, b in zip(before, updated.parameters()))
 
 
+
+
+def test_resume_continues_from_the_last_checkpoint(tmp_path, monkeypatch):
+    import json
+    from pathlib import Path
+    from sts2_env.az.config import atomic_json
+    from sts2_env.az.model_factory import save_transformer_checkpoint
+
+    config = all_runner.load_frozen_config(CONFIG)
+    model = all_runner.fresh_model(config)
+    out = tmp_path
+    save_transformer_checkpoint(out / 'iteration-000.pt', model, 'az-all-xs-runner-v1-resume',
+                                config=config, iteration=0)
+    baseline = dict(episodes=64, win_rate=0.0, mean_utility=0.1, contract_rejections=0,
+                    contract_rejected=[])
+    previous = dict(version=all_runner.VERSION,
+                    history=[dict(version=all_runner.VERSION, iteration=0, episodes=['b' * 64],
+                                  outcomes=['win'], replay_size=2, updates=[{'loss': 0.5}],
+                                  rejected_recipes=[], validation=baseline,
+                                  checkpoint='iteration-000.pt', seconds={})],
+                    baseline=baseline)
+    atomic_json(out / 'report.json', previous)
+    calls = {'collect': 0}
+
+    def fake_collect(model, recipes, **kwargs):
+        calls['collect'] += 1
+        return [dict(episode_id='c' * 64, rows=[{}],
+                     outcome={'termination_reason': 'death'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.4}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.2, termination_reason='win', final_hp=40, turns=2,
+                     decisions=4, decision_seconds=[0.01], errors=0, illegal_actions=0)
+                for recipe in recipes]
+        return dict(episodes=len(rows), win_rate=1.0, mean_utility=0.2,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += len(episode['rows'])
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, out, iterations=2, episodes=1, updates=1,
+                            budget=1, seed=0, resume=True, log=lambda *args: None)
+    assert calls['collect'] == 1
+    assert len(report['history']) == 2
+    assert report['history'][0]['episodes'] == ['b' * 64]
+    assert report['history'][1]['iteration'] == 1
+    assert report['baseline']['mean_utility'] == pytest.approx(0.1)
+
+def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkeypatch):
+    def fake_collect(model, recipes, **kwargs):
+        return [dict(episode_id='d' * 64, rows=[{}], outcome={'termination_reason': 'win'})]
+
+    def fake_update(model, replay, **kwargs):
+        return model, [{'loss': 0.5}]
+
+    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
+        baseline = 'baseline' in version
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.1 if baseline else 0.3, termination_reason='win',
+                     final_hp=40, turns=2, decisions=4, decision_seconds=[0.01],
+                     errors=0, illegal_actions=0) for recipe in recipes]
+        return dict(episodes=len(rows), win_rate=1.0,
+                    mean_utility=0.1 if baseline else 0.3,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    class FakeReplay:
+        def __init__(self, *args, **kwargs):
+            self.size = 0
+
+        def commit(self, episode):
+            self.size += 1
+
+    monkeypatch.setattr(all_runner, 'collect', fake_collect)
+    monkeypatch.setattr(all_runner, 'update', fake_update)
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
+    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
+                            budget=1, seed=0, include_test=True, log=lambda *args: None)
+    assert report['test_gate']['passed'] is True
+    assert 'test' in report
+
+    def negative_evaluate(model, recipes, *, version, error_dir, limits=None):
+        baseline = 'baseline' in version
+        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
+                     reward=0.3 if baseline else 0.0, termination_reason='win',
+                     final_hp=40, turns=2, decisions=4, decision_seconds=[0.01],
+                     errors=0, illegal_actions=0) for recipe in recipes]
+        return dict(episodes=len(rows), win_rate=1.0,
+                    mean_utility=0.3 if baseline else 0.0,
+                    contract_rejections=0, contract_rejected=[]), rows
+
+    monkeypatch.setattr(all_runner, 'evaluate_recipes', negative_evaluate)
+    blocked = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'blocked', iterations=1, episodes=1,
+                             updates=1, budget=1, seed=0, include_test=True,
+                             log=lambda *args: None)
+    assert blocked['test_gate']['passed'] is False
+    assert 'test' not in blocked
 
