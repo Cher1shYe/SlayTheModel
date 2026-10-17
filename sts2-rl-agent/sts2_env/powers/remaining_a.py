@@ -925,6 +925,8 @@ class DampenPower(PowerInstance):
             for card in pile:
                 if not getattr(card, "upgraded", False):
                     continue
+                previous = card.public_state_blob()
+                prior_token = card.card_id.name + ("+" if card.upgraded else "")
                 progress = capture_self_mutating_card_progress(card)
                 try:
                     base = create_card(card.card_id, upgraded=False)
@@ -952,6 +954,12 @@ class DampenPower(PowerInstance):
                 restore_self_mutating_card_progress(card, progress)
                 if owner.has_power(PowerId.HEX):
                     card.keywords = frozenset(set(card.keywords) | {"ethereal"})
+                card.log_public_state_change(previous)
+                # Downgrades change the public card token; the same event shape
+                # used by combat.upgrade_card keeps the inventory reconciled.
+                if combat._is_card_in_combat(card):
+                    combat.visible_card_events.append(
+                        ("upgrade", prior_token, combat._visible_card_token(card), combat.turn_count))
 
     def on_removed(self, owner: Creature, combat: CombatState) -> None:
         """Called when the power is removed. Re-upgrades cards."""
@@ -1933,3 +1941,4 @@ _ALL_POWERS: dict[PowerId, type[PowerInstance]] = {
 
 for _pid, _cls in _ALL_POWERS.items():
     register_power_class(_pid, _cls)
+
