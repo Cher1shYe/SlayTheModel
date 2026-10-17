@@ -1,4 +1,4 @@
-﻿"""All-encounter content version: same card contract, generic public roster.
+"""All-encounter content version: same card contract, generic public roster.
 
 The card half of the contract is identical to V4 (``ironclad-colorless-foundation-v4``),
 so the audited card codecs are reused.  Only the enemy half changes: instead of
@@ -421,7 +421,10 @@ def sample_particle(info, search_rng):
                                 info.reward_version, ALL_CONTENT, info.known_deck,
                                 tuple(slot.initial_hp for slot in info.enemies), info.encounter)
         if projected != info:
-            raise ValueError('Particle does not reproduce the root public state/legal actions')
+            fields = [name for name in projected.__dataclass_fields__
+                      if getattr(projected, name) != getattr(info, name)]
+            raise ValueError('Particle does not reproduce the root public state/legal actions: '
+                             f'{fields}')
         return SearchParticle(world, projected, card_base._next_instance_id)
     finally:
         card_base._next_instance_id = saved_id

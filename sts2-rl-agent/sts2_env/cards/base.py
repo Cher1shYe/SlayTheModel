@@ -355,20 +355,24 @@ class CardInstance:
         return current is None or (stackable and current == name)
 
     def afflict(self, name: str, *, stackable: bool = False) -> bool:
+        previous = self.public_state_blob()
         if not self.can_afflict(name, stackable=stackable):
             return False
         self.combat_vars["_affliction"] = name
         if name == "bound":
             self.bound = True
+        self.log_public_state_change(previous)
         return True
 
     def clear_affliction(self, name: str | None = None) -> None:
+        previous = self.public_state_blob()
         current = self.affliction
         if name is not None and current != name:
             return
         if current == "bound" or name == "bound":
             self.bound = False
         self.combat_vars.pop("_affliction", None)
+        self.log_public_state_change(previous)
 
     def clone(self, new_id: int) -> CardInstance:
         """Create a copy with a new instance_id."""
@@ -424,7 +428,8 @@ class CardInstance:
             original_cost=self.original_cost,base_damage=self.base_damage,base_block=self.base_block,
             effect_vars=sorted(self.effect_vars.items()),turn_cost=self.combat_vars.get("_turn_cost_override"),
             single_turn_retain=self.single_turn_retain,turn_star_cost=self.combat_vars.get('_turn_star_cost_override'),
-            is_clone=bool(self.combat_vars.get('_is_clone',0))),sort_keys=True,separators=(",",":"))
+            is_clone=bool(self.combat_vars.get('_is_clone',0)),affliction=self.affliction),
+            sort_keys=True,separators=(",",":"))
 
     def log_public_state_change(self, previous: str) -> None:
         world=getattr(getattr(self,"owner",None),"combat_state",None)

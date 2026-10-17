@@ -9,7 +9,8 @@ from .config import canonical_json
 
 COUNTERS={'DARK_EMBRACE':'_ethereal_exhaust_count','CRIMSON_MANTLE':'self_damage','INFERNO':'self_damage',
           'JUGGLING':'_attacks_played_this_turn',
-          'AUTOMATION':'cards_left','PANACHE':'_cards_left','THE_BOMB':'damage'}
+          'AUTOMATION':'cards_left','PANACHE':'_cards_left','THE_BOMB':'damage',
+          'CHAINS_OF_BINDING':'_bound_cards_this_turn'}
 # Compound public bookkeeping.  Each attribute is still derived from visible
 # plays/draws/turns; only its representation differs from a single integer.
 #   pairs   : list[[int, int]]
@@ -17,6 +18,7 @@ COUNTERS={'DARK_EMBRACE':'_ethereal_exhaust_count','CRIMSON_MANTLE':'self_damage
 #   ints    : list[int]
 EXTRAS={'AUTOMATION':{'_instances':'pairs'},'PANACHE':{'_started':'bool','_instances':'triples'},
         'ROLLING_BOULDER':{'_instances':'ints'},'THE_BOMB':{'_instances':'pairs'},
+        'CHAINS_OF_BINDING':{'_bound_card_played':'bool'},
         # Per-turn trigger sets: the player can see whether the spark already paid
         # out this turn (their own energy), so only the count is public.
         'VITAL_SPARK':{'_triggered_players_this_turn':'count'}}

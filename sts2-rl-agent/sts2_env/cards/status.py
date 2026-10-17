@@ -1263,7 +1263,7 @@ def make_sovereign_blade(upgraded: bool = False) -> CardInstance:
 
 @register_effect(CardId.SWEEPING_GAZE)
 def sweeping_gaze_effect(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
-    """OstyAttack — deal damage to random enemy."""
+    """OstyAttack 鈥?deal damage to random enemy."""
     if target is not None:
         _deal_osty_damage_single(card, combat, target, 10)
 
@@ -1414,7 +1414,7 @@ def wound_effect(card: CardInstance, combat: CombatState, target: Creature | Non
 
 @register_effect(CardId.DEBRIS)
 def debris_effect(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
-    """Playable (cost 1), Exhaust. Does nothing when played — just clogs hand."""
+    """Playable (cost 1), Exhaust. Does nothing when played 鈥?just clogs hand."""
     pass
 
 
@@ -1432,9 +1432,11 @@ def frantic_escape_effect(card: CardInstance, combat: CombatState, target: Creat
         if getattr(sandpit, "target", None) is owner:
             sandpit.amount += 1
             break
+    previous = card.public_state_blob()
     increase = card.combat_vars.get("cost_increase", 0) + 1
     card.combat_vars["cost_increase"] = increase
     card.cost = (card.original_cost or 1) + increase
+    card.log_public_state_change(previous)
 
 
 @register_effect(CardId.SOOT)
@@ -1622,7 +1624,7 @@ def doubt_turn_end_in_hand(card: CardInstance, combat: CombatState, cards_in_han
 def enthralled_effect(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
     """Playable (cost 2), Eternal. When in hand, prevents the player from
     playing other cards (ShouldPlay check). Playing Enthralled itself is
-    allowed and does nothing — it just wastes 2 energy to clear it from hand."""
+    allowed and does nothing 鈥?it just wastes 2 energy to clear it from hand."""
     pass
 
 
@@ -1733,7 +1735,7 @@ def shame_turn_end_in_hand(card: CardInstance, combat: CombatState, cards_in_han
 
 @register_effect(CardId.SPORE_MIND)
 def spore_mind_effect(card: CardInstance, combat: CombatState, target: Creature | None) -> None:
-    """Playable (cost 1), Exhaust. Does nothing when played — just wastes
+    """Playable (cost 1), Exhaust. Does nothing when played 鈥?just wastes
     1 energy to clear it from hand via exhaust."""
     pass
 
@@ -1865,3 +1867,4 @@ def spoils_map_quest_complete(card: CardInstance, run_state) -> int:
             if point is not None:
                 point.remove_quest(card)
     return gold
+

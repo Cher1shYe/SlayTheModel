@@ -29,6 +29,7 @@
 | P2d | all-content 粒子采样 + 实体编码 + 适配器/MCTS 接入 | 已完成 |
 | P2e | 全遭遇一致性扫描：81 遭遇中 64 通过 + 1 专用契约 + 16 待补 | 已完成（16 项已知差异归档） |
 | P2f | 差异收敛：65 通过 + 2 采样 + 1 专用契约 + 13 待补 | 已完成 |
+| P2g | affliction 公开事件：68 通过 + 2 采样 + 1 专用契约 + 10 待补 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -123,3 +124,10 @@
 - 扫描结果更新：**65 通过 + 2 采样差异 + 1 专用契约 + 13 待补**（报告 `docs/ALL_ENCOUNTER_PARITY.md`）。
 - 13 项待补按原因收敛为：卡牌状态事件缺失（5）、临时负值基础状态（2）、粒子根状态（2）、回合侧（1）、意图唯一性（1）、洗牌（1）、Boss 伤害修正（1）。
 - 回归：卡牌/all-content **1020 项通过（1 xfailed）**。
+
+### 步骤 10（2026-10-18）affliction 公开事件（P2g）
+
+- `CardInstance.afflict/clear_affliction` 现在调用 `log_public_state_change`，`public_state_blob` 增加 `affliction` 字段；玩家/引擎可见日志能闭合“卡牌被 hexed/smog/bound/entangled”导致的牌面变化。
+- `FRANTIC_ESCAPE` 的费用增长也写入公开日志；玩家能力簿记补充 `CHAINS_OF_BINDING`（`_bound_cards_this_turn`、`_bound_card_played`）。
+- 扫描结果：**68 通过 + 2 采样 + 1 专用契约 + 10 待补**；queen、knights、living fog、vine shambler、the insatiable 由失败转通过。
+- 回归：引擎 parity 274 项 + 卡牌/all-content 1020 项（1 xfail）通过。

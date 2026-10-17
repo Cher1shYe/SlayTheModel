@@ -1,4 +1,4 @@
-"""All-encounter content version: generic public roster observation contract.
+﻿"""All-encounter content version: generic public roster observation contract.
 
 The card contract is shared with V4; these tests cover the observation path and
 the public move-history loop for encounters outside the ten audited V4 profiles.
@@ -19,7 +19,6 @@ SAMPLE = ['setup_nibbits_weak', 'setup_nibbits_normal', 'setup_slimes_weak',
           'setup_exoskeletons_normal', 'setup_axebots_normal', 'setup_chompers_normal',
           'setup_toadpoles_normal', 'setup_kaiser_crab_boss',
           'setup_doormaker_boss', 'setup_waterfall_giant_boss']
-BLOCKED = {'setup_queen_boss': 'public affliction ledger for ChainsOfBinding is not implemented'}
 
 
 def build(encounter, seed=11):
@@ -62,20 +61,21 @@ def test_one_public_round_matches_the_world(encounter):
         assert slot.moves == expected
 
 
-def test_blocked_encounter_is_recorded_not_silently_accepted():
-    world, known = build('setup_queen_boss')
-    info = observe_all(world, PublicHistory(), None, 80, V7, known_deck=known,
-                       encounter='setup_queen_boss')
-    base = info.history.after_action(info, 0, combat_ended=False, after_hand=())
-    world.end_player_turn()
-    history = finish_history(info, world, base, 0)
-    with pytest.raises(ValueError):
-        observe_all(world, history, None, 80, V7, known_deck=known,
-                    encounter='setup_queen_boss',
-                    enemy_initial_hp=tuple(slot.initial_hp for slot in info.enemies))
+def test_parity_report_tracks_every_encounter():
+    import json
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    report = json.loads((root / 'docs/all_encounter_parity.json').read_text(encoding='utf-8'))
+    assert report['encounters'] == 81
+    assert report['passed'] >= 60
+    assert report['delegated'] == 1
+    assert (report['passed'] + report['delegated'] + report['sampled']
+            + report['failed'] == report['encounters'])
+    assert all(entry['detail'] for entry in report['results'].values())
 
 
 def test_unknown_encounter_is_rejected_before_observation():
     world, known = build('setup_nibbits_weak')
     with pytest.raises(ValueError):
         observe_all(world, PublicHistory(), None, 80, V7, known_deck=known, encounter='')
+
