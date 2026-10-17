@@ -10,7 +10,7 @@ from .config import canonical_json
 COUNTERS={'DARK_EMBRACE':'_ethereal_exhaust_count','CRIMSON_MANTLE':'self_damage','INFERNO':'self_damage',
           'JUGGLING':'_attacks_played_this_turn',
           'AUTOMATION':'cards_left','PANACHE':'_cards_left','THE_BOMB':'damage',
-          'CHAINS_OF_BINDING':'_bound_cards_this_turn'}
+          'CHAINS_OF_BINDING':'_bound_cards_this_turn','TENDER':'_cards_played_this_turn'}
 # Compound public bookkeeping.  Each attribute is still derived from visible
 # plays/draws/turns; only its representation differs from a single integer.
 #   pairs   : list[[int, int]]

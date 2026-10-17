@@ -122,6 +122,9 @@ def _steal_card_with_swipe(combat: CombatState, creature: Creature, target: Crea
     card = _choose_thieving_hopper_card(combat, _thieving_hopper_steal_candidates(combat, target))
     if card is None:
         return
+    # The stolen card is revealed to the player; journal it before it leaves the
+    # combat piles so the public inventory can subtract the exact face.
+    combat.visible_card_events.append(("steal", card.public_state_blob(), combat.turn_count))
     combat._remove_card_from_piles(card)
     target_owner = player_or_pet_owner(target)
     state = combat.combat_player_state_for(target_owner)

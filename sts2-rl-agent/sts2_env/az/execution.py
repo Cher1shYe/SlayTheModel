@@ -1,4 +1,4 @@
-﻿"""Public nested play frames. JSON contains data only, never native callbacks."""
+"""Public nested play frames. JSON contains data only, never native callbacks."""
 import json
 from dataclasses import asdict,replace
 from collections import Counter
@@ -26,7 +26,13 @@ def inventory(deck,events,codec):
     counts=Counter(deck)
     for e in events:
         if type(e)is not tuple or not e:raise ValueError('Invalid visible event')
-        if e[0]=='generated':
+        if e[0]=='steal':
+            if len(e)!=3 or type(e[1])is not str or type(e[2])is not int:raise ValueError('Invalid steal event')
+            from .card_memory import parse
+            state=parse(e[1],codec)
+            if counts[state.token]<=0:raise ValueError('Stolen card absent from the public inventory')
+            counts[state.token]-=1
+        elif e[0]=='generated':
             if len(e)!=4 or e[1] not in codec.factories:raise ValueError('Unadmitted generation')
             counts[e[1]]+=1
         elif e[0] in ('upgrade','transform'):
@@ -52,6 +58,8 @@ def inventory(deck,events,codec):
             if len(e)!=3 or type(e[1])is not int or e[1]<0 or type(e[2])is not int:raise ValueError('Invalid Dominate event')
         elif e[0]=='shuffle':
             if len(e)!=3 or type(e[1])is not int or e[1]<0 or type(e[2])is not int:raise ValueError('Invalid shuffle event')
+        elif e[0]=='steal':
+            if len(e)!=3 or type(e[1])is not str or type(e[2])is not int:raise ValueError('Invalid steal event')
         elif e[0]=='exhaust':
             if len(e)!=3 or e[1] not in codec.factories or type(e[2])is not int:raise ValueError('Invalid exhaust event')
         else:raise ValueError('Unknown public event')
@@ -298,8 +306,17 @@ def positions(before,events):
     from .card_memory import parse
     for e in events:
         if e[0]=='shuffle':
-            if total:raise ValueError('Shuffle with nonempty public draw pile')
+            # The native rule only shuffles when the real draw pile is empty; a
+            # revealed steal may have left our tracked count stale, so the
+            # public shuffle event itself is authoritative and resets positions.
             top,bottom,total=[],[],e[1]
+        elif e[0]=='steal':
+            # A revealed card left the combat piles (draw or discard). Forget
+            # any known position that could be this face; the exact count stays
+            # an upper bound until the next public shuffle.
+            state=parse(e[1],CODEC)
+            if state in top:top=top[:top.index(state)]
+            if state in bottom:bottom=bottom[bottom.index(state)+1:]
         elif e[0]=='draw_remove':
             if total<=0:raise ValueError('Public draw removal underflow')
             state=parse(e[4],CODEC)

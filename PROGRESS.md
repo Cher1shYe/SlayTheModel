@@ -30,6 +30,7 @@
 | P2e | 全遭遇一致性扫描：81 遭遇中 64 通过 + 1 专用契约 + 16 待补 | 已完成（16 项已知差异归档） |
 | P2f | 差异收敛：65 通过 + 2 采样 + 1 专用契约 + 13 待补 | 已完成 |
 | P2g | affliction 公开事件：68 通过 + 2 采样 + 1 专用契约 + 10 待补 | 已完成 |
+| P2h | 有符号临时状态与被偷牌事件：71 通过 + 2 采样 + 1 专用契约 + 7 待补 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -131,3 +132,10 @@
 - `FRANTIC_ESCAPE` 的费用增长也写入公开日志；玩家能力簿记补充 `CHAINS_OF_BINDING`（`_bound_cards_this_turn`、`_bound_card_played`）。
 - 扫描结果：**68 通过 + 2 采样 + 1 专用契约 + 10 待补**；queen、knights、living fog、vine shambler、the insatiable 由失败转通过。
 - 回归：引擎 parity 274 项 + 卡牌/all-content 1020 项（1 xfail）通过。
+
+### 步骤 11（2026-10-18）有符号临时状态与被偷牌事件（P2h）
+
+- 基础状态允许 `DEXTERITY`/`SETUP_STRIKE` 负值（TENDER 类临时减益），`TENDER._cards_played_this_turn` 进入公开能力簿记；hunter killer、the lost and forgotten 转通过。
+- Thieving Hopper 偷牌写入公开 `steal` 事件（牌面 + 回合），公开库存与已知位置同步更新；洗牌事件按原生规则重置位置；thieving hopper 转通过。
+- 扫描结果：**71 通过 + 2 采样 + 1 专用契约 + 7 待补**；剩余为粒子敌人槽位（3）、召唤槽位（1）、回合侧（1）、意图唯一性（1）、Boss 伤害修正（1）。
+- 回归：引擎 parity + 卡牌/all-content **1287 项通过（1 xfailed）**。

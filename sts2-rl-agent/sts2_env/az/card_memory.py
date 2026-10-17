@@ -19,6 +19,12 @@ def inventory(deck,events,codec):
             state=parse(e[1],codec)
             if cards[state]<=0:raise ValueError('Removed power state absent from public inventory')
             cards[state]-=1
+        elif e[0]=='steal':
+            # A revealed stolen card leaves the combat piles for good; a death
+            # return happens outside combat and never re-enters a pile.
+            state=parse(e[1],codec)
+            if cards[state]<=0:raise ValueError('Stolen card state absent from public inventory')
+            cards[state]-=1
         elif e[0]=='card_state_change':
             old,new=parse(e[1],codec),parse(e[2],codec)
             if cards[old]<=0:raise ValueError('Changed card state absent from public inventory')

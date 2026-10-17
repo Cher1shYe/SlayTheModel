@@ -1,4 +1,4 @@
-"""Explicit public basic status contract; no RNG or hidden card order."""
+﻿"""Explicit public basic status contract; no RNG or hidden card order."""
 from dataclasses import replace
 from copy import copy
 from sts2_env.cards import ironclad, colorless
@@ -130,7 +130,7 @@ def validate(info):
         if (type(row)is not tuple or len(row)!=3):raise ValueError('Invalid status row')
         slot,n,a=row
         if (type(slot)is not int or not -1<=slot<len(info.enemies) or n not in (PLAYER if slot==-1 else ENEMY)
-            or type(a)is not int or not (0<=a<=100000 if n in ('ONE_TWO_PUNCH','FREE_ATTACK') else 0<a<=100000) or (slot,n) in seen):raise ValueError('Invalid basic status')
+            or type(a)is not int or not (0<=a<=100000 if n in ('ONE_TWO_PUNCH','FREE_ATTACK') else -100000<=a<=100000 if n in ('DEXTERITY','SETUP_STRIKE') else 0<a<=100000) or (slot,n) in seen):raise ValueError('Invalid basic status')
         seen.add((slot,n))
     if info.max_energy!=3+amount(info,-1,'PYRE'):raise ValueError('Max energy disagrees with Pyre')
 
@@ -181,3 +181,4 @@ def strength(info):
     return (sum(prototype(t).effect_vars['strength'] for t,turn in info.history.basic_plays
                if t.removesuffix('+') in ('FIGHT_ME','PROWESS')) + amount(info,-1,'SETUP_STRIKE')
         + sum(e[1] for e in info.history.public_events if e[0] in ('rupture_strength','brand_strength')))
+
