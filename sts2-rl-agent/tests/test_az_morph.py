@@ -281,3 +281,15 @@ def test_choice_without_pending_card_keeps_known_positions():
                              draw_composition=('A', 'B'), choice=object(),
                              pending_card=None, hand=(), retain_hand=0)
     assert advance_positions(before, 1, (), False) == (('A',), ('B',))
+
+def test_visible_growth_that_is_not_a_draw_forgets_known_positions():
+    from types import SimpleNamespace
+    from sts2_env.az.morph import advance_positions
+    before = SimpleNamespace(known_top=('UPPERCUT+',), known_bottom=(),
+                             draw_composition=('STRIKE_IRONCLAD', 'UPPERCUT+'), choice=None,
+                             pending_card=None,
+                             hand=('DEFEND_IRONCLAD', 'BASH'), retain_hand=0)
+    # Hand grew by an added card rather than a top draw: the known prefix is
+    # dropped instead of asserting an order that cannot be verified.
+    assert advance_positions(before, 0, ('DEFEND_IRONCLAD', 'BASH', 'ANGER'), False) == ((), ())
+

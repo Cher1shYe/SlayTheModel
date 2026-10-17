@@ -1,4 +1,4 @@
-"""Generic public roster reconstruction across native act encounters."""
+﻿"""Generic public roster reconstruction across native act encounters."""
 import numpy as np
 import pytest
 
@@ -133,3 +133,26 @@ def test_test_subject_requires_the_boss_contract():
     with pytest.raises(ValueError):
         slots = capture(world, history_for(world))
         validate_slots(slots)
+
+def test_indistinguishable_move_variants_share_one_public_record():
+    from sts2_env.az.roster import _legal_transition
+    from sts2_env.az.monster_registry import move_from_intents
+    assert move_from_intents('TURRET_OPERATOR', 'RELOAD_MOVE',
+                             (('MULTI_ATTACK', 3, 5),)) in ('UNLOAD_MOVE_1', 'UNLOAD_MOVE_2')
+    assert _legal_transition('TURRET_OPERATOR', 'UNLOAD_MOVE_1', 'UNLOAD_MOVE_2')
+    # The canonical record may be UNLOAD_MOVE_1 while the private variant was
+    # UNLOAD_MOVE_2; the same-signature variant's edge to RELOAD is admissible.
+    assert _legal_transition('TURRET_OPERATOR', 'UNLOAD_MOVE_1', 'RELOAD_MOVE')
+    world = build('setup_turret_operator_weak')
+    slots = capture(world, history_for(world))
+    slot = next(s for s in slots if s.monster_id == 'TURRET_OPERATOR')
+    signatures = dict(__import__('sts2_env.az.monster_registry', fromlist=['info_for'])
+                      .info_for(slot.monster_id).intent_signatures)
+    swapped = tuple(
+        EnemySlot(s.slot, s.monster_id, s.initial_hp, s.hp, s.max_hp, s.block, s.powers,
+                  signatures['UNLOAD_MOVE_2'], 'UNLOAD_MOVE_2', ('UNLOAD_MOVE_1',), s.escaped)
+        if s is slot else s for s in slots)
+    validate_slots(swapped)
+
+
+
