@@ -48,6 +48,11 @@ def rules(name, amount):
     if name == 'PANACHE': return (O('damage_per_plays', 'all_enemies', 'after_play', amount, coefficient=5),)
     if name == 'ROLLING_BOULDER': return (O('damage', 'all_enemies', 'turn_start', amount), O('damage', 'all_enemies', 'turn_start', 5, condition='always'))
     if name == 'THE_BOMB': return (O('damage', 'all_enemies', 'player_turn_end', 40),)
+    if name not in POWER_IDS:
+        # Visible player-side power without a first-class op (monster debuffs such
+        # as Weak/Frail/Constrict/Hex/binding). The amount stays public and is
+        # encoded explicitly as an opaque power token; nothing is dropped.
+        return (O('public_power', 'self', 'on_play', amount),)
     raise ValueError('Unsupported public player ability')
 
 
@@ -147,4 +152,5 @@ def block_before_enemy(info):
     return max(0, info.player_block + p.get('PLATING', 0)
         + p.get('FEEL_NO_PAIN', 0) * sum(prototype(t).is_ethereal for t in info.hand)
         - 2 * info.hand.count('BURN'))
+
 

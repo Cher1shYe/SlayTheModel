@@ -33,6 +33,7 @@
 | P2h | 有符号临时状态与被偷牌事件：71 通过 + 2 采样 + 1 专用契约 + 7 待补 | 已完成 |
 | P3a | 任意卡组生成器 + XS 冻结配置/协议（未训练） | 已完成 |
 | P3b | 自对弈采集→XS 更新→验证 runner 打通（冒烟，未正式训练） | 已完成 |
+| P3c | 契约拒绝 30→6：可见能力 opaque 编码 + 状态相关招式转移 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -159,3 +160,10 @@
 - 新增 `scripts/audit_encounter_robustness.py`：71 个通过遭遇 × 2 卡组 × 6 步 → **70 稳定**，`globe_head` 排除；生成器准入改为 parity ∩ robustness（**70 遭遇**），重新生成 `docs/all_deck_generator.json` 与 `configs/az_all_xs_v1/{config,protocol}.json`。
 - 管线冒烟（1 轮 / 2 局 / 预算 3 / 1 次更新）：采集与更新成功；验证 64 配方中 34 局完成、30 局被公开契约拒绝（逐条记录），完成局 mean V7 utility 0.328、无非法动作。**仅验证管线，不构成学习增益**。
 - 新增 `tests/test_az_all_runner.py`（4 项）；回归：卡牌/all-content/transformer + runner 见下。
+
+### 步骤 14（2026-10-18）P3 契约拒绝收敛（P3c）
+
+- 玩家侧可见能力（Weak/Frail/Constrict/Hex/binding 等怪物减益）在无专用 op 时编码为显式的 `public_power` 金额 token，不再拒绝也不静默丢弃；已知能力路径不变。
+- 状态相关招式转移：当前意图在**全招式表**唯一匹配时接受该观测招式；静态图之外的转移仅在来源/目标均为合法招式时放行（`_legal_transition` 保留对伪造 history 的拒绝）。
+- 验证集复评：64 配方由 34 完成/30 拒绝 → **58 完成/6 拒绝**（尸体软泥意图歧义、猎手临时负敏捷簿记、骑士生成牌库存）；完成局 mean V7 utility 0.321、0 非法动作。
+- 回归：**1047 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。

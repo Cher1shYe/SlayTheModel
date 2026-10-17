@@ -93,10 +93,18 @@ def intent_signal(ai):
 
 
 def _legal_transition(monster_id, previous, current):
+    info = info_for(monster_id)
     if previous is None:
-        return current in info_for(monster_id).initial_moves
-    successors = dict(info_for(monster_id).successors)
-    return previous in successors and current in successors[previous]
+        return current in info.initial_moves
+    successors = dict(info.successors)
+    if previous in successors and current in successors[previous]:
+        return True
+    # State-dependent transitions (HP gates, phase changes) may be absent from
+    # the static graph; accept only a destination whose visible signature is
+    # unique, because the capture already derived it from the current intents.
+    signatures = dict(info.intent_signatures)
+    return (previous in signatures and current in signatures
+            and sum(signatures[move] == signatures[current] for move in signatures) == 1)
 
 
 def capture_slots(world, history, initial_hp):

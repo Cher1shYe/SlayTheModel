@@ -1,4 +1,4 @@
-"""Native combat-monster inventory for the AZ public-state layer.
+﻿"""Native combat-monster inventory for the AZ public-state layer.
 
 This module only reads *static* game data: which encounters exist in the native
 rom, which creature factories build each monster, and the public shape of each
@@ -7,9 +7,9 @@ runs a mission or reads a world.
 
 Two publicness criteria are reported per monster:
 
-* ``deterministic_script`` – every transition out of a MoveState is a single
+* ``deterministic_script`` 鈥?every transition out of a MoveState is a single
   explicit follow-up, so the move history is enough to know the state.
-* ``intent_unique`` – every move in the graph has a distinct visible-intent
+* ``intent_unique`` 鈥?every move in the graph has a distinct visible-intent
   signature, so the current move can be read from the displayed intent.
 
 A monster is admitted by the generic roster layer only when both hold; other
@@ -256,6 +256,13 @@ def move_from_intents(monster_id, previous_move, intents):
         candidates = successors[previous_move]
     matches = [move for move in candidates if signatures[move] == tuple(intents)]
     if len(matches) != 1:
+        # State-dependent transitions (HP gates, phase changes) are not always in
+        # the static graph, but a unique signature over the whole move set still
+        # identifies the observed move from public intents alone.
+        global_matches = [move for move in signatures if signatures[move] == tuple(intents)]
+        if len(global_matches) == 1:
+            matches = global_matches
+    if len(matches) != 1:
         raise ValueError(f'Intent does not identify one {monster_id} move: {matches}')
     return matches[0]
 
@@ -365,4 +372,5 @@ def audit():
                 total_encounters=len(encounters),
                 admitted_monsters=sorted(m for m, d in described.items() if d.admitted),
                 total_monsters=len(described))
+
 
