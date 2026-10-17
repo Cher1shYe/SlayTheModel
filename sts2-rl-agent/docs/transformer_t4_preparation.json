@@ -1,0 +1,3465 @@
+{
+  "version": "t4-preparation-diagnostic-v1",
+  "training_started": false,
+  "heldout_battles_executed": false,
+  "network_quality_accepted": false,
+  "acceptance_status": "not-evaluated-no-new-trained-model",
+  "code_digest": "ce49b03e6253a2e9908397643a662a4d0360c859e9cfaba655cb8c81b5f0f15f",
+  "course_sha256": "4c842565548869c8e72ba289ef3dcd161bbe3e511708dfc67a04e21609730887",
+  "protocol_sha256": "30a9c9f95927c70236a10c153fff7df183f8642f601e1cc211b2b5b7dd4434af",
+  "counts": {
+    "train": 48,
+    "validation": 256,
+    "unseen_combination": 24,
+    "unseen_id": 24
+  },
+  "natural_snapshots": 8,
+  "categories": [
+    "burn-hand",
+    "phase-1",
+    "phase-2",
+    "purity-status-choice"
+  ],
+  "source_sha256": {
+    "docs\\g23f_audit\\replay-phase-0.json": "f2f5ba87dcbefa517af455454a002e7dd97c409bcdc8107ea6d9a81716a7841a",
+    "docs\\g23f_audit\\replay-phase-1.json": "31fe7aa8f76f1bf8e91aa41f5dacd121dd84386530ba666d2e4bf3c88f59c684",
+    "docs\\g23f_audit\\replay-phase-2.json": "ebd505c9fba26a3a59ea3451966e912404e688d13252022621b1d6b33cdc670b",
+    "docs\\g23f_audit\\rule-win-9cdfa66bbf7f.json": "606a6d5eb58b6497dcb2295d8eab1bd8ce07149feb62684fdd85b8f5e1307334"
+  },
+  "checkpoint_sha256": {
+    "output\\az_transformer_t3_v7_formal_20261016\\seed-42\\candidate-1.pt": "1156793828cb6cde637604ccc0b25a7564166b39f794a1a4d145683411eec05f",
+    "output\\az_transformer_t3_v7_formal_20261016\\seed-43\\candidate-2.pt": "e4f1528917d1565033eddab9e5aa498ba9c2804ff0b911afa339f4713363a94e"
+  },
+  "orders": {
+    "block_then_slam": [
+      {
+        "token": "ARMAMENTS+",
+        "action": "play:hand/3:player",
+        "block": 5,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.11128906250000001
+      },
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/1:enemy/0",
+        "block": 5,
+        "enemy_hp": 95,
+        "player_hp": 80,
+        "cutoff_utility": -0.10378906250000003
+      }
+    ],
+    "slam_then_block": [
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/1:enemy/0",
+        "block": 0,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.115625
+      },
+      {
+        "token": "ARMAMENTS+",
+        "action": "play:hand/2:player",
+        "block": 5,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.11128906250000001
+      }
+    ]
+  },
+  "iron_wave_order": {
+    "prefix": [
+      "play:hand/0:player",
+      "play:hand/1:player",
+      "play:hand/3:player",
+      "play:hand/0:enemy/0",
+      "play:hand/1:enemy/0",
+      "end_turn"
+    ],
+    "block_then_slam": [
+      {
+        "token": "IRON_WAVE+",
+        "action": "play:hand/0:enemy/0",
+        "block": 7,
+        "enemy_hp": 27,
+        "player_hp": 80,
+        "cutoff_utility": 0.0028984375000000217
+      },
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/2:enemy/0",
+        "block": 7,
+        "enemy_hp": 20,
+        "player_hp": 80,
+        "cutoff_utility": 0.013398437499999975
+      }
+    ],
+    "slam_then_block": [
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/3:enemy/0",
+        "block": 0,
+        "enemy_hp": 34,
+        "player_hp": 80,
+        "cutoff_utility": -0.016625000000000015
+      },
+      {
+        "token": "IRON_WAVE+",
+        "action": "play:hand/0:enemy/0",
+        "block": 7,
+        "enemy_hp": 27,
+        "player_hp": 80,
+        "cutoff_utility": 0.0028984375000000217
+      }
+    ]
+  },
+  "probes": {
+    "uniform": {
+      "8": {
+        "budget": 8,
+        "search_seed": 1729,
+        "action": "play:hand/0:player",
+        "visits": {
+          "end_turn": 1,
+          "play:hand/0:player": 2,
+          "play:hand/1:enemy/0": 1,
+          "play:hand/2:player": 2,
+          "play:hand/3:player": 1,
+          "play:hand/4:enemy/0": 1
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.10472656250000001,
+          "play:hand/1:enemy/0": -0.115625,
+          "play:hand/2:player": -0.10472656250000001,
+          "play:hand/3:player": -0.11128906250000001,
+          "play:hand/4:enemy/0": -0.115625
+        },
+        "priors": {
+          "end_turn": 0.16666666666666666,
+          "play:hand/0:player": 0.16666666666666666,
+          "play:hand/1:enemy/0": 0.16666666666666666,
+          "play:hand/2:player": 0.16666666666666666,
+          "play:hand/3:player": 0.16666666666666666,
+          "play:hand/4:enemy/0": 0.16666666666666666
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          }
+        ],
+        "max_depth": 1,
+        "forced": false
+      },
+      "32": {
+        "budget": 32,
+        "search_seed": 1729,
+        "action": "play:hand/3:player",
+        "visits": {
+          "end_turn": 3,
+          "play:hand/0:player": 6,
+          "play:hand/1:enemy/0": 6,
+          "play:hand/2:player": 6,
+          "play:hand/3:player": 6,
+          "play:hand/4:enemy/0": 5
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.13441574719509208,
+          "play:hand/1:enemy/0": -0.1364547164351852,
+          "play:hand/2:player": -0.13441574719509208,
+          "play:hand/3:player": -0.1280260364176535,
+          "play:hand/4:enemy/0": -0.14148784722222224
+        },
+        "priors": {
+          "end_turn": 0.16666666666666666,
+          "play:hand/0:player": 0.16666666666666666,
+          "play:hand/1:enemy/0": 0.16666666666666666,
+          "play:hand/2:player": 0.16666666666666666,
+          "play:hand/3:player": 0.16666666666666666,
+          "play:hand/4:enemy/0": 0.16666666666666666
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          }
+        ],
+        "max_depth": 2,
+        "forced": false
+      },
+      "128": {
+        "budget": 128,
+        "search_seed": 1729,
+        "action": "play:hand/2:player",
+        "visits": {
+          "end_turn": 11,
+          "play:hand/0:player": 26,
+          "play:hand/1:enemy/0": 21,
+          "play:hand/2:player": 27,
+          "play:hand/3:player": 22,
+          "play:hand/4:enemy/0": 21
+        },
+        "q": {
+          "end_turn": -0.26673611111111123,
+          "play:hand/0:player": -0.12663947577623885,
+          "play:hand/1:enemy/0": -0.1516347391009961,
+          "play:hand/2:player": -0.12174870615173827,
+          "play:hand/3:player": -0.1428852911377093,
+          "play:hand/4:enemy/0": -0.15091040874385328
+        },
+        "priors": {
+          "end_turn": 0.16666666666666666,
+          "play:hand/0:player": 0.16666666666666666,
+          "play:hand/1:enemy/0": 0.16666666666666666,
+          "play:hand/2:player": 0.16666666666666666,
+          "play:hand/3:player": 0.16666666666666666,
+          "play:hand/4:enemy/0": 0.16666666666666666
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          2,
+          1,
+          1,
+          1,
+          3,
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          1,
+          2,
+          3,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          1,
+          2,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          3,
+          2,
+          3,
+          3,
+          3,
+          3,
+          1,
+          3,
+          3,
+          2,
+          2,
+          2,
+          1,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          3,
+          3,
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          2,
+          3,
+          2,
+          2,
+          1,
+          3,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17312500000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17312500000000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17729411658527622
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17729411658527622
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17729411658527622
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09628906249999997
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17312500000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.17729411658527622
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          }
+        ],
+        "max_depth": 3,
+        "forced": false
+      }
+    },
+    "42": {
+      "8": {
+        "budget": 8,
+        "search_seed": 1729,
+        "action": "play:hand/0:player",
+        "visits": {
+          "end_turn": 1,
+          "play:hand/0:player": 2,
+          "play:hand/1:enemy/0": 1,
+          "play:hand/2:player": 2,
+          "play:hand/3:player": 1,
+          "play:hand/4:enemy/0": 1
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.10472656250000001,
+          "play:hand/1:enemy/0": -0.115625,
+          "play:hand/2:player": -0.10472656250000001,
+          "play:hand/3:player": -0.11128906250000001,
+          "play:hand/4:enemy/0": -0.115625
+        },
+        "priors": {
+          "end_turn": 0.1330647339383473,
+          "play:hand/0:player": 0.17600155138971732,
+          "play:hand/1:enemy/0": 0.16945098593012967,
+          "play:hand/2:player": 0.1759993758201506,
+          "play:hand/3:player": 0.1760337975030213,
+          "play:hand/4:enemy/0": 0.16944955541863374
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          }
+        ],
+        "max_depth": 1,
+        "forced": false
+      },
+      "32": {
+        "budget": 32,
+        "search_seed": 1729,
+        "action": "play:hand/2:player",
+        "visits": {
+          "end_turn": 2,
+          "play:hand/0:player": 6,
+          "play:hand/1:enemy/0": 6,
+          "play:hand/2:player": 6,
+          "play:hand/3:player": 6,
+          "play:hand/4:enemy/0": 6
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.10398437500000002,
+          "play:hand/1:enemy/0": -0.1364547164351852,
+          "play:hand/2:player": -0.10280598958333335,
+          "play:hand/3:player": -0.1280260364176535,
+          "play:hand/4:enemy/0": -0.1364547164351852
+        },
+        "priors": {
+          "end_turn": 0.1330647339383473,
+          "play:hand/0:player": 0.17600155138971732,
+          "play:hand/1:enemy/0": 0.16945098593012967,
+          "play:hand/2:player": 0.1759993758201506,
+          "play:hand/3:player": 0.1760337975030213,
+          "play:hand/4:enemy/0": 0.16944955541863374
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          }
+        ],
+        "max_depth": 2,
+        "forced": false
+      },
+      "128": {
+        "budget": 128,
+        "search_seed": 1729,
+        "action": "play:hand/0:player",
+        "visits": {
+          "end_turn": 8,
+          "play:hand/0:player": 27,
+          "play:hand/1:enemy/0": 22,
+          "play:hand/2:player": 26,
+          "play:hand/3:player": 23,
+          "play:hand/4:enemy/0": 22
+        },
+        "q": {
+          "end_turn": -0.26673611111111123,
+          "play:hand/0:player": -0.10390036079945467,
+          "play:hand/1:enemy/0": -0.12642167628309742,
+          "play:hand/2:player": -0.10701721569886741,
+          "play:hand/3:player": -0.12483049724016017,
+          "play:hand/4:enemy/0": -0.1269383666240065
+        },
+        "priors": {
+          "end_turn": 0.1330647339383473,
+          "play:hand/0:player": 0.17600155138971732,
+          "play:hand/1:enemy/0": 0.16945098593012967,
+          "play:hand/2:player": 0.1759993758201506,
+          "play:hand/3:player": 0.1760337975030213,
+          "play:hand/4:enemy/0": 0.16944955541863374
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          3,
+          2,
+          3,
+          2,
+          2,
+          1,
+          3,
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          3,
+          2,
+          2,
+          2,
+          3,
+          2,
+          3,
+          2,
+          1,
+          2,
+          3,
+          2,
+          3,
+          2,
+          3,
+          2,
+          2,
+          3,
+          3,
+          1,
+          2,
+          2,
+          3,
+          3,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          3,
+          2,
+          1,
+          2,
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          3,
+          2,
+          2,
+          3,
+          2,
+          3,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          1,
+          2,
+          2,
+          3,
+          3,
+          3,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09628906249999997
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09628906249999997
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.1
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          }
+        ],
+        "max_depth": 3,
+        "forced": false
+      }
+    },
+    "43": {
+      "8": {
+        "budget": 8,
+        "search_seed": 1729,
+        "action": "play:hand/4:enemy/0",
+        "visits": {
+          "end_turn": 1,
+          "play:hand/0:player": 1,
+          "play:hand/1:enemy/0": 2,
+          "play:hand/2:player": 1,
+          "play:hand/3:player": 1,
+          "play:hand/4:enemy/0": 2
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.10472656250000001,
+          "play:hand/1:enemy/0": -0.115625,
+          "play:hand/2:player": -0.10472656250000001,
+          "play:hand/3:player": -0.11128906250000001,
+          "play:hand/4:enemy/0": -0.115625
+        },
+        "priors": {
+          "end_turn": 0.12453665862686913,
+          "play:hand/0:player": 0.16149378183842708,
+          "play:hand/1:enemy/0": 0.1954528584059967,
+          "play:hand/2:player": 0.16149770084390866,
+          "play:hand/3:player": 0.16155816975738488,
+          "play:hand/4:enemy/0": 0.1954608305274136
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          }
+        ],
+        "max_depth": 2,
+        "forced": false
+      },
+      "32": {
+        "budget": 32,
+        "search_seed": 1729,
+        "action": "play:hand/0:player",
+        "visits": {
+          "end_turn": 2,
+          "play:hand/0:player": 6,
+          "play:hand/1:enemy/0": 6,
+          "play:hand/2:player": 6,
+          "play:hand/3:player": 6,
+          "play:hand/4:enemy/0": 6
+        },
+        "q": {
+          "end_turn": -0.2667361111111112,
+          "play:hand/0:player": -0.09885546875000002,
+          "play:hand/1:enemy/0": -0.1364547164351852,
+          "play:hand/2:player": -0.10197656250000002,
+          "play:hand/3:player": -0.1280260364176535,
+          "play:hand/4:enemy/0": -0.1364547164351852
+        },
+        "priors": {
+          "end_turn": 0.12453665862686913,
+          "play:hand/0:player": 0.16149378183842708,
+          "play:hand/1:enemy/0": 0.1954528584059967,
+          "play:hand/2:player": 0.16149770084390866,
+          "play:hand/3:player": 0.16155816975738488,
+          "play:hand/4:enemy/0": 0.1954608305274136
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          }
+        ],
+        "max_depth": 2,
+        "forced": false
+      },
+      "128": {
+        "budget": 128,
+        "search_seed": 1729,
+        "action": "play:hand/2:player",
+        "visits": {
+          "end_turn": 7,
+          "play:hand/0:player": 26,
+          "play:hand/1:enemy/0": 24,
+          "play:hand/2:player": 26,
+          "play:hand/3:player": 21,
+          "play:hand/4:enemy/0": 24
+        },
+        "q": {
+          "end_turn": -0.26673611111111123,
+          "play:hand/0:player": -0.10030157659943371,
+          "play:hand/1:enemy/0": -0.12996082768080228,
+          "play:hand/2:player": -0.10019881217635679,
+          "play:hand/3:player": -0.12388578269160397,
+          "play:hand/4:enemy/0": -0.13027235111830227
+        },
+        "priors": {
+          "end_turn": 0.12453665862686913,
+          "play:hand/0:player": 0.16149378183842708,
+          "play:hand/1:enemy/0": 0.1954528584059967,
+          "play:hand/2:player": 0.16149770084390866,
+          "play:hand/3:player": 0.16155816975738488,
+          "play:hand/4:enemy/0": 0.1954608305274136
+        },
+        "depths": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          2,
+          2,
+          1,
+          1,
+          2,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          1,
+          1,
+          2,
+          1,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          1,
+          2,
+          3,
+          3,
+          1,
+          1,
+          1,
+          3,
+          3,
+          2,
+          3,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          3,
+          3,
+          2,
+          2,
+          3,
+          1,
+          3,
+          3,
+          2,
+          2,
+          3,
+          2,
+          2,
+          2,
+          2,
+          3,
+          3,
+          3,
+          2,
+          2,
+          3,
+          3,
+          3,
+          2,
+          2,
+          1,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          3,
+          1,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          1,
+          2,
+          2,
+          2,
+          3,
+          3,
+          2,
+          1,
+          3,
+          3,
+          2,
+          2,
+          2,
+          2,
+          3,
+          2,
+          3,
+          3,
+          3,
+          1,
+          2,
+          2,
+          2,
+          3,
+          2,
+          2,
+          3,
+          3,
+          2,
+          3,
+          2,
+          2,
+          3,
+          3,
+          2
+        ],
+        "backups": [
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.115625
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.11128906250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09628906249999997
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09628906249999997
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10378906250000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.07850000000000006
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.07850000000000006
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.09012499999999997
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.09500000000000003
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.07850000000000006
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.08822656250000002
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 1,
+            "terminal": false,
+            "value": -0.2667361111111112
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2442890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.2367890310059209
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10250000000000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.19379411658527623
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 3,
+            "terminal": false,
+            "value": -0.10472656250000001
+          },
+          {
+            "depth": 2,
+            "terminal": false,
+            "value": -0.10015625
+          }
+        ],
+        "max_depth": 3,
+        "forced": false
+      }
+    }
+  },
+  "note": "Frozen old models diagnose a known training witness only; these weights cannot initialize the ID-holdout experiment."
+}

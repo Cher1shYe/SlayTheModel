@@ -1,0 +1,97 @@
+{
+  "counts": {
+    "train": 48,
+    "validation": 256,
+    "unseen_combination": 24,
+    "unseen_id": 24
+  },
+  "natural_snapshots": 8,
+  "categories": [
+    "burn-hand",
+    "phase-1",
+    "phase-2",
+    "purity-status-choice"
+  ],
+  "orders": {
+    "block_then_slam": [
+      {
+        "token": "ARMAMENTS+",
+        "action": "play:hand/3:player",
+        "block": 5,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.11128906250000001
+      },
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/1:enemy/0",
+        "block": 5,
+        "enemy_hp": 95,
+        "player_hp": 80,
+        "cutoff_utility": -0.10378906250000003
+      }
+    ],
+    "slam_then_block": [
+      {
+        "token": "BODY_SLAM+",
+        "action": "play:hand/1:enemy/0",
+        "block": 0,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.115625
+      },
+      {
+        "token": "ARMAMENTS+",
+        "action": "play:hand/2:player",
+        "block": 5,
+        "enemy_hp": 100,
+        "player_hp": 80,
+        "cutoff_utility": -0.11128906250000001
+      }
+    ]
+  }
+}
+{
+  "uniform": {
+    "8": {
+      "action": "play:hand/0:player",
+      "max_depth": 1
+    },
+    "32": {
+      "action": "play:hand/3:player",
+      "max_depth": 2
+    },
+    "128": {
+      "action": "play:hand/2:player",
+      "max_depth": 3
+    }
+  },
+  "42": {
+    "8": {
+      "action": "play:hand/0:player",
+      "max_depth": 1
+    },
+    "32": {
+      "action": "play:hand/2:player",
+      "max_depth": 2
+    },
+    "128": {
+      "action": "play:hand/0:player",
+      "max_depth": 3
+    }
+  },
+  "43": {
+    "8": {
+      "action": "play:hand/4:enemy/0",
+      "max_depth": 2
+    },
+    "32": {
+      "action": "play:hand/0:player",
+      "max_depth": 2
+    },
+    "128": {
+      "action": "play:hand/2:player",
+      "max_depth": 3
+    }
+  }
+}

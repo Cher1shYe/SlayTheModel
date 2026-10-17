@@ -21,6 +21,14 @@ V7 S 两轮 smoke 与正式 seed 42/43 各三轮已完成：正式采集 1,080 �
 
 自然第三形态已有 147 场、2,309 个决策，但所有 Boss 训练 value 标签都是 −1，缺少成功轨迹。798 项测试与 605 个源工件 / 6 条合法见证复算通过。详见 [G2.3f 审计报告](docs/AZ_TRANSFORMER_G23F_AUDIT.md)。下一步实现版本化自然后期课程、组合顺序搜索诊断及组合/ID 留出；T4 整体尚未完成，未启动新训练。
 
+## T4 自然后期课程与留出冻结（2026-10-17）
+
+已实现 `natural-late-course-v1`：8 个第二/第三形态、Burn 与 Purity 自然起点，支持完整合法前缀恢复、可重复采样、独立后缀采集/校验及现有实体 learner 数据接口。保留原始整场 HP 和预算；快照结果不参与整场验收。
+
+冻结 48 train、256 validation、24 未见组合、24 完整 ID 留出配方；BLUDGEON 及升级版只在 ID 留出中出现，未来必须从全新模型开始。组合诊断复现 Armaments→Body Slam 的 5 对 0 伤害、Iron Wave→Body Slam 的 14 对 7；旧 seed 43 的 8 次搜索仍可选零格挡 Body Slam。822 项测试及独立证据复算通过。
+
+详见 [T4 课程与留出报告](docs/AZ_TRANSFORMER_T4_COURSE.md)。验收入口继续采用 256 场实际 network V7 效用；本轮未启动新训练，新增学习增益未评估。新 runner 的课程混合比例与运行预算仍需在启动前冻结。
+
 ## Architecture
 
 ```
