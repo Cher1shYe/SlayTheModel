@@ -94,3 +94,5 @@
 - 卡牌契约补充：`SLIMED` 状态牌（史莱姆生成，含消耗/抽 1）、卡牌 `affliction`（bound/entangled）公开状态与恢复。
 - 新增 `tests/test_az_all_content.py`（28 项）：13 个跨幕遭遇的初始观测与一整个公开回合校验；明确记录 Queen 暂缓原因（ChainsOfBinding 的公开 affliction 账本未实现），不静默接受。
 - 未完成：粒子采样、实体编码、适配器与动态 MCTS 的 ALL_CONTENT 分派（P2d）。
+- 回归：卡牌/roster/all-content 1003 项、Transformer 287 项串行通过。
+- 已知快照遗留：`tests/test_az_t4_course.py` 有 5 项在改动前就失败（冻结 witness 缺 `exhausted_this_turn` 等新字段，`public_from_dict` 抛 KeyError）；已用 `git stash` 在未改动树上复现，确认不是本轮引入，未在本轮修复。
