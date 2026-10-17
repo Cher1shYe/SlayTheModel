@@ -56,13 +56,15 @@ def main():
     prior_summary, prior_rows = run_pass(model, recipes, 0, limits, 'prior')
     search_summary, search_rows = run_pass(model, recipes, budget, limits, f'mcts{budget}')
     old = {row['scenario_id']: row['reward'] for row in prior_rows}
-    gains = [row['reward'] - old[row['scenario_id']] for row in search_rows]
+    new = {row['scenario_id']: row['reward'] for row in search_rows}
+    common = sorted(set(old) & set(new))
+    gains = [new[key] - old[key] for key in common]
     report = {
         'version': 'all-xs-policy-diagnostic-v1',
         'content': config['content'], 'reward': config['reward'],
         'recipes': count, 'budget': budget,
         'prior': prior_summary, 'search': search_summary,
-        'paired_gain': {'episodes': len(gains),
+        'paired_gain': {'episodes': len(gains), 'common_recipes': len(common),
                         'mean_gain': statistics.fmean(gains),
                         'positive': sum(gain > 0 for gain in gains),
                         'negative': sum(gain < 0 for gain in gains),
@@ -75,4 +77,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
 

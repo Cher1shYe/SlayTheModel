@@ -1,4 +1,4 @@
-﻿"""Native combat-monster inventory for the AZ public-state layer.
+"""Native combat-monster inventory for the AZ public-state layer.
 
 This module only reads *static* game data: which encounters exist in the native
 rom, which creature factories build each monster, and the public shape of each
@@ -271,6 +271,11 @@ def move_from_intents(monster_id, previous_move, intents):
         global_matches = [move for move in signatures if signatures[move] == tuple(intents)]
         if len(global_matches) == 1:
             matches = global_matches
+    if len(matches) > 1 and len({signatures[move] for move in matches}) == 1:
+        # Several script states are publicly indistinguishable (same visible
+        # intents). Record one canonical move deterministically; the private
+        # variant carries no observable information.
+        matches = [sorted(matches)[0]]
     if len(matches) != 1:
         raise ValueError(f'Intent does not identify one {monster_id} move: {matches}')
     return matches[0]

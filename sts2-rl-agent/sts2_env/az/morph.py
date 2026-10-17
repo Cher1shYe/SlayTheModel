@@ -100,7 +100,10 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
     for i in range(min(drawn, total)):
         expected = top[i] if i < len(top) else bottom[i - (total-len(bottom))] if i >= total-len(bottom) else None
         if expected is not None and visible[i] != expected:
-            raise ValueError("Visible draw contradicts known position")
+            # Hand growth may include a card added to hand rather than drawn, so
+            # the visible suffix cannot always be attributed to the known order.
+            # Forget the prefix/suffix instead of asserting an unverified order.
+            return (), ()
     top = top[drawn:]
     bottom = bottom[max(0, drawn-(total-len(bottom))):]
     remaining = max(0, total-drawn)

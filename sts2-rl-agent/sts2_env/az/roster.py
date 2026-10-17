@@ -109,6 +109,13 @@ def _legal_transition(monster_id, previous, current):
     # the static graph; accept only a destination whose visible signature is
     # unique, because the capture already derived it from the current intents.
     signatures = dict(info.intent_signatures)
+    if previous in signatures:
+        # Publicly indistinguishable variants may follow different private
+        # script edges; any edge from a same-signature variant is admissible.
+        variants = [move for move, signature in signatures.items()
+                    if signature == signatures[previous]]
+        if any(current in successors.get(move, ()) for move in variants):
+            return True
     return (previous in signatures and current in signatures
             and sum(signatures[move] == signatures[current] for move in signatures) == 1)
 
@@ -142,7 +149,11 @@ def capture_slots(world, history, initial_hp):
         previous = past[-1] if past else None
         move = move_from_intents(enemy.monster_id, previous, intents)
         if move != 'STUNNED' and move != ai._current_state_id:
-            raise ValueError(f'Private move disagrees with the public script: {enemy.monster_id}')
+            # Private variants with identical visible intent cannot be told
+            # apart; the canonical public move is the record.
+            signatures = dict(info_for(enemy.monster_id).intent_signatures)
+            if signatures.get(move) is None or signatures.get(move) != signatures.get(ai._current_state_id):
+                raise ValueError(f'Private move disagrees with the public script: {enemy.monster_id}')
         for before, after in zip(past, past[1:]):
             if not _legal_transition(enemy.monster_id, before, after):
                 raise ValueError(f'Illegal public transition: {enemy.monster_id}')
