@@ -1,4 +1,4 @@
-﻿"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
+"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
 
 The runner is deliberately in-process and sequential: one frozen XS model plays
 seeded arbitrary-deck fights against native monsters with dynamic search, the
@@ -22,7 +22,7 @@ from .entity_replay import EntityReplayBuffer
 from .entity_transition import collect_entity_episode
 from .evaluation import evaluate, summarize
 from .learner import Learner
-from .model_factory import (create_transformer, save_transformer_checkpoint)
+from .model_factory import create_transformer, load_transformer_checkpoint, save_transformer_checkpoint
 from .rewards import V7
 from .self_play import CollectionJob
 
@@ -108,9 +108,54 @@ def protocol_recipes(protocol, split):
     return tuple(recipe_from_document(document) for document in protocol[split])
 
 
+def _probe_recipe(recipe, limits):
+    """Build and encode one recipe without acting; public contract only."""
+    from .adapter import ObservableCombatAdapter
+    from .entity_encoder import encode_entities
+    env = ObservableCombatAdapter(recipe, reward_version=V7, limits=limits)
+    encode_entities(env.information)
+    return recipe
+
+
+def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns=6,
+              max_decisions=24, validation_limit=None):
+    """Validate planned training and held-out recipes before any training run."""
+    config = load_frozen_config(config_path)
+    protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
+    limits = EpisodeLimits(max_turns=max_turns, max_decisions=max_decisions)
+    training_ok, training_errors = 0, []
+    for iteration in range(iterations):
+        for recipe in training_recipes(iteration, episodes):
+            try:
+                _probe_recipe(recipe, limits)
+                training_ok += 1
+            except Exception as exc:  # noqa: BLE001 - preflight records rejections
+                training_errors.append(dict(scenario_id=recipe.scenario_id,
+                                            encounter=recipe.encounter_id,
+                                            error=f'{type(exc).__name__}: {exc}'))
+    validation = protocol_recipes(protocol, 'validation')
+    if validation_limit is not None:
+        validation = validation[:validation_limit]
+    validation_ok, validation_errors = 0, []
+    for recipe in validation:
+        try:
+            _probe_recipe(recipe, limits)
+            validation_ok += 1
+        except Exception as exc:  # noqa: BLE001
+            validation_errors.append(dict(scenario_id=recipe.scenario_id,
+                                          encounter=recipe.encounter_id,
+                                          error=f'{type(exc).__name__}: {exc}'))
+    return dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
+                training={'planned': iterations * episodes, 'ok': training_ok,
+                          'errors': training_errors},
+                validation={'checked': len(validation), 'ok': validation_ok,
+                            'errors': validation_errors},
+                ready=not training_errors and not validation_errors)
+
+
 def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, updates=1, budget=4,
         batch_size=16, learning_rate=None, seed=0, max_turns=6, max_decisions=24,
-        include_test=False, log=print):
+        include_test=False, resume=False, log=print):
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
     training = config['training']
@@ -119,12 +164,23 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
     version = f'{VERSION}-{seed}'
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    model = fresh_model(config)
+    history = []
+    start_iteration = 0
+    if resume and (out / 'report.json').exists():
+        previous = json.loads((out / 'report.json').read_text(encoding='utf-8'))
+        if previous.get('version') != VERSION:
+            raise ValueError('Cannot resume a report from another runner version')
+        history = previous['history']
+        start_iteration = len(history)
+        checkpoint = out / history[-1]['checkpoint']
+        model, _ = load_transformer_checkpoint(checkpoint, TIER, ALL_CONTENT, V7)
+        log(f'resume from iteration {start_iteration} ({checkpoint.name})')
+    else:
+        model = fresh_model(config)
     replay = EntityReplayBuffer(out / 'replay', capacity=50_000, content_version=ALL_CONTENT,
                                 reward_version=V7)
     validation = protocol_recipes(protocol, 'validation')
-    history = []
-    for iteration in range(iterations):
+    for iteration in range(start_iteration, iterations):
         recipes = training_recipes(iteration, episodes)
         failures = []
         collected = collect(model, recipes, iteration=iteration, budget=budget,
@@ -151,6 +207,8 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         history.append(record)
         log(f"iteration {iteration}: mean utility {validation_summary['mean_utility']:.3f} "
             f"win {validation_summary['win_rate']:.3f} replay {replay.size}")
+    if not history:
+        raise ValueError('No iteration completed')
     report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
                   iteration_budget=dict(iterations=iterations, episodes=episodes,
                                         updates=updates, budget=budget, batch_size=batch_size),
@@ -162,5 +220,41 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         report['test'] = summary
     atomic_json(out / 'report.json', report)
     return report
+
+
+def main(argv=None):
+    import argparse
+    parser = argparse.ArgumentParser(description='P3 all-content XS self-play runner')
+    parser.add_argument('--config', default='configs/az_all_xs_v1/config.json')
+    parser.add_argument('--protocol', default='configs/az_all_xs_v1/protocol.json')
+    parser.add_argument('--out', default='output/az_all_xs_run')
+    parser.add_argument('--iterations', type=int, default=1)
+    parser.add_argument('--episodes', type=int, default=2)
+    parser.add_argument('--updates', type=int, default=1)
+    parser.add_argument('--budget', type=int, default=4)
+    parser.add_argument('--batch-size', type=int, default=16)
+    parser.add_argument('--seed', type=int, default=0)
+    parser.add_argument('--max-turns', type=int, default=6)
+    parser.add_argument('--max-decisions', type=int, default=24)
+    parser.add_argument('--include-test', action='store_true')
+    parser.add_argument('--resume', action='store_true')
+    parser.add_argument('--preflight-only', action='store_true')
+    args = parser.parse_args(argv)
+    if args.preflight_only:
+        result = preflight(args.config, args.protocol, iterations=args.iterations,
+                           episodes=args.episodes, max_turns=args.max_turns,
+                           max_decisions=args.max_decisions)
+    else:
+        result = run(args.config, args.protocol, args.out, iterations=args.iterations,
+                     episodes=args.episodes, updates=args.updates, budget=args.budget,
+                     batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
+                     max_decisions=args.max_decisions, include_test=args.include_test,
+                     resume=args.resume)
+        result = {key: result[key] for key in ('version', 'history', 'final_validation')}
+    print(json.dumps(result, ensure_ascii=False))
+
+
+if __name__ == '__main__':
+    main()
 
 

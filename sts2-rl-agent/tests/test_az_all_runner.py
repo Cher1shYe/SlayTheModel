@@ -1,4 +1,4 @@
-﻿"""P3 all-content runner contract: reproducible episodes and honest rejections."""
+"""P3 all-content runner contract: reproducible episodes and honest rejections."""
 import numpy as np
 import pytest
 
@@ -61,6 +61,30 @@ def test_evaluation_counts_contract_rejections(monkeypatch):
     assert summary['contract_rejections'] == 1
     assert summary['contract_rejected'][0]['scenario_id'] == recipes[1].scenario_id
     assert summary['mean_utility'] == 0.5
+
+
+def test_preflight_accepts_the_frozen_plan():
+    result = all_runner.preflight(CONFIG, PROTOCOL, iterations=1, episodes=1,
+                                  max_turns=3, max_decisions=8)
+    assert result['ready'] is True
+    assert result['training'] == {'planned': 1, 'ok': 1, 'errors': []}
+    assert result['validation']['checked'] == 64
+    assert result['validation']['ok'] == 64
+
+
+def test_collection_is_reproducible_for_a_seed(tmp_path):
+    config = all_runner.load_frozen_config(CONFIG)
+    model = all_runner.fresh_model(config)
+    recipe = all_runner.training_recipes(0, 1)[0]
+    kwargs = dict(iteration=0, budget=2, limits=EpisodeLimits(max_turns=2, max_decisions=6),
+                  version='repro', seed=7)
+    first = all_runner.collect(model, [recipe], error_dir=tmp_path / 'a', **kwargs)[0]
+    second = all_runner.collect(model, [recipe], error_dir=tmp_path / 'b', **kwargs)[0]
+    assert first['episode_id'] == second['episode_id']
+    assert [row['chosen_action'] for row in first['rows']] == \
+           [row['chosen_action'] for row in second['rows']]
+    assert [row['policy_target'] for row in first['rows']] == \
+           [row['policy_target'] for row in second['rows']]
 
 
 def test_one_episode_update_changes_weights(tmp_path):

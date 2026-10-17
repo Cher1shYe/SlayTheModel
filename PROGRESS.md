@@ -36,6 +36,7 @@
 | P3c | 契约拒绝 30→6：可见能力 opaque 编码 + 状态相关招式转移 | 已完成 |
 | P3d | 契约拒绝 6→1：STUNNED 公开状态 + 零值力量/敏捷可见性 | 已完成 |
 | P3e | 验证集 64/64 全可评估：Dampen 降级公开事件 | 已完成 |
+| P3f | runner CLI/preflight/resume；训练后 checkpoint 复评 64/64 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -182,3 +183,10 @@
 - Dampen 的公开降级：战斗内把升级牌降级时写入与 `combat.upgrade_card` 同形的 `upgrade` 事件（旧 token→新 token），公开库存与牌面状态对账闭合；`card_state_change` 在战斗开始时（尚未进入牌堆区）也能入账。
 - 验证集复评：**64/64 配方全部完成、0 契约拒绝**；mean V7 utility 0.334、胜率 23.4%、0 非法动作。
 - 回归：**1316 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
+
+### 步骤 17（2026-10-18）runner CLI/preflight/resume 与训练后复评（P3f）
+
+- `all_runner` 新增：`preflight`（不行动，仅构建+编码全部计划训练/验证配方）、`run(resume=True)`（从 report.json 最后一轮 checkpoint 与 replay 续跑）、`--preflight-only`/`--resume` 等 CLI（`python -m sts2_env.az.all_runner`）。
+- 修复训练后策略触发的公开路径：无 pending card 的选择不再假设 `pending_card.token`（保留已知抽牌位置）。
+- 校验：preflight 训练 8/8、验证 64/64 可编码（ready=true）；1 轮后 resume 扩到 2 轮正常（历史 2 轮、replay 16 行）；训练 1 次更新后的 checkpoint 复评 **64/64 完成、0 契约拒绝**（仅管线证据，不构成策略结论）。
+- 新增测试：preflight、同 seed 采集可复现、无 pending card 的位置推进；回归 **1420 项通过（1 xfailed）**。

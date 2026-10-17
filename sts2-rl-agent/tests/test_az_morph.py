@@ -1,4 +1,4 @@
-from dataclasses import replace
+﻿from dataclasses import replace
 import numpy as np
 import pytest
 
@@ -273,3 +273,11 @@ def test_morph_schema_seeds_and_old_content_reject_generated_tokens():
         replace(r,content_manifest_version=SET_CONTENT).validate()
 
 
+
+def test_choice_without_pending_card_keeps_known_positions():
+    from types import SimpleNamespace
+    from sts2_env.az.morph import advance_positions
+    before = SimpleNamespace(known_top=('A',), known_bottom=('B',),
+                             draw_composition=('A', 'B'), choice=object(),
+                             pending_card=None, hand=(), retain_hand=0)
+    assert advance_positions(before, 1, (), False) == (('A',), ('B',))

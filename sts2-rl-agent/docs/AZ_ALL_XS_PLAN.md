@@ -54,7 +54,26 @@
 
 对 71 个 parity 通过遭遇各用两套固定卡组随机合法动作探测 6 步：**70 个稳定**；`setup_globe_head_normal` 在第二套卡组下触发未建模的 affliction 状态，已从生成器准入集中排除（`all_decks.admitted_encounters()` 取 parity ∩ robustness）。
 
-## 5. 诚实性约束
+## 5. 运行入口与恢复
+
+```powershell
+# 计划校验（不训练）：构建全部训练/验证配方并编码；输出 ready 与逐条错误
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --preflight-only --iterations 4 --episodes 8
+
+# 训练（示例参数；实际启动需用户授权）
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner `
+  --iterations 4 --episodes 8 --updates 4 --budget 8 --out output/az_all_xs_run
+
+# 中断后恢复：读 report.json 的最后一轮 checkpoint 与 replay，继续未完成轮次
+... --iterations 8 --resume
+```
+
+- `preflight` 已对当前冻结协议校验：训练配方 8/8、验证配方 64/64 可编码，`ready=true`。
+- `run` 的 replay 使用 `typed-entity-replay-v2`；同一 `episode_id` 重复提交是幂等的，因此恢复不会污染数据。
+- 恢复验证：1 轮运行后以 `--resume` 扩到 2 轮，历史累计 2 轮、replay 16 行。
+- 训练后（1 次更新）的 checkpoint 复评：**64/64 完成、0 契约拒绝**；该 checkpoint 只用于管线验证，不作为策略结论。
+
+## 6. 诚实性约束
 
 - 7 个未通过一致性扫描的遭遇、2 个采样差异遭遇**不进入**训练/验证/测试配方。
 - 未运行训练前，不声称任何策略/效用增益；不把生成器覆盖率当作模型能力。

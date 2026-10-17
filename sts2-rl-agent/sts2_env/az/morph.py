@@ -59,6 +59,10 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
     total = len(before.draw_composition)
     drawn = 0
     if before.choice is not None:
+        if before.pending_card is None:
+            # A choice that is not bound to a pending card cannot move known
+            # draw positions; keep the visible prefix/suffix unchanged.
+            return top, bottom
         token = before.pending_card.token.removesuffix("+")
         if token in ("HEADBUTT","THINKING_AHEAD"):
             top = (before.choice.options[action - 1].card.token,) + top
