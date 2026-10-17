@@ -1,4 +1,4 @@
-﻿"""P3 all-content runner contract: reproducible episodes and honest rejections."""
+"""P3 all-content runner contract: reproducible episodes and honest rejections."""
 import numpy as np
 import pytest
 
@@ -146,6 +146,22 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
     assert record['paired_vs_baseline']['mean_gain'] == pytest.approx(0.1)
     assert record['paired_vs_baseline']['episodes'] == 64
     assert (tmp_path / 'report.json').exists()
+
+
+def test_parallel_collection_matches_sequential(tmp_path):
+    config = all_runner.load_frozen_config(CONFIG)
+    model = all_runner.fresh_model(config)
+    recipes = all_runner.training_recipes(0, 2)
+    limits = EpisodeLimits(max_turns=2, max_decisions=6)
+    kwargs = dict(iteration=0, budget=1, error_dir=tmp_path / 'errors', limits=limits,
+                  version='par', seed=3)
+    sequential = all_runner.collect(model, recipes, **kwargs)
+    parallel = all_runner.collect(model, recipes, workers=2, **kwargs)
+    assert [e['episode_id'] for e in sequential] == [e['episode_id'] for e in parallel]
+    assert [e['rows'][0]['chosen_action'] for e in sequential] == \
+           [e['rows'][0]['chosen_action'] for e in parallel]
+    assert [e['rows'][0]['policy_target'] for e in sequential] == \
+           [e['rows'][0]['policy_target'] for e in parallel]
 
 
 def test_one_episode_update_changes_weights(tmp_path):

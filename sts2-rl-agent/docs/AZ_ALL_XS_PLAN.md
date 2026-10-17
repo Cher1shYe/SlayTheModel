@@ -70,6 +70,7 @@
 
 - `preflight` 已对当前冻结协议校验：训练配方 8/8、验证配方 64/64 可编码，`ready=true`。
 - `run` 在首轮更新前先测一次**初始模型基线**（同一 64 验证配方），每轮记录 `baseline`、`paired_vs_baseline`（按 scenario_id 配对的 bootstrap：均值增益、95% 区间、P(gain>0)，仅描述性报告）与 `seconds{collect,update,evaluate,total}`；`--no-baseline` 可关闭。
+- 采集支持 `--workers N`：把当前权重冻结到临时 checkpoint，由 spawn 进程按同一权重采集（`Collector` 跨轮复用）；失败的 chunk 自动回退串行并记录拒绝。8 局、预算 2 的实测：串行 6.58s → 2 worker 冷启 4.48s → 复用池 3.32s，且与串行轨迹逐动作一致。
 - `run` 的 replay 使用 `typed-entity-replay-v2`；同一 `episode_id` 重复提交是幂等的，因此恢复不会污染数据。
 - 恢复验证：1 轮运行后以 `--resume` 扩到 2 轮，历史累计 2 轮、replay 16 行。
 - 训练后（1 次更新）的 checkpoint 复评：**64/64 完成、0 契约拒绝**；该 checkpoint 只用于管线验证，不作为策略结论。

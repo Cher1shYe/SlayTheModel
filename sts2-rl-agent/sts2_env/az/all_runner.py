@@ -56,8 +56,21 @@ def training_recipes(iteration, episodes):
 
 
 def collect(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
-            failures=None):
-    """Collect every recipe that the public contract can replay; record the rest."""
+            failures=None, workers=1, collector=None):
+    """Collect every recipe that the public contract can replay; record the rest.
+
+    ``workers > 1`` freezes the current weights to a temporary checkpoint and
+    runs the entity collection in spawned processes (each worker loads the same
+    frozen weights); a failed chunk falls back to sequential collection so one
+    rejected recipe never hides the others.
+    """
+    if type(workers) is not int or workers < 1:
+        raise ValueError('Positive worker count required')
+    if workers > 1 and len(recipes) > 1:
+        return _collect_parallel(model, recipes, iteration=iteration, budget=budget,
+                                 error_dir=error_dir, limits=limits, version=version,
+                                 seed=seed, failures=failures, workers=workers,
+                                 collector=collector)
     episodes = []
     for job_id, recipe in enumerate(recipes):
         job = CollectionJob(
@@ -73,6 +86,50 @@ def collect(model, recipes, *, iteration, budget, error_dir, limits, version, se
             failures.append(dict(scenario_id=recipe.scenario_id,
                                  encounter=recipe.encounter_id,
                                  error=f'{type(exc).__name__}: {exc}'))
+    if not episodes:
+        raise ValueError('Every collection episode was rejected by the public contract')
+    return episodes
+
+
+def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
+                      failures, workers, collector=None):
+    import hashlib
+    from .self_play import Collector, collect_episode
+
+    checkpoint = Path(error_dir).parent / f'collect-{iteration:03d}.pt'
+    save_transformer_checkpoint(checkpoint, model, version)
+    digest = hashlib.sha256(checkpoint.read_bytes()).hexdigest()
+    jobs = [CollectionJob(
+        job_id=f'{iteration:03d}-{job_id:02d}', iteration=iteration, master_seed=seed + job_id,
+        scenario=recipe.to_dict(), checkpoint=str(checkpoint), checkpoint_sha256=digest,
+        model_version=version, error_dir=str(error_dir), simulations=budget, limits=limits,
+        reward_version=V7, search_version=SEARCH)
+        for job_id, recipe in enumerate(recipes)]
+    episodes = []
+
+    def drain(collector):
+        for start in range(0, len(jobs), workers):
+            chunk = jobs[start:start + workers]
+            try:
+                episodes.extend(collector.collect(chunk))
+                continue
+            except Exception:  # noqa: BLE001 - one bad worker result, retry sequentially
+                pass
+            for job, recipe in zip(chunk, recipes[start:start + workers]):
+                try:
+                    episodes.append(collect_episode(job))
+                except Exception as exc:  # noqa: BLE001
+                    if failures is None:
+                        raise
+                    failures.append(dict(scenario_id=recipe.scenario_id,
+                                         encounter=recipe.encounter_id,
+                                         error=f'{type(exc).__name__}: {exc}'))
+
+    if collector is None:
+        with Collector(workers) as owned:
+            drain(owned)
+    else:
+        drain(collector)
     if not episodes:
         raise ValueError('Every collection episode was rejected by the public contract')
     return episodes
@@ -174,7 +231,7 @@ def paired_gain(baseline, candidate, *, seed=1729, samples=2000):
 
 def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, updates=1, budget=4,
         batch_size=16, learning_rate=None, seed=0, max_turns=6, max_decisions=24,
-        include_test=False, resume=False, compare_baseline=True, log=print):
+        include_test=False, resume=False, compare_baseline=True, workers=1, log=print):
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
     training = config['training']
@@ -208,13 +265,18 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
             error_dir=out / 'errors', limits=limits)
         log(f"baseline: mean utility {baseline_summary['mean_utility']:.3f} "
             f"rejections {baseline_summary['contract_rejections']}")
+    collector = None
+    if workers > 1:
+        from .self_play import Collector
+        collector = Collector(workers)
     for iteration in range(start_iteration, iterations):
         started = time.perf_counter()
         recipes = training_recipes(iteration, episodes)
         failures = []
         collected = collect(model, recipes, iteration=iteration, budget=budget,
                             error_dir=out / 'errors', limits=limits, version=version,
-                            seed=seed * 100_000 + iteration * 1_000, failures=failures)
+                            seed=seed * 100_000 + iteration * 1_000, failures=failures,
+                            workers=workers, collector=collector)
         for episode in collected:
             replay.commit(episode)
         collected_at = time.perf_counter()
@@ -249,6 +311,8 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
         history.append(record)
         log(f"iteration {iteration}: mean utility {validation_summary['mean_utility']:.3f} "
             f"win {validation_summary['win_rate']:.3f} replay {replay.size}")
+    if collector is not None:
+        collector.__exit__(None, None, None)
     if not history:
         raise ValueError('No iteration completed')
     report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
@@ -282,6 +346,7 @@ def main(argv=None):
     parser.add_argument('--include-test', action='store_true')
     parser.add_argument('--resume', action='store_true')
     parser.add_argument('--no-baseline', action='store_true')
+    parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--preflight-only', action='store_true')
     args = parser.parse_args(argv)
     if args.preflight_only:
@@ -293,13 +358,17 @@ def main(argv=None):
                      episodes=args.episodes, updates=args.updates, budget=args.budget,
                      batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
                      max_decisions=args.max_decisions, include_test=args.include_test,
-                     resume=args.resume, compare_baseline=not args.no_baseline)
+                     resume=args.resume, compare_baseline=not args.no_baseline,
+                     workers=args.workers)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}
     print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == '__main__':
     main()
+
+
+
 
 
 

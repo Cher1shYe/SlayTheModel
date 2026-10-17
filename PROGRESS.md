@@ -41,6 +41,7 @@
 | P3h | 玩家朝向公开簿记：parity 76，准入 75，验证 64/64 | 已完成 |
 | P3i | runner 基线/配对增益/耗时报告与 `--no-baseline` | 已完成 |
 | P3j | 剩余 2 个 parity 差距定位（Boss 问题选择、Lagavulin 唤醒意图） | 已完成（归档，不接入） |
+| P3k | 并行采集（`--workers`，权重冻结 + 池复用），与串行轨迹一致 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -223,3 +224,10 @@
 - **knowledge_demon_boss**：失败发生在战斗开始后第 3 步——Boss 以 `PendingCardChoice(prompt='Curse of Knowledge')` 让玩家从两张**生成诅咒牌**（DISINTEGRATION / MIND_ROT）中选一张，选牌发生在敌方侧且没有可见牌堆来源；现有 `PublicChoiceState` 只支持 hand/discard/exhaust/revealed 来源。已归档为“需要生成选项的公开选择契约”，并在 `observe_choice` 增加显式拒绝分支（避免 IndexError）。
 - **lagavulin_matriarch_boss**：被击倒后粒子按公开脚本恢复为 SLEEP，而真实 AI 选择 SLASH；公开意图只显示当前招式的伤害，无法唯一确定唤醒后的下一招。归档为“公开信息不足”，保持显式拒绝。
 - 两者均**不接入**训练/验证/测试配方；`docs/ALL_ENCOUNTER_PARITY.md` 更新原因。回归 **1192 项通过（1 xfailed）**。
+
+### 步骤 22（2026-10-18）并行采集（P3k）
+
+- `all_runner.collect(..., workers=N)`：把当前权重冻结到临时 checkpoint，用 `self_play.Collector`（spawn、每 worker torch 单线程）按同一冻结权重采集；`run` 跨轮复用进程池，失败 chunk 自动回退串行并记录拒绝（不静默丢弃）。
+- CLI 新增 `--workers`；`preflight`/验证路径不变。
+- 实测（8 局、预算 2、max_turns 3）：串行 6.58s → 2 worker 冷启 4.48s → 复用水池 3.32s；与串行 episode id/动作/策略目标逐一相同。
+- 新增 1 项并行=串行一致性测试；回归 **1193 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
