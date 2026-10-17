@@ -1,4 +1,4 @@
-﻿"""Generic public roster for all act combat encounters.
+"""Generic public roster for all act combat encounters.
 
 The observer only keeps facts a player can see: creature identity, health,
 block, visible powers, the displayed intent list, the completed move history
@@ -89,18 +89,17 @@ class EnemySlot:
 
 
 def intent_signal(ai):
-    """Visible intent; a knocked-down move exposes the public stun state."""
+    """Visible intent; incapacitated moves expose the public stun state."""
     if getattr(ai, '_current_state_id', None) == 'STUNNED' or not ai.current_move.intents:
-        if getattr(ai, '_current_state_id', None) == 'STUNNED':
-            return (('STUNNED', 0, 1),)
+        return (('STUNNED', 0, 1),)
     return tuple((i.intent_type.name, int(i.damage), int(i.hits)) for i in ai.current_move.intents)
 
 
 def _legal_transition(monster_id, previous, current):
     info = info_for(monster_id)
-    # A stun can interrupt any script step and resumes the script afterwards.
-    if previous == 'STUNNED' or current == 'STUNNED':
-        return current == 'STUNNED' or previous == 'STUNNED'
+    # A stun or illusion revive can interrupt any script step and resumes afterwards.
+    if previous in ('STUNNED', 'REVIVE_MOVE') or current in ('STUNNED', 'REVIVE_MOVE'):
+        return True
     if previous is None:
         return current in info.initial_moves
     successors = dict(info.successors)
@@ -126,8 +125,9 @@ def capture_slots(world, history, initial_hp):
     initial_count = len(initial_hp)
     if initial_count < len(world.enemies):
         # A summoned slot appeared after the initial roster: its obligation
-        # starts at its visible spawn HP and the roster stays append-only.
-        initial_hp = initial_hp + tuple(max(0, enemy.current_hp)
+        # starts at its visible max HP (the value fixed when it spawned) and the
+        # roster stays append-only.
+        initial_hp = initial_hp + tuple(int(enemy.max_hp)
                                         for enemy in world.enemies[initial_count:])
     histories = history.roster_moves
     if len(histories) > len(world.enemies):
@@ -141,7 +141,7 @@ def capture_slots(world, history, initial_hp):
         intents = intent_signal(ai)
         previous = past[-1] if past else None
         move = move_from_intents(enemy.monster_id, previous, intents)
-        if move != ai._current_state_id:
+        if move != 'STUNNED' and move != ai._current_state_id:
             raise ValueError(f'Private move disagrees with the public script: {enemy.monster_id}')
         for before, after in zip(past, past[1:]):
             if not _legal_transition(enemy.monster_id, before, after):
@@ -194,6 +194,9 @@ def validate_slots(slots):
         if slot.move == 'STUNNED':
             if slot.intents != (('STUNNED', 0, 1),):
                 raise ValueError('Intent does not match the public move')
+        elif slot.move == 'REVIVE_MOVE':
+            if slot.intents != (('HEAL', 0, 1),):
+                raise ValueError('Intent does not match the public move')
         elif signatures.get(slot.move) != slot.intents:
             raise ValueError('Intent does not match the public move')
         for before, after in zip(slot.moves, slot.moves[1:]):
@@ -203,7 +206,7 @@ def validate_slots(slots):
         if slot.moves:
             if not _legal_transition(slot.monster_id, previous, slot.move):
                 raise ValueError('Current move is not reachable from the public history')
-        elif slot.move not in info.initial_moves and slot.move != 'STUNNED':
+        elif slot.move not in info.initial_moves and slot.move not in ('STUNNED', 'REVIVE_MOVE'):
             raise ValueError('Current move cannot be the initial move')
         if slot.hp == 0 and slot.monster_id == 'TEST_SUBJECT':
             raise ValueError('Boss phase forms require the dedicated contract')
@@ -211,7 +214,9 @@ def validate_slots(slots):
 
 
 def _variant_for(monster_id, required_moves):
-    required = set(required_moves)
+    # Stun and illusion-revive states are installed at runtime, so they never
+    # constrain which native construction variant explains the moves.
+    required = set(required_moves) - {'STUNNED', 'REVIVE_MOVE'}
     for creator_name, kwargs, moves, _ in variants_for(monster_id):
         if required <= set(moves):
             return CREATORS[creator_name], kwargs
@@ -258,6 +263,24 @@ def create_slots(world, slots, rng, encounter=None):
     return world
 
 
+def _install_runtime_state(ai, enemy, slot):
+    """Rebuild a runtime-only public state (stun / illusion revive) if missing."""
+    from sts2_env.core.enums import IntentType
+    from sts2_env.monsters.intents import Intent
+    from sts2_env.monsters.state_machine import MoveState
+    follow = slot.moves[-1] if slot.moves else info_for(slot.monster_id).initial_moves[0]
+    if slot.move == 'REVIVE_MOVE':
+        def revive(_combat):
+            enemy.current_hp = enemy.max_hp
+            enemy.escaped = False
+            enemy._death_processed = False
+        ai.states['REVIVE_MOVE'] = MoveState('REVIVE_MOVE', revive, [Intent(IntentType.HEAL)],
+                                            follow_up_id=follow)
+    elif slot.move == 'STUNNED':
+        ai.states['STUNNED'] = MoveState('STUNNED', lambda _combat: None, [],
+                                         follow_up_id=follow)
+
+
 def restore_slots(world, slots, rng):
     """Restore public bookkeeping, including the current move and its history."""
     from sts2_env.core.creature import get_power_class
@@ -274,6 +297,8 @@ def restore_slots(world, slots, rng):
         enemy.escaped = slot.escaped
         enemy._death_processed = slot.hp == 0
         ai.state_log = list(slot.moves)
+        if slot.move not in ai.states and slot.move in ('STUNNED', 'REVIVE_MOVE'):
+            _install_runtime_state(ai, enemy, slot)
         ai._current_state_id = slot.move
         ai._performed_first_move = bool(slot.moves)
         state = ai.states.get(slot.move)
@@ -284,6 +309,10 @@ def restore_slots(world, slots, rng):
             power.applier = world.player if name in ('VULNERABLE', 'KNOCKDOWN', 'GRAPPLE') else enemy
             if name == 'KNOCKDOWN':
                 power._instances = [(amount, world.player)]
+            if name == 'SANDPIT' and hasattr(power, 'set_target'):
+                # The countdown tracks the player it will kill; without the
+                # target the public card-play increment is lost.
+                power.set_target(world.player)
             if name == 'SLOW':
                 power._slow_amount = len(world._played_cards_this_turn)
             # Enemy-side statuses were applied during the player turn, so their
@@ -303,5 +332,8 @@ def after_round(before, ended):
     """
     return tuple(slot.moves + ((slot.move,) if slot.hp > 0 and not ended and not slot.escaped else ())
                  for slot in before)
+
+
+
 
 

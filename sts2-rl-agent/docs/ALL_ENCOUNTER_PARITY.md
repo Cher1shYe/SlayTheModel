@@ -17,27 +17,28 @@
 
 | 状态 | 数量 | 说明 |
 |---|---:|---|
-| 通过 | **71** | 8 步（或终局前）逐步一致 |
+| 通过 | **75** | 8 步（或终局前）逐步一致 |
 | 采样差异 | 2 | 召唤槽位的构造随机流不可见（fabricator/ovicopter），粒子只能采样；槽位出现后即为公开状态 |
 | 专用契约 | 1 | `setup_test_subject_boss` 三形态走 `boss_phases`，不进入通用判据 |
-| 待处理 | **7** | 见下表，逐条记录原因 |
+| 待处理 | **3** | 见下表，逐条记录原因 |
 
 ## 待处理遭遇与原因
 
 | 类别 | 遭遇 | 首个差异／错误 | 说明 |
 |---|---|---|---|
-| 粒子根状态 | fogmog_normal、living_fog_normal、the_obscura_normal | Particle 未复现根状态（enemies） | 召唤 Eye／形态切换后的敌人槽位重建差异 |
-| 召唤槽位 | the_insatiable_boss | enemies | 成长/召唤槽位的公开槽位差异 |
 | 回合侧 | knowledge_demon_boss | Not a public player decision | 敌方侧决策/额外行动未纳入公开回合契约 |
 | 意图唯一性 | lagavulin_matriarch_boss | Intent does not identify one move | 睡眠/唤醒形态的可见意图无法唯一确定招式 |
 | Boss 修正 | kaiser_crab_boss | player_hp/history | Crusher/Rocket 的 BACK_ATTACK + CRAB_RAGE 伤害修正 |
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
 
-补充：`docs/all_encounter_robustness.json` 对 71 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**70 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness）。
+补充：`docs/all_encounter_robustness.json` 对 75 个通过遭遇各用两套固定卡组做 6 步随机合法动作探测，**74 个稳定**；`setup_globe_head_normal` 在第二套卡组下出现未建模 affliction 状态，已从 P3 生成器准入集中排除（准入 = parity ∩ robustness = 74）。
 
 ## 本轮已修复
 
+- 被击倒（STUNNED）与幻象复活（REVIVE_MOVE，HEAL 意图）纳入公开招式/意图状态，可打断并恢复脚本；`spawned` 槽位以生成时的最大 HP 作为初始 HP。
+- Summon 槽位的 SANDPIT 恢复目标玩家，FRANTIC_ESCAPE 的公开费用增长与 Dampen 降级事件闭合库存。
+- fogmog / living fog / the obscura / the insatiable 由此转为 parity 通过。
 - 玩家 SHRINK 的观测与粒子恢复（功率顺序一致）。
 - 死亡/逃跑槽位不再获得公开出招；召唤槽位 append-only 的初始 HP、`spawned` 后缀与奖励账本。
 - V7 终局风险入参（`incoming_risk`）修复。

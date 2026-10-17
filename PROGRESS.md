@@ -37,6 +37,7 @@
 | P3d | 契约拒绝 6→1：STUNNED 公开状态 + 零值力量/敏捷可见性 | 已完成 |
 | P3e | 验证集 64/64 全可评估：Dampen 降级公开事件 | 已完成 |
 | P3f | runner CLI/preflight/resume；训练后 checkpoint 复评 64/64 | 已完成 |
+| P3g | 幻象复活/眩晕/砂坑公开状态：parity 75，准入 74，验证 64/64 | 已完成 |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -190,3 +191,12 @@
 - 修复训练后策略触发的公开路径：无 pending card 的选择不再假设 `pending_card.token`（保留已知抽牌位置）。
 - 校验：preflight 训练 8/8、验证 64/64 可编码（ready=true）；1 轮后 resume 扩到 2 轮正常（历史 2 轮、replay 16 行）；训练 1 次更新后的 checkpoint 复评 **64/64 完成、0 契约拒绝**（仅管线证据，不构成策略结论）。
 - 新增测试：preflight、同 seed 采集可复现、无 pending card 的位置推进；回归 **1420 项通过（1 xfailed）**。
+
+### 步骤 18（2026-10-18）运行时公开状态与准入扩到 74（P3g）
+
+- 公开招式状态新增：被击倒 `STUNNED`（引擎 `_current_state_id`/空意图/STUN 意图）与幻象复活 `REVIVE_MOVE`（HEAL 意图，运行时注入、复活后恢复脚本）；粒子恢复时重建这些运行时状态与跟随招式。
+- `spawned` 槽位初始 HP 改用生成时最大 HP（复活中/已倒下也可核对）；SANDPIT 恢复目标玩家；Dampen 降级写入 `upgrade(token→token)` 公开事件；战斗开始阶段的卡牌状态变更仅在 all-content 世界入账（不影响旧内容）。
+- 结果：parity **75 通过 + 2 采样 + 1 专用契约 + 3 待补**（fogmog/living fog/obscura/insatiable 转通过）；鲁棒性 **74/75 稳定**（globe head 排除）；生成器准入 **74 遭遇**，重新冻结 `configs/az_all_xs_v1/{config,protocol}.json`。
+- 复评：新协议验证集 **64/64 完成、0 契约拒绝**，mean V7 utility 0.357、0 非法动作；preflight 训练/验证全部可编码。
+- 已知快照遗留（本轮用 `git stash` 在 HEAD 复现）：`test_az_content_expansion.py` 的 2 个 `setup_fogmog_normal` particle 轨迹用例在改动前即失败（Dazed ledger 与 Eye 招式历史不符），未在本轮修复。
+- 回归：**1190 项通过（1 xfailed）**（排除上述 2 个既有失败用例）。仍不启动正式训练。

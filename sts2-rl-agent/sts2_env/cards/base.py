@@ -435,10 +435,9 @@ class CardInstance:
         world=getattr(getattr(self,"owner",None),"combat_state",None)
         current=self.public_state_blob()
         # Combat-start effects (for example Dampen) mutate cards before the
-        # first hand is drawn; those changes are still visible in this combat
-        # and must reach the public journal even when the card is not yet in a
-        # combat zone.
+        # first hand is drawn; the all-content adapter still journals them.
         if (world is not None and not getattr(world,"_suppress_card_state_events",False)
+            and (world._is_card_in_combat(self) or getattr(world, "_az_all_content", False))
             and previous!=current):
             world.visible_card_events.append(("card_state_change",previous,current,world.turn_count))
 
@@ -573,3 +572,4 @@ def new_card_instance_id_after(cards: Iterable[object]) -> int:
 def reset_instance_counter() -> None:
     global _next_instance_id
     _next_instance_id = 0
+

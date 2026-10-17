@@ -193,6 +193,10 @@ class ObservableCombatAdapter(CombatAdapter):
                                if recipe.content_manifest_version in (MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else self.enemy_initial_hp)
                                if recipe.content_manifest_version in (DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) else ((), None))
         self.world.visible_card_events = []  # Initial hand is already represented in the initial public state.
+        if all_content:
+            # All-content journals combat-start card mutations (for example the
+            # Knights' Dampen downgrade) even before cards enter a combat zone.
+            self.world._az_all_content = True
         self._information = observe(self.world, PublicHistory(), self.limits, recipe.player_hp, self.reward_version,
                                     recipe.content_manifest_version, *self.public_initial,
                                     encounter=recipe.encounter_id if all_content else '')
@@ -239,5 +243,6 @@ class ObservableCombatAdapter(CombatAdapter):
             atomic_json(self.error_dir / f"{uuid.uuid4().hex}.json",
                         {"trace": self.trace(), "error": repr(exc), "stage": "observer"})
             raise
+
 
 

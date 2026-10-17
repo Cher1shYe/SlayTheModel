@@ -247,11 +247,14 @@ def move_from_intents(monster_id, previous_move, intents):
     """
     if tuple(intents) == (('STUNNED', 0, 1),):
         return 'STUNNED'
+    if tuple(intents) == (('HEAL', 0, 1),):
+        # Illusion minions install a public revive move (heal icon) at runtime.
+        return 'REVIVE_MOVE'
     info = info_for(monster_id)
     signatures = dict(info.intent_signatures)
     if previous_move is None:
         candidates = info.initial_moves
-    elif previous_move == 'STUNNED':
+    elif previous_move in ('STUNNED', 'REVIVE_MOVE'):
         # After a stun the script resumes; the visible intent must identify one
         # legal move on its own.
         candidates = tuple(signatures)
@@ -378,6 +381,8 @@ def audit():
                 total_encounters=len(encounters),
                 admitted_monsters=sorted(m for m, d in described.items() if d.admitted),
                 total_monsters=len(described))
+
+
 
 
 

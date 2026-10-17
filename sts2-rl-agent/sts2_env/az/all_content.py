@@ -326,6 +326,7 @@ def sample_particle(info, search_rng):
         rng = Rng(int(search_rng.integers(0, 2 ** 31)))
         world = CombatState(info.player_hp, info.player_max_hp, [], 0, relics=[], potions=[],
                             character_id='Ironclad')
+        world._az_all_content = True
         create_enemies(world, info, rng)
         world.start_combat()
         world.rng = rng
@@ -419,12 +420,23 @@ def sample_particle(info, search_rng):
         restore_power_memory(world, info)
         projected = observe_all(world, info.history, info.limits, info.initial_hp,
                                 info.reward_version, ALL_CONTENT, info.known_deck,
-                                tuple(slot.initial_hp for slot in info.enemies), info.encounter)
+                                tuple(slot.initial_hp for slot in info.enemies if not slot.spawned),
+                                info.encounter)
         if projected != info:
             fields = [name for name in projected.__dataclass_fields__
                       if getattr(projected, name) != getattr(info, name)]
+            detail = ''
+            if 'enemies' in fields:
+                detail = '; ' + ', '.join(
+                    f'slot {a.slot}: hp {a.hp}/{b.hp} init {a.initial_hp}/{b.initial_hp} '
+                    f'max {a.max_hp}/{b.max_hp} block {a.block}/{b.block} '
+                    f'spawned={a.spawned}/{b.spawned} powers={a.powers == b.powers} '
+                    f'power_state={a.power_state == b.power_state} '
+                    f'intents={a.intents == b.intents} moves={a.moves == b.moves} '
+                    f'move={a.move}/{b.move} escaped={a.escaped}/{b.escaped}'
+                    for a, b in zip(projected.enemies, info.enemies) if a != b)
             raise ValueError('Particle does not reproduce the root public state/legal actions: '
-                             f'{fields}')
+                             f'{fields}{detail}')
         return SearchParticle(world, projected, card_base._next_instance_id)
     finally:
         card_base._next_instance_id = saved_id
