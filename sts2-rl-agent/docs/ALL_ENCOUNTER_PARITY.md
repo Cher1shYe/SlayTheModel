@@ -1,4 +1,4 @@
-﻿# 全遭遇 MCTS 公开状态一致性扫描
+# 全遭遇 MCTS 公开状态一致性扫描
 
 日期：2026-10-18。范围：act1–act4 原生战斗遭遇 **81 个**；内容版本 `ironclad-colorless-all-v6`。
 
@@ -26,8 +26,8 @@
 
 | 类别 | 遭遇 | 首个差异／错误 | 说明 |
 |---|---|---|---|
-| 回合侧 | knowledge_demon_boss | Not a public player decision | 敌方侧决策/额外行动未纳入公开回合契约 |
-| 意图唯一性 | lagavulin_matriarch_boss | Intent does not identify one move | 睡眠/唤醒形态的可见意图无法唯一确定招式 |
+| 回合侧 | knowledge_demon_boss | Not a public player decision | 战斗开始时 Boss 以“问题”形式让玩家从两张**生成诅咒牌**中选一张；该选择没有可见牌堆来源，需要新的公开选项契约 |
+| 意图唯一性 | lagavulin_matriarch_boss | Intent does not identify one move | 睡眠/眩晕后可见意图无法唯一确定下一招（AI 内部选择，公开信息不足） |
 
 这些遭遇**仍显式拒绝接入**（构建或观测阶段报错），不会静默通过；下一步按类别逐个补齐公开契约。
 

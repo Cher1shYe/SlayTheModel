@@ -40,6 +40,7 @@
 | P3g | 幻象复活/眩晕/砂坑公开状态：parity 75，准入 74，验证 64/64 | 已完成 |
 | P3h | 玩家朝向公开簿记：parity 76，准入 75，验证 64/64 | 已完成 |
 | P3i | runner 基线/配对增益/耗时报告与 `--no-baseline` | 已完成 |
+| P3j | 剩余 2 个 parity 差距定位（Boss 问题选择、Lagavulin 唤醒意图） | 已完成（归档，不接入） |
 | P3 | 全内容任意卡组 generator / 训练编排（XS 自进化） | 未开始 |
 
 ## 步骤记录
@@ -216,3 +217,9 @@
 - `run` 在首轮更新前评估一次**初始模型基线**并写入 `report.baseline`；每轮记录 `paired_vs_baseline` 与 `seconds{collect,update,evaluate,total}`；新增 `--no-baseline`。
 - 报告字段与语义更新至 `docs/AZ_ALL_XS_PLAN.md` §5；新增 2 项 runner 测试（配对确定性/不匹配拒绝、基线+耗时+配对端到端）。
 - 回归：**1192 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
+
+### 步骤 21（2026-10-18）剩余两个 parity 差距定位（P3j）
+
+- **knowledge_demon_boss**：失败发生在战斗开始后第 3 步——Boss 以 `PendingCardChoice(prompt='Curse of Knowledge')` 让玩家从两张**生成诅咒牌**（DISINTEGRATION / MIND_ROT）中选一张，选牌发生在敌方侧且没有可见牌堆来源；现有 `PublicChoiceState` 只支持 hand/discard/exhaust/revealed 来源。已归档为“需要生成选项的公开选择契约”，并在 `observe_choice` 增加显式拒绝分支（避免 IndexError）。
+- **lagavulin_matriarch_boss**：被击倒后粒子按公开脚本恢复为 SLEEP，而真实 AI 选择 SLASH；公开意图只显示当前招式的伤害，无法唯一确定唤醒后的下一招。归档为“公开信息不足”，保持显式拒绝。
+- 两者均**不接入**训练/验证/测试配方；`docs/ALL_ENCOUNTER_PARITY.md` 更新原因。回归 **1192 项通过（1 xfailed）**。

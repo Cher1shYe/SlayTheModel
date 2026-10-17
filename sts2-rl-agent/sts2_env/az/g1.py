@@ -83,6 +83,11 @@ def observe_choice(world, content_version=G1_CONTENT):
         return capture(world,CODEC)
     if len(world.play_pile) != 1 and content_version != EXPANSION_CONTENT:
         raise ValueError("G1 requires one publicly pending card")
+    if (world._pending_play is None and not world.play_pile
+            and getattr(world.pending_choice, 'mechanism', '') == ''):
+        # Boss questions offer generated cards from no visible pile; their
+        # public selection contract is not implemented, so refuse explicitly.
+        raise ValueError('Unsupported choice without a public pending card')
     card = CODEC.capture(world._pending_play["card"] if content_version == EXPANSION_CONTENT and world._pending_play else world.play_pile[0])
     from .actions import action_size
     if card.token not in allowed_choices(content_version):
