@@ -1,4 +1,4 @@
-﻿"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
+"""P3 all-content XS self-evolution: collect -> update -> evaluate, with evidence.
 
 The runner is deliberately in-process and sequential: one frozen XS model plays
 seeded arbitrary-deck fights against native monsters with dynamic search, the
@@ -50,7 +50,10 @@ def fresh_model(config):
 
 
 def training_recipes(iteration, episodes):
-    return tuple(generate_recipe(iteration % MAX_TRAINING_MASTER, iteration,
+    # MAX_TRAINING_JOB recipes exist per master; offset the master once an
+    # iteration asks for more episodes than that so every episode is distinct.
+    return tuple(generate_recipe((iteration + 8 * (episode // MAX_TRAINING_JOB))
+                                 % MAX_TRAINING_MASTER, iteration,
                                  episode % MAX_TRAINING_JOB, 'train')
                  for episode in range(episodes))
 

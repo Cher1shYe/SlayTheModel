@@ -1,4 +1,4 @@
-﻿"""P3 all-content runner contract: reproducible episodes and honest rejections."""
+"""P3 all-content runner contract: reproducible episodes and honest rejections."""
 import numpy as np
 import pytest
 
@@ -16,6 +16,15 @@ def test_training_recipes_are_reproducible_and_admitted():
     assert len({recipe.scenario_id for recipe in first}) == 4
     from sts2_env.az.all_decks import admitted_encounters
     assert all(recipe.encounter_id in admitted_encounters() for recipe in first)
+
+
+def test_training_recipes_stay_distinct_past_the_job_space():
+    # The frozen plan asks for 48 episodes per iteration while only 16 job
+    # coordinates exist; the master offset must keep every episode distinct.
+    episodes = all_runner.training_recipes(0, 48)
+    assert len({recipe.scenario_id for recipe in episodes}) == 48
+    assert [recipe.scenario_id for recipe in episodes[:16]] == \
+           [recipe.scenario_id for recipe in all_runner.training_recipes(0, 16)]
 
 
 def test_collection_records_rejected_recipes(monkeypatch):
