@@ -401,3 +401,9 @@
 - 复查 `tests/test_az_enemy_lifecycle.py`：`test_invalid_or_unsupported_states_rejected` 明确把 `spawned=True` 的 primary 列为应拒绝状态，32 项生命周期测试全通过。
 - 结论修正：gremlin/axebot 的 3 个 MCTS 拒绝不是实现 bug，而是**有意为之的旧契约**；放宽需要新生命周期版本（如 `primary-roster-hp-v6`：初始名单计预算、召唤 primary 只参与胜利判定）并重新冻结奖励契约——属需要用户/规格确认的设计变更。
 - 因此当前 4 个 MCTS 边界 = 3 个显式契约拒绝 + 1 个粒子恢复缺口；本轮无代码改动。
+
+### 步骤 48（2026-10-18）v6 生命周期契约设计提案（P4h）
+
+- 新增 `docs/AZ_SPAWNED_PRIMARY_CONTRACT.md`：把“召唤 primary”的语义、预算/胜利/cutoff 规则、世界侧与信息侧账本的 spawned 标记、版本迁移（v5→v6）、测试计划与风险写成可评审提案。
+- 同时记录 `knights_elite` 的 Hexed 恢复修复方向（与 v6 独立）。
+- 本轮仅文档；v6 与训练授权仍待用户确认。

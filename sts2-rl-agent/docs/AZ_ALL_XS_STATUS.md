@@ -79,6 +79,12 @@ python -m sts2_env.az.all_runner --iterations 4 --episodes 8 --updates 4 --budge
 python scripts/summarize_all_xs_run.py output/az_all_xs_run/report.json --out docs/AZ_ALL_XS_RESULTS.md
 ```
 
+## Pending decisions
+
+- Formal training authorization (see the command above).
+- Lifecycle contract v6 for non-Minion summons: `docs/AZ_SPAWNED_PRIMARY_CONTRACT.md` (proposal; not implemented).
+- Optional Hexed particle-restore fix for `knights_elite` (independent of v6).
+
 ## Honesty rules
 
 - The formal training run needs explicit authorization; nothing here starts it.

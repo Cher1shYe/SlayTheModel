@@ -91,7 +91,7 @@
 
 在 60 个共同配方上配对增益 **+0.131**（20 正 / 14 负 / 26 平）：搜索在初始网络之上有正向但非全面的提升；搜索约 27× 单次前向耗时。MCTS 侧仍有 4 个配方被拒绝：3 个主敌人召唤/移除（`gremlin_merc`、`axebots`）、1 个 `knights_elite` 粒子卡牌库存差异；全部逐条记录，未静默。该测量只说明管线/搜索的价值，不构成学习增益。
 
-调查结论（gremlin/axebot）：这些战斗追加的召唤物**没有 Minion 力量**，公开账本按“无 Minion 即 primary”记成 primary + spawned。`tests/test_az_enemy_lifecycle.py` 明确把 `spawned=True` 的 primary 列为**应拒绝**（`test_invalid_or_unsupported_states_rejected[spawned]`），所以这是有意为之的旧契约，而不是实现 bug；放宽它需要新的生命周期契约版本（例如 `primary-roster-hp-v6`：初始名单计预算、召唤 primary 只参与胜利判定），并重新冻结奖励契约。该设计变更需要用户/规格层面的确认，本轮不动。
+调查结论（gremlin/axebot）：这些战斗追加的召唤物**没有 Minion 力量**，公开账本按“无 Minion 即 primary”记成 primary + spawned。`tests/test_az_enemy_lifecycle.py` 明确把 `spawned=True` 的 primary 列为**应拒绝**（`test_invalid_or_unsupported_states_rejected[spawned]`），所以这是有意为之的旧契约，而不是实现 bug；放宽它需要新的生命周期契约版本（例如 `primary-roster-hp-v6`：初始名单计预算、召唤 primary 只参与胜利判定），并重新冻结奖励契约。该设计变更需要用户/规格层面的确认，本轮不动；提案见 docs/AZ_SPAWNED_PRIMARY_CONTRACT.md。
 
 分项修复记录：零值 DEXTERITY 的公开顺序、粒子恢复的公开状态顺序、ALL_CONTENT 的 Purity 多选（位掩码）契约均已对齐；`test_expanded_choice_capacity…` 的 `_pending_play` 防御性访问也已修正。
 
@@ -113,4 +113,5 @@
 - 7 个未通过一致性扫描的遭遇、2 个采样差异遭遇**不进入**训练/验证/测试配方。
 - 未运行训练前，不声称任何策略/效用增益；不把生成器覆盖率当作模型能力。
 - 任何后续改动（卡池、遭遇、搜索预算、模型档位）都必须新版本号，不覆盖本冻结配置。
+
 

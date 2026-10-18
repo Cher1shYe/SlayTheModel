@@ -147,6 +147,13 @@ def build():
                  '--out docs/AZ_ALL_XS_RESULTS.md')
     lines.append('```')
     lines.append('')
+    lines.append('## Pending decisions')
+    lines.append('')
+    lines.append('- Formal training authorization (see the command above).')
+    lines.append('- Lifecycle contract v6 for non-Minion summons: '
+                 '`docs/AZ_SPAWNED_PRIMARY_CONTRACT.md` (proposal; not implemented).')
+    lines.append('- Optional Hexed particle-restore fix for `knights_elite` (independent of v6).')
+    lines.append('')
     lines.append('## Honesty rules')
     lines.append('')
     lines.append('- The formal training run needs explicit authorization; nothing here starts it.')
