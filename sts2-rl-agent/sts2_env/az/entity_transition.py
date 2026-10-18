@@ -106,6 +106,7 @@ def _collect_entity_episode(job, model, diagnostic):
         diagnostic.update(public_information=public_snapshot(info), completed_decisions=len(rows))
         result = plan_dynamic(info, model, model_version=job.model_version, budget=job.simulations,
             training=True, temperature=1 if len(rows) < 10 else 0, search_version=job.search_version,
+            leaf_mode=job.leaf_mode, value_mix=job.value_mix,
             search_seed=derive_seed(job.master_seed, job.iteration, job.job_id, f'search-{len(rows)}'))
         public = public_snapshot(info)
         rows.append(dict(episode_id=identity, step_index=len(rows), family_id=recipe.family_id,
@@ -121,5 +122,6 @@ def _collect_entity_episode(job, model, diagnostic):
         row['z'] = outcome['reward']
     return dict(episode_id=identity, complete=True, split=recipe.split, rows=rows, outcome=outcome,
                 final_public=public_snapshot(env.information),
-                compatibility=EntityReplayBuffer.compatibility_for(info.content_version,info.reward_version), job_id=job.job_id, iteration=job.iteration)
+                compatibility=EntityReplayBuffer.compatibility_for(info.content_version, info.reward_version,
+                    job.leaf_mode, job.value_mix), job_id=job.job_id, iteration=job.iteration)
 

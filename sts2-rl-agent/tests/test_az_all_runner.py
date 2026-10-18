@@ -1,4 +1,5 @@
 """P3 all-content runner contract: reproducible episodes and honest rejections."""
+from pathlib import Path
 import numpy as np
 import pytest
 
@@ -168,7 +169,7 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
     monkeypatch.setattr(all_runner, 'update', fake_update)
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda path, *a, **k: Path(path).write_bytes(b'fixture-checkpoint'))
     monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
                             updates=1, budget=1, seed=0, log=lambda *args: None)
@@ -253,7 +254,7 @@ def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkey
     monkeypatch.setattr(all_runner, 'update', fake_update)
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda path, *a, **k: Path(path).write_bytes(b'fixture-checkpoint'))
     monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
                             budget=1, seed=0, include_test=True, log=lambda *args: None)
@@ -308,7 +309,7 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
     monkeypatch.setattr(all_runner, 'update', fake_update)
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda path, *a, **k: Path(path).write_bytes(b'fixture-checkpoint'))
     monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
                             updates=1, budget=1, seed=0, log=lambda *args: None)
@@ -371,7 +372,7 @@ def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
     monkeypatch.setattr(all_runner, 'update', fake_update)
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda path, *a, **k: Path(path).write_bytes(b'fixture-checkpoint'))
     monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
                             budget=1, seed=0, log=lambda *args: None)

@@ -57,7 +57,8 @@ def value_diagnostic(model, episodes, max_rows=256):
 
 
 def search_diagnostic(model, recipes, budgets=(0, 8, 32), seed=123,
-                      limits=EpisodeLimits(), error_dir='output/az_diagnostics/errors'):
+                      limits=EpisodeLimits(), error_dir='output/az_diagnostics/errors',
+                      leaf_mode='heuristic', value_mix=.5):
     """Paired public-observation network/MCTS evaluation with no exploration noise."""
     from .adapter import ObservableCombatAdapter
     from .action_candidates import action_candidates
@@ -73,6 +74,8 @@ def search_diagnostic(model, recipes, budgets=(0, 8, 32), seed=123,
     if (not budgets or budgets[0] != 0 or len(set(budgets)) != len(budgets)
             or any(type(b) is not int or b < 0 for b in budgets)):
         raise ValueError('Unique nonnegative budgets must start with network budget 0')
+    from .search_config import leaf_settings
+    leaf_settings(leaf_mode, value_mix)
     results = {}
     for budget in budgets:
         rows = []
@@ -85,6 +88,7 @@ def search_diagnostic(model, recipes, budgets=(0, 8, 32), seed=123,
                 if budget:
                     result = plan_dynamic(info, model, model_version='training-diagnostic', budget=budget,
                         training=False, temperature=0, search_version=SEARCH,
+                        leaf_mode=leaf_mode, value_mix=value_mix,
                         search_seed=derive_seed(seed, 0, index, f'diagnostic-{len(latencies)}'))
                     key = result.action
                     if not result.forced_action:
@@ -108,7 +112,7 @@ def search_diagnostic(model, recipes, budgets=(0, 8, 32), seed=123,
         if budget:
             results[str(budget)]['paired_vs_network'] = paired_gain(results['0']['rows'], rows)
     return dict(scope='training-only paired diagnostic; no optimizer updates', seed=seed,
-        limits=asdict(limits), recipes=[r.to_dict() for r in recipes], results=results)
+        leaf_mode=leaf_mode, value_mix=value_mix, limits=asdict(limits), recipes=[r.to_dict() for r in recipes], results=results)
 
 
 def main():
@@ -127,6 +131,8 @@ def main():
     value.add_argument('--collection', required=True)
     value.add_argument('--max-rows', type=int, default=256)
     search = sub.add_parser('search')
+    search.add_argument('--leaf-mode', choices=('heuristic', 'learned', 'mixed'), default='heuristic')
+    search.add_argument('--value-mix', type=float, default=.5)
     search.add_argument('--iteration', type=int, default=0)
     search.add_argument('--episodes', type=int, default=8)
     search.add_argument('--budgets', type=int, nargs='+', default=[0, 8, 32])
@@ -149,7 +155,7 @@ def main():
             parser.error('iteration must be 0..1023; episodes must be 1..1024')
         report['diagnostic'] = search_diagnostic(model, training_recipes(args.iteration, args.episodes),
             args.budgets, args.seed, EpisodeLimits(max_turns=args.max_turns, max_decisions=args.max_decisions),
-            error_dir=str(Path(args.out).parent / 'errors'))
+            error_dir=str(Path(args.out).parent / 'errors'), leaf_mode=args.leaf_mode, value_mix=args.value_mix)
     atomic_json(args.out, report)
 
 

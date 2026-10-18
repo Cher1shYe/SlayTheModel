@@ -84,8 +84,13 @@ def promotion_gate(champion, candidate, seed=1729, bootstrap_samples=10_000, req
 
 
 def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeLimits(),
-             error_dir="output/az_errors", policy="network", start_index=0, reward_version=V1, search_version=LEGACY):
+             error_dir="output/az_errors", policy="network", start_index=0, reward_version=V1, search_version=LEGACY,
+             leaf_mode='heuristic', value_mix=.5):
     validate_search(search_version)
+    from .search_config import leaf_settings, DYNAMIC_RISK
+    leaf_settings(leaf_mode, value_mix)
+    if leaf_mode != 'heuristic' and search_version != DYNAMIC_RISK:
+        raise ValueError('Leaf evaluation modes require dynamic risk search')
     if policy not in ("network", "random", "rule", "oracle_mcts", "boss_block_rule"):
         raise ValueError("Unknown evaluation policy")
     if simulations < 0 or any(r.split not in ("validation", "test") for r in recipes):
@@ -117,7 +122,8 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
                         raise ValueError('Dynamic evaluation requires Transformer')
                     if simulations:
                         key = plan_dynamic(env.information, model, model_version=version, budget=simulations,
-                                           search_seed=decision_seed, search_version=search_version).action
+                                           search_seed=decision_seed, search_version=search_version,
+                                           leaf_mode=leaf_mode, value_mix=value_mix).action
                     else:
                         priors, _ = model.predict(encode_entities(env.information))
                         key = max(sorted(priors), key=priors.get)
@@ -145,6 +151,8 @@ def evaluate(model, version, recipes, simulations=256, seed=123, limits=EpisodeL
             results[-1]['final_public'] = public_snapshot(env.information)
         if search_version != LEGACY:
             results[-1]["search_version"] = search_version
+        if search_version == DYNAMIC_RISK and simulations and policy == 'network':
+            results[-1].update(leaf_mode=leaf_mode, value_mix=value_mix)
     return results
 
 

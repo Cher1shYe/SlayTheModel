@@ -11,7 +11,7 @@ from .observable_puct import ActionEdge, OutcomeNode
 from sts2_env.cards import base as card_base
 
 VERSION = 'dynamic-key-puct-v1'
-from .search_config import DYNAMIC_RISK, DYNAMIC_VERSIONS
+from .search_config import DYNAMIC_RISK, DYNAMIC_VERSIONS, leaf_settings
 
 
 @dataclass
@@ -29,7 +29,11 @@ class DynamicSearchResult:
 
 def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_seed=0,
                    budget=64, c_puct=1.5, max_depth=128, training=False,
-                   epsilon=.25, alpha=.3, temperature=0, search_version=VERSION, cutoff_reward=None):
+                   epsilon=.25, alpha=.3, temperature=0, search_version=VERSION, cutoff_reward=None,
+                   leaf_mode='heuristic', value_mix=.5):
+    leaf_settings(leaf_mode, value_mix)
+    if search_version != DYNAMIC_RISK and leaf_mode != 'heuristic':
+        raise ValueError('Leaf evaluation modes require dynamic risk search')
     if (search_version not in DYNAMIC_VERSIONS or not model_version or type(budget) is not int or budget < 1
             or type(max_depth) is not int or max_depth < 1 or temperature not in (0, 1)
             or (not training and temperature != 0) or not np.isfinite([c_puct, epsilon, alpha]).all()
@@ -42,6 +46,15 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
         raise ValueError('Risk search requires its explicit cutoff/terminal evaluator')
     started = perf_counter()
     rng = np.random.default_rng(search_seed)
+
+    def leaf_value(public, learned):
+        # Terminal outcomes are handled separately and never blended/predicted.
+        if not risk_search or leaf_mode == 'learned':
+            return learned
+        heuristic = cutoff_reward(info, public)
+        if not np.isfinite(heuristic) or not -1 <= heuristic <= 1:
+            raise ValueError('Invalid heuristic utility')
+        return heuristic if leaf_mode == 'heuristic' else (1-value_mix)*heuristic + value_mix*learned
 
     def keys(public):
         items = tuple(candidates(public))
@@ -106,11 +119,11 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
                     raise ValueError('Same successor has inconsistent candidates')
                 if new:
                     value = expand(successor, node)
-                    if risk_search: value = cutoff_reward(info, successor)
+                    value = leaf_value(successor, value)
                     break
                 if depth == max_depth:
                     _, value = predict(successor, node.legal_mask)
-                    if risk_search: value = cutoff_reward(info, successor)
+                    value = leaf_value(successor, value)
             if not np.isfinite(value) or not -1 <= value <= 1:
                 raise ValueError('Invalid backed-up utility')
             for edge in path:

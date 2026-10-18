@@ -58,9 +58,20 @@ def unpack_observation(data):
 
 class EntityReplayBuffer(ReplayBuffer):
     @staticmethod
-    def compatibility_for(content_version=CONTENT_VERSION,reward_version=REWARD_VERSION):
-        return dict(format_version=REPLAY_VERSION, schema_hash=SCHEMA_HASH, search_version=DYNAMIC_RISK if reward_version == V7 else VERSION,
+    def compatibility_for(content_version=CONTENT_VERSION,reward_version=REWARD_VERSION,
+                          leaf_mode='heuristic', value_mix=.5):
+        from .search_config import leaf_settings
+        settings = leaf_settings(leaf_mode, value_mix)
+        if reward_version != V7 and leaf_mode != 'heuristic':
+            raise ValueError('Leaf evaluation modes require V7')
+        result = dict(format_version=REPLAY_VERSION, schema_hash=SCHEMA_HASH, search_version=DYNAMIC_RISK if reward_version == V7 else VERSION,
                     information_mode='observable', reward_version=reward_version, content_version=content_version)
+        # Retain the exact legacy compatibility for default heuristic datasets.
+        if leaf_mode != 'heuristic':
+            result['leaf_mode'] = leaf_mode
+            if leaf_mode == 'mixed':
+                result['value_mix'] = settings['value_mix']
+        return result
 
     def __init__(self, directory, capacity=200_000, **kwargs):
         content=kwargs.get('content_version',CONTENT_VERSION)
@@ -74,7 +85,8 @@ class EntityReplayBuffer(ReplayBuffer):
             raise ValueError('Positive replay capacity required')
         self.directory, self.capacity = Path(directory), capacity
         self.content_version, self.search_version = content, search
-        self.compatibility = self.compatibility_for(content,reward)
+        self.compatibility = self.compatibility_for(content, reward,
+            kwargs.get('leaf_mode', 'heuristic'), kwargs.get('value_mix', .5))
         self.episodes, self.committed = [], {}
         path = self.directory / 'manifest.json'
         if path.exists():

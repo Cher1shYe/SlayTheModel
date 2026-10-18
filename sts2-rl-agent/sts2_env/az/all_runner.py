@@ -26,6 +26,7 @@ from .learner import Learner
 from .model_factory import create_transformer, load_transformer_checkpoint, save_transformer_checkpoint
 from .rewards import V7
 from .self_play import CollectionJob
+from .search_config import LEAF_MODES, leaf_settings
 
 VERSION = 'az-all-xs-runner-v3'
 SEARCH = 'dynamic-risk-puct-v2'
@@ -54,7 +55,7 @@ def training_recipes(iteration, episodes):
 
 
 def collect(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
-            failures=None, workers=1, collector=None):
+            failures=None, workers=1, collector=None, leaf_mode='heuristic', value_mix=.5):
     """Collect every recipe that the public contract can replay; record the rest.
 
     ``workers > 1`` freezes the current weights to a temporary checkpoint and
@@ -68,14 +69,14 @@ def collect(model, recipes, *, iteration, budget, error_dir, limits, version, se
         return _collect_parallel(model, recipes, iteration=iteration, budget=budget,
                                  error_dir=error_dir, limits=limits, version=version,
                                  seed=seed, failures=failures, workers=workers,
-                                 collector=collector)
+                                 collector=collector, leaf_mode=leaf_mode, value_mix=value_mix)
     episodes = []
     for job_id, recipe in enumerate(recipes):
         job = CollectionJob(
             job_id=f'{iteration:03d}-{job_id:02d}', iteration=iteration, master_seed=seed + job_id,
             scenario=recipe.to_dict(), checkpoint='', checkpoint_sha256='',
             model_version=version, error_dir=str(error_dir), simulations=budget, limits=limits,
-            reward_version=V7, search_version=SEARCH)
+            reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix)
         try:
             episodes.append(collect_entity_episode(job, model))
         except Exception as exc:  # noqa: BLE001 - a rejected recipe is recorded, not hidden
@@ -90,7 +91,7 @@ def collect(model, recipes, *, iteration, budget, error_dir, limits, version, se
 
 
 def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
-                      failures, workers, collector=None):
+                      failures, workers, collector=None, leaf_mode='heuristic', value_mix=.5):
     import hashlib
     from .self_play import Collector, collect_episode
 
@@ -101,7 +102,7 @@ def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, v
         job_id=f'{iteration:03d}-{job_id:02d}', iteration=iteration, master_seed=seed + job_id,
         scenario=recipe.to_dict(), checkpoint=str(checkpoint), checkpoint_sha256=digest,
         model_version=version, error_dir=str(error_dir), simulations=budget, limits=limits,
-        reward_version=V7, search_version=SEARCH)
+        reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix)
         for job_id, recipe in enumerate(recipes)]
     episodes = []
 
@@ -298,9 +299,17 @@ def effective_settings(config, **overrides):
         batch_size=training['batch_size'], learning_rate=training['learning_rate'],
         value_weight=training['value_weight'], max_turns=training['max_turns'],
         max_decisions=training['max_decisions'], eval_max_turns=config['evaluation']['max_turns'],
-        eval_max_decisions=config['evaluation']['max_decisions'], seed=training.get('init_seed', 0))
+        eval_max_decisions=config['evaluation']['max_decisions'], seed=training.get('init_seed', 0),
+        leaf_mode=config['search'].get('leaf_mode', 'heuristic'),
+        value_mix=config['search'].get('value_mix', .5),
+        collection_model=training.get('collection_model', 'champion'))
     settings.update({key: value for key, value in overrides.items() if value is not None})
+    leaf_settings(settings['leaf_mode'], settings['value_mix'])
+    if settings['collection_model'] not in ('champion', 'learner'):
+        raise ValueError('Invalid collection_model')
     for key, value in settings.items():
+        if key in ('leaf_mode', 'value_mix', 'collection_model'):
+            continue
         if key in ('learning_rate', 'value_weight'):
             if not isinstance(value, (int, float)) or not np.isfinite(value) or value <= 0:
                 raise ValueError(f'Invalid {key}')
@@ -326,7 +335,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
         budget=None, batch_size=None, learning_rate=None, seed=None, max_turns=None,
         max_decisions=None, eval_max_turns=None, eval_max_decisions=None,
         include_test=False, resume=False, compare_baseline=True, workers=1,
-        enforce_test_gate=True, log=print):
+        enforce_test_gate=True, log=print, leaf_mode=None, value_mix=None, collection_model=None):
     import hashlib
     from .config import content_hash
     from .network import code_digest
@@ -335,7 +344,8 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
     settings = effective_settings(config, iterations=iterations, episodes=episodes, updates=updates,
         budget=budget, batch_size=batch_size, learning_rate=learning_rate, seed=seed,
         max_turns=max_turns, max_decisions=max_decisions, eval_max_turns=eval_max_turns,
-        eval_max_decisions=eval_max_decisions)
+        eval_max_decisions=eval_max_decisions, leaf_mode=leaf_mode, value_mix=value_mix,
+        collection_model=collection_model)
     if not compare_baseline or not enforce_test_gate:
         raise ValueError('Champion selection requires baseline and an enforced test gate')
     if type(workers) is not int or workers < 1:
@@ -384,7 +394,8 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             champion_rows=rows, champion_validation=baseline, learner_checkpoint='initial.pt')
         atomic_json(state_path, state)
     replay = EntityReplayBuffer(out / 'replay', capacity=50_000,
-                                content_version=ALL_CONTENT, reward_version=V7)
+                                content_version=ALL_CONTENT, reward_version=V7,
+                                leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'])
 
     def write_report():
         report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
@@ -407,16 +418,24 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             if pending is None:
                 recipes = training_recipes(iteration, settings['episodes'])
                 failures = []
-                collected = collect(champion, recipes, iteration=iteration, budget=settings['budget'],
+                source_checkpoint = state[settings['collection_model'] + '_checkpoint']
+                collection_network = champion
+                if settings['collection_model'] == 'learner':
+                    collection_network, _ = load_transformer_checkpoint(
+                        out / source_checkpoint, TIER, ALL_CONTENT, V7)
+                collected = collect(collection_network, recipes, iteration=iteration, budget=settings['budget'],
                     error_dir=out / 'errors', limits=limits, version=f'{version}-{iteration}',
                     seed=settings['seed'] * 100_000 + iteration * 1_000,
-                    failures=failures, workers=workers, collector=collector)
+                    failures=failures, workers=workers, collector=collector,
+                    leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'])
                 if failures:
                     atomic_json(out / f'rejected-{iteration:03d}.json', failures)
                     raise ValueError('Collection contract rejection: training halted; see rejected recipes')
                 cache = f'collection-{iteration:03d}.json'
                 atomic_json(out / cache, collected)
-                pending = dict(iteration=iteration, collection=cache, update_checkpoint=None)
+                pending = dict(iteration=iteration, collection=cache, update_checkpoint=None,
+                    collection_model=settings['collection_model'], collection_checkpoint=source_checkpoint,
+                    collection_checkpoint_sha256=hashlib.sha256((out / source_checkpoint).read_bytes()).hexdigest())
                 state['pending'] = pending
                 atomic_json(state_path, state)
             collected = json.loads((out / pending['collection']).read_text(encoding='utf-8'))
@@ -463,6 +482,10 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
                 for key, group in sorted(by_encounter.items())}
             ended = time.perf_counter()
             record = dict(version=VERSION, iteration=iteration,
+                collection_model=pending['collection_model'],
+                collection_checkpoint=pending['collection_checkpoint'],
+                collection_checkpoint_sha256=pending['collection_checkpoint_sha256'],
+                leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'],
                 episodes=[e['episode_id'] for e in collected],
                 outcomes=[e['outcome']['termination_reason'] for e in collected],
                 replay_size=replay.size, updates=losses, rejected_recipes=[],
@@ -527,6 +550,9 @@ def main(argv=None):
     parser.add_argument('--episodes', type=int, default=None)
     parser.add_argument('--updates', type=int, default=None)
     parser.add_argument('--budget', type=int, default=None)
+    parser.add_argument('--leaf-mode', choices=LEAF_MODES, default=None)
+    parser.add_argument('--value-mix', type=float, default=None)
+    parser.add_argument('--collection-model', choices=('champion', 'learner'), default=None)
     parser.add_argument('--batch-size', type=int, default=None)
     parser.add_argument('--seed', type=int, default=None)
     parser.add_argument('--max-turns', type=int, default=None)
@@ -541,6 +567,8 @@ def main(argv=None):
     parser.add_argument('--preflight-only', action='store_true')
     args = parser.parse_args(argv)
     if args.preflight_only:
+        effective_settings(load_frozen_config(args.config), leaf_mode=args.leaf_mode,
+                           value_mix=args.value_mix, collection_model=args.collection_model)
         result = preflight(args.config, args.protocol, iterations=args.iterations,
                            episodes=args.episodes, max_turns=args.max_turns,
                            max_decisions=args.max_decisions)
@@ -552,7 +580,8 @@ def main(argv=None):
                      max_decisions=args.max_decisions, eval_max_turns=args.eval_max_turns,
                      eval_max_decisions=args.eval_max_decisions, include_test=args.include_test,
                      resume=args.resume, compare_baseline=not args.no_baseline,
-                     workers=args.workers, enforce_test_gate=not args.force_test, log=log)
+                     workers=args.workers, enforce_test_gate=not args.force_test, log=log,
+                     leaf_mode=args.leaf_mode, value_mix=args.value_mix, collection_model=args.collection_model)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}
     print(json.dumps(result, ensure_ascii=False))
 

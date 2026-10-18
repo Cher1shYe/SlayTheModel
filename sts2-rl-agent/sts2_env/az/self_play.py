@@ -32,6 +32,8 @@ class CollectionJob:
     limits: EpisodeLimits = EpisodeLimits()
     reward_version: str = REWARD_VERSION
     search_version: str = LEGACY
+    leaf_mode: str = 'heuristic'
+    value_mix: float = .5
 
 
 def file_digest(path):
@@ -48,6 +50,10 @@ def initialize_worker():
 
 def collect_episode(job):
     validate_search(job.search_version)
+    from .search_config import leaf_settings, DYNAMIC_RISK
+    leaf_settings(job.leaf_mode, job.value_mix)
+    if job.leaf_mode != 'heuristic' and job.search_version != DYNAMIC_RISK:
+        raise ValueError('Leaf evaluation modes require dynamic risk search')
     recipe = CombatScenario.from_dict(job.scenario)
     if recipe.split != "train" or job.simulations < 1:
         raise ValueError("Collection requires train recipes and positive budget")

@@ -30,7 +30,7 @@
 
 未指定的参数全部来自冻结配置：8 轮，每轮 304 场（76 种遭遇各 4 场）、16 次更新，batch 64，MCTS=8，学习率 0.0003，value weight=0.1；采集和验证均为 40 回合／400 决策。旧 v1 的短截断吞吐估算不适用于本次正式预算。
 
-每轮以当前冠军采集并训练一个候选。候选必须完成全部验证配方、无契约拒绝，且相对冠军的配对 bootstrap 95% 区间下界大于 0 才晋级；否则保留冠军。持续学习模型跨轮保留权重、AdamW 和采样／Torch RNG；候选不晋级也继续学习。冠军独立保存，继续负责采集和最终评估。ALL 回放按遭遇均匀分层，再在该遭遇内抽取 episode 和状态。置信区间是冻结工程晋级规则，不替代独立多 seed 泛化验收。
+默认每轮以当前冠军采集并训练一个候选；可按第 10 节显式改用最新学习者。候选必须完成全部验证配方、无契约拒绝，且相对冠军的配对 bootstrap 95% 区间下界大于 0 才晋级；否则保留冠军。持续学习模型跨轮保留权重、AdamW 和采样／Torch RNG；候选不晋级也继续学习。冠军独立保存，负责晋级比较和最终评估；是否用于采集由 collection_model 决定。ALL 回放按遭遇均匀分层，再在该遭遇内抽取 episode 和状态。置信区间是冻结工程晋级规则，不替代独立多 seed 泛化验收。
 
 ## 4. 中断恢复
 
@@ -104,3 +104,47 @@ python -m pytest tests/test_az_all_decks.py tests/test_az_all_runner.py tests/te
 ```
 
 构造／编码预检：training planned=2432、ok=2432；validation checked=304、ok=304；errors=[]、test=null。新增断言覆盖默认每遭遇4场、8轮场景ID／种子／实际卡组无重复、1024场边界无回绕、验证与训练隔离、冻结文件可确定性重建、重复验证配方拒绝、原有最终测试配方不变。短运行重复性测试使用4个验证配方的临时夹具，完整304配方由独立协议和预检测试覆盖。没有做整场304配方的学习效果评估。
+
+
+## 10. MCTS 叶子估值与采集模型选择
+
+本节为新增选项的使用说明，不代表已运行实验。当前 v3 运行继续使用原目录中的代码；本次提交在独立工作树完成，勿在运行期间拉取到训练目录。后续新方案用新输出目录，不将新源码或模式强行续接当前 v3；旧权重在 schema 相容时仍可只读诊断。
+
+| 参数 | 默认 | 含义 |
+|---|---|---|
+| `--leaf-mode` / `search.leaf_mode` | `heuristic` | `heuristic` 手写评分，`learned` 网络价值，`mixed` 加权混合 |
+| `--value-mix` / `search.value_mix` | `0.5` | mixed 的网络价值权重，有限数且在 [0,1]；其他模式不使用它 |
+| `--collection-model` / `training.collection_model` | `champion` | `learner` 最新已提交学习者，`champion` 保留冠军 |
+
+非终局叶子的 mixed 回传为 `(1-value_mix)*heuristic + value_mix*network_value`，新节点与深度上限使用同一规则。三种模式均使用策略头的合法动作先验。胜利、死亡和环境时间上限使用既有 V7 搜索评分，不参与混合；时间上限沿用搜索根节点相对 HP 的截断语义。网络价值标签仍是完整 episode 的 V7 终局效用。手写评分与网络价值虽同在 [-1,1]，含义和校准程度不同，混合比例需要后续对照实验验证。
+
+采集使用每轮开始时的冻结模型。learner 模式第 0 轮使用 initial.pt，此后使用上一轮 learner_checkpoint；候选未晋级不会让学习者回退。冠军仅在完整冻结验证集上通过既有配对置信区间规则后替换，最终验证／测试仍使用冠军。验证仍为纯网络，搜索估值选项只影响 MCTS。
+
+未来显式启动命令示例（本次未执行）：
+
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --iterations 8 --episodes 304 --updates 64 --budget 8 --batch-size 64 --workers 2 --leaf-mode mixed --value-mix 0.5 --collection-model learner --out output/az_all_xs_value_mixed_new
+```
+
+纯学习价值改为 `--leaf-mode learned`；手写对照使用 `--leaf-mode heuristic`，其他条件保持相同。新开训练仍从随机初始化开始，此选项不隐含加载旧冠军。
+
+无更新诊断也支持三种模式（每个模式用独立输出文件；本次未执行）：
+
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.training_diagnostics --checkpoint output/az_all_xs_v2_formal/iteration-001.pt --out output/diagnostics/search-learned-new.json search --episodes 16 --budgets 0 8 32 --leaf-mode learned
+```
+
+比较时保持 checkpoint、iteration、episodes、seed、预算与环境源码一致。报告记录 leaf_mode/value_mix。直接调用 evaluate 的 MCTS 路径也接受这两个参数。
+
+`effective_settings` 和恢复 identity 包括全部新参数；即使改动的是当前模式不使用的 value_mix，也拒绝续跑。每轮 history/pending 记录 collection_model、collection_checkpoint 和 SHA256，避免把学习者采集误写成冠军采集。Replay compatibility 隔离不同模式和 mixed 权重，默认 heuristic 数据保持旧兼容格式。原始冻结配置文件没有新增默认值，缺省值由 runner 解析，不重写运行中的配置。
+
+
+本批测试：隔离工作树、不包含原训练目录未提交的引擎修复，**315 passed，113.63 秒**。仅运行临时目录测试夹具，没有启动新训练或正式诊断，没有监控现有 v3。
+
+```powershell
+$env:OMP_NUM_THREADS='1'
+$env:MKL_NUM_THREADS='1'
+python -m pytest tests/test_az_leaf_modes.py tests/test_az_training_improvements.py tests/test_az_training_readiness.py tests/test_az_all_runner.py tests/test_az_replay.py tests/test_az_all_mcts.py tests/test_az_all_xs_config.py tests/test_az_status_report.py tests/test_az_stratified_plan.py tests/test_az_risk_reward.py tests/test_az_transformer_t2.py -q
+```
+
+新增测试覆盖实际 PUCT 回传、混合权重 0/1 边界、新叶子与深度截断、终局不调用网络、无效参数拒绝、CLI／评估透传、三模式串行与真实 spawn 一致性、回放跨模式／权重拒绝；两轮拒绝晋级时比对实际采集权重，确认 learner 更新而 champion 不变，第二轮更新中断恢复后权重逐参数和 AdamW 步数一致。原 runner mock checkpoint 夹具改为写文件，以匹配新增来源摘要审计。未运行全仓历史失败集合，不宣称全仓测试全绿。

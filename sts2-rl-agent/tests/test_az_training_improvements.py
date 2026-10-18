@@ -18,7 +18,19 @@ CONFIG = 'configs/az_all_xs_v1/config.json'
 PROTOCOL = 'configs/az_all_xs_v1/protocol.json'
 
 
-def test_rejected_learner_continues_and_second_round_resume_is_exact(tmp_path, monkeypatch):
+@pytest.mark.parametrize('collection_model,leaf_mode', [('champion', 'heuristic'), ('learner', 'mixed')])
+def test_rejected_learner_continues_and_second_round_resume_is_exact(tmp_path, monkeypatch, collection_model, leaf_mode):
+    # Record actual collection weights, not just metadata or low-budget targets.
+    import hashlib
+    def fingerprint(model):
+        return hashlib.sha256(b''.join(v.detach().cpu().numpy().tobytes()
+            for v in model.state_dict().values())).hexdigest()
+    captured = []
+    collect = runner.collect
+    def capture(model, *args, **kwargs):
+        captured.append(fingerprint(model))
+        return collect(model, *args, **kwargs)
+    monkeypatch.setattr(runner, 'collect', capture)
     # Keep the champion initial, so continued learning cannot hide behind promotion.
     def evaluate(model, recipes, **kw):
         rows = [dict(scenario_id=r.scenario_id, encounter_id=r.encounter_id,
@@ -26,7 +38,7 @@ def test_rejected_learner_continues_and_second_round_resume_is_exact(tmp_path, m
         return dict(episodes=len(rows), mean_utility=0., win_rate=1., contract_rejections=0), rows
     monkeypatch.setattr(runner, 'evaluate_recipes', evaluate)
     settings = dict(iterations=2, episodes=1, updates=2, budget=1, batch_size=2,
-                    max_turns=1, max_decisions=3, seed=19)
+                    max_turns=1, max_decisions=3, seed=19, collection_model=collection_model, leaf_mode=leaf_mode)
     full = runner.run(CONFIG, PROTOCOL, tmp_path / 'full', **settings)
     assert full['champion_checkpoint'] == 'initial.pt'
     assert full['learner_checkpoint'] == 'update-001-0002.pt'
@@ -35,12 +47,17 @@ def test_rejected_learner_continues_and_second_round_resume_is_exact(tmp_path, m
     trained, payload = load(tmp_path / 'full' / full['learner_checkpoint'])
     assert any(not torch.equal(a, b) for a, b in zip(initial.parameters(), trained.parameters()))
     assert {int(s['step']) for s in payload['training_state']['optimizer']['state'].values()} == {4}
-    # Collection still uses champion even after the learner has diverged.
+    # Rejected candidates remain learners; each collection uses the recorded source.
     for i in range(2):
         episode = json.loads((tmp_path / 'full' / f'collection-{i:03d}.json').read_text())[0]
-        reference = runner.collect(initial, runner.training_recipes(i, 1), iteration=i, budget=1,
+        record = full['history'][i]
+        expected = 'update-000-0002.pt' if i == 1 and collection_model == 'learner' else 'initial.pt'
+        assert record['collection_checkpoint'] == expected
+        source, _ = load(tmp_path / 'full' / expected)
+        assert captured[i] == fingerprint(source)
+        reference = runner.collect(source, runner.training_recipes(i, 1), iteration=i, budget=1,
             error_dir=tmp_path / 'reference', limits=EpisodeLimits(max_turns=1, max_decisions=3),
-            version='reference', seed=19*100000+i*1000)[0]
+            version='reference', seed=19*100000+i*1000, leaf_mode=leaf_mode)[0]
         assert [r['policy_target'] for r in episode['rows']] == [r['policy_target'] for r in reference['rows']]
     atomic = runner.atomic_json
     def crash(path, value):
@@ -113,14 +130,15 @@ def test_diagnostics_cli_limits_provenance_and_no_overwrite(tmp_path, monkeypatc
     checkpoint = tmp_path / 'model.pt'
     runner.save_transformer_checkpoint(checkpoint, model)
     output = tmp_path / 'diagnostics.json'
-    def search(model, recipes, budgets, seed, limits, error_dir):
+    def search(model, recipes, budgets, seed, limits, error_dir, leaf_mode, value_mix):
+        assert leaf_mode == 'learned' and value_mix == .5
         assert limits.max_turns == 7 and limits.max_decisions == 23
         assert budgets == [0, 8, 32]
         assert all(r.split == 'train' for r in recipes)
         return {'fixture': True}
     monkeypatch.setattr(diagnostics, 'search_diagnostic', search)
     monkeypatch.setattr(sys, 'argv', ['diagnostics', '--checkpoint', str(checkpoint), '--out', str(output),
-        'search', '--episodes', '1', '--max-turns', '7', '--max-decisions', '23'])
+        'search', '--leaf-mode', 'learned', '--episodes', '1', '--max-turns', '7', '--max-decisions', '23'])
     diagnostics.main()
     report = json.loads(output.read_text())
     assert report['checkpoint_source_matches'] is True
