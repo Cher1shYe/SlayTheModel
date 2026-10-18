@@ -395,3 +395,9 @@
 - 新增 `scripts/report_all_xs_status.py` 与生成的 `docs/AZ_ALL_XS_STATUS.md`：从冻结证据（config/protocol SHA、准入/鲁棒/生成器审计、初始策略诊断、预算诊断）与安全 preflight 汇总出唯一状态文档。
 - 内容包含：冻结版本、覆盖（76/76 鲁棒、76 准入、146 卡池、训练抽样覆盖）、三套 split 的 preflight、先验 vs MCTS 诊断与配对增益、预算稳定性、已知 MCTS 拒绝、命令与诚实性规则。
 - 新增 1 项测试（关键字段/数值必须在场）；本轮不启动训练。
+
+### 步骤 47（2026-10-18）确认“召唤 primary”是显式契约拒绝（P4g）
+
+- 复查 `tests/test_az_enemy_lifecycle.py`：`test_invalid_or_unsupported_states_rejected` 明确把 `spawned=True` 的 primary 列为应拒绝状态，32 项生命周期测试全通过。
+- 结论修正：gremlin/axebot 的 3 个 MCTS 拒绝不是实现 bug，而是**有意为之的旧契约**；放宽需要新生命周期版本（如 `primary-roster-hp-v6`：初始名单计预算、召唤 primary 只参与胜利判定）并重新冻结奖励契约——属需要用户/规格确认的设计变更。
+- 因此当前 4 个 MCTS 边界 = 3 个显式契约拒绝 + 1 个粒子恢复缺口；本轮无代码改动。
