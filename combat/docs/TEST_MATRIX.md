@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## SlayTheModel 先验接入试验（2026-10-19）
+
+- 上层 ReplaySearch smoke 通过先验归一化、等效用下的策略影响、节点缓存及无效概率拒绝，并运行原 UCT/奖励测试。
+- `prior-benchmark`：原生 `BYRDONIS_ELITE`，初始牌组、无遗物，3 种子 × 2 初始 HP × UCT/均匀 PUCT/学习 PUCT；18 场完成，非终局动作完整 continuation 对账通过。基准统计及未覆盖范围见上层 `docs/mcts-prior-pilot-20261019.md`。
+
+
 ## SlayTheModel 最终推荐奖励（2026-10-16）
 
 - 上层 ReplaySearch smoke：胜利/死亡常数与比例、净回血、l/q/最终值截断、风险偏好、深度与时间截断、取消原子性、H0 改变清空统计及同基准续用。

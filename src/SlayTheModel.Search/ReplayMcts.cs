@@ -19,15 +19,20 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
 }
 
 public sealed record TimedSearchResult<TAction>(TAction Action, int CompletedSimulations,
-    int RetainedVisits, double ElapsedMilliseconds, bool Rebuilt, IReadOnlyList<RootActionStatistics<TAction>> Statistics) where TAction : notnull;
+    int RetainedVisits, double ElapsedMilliseconds, bool Rebuilt, IReadOnlyList<RootActionStatistics<TAction>> Statistics,
+    IReadOnlyDictionary<TAction, double>? RootPriors = null) where TAction : notnull;
 
-public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1)
+public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1,
+    Func<IReadOnlyList<TAction>, CancellationToken, Task<IReadOnlyList<double>>>? policyPrior = null,
+    double cPuct = 1.5)
     where TAction : notnull
 {
     private sealed class Node(string key, IReadOnlyList<TAction> actions)
     {
         public string Key { get; } = key;
         public List<TAction> Unexpanded { get; } = [.. actions];
+        public IReadOnlyList<TAction> Actions { get; } = actions;
+        public Dictionary<TAction, double>? Priors;
         public Dictionary<TAction, Node> Children { get; } = [];
         public int Visits;
         public double Sum;
@@ -45,6 +50,20 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
     }
 
     public void Reset() => _root = null;
+
+    private async Task<Node> CreateNodeAsync(string key, IReadOnlyList<TAction> actions, CancellationToken cancellation)
+    {
+        var node = new Node(key, actions);
+        if (policyPrior == null || actions.Count == 0) return node;
+        if (!double.IsFinite(cPuct) || cPuct < 0) throw new ArgumentOutOfRangeException(nameof(cPuct));
+        var values = await policyPrior(actions, cancellation);
+        if (values.Count != actions.Count || values.Any(p => !double.IsFinite(p) || p < 0)
+            || !double.IsFinite(values.Sum()) || values.Sum() <= 0)
+            throw new InvalidDataException("Prior must provide one finite nonnegative probability per legal action.");
+        var total = values.Sum();
+        node.Priors = actions.Select((action, i) => (action, p: values[i] / total)).ToDictionary(x => x.action, x => x.p);
+        return node;
+    }
 
     public async Task<TimedSearchResult<TAction>> SearchAsync(IReadOnlyList<TAction> prefix,
         string expectedStateKey, TimeSpan initialBudget, TimeSpan continuationBudget,
@@ -78,12 +97,36 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     rebuilt = true;
                     retained = 0;
                 }
-                _root ??= new Node(expectedStateKey, environment.LegalActions());
+                _root ??= await CreateNodeAsync(expectedStateKey, environment.LegalActions(), deadline.Token);
                 var node = _root;
                 var path = new List<Node> { node };
                 var depth = 0;
                 while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested)
                 {
+                    if (node.Priors is { } priors)
+                    {
+                        var selected = node.Actions.MaxBy(action =>
+                        {
+                            node.Children.TryGetValue(action, out var child);
+                            return (child?.Mean ?? 0) + cPuct * priors[action]
+                                * Math.Sqrt(1 + node.Visits) / (1 + (child?.Visits ?? 0));
+                        })!;
+                        await environment.ApplyAsync(selected, deadline.Token);
+                        bool expanded = !node.Children.TryGetValue(selected, out var successor);
+                        if (expanded)
+                        {
+                            successor = await CreateNodeAsync(environment.StateKey(),
+                                environment.Terminal ? [] : environment.LegalActions(), deadline.Token);
+                            node.Children.Add(selected, successor);
+                        }
+                        else if (environment.StateKey() != successor!.Key)
+                            throw new InvalidDataException("A replayed PUCT edge diverged.");
+                        node = successor!;
+                        path.Add(node);
+                        depth++;
+                        if (expanded) break;
+                        continue;
+                    }
                     if (node.Unexpanded.Count > 0)
                     {
                         var index = _random.Next(node.Unexpanded.Count);
@@ -136,6 +179,6 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
             .OrderByDescending(pair => pair.Value.Visits).ThenByDescending(pair => pair.Value.Mean)
             .Select(pair => new RootActionStatistics<TAction>(pair.Key, pair.Value.Visits, pair.Value.Mean, pair.Value.Best)).ToArray() ?? [];
         if (stats.Length == 0) throw new TimeoutException("No completed valid rollout within the search budget.");
-        return new TimedSearchResult<TAction>(stats[0].Action, completed, retained, watch.Elapsed.TotalMilliseconds, rebuilt, stats);
+        return new TimedSearchResult<TAction>(stats[0].Action, completed, retained, watch.Elapsed.TotalMilliseconds, rebuilt, stats, _root!.Priors);
     }
 }

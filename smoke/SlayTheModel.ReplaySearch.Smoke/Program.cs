@@ -70,6 +70,27 @@ environment.RewardContextKey = "new-start-hp";
 var changed = await contextTree.SearchAsync([], "0", budget, budget);
 if (!changed.Rebuilt || changed.RetainedVisits != 0) throw new Exception("Changed HP baseline must invalidate old reward statistics.");
 Console.WriteLine("replay search: formula, death, healing, clamps, risk, timeout, cancellation, context invalidation and reuse passed");
+var priorToy = new PriorToy();
+int priorCalls = 0;
+var guided = new ReplayMcts<int>(priorToy, policyPrior: (actions, ct) =>
+{
+    priorCalls++;
+    return Task.FromResult<IReadOnlyList<double>>(new double[] { 1, 9 });
+});
+var guidedResult = await guided.SearchAsync([], "root", budget, budget, maxDepth: 1);
+if (guidedResult.Action != 1 || priorCalls != 1 || Math.Abs(guidedResult.RootPriors![1] - .9) > 1e-12)
+    throw new Exception("PUCT must normalize and cache prior, and prefer larger prior at equal utility.");
+foreach (var invalid in new[] { new double[] { double.NaN, 1 }, new double[] { -1, 2 }, new double[] { 0, 0 }, new double[] { 1 } })
+{
+    try
+    {
+        await new ReplayMcts<int>(priorToy, policyPrior: (actions, ct) => Task.FromResult<IReadOnlyList<double>>(invalid))
+            .SearchAsync([], "root", budget, budget);
+        throw new Exception("Invalid prior accepted");
+    }
+    catch (InvalidDataException) { }
+}
+Console.WriteLine("PUCT: keyed legal-order normalization, influence, per-node caching and malformed prior rejection passed");
 sealed class HealthTradeoffToy : IReplayEnvironment<int>
 {
     private int action = -1;
@@ -147,5 +168,17 @@ sealed class RiskToy : IReplayEnvironment<int>
     public string StateKey() => action < 0 ? "root" : action.ToString();
     public double EvaluateTerminal() => throw new InvalidOperationException();
     public double EvaluateCutoff() => CombatRolloutReward.Evaluate(false, false, 40, 80, 40, 0.5, action == 0 ? 40 : 0);
+    public int RolloutAction(IReadOnlyList<int> actions, Random random) => 0;
+}
+
+sealed class PriorToy : IReplayEnvironment<int>
+{
+    private int action = -1;
+    public bool Terminal => action >= 0;
+    public Task RestoreAsync(IReadOnlyList<int> prefix, CancellationToken ct) { action = -1; return Task.CompletedTask; }
+    public Task ApplyAsync(int a, CancellationToken ct) { action = a; return Task.CompletedTask; }
+    public IReadOnlyList<int> LegalActions() => [0, 1];
+    public string StateKey() => action < 0 ? "root" : action.ToString();
+    public double EvaluateTerminal() => 0;
     public int RolloutAction(IReadOnlyList<int> actions, Random random) => 0;
 }

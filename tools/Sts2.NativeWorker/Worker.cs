@@ -36,6 +36,15 @@ public partial class Worker : Node
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
             string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "prior-benchmark")
+            {
+                SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                foreach (var type in Enum.GetValues<MegaCrit.Sts2.Core.Logging.LogType>())
+                    MegaCrit.Sts2.Core.Logging.Logger.SetLogLevelForType(type, MegaCrit.Sts2.Core.Logging.LogLevel.Warn);
+                await PriorBenchmark.RunAsync(session, System.Environment.GetEnvironmentVariable("STS2_BENCHMARK_OUT")!, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (workerMode == "gambling-chip-verify")
             {
                 await GamblingChipVerification.RunAsync(session, timeout.Token);

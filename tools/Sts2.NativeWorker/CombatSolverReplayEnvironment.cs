@@ -38,6 +38,8 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     public void BeginRollout() => rolloutStartHp = state.PendingChoice ? rootPlayerHp : state.PlayerHp;
     public string RewardContextKey => rolloutStartHp.ToString(System.Globalization.CultureInfo.InvariantCulture);
     public long Transitions => transitions;
+    public object ExportStarterPriorObservation(int initialHp)
+        => (session ?? throw new InvalidOperationException("Missing prediction root")).ExportStarterPriorObservation(initialHp);
     public string CurrentContinuationKey
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
     public string CurrentContinuationStateText

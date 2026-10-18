@@ -35,7 +35,7 @@ public sealed record NativeMctsState(
     int PlayerMaxHp);
 
 /// <summary>Prediction-only API for an external MCTS host. It never runs Combat Solver's Beam search.</summary>
-public sealed class NativeMctsSimulationSession : IDisposable
+public sealed partial class NativeMctsSimulationSession : IDisposable
 {
     private readonly CombatBeamSolver driver;
     private readonly CombatRootSnapshot capturedRoot;

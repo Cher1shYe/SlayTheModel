@@ -1,0 +1,639 @@
+{
+  "game": "Windows v0.111.0",
+  "arms": [
+    {
+      "arm": "uct",
+      "count": 6,
+      "wins": 3,
+      "winningHp": 10.0,
+      "rootMedian": 287.7994051934581,
+      "rootMin": 127.92488250899072,
+      "rootMax": 3000.2231140553445,
+      "fightSimsPerSecond": 838.1966932191684,
+      "calls": 0.0,
+      "priorMs": 0.0,
+      "encodeMs": 0.0,
+      "inferMs": 0.0,
+      "searchMs": 7009.094700000001,
+      "cases": [
+        {
+          "seed": 1,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 10,
+          "simulations": 551,
+          "searchMs": 1003.9355999999999,
+          "speeds": [
+            {
+              "CompletedSimulations": 82,
+              "ElapsedMilliseconds": 249.8868,
+              "transitions": 1036,
+              "calls": 0,
+              "simsPerSecond": 328.1485856795957
+            },
+            {
+              "CompletedSimulations": 87,
+              "ElapsedMilliseconds": 249.4434,
+              "transitions": 1055,
+              "calls": 0,
+              "simsPerSecond": 348.776516035301
+            },
+            {
+              "CompletedSimulations": 69,
+              "ElapsedMilliseconds": 250.5061,
+              "transitions": 888,
+              "calls": 0,
+              "simsPerSecond": 275.44239441674273
+            }
+          ]
+        },
+        {
+          "seed": 1,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 13,
+          "decisions": 20,
+          "simulations": 859,
+          "searchMs": 2000.2183000000002,
+          "speeds": [
+            {
+              "CompletedSimulations": 39,
+              "ElapsedMilliseconds": 250.8665,
+              "transitions": 908,
+              "calls": 0,
+              "simsPerSecond": 155.46117157930613
+            },
+            {
+              "CompletedSimulations": 41,
+              "ElapsedMilliseconds": 250.4736,
+              "transitions": 912,
+              "calls": 0,
+              "simsPerSecond": 163.6899058423722
+            },
+            {
+              "CompletedSimulations": 38,
+              "ElapsedMilliseconds": 250.4628,
+              "transitions": 858,
+              "calls": 0,
+              "simsPerSecond": 151.71913753259966
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 4,
+          "simulations": 1519,
+          "searchMs": 399.33189999999996,
+          "speeds": [
+            {
+              "CompletedSimulations": 736,
+              "ElapsedMilliseconds": 250.1872,
+              "transitions": 6369,
+              "calls": 0,
+              "simsPerSecond": 2941.7971822699164
+            },
+            {
+              "CompletedSimulations": 749,
+              "ElapsedMilliseconds": 249.6481,
+              "transitions": 6427,
+              "calls": 0,
+              "simsPerSecond": 3000.2231140553445
+            },
+            {
+              "CompletedSimulations": 740,
+              "ElapsedMilliseconds": 250.0538,
+              "transitions": 6333,
+              "calls": 0,
+              "simsPerSecond": 2959.3631450511853
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 3,
+          "decisions": 17,
+          "simulations": 2140,
+          "searchMs": 1700.7598,
+          "speeds": [
+            {
+              "CompletedSimulations": 287,
+              "ElapsedMilliseconds": 250.1637,
+              "transitions": 6175,
+              "calls": 0,
+              "simsPerSecond": 1147.2487814978751
+            },
+            {
+              "CompletedSimulations": 274,
+              "ElapsedMilliseconds": 249.7293,
+              "transitions": 5953,
+              "calls": 0,
+              "simsPerSecond": 1097.1880352045196
+            },
+            {
+              "CompletedSimulations": 283,
+              "ElapsedMilliseconds": 250.6476,
+              "transitions": 6075,
+              "calls": 0,
+              "simsPerSecond": 1129.0752434892654
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 5,
+          "simulations": 257,
+          "searchMs": 501.0402,
+          "speeds": [
+            {
+              "CompletedSimulations": 71,
+              "ElapsedMilliseconds": 250.2459,
+              "transitions": 966,
+              "calls": 0,
+              "simsPerSecond": 283.7209320911951
+            },
+            {
+              "CompletedSimulations": 73,
+              "ElapsedMilliseconds": 250.1046,
+              "transitions": 974,
+              "calls": 0,
+              "simsPerSecond": 291.8778782957211
+            },
+            {
+              "CompletedSimulations": 66,
+              "ElapsedMilliseconds": 250.3151,
+              "transitions": 917,
+              "calls": 0,
+              "simsPerSecond": 263.6676732646173
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 14,
+          "decisions": 14,
+          "simulations": 549,
+          "searchMs": 1403.8088999999998,
+          "speeds": [
+            {
+              "CompletedSimulations": 37,
+              "ElapsedMilliseconds": 250.5172,
+              "transitions": 851,
+              "calls": 0,
+              "simsPerSecond": 147.69444972241428
+            },
+            {
+              "CompletedSimulations": 32,
+              "ElapsedMilliseconds": 250.1468,
+              "transitions": 700,
+              "calls": 0,
+              "simsPerSecond": 127.92488250899072
+            },
+            {
+              "CompletedSimulations": 36,
+              "ElapsedMilliseconds": 250.7123,
+              "transitions": 861,
+              "calls": 0,
+              "simsPerSecond": 143.59088086224727
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "uniform",
+      "count": 6,
+      "wins": 3,
+      "winningHp": 20.666666666666668,
+      "rootMedian": 1103.2942792271676,
+      "rootMin": 291.5376213325666,
+      "rootMax": 2099.5548943623953,
+      "fightSimsPerSecond": 1646.3971730044389,
+      "calls": 0.0,
+      "priorMs": 0.0,
+      "encodeMs": 0.0,
+      "inferMs": 0.0,
+      "searchMs": 9102.2994,
+      "cases": [
+        {
+          "seed": 1,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 13,
+          "simulations": 2643,
+          "searchMs": 1300.3444,
+          "speeds": [
+            {
+              "CompletedSimulations": 384,
+              "ElapsedMilliseconds": 249.6222,
+              "transitions": 4583,
+              "calls": 0,
+              "simsPerSecond": 1538.3247163112896
+            },
+            {
+              "CompletedSimulations": 477,
+              "ElapsedMilliseconds": 250.1262,
+              "transitions": 5499,
+              "calls": 0,
+              "simsPerSecond": 1907.0373275570491
+            },
+            {
+              "CompletedSimulations": 525,
+              "ElapsedMilliseconds": 250.053,
+              "transitions": 5987,
+              "calls": 0,
+              "simsPerSecond": 2099.5548943623953
+            }
+          ]
+        },
+        {
+          "seed": 1,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 19,
+          "decisions": 15,
+          "simulations": 2051,
+          "searchMs": 1499.2181999999998,
+          "speeds": [
+            {
+              "CompletedSimulations": 252,
+              "ElapsedMilliseconds": 250.3702,
+              "transitions": 5738,
+              "calls": 0,
+              "simsPerSecond": 1006.5095606426004
+            },
+            {
+              "CompletedSimulations": 269,
+              "ElapsedMilliseconds": 249.4936,
+              "transitions": 6098,
+              "calls": 0,
+              "simsPerSecond": 1078.183969448515
+            },
+            {
+              "CompletedSimulations": 272,
+              "ElapsedMilliseconds": 250.145,
+              "transitions": 5777,
+              "calls": 0,
+              "simsPerSecond": 1087.369325791041
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 14,
+          "simulations": 3126,
+          "searchMs": 1398.0088,
+          "speeds": [
+            {
+              "CompletedSimulations": 224,
+              "ElapsedMilliseconds": 250.426,
+              "transitions": 2231,
+              "calls": 0,
+              "simsPerSecond": 894.4758132142829
+            },
+            {
+              "CompletedSimulations": 300,
+              "ElapsedMilliseconds": 250.0817,
+              "transitions": 2909,
+              "calls": 0,
+              "simsPerSecond": 1199.6079681160197
+            },
+            {
+              "CompletedSimulations": 402,
+              "ElapsedMilliseconds": 250.2964,
+              "transitions": 3733,
+              "calls": 0,
+              "simsPerSecond": 1606.0958128043392
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 24,
+          "decisions": 16,
+          "simulations": 2205,
+          "searchMs": 1602.0346,
+          "speeds": [
+            {
+              "CompletedSimulations": 110,
+              "ElapsedMilliseconds": 250.2059,
+              "transitions": 2406,
+              "calls": 0,
+              "simsPerSecond": 439.63791421385343
+            },
+            {
+              "CompletedSimulations": 153,
+              "ElapsedMilliseconds": 250.1663,
+              "transitions": 3336,
+              "calls": 0,
+              "simsPerSecond": 611.593168224497
+            },
+            {
+              "CompletedSimulations": 249,
+              "ElapsedMilliseconds": 249.7419,
+              "transitions": 4782,
+              "calls": 0,
+              "simsPerSecond": 997.0293330834754
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 17,
+          "simulations": 2799,
+          "searchMs": 1701.9285,
+          "speeds": [
+            {
+              "CompletedSimulations": 73,
+              "ElapsedMilliseconds": 250.3965,
+              "transitions": 1042,
+              "calls": 0,
+              "simsPerSecond": 291.5376213325666
+            },
+            {
+              "CompletedSimulations": 197,
+              "ElapsedMilliseconds": 250.6114,
+              "transitions": 2563,
+              "calls": 0,
+              "simsPerSecond": 786.0775686979922
+            },
+            {
+              "CompletedSimulations": 304,
+              "ElapsedMilliseconds": 250.141,
+              "transitions": 3879,
+              "calls": 0,
+              "simsPerSecond": 1215.3145625867012
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 19,
+          "decisions": 16,
+          "simulations": 2162,
+          "searchMs": 1600.7649000000001,
+          "speeds": [
+            {
+              "CompletedSimulations": 281,
+              "ElapsedMilliseconds": 250.1595,
+              "transitions": 5741,
+              "calls": 0,
+              "simsPerSecond": 1123.283345225746
+            },
+            {
+              "CompletedSimulations": 280,
+              "ElapsedMilliseconds": 250.1744,
+              "transitions": 5691,
+              "calls": 0,
+              "simsPerSecond": 1119.2192326632942
+            },
+            {
+              "CompletedSimulations": 288,
+              "ElapsedMilliseconds": 250.1709,
+              "transitions": 6057,
+              "calls": 0,
+              "simsPerSecond": 1151.2130307721643
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "arm": "learned",
+      "count": 6,
+      "wins": 3,
+      "winningHp": 10.0,
+      "rootMedian": 182.36903649275644,
+      "rootMin": 83.70822660534441,
+      "rootMax": 211.13527437028904,
+      "fightSimsPerSecond": 387.67659386770293,
+      "calls": 1271.0,
+      "priorMs": 5067.002099999996,
+      "encodeMs": 614.7372007835656,
+      "inferMs": 4103.479999466799,
+      "searchMs": 9402.166799999999,
+      "cases": [
+        {
+          "seed": 1,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 16,
+          "simulations": 1004,
+          "searchMs": 1618.3577000000002,
+          "speeds": [
+            {
+              "CompletedSimulations": 43,
+              "ElapsedMilliseconds": 251.283,
+              "transitions": 603,
+              "calls": 44,
+              "simsPerSecond": 171.12180290747884
+            },
+            {
+              "CompletedSimulations": 52,
+              "ElapsedMilliseconds": 249.6304,
+              "transitions": 695,
+              "calls": 53,
+              "simsPerSecond": 208.3079624917478
+            },
+            {
+              "CompletedSimulations": 53,
+              "ElapsedMilliseconds": 251.0239,
+              "transitions": 717,
+              "calls": 54,
+              "simsPerSecond": 211.13527437028904
+            }
+          ]
+        },
+        {
+          "seed": 1,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 8,
+          "decisions": 18,
+          "simulations": 797,
+          "searchMs": 1815.244,
+          "speeds": [
+            {
+              "CompletedSimulations": 49,
+              "ElapsedMilliseconds": 254.173,
+              "transitions": 1105,
+              "calls": 50,
+              "simsPerSecond": 192.7820814956742
+            },
+            {
+              "CompletedSimulations": 47,
+              "ElapsedMilliseconds": 250.2801,
+              "transitions": 1092,
+              "calls": 48,
+              "simsPerSecond": 187.78960053156445
+            },
+            {
+              "CompletedSimulations": 48,
+              "ElapsedMilliseconds": 250.2853,
+              "transitions": 1091,
+              "calls": 49,
+              "simsPerSecond": 191.7811393637581
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 9,
+          "simulations": 235,
+          "searchMs": 912.7158000000001,
+          "speeds": [
+            {
+              "CompletedSimulations": 35,
+              "ElapsedMilliseconds": 253.453,
+              "transitions": 396,
+              "calls": 36,
+              "simsPerSecond": 138.0926641231313
+            },
+            {
+              "CompletedSimulations": 33,
+              "ElapsedMilliseconds": 250.2674,
+              "transitions": 403,
+              "calls": 34,
+              "simsPerSecond": 131.8589636524773
+            },
+            {
+              "CompletedSimulations": 33,
+              "ElapsedMilliseconds": 250.0443,
+              "transitions": 379,
+              "calls": 34,
+              "simsPerSecond": 131.97661374404456
+            }
+          ]
+        },
+        {
+          "seed": 2,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 3,
+          "decisions": 19,
+          "simulations": 204,
+          "searchMs": 1911.3721,
+          "speeds": [
+            {
+              "CompletedSimulations": 22,
+              "ElapsedMilliseconds": 250.2921,
+              "transitions": 490,
+              "calls": 23,
+              "simsPerSecond": 87.89730079375258
+            },
+            {
+              "CompletedSimulations": 21,
+              "ElapsedMilliseconds": 249.5706,
+              "transitions": 506,
+              "calls": 22,
+              "simsPerSecond": 84.14452663895507
+            },
+            {
+              "CompletedSimulations": 21,
+              "ElapsedMilliseconds": 250.8714,
+              "transitions": 492,
+              "calls": 22,
+              "simsPerSecond": 83.70822660534441
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 40,
+          "Won": false,
+          "finalHp": 0,
+          "decisions": 15,
+          "simulations": 848,
+          "searchMs": 1515.9694,
+          "speeds": [
+            {
+              "CompletedSimulations": 49,
+              "ElapsedMilliseconds": 251.1467,
+              "transitions": 700,
+              "calls": 50,
+              "simsPerSecond": 195.10509196417868
+            },
+            {
+              "CompletedSimulations": 47,
+              "ElapsedMilliseconds": 253.7806,
+              "transitions": 663,
+              "calls": 48,
+              "simsPerSecond": 185.19934147842665
+            },
+            {
+              "CompletedSimulations": 46,
+              "ElapsedMilliseconds": 250.9141,
+              "transitions": 665,
+              "calls": 47,
+              "simsPerSecond": 183.32967338224518
+            }
+          ]
+        },
+        {
+          "seed": 3,
+          "initialHp": 80,
+          "Won": true,
+          "finalHp": 19,
+          "decisions": 16,
+          "simulations": 557,
+          "searchMs": 1628.5078,
+          "speeds": [
+            {
+              "CompletedSimulations": 48,
+              "ElapsedMilliseconds": 253.2646,
+              "transitions": 1097,
+              "calls": 49,
+              "simsPerSecond": 189.52510536411327
+            },
+            {
+              "CompletedSimulations": 46,
+              "ElapsedMilliseconds": 253.5715,
+              "transitions": 1039,
+              "calls": 47,
+              "simsPerSecond": 181.40839960326772
+            },
+            {
+              "CompletedSimulations": 44,
+              "ElapsedMilliseconds": 252.5299,
+              "transitions": 1005,
+              "calls": 45,
+              "simsPerSecond": 174.23679334605526
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "adapter": "native-starter-prior-v1",
+  "informationMode": "full-state",
+  "modelSha256": "20bbfad0a319cf2910dbf0f30f9f554b60c56e3b69ce1a835aeb080f29c7de60",
+  "warmupMs": 500,
+  "encounter": "BYRDONIS_ELITE",
+  "budgetMs": 100,
+  "rootSampleBudgetMs": 250
+}
