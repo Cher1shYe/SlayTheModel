@@ -1,4 +1,4 @@
-﻿"""Seeded arbitrary-deck scenarios for all-content self-play.
+"""Seeded arbitrary-deck scenarios for all-content self-play.
 
 Every recipe is a pure function of ``(split, master_seed, iteration, job_id)``.
 Training seeds live in a fresh namespace; validation/test use fixed masters so a
@@ -120,6 +120,32 @@ def generate_recipe(master_seed, iteration, job_id, split='train'):
     return recipe
 
 
+STRATIFIED_VERSION = 'all-stratified-v1'
+MAX_STRATIFIED_EPISODES = 1024
+
+
+def stratified_recipe(iteration, job_id, split='train'):
+    """Balanced encounter cycles and independent decks; seeds never collide.
+
+    Odd affine permutation is bijective modulo each power-of-two seed span.
+    Legacy generate_recipe stays unchanged for historical fixtures and test data.
+    """
+    if (type(iteration) is not int or not 0 <= iteration < 1024
+            or type(job_id) is not int or not 0 <= job_id < MAX_STRATIFIED_EPISODES
+            or split not in ('train', 'validation') or (split != 'train' and iteration != 0)):
+        raise ValueError('Unsupported stratified coordinates')
+    encounters = admitted_encounters()
+    rng = _rng(STRATIFIED_VERSION, split, iteration, job_id)
+    index = iteration * MAX_STRATIFIED_EPISODES + job_id
+    base, span = ((TRAIN_SEED_OFFSET, TRAIN_SEED_SPAN) if split == 'train'
+                  else (VALIDATION_SEED_OFFSET, HELDOUT_SEED_SPAN))
+    seed = base + (1664525 * index + 1013904223) % span
+    return validate_recipe(CombatScenario(
+        SCHEMA_VERSION, f'all-{split}-stratified-{iteration:04d}-{job_id:04d}',
+        FAMILY, split, 'Ironclad', 0, encounters[job_id % len(encounters)], sample_deck(rng),
+        PLAYER_HP, PLAYER_HP, (), (), seed, RULES_VERSION, ALL_CONTENT))
+
+
 def validate_recipe(recipe):
     if type(recipe) is not CombatScenario or recipe.content_manifest_version != ALL_CONTENT:
         raise ValueError('Recipe is not all-content')
@@ -162,13 +188,15 @@ def frozen_manifest():
     pool = card_pool()
     return {
         'version': VERSION, 'content': ALL_CONTENT, 'family': FAMILY,
+        'sampling': {'version': STRATIFIED_VERSION, 'encounter_rule': 'job_id % encounter_count',
+                     'per_encounter': 4, 'max_episodes': MAX_STRATIFIED_EPISODES},
         'pool_size': len(pool), 'pool': list(pool),
         'encounters': list(admitted_encounters()),
         'deck_size': [MIN_DECK_SIZE, MAX_DECK_SIZE], 'max_copies': MAX_COPIES,
         'upgrade_probability': UPGRADE_PROBABILITY,
         'duplicate_probability': DUPLICATE_PROBABILITY,
         'train_seed_offset': TRAIN_SEED_OFFSET, 'heldout_master_seeds': dict(HELDOUT_MASTER_SEEDS),
-        'seed_ranges': 'train [2^30, 1.5*2^30); validation [1.5*2^30, 2^30+3*2^26); test [2^30+3*2^26, 2^31)', 'seed_cap': 2**31,
+        'seed_ranges': 'train [2^30, 1.5*2^30); validation [1.5*2^30, 1.75*2^30); test [1.75*2^30, 2^31)', 'seed_cap': 2**31,
         'note': 'Only parity-passing encounters and admitted initial cards; '
                 'held-out splits never share coordinates with training.',
     }

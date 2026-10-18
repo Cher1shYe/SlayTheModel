@@ -11,8 +11,8 @@
 .\.venv-az\Scripts\python.exe scripts/check_training_readiness_mcts.py --workers 4
 ```
 
-第一条检查冻结计划的 384 个训练开局与 64 个验证开局构造／编码，不打开测试集；其 `ready` 仅代表开局检查。
-第二条以新初始化 XS、MCTS=8、40 回合／400 决策检查 64 个验证配方和覆盖 76 个准入遭遇的固定卡组夹具。胜、负和达到预算都是合法终止；异常不是输局，也不会被隐藏。该诊断不进行梯度更新，不证明任意组合都可解或策略已有学习增益。
+第一条检查冻结计划的 2432 个训练开局与 304 个验证开局构造／编码，不打开测试集；其 `ready` 仅代表开局检查。
+第二条以新初始化 XS、MCTS=8、40 回合／400 决策检查 304 个验证配方和覆盖 76 个准入遭遇的固定卡组夹具。胜、负和达到预算都是合法终止；异常不是输局，也不会被隐藏。该诊断不进行梯度更新，不证明任意组合都可解或策略已有学习增益。
 
 ## 2. 下一步：用户授权后进行短程 smoke
 
@@ -25,17 +25,17 @@
 ## 3. 正式训练（本次未运行；另行授权）
 
 ```powershell
-.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --out output/az_all_xs_v3_formal
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --out output/az_all_xs_v3_stratified
 ```
 
-未指定的参数全部来自冻结配置：8 轮，每轮 48 场、16 次更新，batch 64，MCTS=8，学习率 0.0003，value weight=0.1；采集和验证均为 40 回合／400 决策。旧 v1 的短截断吞吐估算不适用于本次正式预算。
+未指定的参数全部来自冻结配置：8 轮，每轮 304 场（76 种遭遇各 4 场）、16 次更新，batch 64，MCTS=8，学习率 0.0003，value weight=0.1；采集和验证均为 40 回合／400 决策。旧 v1 的短截断吞吐估算不适用于本次正式预算。
 
 每轮以当前冠军采集并训练一个候选。候选必须完成全部验证配方、无契约拒绝，且相对冠军的配对 bootstrap 95% 区间下界大于 0 才晋级；否则保留冠军。持续学习模型跨轮保留权重、AdamW 和采样／Torch RNG；候选不晋级也继续学习。冠军独立保存，继续负责采集和最终评估。ALL 回放按遭遇均匀分层，再在该遭遇内抽取 episode 和状态。置信区间是冻结工程晋级规则，不替代独立多 seed 泛化验收。
 
 ## 4. 中断恢复
 
 ```powershell
-.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --resume --out output/az_all_xs_v3_formal
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --resume --out output/az_all_xs_v3_stratified
 ```
 
 保持原来的所有有效参数；仅允许增加总轮数或改变 worker 数。`state.json` 是权威提交点，`report.json` 是派生汇总。每次 AdamW 更新后保存候选权重、优化器、采样 RNG、Torch RNG 和已完成更新数。已缓存的采集结果重放入 Replay 时按 episode id 幂等提交；已完成轮次不重新采集。汇总报告缺失不影响恢复。
@@ -45,7 +45,7 @@
 ## 5. 查看结果与最后留出
 
 ```powershell
-.\.venv-az\Scripts\python.exe scripts/summarize_all_xs_run.py output/az_all_xs_v3_formal/report.json --out docs/AZ_ALL_XS_V3_RESULTS.md
+.\.venv-az\Scripts\python.exe scripts/summarize_all_xs_run.py output/az_all_xs_v3_stratified/report.json --out docs/AZ_ALL_XS_V3_RESULTS.md
 ```
 
 `effective_settings` 记录全部实际参数；`history` 保留各轮候选及 `promoted`，`champion_checkpoint` 和 `final_validation` 指向保留冠军，不能把最后候选当成冠军。`learner_checkpoint` 指向最后一次已提交轮次的更新 checkpoint，保存持续学习状态；`pending.update_checkpoint` 是未完成轮次的恢复点。
@@ -75,7 +75,7 @@
 诊断报告记录源码、checkpoint 和 collection 摘要。旧 v2 checkpoint 在 schema 相容时可以只读诊断，但不可以作为 v3 的完整续训状态；`checkpoint_source_matches=false` 表示当前环境源码与保存时不同，比较时应在同一环境下重新测量双方。诊断结果不参与冠军选择，不改变正式训练参数。
 
 
-## 8. 本次实现的测试验收
+## 8. 持续学习改动的历史测试验收
 
 在仅含本次拟提交改动、排除用户未提交卡牌修复的隔离源码副本中，以下 7 个文件合计 **75 passed（77.70 秒）**：
 
@@ -84,3 +84,23 @@ python -m pytest tests/test_az_training_improvements.py tests/test_az_training_r
 ```
 
 覆盖持续两轮拒绝晋级后学习权重／AdamW 继续累积、冠军采集不被候选污染、第二轮更新中断后的逐参数精确恢复、99:1 遭遇分布的均匀分层抽样、价值基线与退化相关性、无更新诊断、测试集拒绝、诊断 CLI 参数／来源／防覆盖，以及原有训练恢复、MCTS、回放与状态报告回归。测试中的少量优化步和短战斗均为临时目录夹具，不是新训练实验。本次未重跑全仓历史失败集合，不宣称全仓全绿。
+
+
+## 9. 分层随机采样协议
+
+训练默认每轮 304 场：按排序后的 76 个准入遭遇循环 4 次，每次独立随机抽取 8～30 张卡（原有重复牌及升级概率不变）。卡组随机数由 split、iteration、job_id 和采样版本派生；不同轮次使用新卡组。战斗种子以唯一坐标进行幂次模数上的双射映射，支持范围内无种子碰撞。随机卡组不保证可解或构筑合理。
+
+验证集使用独立 split、独立种子区间生成每种遭遇 4 个随机卡组，共 304 场，然后写入 protocol.json 冻结。每轮评估相同配方，不重抽验证题目。最终测试集保持原有 64 个配方。prepare_all_xs_protocol.py 可确定性重建本协议，且保留恢复、预算和晋级配置。
+
+默认 8×304=2432 个训练配方；--episodes 可在 1～1024 范围内缩小用于 smoke 或扩大，只有场数为76的倍数时所有遭遇完全均衡，304时各4场。最多1024轮，越界显式报错，不循环复用坐标。新配置／协议摘要阻止旧输出误续训。训练参数中的 updates 仍为16，本次不顺带调整优化强度。
+
+
+本批验收：隔离副本（不含用户未提交卡牌修改）中 **89 passed，78.61 秒**。命令如下；这是工程测试，不是训练实验。
+
+```powershell
+$env:OMP_NUM_THREADS='1'
+$env:MKL_NUM_THREADS='1'
+python -m pytest tests/test_az_all_decks.py tests/test_az_all_runner.py tests/test_az_all_xs_config.py tests/test_az_training_readiness.py tests/test_az_training_improvements.py tests/test_az_stratified_plan.py tests/test_az_replay.py tests/test_az_all_mcts.py tests/test_az_status_report.py -q
+```
+
+构造／编码预检：training planned=2432、ok=2432；validation checked=304、ok=304；errors=[]、test=null。新增断言覆盖默认每遭遇4场、8轮场景ID／种子／实际卡组无重复、1024场边界无回绕、验证与训练隔离、冻结文件可确定性重建、重复验证配方拒绝、原有最终测试配方不变。短运行重复性测试使用4个验证配方的临时夹具，完整304配方由独立协议和预检测试覆盖。没有做整场304配方的学习效果评估。

@@ -85,7 +85,7 @@ def test_preflight_accepts_the_frozen_plan():
                                   max_turns=3, max_decisions=8)
     assert result['ready'] is True
     assert result['training'] == {'planned': 1, 'ok': 1, 'errors': []}
-    assert result['validation'] == {'checked': 64, 'ok': 64, 'errors': []}
+    assert result['validation'] == {'checked': 304, 'ok': 304, 'errors': []}
     assert result['test'] is None
     assert result['generator_manifest_sha']
 
@@ -176,7 +176,7 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
     record = report['history'][0]
     assert set(record['seconds']) == {'collect', 'update', 'evaluate', 'total'}
     assert record['paired_vs_baseline']['mean_gain'] == pytest.approx(0.1)
-    assert record['paired_vs_baseline']['episodes'] == 64
+    assert record['paired_vs_baseline']['episodes'] == 304
     assert (tmp_path / 'report.json').exists()
 
 
@@ -313,16 +313,27 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
                             updates=1, budget=1, seed=0, log=lambda *args: None)
     breakdown = report['history'][0]['validation_by_encounter']
-    assert sum(row['episodes'] for row in breakdown.values()) == 64
+    assert sum(row['episodes'] for row in breakdown.values()) == 304
     assert all(0.0 <= row['win_rate'] <= 1.0 for row in breakdown.values())
 
 
 
 def test_short_run_is_reproducible_for_a_seed(tmp_path):
+    # Reproducibility needs a bounded fixture, not repeated full validation runs.
+    # The complete frozen plan has separate coverage and preflight tests.
+    import json
+    from pathlib import Path
+    config = json.loads(Path(CONFIG).read_text())
+    protocol = json.loads(Path(PROTOCOL).read_text())
+    protocol['validation'] = protocol['validation'][:4]
+    config['evaluation']['validation_recipes'] = 4
+    config_path, protocol_path = tmp_path / 'config.json', tmp_path / 'protocol.json'
+    config_path.write_text(json.dumps(config))
+    protocol_path.write_text(json.dumps(protocol))
     kwargs = dict(iterations=1, episodes=2, updates=1, budget=1, batch_size=8, seed=5,
                   max_turns=2, max_decisions=6, eval_max_turns=2, eval_max_decisions=6, log=lambda *args: None)
-    first = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'a', **kwargs)
-    second = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'b', **kwargs)
+    first = all_runner.run(config_path, protocol_path, tmp_path / 'a', **kwargs)
+    second = all_runner.run(config_path, protocol_path, tmp_path / 'b', **kwargs)
     assert first['history'][0]['episodes'] == second['history'][0]['episodes']
     assert first['history'][0]['outcomes'] == second['history'][0]['outcomes']
     assert first['final_validation']['mean_utility'] == pytest.approx(

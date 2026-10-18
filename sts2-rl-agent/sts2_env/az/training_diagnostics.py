@@ -145,8 +145,8 @@ def main():
         report.update(collection=str(args.collection), collection_sha256=hashlib.sha256(data).hexdigest(),
             diagnostic=value_diagnostic(model, json.loads(data), args.max_rows))
     else:
-        if not 0 <= args.iteration < 1024 or not 1 <= args.episodes <= 64:
-            parser.error('iteration must be 0..1023; episodes must be 1..64')
+        if not 0 <= args.iteration < 1024 or not 1 <= args.episodes <= 1024:
+            parser.error('iteration must be 0..1023; episodes must be 1..1024')
         report['diagnostic'] = search_diagnostic(model, training_recipes(args.iteration, args.episodes),
             args.budgets, args.seed, EpisodeLimits(max_turns=args.max_turns, max_decisions=args.max_decisions),
             error_dir=str(Path(args.out).parent / 'errors'))

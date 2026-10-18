@@ -11,10 +11,10 @@ from sts2_env.az.config import atomic_json
 
 OUT = ROOT / 'configs' / 'az_all_xs_v1'
 VERSION = 'az-all-xs-v1'
-VALIDATION_COUNT = 64
+VALIDATION_COUNT = 304
 TEST_COUNT = 64
 TRAIN_ITERATIONS = 8
-EPISODES_PER_ITERATION = 48
+EPISODES_PER_ITERATION = 304
 SEARCH_BUDGET = 8
 LEARNING_RATE = 3e-4
 BATCH_SIZE = 64
@@ -33,6 +33,8 @@ def recipe_document(recipe):
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     manifest = all_decks.frozen_manifest()
+    if len(manifest['encounters']) != 76:
+        raise ValueError('Frozen 304-recipe plan requires exactly 76 admitted encounters')
     config = {
         'version': VERSION,
         'status': 'frozen-before-training',
@@ -49,22 +51,23 @@ def main():
             'batch_size': BATCH_SIZE,
             'learning_rate': LEARNING_RATE,
             'value_weight': 0.1,
+            'updates_per_iteration': 16, 'max_turns': 40, 'max_decisions': 400,
             'self_play': 'native monsters, all-content information state, particle belief',
             'targets': 'search visit distribution + terminal V7 utility',
         },
-        'evaluation': {'validation_recipes': VALIDATION_COUNT, 'test_recipes': TEST_COUNT,
+        'lifecycle': 'initial-primary-budget-v6',
+        'evaluation': {'max_turns': 40, 'max_decisions': 400, 'validation_recipes': VALIDATION_COUNT, 'test_recipes': TEST_COUNT,
                        'metric': 'mean network V7 utility (network-only, max_turns 40)',
                        'holdout_policy': 'test split opened only for the final gate'},
-        'gate': {'requires': 'validation utility gain over frozen baseline before opening test'},
+        'gate': {'requires': 'complete validation, no rejections, paired 95% CI lower bound > 0'},
         'notes': [
             'Held-out splits use fixed master seeds; training coordinates never overlap.',
             'Only parity-passing encounters and admitted initial cards are used.',
             'No weights or replay are reused from earlier content versions.',
         ],
     }
-    atomic_json(OUT / 'config.json', config)
-    validation = [all_decks.generate_recipe(all_decks.HELDOUT_MASTER_SEEDS['validation'], 0, job,
-                                            'validation') for job in range(VALIDATION_COUNT)]
+    (OUT / 'config.json').write_text(json.dumps(config, ensure_ascii=False, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    validation = [all_decks.stratified_recipe(0, job, 'validation') for job in range(VALIDATION_COUNT)]
     test = [all_decks.generate_recipe(all_decks.HELDOUT_MASTER_SEEDS['test'], 0, job, 'test')
             for job in range(TEST_COUNT)]
     protocol = {
@@ -74,7 +77,7 @@ def main():
             json.dumps(manifest, sort_keys=True).encode()).hexdigest(),
         'train_plan': {'iterations': TRAIN_ITERATIONS,
                        'episodes_per_iteration': EPISODES_PER_ITERATION,
-                       'coordinate_rule': 'master = iteration % 32, job = episode % 16'},
+                       'coordinate_rule': 'stratified-v1: job = episode, encounter = job % 76; four cycles; no coordinate wrap'},
         'validation': [recipe_document(r) for r in validation],
         'test': [recipe_document(r) for r in test],
         'note': 'Recipes are pure functions of their frozen coordinates and this manifest.',

@@ -2,11 +2,11 @@
   "content": "ironclad-colorless-all-v6",
   "evaluation": {
     "holdout_policy": "test split opened only for the final gate",
+    "max_decisions": 400,
+    "max_turns": 40,
     "metric": "mean network V7 utility (network-only, max_turns 40)",
     "test_recipes": 64,
-    "validation_recipes": 64,
-    "max_turns": 40,
-    "max_decisions": 400
+    "validation_recipes": 304
   },
   "gate": {
     "requires": "complete validation, no rejections, paired 95% CI lower bound > 0"
@@ -252,12 +252,19 @@
       "WHIRLWIND"
     ],
     "pool_size": 146,
+    "sampling": {
+      "encounter_rule": "job_id % encounter_count",
+      "max_episodes": 1024,
+      "per_encounter": 4,
+      "version": "all-stratified-v1"
+    },
     "seed_cap": 2147483648,
-    "seed_ranges": "train [2^30, 1.5*2^30); validation [1.5*2^30, 2^30+3*2^26); test [2^30+3*2^26, 2^31)",
+    "seed_ranges": "train [2^30, 1.5*2^30); validation [1.5*2^30, 1.75*2^30); test [1.75*2^30, 2^31)",
     "train_seed_offset": 1073741824,
     "upgrade_probability": 0.3,
     "version": "all-decks-v1"
   },
+  "lifecycle": "initial-primary-budget-v6",
   "model": {
     "initialization": "fresh",
     "reuse_previous_weights": false,
@@ -279,16 +286,15 @@
   "status": "frozen-before-training",
   "training": {
     "batch_size": 64,
-    "episodes_per_iteration": 48,
+    "episodes_per_iteration": 304,
     "iterations": 8,
     "learning_rate": 0.0003,
+    "max_decisions": 400,
+    "max_turns": 40,
     "self_play": "native monsters, all-content information state, particle belief",
     "targets": "search visit distribution + terminal V7 utility",
-    "value_weight": 0.1,
     "updates_per_iteration": 16,
-    "max_turns": 40,
-    "max_decisions": 400
+    "value_weight": 0.1
   },
-  "version": "az-all-xs-v1",
-  "lifecycle": "initial-primary-budget-v6"
+  "version": "az-all-xs-v1"
 }

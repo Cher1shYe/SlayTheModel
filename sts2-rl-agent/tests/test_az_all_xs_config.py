@@ -37,10 +37,11 @@ def test_protocol_recipes_regenerate_from_frozen_coordinates():
         json.dumps(manifest, sort_keys=True).encode()).hexdigest()
     for split, key in (('validation', 'validation'), ('test', 'test')):
         stored = protocol[key]
-        assert len(stored) == 64
+        assert len(stored) == (304 if split == 'validation' else 64)
         for index, document in enumerate(stored):
             master = all_decks.HELDOUT_MASTER_SEEDS[split]
-            recipe = all_decks.generate_recipe(master, 0, index, split)
+            recipe = (all_decks.stratified_recipe(0, index, split) if split == 'validation'
+                      else all_decks.generate_recipe(master, 0, index, split))
             assert document['scenario_id'] == recipe.scenario_id
             assert document['encounter'] == recipe.encounter_id
             assert document['seed'] == recipe.environment_seed

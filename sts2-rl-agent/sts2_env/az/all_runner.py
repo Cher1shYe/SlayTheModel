@@ -16,7 +16,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
-from .all_decks import (FAMILY, generate_recipe, recipe_from_document)
+from .all_decks import (FAMILY, generate_recipe, recipe_from_document, stratified_recipe, MAX_STRATIFIED_EPISODES)
 from .config import EpisodeLimits, RULES_VERSION, atomic_json
 from .content import ALL_CONTENT
 from .entity_replay import EntityReplayBuffer
@@ -30,8 +30,6 @@ from .self_play import CollectionJob
 VERSION = 'az-all-xs-runner-v3'
 SEARCH = 'dynamic-risk-puct-v2'
 TIER = 'XS'
-MAX_TRAINING_MASTER = 32
-MAX_TRAINING_JOB = 16
 
 
 def load_frozen_config(path):
@@ -50,12 +48,9 @@ def fresh_model(config, seed=None):
 
 
 def training_recipes(iteration, episodes):
-    # MAX_TRAINING_JOB recipes exist per master; offset the master once an
-    # iteration asks for more episodes than that so every episode is distinct.
-    return tuple(generate_recipe((iteration + 8 * (episode // MAX_TRAINING_JOB))
-                                 % MAX_TRAINING_MASTER, iteration,
-                                 episode % MAX_TRAINING_JOB, 'train')
-                 for episode in range(episodes))
+    if type(episodes) is not int or not 1 <= episodes <= MAX_STRATIFIED_EPISODES:
+        raise ValueError('Invalid episode count')
+    return tuple(stratified_recipe(iteration, episode) for episode in range(episodes))
 
 
 def collect(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
@@ -237,6 +232,10 @@ def preflight(config_path, protocol_path, *, iterations=None, episodes=None, max
                                             encounter=recipe.encounter_id,
                                             error=f'{type(exc).__name__}: {exc}'))
     validation = protocol_recipes(protocol, 'validation')
+    if (len(validation) != config['evaluation']['validation_recipes']
+            or len({r.scenario_id for r in validation}) != len(validation)
+            or len({r.environment_seed for r in validation}) != len(validation)):
+        raise ValueError('Frozen validation count or uniqueness mismatch')
     if validation_limit is not None:
         validation = validation[:validation_limit]
     validation_ok, validation_errors = 0, []
@@ -307,7 +306,7 @@ def effective_settings(config, **overrides):
                 raise ValueError(f'Invalid {key}')
         elif type(value) is not int or value < (0 if key == 'seed' else 1):
             raise ValueError(f'Invalid {key}')
-    if settings['iterations'] > 1024 or settings['episodes'] > 64:
+    if settings['iterations'] > 1024 or settings['episodes'] > MAX_STRATIFIED_EPISODES:
         raise ValueError('Generator coordinate capacity exceeded')
     return settings
 

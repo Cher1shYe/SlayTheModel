@@ -19,7 +19,7 @@ PROTOCOL = 'configs/az_all_xs_v1/protocol.json'
 def test_resolved_defaults_and_seed():
     config = runner.load_frozen_config(CONFIG)
     s = runner.effective_settings(config)
-    assert (s['iterations'], s['episodes'], s['updates'], s['batch_size'], s['budget']) == (8, 48, 16, 64, 8)
+    assert (s['iterations'], s['episodes'], s['updates'], s['batch_size'], s['budget']) == (8, 304, 16, 64, 8)
     assert (s['value_weight'], s['max_turns'], s['eval_max_turns'], s['max_decisions']) == (.1, 40, 40, 400)
     a, b = runner.fresh_model(config, 1), runner.fresh_model(config, 2)
     assert any(not torch.equal(x, y) for x, y in zip(a.parameters(), b.parameters()))
@@ -120,7 +120,7 @@ def test_crash_after_round_commit_recovers_champion_without_report(tmp_path, mon
     assert [r['promoted'] for r in report['history']] == [True, False]
     assert report['champion_checkpoint'] == 'iteration-000.pt'
     assert report['final_validation']['mean_utility'] == .5
-    assert len(json.loads((tmp_path / 'state.json').read_text())['baseline_rows']) == 64
+    assert len(json.loads((tmp_path / 'state.json').read_text())['baseline_rows']) == 304
     with pytest.raises(ValueError, match='configuration'):
         runner.run(CONFIG, PROTOCOL, tmp_path, resume=True, **dict(kw, budget=2))
     with pytest.raises(ValueError, match='not empty'):
@@ -158,7 +158,7 @@ def test_hex_restores_current_piles_and_preserves_upgrade_keyword(tmp_path):
     from sts2_env.az.card_memory import inventory
     from sts2_env.core.enums import PowerId
     protocol = json.loads(Path(PROTOCOL).read_text())
-    recipe = runner.protocol_recipes(protocol, 'validation')[29]
+    recipe = runner.generate_recipe(189, 0, 29, 'validation')
     env = ObservableCombatAdapter(recipe, reward_version='risk-terminal-v7', error_dir=tmp_path)
     env.step(0)
     assert PowerId.HEX in env.world.player.powers
@@ -182,7 +182,7 @@ def test_hex_cleanup_does_not_journal_removed_power(tmp_path):
     from sts2_env.az.adapter import ObservableCombatAdapter
     from sts2_env.core.enums import PowerId
     protocol = json.loads(Path(PROTOCOL).read_text())
-    env = ObservableCombatAdapter(runner.protocol_recipes(protocol, 'validation')[29],
+    env = ObservableCombatAdapter(runner.generate_recipe(189, 0, 29, 'validation'),
                                  reward_version='risk-terminal-v7', error_dir=tmp_path)
     env.step(0)
     world = env.world
