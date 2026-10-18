@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 原生训练采集观察 v2（2026-10-19）
+
+上层 `sts2-rl-agent/scripts/check_native_backend.py` 是有界验收入口：六种牌、BYRDONIS_ELITE 与单怪 NIBBITS_WEAK，4 场采集加独立冻结的 24 场纯网络验证。逐决策独立捕获与非终局 continuation 对账，费用／基础伤害／格挡／抽牌数与原有 Python 描述核对。终局胜负／HP／V7 标签核对；末位舍入差单独记录。数据腐坏、失败续采、验证集隔离、更新与验证中断后的恢复在 Python 契约测试中覆盖。完整验收数值见 [后端 v2 报告](../../../../sts2-rl-agent/docs/NATIVE_BACKEND_V2_20261019.md)。不将 headless 速度解释为可见 Steam 性能。
+
 ## SlayTheModel 先验接入试验（2026-10-19）
 
 - 上层 ReplaySearch smoke 通过先验归一化、等效用下的策略影响、节点缓存及无效概率拒绝，并运行原 UCT/奖励测试。

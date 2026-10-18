@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 原生训练采集观察 v2（2026-10-19，未发布）
+
+`ExportStarterPriorObservation` 增加显式可选 v2 模式，在原三种牌之外准入 IRON_WAVE、POMMEL_STRIKE、TWIN_STRIKE，导出实际费用及 DynamicVars 基础值供 Python 既有卡牌编码逐项核对。默认 v1 的字段、准入范围不变；不改模拟、搜索或战斗效果。状态仍来自分支快照，未知机制显式拒绝。上层采集 worker 对 live/影子特征、合法动作及非终局完整 continuation 做严格对账；上层 ALL runner 保留 Learner、冠军与更新恢复。范围与验收见 [后端 v2 报告](../../../../sts2-rl-agent/docs/NATIVE_BACKEND_V2_20261019.md)。没有正式训练、版本提升或 Mod 发布。
+
 ## SlayTheModel 先验接入试验（2026-10-19）
 
 - 新增只读 `NativeMctsPriorObservation`，从影子状态导出受限初始牌组观察；上层 ReplayMcts 可注入合法动作先验使用 PUCT，未注入时保留 UCT。Python 仅推理，不承担模拟，不使用 value head，不改奖励。

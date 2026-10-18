@@ -6,7 +6,7 @@ namespace CombatSolver.Api;
 public sealed partial class NativeMctsSimulationSession
 {
     // Experimental, deliberately narrow adapter. Unknown mechanics never become zero features.
-    public object ExportStarterPriorObservation(int initialHp)
+    public object ExportStarterPriorObservation(int initialHp, bool collectionV2 = false)
     {
         ThrowIfDisposed();
         if (currentDescription.PendingChoice || currentDescription.Terminal)
@@ -23,17 +23,23 @@ public sealed partial class NativeMctsSimulationSession
         object[] Cards(IReadOnlyList<CombatSolver.Engine.Common.PredictedCard> cards) => cards.Select(card =>
         {
             var c = card.Preview;
-            if (c.Id.Entry is not ("STRIKE_IRONCLAD" or "DEFEND_IRONCLAD" or "BASH")
+            bool admitted = c.Id.Entry is "STRIKE_IRONCLAD" or "DEFEND_IRONCLAD" or "BASH"
+                || (collectionV2 && c.Id.Entry is ("IRON_WAVE" or "POMMEL_STRIKE" or "TWIN_STRIKE"));
+            if (!admitted
                 || c.CurrentUpgradeLevel != 0 || c.Enchantment != null || c.Affliction != null
                 || c.EnergyCost.GetWithModifiers(CostModifiers.Local) != (c.Id.Entry == "BASH" ? 2 : 1))
                 throw new NotSupportedException("Starter prior requires unmodified starter cards.");
+            if (collectionV2)
+                return (object)new { id = c.Id.Entry, stateKey = CardChoiceSupport.ChoiceCardKey(card),
+                    cost = c.EnergyCost.GetWithModifiers(CostModifiers.Local),
+                    baseValues = c.DynamicVars.ToDictionary(v => v.Key, v => v.Value.BaseValue) };
             return (object)new { id = c.Id.Entry, stateKey = CardChoiceSupport.ChoiceCardKey(card) };
         }).ToArray();
         var counters = simulator.History.GetCounters(player);
         var moves = combat.CurrentMonsterMoves();
         return new
         {
-            version = "native-starter-prior-v1", turn = current.Turn, initialHp,
+            version = collectionV2 ? "native-collection-observation-v2" : "native-starter-prior-v1", turn = current.Turn, initialHp,
             hp = hp.CurrentHp, maxHp = hp.MaxHp, block = hp.Block, energy = pcs.Energy,
             decisions = counters.FinishedPlays + current.Turn - 1,
             played = combat.GetCardsPlayedThisTurn(player.Creature),
