@@ -358,3 +358,10 @@
 - 新增 `scripts/summarize_all_xs_run.py`：从 `report.json` 生成 markdown 报告（provenance、基线、每轮损失/效用/配对增益与 CI、目标统计、最弱遭遇、拒绝清单、测试门槛与阅读规则）。
 - 新增 2 项测试（完整报告字段、空历史容错）；运行手册补充第 7 节渲染命令。
 - 本轮不启动训练；正式训练仍需授权。
+
+### 步骤 41（2026-10-18）Hexed 的 Ethereal 入账顺序修正（P4b）
+
+- 发现 `HexPower.afflict_card` 先调用 `card.afflict('hexed')` 记录状态、再直接给卡牌加 `ethereal` 关键字，导致公开事件的 new state 缺少 Ethereal，而卡牌可见状态包含它（Hexed 隐含 Ethereal）。
+- 修正为先加关键字、再记录 affliction，使事件与可见状态一致；全量内容/召唤/multi/morph 套件 **3568 项通过**（仅 2 项既有 fogmog 失败）。
+- 复评：鲁棒性仍 **76/76**、parity 仍 **76 + 2 采样 + 1 专用 + 2 待补**，准入与协议不变。
+- `knights_elite` 的 MCTS 拒绝仍未解决（剩余差异在 Hex 移除事件的卡牌跟踪上），已记录；本轮不启动训练。

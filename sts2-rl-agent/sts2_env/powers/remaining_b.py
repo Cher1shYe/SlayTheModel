@@ -424,15 +424,18 @@ class HexPower(PowerInstance):
 
     def afflict_card(self, card: object) -> None:
         afflict = getattr(card, "afflict", None)
+        if callable(afflict) and not getattr(card, "can_afflict", lambda name: True)("hexed"):
+            return
+        # Hexed implies Ethereal, so add the keyword before the public state
+        # change is journaled; otherwise the recorded new state disagrees with
+        # the card's visible state.
+        keywords = set(getattr(card, "keywords", set()))
+        if "ethereal" not in keywords:
+            card.keywords = frozenset(keywords | {"ethereal"})
+            self._applied_ethereal_cards.append(card)
+        self._hexed_cards.append(card)
         if callable(afflict) and not afflict("hexed"):
             return
-        self._hexed_cards.append(card)
-        keywords = set(getattr(card, "keywords", set()))
-        if "ethereal" in keywords:
-            return
-        keywords.add("ethereal")
-        card.keywords = frozenset(keywords)
-        self._applied_ethereal_cards.append(card)
 
     def after_card_entered_combat(self, owner: Creature, card: object, combat: CombatState) -> None:
         if getattr(card, "owner", None) is owner:
