@@ -130,3 +130,19 @@ def test_v2_full_game_particle_parity(v2, slot):
 def test_v2_parallel_replay_and_learning(v2, tmp_path):
     previous.test_selection_parallel_replay_and_update(tmp_path)
 
+
+def test_all_content_purity_uses_the_atomic_set_mask():
+    from types import SimpleNamespace
+    from sts2_env.az.actions import public_mask
+    from sts2_env.az.choice_sets import is_set_choice
+    from sts2_env.az.content import ALL_CONTENT
+
+    card = SimpleNamespace(card_id=SimpleNamespace(name='PURITY'))
+    choice = SimpleNamespace(num_options=3, min_choices=0, max_choices=2, allow_skip=True,
+                             is_multi=True, can_confirm=lambda: True, can_toggle=lambda i: True)
+    world = SimpleNamespace(pending_choice=choice, play_pile=[], _pending_play={'card': card})
+    assert is_set_choice(world, ALL_CONTENT)
+    mask = public_mask(world, ALL_CONTENT)
+    assert mask[0b101] and mask[0b011] and mask[0] and not mask[0b111]
+    # A world without a pending play is not a Purity set choice (defensive).
+    assert not is_set_choice(SimpleNamespace(pending_choice=choice, play_pile=[]), ALL_CONTENT)

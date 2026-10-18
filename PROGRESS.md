@@ -314,3 +314,9 @@
 - 搜索侧修复：零值 DEXTERITY 的公开顺序校验；粒子恢复按公开行顺序重建 basic_statuses；ALL_CONTENT 的 **Purity 多选（位掩码）** 契约（含 `public_choice_mask`）；`is_set_choice` 对 `_pending_play` 的防御性访问。
 - MCTS 剩余 4 个拒绝全部记录：3 个主敌人移除（gremlin_merc/axebots，需移除/召唤预算契约）与 1 个 knights_elite 粒子卡牌库存差异；网络侧不再有拒绝。
 - 回归 **1203 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
+
+### 步骤 34（2026-10-18）ALL_CONTENT Purity 掩码测试与 knights 库存根因（P3w）
+
+- 新增 1 项测试锁定 ALL_CONTENT 的 Purity 原子集掩码：`is_set_choice` 识别、`public_mask` 给出位掩码、`_pending_play` 缺失时防御性返回 False。
+- `knights_elite` 的 MCTS 拒绝根因定位：粒子模拟后 5 张卡在消耗堆呈 `hexed` 状态，而公开历史中的 5 条 `card_state_change` 未能让库存包含这些状态（口径/时机差异），属粒子路径的卡牌状态记账缺口；网络路径正常。未在本轮改动（避免影响既有 affliction 语义）。
+- 回归 **1203 项通过（1 xfailed）**。仍不启动正式训练、不宣称学习增益。
