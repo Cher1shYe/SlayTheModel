@@ -389,3 +389,9 @@
 - `main` 默认把进度行同时写入 `<out>/run.log`（UTF-8，追加），`--log-file` 可覆盖；stdout 行为不变。
 - 新增 1 项测试；runner 套件 **20 项通过**；preflight 仍 `ready=true`、回归 **1206 项通过（1 xfailed）**。
 - 仍不启动正式训练。
+
+### 步骤 46（2026-10-18）状态总览生成器（P4f）
+
+- 新增 `scripts/report_all_xs_status.py` 与生成的 `docs/AZ_ALL_XS_STATUS.md`：从冻结证据（config/protocol SHA、准入/鲁棒/生成器审计、初始策略诊断、预算诊断）与安全 preflight 汇总出唯一状态文档。
+- 内容包含：冻结版本、覆盖（76/76 鲁棒、76 准入、146 卡池、训练抽样覆盖）、三套 split 的 preflight、先验 vs MCTS 诊断与配对增益、预算稳定性、已知 MCTS 拒绝、命令与诚实性规则。
+- 新增 1 项测试（关键字段/数值必须在场）；本轮不启动训练。
