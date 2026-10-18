@@ -27,6 +27,14 @@ def test_training_recipes_stay_distinct_past_the_job_space():
            [recipe.scenario_id for recipe in all_runner.training_recipes(0, 16)]
 
 
+def test_frozen_training_plan_has_no_duplicate_recipes():
+    ids = [recipe.scenario_id
+           for iteration in range(8)
+           for recipe in all_runner.training_recipes(iteration, 48)]
+    assert len(ids) == 8 * 48
+    assert len(set(ids)) == len(ids)
+
+
 def test_collection_records_rejected_recipes(monkeypatch):
     model = object()
     calls = []
