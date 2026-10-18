@@ -377,3 +377,9 @@
 - 逐事件对照后确认：公开历史里已有 5 条 `card_state_change`（hexed→null，Hex 力量移除时清除），但粒子世界的**消耗堆卡牌仍是 hexed**；`card_memory.inventory` 因此比可见状态少 5 个 hexed 状态而报错。
 - 也就是说：粒子的卡牌恢复重放了初始 hex 事件，却没有把后续的清除事件应用到已进入消耗堆的卡牌；这是粒子恢复路径（而非 Hex 力量本身）的缺口。
 - 本轮未改动代码（改动会触及 EXPANSION/all-content 的恢复语义，需要单独验证）；`knights_elite` 继续作为已知 MCTS 边界记录。
+
+### 步骤 44（2026-10-18）粒子 Hex 跟踪恢复尝试（已回滚）
+
+- 尝试在 `power_memory.restore` 中把已处于 hexed 的卡牌补入 HexPower 的私有跟踪列表，使力量移除时能清理它们。
+- 结果：原始库存差异消失，但紧接着出现 `Changed card state absent from public inventory`（清除事件的 old state 不在库存中）——说明还有第二处状态事件口径不一致；为避免半修复，已回滚。
+- `knights_elite` 仍为 1 个记录在案的 MCTS 边界（网络路径 64/64 正常）；本轮无代码改动。
