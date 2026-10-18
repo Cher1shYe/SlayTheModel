@@ -77,7 +77,17 @@ The MCTS collection path can still reject 4 of the 64 validation recipes:
 Network-only evaluation has **zero** rejections on the frozen 64-recipe validation
 split. Rejections are written to `errors/` and `rejected_recipes`.
 
-## 7. How to read the results
+## 7. Rendering the result report
+
+```
+python scripts/summarize_all_xs_run.py output/az_all_xs_run/report.json --out docs/AZ_ALL_XS_RESULTS.md
+```
+
+Formats provenance, baseline, per-iteration losses/utilities/paired gains, target
+stats, weakest encounters, rejected recipes, the test gate, and the reading rules
+directly from `report.json`.
+
+## 8. How to read the results
 
 - `paired_vs_baseline.mean_gain` and its 95% CI are descriptive; a CI including 0 is
   not evidence of improvement.
