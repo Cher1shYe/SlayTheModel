@@ -147,8 +147,8 @@ def build():
     lines.append('```')
     lines.append('python -m sts2_env.az.all_runner --preflight-only')
     lines.append('python -m sts2_env.az.all_runner --iterations 8 --episodes 48 --updates 16 '
-                 '--budget 8 --workers 2 --out output/az_all_xs_v2_formal')
-    lines.append('python scripts/summarize_all_xs_run.py output/az_all_xs_v2_formal/report.json '
+                 '--budget 8 --workers 2 --out output/az_all_xs_v3_formal')
+    lines.append('python scripts/summarize_all_xs_run.py output/az_all_xs_v3_formal/report.json '
                  '--out docs/AZ_ALL_XS_RESULTS.md')
     lines.append('```')
     lines.append('')

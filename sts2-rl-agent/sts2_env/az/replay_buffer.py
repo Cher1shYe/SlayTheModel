@@ -8,7 +8,7 @@ import numpy as np
 
 from .config import ACTION_VERSION, CONTENT_VERSION, REWARD_VERSION, RULES_VERSION, atomic_json, content_hash
 from .content import M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, PROFILES, profiles
-from .content import BOSS_CONTENT
+from .content import BOSS_CONTENT, ALL_CONTENT
 from .encoder import CARDS, schema_for
 from .rewards import V2, V3, V4, V5, V6, terminal_reward
 from .search_config import LEGACY, validate_search
@@ -217,7 +217,7 @@ class ReplayBuffer:
         for episode in self.episodes:
             first = episode["rows"][0]
             stratum = first["family_id"]
-            if self.content_version in (M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT):
+            if self.content_version in (M6_CONTENT, DECK_CONTENT, HARD_CONTENT, EXPANDED_CONTENT, G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, ALL_CONTENT):
                 stratum += "/" + first["encounter_id"]
             families.setdefault(stratum, []).append(episode)
         names = sorted(families)

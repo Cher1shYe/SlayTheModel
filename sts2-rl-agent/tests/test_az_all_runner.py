@@ -141,6 +141,7 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
                      outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
+        kwargs['on_update'](model, dict(history=[{'loss': .5}]))
         return model, [{'loss': 0.5}]
 
     def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
@@ -168,6 +169,7 @@ def test_run_reports_baseline_timing_and_paired_comparison(tmp_path, monkeypatch
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
     monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
                             updates=1, budget=1, seed=0, log=lambda *args: None)
     assert report['baseline']['mean_utility'] == pytest.approx(0.1)
@@ -218,7 +220,7 @@ def test_one_episode_update_changes_weights(tmp_path):
 
 def test_legacy_weights_only_resume_is_rejected(tmp_path):
     (tmp_path / 'report.json').write_text('{}')
-    with pytest.raises(ValueError, match='No v2 recovery state'):
+    with pytest.raises(ValueError, match='No v3 recovery state'):
         all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, resume=True)
 
 
@@ -227,6 +229,7 @@ def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkey
         return [dict(episode_id='d' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
+        kwargs['on_update'](model, dict(history=[{'loss': .5}]))
         return model, [{'loss': 0.5}]
 
     def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
@@ -251,6 +254,7 @@ def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkey
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
     monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
                             budget=1, seed=0, include_test=True, log=lambda *args: None)
     assert report['test_gate']['passed'] is True
@@ -279,6 +283,7 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
         return [dict(episode_id='e' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
+        kwargs['on_update'](model, dict(history=[{'loss': .5}]))
         return model, [{'loss': 0.5}]
 
     def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
@@ -304,6 +309,7 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
     monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1,
                             updates=1, budget=1, seed=0, log=lambda *args: None)
     breakdown = report['history'][0]['validation_by_encounter']
@@ -332,6 +338,7 @@ def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
         return [dict(episode_id='h' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
 
     def fake_update(model, replay, **kwargs):
+        kwargs['on_update'](model, dict(history=[{'loss': .5}]))
         return model, [{'loss': 0.5}]
 
     def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
@@ -354,6 +361,7 @@ def test_report_carries_config_and_protocol_provenance(tmp_path, monkeypatch):
     monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
     monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
     monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
+    monkeypatch.setattr(all_runner, 'load_transformer_checkpoint', lambda *a, **k: (object(), {}))
     report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, updates=1,
                             budget=1, seed=0, log=lambda *args: None)
     provenance = report['provenance']

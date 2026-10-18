@@ -1,4 +1,4 @@
-"""Candidate training; every candidate gets a fresh AdamW optimizer."""
+"""Isolated learner copy; callers may restore AdamW for continuous training."""
 from copy import deepcopy
 import numpy as np
 import torch

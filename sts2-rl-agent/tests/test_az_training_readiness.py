@@ -93,7 +93,10 @@ def mock_pipeline(monkeypatch):
     monkeypatch.setattr(runner, 'collect', collect)
     monkeypatch.setattr(runner, 'evaluate_recipes', evaluate)
     monkeypatch.setattr(runner, 'EntityReplayBuffer', Replay)
-    monkeypatch.setattr(runner, 'update', lambda model, replay, **kw: (model, [{'loss': .2}]))
+    def update(model, replay, **kw):
+        kw['on_update'](model, dict(history=[{'loss': .2}]))
+        return model, [{'loss': .2}]
+    monkeypatch.setattr(runner, 'update', update)
     return calls
 
 

@@ -27,7 +27,7 @@ from .model_factory import create_transformer, load_transformer_checkpoint, save
 from .rewards import V7
 from .self_play import CollectionJob
 
-VERSION = 'az-all-xs-runner-v2'
+VERSION = 'az-all-xs-runner-v3'
 SEARCH = 'dynamic-risk-puct-v2'
 TIER = 'XS'
 MAX_TRAINING_MASTER = 32
@@ -363,7 +363,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
     validation = protocol_recipes(protocol, 'validation')
     if resume:
         if not state_path.exists():
-            raise ValueError('No v2 recovery state; legacy weights-only runs cannot resume')
+            raise ValueError('No v3 recovery state; legacy runs cannot resume')
         state = json.loads(state_path.read_text(encoding='utf-8'))
         if state['identity'] != identity or state['version'] != VERSION:
             raise ValueError('Resume configuration/protocol differs from the saved run')
@@ -382,7 +382,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
         atomic_json(out / 'baseline.json', dict(summary=baseline, rows=rows))
         state = dict(version=VERSION, identity=identity, history=[], pending=None,
             baseline=baseline, baseline_rows=rows, champion_checkpoint='initial.pt',
-            champion_rows=rows, champion_validation=baseline)
+            champion_rows=rows, champion_validation=baseline, learner_checkpoint='initial.pt')
         atomic_json(state_path, state)
     replay = EntityReplayBuffer(out / 'replay', capacity=50_000,
                                 content_version=ALL_CONTENT, reward_version=V7)
@@ -392,6 +392,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             provenance=provenance, effective_settings=settings, iteration_budget=settings,
             baseline=state['baseline'], history=state['history'],
             champion_checkpoint=state['champion_checkpoint'],
+            learner_checkpoint=state['learner_checkpoint'],
             final_validation=state['champion_validation'])
         atomic_json(out / 'report.json', report)
         return report
@@ -423,7 +424,11 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             for episode in collected:
                 replay.commit(episode)
             collected_at = time.perf_counter()
-            candidate, training_state = champion, None
+            candidate, payload = load_transformer_checkpoint(out / state['learner_checkpoint'], TIER, ALL_CONTENT, V7)
+            training_state = payload.get('training_state')
+            if training_state is not None:
+                # Preserve optimizer/RNG across rounds; only round-local progress resets.
+                training_state = dict(training_state, history=[])
             if pending['update_checkpoint']:
                 candidate, payload = load_transformer_checkpoint(out / pending['update_checkpoint'], TIER, ALL_CONTENT, V7)
                 training_state = payload['training_state']
@@ -470,6 +475,9 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             if promoted:
                 champion = candidate
                 state.update(champion_checkpoint=checkpoint, champion_rows=rows, champion_validation=summary)
+            if not pending['update_checkpoint']:
+                raise ValueError('Learner update did not persist a recovery checkpoint')
+            state['learner_checkpoint'] = pending['update_checkpoint']
             state['history'].append(record)
             state['pending'] = None
             atomic_json(out / f'iteration-{iteration:03d}.json', record)
