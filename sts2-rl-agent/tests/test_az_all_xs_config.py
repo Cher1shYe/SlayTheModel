@@ -66,4 +66,4 @@ def test_training_plan_is_inside_the_frozen_budget():
     assert plan['iterations'] == config['training']['iterations']
     assert plan['episodes_per_iteration'] == config['training']['episodes_per_iteration']
     assert config['evaluation']['test_recipes'] == len(protocol['test'])
-    assert config['gate']['requires'].startswith('validation utility gain')
+    assert '95% CI lower bound > 0' in config['gate']['requires']

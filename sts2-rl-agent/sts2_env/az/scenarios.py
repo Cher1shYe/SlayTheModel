@@ -102,6 +102,7 @@ def make_scenario(recipe):
         # Combat-start card mutations (a monster's affliction or downgrade) are
         # visible in this fight and must reach the public journal.
         world._az_all_content = True
+        world._az_initializing = True
         ENCOUNTERS[recipe.encounter_id](world, Rng(recipe.environment_seed))
     elif recipe.encounter_id == "setup_test_subject_boss":
         from sts2_env.encounters.act3 import setup_test_subject_boss
@@ -109,6 +110,7 @@ def make_scenario(recipe):
     else:
         getattr(act1, recipe.encounter_id)(world, Rng(recipe.environment_seed))
     world.start_combat()
+    world._az_initializing = False
     return world
 
 

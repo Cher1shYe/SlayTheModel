@@ -1,100 +1,59 @@
-# AZ All-Content XS Runbook
+# All-content XS runner v2 操作手册
 
-Everything here is ready but **not executed automatically**: the formal training run
-needs explicit authorization. All commands run from `sts2-rl-agent/` with
-`.venv-az\Scripts\python.exe`.
+本轮仅完成修复、工程测试和无更新的 MCTS 契约检查；没有启动正式训练，也没有评估最终测试集。卡牌准入仍为 146 张，遭遇准入仍为 76 个。
 
-## 1. Preflight (safe, no training)
+从 `sts2-rl-agent/` 运行以下命令，Python 使用 `.venv-az/Scripts/python.exe`。
 
-```
-python -m sts2_env.az.all_runner --preflight-only --iterations 1 --episodes 1
-```
+## 1. 开训前检查（不训练）
 
-Expected: `training 1/1`, `validation 64/64`, `test 64/64`, `ready=true`, and the
-generator-manifest SHA matching the frozen protocol. A differing manifest or any
-rejected recipe makes preflight raise/return not-ready.
-
-## 2. Smoke (pipeline only, not a learning claim)
-
-```
-python -m sts2_env.az.all_runner --iterations 1 --episodes 2 --updates 1 --budget 2 --max-turns 4 --out output/az_all_xs_smoke
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --preflight-only
+.\.venv-az\Scripts\python.exe scripts/check_training_readiness_mcts.py --workers 4
 ```
 
-Runs collection, one update, baseline/candidate validation and the paired report.
-This verifies plumbing; it cannot support a learning claim.
+第一条检查冻结计划的 384 个训练开局与 64 个验证开局构造／编码，不打开测试集；其 `ready` 仅代表开局检查。
+第二条以新初始化 XS、MCTS=8、40 回合／400 决策检查 64 个验证配方和覆盖 76 个准入遭遇的固定卡组夹具。胜、负和达到预算都是合法终止；异常不是输局，也不会被隐藏。该诊断不进行梯度更新，不证明任意组合都可解或策略已有学习增益。
 
-## 3. Formal run (authorized)
+## 2. 下一步：用户授权后进行短程 smoke
 
-```
-python -m sts2_env.az.all_runner --iterations 4 --episodes 8 --updates 4 --budget 8 --workers 2 --out output/az_all_xs_run
-```
-
-Measured throughput at budget 8, `max_turns` 6, 8 episodes: **58.5 s serial /
-26.6 s with 2 workers** (2.2x). The 4x8 run therefore costs roughly 2-3 minutes of
-collection plus 4 validation passes (~17 s each at 64 recipes) and four updates.
-
-The frozen 8x48 budget (config `az-all-xs-v1`) would be roughly **47 min serial /
-21 min with 2 workers** of collection, plus validation, i.e. about 25 min total on
-this machine.
-
-Outputs in `--out`:
-
-- `report.json`: `provenance` (config/protocol SHA-256, generator SHA, content/reward/rules
-  versions), `baseline`, `history[*]` with `updates` losses, `seconds{collect,update,evaluate,total}`,
-  `paired_vs_baseline` (scenario-paired bootstrap mean, 95% CI, P(gain>0)),
-  `validation_by_encounter`, `target_stats`, `rejected_recipes`, `checkpoint`.
-- `run.log`: every progress line (stdout is also echoed); `--log-file` overrides the path.
-- `baseline.json`: frozen initial-model rows for later re-checks.
-- `iteration-NNN.json` / `iteration-NNN.pt`: per-iteration evidence and checkpoint.
-- `errors/`: one JSON per contract rejection (scenario, actions, exception).
-- `replay/`: typed entity replay (idempotent commits, safe on resume).
-
-## 4. Resume
-
-```
-python -m sts2_env.az.all_runner --iterations 8 --episodes 8 --updates 4 --budget 8 --workers 2 --resume --out output/az_all_xs_run
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --iterations 1 --episodes 2 --updates 1 --budget 2 --batch-size 8 --max-turns 4 --max-decisions 24 --eval-max-turns 4 --eval-max-decisions 24 --out output/az_all_xs_v2_smoke
 ```
 
-Resume loads the last checkpoint, keeps history, reloads `baseline.json` so paired
-comparisons continue, and only collects the new iterations. Replay commits by
-`episode_id` are idempotent.
+这是独立输出目录的管线检查，不复用旧权重。所有缩短预算都显式写出；smoke 结果不作为整场学习证据。先检查报告中的实际参数、零契约拒绝、有限 loss、checkpoint 和冠军选择。
 
-## 5. Test split
+## 3. 正式训练（本次未运行；另行授权）
 
-Test recipes open only when `--include-test` is passed **and** the last iteration's
-paired validation gain is positive; otherwise the report records
-`test_gate.passed=false` and no test summary. `--force-test` overrides the gate and
-is recorded as `forced=true`.
-
-## 6. Known search-side rejections (recorded, not hidden)
-
-The MCTS collection path can still reject 4 of the 64 validation recipes:
-
-- `setup_gremlin_merc_normal` (x2) and `setup_axebots_normal`: a primary enemy is
-  removed from combat, which needs a separate removal/summon budget contract.
-- `setup_knights_elite`: the particle path does not yet account for `hexed` card
-  states created during a simulated turn.
-
-Network-only evaluation has **zero** rejections on the frozen 64-recipe validation
-split. Rejections are written to `errors/` and `rejected_recipes`.
-
-## 7. Rendering the result report
-
-```
-python scripts/summarize_all_xs_run.py output/az_all_xs_run/report.json --out docs/AZ_ALL_XS_RESULTS.md
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --out output/az_all_xs_v2_formal
 ```
 
-Formats provenance, baseline, per-iteration losses/utilities/paired gains, target
-stats, weakest encounters, rejected recipes, the test gate, and the reading rules
-directly from `report.json`.
+未指定的参数全部来自冻结配置：8 轮，每轮 48 场、16 次更新，batch 64，MCTS=8，学习率 0.0003，value weight=0.1；采集和验证均为 40 回合／400 决策。旧 v1 的短截断吞吐估算不适用于本次正式预算。
 
-## 8. How to read the results
+每轮以当前冠军采集并训练一个候选。候选必须完成全部验证配方、无契约拒绝，且相对冠军的配对 bootstrap 95% 区间下界大于 0 才晋级；否则保留冠军。每轮候选从冠军权重与新的 AdamW 开始，轮内更新保持优化器状态。置信区间是冻结工程晋级规则，不替代独立多 seed 泛化验收。
 
-- `paired_vs_baseline.mean_gain` and its 95% CI are descriptive; a CI including 0 is
-  not evidence of improvement.
-- `validation.mean_utility` compares different policies on the same recipes only
-  after pairing; raw means across split sizes are not comparable.
-- `target_stats.mean_entropy` near 0 means degenerate targets; `forced_fraction`
-  reflects single legal actions.
-- Any claim about learning requires the formal run's own numbers, the frozen
-  protocol, and no test-split peeking before the gate.
+## 4. 中断恢复
+
+```powershell
+.\.venv-az\Scripts\python.exe -m sts2_env.az.all_runner --workers 2 --resume --out output/az_all_xs_v2_formal
+```
+
+保持原来的所有有效参数；仅允许增加总轮数或改变 worker 数。`state.json` 是权威提交点，`report.json` 是派生汇总。每次 AdamW 更新后保存候选权重、优化器、采样 RNG、Torch RNG 和已完成更新数。已缓存的采集结果重放入 Replay 时按 episode id 幂等提交；已完成轮次不重新采集。汇总报告缺失不影响恢复。
+
+初始化／初始基线完成并写出 `state.json` 后支持恢复；在此前失败，应使用新输出目录重做初始化。不接受 v1 的 weights-only 输出，也不接受修改过的源码、配置或协议续跑。普通启动拒绝覆盖非空输出目录。
+
+## 5. 查看结果与最后留出
+
+```powershell
+.\.venv-az\Scripts\python.exe scripts/summarize_all_xs_run.py output/az_all_xs_v2_formal/report.json --out docs/AZ_ALL_XS_V2_RESULTS.md
+```
+
+`effective_settings` 记录全部实际参数；`history` 保留各轮候选及 `promoted`，`champion_checkpoint` 和 `final_validation` 指向保留冠军，不能把最后候选当成冠军。
+
+只有明确传入 `--include-test` 且冠军相对初始化的完整验证配对区间下界大于 0 才评估最终测试集。门槛不可用 `--force-test` 或 `--no-baseline` 绕过。本次不运行这一阶段。
+
+## 6. 范围与兼容性
+
+单人 Ironclad、进阶 0、无遗物药水；不新增牌池或遭遇。生命周期升级为 `initial-primary-budget-v6`：奖励预算只来自初始主敌，追加召唤物不增加预算；原生终局和逃跑事件负责结算。稳定出生槽位上限 128，超过原先 5 个的敌人仍可通过动态动作选择；超出容量显式失败。
+
+实体 schema 已重新哈希，旧 checkpoint／Replay 拒绝加载。历史 v1 诊断保留为历史，不与修复后奖励或长程验证混算。契约检查仍是有限样本；正式采集或验证遇到新异常会停机并保存错误，而不是跳过后继续宣称成功。

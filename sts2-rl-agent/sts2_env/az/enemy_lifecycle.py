@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 import math
 
 CONTRACT_VERSION = "primary-roster-hp-v5"
+ALL_CONTRACT_VERSION = "initial-primary-budget-v6"
 PHASES = ("alive", "reviving", "defeated", "removed")
 
 
@@ -24,7 +25,7 @@ class EnemyLife:
     phase: str = "alive"
     spawned: bool = False
 
-    def validate(self):
+    def validate(self, version=CONTRACT_VERSION):
         if (type(self.slot) is not int or self.slot < 0
                 or type(self.monster_id) is not str or not self.monster_id
                 or type(self.primary) is not bool or type(self.spawned) is not bool
@@ -34,7 +35,7 @@ class EnemyLife:
             raise ValueError("Invalid public enemy lifecycle")
         if (self.phase == "alive") != (self.hp > 0):
             raise ValueError("Lifecycle/HP mismatch")
-        if self.primary and (self.spawned or self.phase == "removed"):
+        if version == CONTRACT_VERSION and self.primary and (self.spawned or self.phase == "removed"):
             raise ValueError("Primary summons/removal need a separate budget contract")
 
 
@@ -44,17 +45,17 @@ class EnemyLedger:
     version: str = CONTRACT_VERSION
 
     def validate(self):
-        if self.version != CONTRACT_VERSION or type(self.entries) is not tuple or not self.entries:
+        if self.version not in (CONTRACT_VERSION, ALL_CONTRACT_VERSION) or type(self.entries) is not tuple or not self.entries:
             raise ValueError("Versioned immutable ledger required")
         seen_spawn = False
         for slot, entry in enumerate(self.entries):
             if type(entry) is not EnemyLife or entry.slot != slot:
                 raise ValueError("Stable birth slots required; never compact or reuse slots")
-            entry.validate()
+            entry.validate(self.version)
             if seen_spawn and not entry.spawned:
                 raise ValueError("Initial roster must precede summons")
             seen_spawn |= entry.spawned
-        if not any(e.primary for e in self.entries):
+        if not any(e.primary and not e.spawned for e in self.entries):
             raise ValueError("At least one initial primary enemy required")
 
     def spawn_secondary(self, monster_id, hp):
@@ -87,11 +88,11 @@ class EnemyLedger:
     @property
     def damage_progress(self):
         self.validate()
-        primary = tuple(e for e in self.entries if e.primary)
+        primary = tuple(e for e in self.entries if e.primary and not e.spawned)
         denominator = sum(e.initial_hp for e in primary)
         # A temporarily dead primary retains its full initial obligation until
         # it revives or the native terminal rule settles permanent defeat.
-        remaining = sum(e.initial_hp if e.phase == "reviving" else e.hp for e in primary)
+        remaining = sum(e.initial_hp if e.phase in ("reviving", "removed") else e.hp for e in primary)
         return max(0.0, min(1.0, 1.0 - remaining / denominator))
 
     def terminal_reward(self, reason, final_hp, initial_hp, *, blocks_combat_end=False):
@@ -103,6 +104,9 @@ class EnemyLedger:
         if reason not in (None, "win", "death", "time_limit"):
             raise ValueError("Exceptions are not terminal rewards")
         defeated = all(e.phase == "defeated" for e in self.entries if e.primary)
+        if self.version == ALL_CONTRACT_VERSION:
+            relevant = tuple(e for e in self.entries if e.primary and (reason != "win" or not e.spawned))
+            defeated = all(e.phase in ("defeated", "removed") for e in relevant)
         won = defeated and not blocks_combat_end and final_hp > 0
         if reason == "win" and not won or reason == "death" and final_hp != 0:
             raise ValueError("Terminal reason disagrees with lifecycle")

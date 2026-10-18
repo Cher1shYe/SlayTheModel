@@ -45,6 +45,9 @@ SCHEMA = {'version': 'public-entities-ironclad-colorless-v4', 'action_version': 
           'split': 'contract-fixtures-only-v1'}
 from .expanded_mechanics import registry_manifest
 SCHEMA['mechanics'] = content_hash([REGISTRY_HASH, registry_manifest()])
+SCHEMA['all_lifecycle'] = 'initial-primary-budget-v6'
+SCHEMA['all_action_version'] = 'combat-all-roster-v2'
+SCHEMA['all_roster_slots'] = 128
 SCHEMA_HASH = content_hash(SCHEMA)
 
 

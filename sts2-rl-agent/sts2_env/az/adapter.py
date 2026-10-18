@@ -80,11 +80,6 @@ class CombatAdapter:
         if self.recipe.content_manifest_version == ALL_CONTENT:
             from .all_content import roster_ledger
             from .summon import ledger_rows, primary_summary
-            if len(self.initial_hp_roster) < len(world.enemies):
-                # First observation of a summoned slot: its spawn HP is visible.
-                self.initial_hp_roster = self.initial_hp_roster + tuple(
-                    max(0, enemy.current_hp)
-                    for enemy in world.enemies[len(self.initial_hp_roster):])
             ledger = roster_ledger(world, self.initial_hp_roster)
             roster = ledger_rows(ledger)
             self.enemy_initial_hp, enemy_hp, enemy_max = primary_summary(ledger)
@@ -128,10 +123,12 @@ class CombatAdapter:
             return np.zeros(action_size(self.recipe.content_manifest_version), dtype=np.int8)
         if self.world.pending_choice is not None and self.recipe.content_manifest_version not in (G1_CONTENT, GEN_CONTENT, UP_CONTENT, TOP_CONTENT, LIFE_CONTENT, SEL_CONTENT, SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT):
             raise CombatInterfaceError("Choice phase is not supported by the M0 content contract")
-        if len(self.world.hand) > MAX_HAND_SIZE or len(self.world.enemies) > MAX_ENEMIES:
+        from .actions import ALL_TARGET_SLOTS, ALL_TARGET_BASE, decode_card_action
+        enemy_capacity = ALL_TARGET_SLOTS if self.recipe.content_manifest_version == ALL_CONTENT else MAX_ENEMIES
+        if len(self.world.hand) > MAX_HAND_SIZE or len(self.world.enemies) > enemy_capacity:
             raise CombatInterfaceError("Action schema capacity exceeded")
         mask = public_mask(self.world, self.recipe.content_manifest_version)
-        if mask.shape != (action_size(self.recipe.content_manifest_version),) or not mask.any() or (self.world.pending_choice is None and mask[POTION_ACTION_START:].any()):
+        if mask.shape != (action_size(self.recipe.content_manifest_version),) or not mask.any() or (self.world.pending_choice is None and mask[POTION_ACTION_START:ALL_TARGET_BASE if self.recipe.content_manifest_version == ALL_CONTENT else len(mask)].any()):
             raise CombatInterfaceError("Invalid mask for the no-potion action contract")
         return mask.copy()
 
@@ -150,7 +147,8 @@ class CombatAdapter:
             elif action == 0:
                 self.world.end_player_turn()
             else:
-                hand, target = action_to_card_and_target(action)
+                from .actions import decode_card_action
+                hand, target = decode_card_action(action, self.recipe.content_manifest_version)
                 if not self.world.play_card(hand, target):
                     raise CombatInterfaceError(f"Engine rejected masked-legal action {action}")
             self.actions.append(action)

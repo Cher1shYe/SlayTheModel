@@ -1,6 +1,6 @@
 """Audited Primal Force transformations and Reave public draw-suffix memory."""
 from dataclasses import dataclass
-from sts2_env.gym_env.action_space import action_to_card_and_target
+from .actions import decode_card_action
 
 
 MORPH_EXTRA = tuple(t+s for t in ("PRIMAL_FORCE", "REAVE", "GIANT_ROCK", "SOUL") for s in ("", "+"))
@@ -19,7 +19,7 @@ def transformations_after(info, action, ended):
     if ended or info.choice is not None or action == 0:
         return ()
     from .deck_observation import prototype
-    index, _ = action_to_card_and_target(action)
+    index, _ = decode_card_action(action, info.content_version)
     cause = info.hand[index]
     if cause.removesuffix("+") != "PRIMAL_FORCE":
         return ()
@@ -83,7 +83,7 @@ cards are known, normalize them into one prefix. A reshuffle loses old positions
             return (), ()
         drawn = len(after_hand) - len(retained)
     else:
-        index, _ = action_to_card_and_target(action)
+        index, _ = decode_card_action(action, before.content_version)
         token = before.hand[index].removesuffix("+")
         if token == "REAVE":
             bottom += ("SOUL+" if before.hand[index].endswith("+") else "SOUL",)

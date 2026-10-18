@@ -1,0 +1,200 @@
+{
+  "date": "2026-10-18",
+  "baseline_revision": "90655dc7eb40159a5ad205e93081aa810bde20e8",
+  "source_digest": "a555dde5931d781b424faed96fe7e21a765d3310894f354fa3b7756d8cd8975b",
+  "python": "3.12.14",
+  "torch": "2.14.1+cpu",
+  "formal_training_started": false,
+  "final_test_outcomes_opened": false,
+  "new_cards_added": false,
+  "all_repository_tests_green": false,
+  "broad_regression": {
+    "passed": 6368,
+    "failed": 16,
+    "errors": 4,
+    "subtests_passed": 8,
+    "az_files": 65,
+    "timing_note": "Broad suites precede the final nested intent JSON codec correction; final_targeted and MCTS were rerun against the final source."
+  },
+  "final_targeted": {
+    "passed": 55,
+    "failed": 0
+  },
+  "engine": {
+    "passed": 356,
+    "failed": 0
+  },
+  "mcts": {
+    "planned": 140,
+    "passed": 140,
+    "failed": 0,
+    "evidence": "training_readiness_mcts.json"
+  },
+  "preflight": {
+    "version": "az-all-xs-runner-v2",
+    "scope": "opening-construction-and-encoding-only",
+    "config": "configs/az_all_xs_v1/config.json",
+    "protocol": "configs/az_all_xs_v1/protocol.json",
+    "generator_manifest_sha": "8ecf583a3e6af027ca553131b8b2c76b762b3fc29b36e9726b979f4b48f0429c",
+    "training": {
+      "planned": 384,
+      "ok": 384,
+      "errors": []
+    },
+    "validation": {
+      "checked": 64,
+      "ok": 64,
+      "errors": []
+    },
+    "test": null,
+    "ready": true
+  },
+  "historical_baseline": {
+    "t4": "14 failed, 21 passed, 4 errors in 4.88s",
+    "bomb": "2 failed in 2.92s",
+    "explanation": "All 16 failures and 4 errors reproduced in a separate git archive of the unmodified baseline. Legacy T4 artifacts and EXPANSION_CONTENT remain unmigrated."
+  },
+  "suites": [
+    {
+      "name": "process_tests",
+      "summary": "2195 passed in 521.45s (0:08:41)",
+      "files": [
+        "tests/test_az_all_runner.py",
+        "tests/test_az_boss_integration.py",
+        "tests/test_az_boss_reconstruction.py",
+        "tests/test_az_collection_backpressure.py",
+        "tests/test_az_decks.py",
+        "tests/test_az_expanded.py",
+        "tests/test_az_experiment.py",
+        "tests/test_az_g1_integration.py",
+        "tests/test_az_generated.py",
+        "tests/test_az_hard.py",
+        "tests/test_az_lifecycle.py",
+        "tests/test_az_m6.py",
+        "tests/test_az_morph.py",
+        "tests/test_az_multi.py",
+        "tests/test_az_parallel_evaluation.py",
+        "tests/test_az_replay.py",
+        "tests/test_az_resume.py",
+        "tests/test_az_search_versions.py",
+        "tests/test_az_selection.py",
+        "tests/test_az_summon.py",
+        "tests/test_az_topdeck.py",
+        "tests/test_az_transformer_g23e.py",
+        "tests/test_az_transformer_t2.py",
+        "tests/test_az_transformer_t3_runner.py",
+        "tests/test_az_upgrades.py"
+      ],
+      "command": "python -m pytest <files> -q --tb=short",
+      "failed_or_error_summaries": []
+    },
+    {
+      "name": "other_tests",
+      "summary": "14 failed, 1000 passed, 4 errors, 8 subtests passed in 91.44s (0:01:31)",
+      "files": [
+        "tests/test_az_all_content.py",
+        "tests/test_az_all_decks.py",
+        "tests/test_az_all_mcts.py",
+        "tests/test_az_all_xs_config.py",
+        "tests/test_az_atomic_io.py",
+        "tests/test_az_boss_cards.py",
+        "tests/test_az_boss_curriculum.py",
+        "tests/test_az_boss_natural_revival.py",
+        "tests/test_az_boss_phases.py",
+        "tests/test_az_boss_search_diagnostic.py",
+        "tests/test_az_choice_sets.py",
+        "tests/test_az_encoder.py",
+        "tests/test_az_enemy_lifecycle.py",
+        "tests/test_az_g1_state.py",
+        "tests/test_az_hp_reward.py",
+        "tests/test_az_information.py",
+        "tests/test_az_ironclad_colorless_all.py",
+        "tests/test_az_monster_registry.py",
+        "tests/test_az_network_utility_gate.py",
+        "tests/test_az_player_abilities.py",
+        "tests/test_az_puct.py",
+        "tests/test_az_risk_reward.py",
+        "tests/test_az_roster.py",
+        "tests/test_az_scenarios.py",
+        "tests/test_az_simple_cards.py",
+        "tests/test_az_smoke.py",
+        "tests/test_az_status_report.py",
+        "tests/test_az_stochastic.py",
+        "tests/test_az_summarize.py",
+        "tests/test_az_t4_course.py",
+        "tests/test_az_t4_runner.py",
+        "tests/test_az_timeout_replay.py",
+        "tests/test_az_training_readiness.py",
+        "tests/test_az_transformer_g23f_audit.py",
+        "tests/test_az_transformer_t3_preparation.py",
+        "tests/test_az_transformer.py"
+      ],
+      "command": "python -m pytest <files> -n 4 -q --tb=short",
+      "failed_or_error_summaries": [
+        "FAILED tests/test_az_t4_course.py::test_frozen_course_matches_complete_witnesses",
+        "FAILED tests/test_az_t4_course.py::test_resealed_bad_natural_state_is_rejected[hp]",
+        "FAILED tests/test_az_t4_course.py::test_incomplete_witness_rejected - KeyErro...",
+        "FAILED tests/test_az_t4_course.py::test_real_suffix_labels_scope_and_old_replay_rejection",
+        "FAILED tests/test_az_t4_course.py::test_protocol_freeze_and_late_isolation - ...",
+        "FAILED tests/test_az_t4_runner.py::test_production_collection_forwards_correct_absolute_limits",
+        "FAILED tests/test_az_t4_runner.py::test_validation_cache_is_network_only_and_detects_corruption",
+        "FAILED tests/test_az_t4_runner.py::test_formal_requires_audited_smoke_before_creating_run[False-False]",
+        "FAILED tests/test_az_t4_runner.py::test_formal_requires_audited_smoke_before_creating_run[True-False]",
+        "FAILED tests/test_az_t4_runner.py::test_formal_requires_audited_smoke_before_creating_run[False-True]",
+        "FAILED tests/test_az_t4_runner.py::test_joint_champion_freeze_precedes_all_heldout_execution",
+        "FAILED tests/test_az_t4_runner.py::test_execution_document_matches_current_source_and_budget",
+        "FAILED tests/test_az_t4_runner.py::test_frozen_schedules_ratios_and_seed_isolation",
+        "FAILED tests/test_az_timeout_replay.py::test_migration_preserves_optimizer_tensors_and_rejects_drift",
+        "ERROR tests/test_az_t4_runner.py::test_real_optimizer_boundary_resume_matches_uninterrupted",
+        "ERROR tests/test_az_t4_runner.py::test_replay_resident_cache_is_bounded - Key...",
+        "ERROR tests/test_az_t4_runner.py::test_disk_replay_ratio_fifo_retry_reload - ...",
+        "ERROR tests/test_az_t4_runner.py::test_atomic_orphan_retry_and_no_missing_pool_fallback"
+      ]
+    },
+    {
+      "name": "expansion_tests",
+      "summary": "2 failed, 3173 passed in 205.22s (0:03:25)",
+      "files": [
+        "tests/test_az_content_expansion.py",
+        "tests/test_az_foundation_interactions.py",
+        "tests/test_az_foundation_boundaries.py",
+        "tests/test_az_generation_foundation.py"
+      ],
+      "command": "python -m pytest <files> -n 8 -q --tb=short",
+      "failed_or_error_summaries": [
+        "FAILED tests/test_az_content_expansion.py::test_complete_native_public_particle_trajectory[setup_fogmog_normal-True-THE_BOMB_CARD]",
+        "FAILED tests/test_az_content_expansion.py::test_complete_native_public_particle_trajectory[setup_fogmog_normal-False-THE_BOMB_CARD]"
+      ]
+    },
+    {
+      "name": "final_targeted",
+      "summary": "55 passed in 79.44s (0:01:19)",
+      "files": [
+        "tests/test_az_training_readiness.py",
+        "tests/test_az_all_mcts.py",
+        "tests/test_az_all_runner.py",
+        "tests/test_az_all_xs_config.py",
+        "tests/test_az_status_report.py"
+      ],
+      "command": "python -m pytest <files> -q --tb=short",
+      "failed_or_error_summaries": []
+    },
+    {
+      "name": "engine",
+      "summary": "356 passed in 1.02s",
+      "files": [
+        "tests/test_combat_choice_flow.py",
+        "tests/test_combat_parity.py",
+        "tests/test_combat_flow.py",
+        "tests/test_combat_damage_block_pipeline.py",
+        "tests/test_combat_player_state.py",
+        "tests/test_ironclad_factory_upgrade_parity.py",
+        "tests/test_colorless_factory_upgrade_parity.py",
+        "tests/test_ironclad_combat_edge_card_model_parity.py"
+      ],
+      "command": "python -m pytest <files> -q --tb=short",
+      "failed_or_error_summaries": []
+    }
+  ],
+  "environment_note": "Process-pool tests run serially on Windows; failed nested xdist process runs and resource-aborted runs are not passing evidence."
+}

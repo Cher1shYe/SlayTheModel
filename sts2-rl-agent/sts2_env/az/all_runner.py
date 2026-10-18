@@ -27,7 +27,7 @@ from .model_factory import create_transformer, load_transformer_checkpoint, save
 from .rewards import V7
 from .self_play import CollectionJob
 
-VERSION = 'az-all-xs-runner-v1'
+VERSION = 'az-all-xs-runner-v2'
 SEARCH = 'dynamic-risk-puct-v2'
 TIER = 'XS'
 MAX_TRAINING_MASTER = 32
@@ -44,8 +44,8 @@ def load_frozen_config(path):
     return config
 
 
-def fresh_model(config):
-    torch.manual_seed(int(config.get('training', {}).get('init_seed', 0)))
+def fresh_model(config, seed=None):
+    torch.manual_seed(int(config.get('training', {}).get('init_seed', 0) if seed is None else seed))
     return create_transformer(TIER, ALL_CONTENT, V7).eval()
 
 
@@ -138,13 +138,26 @@ def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, v
     return episodes
 
 
-def update(model, replay, *, learning_rate, batch_size, updates, seed):
-    learner = Learner(model, learning_rate=learning_rate)
+def update(model, replay, *, learning_rate, batch_size, updates, seed,
+           value_weight=1.0, resume_state=None, on_update=None):
+    learner = Learner(model, learning_rate=learning_rate, value_weight=value_weight)
     rng = np.random.default_rng(seed)
     history = []
-    for _ in range(updates):
+    if resume_state is not None:
+        learner.optimizer.load_state_dict(resume_state['optimizer'])
+        rng.bit_generator.state = resume_state['sample_rng']
+        torch.set_rng_state(resume_state['torch_rng'])
+        history = resume_state['history']
+        learner.updates = len(history)
+    else:
+        torch.manual_seed(seed)
+    for _ in range(len(history), updates):
         samples, counts = replay.sample(batch_size, rng)
         history.append(dict(learner.update_entities(samples), family_counts=counts))
+        if on_update is not None:
+            on_update(learner.model, dict(optimizer=learner.optimizer.state_dict(),
+                sample_rng=rng.bit_generator.state, torch_rng=torch.get_rng_state(),
+                history=history))
     return learner.model.eval(), history
 
 
@@ -196,13 +209,16 @@ def _probe_recipe(recipe, limits):
     return recipe
 
 
-def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns=6,
-              max_decisions=24, validation_limit=None, check_test=True):
+def preflight(config_path, protocol_path, *, iterations=None, episodes=None, max_turns=None,
+              max_decisions=None, validation_limit=None, check_test=False):
     """Validate planned training and held-out recipes before any training run."""
     import hashlib
     from .all_decks import frozen_manifest
 
     config = load_frozen_config(config_path)
+    effective = effective_settings(config, iterations=iterations, episodes=episodes, max_turns=max_turns, max_decisions=max_decisions)
+    iterations, episodes = effective['iterations'], effective['episodes']
+    max_turns, max_decisions = effective['max_turns'], effective['max_decisions']
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
     manifest = frozen_manifest()
     expected_sha = protocol.get('generator_manifest_sha')
@@ -245,7 +261,8 @@ def preflight(config_path, protocol_path, *, iterations=1, episodes=2, max_turns
                                         encounter=recipe.encounter_id,
                                         error=f'{type(exc).__name__}: {exc}'))
         test_check = {'checked': len(test_recipes), 'ok': test_ok, 'errors': test_errors}
-    return dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
+    return dict(version=VERSION, scope="opening-construction-and-encoding-only",
+                config=str(config_path), protocol=str(protocol_path),
                 generator_manifest_sha=actual_sha,
                 training={'planned': iterations * episodes, 'ok': training_ok,
                           'errors': training_errors},
@@ -274,138 +291,208 @@ def paired_gain(baseline, candidate, *, seed=1729, samples=2000):
                 probability_positive=float((means > 0).mean()))
 
 
-def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, updates=1, budget=4,
-        batch_size=16, learning_rate=None, seed=0, max_turns=6, max_decisions=24,
+def effective_settings(config, **overrides):
+    """One resolved configuration for CLI, evidence and resume validation."""
+    training = config['training']
+    settings = dict(iterations=training['iterations'], episodes=training['episodes_per_iteration'],
+        updates=training['updates_per_iteration'], budget=config['search']['budget'],
+        batch_size=training['batch_size'], learning_rate=training['learning_rate'],
+        value_weight=training['value_weight'], max_turns=training['max_turns'],
+        max_decisions=training['max_decisions'], eval_max_turns=config['evaluation']['max_turns'],
+        eval_max_decisions=config['evaluation']['max_decisions'], seed=training.get('init_seed', 0))
+    settings.update({key: value for key, value in overrides.items() if value is not None})
+    for key, value in settings.items():
+        if key in ('learning_rate', 'value_weight'):
+            if not isinstance(value, (int, float)) or not np.isfinite(value) or value <= 0:
+                raise ValueError(f'Invalid {key}')
+        elif type(value) is not int or value < (0 if key == 'seed' else 1):
+            raise ValueError(f'Invalid {key}')
+    if settings['iterations'] > 1024 or settings['episodes'] > 64:
+        raise ValueError('Generator coordinate capacity exceeded')
+    return settings
+
+
+def promotion(reference, candidate, expected):
+    if (len(reference) != expected or len(candidate) != expected
+            or len({r['scenario_id'] for r in candidate}) != expected):
+        return False, None
+    try:
+        comparison = paired_gain(reference, candidate)
+    except ValueError:
+        return False, None
+    return comparison['ci95'][0] > 0, comparison
+
+
+def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, updates=None,
+        budget=None, batch_size=None, learning_rate=None, seed=None, max_turns=None,
+        max_decisions=None, eval_max_turns=None, eval_max_decisions=None,
         include_test=False, resume=False, compare_baseline=True, workers=1,
         enforce_test_gate=True, log=print):
+    import hashlib
+    from .config import content_hash
+    from .network import code_digest
     config = load_frozen_config(config_path)
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
-    training = config['training']
-    learning_rate = float(learning_rate or training['learning_rate'])
-    limits = EpisodeLimits(max_turns=max_turns, max_decisions=max_decisions)
-    version = f'{VERSION}-{seed}'
+    settings = effective_settings(config, iterations=iterations, episodes=episodes, updates=updates,
+        budget=budget, batch_size=batch_size, learning_rate=learning_rate, seed=seed,
+        max_turns=max_turns, max_decisions=max_decisions, eval_max_turns=eval_max_turns,
+        eval_max_decisions=eval_max_decisions)
+    if not compare_baseline or not enforce_test_gate:
+        raise ValueError('Champion selection requires baseline and an enforced test gate')
+    if type(workers) is not int or workers < 1:
+        raise ValueError('Positive worker count required')
+    limits = EpisodeLimits(max_turns=settings['max_turns'], max_decisions=settings['max_decisions'])
+    eval_limits = EpisodeLimits(max_turns=settings['eval_max_turns'], max_decisions=settings['eval_max_decisions'])
+    provenance = dict(config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest(),
+        protocol_sha256=hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),
+        generator_manifest_sha=protocol.get('generator_manifest_sha'),
+        content=ALL_CONTENT, reward=V7, rules=RULES_VERSION, lifecycle=config['lifecycle'],
+        source_digest=code_digest())
+    identity = content_hash(dict(provenance=provenance,
+        settings={k: v for k, v in settings.items() if k != 'iterations'}))
+    # Only construction/encoding; never open test outcomes before the final gate.
+    check = preflight(config_path, protocol_path, iterations=settings['iterations'],
+        episodes=settings['episodes'], max_turns=limits.max_turns,
+        max_decisions=limits.max_decisions, check_test=False)
+    if not check['ready']:
+        raise ValueError(f'Preflight rejected the run: {check}')
     out = Path(out_dir)
     out.mkdir(parents=True, exist_ok=True)
-    history = []
-    start_iteration = 0
-    baseline_summary, baseline_rows = None, []
-    if resume and (out / 'report.json').exists():
-        previous = json.loads((out / 'report.json').read_text(encoding='utf-8'))
-        if previous.get('version') != VERSION:
-            raise ValueError('Cannot resume a report from another runner version')
-        history = previous['history']
-        start_iteration = len(history)
-        checkpoint = out / history[-1]['checkpoint']
-        model, _ = load_transformer_checkpoint(checkpoint, TIER, ALL_CONTENT, V7)
-        baseline_summary = previous.get('baseline')
-        evidence = out / 'baseline.json'
-        if evidence.exists():
-            baseline_rows = json.loads(evidence.read_text(encoding='utf-8'))['rows']
-        log(f'resume from iteration {start_iteration} ({checkpoint.name})')
-    else:
-        model = fresh_model(config)
-    replay = EntityReplayBuffer(out / 'replay', capacity=50_000, content_version=ALL_CONTENT,
-                                reward_version=V7)
+    state_path = out / 'state.json'
+    version = f"{VERSION}-{settings['seed']}"
     validation = protocol_recipes(protocol, 'validation')
-    if baseline_summary is None and compare_baseline:
-        # Frozen reference for relative reporting: the initial (unupdated) model.
-        baseline_summary, baseline_rows = evaluate_recipes(
-            fresh_model(config), validation, version=f'{version}-baseline',
-            error_dir=out / 'errors', limits=limits)
-        atomic_json(out / 'baseline.json', dict(
-            summary=baseline_summary,
-            rows=[dict(scenario_id=row['scenario_id'], encounter_id=row['encounter_id'],
-                       reward=row['reward'], termination_reason=row['termination_reason'])
-                  for row in baseline_rows]))
-        log(f"baseline: mean utility {baseline_summary['mean_utility']:.3f} "
-            f"rejections {baseline_summary['contract_rejections']}")
+    if resume:
+        if not state_path.exists():
+            raise ValueError('No v2 recovery state; legacy weights-only runs cannot resume')
+        state = json.loads(state_path.read_text(encoding='utf-8'))
+        if state['identity'] != identity or state['version'] != VERSION:
+            raise ValueError('Resume configuration/protocol differs from the saved run')
+        if settings['iterations'] < len(state['history']):
+            raise ValueError('Resume cannot reduce completed iterations')
+        champion, _ = load_transformer_checkpoint(out / state['champion_checkpoint'], TIER, ALL_CONTENT, V7)
+    else:
+        if any(p.name != 'run.log' for p in out.iterdir()):
+            raise ValueError('Output directory is not empty; use --resume or a fresh directory')
+        champion = fresh_model(config, settings['seed'])
+        baseline, rows = evaluate_recipes(champion, validation, version=f'{version}-baseline',
+                                          error_dir=out / 'errors', limits=eval_limits)
+        if baseline['contract_rejections'] or len(rows) != len(validation):
+            raise ValueError('Baseline validation must complete without rejections')
+        save_transformer_checkpoint(out / 'initial.pt', champion, version, config=config)
+        atomic_json(out / 'baseline.json', dict(summary=baseline, rows=rows))
+        state = dict(version=VERSION, identity=identity, history=[], pending=None,
+            baseline=baseline, baseline_rows=rows, champion_checkpoint='initial.pt',
+            champion_rows=rows, champion_validation=baseline)
+        atomic_json(state_path, state)
+    replay = EntityReplayBuffer(out / 'replay', capacity=50_000,
+                                content_version=ALL_CONTENT, reward_version=V7)
+
+    def write_report():
+        report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
+            provenance=provenance, effective_settings=settings, iteration_budget=settings,
+            baseline=state['baseline'], history=state['history'],
+            champion_checkpoint=state['champion_checkpoint'],
+            final_validation=state['champion_validation'])
+        atomic_json(out / 'report.json', report)
+        return report
+
     collector = None
-    if workers > 1:
-        from .self_play import Collector
-        collector = Collector(workers)
-    for iteration in range(start_iteration, iterations):
-        started = time.perf_counter()
-        recipes = training_recipes(iteration, episodes)
-        failures = []
-        collected = collect(model, recipes, iteration=iteration, budget=budget,
-                            error_dir=out / 'errors', limits=limits, version=version,
-                            seed=seed * 100_000 + iteration * 1_000, failures=failures,
-                            workers=workers, collector=collector)
-        for episode in collected:
-            replay.commit(episode)
-        collected_at = time.perf_counter()
-        model, update_history = update(model, replay, learning_rate=learning_rate,
-                                       batch_size=batch_size, updates=updates,
-                                       seed=seed * 1_000 + iteration)
-        updated_at = time.perf_counter()
-        validation_summary, validation_rows = evaluate_recipes(
-            model, validation, version=version, error_dir=out / 'errors', limits=limits)
-        evaluated_at = time.perf_counter()
-        checkpoint = out / f'iteration-{iteration:03d}.pt'
-        save_transformer_checkpoint(checkpoint, model, f'{version}-iter{iteration:03d}',
-                                    config=config, statistics=validation_summary,
-                                    iteration=iteration)
-        comparison = None
-        if compare_baseline and baseline_rows:
-            common = {row['scenario_id'] for row in validation_rows}
-            if all(row['scenario_id'] in common for row in baseline_rows):
-                comparison = paired_gain(baseline_rows, validation_rows)
-        by_encounter = {}
-        for row in validation_rows:
-            by_encounter.setdefault(row['encounter_id'], []).append(row)
-        breakdown = {encounter: dict(
-            episodes=len(rows), win_rate=sum(row['termination_reason'] == 'win'
-                                             for row in rows) / len(rows),
-            mean_utility=float(np.mean([row['reward'] for row in rows])),
-            death_rate=sum(row['termination_reason'] == 'death' for row in rows) / len(rows))
-            for encounter, rows in sorted(by_encounter.items())}
-        record = dict(version=VERSION, iteration=iteration,
-                      episodes=[episode['episode_id'] for episode in collected],
-                      outcomes=[episode['outcome']['termination_reason'] for episode in collected],
-                      replay_size=replay.size, updates=update_history,
-                      rejected_recipes=failures,
-                      validation_by_encounter=breakdown,
-                      target_stats=target_stats(collected),
-                      seconds=dict(collect=round(collected_at - started, 3),
-                                   update=round(updated_at - collected_at, 3),
-                                   evaluate=round(evaluated_at - updated_at, 3),
-                                   total=round(evaluated_at - started, 3)),
-                      paired_vs_baseline=comparison,
-                      validation=validation_summary, checkpoint=checkpoint.name)
-        atomic_json(out / f'iteration-{iteration:03d}.json', record)
-        history.append(record)
-        log(f"iteration {iteration}: mean utility {validation_summary['mean_utility']:.3f} "
-            f"win {validation_summary['win_rate']:.3f} replay {replay.size}")
-    if collector is not None:
-        collector.__exit__(None, None, None)
-    if not history:
-        raise ValueError('No iteration completed')
-    import hashlib
-    report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
-                  provenance=dict(
-                      config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest(),
-                      protocol_sha256=hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),
-                      generator_manifest_sha=protocol.get('generator_manifest_sha'),
-                      content=ALL_CONTENT, reward=V7, rules=RULES_VERSION),
-                  iteration_budget=dict(iterations=iterations, episodes=episodes,
-                                        updates=updates, budget=budget, batch_size=batch_size),
-                  baseline=baseline_summary, history=history,
-                  final_validation=history[-1]['validation'])
-    if include_test:
-        comparison = history[-1].get('paired_vs_baseline')
-        gate_passed = bool(comparison and comparison['mean_gain'] > 0)
-        report['test_gate'] = dict(required='validation mean gain > 0', passed=gate_passed,
-                                   comparison=comparison, enforced=enforce_test_gate,
-                                   forced=not enforce_test_gate)
-        if gate_passed or not enforce_test_gate:
-            test = protocol_recipes(protocol, 'test')
-            summary, _ = evaluate_recipes(model, test, version=version, error_dir=out / 'errors',
-                                          limits=limits)
-            report['test'] = summary
-        else:
-            log('test split not opened: validation gate failed')
-    atomic_json(out / 'report.json', report)
-    return report
+    try:
+        if workers > 1:
+            from .self_play import Collector
+            collector = Collector(workers)
+        for iteration in range(len(state['history']), settings['iterations']):
+            started = time.perf_counter()
+            pending = state['pending']
+            if pending is None:
+                recipes = training_recipes(iteration, settings['episodes'])
+                failures = []
+                collected = collect(champion, recipes, iteration=iteration, budget=settings['budget'],
+                    error_dir=out / 'errors', limits=limits, version=f'{version}-{iteration}',
+                    seed=settings['seed'] * 100_000 + iteration * 1_000,
+                    failures=failures, workers=workers, collector=collector)
+                if failures:
+                    atomic_json(out / f'rejected-{iteration:03d}.json', failures)
+                    raise ValueError('Collection contract rejection: training halted; see rejected recipes')
+                cache = f'collection-{iteration:03d}.json'
+                atomic_json(out / cache, collected)
+                pending = dict(iteration=iteration, collection=cache, update_checkpoint=None)
+                state['pending'] = pending
+                atomic_json(state_path, state)
+            collected = json.loads((out / pending['collection']).read_text(encoding='utf-8'))
+            for episode in collected:
+                replay.commit(episode)
+            collected_at = time.perf_counter()
+            candidate, training_state = champion, None
+            if pending['update_checkpoint']:
+                candidate, payload = load_transformer_checkpoint(out / pending['update_checkpoint'], TIER, ALL_CONTENT, V7)
+                training_state = payload['training_state']
+
+            def persist_update(model, training_state):
+                name = f"update-{iteration:03d}-{len(training_state['history']):04d}.pt"
+                save_transformer_checkpoint(out / name, model, version, config=config,
+                                            iteration=iteration, training_state=training_state)
+                pending['update_checkpoint'] = name
+                atomic_json(state_path, state)
+
+            candidate, losses = update(candidate, replay, learning_rate=settings['learning_rate'],
+                batch_size=settings['batch_size'], updates=settings['updates'],
+                seed=settings['seed'] * 1000 + iteration, value_weight=settings['value_weight'],
+                resume_state=training_state, on_update=persist_update)
+            updated_at = time.perf_counter()
+            summary, rows = evaluate_recipes(candidate, validation, version=f'{version}-candidate-{iteration}',
+                                             error_dir=out / 'errors', limits=eval_limits)
+            if summary['contract_rejections'] or len(rows) != len(validation):
+                raise ValueError('Candidate validation must complete without rejections')
+            promoted, vs_champion = promotion(state['champion_rows'], rows, len(validation))
+            comparison = paired_gain(state['baseline_rows'], rows)
+            checkpoint = f'iteration-{iteration:03d}.pt'
+            save_transformer_checkpoint(out / checkpoint, candidate, version, config=config,
+                                        statistics=summary, iteration=iteration)
+            by_encounter = {}
+            for row in rows:
+                by_encounter.setdefault(row['encounter_id'], []).append(row)
+            breakdown = {key: dict(episodes=len(group),
+                win_rate=sum(r['termination_reason'] == 'win' for r in group) / len(group),
+                mean_utility=float(np.mean([r['reward'] for r in group])),
+                death_rate=sum(r['termination_reason'] == 'death' for r in group) / len(group))
+                for key, group in sorted(by_encounter.items())}
+            ended = time.perf_counter()
+            record = dict(version=VERSION, iteration=iteration,
+                episodes=[e['episode_id'] for e in collected],
+                outcomes=[e['outcome']['termination_reason'] for e in collected],
+                replay_size=replay.size, updates=losses, rejected_recipes=[],
+                validation=summary, validation_rows=rows, validation_by_encounter=breakdown,
+                checkpoint=checkpoint, promoted=promoted, paired_vs_champion=vs_champion,
+                paired_vs_baseline=comparison, target_stats=target_stats(collected),
+                seconds=dict(collect=collected_at-started, update=updated_at-collected_at,
+                             evaluate=ended-updated_at, total=ended-started))
+            if promoted:
+                champion = candidate
+                state.update(champion_checkpoint=checkpoint, champion_rows=rows, champion_validation=summary)
+            state['history'].append(record)
+            state['pending'] = None
+            atomic_json(out / f'iteration-{iteration:03d}.json', record)
+            atomic_json(state_path, state)  # authoritative commit, before the derived report
+            write_report()
+            log(f"iteration {iteration}: candidate {summary['mean_utility']:.3f}, promoted={promoted}")
+        report = write_report()
+        if include_test:
+            passed, comparison = promotion(state['baseline_rows'], state['champion_rows'], len(validation))
+            report['test_gate'] = dict(required='paired validation CI95 lower > 0; zero rejections',
+                                       passed=passed, comparison=comparison, enforced=True, forced=False)
+            if passed:
+                test = protocol_recipes(protocol, 'test')
+                summary, rows = evaluate_recipes(champion, test, version=version,
+                                                error_dir=out / 'errors', limits=eval_limits)
+                if summary['contract_rejections'] or len(rows) != len(test):
+                    raise ValueError('Final test contract rejection')
+                report['test'] = summary
+            atomic_json(out / 'report.json', report)
+        return report
+    finally:
+        if collector is not None:
+            collector.__exit__(None, None, None)
 
 
 def tee_log(path):
@@ -429,14 +516,16 @@ def main(argv=None):
     parser.add_argument('--protocol', default='configs/az_all_xs_v1/protocol.json')
     parser.add_argument('--out', default='output/az_all_xs_run')
     parser.add_argument('--log-file', default=None)
-    parser.add_argument('--iterations', type=int, default=1)
-    parser.add_argument('--episodes', type=int, default=2)
-    parser.add_argument('--updates', type=int, default=1)
-    parser.add_argument('--budget', type=int, default=4)
-    parser.add_argument('--batch-size', type=int, default=16)
-    parser.add_argument('--seed', type=int, default=0)
-    parser.add_argument('--max-turns', type=int, default=6)
-    parser.add_argument('--max-decisions', type=int, default=24)
+    parser.add_argument('--iterations', type=int, default=None)
+    parser.add_argument('--episodes', type=int, default=None)
+    parser.add_argument('--updates', type=int, default=None)
+    parser.add_argument('--budget', type=int, default=None)
+    parser.add_argument('--batch-size', type=int, default=None)
+    parser.add_argument('--seed', type=int, default=None)
+    parser.add_argument('--max-turns', type=int, default=None)
+    parser.add_argument('--max-decisions', type=int, default=None)
+    parser.add_argument('--eval-max-turns', type=int, default=None)
+    parser.add_argument('--eval-max-decisions', type=int, default=None)
     parser.add_argument('--include-test', action='store_true')
     parser.add_argument('--force-test', action='store_true')
     parser.add_argument('--resume', action='store_true')
@@ -453,7 +542,8 @@ def main(argv=None):
         result = run(args.config, args.protocol, args.out, iterations=args.iterations,
                      episodes=args.episodes, updates=args.updates, budget=args.budget,
                      batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
-                     max_decisions=args.max_decisions, include_test=args.include_test,
+                     max_decisions=args.max_decisions, eval_max_turns=args.eval_max_turns,
+                     eval_max_decisions=args.eval_max_decisions, include_test=args.include_test,
                      resume=args.resume, compare_baseline=not args.no_baseline,
                      workers=args.workers, enforce_test_gate=not args.force_test, log=log)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}

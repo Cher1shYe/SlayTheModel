@@ -62,7 +62,9 @@ class PolicyValueNetwork(nn.Module):
         return probabilities[0].cpu().numpy(), float(values[0])
 
 
-def policy_value_loss(model, batch, policy_targets, value_targets):
+def policy_value_loss(model, batch, policy_targets, value_targets, value_weight=1.0):
+    if not isinstance(value_weight, (int, float)) or not np.isfinite(value_weight) or value_weight < 0:
+        raise ValueError("Invalid value loss weight")
     logits, values = model(batch)
     mask = batch["legal_mask"]
     if (policy_targets.shape != logits.shape or value_targets.shape != values.shape
@@ -75,7 +77,7 @@ def policy_value_loss(model, batch, policy_targets, value_targets):
     # Index legal entries before multiplication: never compute 0 * -inf.
     policy_loss = -(policy_targets[mask] * logs[mask]).sum() / len(values)
     value_loss = torch.mean((value_targets - values) ** 2)
-    loss = policy_loss + value_loss
+    loss = policy_loss + value_weight * value_loss
     if not torch.isfinite(loss):
         raise ValueError("Nonfinite loss")
     with torch.no_grad():

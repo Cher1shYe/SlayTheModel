@@ -247,11 +247,11 @@ def move_from_intents(monster_id, previous_move, intents):
     """
     if tuple(intents) == (('STUNNED', 0, 1),):
         return 'STUNNED'
-    if tuple(intents) == (('HEAL', 0, 1),):
-        # Illusion minions install a public revive move (heal icon) at runtime.
-        return 'REVIVE_MOVE'
     info = info_for(monster_id)
     signatures = dict(info.intent_signatures)
+    if tuple(intents) == (('HEAL', 0, 1),) and tuple(intents) not in signatures.values():
+        # Only runtime Illusion healing lacks a native move; Reattach has one.
+        return 'REVIVE_MOVE'
     successors = dict(info.successors)
     if previous_move is None:
         candidates = list(info.initial_moves)

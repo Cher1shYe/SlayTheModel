@@ -20,7 +20,7 @@ from sts2_env.core.rng import Rng
 from .monster_registry import (CREATORS, ENCOUNTERS, info_for, move_from_intents,
                                variants_for)
 
-MAX_SLOTS = 5
+MAX_SLOTS = 128  # stable birth slots, including defeated summons
 INTENT_NAMES = tuple(name for name in IntentType.__members__) + ('STUNNED',)
 MAX_POWERS = 64
 
@@ -81,7 +81,7 @@ class EnemySlot:
 
     @property
     def reviving(self):
-        return self.hp == 0 and self.illusion > 0
+        return self.hp == 0 and (self.illusion > 0 or self._amount('REATTACH') > 0)
 
     @property
     def intent(self):
@@ -179,9 +179,9 @@ def validate_slots(slots):
         if info.ambiguous_pairs:
             raise ValueError(f'Monster move is not publicly determined: {slot.monster_id}')
         if (any(type(n) is not int for n in (slot.initial_hp, slot.hp, slot.max_hp, slot.block))
-                or not 0 < slot.initial_hp <= slot.max_hp <= 100000
+                or not 0 < slot.initial_hp <= slot.max_hp <= 2**31 - 1
                 or not 0 <= slot.hp <= slot.max_hp or slot.block < 0):
-            raise ValueError('Invalid public roster health')
+            raise ValueError(f'Invalid public roster health: {slot.monster_id} initial={slot.initial_hp} hp={slot.hp} max={slot.max_hp} block={slot.block}')
         if type(slot.escaped) is not bool:
             raise ValueError('Invalid public escape flag')
         from .power_memory import read_creature
@@ -217,7 +217,7 @@ def validate_slots(slots):
         if slot.moves:
             if not _legal_transition(slot.monster_id, previous, slot.move):
                 raise ValueError('Current move is not reachable from the public history')
-        elif slot.move not in info.initial_moves and slot.move not in ('STUNNED', 'REVIVE_MOVE'):
+        elif slot.move not in info.initial_moves and slot.move not in ('STUNNED', 'REVIVE_MOVE') and not slot.reviving:
             raise ValueError('Current move cannot be the initial move')
         if slot.hp == 0 and slot.monster_id == 'TEST_SUBJECT':
             raise ValueError('Boss phase forms require the dedicated contract')

@@ -8,7 +8,8 @@ from .network import batch_observations, policy_value_loss
 
 
 class Learner:
-    def __init__(self, champion, learning_rate=0.0003, weight_decay=0.0001):
+    def __init__(self, champion, learning_rate=0.0003, weight_decay=0.0001, value_weight=1.0):
+        self.value_weight = value_weight
         self.model = deepcopy(champion).requires_grad_(True).train()
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr=learning_rate, weight_decay=weight_decay)
         self.updates = 0
@@ -26,7 +27,7 @@ class Learner:
                                device=batch["numeric"].device)
         values = torch.tensor([s["z"] for s in samples], dtype=torch.float32, device=targets.device)
         self.optimizer.zero_grad(set_to_none=True)
-        loss, metrics = policy_value_loss(self.model, batch, targets, values)
+        loss, metrics = policy_value_loss(self.model, batch, targets, values, self.value_weight)
         loss.backward()
         norm = torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0, error_if_nonfinite=True)
         self.optimizer.step()
@@ -50,7 +51,7 @@ class Learner:
             batch = batch_entities([unpack_observation(s['observation']) for s in part], device)
             targets = keyed_targets(batch, [s['policy_target'] for s in part])
             values = torch.tensor([s['z'] for s in part], dtype=torch.float32, device=device)
-            loss, current = policy_value_loss(self.model, batch, targets, values)
+            loss, current = policy_value_loss(self.model, batch, targets, values, self.value_weight)
             weight = len(part)/len(samples)
             (loss*weight).backward()
             for k, v in dict(current, loss=float(loss.detach())).items():

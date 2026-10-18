@@ -437,7 +437,7 @@ class CardInstance:
         # Combat-start effects (for example Dampen) mutate cards before the
         # first hand is drawn; the all-content adapter still journals them.
         if (world is not None and not getattr(world,"_suppress_card_state_events",False)
-            and (world._is_card_in_combat(self) or getattr(world, "_az_all_content", False))
+            and (world._is_card_in_combat(self) or getattr(world, "_az_initializing", False))
             and previous!=current):
             world.visible_card_events.append(("card_state_change",previous,current,world.turn_count))
 

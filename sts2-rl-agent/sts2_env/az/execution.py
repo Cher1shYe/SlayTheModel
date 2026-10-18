@@ -46,6 +46,13 @@ def inventory(deck,events,codec):
             if len(e)!=4 or type(e[1])is not int or type(e[2])is not bool or type(e[3])is not int or e[3]<0:raise ValueError('Invalid public play metadata')
         elif e[0] in ('draw_remove','draw_insert'):
             if len(e)!=5 or e[1] not in codec.factories or e[2] not in ('top','bottom','unknown') or type(e[3])is not int or type(e[4])is not str:raise ValueError('Invalid public draw movement')
+        elif e[0] == 'enemy_intent_action':
+            from .roster import INTENT_NAMES
+            if (len(e) != 5 or type(e[1]) is not int or e[1] < 0 or type(e[2]) is not str
+                    or type(e[3]) is not tuple or not e[3] or type(e[4]) is not int
+                    or any(type(i) is not tuple or len(i) != 3 or i[0] not in INTENT_NAMES
+                           or any(type(n) is not int or n < 0 for n in i[1:]) for i in e[3])):
+                raise ValueError('Invalid performed public intent')
         elif e[0] in ('enemy_action','enemy_knockout'):
             if len(e)!=(3 if e[0]=='enemy_action' else 4) or any(type(v)is not int or v<0 for v in e[1:]):raise ValueError('Invalid public enemy event')
         elif e[0]=='player_damage':

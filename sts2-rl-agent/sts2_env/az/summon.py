@@ -476,9 +476,12 @@ def check_transition(before, world, slots):
 def ledger_from_slots(slots):
     entries = []
     for e in slots:
-        phase = "alive" if e.hp > 0 else ("reviving" if e.reviving else "defeated")
-        entries.append(EnemyLife(e.slot, e.monster_id, e.primary, e.initial_hp, e.max_hp, e.hp, phase, e.spawned))
-    ledger = EnemyLedger(tuple(entries))
+        phase = "removed" if getattr(e, "escaped", False) else ("alive" if e.hp > 0 else ("reviving" if e.reviving and (getattr(e, "_amount", lambda _: 0)("REATTACH") == 0 or any(s.hp > 0 for s in slots)) else "defeated"))
+        entries.append(EnemyLife(e.slot, e.monster_id, e.primary, e.initial_hp, e.max_hp, 0 if phase == "removed" else e.hp, phase, e.spawned))
+    from .roster import EnemySlot
+    from .enemy_lifecycle import ALL_CONTRACT_VERSION, CONTRACT_VERSION
+    version = ALL_CONTRACT_VERSION if all(type(e) is EnemySlot for e in slots) else CONTRACT_VERSION
+    ledger = EnemyLedger(tuple(entries), version)
     ledger.validate()
     return ledger
 
@@ -501,19 +504,28 @@ def capture_ledger(world, initial_hp):
 
 
 def primary_summary(ledger):
-    primary = tuple(e for e in ledger.entries if e.primary)
+    primary = tuple(e for e in ledger.entries if e.primary and not e.spawned)
     return (sum(e.initial_hp for e in primary), sum(e.hp for e in primary), sum(e.max_hp for e in primary))
 
 
 def ledger_rows(ledger):
-    return tuple(ledger.to_dict()["entries"])
+    from .enemy_lifecycle import ALL_CONTRACT_VERSION
+    rows = ledger.to_dict()["entries"]
+    if ledger.version == ALL_CONTRACT_VERSION:
+        rows = [dict(row, lifecycle_version=ledger.version) for row in rows]
+    return tuple(rows)
 
 
 def ledger_from_rows(rows):
     if type(rows) not in (tuple, list) or not rows or any(type(row) is not dict for row in rows):
         raise ValueError("Immutable public lifecycle ledger required")
     try:
-        ledger = EnemyLedger(tuple(EnemyLife(**dict(row)) for row in rows))
+        from .enemy_lifecycle import CONTRACT_VERSION, ALL_CONTRACT_VERSION
+        versions = {row.get("lifecycle_version", CONTRACT_VERSION) for row in rows}
+        if len(versions) != 1:
+            raise ValueError("Mixed lifecycle versions")
+        version = versions.pop()
+        ledger = EnemyLedger(tuple(EnemyLife(**{k: v for k, v in row.items() if k != "lifecycle_version"}) for row in rows), version)
         ledger.validate()
     except (TypeError, AttributeError) as exc:
         raise ValueError("Invalid lifecycle ledger record") from exc

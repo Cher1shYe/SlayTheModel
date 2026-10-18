@@ -1,6 +1,6 @@
 """Update known draw prefix using public actions and visible post-action hand only."""
 from .content import BOSS_CONTENT, EXPANSION_CONTENT
-from sts2_env.gym_env.action_space import action_to_card_and_target
+from .actions import decode_card_action
 
 
 def advance_top(before, action, after_hand, combat_ended):
@@ -27,7 +27,7 @@ def advance_top(before, action, after_hand, combat_ended):
             raise ValueError("Retained cards changed order across turn boundary")
         drawn = len(after_hand) - len(retained)
     else:
-        index, _ = action_to_card_and_target(action)
+        index, _ = decode_card_action(action, before.content_version)
         token = before.hand[index].removesuffix("+")
         if token == "HEADBUTT" and len(before.discard) == 1:
             return before.discard + top  # engine auto-resolves one candidate

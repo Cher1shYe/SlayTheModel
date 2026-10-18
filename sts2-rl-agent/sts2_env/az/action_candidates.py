@@ -49,7 +49,8 @@ def action_candidates(info):
                 action=ActionCandidate('choose:'+ref,'choose','pending',choice_refs=(ref,))
         elif native==0: action=ActionCandidate('end_turn','end_turn')
         else:
-            slot,target=action_to_card_and_target(native)
+            from .actions import decode_card_action
+            slot,target=decode_card_action(native, info.content_version)
             if slot is None or slot>=len(info.hand): raise ValueError('Unsupported action category')
             d=card_descriptor(info.hand[slot])
             if d.target == 'random_enemy': refs=tuple(f'enemy/{e.slot}' for e in info.enemies if e.hp>0 and not e.reviving)

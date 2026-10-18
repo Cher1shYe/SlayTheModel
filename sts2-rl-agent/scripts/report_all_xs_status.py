@@ -41,7 +41,7 @@ def build():
     generator = _load('all_deck_generator.json') or {}
     policy = _load('all_xs_policy_diagnostic.json') or {}
     budget = _load('all_xs_budget_diagnostic.json') or {}
-    check = preflight(CONFIG, PROTOCOL, iterations=1, episodes=1, max_turns=3, max_decisions=8)
+    check = preflight(CONFIG, PROTOCOL, check_test=False)
     recipe = training_recipes(0, 1)[0]
 
     lines = ['# AZ All-Content Status', '']
@@ -62,7 +62,7 @@ def build():
     lines.append(f"| Generator manifest SHA | `{protocol.get('generator_manifest_sha')}` |")
     lines.append(f"| Preflight manifest SHA | `{check.get('generator_manifest_sha')}` |")
     lines.append('')
-    lines.append('## Coverage')
+    lines.append('## Frozen admission and historical generator audit')
     lines.append('')
     lines.append('| Item | Value |')
     lines.append('|---|---|')
@@ -94,14 +94,19 @@ def build():
                  f"{len(check['training']['errors'])} |")
     lines.append(f"| Validation | {check['validation']['checked']} | {check['validation']['ok']} | "
                  f"{len(check['validation']['errors'])} |")
-    lines.append(f"| Test | {check['test']['checked']} | {check['test']['ok']} | "
-                 f"{len(check['test']['errors'])} |")
+    lines.append('| Test | not opened | — | — |')
     lines.append(f"| ready | | | {check['ready']} |")
     lines.append('')
+    audit = _load('training_readiness_mcts.json') or {}
+    lines.extend(['', '## Full-horizon contract audit (no training)', '',
+        f"- Completed: {len(audit.get('results', []))}/{audit.get('planned', 'n/a')}; passed: {audit.get('passed', 'n/a')}; failed: {audit.get('failed', 'n/a')}.",
+        '- Opening preflight is not an end-to-end search guarantee.',
+        '- Runner v2: configured value weight, 40 turns/400 decisions, update recovery, champion retention.',
+        '- Historical policy/budget diagnostics below used v1 and must not be treated as v2 learning evidence.'])
     if policy:
         prior, search = policy.get('prior', {}), policy.get('search', {})
         gain = policy.get('paired_gain', {})
-        lines.append('## Initial policy diagnostic')
+        lines.append('## Historical v1 initial policy diagnostic')
         lines.append('')
         lines.append('| Metric | network-only | MCTS-8 |')
         lines.append('|---|---:|---:|')
@@ -129,7 +134,7 @@ def build():
             lines.append('')
     if budget:
         entropy = budget.get('mean_entropy', {})
-        lines.append('## Search budget stability')
+        lines.append('## Historical v1 search budget stability')
         lines.append('')
         lines.append(f"- Budgets compared: {budget.get('budgets')}")
         lines.append(f"- Decisions: {budget.get('searches')}")
@@ -140,19 +145,17 @@ def build():
     lines.append('## Commands')
     lines.append('')
     lines.append('```')
-    lines.append('python -m sts2_env.az.all_runner --preflight-only --iterations 1 --episodes 1')
-    lines.append('python -m sts2_env.az.all_runner --iterations 4 --episodes 8 --updates 4 '
-                 '--budget 8 --workers 2 --out output/az_all_xs_run')
-    lines.append('python scripts/summarize_all_xs_run.py output/az_all_xs_run/report.json '
+    lines.append('python -m sts2_env.az.all_runner --preflight-only')
+    lines.append('python -m sts2_env.az.all_runner --iterations 8 --episodes 48 --updates 16 '
+                 '--budget 8 --workers 2 --out output/az_all_xs_v2_formal')
+    lines.append('python scripts/summarize_all_xs_run.py output/az_all_xs_v2_formal/report.json '
                  '--out docs/AZ_ALL_XS_RESULTS.md')
     lines.append('```')
     lines.append('')
     lines.append('## Pending decisions')
     lines.append('')
     lines.append('- Formal training authorization (see the command above).')
-    lines.append('- Lifecycle contract v6 for non-Minion summons: '
-                 '`docs/AZ_SPAWNED_PRIMARY_CONTRACT.md` (proposal; not implemented).')
-    lines.append('- Optional Hexed particle-restore fix for `knights_elite` (independent of v6).')
+    lines.append('- Lifecycle, Hex restoration and interrupted-update recovery are implemented; see `AZ_TRAINING_READINESS.md`.')
     lines.append('')
     lines.append('## Honesty rules')
     lines.append('')

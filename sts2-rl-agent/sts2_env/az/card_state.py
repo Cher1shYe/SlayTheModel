@@ -71,7 +71,7 @@ class CardStateCodec:
             dynamic |= {"base_damage", "base_block", "effect_vars"}
         if self.policy.afflictions:
             dynamic |= {"bound", "keywords"}
-            allowed_afflictions = ('bound', 'entangled', 'hexed', 'smog', 'galvanized')
+            allowed_afflictions = ('bound', 'entangled', 'hexed', 'smog', 'galvanized', 'ringing')
             affliction = getattr(card, 'affliction', None)
             if affliction is not None and affliction not in allowed_afflictions:
                 raise ValueError("Unaudited affliction")
@@ -79,10 +79,10 @@ class CardStateCodec:
             current_keywords = set(card.keywords)
             # Only the affliction's own public keyword effect may change keywords:
             # Hexed makes the card Ethereal while the affliction is active.
-            expected_added = {"ethereal"} if affliction == 'hexed' else set()
+            expected_added = ({"ethereal"} - reference_keywords) if affliction == 'hexed' else set()
             if current_keywords - reference_keywords != expected_added or (
                     reference_keywords - current_keywords):
-                raise ValueError("Unaudited card mutation: keywords")
+                raise ValueError(f"Unaudited card mutation: keywords {token}: {current_keywords}, reference={reference_keywords}, affliction={affliction}")
         for field in fields(reference):
             if field.name not in dynamic and getattr(card, field.name) != getattr(reference, field.name):
                 raise ValueError(f"Unaudited card mutation: {field.name}")
@@ -117,7 +117,7 @@ class CardStateCodec:
             raise ValueError("Unsupported card state version/type")
         if type(state.is_clone)is not bool or (state.is_clone and not self.policy.generated_metadata):raise ValueError('Clone state not admitted')
         if state.affliction is not None and (not self.policy.afflictions
-                or state.affliction not in ('bound', 'entangled', 'hexed', 'smog', 'galvanized')):
+                or state.affliction not in ('bound', 'entangled', 'hexed', 'smog', 'galvanized', 'ringing')):
             raise ValueError('Card affliction state not admitted')
         if state.turn_star_cost is not None and (not self.policy.generated_metadata or type(state.turn_star_cost)is not int or state.turn_star_cost!=0):raise ValueError('Star cost state not admitted')
         reference = self._reference(state.token)

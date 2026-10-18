@@ -29,7 +29,10 @@ def public_from_dict(data):
     from .selection_batch import TurnPayment
     for name,cls in [('generated',CardGeneration),('upgraded',CardUpgrade),('transformed',CardTransformation),('payments',TurnPayment)]:
         history[name]=tuple(cls(**v) for v in history[name])
-    history['public_events']=tuple(tuple(v) for v in history.get('public_events', ()))
+    history['public_events']=tuple(
+        (v[0], v[1], v[2], tuple(tuple(intent) for intent in v[3]), v[4])
+        if v[0] == 'enemy_intent_action' else tuple(v)
+        for v in history.get('public_events', ()))
     history['basic_plays']=tuple(tuple(v) for v in history.get('basic_plays', ()))
     values['basic_statuses']=tuple(tuple(v) for v in values.get('basic_statuses', ()))
     history['ability_plays']=tuple(tuple(v) for v in history.get('ability_plays', ()))

@@ -86,7 +86,7 @@ def test_preflight_accepts_the_frozen_plan():
     assert result['ready'] is True
     assert result['training'] == {'planned': 1, 'ok': 1, 'errors': []}
     assert result['validation'] == {'checked': 64, 'ok': 64, 'errors': []}
-    assert result['test'] == {'checked': 64, 'ok': 64, 'errors': []}
+    assert result['test'] is None
     assert result['generator_manifest_sha']
 
 
@@ -216,63 +216,11 @@ def test_one_episode_update_changes_weights(tmp_path):
 
 
 
-def test_resume_continues_from_the_last_checkpoint(tmp_path, monkeypatch):
-    import json
-    from pathlib import Path
-    from sts2_env.az.config import atomic_json
-    from sts2_env.az.model_factory import save_transformer_checkpoint
+def test_legacy_weights_only_resume_is_rejected(tmp_path):
+    (tmp_path / 'report.json').write_text('{}')
+    with pytest.raises(ValueError, match='No v2 recovery state'):
+        all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=1, episodes=1, resume=True)
 
-    config = all_runner.load_frozen_config(CONFIG)
-    model = all_runner.fresh_model(config)
-    out = tmp_path
-    save_transformer_checkpoint(out / 'iteration-000.pt', model, 'az-all-xs-runner-v1-resume',
-                                config=config, iteration=0)
-    baseline = dict(episodes=64, win_rate=0.0, mean_utility=0.1, contract_rejections=0,
-                    contract_rejected=[])
-    previous = dict(version=all_runner.VERSION,
-                    history=[dict(version=all_runner.VERSION, iteration=0, episodes=['b' * 64],
-                                  outcomes=['win'], replay_size=2, updates=[{'loss': 0.5}],
-                                  rejected_recipes=[], validation=baseline,
-                                  checkpoint='iteration-000.pt', seconds={})],
-                    baseline=baseline)
-    atomic_json(out / 'report.json', previous)
-    calls = {'collect': 0}
-
-    def fake_collect(model, recipes, **kwargs):
-        calls['collect'] += 1
-        return [dict(episode_id='c' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)],
-                     outcome={'termination_reason': 'death'})]
-
-    def fake_update(model, replay, **kwargs):
-        return model, [{'loss': 0.4}]
-
-    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
-        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
-                     reward=0.2, termination_reason='win', final_hp=40, turns=2,
-                     decisions=4, decision_seconds=[0.01], errors=0, illegal_actions=0)
-                for recipe in recipes]
-        return dict(episodes=len(rows), win_rate=1.0, mean_utility=0.2,
-                    contract_rejections=0, contract_rejected=[]), rows
-
-    class FakeReplay:
-        def __init__(self, *args, **kwargs):
-            self.size = 0
-
-        def commit(self, episode):
-            self.size += len(episode['rows'])
-
-    monkeypatch.setattr(all_runner, 'collect', fake_collect)
-    monkeypatch.setattr(all_runner, 'update', fake_update)
-    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
-    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
-    report = all_runner.run(CONFIG, PROTOCOL, out, iterations=2, episodes=1, updates=1,
-                            budget=1, seed=0, resume=True, log=lambda *args: None)
-    assert calls['collect'] == 1
-    assert len(report['history']) == 2
-    assert report['history'][0]['episodes'] == ['b' * 64]
-    assert report['history'][1]['iteration'] == 1
-    assert report['baseline']['mean_utility'] == pytest.approx(0.1)
 
 def test_test_split_opens_only_after_a_positive_validation_gain(tmp_path, monkeypatch):
     def fake_collect(model, recipes, **kwargs):
@@ -363,66 +311,10 @@ def test_validation_breakdown_covers_every_evaluated_encounter(tmp_path, monkeyp
     assert all(0.0 <= row['win_rate'] <= 1.0 for row in breakdown.values())
 
 
-def test_resume_keeps_paired_comparison_from_baseline_evidence(tmp_path, monkeypatch):
-    import json
-    from pathlib import Path
-    from sts2_env.az.config import atomic_json
-    from sts2_env.az.model_factory import save_transformer_checkpoint
-
-    config = all_runner.load_frozen_config(CONFIG)
-    model = all_runner.fresh_model(config)
-    save_transformer_checkpoint(tmp_path / 'iteration-000.pt', model, 'az-all-xs-runner-v1-resume',
-                                config=config, iteration=0)
-    protocol = json.loads((Path(__file__).resolve().parents[1] / PROTOCOL).read_text(
-        encoding='utf-8'))
-    validation = all_runner.protocol_recipes(protocol, 'validation')
-    baseline_rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
-                          reward=0.1, termination_reason='win') for recipe in validation]
-    baseline_summary = dict(episodes=64, win_rate=1.0, mean_utility=0.1,
-                            contract_rejections=0, contract_rejected=[])
-    atomic_json(tmp_path / 'baseline.json', dict(summary=baseline_summary, rows=baseline_rows))
-    atomic_json(tmp_path / 'report.json', dict(
-        version=all_runner.VERSION, baseline=baseline_summary,
-        history=[dict(version=all_runner.VERSION, iteration=0, episodes=['f' * 64],
-                      outcomes=['win'], replay_size=1, updates=[{'loss': 0.5}],
-                      rejected_recipes=[], validation=baseline_summary, seconds={},
-                      checkpoint='iteration-000.pt')]))
-
-    def fake_collect(model, recipes, **kwargs):
-        return [dict(episode_id='g' * 64, rows=[dict(policy_target={'end_turn': 1.0}, forced_action=False)], outcome={'termination_reason': 'win'})]
-
-    def fake_update(model, replay, **kwargs):
-        return model, [{'loss': 0.5}]
-
-    def fake_evaluate(model, recipes, *, version, error_dir, limits=None):
-        rows = [dict(scenario_id=recipe.scenario_id, encounter_id=recipe.encounter_id,
-                     reward=0.2, termination_reason='win', final_hp=40, turns=2,
-                     decisions=4, decision_seconds=[0.01], errors=0, illegal_actions=0)
-                for recipe in recipes]
-        return dict(episodes=len(rows), win_rate=1.0, mean_utility=0.2,
-                    contract_rejections=0, contract_rejected=[]), rows
-
-    class FakeReplay:
-        def __init__(self, *args, **kwargs):
-            self.size = 0
-
-        def commit(self, episode):
-            self.size += 1
-
-    monkeypatch.setattr(all_runner, 'collect', fake_collect)
-    monkeypatch.setattr(all_runner, 'update', fake_update)
-    monkeypatch.setattr(all_runner, 'evaluate_recipes', fake_evaluate)
-    monkeypatch.setattr(all_runner, 'EntityReplayBuffer', FakeReplay)
-    monkeypatch.setattr(all_runner, 'save_transformer_checkpoint', lambda *a, **k: None)
-    report = all_runner.run(CONFIG, PROTOCOL, tmp_path, iterations=2, episodes=1, updates=1,
-                            budget=1, seed=0, resume=True, log=lambda *args: None)
-    comparison = report['history'][1]['paired_vs_baseline']
-    assert comparison['episodes'] == 64
-    assert comparison['mean_gain'] == pytest.approx(0.1)
 
 def test_short_run_is_reproducible_for_a_seed(tmp_path):
     kwargs = dict(iterations=1, episodes=2, updates=1, budget=1, batch_size=8, seed=5,
-                  max_turns=2, max_decisions=6, log=lambda *args: None)
+                  max_turns=2, max_decisions=6, eval_max_turns=2, eval_max_decisions=6, log=lambda *args: None)
     first = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'a', **kwargs)
     second = all_runner.run(CONFIG, PROTOCOL, tmp_path / 'b', **kwargs)
     assert first['history'][0]['episodes'] == second['history'][0]['episodes']

@@ -85,7 +85,7 @@ def observe_all(world, history, limits=None, initial_hp=80, reward_version=V7,
     if reason is None and (history.decisions >= limits.max_decisions or world.turn_count > limits.max_turns):
         reason = 'time_limit'
     from .actions import action_size, public_mask
-    mask = (tuple(bool(v) for v in public_mask(world, EXPANSION_CONTENT)) if reason is None
+    mask = (tuple(bool(v) for v in public_mask(world, ALL_CONTENT)) if reason is None
             else (False,) * action_size(EXPANSION_CONTENT))
     from .card_memory import capture as capture_card_memory
     from .foundation import PLAYER
@@ -166,7 +166,7 @@ def validate_all(info):
         if info.history.decisions >= info.limits.max_decisions or info.turn > info.limits.max_turns:
             raise ValueError('Missing timeout')
     else:
-        alive = any(slot.hp > 0 for slot in info.enemies)
+        alive = any(slot.hp > 0 and not slot.escaped and not slot.spawned and slot.primary for slot in info.enemies)
         if info.termination_reason == 'win' and (alive or info.player_hp <= 0):
             raise ValueError('Win requires the whole roster to be defeated')
         if info.termination_reason == 'death' and info.player_hp > 0:
@@ -211,18 +211,8 @@ def _validate_player_powers(info):
 
 def roster_rows(enemies):
     """Reward ledger rows: primaries are everything without a Minion power."""
-    from .enemy_lifecycle import EnemyLife, EnemyLedger
-
-    entries = []
-    for slot in enemies:
-        powers = dict(slot.powers)
-        primary = 'MINION' not in powers
-        phase = 'alive' if slot.hp > 0 else ('reviving' if 'ILLUSION' in powers else 'defeated')
-        entries.append(EnemyLife(slot.slot, slot.monster_id, primary, slot.initial_hp,
-                                 slot.max_hp, slot.hp, phase, False))
-    ledger = EnemyLedger(tuple(entries))
-    ledger.validate()
-    from .summon import ledger_rows, primary_summary
+    from .summon import ledger_from_slots, ledger_rows, primary_summary
+    ledger = ledger_from_slots(enemies)
     return ledger, ledger_rows(ledger), primary_summary(ledger)
 
 
@@ -261,31 +251,45 @@ def finish_history(before, world, history, action):
     if events[:len(before.history.public_events)] != before.history.public_events:
         raise ValueError('Public event journal prefix changed')
     history = finish_simple(view, world, history)
-    history = finish_choices(view, world, history, action)
+    history = finish_choices(before, world, history, action)
     history = finish_execution(view, world, history)
+    from .monster_registry import move_from_intents
     moves = [list(slot.moves) for slot in before.enemies]
+    moves.extend([] for _ in range(len(world.enemies) - len(moves)))
+    recorded = None
     for event in events[len(before.history.public_events):]:
-        if event[0] == 'enemy_action':
+        if event[0] == 'enemy_intent_action':
+            _, slot, monster_id, intents, _ = event
+            if not 0 <= slot < len(moves) or world.enemies[slot].monster_id != monster_id:
+                raise ValueError('Invalid performed enemy intent')
+            previous = moves[slot][-1] if moves[slot] else None
+            moves[slot].append(move_from_intents(monster_id, previous, intents))
+            recorded = slot
+        elif event[0] == 'enemy_action':
             slot = event[1]
-            if not 0 <= slot < len(before.enemies):
-                raise ValueError('Unobserved enemy acted')
-            moves[slot].append(before.enemies[slot].move)
+            if recorded != slot:
+                if not 0 <= slot < len(before.enemies):
+                    raise ValueError('New enemy action requires its visible intent event')
+                moves[slot].append(before.enemies[slot].move)
+            recorded = None
     roster = tuple(tuple(m) for m in moves)
     return _replace(history, enemy_moves=roster[0], roster_moves=roster)
 
 
 def roster_ledger(world, initial_hp):
     """Reward ledger straight from the finished world (no move validation)."""
-    from .enemy_lifecycle import EnemyLife, EnemyLedger
+    from .enemy_lifecycle import EnemyLife, EnemyLedger, ALL_CONTRACT_VERSION
 
     entries = []
     for slot, enemy in enumerate(world.enemies):
         powers = {p.name: obj.amount for p, obj in enemy.powers.items()}
         hp = max(0, enemy.current_hp)
-        phase = 'alive' if hp > 0 else ('reviving' if powers.get('ILLUSION', 0) > 0 else 'defeated')
+        phase = 'removed' if enemy.escaped else ('alive' if hp > 0 else ('reviving' if (powers.get('ILLUSION', 0) > 0 or (powers.get('REATTACH', 0) > 0 and any(e.current_hp > 0 for e in world.enemies))) else 'defeated'))
+        hp = 0 if enemy.escaped else hp
         entries.append(EnemyLife(slot, enemy.monster_id, 'MINION' not in powers,
-                                 initial_hp[slot], enemy.max_hp, hp, phase, False))
-    ledger = EnemyLedger(tuple(entries))
+                                 initial_hp[slot] if slot < len(initial_hp) else enemy.max_hp,
+                                 enemy.max_hp, hp, phase, slot >= len(initial_hp)))
+    ledger = EnemyLedger(tuple(entries), ALL_CONTRACT_VERSION)
     ledger.validate()
     return ledger
 

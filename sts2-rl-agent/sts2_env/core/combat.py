@@ -1795,6 +1795,12 @@ class CombatState:
             enemy = enemies[index]
             ai = self.enemy_ais[enemy.combat_id]
             move = ai.current_move
+            if getattr(self, '_az_all_content', False):
+                # The performed intent is visible even when this enemy was born
+                # since the previous player decision. Never journal private AI ids.
+                from sts2_env.az.roster import intent_signal
+                self.visible_card_events.append(('enemy_intent_action', self.enemies.index(enemy),
+                    enemy.monster_id, intent_signal(ai), self.turn_count))
             self.visible_card_events.append(("enemy_action",self.enemies.index(enemy),self.turn_count))
             move.perform(self)
             if self.pending_choice is not None:
@@ -2885,6 +2891,13 @@ class CombatState:
         card.base_block = upgraded.base_block
         card.upgraded = upgraded.upgraded
         card.keywords = upgraded.keywords
+        if card.affliction == 'hexed':
+            card.keywords = frozenset(set(card.keywords) | {'ethereal'})
+            hex_power = card.owner.powers.get(PowerId.HEX) if getattr(card, 'owner', None) else None
+            if hex_power is not None:
+                hex_power._applied_ethereal_cards = [c for c in hex_power._applied_ethereal_cards if c is not card]
+                if 'ethereal' not in upgraded.keywords:
+                    hex_power._applied_ethereal_cards.append(card)
         card.tags = upgraded.tags
         card.can_be_generated_in_combat = upgraded.can_be_generated_in_combat
         card.can_be_generated_by_modifiers = upgraded.can_be_generated_by_modifiers

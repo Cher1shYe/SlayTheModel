@@ -28,11 +28,6 @@ DECK = (['STRIKE_IRONCLAD'] * 3 + ['DEFEND_IRONCLAD'] * 3
 ENCOUNTERS = ['setup_nibbits_normal', 'setup_slimes_weak', 'setup_cultists_normal',
               'setup_bowlbugs_normal', 'setup_axebots_normal', 'setup_chompers_normal',
               'setup_waterfall_giant_boss', 'setup_kaiser_crab_boss']
-# Encounters whose public-state reconstruction still diverges from the native
-# oracle; tracked explicitly instead of being silently dropped.
-KNOWN_PARITY_GAPS = {
-    'setup_kaiser_crab_boss': 'Crusher/Rocket BACK_ATTACK + CRAB_RAGE damage modifiers',
-}
 
 
 def recipe(encounter, seed=21):
@@ -64,8 +59,6 @@ def aligned_particle(env, rng):
 
 @pytest.mark.parametrize('encounter', ENCOUNTERS)
 def test_aligned_particle_parity_over_random_steps(encounter):
-    if encounter in KNOWN_PARITY_GAPS:
-        pytest.xfail('known public reconstruction gap: ' + KNOWN_PARITY_GAPS[encounter])
     env = env_for(encounter)
     rng = np.random.default_rng(7)
     steps = 0

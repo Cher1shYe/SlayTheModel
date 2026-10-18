@@ -49,6 +49,10 @@ def summarize(report):
         lines.append(f"| {baseline.get('episodes')} | {_fmt(baseline.get('win_rate'))} | "
                      f"{_fmt(baseline.get('mean_utility'))} | {baseline.get('contract_rejections', 0)} |")
         lines.append('')
+    if report.get('champion_checkpoint'):
+        lines.append(f"Retained champion: `{report['champion_checkpoint']}`; final validation refers to this champion.")
+        lines.append('Candidate rows below may include rejected regressions.')
+        lines.append('')
     lines.append('## Iterations')
     lines.append('')
     lines.append('| Iter | Episodes | Outcomes | Loss | Val utility | Val win | Paired gain [95% CI] | P(gain>0) | Seconds |')

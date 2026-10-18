@@ -94,8 +94,8 @@ def finish_history(before,world,history,action):
         top=top[:top.index(token)] if token in top else top
         bottom=bottom[bottom.index(token)+1:] if token in bottom else bottom
     elif not before.choice and action:
-        from sts2_env.gym_env.action_space import action_to_card_and_target
-        slot,_=action_to_card_and_target(action);n=before.hand[slot].removesuffix('+')
+        from .actions import decode_card_action
+        slot,_=decode_card_action(action, before.content_version);n=before.hand[slot].removesuffix('+')
         if n=='CINDER':
             added=Counter(card_token(c) for c in world.exhaust_pile)-Counter(before.exhaust)
             count=sum(added.values())

@@ -23,7 +23,7 @@ EXTRAS={'AUTOMATION':{'_instances':'pairs'},'PANACHE':{'_started':'bool','_insta
         # out this turn (their own energy), so only the count is public.
         'VITAL_SPARK':{'_triggered_players_this_turn':'count'},
         # Facing direction is visible (the player turns toward the attacked side).
-        'SURROUNDED':{'facing':'count'}}
+        'SURROUNDED':{'facing':'count'}, 'REATTACH':{'is_reviving':'bool'}}
 
 
 def _check(value, shape):
@@ -185,6 +185,21 @@ def restore(world,info):
         world.player.powers[PowerId.RUPTURE]._pending_by_card={id(world.play_pile[i]):v for i,v in data['rupture']}
     if PowerId.CALAMITY in world.player.powers:
         world.player.powers[PowerId.CALAMITY]._played_attack_ids={world.play_pile[i].instance_id for i in data['calamity']}
+    if PowerId.HEX in world.player.powers:
+        from .content_expansion import CODEC
+        from .decks import card_token
+        power = world.player.powers[PowerId.HEX]
+        cards = [c for pile in world.current_player_state.all_piles for c in pile
+                 if c.affliction == 'hexed']
+        # Replace stale references created before the restored piles existed.
+        power._hexed_cards = cards
+        power._applied_ethereal_cards = [c for c in cards
+            if 'ethereal' not in CODEC._reference(card_token(c)).keywords]
+        power._active = True
+        sources = [e for e in world.enemies if e.monster_id == 'SPECTRAL_KNIGHT']
+        if len(sources) != 1:
+            raise ValueError('Hex requires one publicly identified Spectral Knight')
+        power.applier = sources[0]
     contexts=[f['context'] for f in world._play_continuations if f['kind']=='play']+([world._pending_play] if world._pending_play else [])
     from sts2_env.core.enums import ValueProp
     world._block_events_this_turn=[]

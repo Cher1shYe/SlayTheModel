@@ -106,7 +106,8 @@ class PublicHistory:
                     else moves(before.monster_id, len(self.enemy_moves) + 1)[-1])
             return replace(self, decisions=self.decisions + 1, known_top=top, known_bottom=bottom, transformed=transformed, enemy_moves=self.enemy_moves + (move,), played_this_turn=(),
                            payments=(), retain_turns=max(0, self.retain_turns - 1))
-        index, target = action_to_card_and_target(action)
+        from .actions import decode_card_action
+        index, target = decode_card_action(action, before.content_version)
         from .deck_observation import prototype
         name = before.hand[index]
         from .foundation import FACTORIES as BASIC_FACTORIES
@@ -583,7 +584,13 @@ class SearchParticle:
                 if not resolve_choice(self.world, action, self.info.content_version):
                     raise ValueError("Particle choice rejected")
             else:
-                apply_action(self.world, action)
+                from .actions import ALL_TARGET_BASE, decode_card_action
+                if self.info.content_version == ALL_CONTENT and action >= ALL_TARGET_BASE:
+                    hand, target = decode_card_action(action, ALL_CONTENT)
+                    if not self.world.play_card(hand, target):
+                        raise ValueError('Particle rejected extended roster target')
+                else:
+                    apply_action(self.world, action)
             if self.info.content_version == ALL_CONTENT:
                 from .all_content import check_transition
                 check_transition(self.info, self.world, self.enemy_slots)

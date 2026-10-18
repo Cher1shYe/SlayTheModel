@@ -44,8 +44,8 @@ def card_capacity(content_version):
 
 def token_vocabulary(content_version):
     if content_version == EXPANSION_CONTENT:
-        from .content_expansion import TOKENS
-        return TOKENS
+        from .content_expansion import TOKENS as EXPANSION_TOKENS
+        return EXPANSION_TOKENS
     if content_version in (BOSS_CONTENT, EXPANSION_CONTENT):
         from .boss_cards import TOKENS as BOSS_TOKENS
         return BOSS_TOKENS

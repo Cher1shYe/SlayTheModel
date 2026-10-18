@@ -34,8 +34,8 @@ def upgrades_after(info, action, combat_ended):
             return ()  # native upgrade_card returns the card unchanged
         pairs, cause = [(option.index, option.card.token)], "ARMAMENTS"
     elif action:
-        from sts2_env.gym_env.action_space import action_to_card_and_target
-        index, _ = action_to_card_and_target(action)
+        from .actions import decode_card_action
+        index, _ = decode_card_action(action, info.content_version)
         cause = info.hand[index]
         if cause not in ("ARMAMENTS", "ARMAMENTS+"):
             return ()
