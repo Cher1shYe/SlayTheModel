@@ -485,3 +485,12 @@ def test_target_stats_summarize_search_signal():
     assert stats['forced_fraction'] == pytest.approx(0.5)
     assert all_runner.target_stats([])['rows'] == 0
 
+
+def test_tee_log_appends_lines_to_stdout_and_file(tmp_path, capsys):
+    log = all_runner.tee_log(tmp_path / 'run.log')
+    log('baseline', 0.3)
+    log('iteration 0: ok')
+    captured = capsys.readouterr()
+    assert 'baseline 0.3' in captured.out
+    text = (tmp_path / 'run.log').read_text(encoding='utf-8')
+    assert text.splitlines() == ['baseline 0.3', 'iteration 0: ok']

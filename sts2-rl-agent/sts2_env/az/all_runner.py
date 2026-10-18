@@ -408,12 +408,27 @@ def run(config_path, protocol_path, out_dir, *, iterations=1, episodes=2, update
     return report
 
 
+def tee_log(path):
+    """Print to stdout and append the same lines to a UTF-8 log file."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    def log(*args):
+        line = ' '.join(str(arg) for arg in args)
+        print(line, flush=True)
+        with path.open('a', encoding='utf-8') as handle:
+            handle.write(line + '\n')
+
+    return log
+
+
 def main(argv=None):
     import argparse
     parser = argparse.ArgumentParser(description='P3 all-content XS self-play runner')
     parser.add_argument('--config', default='configs/az_all_xs_v1/config.json')
     parser.add_argument('--protocol', default='configs/az_all_xs_v1/protocol.json')
     parser.add_argument('--out', default='output/az_all_xs_run')
+    parser.add_argument('--log-file', default=None)
     parser.add_argument('--iterations', type=int, default=1)
     parser.add_argument('--episodes', type=int, default=2)
     parser.add_argument('--updates', type=int, default=1)
@@ -434,18 +449,20 @@ def main(argv=None):
                            episodes=args.episodes, max_turns=args.max_turns,
                            max_decisions=args.max_decisions)
     else:
+        log = tee_log(args.log_file or Path(args.out) / 'run.log')
         result = run(args.config, args.protocol, args.out, iterations=args.iterations,
                      episodes=args.episodes, updates=args.updates, budget=args.budget,
                      batch_size=args.batch_size, seed=args.seed, max_turns=args.max_turns,
                      max_decisions=args.max_decisions, include_test=args.include_test,
                      resume=args.resume, compare_baseline=not args.no_baseline,
-                     workers=args.workers, enforce_test_gate=not args.force_test)
+                     workers=args.workers, enforce_test_gate=not args.force_test, log=log)
         result = {key: result[key] for key in ('version', 'history', 'final_validation')}
     print(json.dumps(result, ensure_ascii=False))
 
 
 if __name__ == '__main__':
     main()
+
 
 
 

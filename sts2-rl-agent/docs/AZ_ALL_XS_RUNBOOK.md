@@ -43,6 +43,7 @@ Outputs in `--out`:
   versions), `baseline`, `history[*]` with `updates` losses, `seconds{collect,update,evaluate,total}`,
   `paired_vs_baseline` (scenario-paired bootstrap mean, 95% CI, P(gain>0)),
   `validation_by_encounter`, `target_stats`, `rejected_recipes`, `checkpoint`.
+- `run.log`: every progress line (stdout is also echoed); `--log-file` overrides the path.
 - `baseline.json`: frozen initial-model rows for later re-checks.
 - `iteration-NNN.json` / `iteration-NNN.pt`: per-iteration evidence and checkpoint.
 - `errors/`: one JSON per contract rejection (scenario, actions, exception).

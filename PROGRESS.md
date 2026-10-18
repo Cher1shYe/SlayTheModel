@@ -383,3 +383,9 @@
 - 尝试在 `power_memory.restore` 中把已处于 hexed 的卡牌补入 HexPower 的私有跟踪列表，使力量移除时能清理它们。
 - 结果：原始库存差异消失，但紧接着出现 `Changed card state absent from public inventory`（清除事件的 old state 不在库存中）——说明还有第二处状态事件口径不一致；为避免半修复，已回滚。
 - `knights_elite` 仍为 1 个记录在案的 MCTS 边界（网络路径 64/64 正常）；本轮无代码改动。
+
+### 步骤 45（2026-10-18）运行日志落盘（P4e）
+
+- `main` 默认把进度行同时写入 `<out>/run.log`（UTF-8，追加），`--log-file` 可覆盖；stdout 行为不变。
+- 新增 1 项测试；runner 套件 **20 项通过**；preflight 仍 `ready=true`、回归 **1206 项通过（1 xfailed）**。
+- 仍不启动正式训练。
