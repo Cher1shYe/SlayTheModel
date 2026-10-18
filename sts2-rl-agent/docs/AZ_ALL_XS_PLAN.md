@@ -79,17 +79,19 @@
 
 ## 6. 初始策略诊断（不训练）
 
-`scripts/diagnose_all_xs_policy.py` 在同一 16 个验证配方上比较 network-only 与动态 MCTS（预算 8），使用初始 XS 权重；结果 `docs/all_xs_policy_diagnostic.json`：
+`scripts/diagnose_all_xs_policy.py` 在全部 64 个验证配方上比较 network-only 与动态 MCTS（预算 8），使用初始 XS 权重；结果 `docs/all_xs_policy_diagnostic.json`：
 
 | 指标 | network-only | MCTS 8 |
 |---|---:|---:|
-| 完成配方 | **16/16** | **16/16** |
-| 胜率 | 50.0% | 50.0% |
-| mean V7 utility | 0.109 | **0.353** |
-| 平均决策 p50 | 11.5 ms | 323 ms |
-| 整组耗时 | 5.0 s | 82.4 s |
+| 完成配方 | **64/64** | 60/64 |
+| 胜率 | 62.5% | 68.3% |
+| mean V7 utility | 0.365 | **0.540** |
+| 平均决策 p50 | 11.3 ms | 303 ms |
+| 整组耗时 | 17.2 s | 280.2 s |
 
-配对增益 **+0.244**（9 正 / 2 负 / 5 平）：搜索在初始网络之上提供明显但非全面的提升；搜索约 28× 单次前向耗时。该测量只说明管线/搜索的价值，不构成学习增益；两侧均无契约拒绝。
+在 60 个共同配方上配对增益 **+0.131**（20 正 / 14 负 / 26 平）：搜索在初始网络之上有正向但非全面的提升；搜索约 27× 单次前向耗时。MCTS 侧仍有 4 个配方被拒绝：3 个主敌人移除（`gremlin_merc`、`axebots`，需要单独的移除/召唤预算契约）、1 个 `knights_elite` 粒子卡牌库存差异；全部逐条记录，未静默。该测量只说明管线/搜索的价值，不构成学习增益。
+
+分项修复记录：零值 DEXTERITY 的公开顺序、粒子恢复的公开状态顺序、ALL_CONTENT 的 Purity 多选（位掩码）契约均已对齐；`test_expanded_choice_capacity…` 的 `_pending_play` 防御性访问也已修正。
 
 ## 7. 诚实性约束
 

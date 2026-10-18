@@ -161,6 +161,7 @@ def validate_enemies(info,old_validate):
 def restore(world,info):
     from sts2_env.core.creature import get_power_class
     create_power=lambda pid,a:get_power_class(pid)(a)
+    created={}
     for slot,n,a in info.basic_statuses:
         c=world.player if slot==-1 else world.enemies[slot]
         p=create_power(PowerId[n],a);p.applier=world.player
@@ -171,6 +172,17 @@ def restore(world,info):
         # These cards apply during the player turn; the first enemy-end tick is due.
         p.skip_next_tick=False
         c.powers[PowerId[n]]=p
+        created[(slot,n)]=p
+    # The public status order is part of the state; rebuild insertion order from
+    # the captured rows instead of the restore order of individual zones.
+    for slot, c in ((-1, world.player), *((i, e) for i, e in enumerate(world.enemies))):
+        names=[n for s,n,a in info.basic_statuses if s==slot]
+        if not names:
+            continue
+        rest={k:v for k,v in c.powers.items() if k.name not in names}
+        c.powers.clear(); c.powers.update(rest)
+        for n in names:
+            c.powers[PowerId[n]]=created[(slot,n)]
     from .content import ALL_CONTENT
     for c,e in zip(world.enemies,info.enemies):
         if info.content_version == ALL_CONTENT:

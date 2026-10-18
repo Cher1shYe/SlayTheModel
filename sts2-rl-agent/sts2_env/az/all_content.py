@@ -192,7 +192,10 @@ def _validate_player_powers(info):
             or len({name for name, _ in abilities}) != len(abilities)):
         raise ValueError('Invalid public player powers')
     memory = read_power_memory(info)
-    basic = {name for slot, name, _ in info.basic_statuses if slot == -1}
+    # Zero Strength/Dexterity are hidden from the public power order, so they
+    # must not be required back from it.
+    basic = {name for slot, name, amount in info.basic_statuses
+             if slot == -1 and not (name in ('STRENGTH', 'DEXTERITY') and amount == 0)}
     exposed = basic | {name for name, _ in abilities}
     if info.shrink:
         exposed.add('SHRINK')
@@ -435,6 +438,10 @@ def sample_particle(info, search_rng):
                     f'intents={a.intents == b.intents} moves={a.moves == b.moves} '
                     f'move={a.move}/{b.move} escaped={a.escaped}/{b.escaped}'
                     for a, b in zip(projected.enemies, info.enemies) if a != b)
+            if 'basic_statuses' in fields:
+                detail += (f'; basic {projected.basic_statuses}/{info.basic_statuses}')
+            if 'player_abilities' in fields:
+                detail += f'; abilities {projected.player_abilities}/{info.player_abilities}'
             raise ValueError('Particle does not reproduce the root public state/legal actions: '
                              f'{fields}{detail}')
         return SearchParticle(world, projected, card_base._next_instance_id)

@@ -24,18 +24,22 @@ def set_mask(option_count, min_choices, max_choices, allow_skip, size=SET_ACTION
 
 def public_choice_mask(choice, codec, content):
     from .actions import action_size
-    from .content import SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
+    from .content import (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT,
+                          ALL_CONTENT)
     choice.validate(codec, action_size(content))
-    if content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and choice.mechanism.removesuffix("+") == "PURITY":
+    if content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT, ALL_CONTENT) and choice.mechanism.removesuffix("+") == "PURITY":
         return set_mask(len(choice.options), choice.min_choices, choice.max_choices, choice.allow_skip,
                         action_size(content))
     return choice.legal_mask(codec, action_size(content))
 
 
 def is_set_choice(world, content):
-    from .content import SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT
-    return (content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT) and world.pending_choice is not None
-            and world._pending_play is not None and world._pending_play["card"].card_id.name == "PURITY")
+    from .content import (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT,
+                          ALL_CONTENT)
+    pending = getattr(world, "_pending_play", None)
+    return (content in (SET_CONTENT, MORPH_CONTENT, MULTI_CONTENT, SUMMON_CONTENT, BOSS_CONTENT, EXPANSION_CONTENT,
+                        ALL_CONTENT) and world.pending_choice is not None
+            and pending is not None and pending["card"].card_id.name == "PURITY")
 
 
 def resolve_choice(world, action, content):
