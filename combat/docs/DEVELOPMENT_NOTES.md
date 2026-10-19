@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 外部采集先预测后执行（2026-10-19，未发布）
+
+SLITHERING_STRANGLER_NORMAL / seed 1600000053 的 CATASTROPHE+ 暴露外部采集先推进 live、后回放预测的时序问题。GenericCollection 先解析 live 动作身份，完成 Promote 预测后再执行真实动作；完整后继和选牌边界仍严格对账。失败配方完整 16 决策通过，包含多次出牌和嵌套选择；16 项 Python 特征与缓存测试通过。额外根预览物化尝试未解决问题，已撤回；保留失败时的模拟手牌键诊断。
+
 ## 原生 MCTS 搜索配置传递（2026-10-19，未发布）
 
 CreateDriver 虽创建专用 profile，却未传入 CombatBeamSolver 的 searchProfile 参数，导致执行器仍使用默认 Beam 配额。MYTES_NORMAL / seed 1600000034 的 STRATAGEM 洗牌二选在默认 18 分支限制下丢失合法组合。显式传递已有 profile 后，首个选择保留全部 37 个语义组合，固定模型整场 12 决策通过；原 38 场完整缓存在新版本重验，编码输入、动作和终局全部不变。严格合法动作对账保留；未移除通用嵌套选择的资源边界。

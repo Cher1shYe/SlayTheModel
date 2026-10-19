@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## CATASTROPHE 预测与实机推进顺序（2026-10-19）
+
+固定 seed 1600000053、原 initial.pt，修复前 Promote 在实机动作之后回放时报手牌缺失；先预测后推进后 16 决策完整成功。证据 `sts2-rl-agent/output/native_promote_order_20261019/`；夹具 `tests/fixtures/native_catastrophe_sequence_v1.json.gz`，可经 `check_native_feature_regression.py --fixture <该夹具> --checkpoint <原 initial.pt> --out <新目录>` 重跑。Python 回归覆盖重复 CATASTROPHE 出牌、选择、完整轨迹校验与逐场缓存恢复。
+
 ## 原生 MCTS 配置生效与 STRATAGEM 完整组合（2026-10-19）
 
 MYTES_NORMAL / seed 1600000034：修复前 decision 5 合法动作覆盖失败；传入专用 searchProfile 后纯策略整场 12 决策通过。首个选择从 10 张候选取 2 张，语义去重后 37 个组合全部存在。Python `tests/test_native_feature_regression.py` 用组合枚举独立核对；真实回归可用 `scripts/check_native_feature_regression.py --fixture tests/fixtures/native_stratagem_choices_v1.json.gz --checkpoint <原 initial.pt> --out <新目录>` 运行。实际证据：`sts2-rl-agent/output/native_stratagem_fixed_20261019/`；旧 38 场重验与相等证据：`native_stratagem_cache_revalidation_20261019/`。

@@ -77,7 +77,7 @@ internal sealed partial class CombatBeamSolver
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
             SimPlayerCombatState playerState = simulator.State.GetPlayerCombatState(_player);
             PredictedCard card = FindCardForReplay(playerState.Hand.Cards, action)
-                ?? throw new InvalidOperationException($"Prediction card {requested.Key} is no longer in hand.");
+                ?? throw new InvalidOperationException($"Prediction card {requested.Key} is no longer in hand. Available: {string.Join(";", playerState.Hand.Cards.Select(c=>CardChoiceSupport.ChoiceCardKey(c)))}");
             PreparedCardAction prepared = new(
                 action,
                 card.Preview.Type,
