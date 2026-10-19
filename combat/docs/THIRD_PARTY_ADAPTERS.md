@@ -1,5 +1,9 @@
 # 第三方 Mod 适配手册
 
+## 被包围重放读取冻结背击能力（2026-10-19）
+
+候选验证 seed1600000102 在第46决策前失败：Panache 随 BOLAS 击杀 CRUSHER 后，完整历史重放玩家HP42，实机29。Surrounded 的伤害倍率与两处朝向更新读取 live HasPower，死亡清理改变了过去回合的背击判断。三处改读 SimulatedCombatState.GetPower，保留原生存在性语义与1.5倍率；已核对v0.111.0 SurroundedPower。根失配新增完整continuation、选择状态和已执行轨迹诊断，仍立即失败。隔离DLL修复前完整前缀重放失败，修复后55决策通过，动作/结局与快照复用路径一致；同批KNIGHTS seed1600000103通过。Python夹具 native_surrounded_frozen_v1 固定敌人死亡后HP29及严格契约。训练缓存、回放和64更新断点保留，原结果仅校验保留、不宣称重跑。
+
 ## 外部 MCTS 稳定根提交（2026-10-19）
 
 `NativeMctsSimulationSession.CommitDecisionRoot()` 将当前已完成决策的预测快照作为随后 `RestoreRoot()` 的根；成功返回 true，未完成选择返回 false 且不改变根。调用方只能在实际确认的动作前缀后提交，不能提交试探分支。提交保留绝对动作计数和最初捕获的奖励敌人集合，释放旧根和其他临时快照；同一 session 串行使用。无需重新捕获 live 状态，也不提供挂起选择事务的克隆入口。Worker 的 `ReuseDecisionRoot=false` 仅用于完整历史重放基准；所有实机契约仍保持严格失败。

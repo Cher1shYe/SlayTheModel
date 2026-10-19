@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 被包围重放读取冻结背击能力（2026-10-19）
+
+候选验证 seed1600000102 在第46决策前失败：Panache 随 BOLAS 击杀 CRUSHER 后，完整历史重放玩家HP42，实机29。Surrounded 的伤害倍率与两处朝向更新读取 live HasPower，死亡清理改变了过去回合的背击判断。三处改读 SimulatedCombatState.GetPower，保留原生存在性语义与1.5倍率；已核对v0.111.0 SurroundedPower。根失配新增完整continuation、选择状态和已执行轨迹诊断，仍立即失败。隔离DLL修复前完整前缀重放失败，修复后55决策通过，动作/结局与快照复用路径一致；同批KNIGHTS seed1600000103通过。Python夹具 native_surrounded_frozen_v1 固定敌人死亡后HP29及严格契约。训练缓存、回放和64更新断点保留，原结果仅校验保留、不宣称重跑。
+
 ## 原生 MCTS 决策点快照复用（2026-10-19）
 
 外部 MCTS 的 Promote 在完成选择链后提交稳定预测快照，后续 rollout 从该点分叉，避免每次重放整场已执行动作。待选牌时保留最近稳定根及尚未完成的动作前缀。原始奖励敌人集合、冻结历史、RNG 和绝对动作计数不重置；不重新捕获推进后的 live 根。完整重放参考模式逐 Restore/Apply 对照状态、合法动作、完整 continuation 与敌人伤害比例，三个场景通过；Python 回归103项通过。计时和限制见[实测报告](performance/native-decision-root-20261019.md)。

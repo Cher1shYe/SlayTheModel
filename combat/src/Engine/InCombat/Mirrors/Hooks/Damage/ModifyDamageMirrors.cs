@@ -185,8 +185,8 @@ internal static class ModifyDamageMirrors
         var facing = context.StateStore.Get(power, () => new SurroundedPredictionState(power)).Facing;
         return facing switch
         {
-            SurroundedPower.Direction.Right when context.Dealer.HasPower<BackAttackLeftPower>() => 1.5m,
-            SurroundedPower.Direction.Left when context.Dealer.HasPower<BackAttackRightPower>() => 1.5m,
+            SurroundedPower.Direction.Right when Combat(context).GetPower<BackAttackLeftPower>(context.Dealer) is not null => 1.5m,
+            SurroundedPower.Direction.Left when Combat(context).GetPower<BackAttackRightPower>(context.Dealer) is not null => 1.5m,
             _ => 1
         };
     }

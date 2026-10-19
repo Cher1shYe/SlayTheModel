@@ -278,11 +278,13 @@ internal static class BeforeCardPlayedMirrors
         }
 
         var state = context.StateStore.Get(power, () => new SurroundedPredictionState(power));
-        if (target.HasPower<BackAttackLeftPower>())
+        var combat = context.CombatState as SimulatedCombatState
+            ?? throw new InvalidOperationException("Surrounded requires captured branch powers.");
+        if (combat.GetPower<BackAttackLeftPower>(target) is not null)
         {
             state.Facing = SurroundedPower.Direction.Left;
         }
-        else if (target.HasPower<BackAttackRightPower>())
+        else if (combat.GetPower<BackAttackRightPower>(target) is not null)
         {
             state.Facing = SurroundedPower.Direction.Right;
         }

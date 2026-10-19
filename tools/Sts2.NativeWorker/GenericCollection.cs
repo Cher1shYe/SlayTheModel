@@ -104,7 +104,16 @@ internal static class GenericCollection
                 await env.RestoreAsync([], cancellation);
                 env.SetRootPlayerHp(native.Hp);
                 if (!env.MatchesLiveRoot(native.CombatStateForSimulation, native.HasPendingChoice, native.ChoiceSignature))
+                {
+                    File.WriteAllText(output + ".failure.json", JsonSerializer.Serialize(new {
+                        recipe=entry.GetProperty("recipe").Clone(), decision=steps.Count, steps,
+                        predicted=env.CurrentState, predictedChoice=env.ChoiceSignature,
+                        actualChoice=native.ChoiceSignature, actualPending=native.HasPendingChoice,
+                        predictedContinuation=env.CurrentContinuationStateText,
+                        actualContinuation=NativeMctsSimulationApi.CaptureLiveContinuationStateText(native.CombatStateForSimulation)
+                    }));
                     throw new InvalidDataException("Native/simulation root mismatch");
+                }
                 var legal = env.LegalActions();
                 var observation = native.ExportGenericObservation(legal, hp, steps.Count);
                 if (leaf.Mode != "heuristic" && !native.HasPendingChoice)
