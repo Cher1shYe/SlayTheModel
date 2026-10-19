@@ -61,7 +61,8 @@ internal sealed partial class CombatPredictionHistory
                 CombatPredictionCardPlayStartedEntry e => new CombatPredictionCardPlayStartedEntry
                     { Card = e.Card, CardPlay = context.RemapOrSelf(e.CardPlay) },
                 CombatPredictionCardPlayFinishedEntry e => new CombatPredictionCardPlayFinishedEntry
-                    { Card = e.Card, CardPlay = context.RemapOrSelf(e.CardPlay), WasEthereal = e.WasEthereal },
+                    { Card = e.Card, CardPlay = context.RemapOrSelf(e.CardPlay), WasEthereal = e.WasEthereal,
+                        RoundNumber = e.RoundNumber, CurrentSide = e.CurrentSide, PlayerTurnNumber = e.PlayerTurnNumber },
                 CombatPredictionAutoPlayFromDrawPileEntry e => new CombatPredictionAutoPlayFromDrawPileEntry { Card = e.Card },
                 CombatPredictionDamageReceivedEntry e => new CombatPredictionDamageReceivedEntry
                     { Receiver = e.Receiver, Dealer = e.Dealer, Result = CopyDamage(e.Result), CardSource = e.CardSource, Source = e.Source },

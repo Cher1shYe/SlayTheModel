@@ -46,7 +46,7 @@ internal sealed partial class CombatPredictionSimulator
         if (stage == CardPlayTailStage.Finish)
         {
             completionHistoryStart = History.Entries.Count;
-            History.CardPlayFinished(card, play, card.HasKeyword(State, CardKeyword.Ethereal));
+            History.CardPlayFinished(card, play, State.CombatState, card.HasKeyword(State, CardKeyword.Ethereal));
             HookMirrors.AfterCardPlayed(this, card, play);
             if (HasPendingChoice) return Suspend(CardPlayTailStage.AfterPlayed);
             stage = CardPlayTailStage.AfterPlayed;

@@ -319,10 +319,15 @@ internal sealed partial class CombatPredictionHistory(PredictionTrace trace, Pla
         return false;
     }
 
-    public void CardPlayFinished(PredictedCard card, CardPlay cardPlay, bool wasEthereal)
+    public void CardPlayFinished(PredictedCard card, CardPlay cardPlay, MegaCrit.Sts2.Core.Combat.ICombatState state, bool wasEthereal)
     {
         Record(new CombatPredictionCardPlayFinishedEntry
         {
+            RoundNumber = state.RoundNumber,
+            CurrentSide = state.CurrentSide,
+            PlayerTurnNumber = (state as SimulatedCombatState
+                ?? throw new InvalidOperationException("Finished card history requires branch turn state."))
+                .GetPlayerTurnNumber(cardPlay.Player),
             Card = CombatPredictionCardSnapshot.Capture(card),
             CardPlay = cardPlay,
             WasEthereal = wasEthereal

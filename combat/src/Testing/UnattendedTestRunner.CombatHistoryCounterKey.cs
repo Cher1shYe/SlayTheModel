@@ -28,7 +28,7 @@ internal sealed partial class UnattendedTestRunner
         {
             var play = CreateHistoryProbePlay(card, player);
             child.History.CardPlayStarted(card, play);
-            child.History.CardPlayFinished(card, play, wasEthereal: false);
+            child.History.CardPlayFinished(card, play, child.State.CombatState, wasEthereal: false);
         }
         if (GoldAxeValue(child, childAxe) != before + 1 || GoldAxeValue(parent, parentAxe) != before)
             throw new InvalidOperationException("Gold Axe did not observe one additional finished play on the child branch.");

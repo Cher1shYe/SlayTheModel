@@ -102,7 +102,8 @@ internal static partial class CardChoiceSupport
             TrueGrit when card.IsUpgraded => Spec(owner, PlanChoiceEffect.Exhaust, PileType.Hand, 1, owner.Hand.Cards),
             Hologram => Spec(owner, PlanChoiceEffect.MoveToHand, PileType.Discard, 1, discardBeforeResolution),
             Graveblast => Spec(owner, PlanChoiceEffect.MoveToHand, PileType.Discard, 1, discardBeforeResolution),
-            Headbutt => Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Discard, 1, discardBeforeResolution),
+            // Native FromCombatPile returns no cards once the preceding attack ends combat.
+            Headbutt => simulator.IsOverOrEnding ? null : Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Discard, 1, discardBeforeResolution),
             CosmicIndifference => Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Discard, 1, discardBeforeResolution),
             SecretWeapon => Spec(owner, PlanChoiceEffect.MoveToHand, PileType.Draw, 1,
                 owner.DrawPile.Cards.Where(item => item.Preview.Type == CardType.Attack)),

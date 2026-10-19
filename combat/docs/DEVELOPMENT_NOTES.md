@@ -1,5 +1,10 @@
 # CombatSolver 开发笔记与未来构想
 
+## HEADBUTT 终局选择与 CALAMITY 生成 STOMP（2026-10-19）
+
+HEADBUTT 的攻击结束战斗后，原生 FromCombatPile 返回空集合；GetSpec 在同一时点返回 null，不留下 pending choice。seed37005 混合牌组修复前复现 pending-choice mismatch，修复后8决策、66HP获胜。原 seed2000228 重跑暴露 CALAMITY 生成 STOMP 费用3/2差异：原生已记录 CardPlayFinished，延迟补偿计数尚未更新。STOMP 进场费用改读冻结根与预测完成历史，完成条目保存 round/side/player-turn，续执行 Fork 按值复制，不读取推进后的 live 历史。修复后原配方18决策、15HP获胜，生成并打出2费 STOMP；同批 seed2000229 为17决策、21HP获胜。Python 夹具 native_headbutt_terminal_v1 与 native_calamity_stomp_entry_v1 保留终局、普通选牌及生成费用证据。旧缓存只校验保留，不宣称重跑。
+
+
 ## SteamEruption 多段攻击阶段切换（2026-10-19）
 
 SteamEruption 从延迟死亡补偿移至 AfterDeath mirror，保持唯一结算点，使后续命中继续作用于新阶段。seed2000147 HAVOC/TEAR_ASUNDER 原错误新阶段 HP999999999，实际999999989；修复后29决策完整对账，native_steam_multihit_v1 锁定阶段后多段伤害。第三方镜像不得把阶段转换延迟到整个攻击结束。

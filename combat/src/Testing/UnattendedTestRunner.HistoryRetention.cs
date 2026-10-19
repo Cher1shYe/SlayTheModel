@@ -46,9 +46,9 @@ internal sealed partial class UnattendedTestRunner
         {
             frame = simulator.CurrentFrame!;
             simulator.History.CardPlayStarted(card, firstPlay);
-            simulator.History.CardPlayFinished(card, firstPlay, wasEthereal: true);
+            simulator.History.CardPlayFinished(card, firstPlay, simulator.State.CombatState, wasEthereal: true);
             simulator.History.CardPlayStarted(card, replay);
-            simulator.History.CardPlayFinished(card, replay, wasEthereal: true);
+            simulator.History.CardPlayFinished(card, replay, simulator.State.CombatState, wasEthereal: true);
         }
         CombatPredictionCardPlayStartedEntry started = simulator.History
             .OfType<CombatPredictionCardPlayStartedEntry>().First();
@@ -85,7 +85,7 @@ internal sealed partial class UnattendedTestRunner
                 {
                     throw new InvalidOperationException("嵌套自动出牌错误匹配了尚未开始的外层动作。");
                 }
-                fork.History.CardPlayFinished(forkCard, nested, wasEthereal: false);
+                fork.History.CardPlayFinished(forkCard, nested, fork.State.CombatState, wasEthereal: false);
             }
             fork.History.CardPlayStarted(forkCard, CreateHistoryProbePlay(forkCard, player));
         }
@@ -128,7 +128,7 @@ internal sealed partial class UnattendedTestRunner
         simulator.History.CardDrawResolved(drawn, card);
         AssertUnresolvedHistoryRejectsFork(simulator);
         simulator.History.CardGenerationResolved(generated, card);
-        simulator.History.CardPlayFinished(card, cardPlay, wasEthereal: false);
+        simulator.History.CardPlayFinished(card, cardPlay, simulator.State.CombatState, wasEthereal: false);
 
         CombatPredictionSimulator fork = simulator.Fork();
         CombatPredictionCardDrawResolvedEntry resolvedDraw = fork.History
@@ -194,7 +194,7 @@ internal sealed partial class UnattendedTestRunner
             simulator.History.DamageReceived(
                 player.Creature, player.Creature, new DamageResult(player.Creature, ValueProp.Unpowered),
                 card, CombatDamageSource.For(CombatDamageSourceKind.Card, card.Preview.Id.Entry));
-            simulator.History.CardPlayFinished(card, cardPlay, wasEthereal: false);
+            simulator.History.CardPlayFinished(card, cardPlay, simulator.State.CombatState, wasEthereal: false);
         }
         return (simulator.History.Fork(new PredictionTrace()), new(card), new(state));
     }

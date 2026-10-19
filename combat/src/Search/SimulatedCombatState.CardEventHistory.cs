@@ -163,7 +163,16 @@ internal sealed partial class SimulatedCombatState
                 pinpoint.EnergyCost.AddThisTurn(-GetSkillCardsPlayedThisTurn(owner));
                 break;
             case Stomp stomp:
-                stomp.EnergyCost.AddThisTurn(-GetAttacksPlayedThisTurn(owner));
+                // CardPlayFinished is recorded before AfterCardPlayed can generate Stomp.
+                // The late compensation counter has not yet consumed that attack here.
+                int finishedAttacks = _rootHistory.CardPlaysFinished.Count(entry =>
+                    entry.HappenedThisTurn(this) && entry.CardPlay.Player == preview.Owner
+                    && entry.CardPlay.Card.Type == CardType.Attack)
+                    + simulator.History.Entries.OfType<CombatPredictionCardPlayFinishedEntry>().Count(entry =>
+                        entry.RoundNumber == RoundNumber && entry.CurrentSide == CurrentSide
+                        && entry.PlayerTurnNumber == GetPlayerTurnNumber(preview.Owner)
+                        && entry.Card.Owner == preview.Owner && entry.Card.Type == CardType.Attack);
+                stomp.EnergyCost.AddThisTurn(-finishedAttacks);
                 break;
             case Flatten flatten when simulator.State.GetOsty(preview.Owner) is { } osty
                                       && GetCreatureAttacksThisTurn(osty) > 0:

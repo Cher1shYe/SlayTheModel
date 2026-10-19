@@ -1,3 +1,4 @@
+using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Combat.History.Entries;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -101,6 +102,9 @@ internal sealed class CombatPredictionCardPlayStartedEntry : CombatPredictionHis
 /// </summary>
 internal sealed class CombatPredictionCardPlayFinishedEntry : CombatPredictionHistoryEntry
 {
+    public required int RoundNumber { get; init; }
+    public required CombatSide CurrentSide { get; init; }
+    public required int PlayerTurnNumber { get; init; }
     public required CombatPredictionCardSnapshot Card { get; init; }
     public required CardPlay CardPlay { get; init; }
     public required bool WasEthereal { get; init; }

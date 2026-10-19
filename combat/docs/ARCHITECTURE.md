@@ -1,5 +1,7 @@
 # CombatSolver 架构与职责地图
 
+`CombatPredictionCardPlayFinishedEntry` 保存完成时的 round、side 与单人 player-turn，续执行 Fork 按值继承；STOMP 进场费用读取冻结根与当前回合的完成条目，包含 AfterCardPlayed 生成它之前刚完成的攻击。
+
 `CombatPredictionHistory` 拥有模拟历史及六项累计值；单人身份在模拟器建立时冻结，三类 Fork 按值继承。`CombatHistoryCounterKey` 只按原条件消费累计值，不维护第二份账本。测试构建逐事件核对独立全扫描。
 
 `SearchRunContext` 拥有转置表触顶观测，新增条目后记录首次触顶节点和峰值；缓存重建不清空这些观测。搜索结束才枚举前沿的标签数，输出两表合计标签与每条目分布。诊断不进入状态键、路线排序、准入或结果合同。
