@@ -651,9 +651,6 @@ internal static class CorePowerSupport
                     HexPower? hex = combat.GetPower<HexPower>(player);
                     if (hex?.Applier == dead)
                         combat.RemoveHexPower(simulator, player);
-                    ShrinkPower? shrink = combat.GetPower<ShrinkPower>(player);
-                    if (shrink?.Applier == dead)
-                        combat.SetAmount<ShrinkPower>(player, 0);
                 }
                 // SetPowerAmount 会让 EffectivePowers 失效，所以命中项仍必须先物化；
                 // 但绝大多数结算根本没有 MagicBomb，改成只在命中时才建表，顺序与原来一致。

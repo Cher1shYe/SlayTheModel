@@ -3001,3 +3001,9 @@ Beam 中间排序与最终选择分离。稳健预设把 `1 HP` 约视为 `3` �
 - `0.5.6`：复用搜索快照，合并等价重复分支，增加真实回放计数。
 - `0.5.5`：逐张标注击杀，绿色标注战斗结束回合。
 - 更早版本：完成异步搜索、自动回合搜索、路线执行、动态洗牌边界、选牌支持、卖血权重、UI 覆盖层和模型覆盖诊断。
+
+### 2026-10-19 Shrink applier death during multi-hit attacks
+
+`ShrinkPower.AfterDeath` now removes the branch power immediately when its applier dies and removal was not prevented. Removed the delayed end-of-card compensation and its coverage exceptions; the registered mirror owns this behavior. Native v0.111.0 removes Shrink at this hook, so later hits use the restored damage multiplier.
+
+Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 CONFLAGRATION+: old prediction left FUZZY_WURM_CRAWLER at 10 HP vs native 9 after SHRINKER_BEETLE died. Isolated repaired full-prefix replay passed all 30 decisions with complete continuation/feature checks; next observation has 9 HP and no Shrink. Python fixture: native_shrink_multihit_v1.json.gz. Shared runtime DLL was not rebuilt.

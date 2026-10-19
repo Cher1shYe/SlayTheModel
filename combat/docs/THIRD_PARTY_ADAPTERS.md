@@ -643,3 +643,9 @@ CardRemovalValueMirrors.Register<YourDefend>(-10d);
 - [第三方 Power 的战略估值登记](third-party-strategic-effects.md)。
 - [无头测试](HEADLESS_TESTING.md)：夹具怎么跑。
 - [检查点回放](CHECKPOINT_REPLAY.md)：问题包怎么导入。
+
+### 2026-10-19 Shrink applier death during multi-hit attacks
+
+`ShrinkPower.AfterDeath` now removes the branch power immediately when its applier dies and removal was not prevented. Removed the delayed end-of-card compensation and its coverage exceptions; the registered mirror owns this behavior. Native v0.111.0 removes Shrink at this hook, so later hits use the restored damage multiplier.
+
+Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 CONFLAGRATION+: old prediction left FUZZY_WURM_CRAWLER at 10 HP vs native 9 after SHRINKER_BEETLE died. Isolated repaired full-prefix replay passed all 30 decisions with complete continuation/feature checks; next observation has 9 HP and no Shrink. Python fixture: native_shrink_multihit_v1.json.gz. Shared runtime DLL was not rebuilt.

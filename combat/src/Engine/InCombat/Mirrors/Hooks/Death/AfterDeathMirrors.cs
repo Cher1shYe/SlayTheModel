@@ -55,8 +55,19 @@ internal static class AfterDeathMirrors
         registry.Register<PossessStrengthPower>(HandlePossess);
         registry.Register<PossessSpeedPower>(HandlePossess);
         registry.Register<SteamEruptionPower>(HandleSteamEruption);
+        registry.Register<ShrinkPower>(HandleShrink);
 
         return registry;
+    }
+
+    private static void HandleShrink(ShrinkPower power, AfterDeathMirrorContext context)
+    {
+        if (context.WasRemovalPrevented || context.Creature != power.Applier)
+            return;
+        if (context.CombatState is not ICombatPredictionEffectSink effects)
+            throw new InvalidOperationException("Shrink death requires writable branch state.");
+        // Native removes Shrink between hits, immediately after its applier dies.
+        effects.SetPowerAmount(power, 0);
     }
 
     private static void HandlePossess(PowerModel power, AfterDeathMirrorContext context)

@@ -3840,3 +3840,9 @@ pwsh -NoProfile -File tools\run-unattended-test.ps1 -ScenarioId MONSTER-MOVES-BA
 - 在线服务 14 项测试通过，包含旧心跳、管理鉴权、持久登录、统计加权、筛选和战绩数据库重启恢复。
 - 日志服务 19 项测试通过，包含提交时战绩快照及小数百分比筛选；Windows 测试进程退出仍有原有 SQLite 临时文件清理占用提示。
 - UI-LOCALIZATION `42dce92d333e46e482ba556b9959e4eb` Passed，24.85 秒，覆盖 322 条中英资源与 headless 统计节点隔离。不是可见游戏结算/交互或帧率验收。
+
+### 2026-10-19 Shrink applier death during multi-hit attacks
+
+`ShrinkPower.AfterDeath` now removes the branch power immediately when its applier dies and removal was not prevented. Removed the delayed end-of-card compensation and its coverage exceptions; the registered mirror owns this behavior. Native v0.111.0 removes Shrink at this hook, so later hits use the restored damage multiplier.
+
+Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 CONFLAGRATION+: old prediction left FUZZY_WURM_CRAWLER at 10 HP vs native 9 after SHRINKER_BEETLE died. Isolated repaired full-prefix replay passed all 30 decisions with complete continuation/feature checks; next observation has 9 HP and no Shrink. Python fixture: native_shrink_multihit_v1.json.gz. Shared runtime DLL was not rebuilt.
