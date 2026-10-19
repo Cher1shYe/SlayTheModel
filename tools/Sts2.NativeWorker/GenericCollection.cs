@@ -185,21 +185,29 @@ internal static class GenericCollection
                     forced = legal.Count == 1, automaticForcedChoices, featureParity = true, successorParity = true, successorParityScope,
                     terminalAfter = native.Terminal, hpAfter = native.Hp });
             }
-            if (!native.Terminal) throw new InvalidDataException("Unfinished fights cannot enter pilot replay");
+            bool truncated = !native.Terminal;
+            if (truncated && (arm != "policy" || entry.GetProperty("split").GetString() != "validation"))
+                throw new InvalidDataException("Unfinished training fights cannot enter pilot replay");
             var end = env.CurrentState;
-            double searchReward = env.EvaluateTerminal();
+            double cutoffRisk = end.PendingChoice ? 1d : Math.Clamp((double)end.IncomingDamage / Math.Max(1,native.Hp),0,1);
+            double cutoffDamage = env.EnemyDamageFraction;
+            double searchReward = truncated
+                ? CombatRolloutReward.Evaluate(false,false,native.Hp,end.PlayerMaxHp,hp,cutoffDamage,cutoffRisk*native.Hp)
+                : env.EvaluateTerminal();
             // Canonical Python V7 operation order; native rollout divides before multiplying.
             // Permit only floating-point roundoff, preserving both values as audit evidence.
-            double reward = native.Won ? .9 + .1 * native.Hp / end.PlayerMaxHp : -1;
+            double reward = truncated ? searchReward : native.Won ? .9 + .1 * native.Hp / end.PlayerMaxHp : -1;
             if (!double.IsFinite(searchReward) || Math.Abs(searchReward - reward) > 1e-15)
                 throw new InvalidDataException($"Native terminal reward mismatch: {searchReward:R} vs {reward:R}");
             var payload = new { format = "native-generic-collection-v1", identity, modelSha256 = prior.ModelIdentity,
                 recipe = entry.GetProperty("recipe").Clone(), searchMode = leaf.Mode == "heuristic" ? "root-prior-uniform-tree-rollout-v1" : "root-prior-uniform-tree-leaf-v1",
                 leafMode=leaf.Mode,valueMix=leaf.Mix,
                 teacherInformation = "native_checkpoint_privileged", encounter = native.EncounterId,
-                seed, initialHp = hp, arm, budgetMs, complete = true, split = entry.GetProperty("split").GetString(),
+                seed, initialHp = hp, arm, budgetMs, complete = !truncated, split = entry.GetProperty("split").GetString(),
                 outcome = new { won = native.Won, finalHp = native.Hp, maxHp = end.PlayerMaxHp,
-                    reward, searchReward, decisions = steps.Count, turns = native.Round },
+                    reward, searchReward, decisions = steps.Count, turns = native.Round,
+                    terminationReason = truncated ? "time_limit" : native.Won ? "win" : "death",
+                    cutoff = truncated ? (object)new { damage=cutoffDamage, risk=cutoffRisk, pendingChoice=native.HasPendingChoice } : null },
                 wallSeconds = wall.Elapsed.TotalSeconds, steps };
             Directory.CreateDirectory(Path.GetDirectoryName(output)!);
             File.WriteAllText(output + ".tmp", JsonSerializer.Serialize(payload));

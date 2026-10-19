@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 外部验证预算超限回归（2026-10-19）
+
+NIBBITS_WEAK seed 1600000110，原始模型在 100 决策仍存活：`sts2-rl-agent/output/native_validation_cutoff_20261019/`。夹具 `native_validation_cutoff_v1.json.gz` 验证完整 100 帧、非终局标签、V7 评分及验证专用准入；篡改 split、arm、预算、奖励和风险均拒绝，to_episode 不得接收。已有完整战斗夹具继续严格校验。
+
 ## Burrowed 破盾回调回归（2026-10-19）
 
 固定 TUNNELER_NORMAL / seed 1600000067，原模型纯策略：修复前 decision 19 的 EndTurn 后眩晕状态失配，修复后 44 决策／16 回合完整原生 continuation 对账通过。产物 `sts2-rl-agent/output/native_burrow_hook_final_20261019/`；回归夹具 `tests/fixtures/native_tunneler_burrow_v1.json.gz`，可用通用 `check_native_feature_regression.py --fixture` 重跑；Python 断言 StunIntent 出现、跨越第 8 回合与全轨迹严格校验。
