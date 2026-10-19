@@ -35,7 +35,9 @@ TIER = 'XS'
 
 def load_frozen_config(path):
     config = json.loads(Path(path).read_text(encoding='utf-8'))
-    if (config.get('version') != 'az-all-xs-v1' or config.get('content') != ALL_CONTENT
+    from .native_generic import CONTENT as NATIVE_CONTENT, FORMAT as NATIVE_FORMAT
+    expected_content = NATIVE_CONTENT if config.get('backend',{}).get('kind') == NATIVE_FORMAT else ALL_CONTENT
+    if (config.get('version') != 'az-all-xs-v1' or config.get('content') != expected_content
             or config.get('reward') != V7 or config.get('model', {}).get('tier') != TIER):
         raise ValueError('Runner requires the frozen az-all-xs-v1 config')
     if config.get('model', {}).get('reuse_previous_weights') is not False:
@@ -45,7 +47,12 @@ def load_frozen_config(path):
 
 def fresh_model(config, seed=None):
     torch.manual_seed(int(config.get('training', {}).get('init_seed', 0) if seed is None else seed))
-    return create_transformer(TIER, ALL_CONTENT, V7).eval()
+    return create_transformer(TIER, config['content'], V7).eval()
+
+
+def native_module(config):
+    from . import native_backend, native_generic_backend
+    return native_generic_backend if config.get('backend',{}).get('kind') == native_generic_backend.FORMAT else native_backend
 
 
 def training_recipes(iteration, episodes):
@@ -55,7 +62,8 @@ def training_recipes(iteration, episodes):
 
 
 def collect(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
-            failures=None, workers=1, collector=None, leaf_mode='heuristic', value_mix=.5):
+            failures=None, workers=1, collector=None, leaf_mode='heuristic', value_mix=.5,
+            cache_dir='', cache_identity=''):
     """Collect every recipe that the public contract can replay; record the rest.
 
     ``workers > 1`` freezes the current weights to a temporary checkpoint and
@@ -69,14 +77,16 @@ def collect(model, recipes, *, iteration, budget, error_dir, limits, version, se
         return _collect_parallel(model, recipes, iteration=iteration, budget=budget,
                                  error_dir=error_dir, limits=limits, version=version,
                                  seed=seed, failures=failures, workers=workers,
-                                 collector=collector, leaf_mode=leaf_mode, value_mix=value_mix)
+                                 collector=collector, leaf_mode=leaf_mode, value_mix=value_mix,
+                                 cache_dir=cache_dir, cache_identity=cache_identity)
     episodes = []
     for job_id, recipe in enumerate(recipes):
         job = CollectionJob(
             job_id=f'{iteration:03d}-{job_id:02d}', iteration=iteration, master_seed=seed + job_id,
             scenario=recipe.to_dict(), checkpoint='', checkpoint_sha256='',
             model_version=version, error_dir=str(error_dir), simulations=budget, limits=limits,
-            reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix)
+            reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix,
+            cache_dir=str(cache_dir), cache_identity=cache_identity)
         try:
             episodes.append(collect_entity_episode(job, model))
         except Exception as exc:  # noqa: BLE001 - a rejected recipe is recorded, not hidden
@@ -91,7 +101,8 @@ def collect(model, recipes, *, iteration, budget, error_dir, limits, version, se
 
 
 def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, version, seed,
-                      failures, workers, collector=None, leaf_mode='heuristic', value_mix=.5):
+                      failures, workers, collector=None, leaf_mode='heuristic', value_mix=.5,
+                      cache_dir='', cache_identity=''):
     import hashlib
     from .self_play import Collector, collect_episode
 
@@ -102,7 +113,8 @@ def _collect_parallel(model, recipes, *, iteration, budget, error_dir, limits, v
         job_id=f'{iteration:03d}-{job_id:02d}', iteration=iteration, master_seed=seed + job_id,
         scenario=recipe.to_dict(), checkpoint=str(checkpoint), checkpoint_sha256=digest,
         model_version=version, error_dir=str(error_dir), simulations=budget, limits=limits,
-        reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix)
+        reward_version=V7, search_version=SEARCH, leaf_mode=leaf_mode, value_mix=value_mix,
+        cache_dir=str(cache_dir), cache_identity=cache_identity)
         for job_id, recipe in enumerate(recipes)]
     episodes = []
 
@@ -216,6 +228,12 @@ def preflight(config_path, protocol_path, *, iterations=None, episodes=None, max
     iterations, episodes = effective['iterations'], effective['episodes']
     max_turns, max_decisions = effective['max_turns'], effective['max_decisions']
     protocol = json.loads(Path(protocol_path).read_text(encoding='utf-8'))
+    if config.get('backend'):
+        if check_test or validation_limit is not None:
+            raise ValueError('Native backend requires its full validation split; no native test split is frozen')
+        native_preflight = native_module(config).preflight
+        return native_preflight(config, protocol, iterations=iterations, episodes=episodes,
+                                max_turns=max_turns, max_decisions=max_decisions)
     manifest = frozen_manifest()
     expected_sha = protocol.get('generator_manifest_sha')
     actual_sha = hashlib.sha256(json.dumps(manifest, sort_keys=True).encode()).hexdigest()
@@ -346,6 +364,17 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
         max_turns=max_turns, max_decisions=max_decisions, eval_max_turns=eval_max_turns,
         eval_max_decisions=eval_max_decisions, leaf_mode=leaf_mode, value_mix=value_mix,
         collection_model=collection_model)
+    native = None
+    evaluate_backend = evaluate_recipes
+    if config.get('backend'):
+        NativeBackend, validate_settings = native_module(config).NativeBackend, native_module(config).validate_settings
+        validate_settings(config, settings, include_test=include_test, workers=workers)
+        native = NativeBackend(config['backend'], protocol, out_dir)
+        if hasattr(native,'configure_workers'):
+            native.configure_workers(workers)
+        if hasattr(native,'configure_search'):
+            native.configure_search(settings['leaf_mode'],settings['value_mix'])
+        evaluate_backend = native.evaluate
     if not compare_baseline or not enforce_test_gate:
         raise ValueError('Champion selection requires baseline and an enforced test gate')
     if type(workers) is not int or workers < 1:
@@ -355,8 +384,10 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
     provenance = dict(config_sha256=hashlib.sha256(Path(config_path).read_bytes()).hexdigest(),
         protocol_sha256=hashlib.sha256(Path(protocol_path).read_bytes()).hexdigest(),
         generator_manifest_sha=protocol.get('generator_manifest_sha'),
-        content=ALL_CONTENT, reward=V7, rules=RULES_VERSION, lifecycle=config['lifecycle'],
+        content=config['content'], reward=V7, rules=RULES_VERSION, lifecycle=config['lifecycle'],
         source_digest=code_digest())
+    if native:
+        provenance['native'] = native.provenance
     identity = content_hash(dict(provenance=provenance,
         settings={k: v for k, v in settings.items() if k != 'iterations'}))
     # Only construction/encoding; never open test outcomes before the final gate.
@@ -369,8 +400,10 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
     out.mkdir(parents=True, exist_ok=True)
     state_path = out / 'state.json'
     version = f"{VERSION}-{settings['seed']}"
-    validation = protocol_recipes(protocol, 'validation')
-    if resume:
+    validation = native.validation if native else protocol_recipes(protocol, 'validation')
+    initialization = out / 'native-initialization.json'
+    initializing = native and resume and not state_path.exists() and initialization.exists()
+    if resume and not initializing:
         if not state_path.exists():
             raise ValueError('No v3 recovery state; legacy runs cannot resume')
         state = json.loads(state_path.read_text(encoding='utf-8'))
@@ -378,28 +411,46 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             raise ValueError('Resume configuration/protocol differs from the saved run')
         if settings['iterations'] < len(state['history']):
             raise ValueError('Resume cannot reduce completed iterations')
-        champion, _ = load_transformer_checkpoint(out / state['champion_checkpoint'], TIER, ALL_CONTENT, V7)
+        champion, _ = load_transformer_checkpoint(out / state['champion_checkpoint'], TIER, config['content'], V7)
     else:
-        if any(p.name != 'run.log' for p in out.iterdir()):
+        if not initializing and any(p.name != 'run.log' for p in out.iterdir()):
             raise ValueError('Output directory is not empty; use --resume or a fresh directory')
-        champion = fresh_model(config, settings['seed'])
-        baseline, rows = evaluate_recipes(champion, validation, version=f'{version}-baseline',
+        if initializing:
+            marker = json.loads(initialization.read_text())
+            if marker != dict(identity=identity, checkpoint_sha256=hashlib.sha256((out / 'initial.pt').read_bytes()).hexdigest()):
+                raise ValueError('Native baseline recovery identity/model differs')
+            champion, _ = load_transformer_checkpoint(out / 'initial.pt', TIER, config['content'], V7)
+        else:
+            champion = fresh_model(config, settings['seed'])
+            if native:
+                save_transformer_checkpoint(out / 'initial.pt', champion, version, config=config)
+                atomic_json(initialization, dict(identity=identity,
+                    checkpoint_sha256=hashlib.sha256((out / 'initial.pt').read_bytes()).hexdigest()))
+        baseline, rows = evaluate_backend(champion, validation, version=f'{version}-baseline',
                                           error_dir=out / 'errors', limits=eval_limits)
         if baseline['contract_rejections'] or len(rows) != len(validation):
             raise ValueError('Baseline validation must complete without rejections')
-        save_transformer_checkpoint(out / 'initial.pt', champion, version, config=config)
+        if not native:
+            save_transformer_checkpoint(out / 'initial.pt', champion, version, config=config)
         atomic_json(out / 'baseline.json', dict(summary=baseline, rows=rows))
         state = dict(version=VERSION, identity=identity, history=[], pending=None,
             baseline=baseline, baseline_rows=rows, champion_checkpoint='initial.pt',
             champion_rows=rows, champion_validation=baseline, learner_checkpoint='initial.pt')
         atomic_json(state_path, state)
-    replay = EntityReplayBuffer(out / 'replay', capacity=50_000,
+    if native:
+        from .native_pilot import NativeExpandedReplayBuffer
+        from .native_generic import CONTENT as NATIVE_CONTENT, GenericReplay
+        replay = (GenericReplay(out / 'replay', capacity=50_000,leaf_mode=settings['leaf_mode'],value_mix=settings['value_mix'])
+                  if config['content']==NATIVE_CONTENT else NativeExpandedReplayBuffer(out / 'replay',capacity=50_000))
+    else:
+        replay = EntityReplayBuffer(out / 'replay', capacity=50_000,
                                 content_version=ALL_CONTENT, reward_version=V7,
                                 leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'])
 
     def write_report():
         report = dict(version=VERSION, config=str(config_path), protocol=str(protocol_path),
             provenance=provenance, effective_settings=settings, iteration_budget=settings,
+            execution=dict(workers=workers),
             baseline=state['baseline'], history=state['history'],
             champion_checkpoint=state['champion_checkpoint'],
             learner_checkpoint=state['learner_checkpoint'],
@@ -409,25 +460,35 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
 
     collector = None
     try:
-        if workers > 1:
+        if workers > 1 and native is None:
             from .self_play import Collector
             collector = Collector(workers)
         for iteration in range(len(state['history']), settings['iterations']):
             started = time.perf_counter()
             pending = state['pending']
             if pending is None:
-                recipes = training_recipes(iteration, settings['episodes'])
+                if native:
+                    from .native_backend import training_recipes as native_recipes
+                    recipes = (native.training_recipes if hasattr(native,'training_recipes') else native_recipes)(iteration, settings['episodes'])
+                else:
+                    recipes = training_recipes(iteration, settings['episodes'])
                 failures = []
                 source_checkpoint = state[settings['collection_model'] + '_checkpoint']
                 collection_network = champion
                 if settings['collection_model'] == 'learner':
                     collection_network, _ = load_transformer_checkpoint(
-                        out / source_checkpoint, TIER, ALL_CONTENT, V7)
-                collected = collect(collection_network, recipes, iteration=iteration, budget=settings['budget'],
+                        out / source_checkpoint, TIER, config['content'], V7)
+                if native:
+                    collected = native.collect(out / source_checkpoint, recipes, out / 'collection-cache' / f'{iteration:03d}')
+                else:
+                    collected = collect(collection_network, recipes, iteration=iteration, budget=settings['budget'],
                     error_dir=out / 'errors', limits=limits, version=f'{version}-{iteration}',
                     seed=settings['seed'] * 100_000 + iteration * 1_000,
                     failures=failures, workers=workers, collector=collector,
-                    leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'])
+                    leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'],
+                    cache_dir=out / 'collection-cache' / f'{iteration:03d}',
+                    cache_identity=content_hash(dict(run=identity,
+                        checkpoint=hashlib.sha256((out / source_checkpoint).read_bytes()).hexdigest())))
                 if failures:
                     atomic_json(out / f'rejected-{iteration:03d}.json', failures)
                     raise ValueError('Collection contract rejection: training halted; see rejected recipes')
@@ -442,13 +503,13 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
             for episode in collected:
                 replay.commit(episode)
             collected_at = time.perf_counter()
-            candidate, payload = load_transformer_checkpoint(out / state['learner_checkpoint'], TIER, ALL_CONTENT, V7)
+            candidate, payload = load_transformer_checkpoint(out / state['learner_checkpoint'], TIER, config['content'], V7)
             training_state = payload.get('training_state')
             if training_state is not None:
                 # Preserve optimizer/RNG across rounds; only round-local progress resets.
                 training_state = dict(training_state, history=[])
             if pending['update_checkpoint']:
-                candidate, payload = load_transformer_checkpoint(out / pending['update_checkpoint'], TIER, ALL_CONTENT, V7)
+                candidate, payload = load_transformer_checkpoint(out / pending['update_checkpoint'], TIER, config['content'], V7)
                 training_state = payload['training_state']
 
             def persist_update(model, training_state):
@@ -463,7 +524,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
                 seed=settings['seed'] * 1000 + iteration, value_weight=settings['value_weight'],
                 resume_state=training_state, on_update=persist_update)
             updated_at = time.perf_counter()
-            summary, rows = evaluate_recipes(candidate, validation, version=f'{version}-candidate-{iteration}',
+            summary, rows = evaluate_backend(candidate, validation, version=f'{version}-candidate-{iteration}',
                                              error_dir=out / 'errors', limits=eval_limits)
             if summary['contract_rejections'] or len(rows) != len(validation):
                 raise ValueError('Candidate validation must complete without rejections')
@@ -488,6 +549,7 @@ def run(config_path, protocol_path, out_dir, *, iterations=None, episodes=None, 
                 leaf_mode=settings['leaf_mode'], value_mix=settings['value_mix'],
                 episodes=[e['episode_id'] for e in collected],
                 outcomes=[e['outcome']['termination_reason'] for e in collected],
+                collection_truncated=sum(e['outcome']['termination_reason']=='time_limit' for e in collected),
                 replay_size=replay.size, updates=losses, rejected_recipes=[],
                 validation=summary, validation_rows=rows, validation_by_encounter=breakdown,
                 checkpoint=checkpoint, promoted=promoted, paired_vs_champion=vs_champion,
@@ -567,8 +629,14 @@ def main(argv=None):
     parser.add_argument('--preflight-only', action='store_true')
     args = parser.parse_args(argv)
     if args.preflight_only:
-        effective_settings(load_frozen_config(args.config), leaf_mode=args.leaf_mode,
+        config = load_frozen_config(args.config)
+        effective = effective_settings(config, leaf_mode=args.leaf_mode, budget=args.budget,
+                           max_turns=args.max_turns, max_decisions=args.max_decisions,
+                           eval_max_turns=args.eval_max_turns, eval_max_decisions=args.eval_max_decisions,
                            value_mix=args.value_mix, collection_model=args.collection_model)
+        if config.get('backend'):
+            validate_settings = native_module(config).validate_settings
+            validate_settings(config, effective, include_test=args.include_test, workers=args.workers)
         result = preflight(args.config, args.protocol, iterations=args.iterations,
                            episodes=args.episodes, max_turns=args.max_turns,
                            max_decisions=args.max_decisions)

@@ -1,0 +1,57 @@
+{
+  "backend": {
+    "budget_ms": 1000,
+    "game": "D:/Steam/steamapps/common/Slay the Spire 2",
+    "kind": "native-generic-collection-v1",
+    "repo": "../sts2_datacollection/SlayTheModel"
+  },
+  "content": "native-generic-json-v1",
+  "evaluation": {
+    "holdout_policy": "independently generated frozen validation; no native test split",
+    "max_decisions": 100,
+    "max_turns": 40,
+    "metric": "native network-only V7 utility",
+    "test_recipes": 0,
+    "validation_recipes": 8
+  },
+  "gate": {
+    "requires": "complete validation, no rejections, paired 95% CI lower bound > 0"
+  },
+  "generator": {
+    "family": "native-generic-manifest-v1"
+  },
+  "lifecycle": "initial-primary-budget-v6",
+  "model": {
+    "initialization": "fresh generic Transformer; legacy weights incompatible",
+    "reuse_previous_weights": false,
+    "tier": "XS"
+  },
+  "notes": [
+    "Unstarted example configuration. Content IDs below are curriculum data, not adapter registration.",
+    "Root-only learner priors; uniform priors inside C# rollout search; legacy weights and replay are incompatible."
+  ],
+  "reward": "risk-terminal-v7",
+  "rules_version": "az-combat-v1",
+  "search": {
+    "budget": 1000,
+    "budget_unit": "milliseconds_per_decision",
+    "leaf_mode": "heuristic",
+    "prior_mode": "root-prior-uniform-tree-rollout-v1",
+    "teacher_information": "native_checkpoint_privileged"
+  },
+  "status": "frozen-before-training",
+  "training": {
+    "batch_size": 64,
+    "collection_model": "learner",
+    "episodes_per_iteration": 8,
+    "iterations": 20,
+    "learning_rate": 0.0003,
+    "max_decisions": 100,
+    "max_turns": 40,
+    "self_play": "native collector observations and legal-action features; no Python card registry",
+    "targets": "search visit distribution + terminal V7 utility",
+    "updates_per_iteration": 64,
+    "value_weight": 0.1
+  },
+  "version": "az-all-xs-v1"
+}

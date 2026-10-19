@@ -16,7 +16,8 @@ class Learner:
 
     def update(self, samples, microbatch_size=None):
         from .transformer_network import TransformerPolicyValueNetwork
-        if isinstance(self.model, TransformerPolicyValueNetwork):
+        from .native_transformer import NativeTransformer
+        if isinstance(self.model, (TransformerPolicyValueNetwork, NativeTransformer)):
             return self.update_entities(samples, microbatch_size)
         observations = [EncodedObservation(**{k: np.asarray(v) for k, v in s["observation"].items()},
                                            information_mode=self.model.information_mode,
@@ -37,6 +38,11 @@ class Learner:
     def update_entities(self, samples, microbatch_size=None):
         from .entity_replay import unpack_observation
         from .transformer_network import batch_entities, keyed_targets
+        from .native_generic import CONTENT as NATIVE_CONTENT
+        if self.model.content_version == NATIVE_CONTENT:
+            from .native_transformer import batch_native
+            batch_entities = batch_native
+            unpack_observation = lambda value: value
         if not samples or (microbatch_size is not None and (type(microbatch_size) is not int or microbatch_size < 1)):
             raise ValueError('Nonempty batch and positive microbatch required')
         size = microbatch_size or len(samples)

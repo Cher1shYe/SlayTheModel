@@ -1,0 +1,61 @@
+{
+  "backend": {
+    "budget_ms": 100,
+    "game": "D:/Steam/steamapps/common/Slay the Spire 2",
+    "kind": "native-collection-v2",
+    "repo": "../sts2_datacollection/SlayTheModel"
+  },
+  "content": "ironclad-colorless-all-v6",
+  "evaluation": {
+    "holdout_policy": "independently generated frozen validation; no native test split",
+    "max_decisions": 100,
+    "max_turns": 40,
+    "metric": "native network-only V7 utility",
+    "test_recipes": 0,
+    "validation_recipes": 24
+  },
+  "gate": {
+    "requires": "complete validation, no rejections, paired 95% CI lower bound > 0"
+  },
+  "generator": {
+    "family": "native-six-cards-v2",
+    "independent_validation_seed_domain": [
+      1000000000,
+      1999999999
+    ]
+  },
+  "lifecycle": "initial-primary-budget-v6",
+  "model": {
+    "initialization": "fresh",
+    "reuse_previous_weights": false,
+    "tier": "XS"
+  },
+  "notes": [
+    "Example native backend configuration; no formal run started.",
+    "Frozen validation is independent of training seed domain.",
+    "Privileged rollout teacher; independent native v2 replay; native value leaf unsupported."
+  ],
+  "reward": "risk-terminal-v7",
+  "rules_version": "az-combat-v1",
+  "search": {
+    "budget": 100,
+    "budget_unit": "milliseconds_per_decision",
+    "leaf_mode": "heuristic",
+    "teacher_information": "native_checkpoint_privileged"
+  },
+  "status": "frozen-before-training",
+  "training": {
+    "batch_size": 64,
+    "collection_model": "learner",
+    "episodes_per_iteration": 8,
+    "iterations": 20,
+    "learning_rate": 0.0003,
+    "max_decisions": 100,
+    "max_turns": 40,
+    "self_play": "C# native checkpoint rollout PUCT, six-card/two-encounter scope; public student features",
+    "targets": "search visit distribution + terminal V7 utility",
+    "updates_per_iteration": 64,
+    "value_weight": 0.1
+  },
+  "version": "az-all-xs-v1"
+}

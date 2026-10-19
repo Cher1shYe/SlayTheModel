@@ -1,0 +1,524 @@
+{
+  "cards": [
+    "BASH",
+    "DEFEND_IRONCLAD",
+    "IRON_WAVE",
+    "POMMEL_STRIKE",
+    "STRIKE_IRONCLAD",
+    "TWIN_STRIKE"
+  ],
+  "encounters": [
+    "BYRDONIS_ELITE",
+    "NIBBITS_WEAK"
+  ],
+  "manifest_sha256": "4bcfe5d633217fe7d6b349d4a5bfba81a5f775d2225ab2e797888fb714cea59f",
+  "validation": [
+    {
+      "deck": [
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 80,
+      "scenario_id": "e01e5fc37a05b8479e5ef12a1c8748ed4ed379456a27e0cbe944bb68301cfdc2",
+      "seed": 1500000000,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "IRON_WAVE",
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 40,
+      "scenario_id": "7d649cb23f5650aa5b4119f01be288745e09cee1be8e0b4db5af6388e6318dd9",
+      "seed": 1500000001,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "BASH",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "IRON_WAVE",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 60,
+      "scenario_id": "f1b69d166fa53c535ba93a4b14554fb2656f5db8d4c37a617532ee365ad95616",
+      "seed": 1500000002,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "BASH",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "BASH",
+        "POMMEL_STRIKE",
+        "IRON_WAVE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 60,
+      "scenario_id": "0a75940a12c5dd9429649719dc7521ad282e0c131e58fad95d66b1ce5cb3375e",
+      "seed": 1500000003,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "BASH",
+        "POMMEL_STRIKE",
+        "BASH",
+        "POMMEL_STRIKE",
+        "IRON_WAVE",
+        "POMMEL_STRIKE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 80,
+      "scenario_id": "c0e029cb9e6ca9bd642becfd93df27bf2dd446bb0e87894411fa7f577e8c1400",
+      "seed": 1500000004,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "IRON_WAVE",
+        "DEFEND_IRONCLAD"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "2ba2e17b43577b027225c8ff86fbc14ec483a4a3038b7b3fe27baa58f8bc095e",
+      "seed": 1500000005,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 60,
+      "scenario_id": "f133cd9d4baa3e36e7a872d3814c598229a06102508e9c31288bf50a319f529c",
+      "seed": 1500000006,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "BASH",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "d18bc7c606ab86557f6c7a114a71aacb7ea1d811e6895064c2cd8713556ba59d",
+      "seed": 1500000007,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "BASH",
+        "BASH",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 40,
+      "scenario_id": "a45b96416274a56aee8aad0fe6cd2b236542cbb53639de822fb2f0bd2d5ab550",
+      "seed": 1500000008,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "POMMEL_STRIKE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 60,
+      "scenario_id": "0fed6ba3c3b20c81bf938fffb607df18e4898898e894a64f628c85c2d60b494d",
+      "seed": 1500000009,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "BASH",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE",
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 60,
+      "scenario_id": "ca9513cab43ab5c11cb526cd9e68e2e1933954da17c429d80380a0c33cd9bc79",
+      "seed": 1500000010,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "BASH",
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "IRON_WAVE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "1fa0e47e11d19a624ee8b64b0cdc679282deb9636d1a4d0c217f14fc86d9ec69",
+      "seed": 1500000011,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "IRON_WAVE",
+        "BASH",
+        "BASH",
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 80,
+      "scenario_id": "77b583aed8ea682f7b1dae5a3fff62c09c89705218084047a6abe838161f5e8b",
+      "seed": 1500000012,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "BASH",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "POMMEL_STRIKE",
+        "IRON_WAVE",
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "fe84c3e1341c2aae6608c86d39280178a4b7a02fc625025d448965ba961230e2",
+      "seed": 1500000013,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "DEFEND_IRONCLAD",
+        "BASH"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 40,
+      "scenario_id": "f7027aee4fc16506e2e5df26530ae60867d922b81d45c0812d9d07affa6afe11",
+      "seed": 1500000014,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "BASH",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "BASH",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 40,
+      "scenario_id": "729446815b930bc79a905c1cd2c02f31a4b27eafa0d54124d3c56aacc402b260",
+      "seed": 1500000015,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 60,
+      "scenario_id": "9546aaa4645e486f7822fe6b54ebd77618db96679d4ba04fd6ea76694568dbd3",
+      "seed": 1500000016,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "BASH",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 40,
+      "scenario_id": "5cb2e6dc063f24bbfb854d97a817080b0802717aa4adfc8b9b45a13b55a9ea5c",
+      "seed": 1500000017,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "BASH",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 80,
+      "scenario_id": "b87b32445ea186f79d1f984529ee004511a76b13c94ac3406ba8ca121aeb5533",
+      "seed": 1500000018,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "IRON_WAVE",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "18422f0ebab68fd3147be1ba2ddebaf0b343983b463c0bc0a0160765449d5ed8",
+      "seed": 1500000019,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "DEFEND_IRONCLAD",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "DEFEND_IRONCLAD",
+        "BASH",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "TWIN_STRIKE",
+        "IRON_WAVE",
+        "IRON_WAVE"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 60,
+      "scenario_id": "5de44c28a73e194e3954256755c6d09ff610c0c3c68e55600ceef497d946b8fc",
+      "seed": 1500000020,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "IRON_WAVE",
+        "DEFEND_IRONCLAD",
+        "TWIN_STRIKE",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "BASH",
+        "TWIN_STRIKE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 80,
+      "scenario_id": "3905ba4703b154a39b07daadba8cab612828bfeb3e79d65efe464c0e86f58dbc",
+      "seed": 1500000021,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "BASH",
+        "TWIN_STRIKE",
+        "BASH",
+        "IRON_WAVE",
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "DEFEND_IRONCLAD",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE",
+        "BASH"
+      ],
+      "encounter": "BYRDONIS_ELITE",
+      "hp": 40,
+      "scenario_id": "276397850ee720fae1e0555c956b435b056f825afe34688e07426e09f6e795d3",
+      "seed": 1500000022,
+      "split": "validation"
+    },
+    {
+      "deck": [
+        "TWIN_STRIKE",
+        "BASH",
+        "BASH",
+        "POMMEL_STRIKE",
+        "BASH",
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "DEFEND_IRONCLAD",
+        "IRON_WAVE",
+        "TWIN_STRIKE",
+        "STRIKE_IRONCLAD",
+        "POMMEL_STRIKE",
+        "TWIN_STRIKE"
+      ],
+      "encounter": "NIBBITS_WEAK",
+      "hp": 60,
+      "scenario_id": "0f23b44f67ac9a051e8c0caa7bb528fdc256e2f32cfc1a7df5827d501704feca",
+      "seed": 1500000023,
+      "split": "validation"
+    }
+  ],
+  "version": "native-six-card-validation-v2"
+}

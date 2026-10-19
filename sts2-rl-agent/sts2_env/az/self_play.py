@@ -34,6 +34,8 @@ class CollectionJob:
     search_version: str = LEGACY
     leaf_mode: str = 'heuristic'
     value_mix: float = .5
+    cache_dir: str = ''
+    cache_identity: str = ''
 
 
 def file_digest(path):

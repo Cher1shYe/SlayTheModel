@@ -81,6 +81,11 @@ def public_from_dict(data):
 
 
 def collect_entity_episode(job, model):
+    from .episode_cache import cached_episode
+    return cached_episode(job, lambda: _collect_entity_episode_guarded(job, model))
+
+
+def _collect_entity_episode_guarded(job, model):
     diagnostic = {'job_id': job.job_id}
     try:
         return _collect_entity_episode(job, model, diagnostic)
