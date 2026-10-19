@@ -1,4 +1,8 @@
-# CombatSolver 测试清单
+﻿# CombatSolver 测试清单
+
+## 保留根历史回归（2026-10-19）
+
+TUNNELER_WEAK seed 1600000142：28 决策完整 continuation 对账，证据 sts2-rl-agent/output/native_frozen_history_20261019/。native_tear_asunder_history_v1.json.gz 断言第 14 决策 TEAR_ASUNDER 后敌人格挡 11，不能为历史重复计数导致的 1。
 
 ## 外部验证预算超限回归（2026-10-19）
 

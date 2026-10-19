@@ -1,4 +1,8 @@
-# CombatSolver 开发笔记与未来构想
+﻿# CombatSolver 开发笔记与未来构想
+
+## 计算变量冻结根历史（2026-10-19，未发布）
+
+外部采集保留预测根时，CalculatedVarSpecRegistry 读取增长中的实机历史再加预测历史，导致 TEAR_ASUNDER 重复计数。改用捕获时的 RootCombatHistorySnapshot 加分支历史；统一冻结生成卡、充能、受伤、虚无出牌和总出牌次数。TUNNELER_WEAK seed 1600000142 完整 28 决策对账通过。
 
 ## 外部验证的预算超限（2026-10-19，未发布）
 

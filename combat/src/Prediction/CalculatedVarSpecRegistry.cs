@@ -151,33 +151,38 @@ internal static class CalculatedVarSpecRegistry
     }
 
     private static int CountGeneratedCards(CombatPredictionSimulator simulator, Player player)
-        => CombatManager.Instance.History.Entries.OfType<CardGeneratedEntry>().Count(entry => entry.Creator == player)
+        => RootHistory(simulator).CardsGenerated.Count(entry => entry.Creator == player)
            + simulator.History.OfType<CombatPredictionCardGeneratedEntry>().Count(entry => entry.Creator == player);
 
     private static int CountLightningChannels(CombatPredictionSimulator simulator, Player player)
-        => CombatManager.Instance.History.Entries.OfType<OrbChanneledEntry>()
+        => RootHistory(simulator).OrbsChanneled
                .Count(entry => entry.Actor.Player == player && entry.Orb is LightningOrb)
            + simulator.History.OfType<CombatPredictionOrbChanneledEntry>()
                .Count(entry => entry.Orb is LightningOrb && entry.Orb.Owner == player);
 
     private static int CountUnblockedDamageEvents(CombatPredictionSimulator simulator, Creature owner)
-        => CombatManager.Instance.History.Entries.OfType<DamageReceivedEntry>()
+        => RootHistory(simulator).DamageReceived
                .Count(entry => entry.Receiver == owner && entry.Result.UnblockedDamage > 0)
            + simulator.History.OfType<CombatPredictionDamageReceivedEntry>()
                .Count(entry => entry.Receiver == owner && entry.Result.UnblockedDamage > 0);
 
     private static int CountEtherealPlays(CombatPredictionSimulator simulator, Player player)
-        => CombatManager.Instance.History.CardPlaysFinished.Count(entry =>
+        => RootHistory(simulator).CardPlaysFinished.Count(entry =>
                entry.CardPlay.Player == player && entry.WasEthereal)
            + simulator.History.OfType<CombatPredictionCardPlayFinishedEntry>()
                .Count(entry => entry.CardPlay.Player == player && entry.WasEthereal);
 
     private static int CountFinishedCardPlays(CombatPredictionSimulator simulator)
-        => CombatManager.Instance.History.CardPlaysFinished.Count()
+        => RootHistory(simulator).CardPlaysFinished.Length
            + simulator.History.OfType<CombatPredictionCardPlayFinishedEntry>().Count();
 
     private static int CountDrawnCards(CombatPredictionSimulator simulator, Player player)
         => ((SimulatedCombatState)simulator.State.CombatState).GetCardsDrawnBeforePrediction(player)
            + simulator.History.OfType<CombatPredictionCardDrawnEntry>()
                .Count(entry => entry.Card.Owner == player);
+
+    // A retained prediction root must not observe live events appended after capture.
+    // Its branch history already contains those actions during prefix replay.
+    private static RootCombatHistorySnapshot RootHistory(CombatPredictionSimulator simulator)
+        => ((SimulatedCombatState)simulator.State.CombatState).RootHistory;
 }

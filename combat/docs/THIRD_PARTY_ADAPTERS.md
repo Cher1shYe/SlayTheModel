@@ -1,5 +1,7 @@
 ﻿# 第三方 Mod 适配手册
 
+计算变量需要历史时，使用捕获的 RootCombatHistorySnapshot 加分支历史；不得读取增长中的 CombatManager 全局历史，否则已执行前缀被重复计数。生成卡、充能、受伤与出牌计算已统一冻结。
+
 写给想让战斗路线求解器看懂自家 Mod 的作者。
 
 原生 `BurrowedPower.AfterBlockBroken` 已由 Block mirror 直接结算分支眩晕与移除，不再通过伤害历史延迟补偿。覆盖该登记的适配器应保留原生破盾时点，不得同时在历史补偿中重复结算。
