@@ -28,10 +28,23 @@ internal static class AfterBlockBrokenMirrors
     {
         var registry = new Registry(AfterBlockBroken);
 
-        registry.RegisterIgnored<BurrowedPower>();
+        registry.Register<BurrowedPower>(HandleBurrowed);
         registry.Register<HandDrill>(HandleHandDrill);
 
         return registry;
+    }
+
+    private static void HandleBurrowed(BurrowedPower power, AfterBlockBrokenMirrorContext context)
+    {
+        if (context.Target != power.Owner || context.Target.Monster is not MegaCrit.Sts2.Core.Models.Monsters.Tunneler)
+            return;
+        if (context.CombatState is not SimulatedCombatState combat)
+            throw new InvalidOperationException("Burrowed requires branch-local monster state");
+        combat.SetMonsterBool(context.Target,"_isStunned",true);
+        combat.ForceStunnedMove(context.Target,"BITE_MOVE");
+        combat.SetAmount<BurrowedPower>(context.Target,0);
+        var creature=context.Simulator.State.GetCreature(context.Target);
+        creature.DamageBlock(creature.Block,MegaCrit.Sts2.Core.ValueProps.ValueProp.Move);
     }
 
     private static void HandleHandDrill(HandDrill relic, AfterBlockBrokenMirrorContext context)
