@@ -162,6 +162,10 @@ internal static class GenericCollection
                 {
                     File.WriteAllText(output + ".predicted.txt", env.CurrentContinuationStateText);
                     File.WriteAllText(output + ".live.txt", NativeMctsSimulationApi.CaptureLiveContinuationStateText(native.CombatStateForSimulation));
+                    File.WriteAllText(output + ".failure.json", JsonSerializer.Serialize(new {
+                        recipe=entry.GetProperty("recipe").Clone(),steps,observation,action=selected.Key,
+                        liveExhausts=CombatManager.Instance.History.Entries.OfType<CardExhaustedEntry>()
+                            .Select(e=>new {card=e.Card.Id.Entry,thisTurn=e.HappenedThisTurn(native.CombatStateForSimulation)}).ToArray() }));
                     throw new InvalidDataException($"Full native successor continuation mismatch: seed={seed} decision={steps.Count} action={selected.Key}");
                 }
                 if (native.HasPendingChoice && !env.MatchesLiveRoot(native.CombatStateForSimulation, true, native.ChoiceSignature))
@@ -186,8 +190,6 @@ internal static class GenericCollection
                     terminalAfter = native.Terminal, hpAfter = native.Hp });
             }
             bool truncated = !native.Terminal;
-            if (truncated && (arm != "policy" || entry.GetProperty("split").GetString() != "validation"))
-                throw new InvalidDataException("Unfinished training fights cannot enter pilot replay");
             var end = env.CurrentState;
             double cutoffRisk = end.PendingChoice ? 1d : Math.Clamp((double)end.IncomingDamage / Math.Max(1,native.Hp),0,1);
             double cutoffDamage = env.EnemyDamageFraction;

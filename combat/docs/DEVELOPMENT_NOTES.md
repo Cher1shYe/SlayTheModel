@@ -1,5 +1,9 @@
 ﻿# CombatSolver 开发笔记与未来构想
 
+## EVIL_EYE 出牌身份与训练截断（2026-10-19，未发布）
+
+补充效果携带原 CardPlay，挂起/分叉时同步重映射；EVIL_EYE 第二段格挡不再被 UNMOVABLE 误判为另一张牌（24→32）。seed 2000050 完整 42 决策对账通过。GenericCollection 对训练预算耗尽也输出明确 time_limit/complete=false，依用户确认以 V7 截断评分进入有界训练回放；模拟异常仍失败。seed 2000053 达 100 决策/20 回合，HP22，评分 -0.18015625。追加完整后继失败轨迹诊断。
+
 ## SeekerStrike 击杀后取消选择（2026-10-19，未发布）
 
 BuildSeekerSpec 保留原生先洗牌候选的 RNG 消耗，再在 IsOverOrEnding 时返回无选择，与 FromCombatPile 终局行为一致。原失败 seed 2000025 重跑完整通过；独立全 SeekerStrike+ 配方 10 决策、80 HP 获胜，最后一击不再留下 pending choice。

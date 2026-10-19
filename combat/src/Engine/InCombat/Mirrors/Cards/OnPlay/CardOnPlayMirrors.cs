@@ -62,9 +62,9 @@ internal static partial class CardOnPlayMirrors
                 CardPlay = cardPlay
             });
         if (simulator.HasPendingChoice)
-            simulator.AppendExecutionContinuation(new CardSpecExecutionFrame(card, cardPlay.Target));
+            simulator.AppendExecutionContinuation(new CardSpecExecutionFrame(card, cardPlay));
         else
-            ApplyRemainingCardSpec(simulator, card, cardPlay.Target);
+            ApplyRemainingCardSpec(simulator, card, cardPlay);
         return result;
     }
 

@@ -128,7 +128,8 @@ internal static class CardEffectSpecRegistry
         CombatPredictionSimulator simulator,
         SimulatedCombatState combat,
         PredictedCard playedCard,
-        Creature? target)
+        Creature? target,
+        CardPlay? cardPlay = null)
     {
         CardModel card = playedCard.Preview;
         Creature ownerCreature = playedCard.Preview.Owner.Creature;
@@ -290,7 +291,7 @@ internal static class CardEffectSpecRegistry
                 applied = true;
                 break;
             case EvilEye when combat.WasCardExhaustedThisTurn(ownerCreature):
-                simulator.GainBlock(ownerCreature, card.DynamicVars.Block, playedCard, null);
+                simulator.GainBlock(ownerCreature, card.DynamicVars.Block, playedCard, cardPlay);
                 applied = true;
                 break;
             case GeneticAlgorithm geneticAlgorithm:

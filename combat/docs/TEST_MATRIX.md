@@ -1,5 +1,9 @@
 ﻿# CombatSolver 测试清单
 
+## EVIL_EYE 与有界训练（2026-10-19）
+
+native_evileye_fixed_20261019：42 决策，夹具断言 UNMOVABLE 下双段总格挡32、不接受24。native_training_cutoff_fixed_20261019：100 决策、20回合、HP22，time_limit；native_training_cutoff_v1.json.gz 检查奖励、非终局最后一步、截断标签与回放恢复，篡改奖励或终局标签必须拒绝。
+
 ## SeekerStrike 击杀终局（2026-10-19）
 
 原配方 native_seeker_terminal_fixed_20261019 完整通过；native_seeker_killing_blow_20261019 的 seed 37002/SLIMES_WEAK/10 张 SEEKER_STRIKE+，10 决策满血胜利。native_seeker_terminal_v1.json.gz 验证最终动作、terminalAfter 和 complete_continuation。
