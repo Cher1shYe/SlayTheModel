@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 原生特征 HEXED 与降级计算缓存（2026-10-19）
+
+失败配方 KNIGHTS_ELITE / seed 1600000029：使用原冻结模型的纯策略全战斗，逐根执行分支／真实价值特征严格对账，覆盖 EVIL_EYE+ 的 HEXED → Ethereal 以及 EXPECT_A_FIGHT 降级后的计算型基础值。修复后 6 决策通过；31 场既有完整缓存重验，编码输入、动作和奖励无变化。Python 的 `scripts/check_native_feature_regression.py --checkpoint <原 initial.pt> --out <新目录>` 可复现；`tests/fixtures/native_hexed_calculated_v1.json.gz` 保存通过轨迹，`tests/test_native_feature_regression.py` 检查对应特征。证据位于 `sts2-rl-agent/output/native_hexed_final_20261019/` 和 `native_hexed_cache_revalidation_20261019/`。
+
 ## 外部采集费用／召唤／诊断回归（2026-10-19）
 
 `check_native_scope_repair.py` 在单人范围重跑旧失败配方、对应升级牌及新随机种子；成功轨迹逐决策核对费用编码、实体顺序、完整稳定后继与终局奖励。`smoke/SlayTheModel.CollectionContracts.Smoke` 使用实际编译程序集验证外部节点诊断不会物化 Beam 父链，普通 Beam 非法链仍报错；同一 smoke 覆盖选择边界及稳定端点 HP／终局失配拒绝。两个真实升级轨迹保存为 Python 腐坏拒绝夹具。待选牌边界只比较选择合同，选择完成后才比较完整 continuation；不将中间态声称为完整状态等价。证据与次数见 [单人回归报告](../../../../sts2-rl-agent/docs/NATIVE_SCOPE_REPAIR_20261019.md)。

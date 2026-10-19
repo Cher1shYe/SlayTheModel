@@ -4,8 +4,20 @@ using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
+using MegaCrit.Sts2.Core.Localization.DynamicVars;
+using HarmonyLib;
 
 namespace CombatSolver.Api;
+
+/// <summary>Stable base features; calculated variables' display caches can be stale after downgrade.</summary>
+public static class NativeGenericCardFeatures
+{
+    private static readonly Func<CalculatedVar,DynamicVar> BaseVariable =
+        AccessTools.Method(typeof(CalculatedVar),"GetBaseVar").CreateDelegate<Func<CalculatedVar,DynamicVar>>();
+
+    public static Dictionary<string,decimal> Variables(CardModel card) => card.DynamicVars.ToDictionary(
+        v=>v.Key, v=>v.Value is CalculatedVar calculated ? BaseVariable(calculated).BaseValue : v.Value.BaseValue);
+}
 
 public sealed partial class NativeMctsSimulationSession
 {
@@ -27,9 +39,9 @@ public sealed partial class NativeMctsSimulationSession
             return new {
             model = c.Id.Entry, upgrade = c.CurrentUpgradeLevel,
             cost = c.EnergyCost.GetWithModifiers(CostModifiers.Local), type = c.Type.ToString(), target = simulator.GetTargetType(predicted).ToString(),
-            keywords = c.Keywords.Select(k => k.ToString()).Order().ToArray(),
+            keywords = predicted.GetKeywords(simulator.State).Select(k => k.ToString()).Order().ToArray(),
             enchantment = c.Enchantment?.Id.Entry, affliction = c.Affliction?.Id.Entry,
-            variables = c.DynamicVars.ToDictionary(v => v.Key, v => v.Value.BaseValue)
+            variables = NativeGenericCardFeatures.Variables(c)
             };
         }
         var all = pcs.AllPiles.SelectMany(p => p.Cards).ToArray();
@@ -60,7 +72,7 @@ public sealed partial class NativeMctsSimulationSession
         var piles=pcs.AllPiles.Select(p => new { PileType=p.Type.ToString(), Cards=p.Cards.Select(c => new {
             CombatCardIndex=indices[c], ModelId=c.Preview.Id.ToString(), EnergyCost=SerializedEnergyCost(c),
             AfflictionId=c.Preview.Affliction?.Id.ToString(), AfflictionCount=c.Preview.Affliction?.Amount ?? 0,
-            Keywords=c.Preview.Keywords.Select(k=>k.ToString()).Order().ToArray(), UpgradeLevel=(int?)null,
+            Keywords=c.GetKeywords(simulator.State).Select(k=>k.ToString()).Order().ToArray(), UpgradeLevel=(int?)null,
             EnchantmentId=(string?)null, EnchantmentAmount=(int?)null, Display=(object?)null }).ToArray() }).ToArray();
         return new {
             version="native-generic-observation-v1",initialHp,decisions,
