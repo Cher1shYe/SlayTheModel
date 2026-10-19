@@ -5,6 +5,15 @@ using SlayTheModel.Search;
 internal sealed class ReplayTimingEnvironment(CombatSolverReplayEnvironment inner)
     : IReplayEnvironment<CombatSolverMctsAction>
 {
+    public CombatSolverReplayEnvironment? Reference { get; init; }
+    private void Verify()
+    {
+        if (Reference == null) return;
+        if (System.Text.Json.JsonSerializer.Serialize(inner.CurrentState) != System.Text.Json.JsonSerializer.Serialize(Reference.CurrentState)
+            || inner.CurrentContinuationStateText != Reference.CurrentContinuationStateText
+            || inner.EnemyDamageFraction != Reference.EnemyDamageFraction)
+            throw new InvalidDataException("Decision snapshot differs from full-prefix replay");
+    }
     public double RestoreMs { get; private set; }
     public double ApplyMs { get; private set; }
     public int Restores { get; private set; }
@@ -12,13 +21,19 @@ internal sealed class ReplayTimingEnvironment(CombatSolverReplayEnvironment inne
     public async Task RestoreAsync(IReadOnlyList<CombatSolverMctsAction> prefix, CancellationToken ct)
     {
         long start=Stopwatch.GetTimestamp();
-        try { await inner.RestoreAsync(prefix,ct); }
+        try {
+            await inner.RestoreAsync(prefix,ct);
+            if (Reference != null) { await Reference.RestoreAsync(prefix,CancellationToken.None); Verify(); }
+        }
         finally { RestoreMs+=Stopwatch.GetElapsedTime(start).TotalMilliseconds; Restores++; }
     }
     public async Task ApplyAsync(CombatSolverMctsAction action, CancellationToken ct)
     {
         long start=Stopwatch.GetTimestamp();
-        try { await inner.ApplyAsync(action,ct); }
+        try {
+            await inner.ApplyAsync(action,ct);
+            if (Reference != null) { await Reference.ApplyAsync(action,CancellationToken.None); Verify(); }
+        }
         finally { ApplyMs+=Stopwatch.GetElapsedTime(start).TotalMilliseconds; Applies++; }
     }
     public IReadOnlyList<CombatSolverMctsAction> LegalActions()=>inner.LegalActions();

@@ -1,5 +1,9 @@
 # 第三方 Mod 适配手册
 
+## 外部 MCTS 稳定根提交（2026-10-19）
+
+`NativeMctsSimulationSession.CommitDecisionRoot()` 将当前已完成决策的预测快照作为随后 `RestoreRoot()` 的根；成功返回 true，未完成选择返回 false 且不改变根。调用方只能在实际确认的动作前缀后提交，不能提交试探分支。提交保留绝对动作计数和最初捕获的奖励敌人集合，释放旧根和其他临时快照；同一 session 串行使用。无需重新捕获 live 状态，也不提供挂起选择事务的克隆入口。Worker 的 `ReuseDecisionRoot=false` 仅用于完整历史重放基准；所有实机契约仍保持严格失败。
+
 ## 注入选牌器的回合准备时序（2026-10-19）
 
 原生 CardSelectCmd 在 Selector 非空时不调用 SignalPlayerChoiceBegun，CombatManager 等待整个 SetupPlayerTurn 完成后才执行 AfterSideTurnStart；普通 UI 选择则先暂停准备并执行侧开始钩子。此前模拟对两者都提前执行侧开始。seed2000291 固定12动作重放中提前施加 RAMPART，使炮塔错误多25格挡。SimulatedCombatState 在主线程根捕获冻结 TurnSetupChoicesPauseSideStart，Fork 继承并进入指纹，回合续执行据此安装提前回调；后台不读取 Selector。固定错误前缀修复后完整对账，原 seed 完整14决策、9HP获胜。native_selector_turn_start_v1 是诊断重放夹具，不是训练样本。Python 回归103 passed；原生选择异常增加现场输出，仍严格失败。

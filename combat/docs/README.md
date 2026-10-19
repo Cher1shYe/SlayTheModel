@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [原生 MCTS 决策点快照复用](performance/native-decision-root-20261019.md)：稳定根所有权、严格差分与250ms固定轨迹ABBA。
+
 - [GC 完成链修复与优化筛选](performance/gc-completion-allocation-20260921.md)：替代 #116/#120 的窄修复、失败复现与重新实测取舍。
 - [增量历史计数](strategy/incremental-history-counters.md)：生命周期、测试构建与构键计时。
 - [转置表触顶证据](performance/transposition-cap-evidence-20260920.md)：默认条目上限、标签分布与逐根观测。

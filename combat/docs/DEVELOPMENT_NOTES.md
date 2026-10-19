@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 原生 MCTS 决策点快照复用（2026-10-19）
+
+外部 MCTS 的 Promote 在完成选择链后提交稳定预测快照，后续 rollout 从该点分叉，避免每次重放整场已执行动作。待选牌时保留最近稳定根及尚未完成的动作前缀。原始奖励敌人集合、冻结历史、RNG 和绝对动作计数不重置；不重新捕获推进后的 live 根。完整重放参考模式逐 Restore/Apply 对照状态、合法动作、完整 continuation 与敌人伤害比例，三个场景通过；Python 回归103项通过。计时和限制见[实测报告](performance/native-decision-root-20261019.md)。
+
 ## 注入选牌器的回合准备时序（2026-10-19）
 
 原生 CardSelectCmd 在 Selector 非空时不调用 SignalPlayerChoiceBegun，CombatManager 等待整个 SetupPlayerTurn 完成后才执行 AfterSideTurnStart；普通 UI 选择则先暂停准备并执行侧开始钩子。此前模拟对两者都提前执行侧开始。seed2000291 固定12动作重放中提前施加 RAMPART，使炮塔错误多25格挡。SimulatedCombatState 在主线程根捕获冻结 TurnSetupChoicesPauseSideStart，Fork 继承并进入指纹，回合续执行据此安装提前回调；后台不读取 Selector。固定错误前缀修复后完整对账，原 seed 完整14决策、9HP获胜。native_selector_turn_start_v1 是诊断重放夹具，不是训练样本。Python 回归103 passed；原生选择异常增加现场输出，仍严格失败。

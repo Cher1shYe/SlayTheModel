@@ -76,7 +76,11 @@ internal static class GenericCollection
             };
             await native.ResetAsync($"COLLECTION-PILOT-{seed}", cancellation);
             using var env = new CombatSolverReplayEnvironment();
+            env.ReuseDecisionRoot = !job.TryGetProperty("reuseDecisionRoot", out var reuseRoot) || reuseRoot.GetBoolean();
             env.Capture(native.CombatStateForSimulation, hp);
+            using var reference = job.TryGetProperty("verifyDecisionRoot", out var verifyRoot) && verifyRoot.GetBoolean()
+                ? new CombatSolverReplayEnvironment { ReuseDecisionRoot = false } : null;
+            reference?.Capture(native.CombatStateForSimulation, hp);
             if (job.TryGetProperty("preflightOnly", out var preflightOnly) && preflightOnly.GetBoolean())
             {
                 if (!env.MatchesLiveRoot(native.CombatStateForSimulation, native.HasPendingChoice, native.ChoiceSignature))
@@ -115,7 +119,7 @@ internal static class GenericCollection
                 CombatSolverMctsAction selected;
                 var visits = legal.ToDictionary(a => a.Key, _ => 0);
                 int simulations = 0;
-                var timingEnvironment = new ReplayTimingEnvironment(env);
+                var timingEnvironment = new ReplayTimingEnvironment(env) { Reference = reference };
                 double evaluationMs = 0;
                 double priorWallBefore = prior.WallMs, encodeBefore = prior.EncodeMs, inferBefore = prior.InferMs;
                 long callsBefore = prior.Calls;
@@ -133,7 +137,8 @@ internal static class GenericCollection
                 };
                 var timer = Stopwatch.StartNew();
                 string? liveBefore = native.HasPendingChoice ? null : NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation);
-                if (diagnosticActions != null) selected = legal.Single(a => a.Key == diagnosticActions[steps.Count]);
+                if (diagnosticActions != null && !(job.TryGetProperty("benchmarkReplay", out var benchmarkReplay) && benchmarkReplay.GetBoolean()))
+                    selected = legal.Single(a => a.Key == diagnosticActions[steps.Count]);
                 else if (legal.Count == 1) selected = legal[0];
                 else if (arm == "policy")
                 {
@@ -152,10 +157,13 @@ internal static class GenericCollection
                     selected = result.Action;
                 }
                 double seconds = timer.Elapsed.TotalSeconds;
+                string searchAction = selected.Key;
+                if (diagnosticActions != null) selected = legal.Single(a => a.Key == diagnosticActions[steps.Count]);
                 if(liveBefore!=null && liveBefore!=NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation))
                     throw new InvalidDataException("Search mutated live root");
                 var liveAction = native.ToLiveSearchAction(selected);
                 env.Promote(selected);
+                reference?.Promote(selected);
                 await native.StepAsync(liveAction, cancellation);
                 // Native card commands can automatically resolve a forced selection.
                 // The simulation API still represents it as a sole choice edge.
@@ -168,6 +176,7 @@ internal static class GenericCollection
                 {
                     if (++automaticForcedChoices > 16) throw new InvalidDataException("Automatic forced-choice loop");
                     env.Promote(automatic[0]);
+                    reference?.Promote(automatic[0]);
                 }
                 if (!native.Terminal && !native.HasPendingChoice && env.CurrentContinuationKey != NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation))
                 {
@@ -202,7 +211,7 @@ internal static class GenericCollection
                         actual=new {terminal=native.Terminal,hp=native.Hp,won=native.Won,round=native.Round} }));
                     throw new InvalidDataException($"Endpoint contract at decision={steps.Count} action={selected.Key}",error);
                 }
-                steps.Add(new { observation, action = selected.Key, visits, simulations, seconds,
+                steps.Add(new { observation, action = selected.Key, searchAction, visits, simulations, seconds,
                     searchTiming = new { timingEnvironment.RestoreMs, timingEnvironment.ApplyMs,
                         timingEnvironment.Restores, timingEnvironment.Applies,
                         evaluationMs, inferenceWallMs=prior.WallMs-priorWallBefore,

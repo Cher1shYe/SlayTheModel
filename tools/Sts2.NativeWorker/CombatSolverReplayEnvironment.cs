@@ -16,6 +16,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     private string rootActions = "";
     private readonly List<CombatSolverMctsAction> promotedPrefix = [];
     private long transitions;
+    public bool ReuseDecisionRoot { get; set; } = true;
 
     public void Capture(MegaCrit.Sts2.Core.Combat.CombatState combat, int capturedEntryHp)
         => Capture(() => NativeMctsSimulationApi.Capture(combat), capturedEntryHp);
@@ -74,6 +75,11 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
         promotedPrefix.Add(action);
         RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
         rootKey = state.Key;
+        if (ReuseDecisionRoot && session!.CommitDecisionRoot())
+        {
+            promotedPrefix.Clear();
+            rootActions = string.Join(" | ", state.LegalActions.Select(value => value.Key));
+        }
     }
 
     public (string StateKey, string ContinuationKey) PredictSuccessor(CombatSolverMctsAction action)

@@ -41,7 +41,8 @@ public sealed partial class NativeMctsSimulationSession : IDisposable
     private readonly CombatRootSnapshot capturedRoot;
     private SimulationSnapshot root;
     private SimulationSnapshot current;
-    private readonly NativeMctsState rootDescription;
+    private NativeMctsState rootDescription;
+    private int rootActionCount;
     private NativeMctsState currentDescription;
     private readonly List<SimulationSnapshot> transient = [];
     private sealed record PendingChoiceBranch(PlanAction Action, SimulationSnapshot Snapshot);
@@ -89,10 +90,34 @@ public sealed partial class NativeMctsSimulationSession : IDisposable
         ReleaseTransient();
         pendingChoices = openingChoices == null ? null : new(openingChoices, StringComparer.Ordinal);
         current = root;
-        actionCount = 0;
+        actionCount = rootActionCount;
         choiceDiagnostics = [];
         currentDescription = rootDescription;
         return currentDescription;
+    }
+
+    /// <summary>
+    /// Retain the completed decision snapshot as the rollout root. Pending selectors keep
+    /// their existing replay path; no suspended transaction is cloned or recaptured live.
+    /// Absolute action count and the battle's original reward roster remain unchanged.
+    /// </summary>
+    public bool CommitDecisionRoot()
+    {
+        ThrowIfDisposed();
+        if (pendingChoices != null || currentDescription.PendingChoice) return false;
+        var obsolete = new HashSet<SimulationSnapshot>(transient, ReferenceEqualityComparer.Instance);
+        obsolete.UnionWith(persistent);
+        obsolete.Add(root);
+        obsolete.Remove(current);
+        root = current;
+        rootDescription = currentDescription;
+        rootActionCount = actionCount;
+        transient.Clear();
+        persistent.Clear();
+        openingChoices = null;
+        choiceDiagnostics = [];
+        foreach (var snapshot in obsolete) snapshot.ReleaseSimulator();
+        return true;
     }
 
     /// <summary>

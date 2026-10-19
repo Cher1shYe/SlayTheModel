@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## 原生 MCTS 决策点快照复用（2026-10-19）
+
+- 三个固定轨迹：seed2000228（历史/生成费用/普通选牌）、seed37005（终局攻击取消选择）、seed2000291（跨回合注入选择器）。开启 `verifyDecisionRoot`，每次 Restore/Apply 与不提交快照的完整前缀重放对照；实机特征、完整后继及终点严格契约继续启用，均通过。
+- 性能另用 `benchmarkReplay=true` 在相同根搜索后执行固定 `diagnosticActions`；`reuseDecisionRoot=false/true` 做串行 ABBA，不开启参考双跑。产物为 diagnostic replay，不能进入训练缓存。
+- Python：feature_regression、az_native_generic、native_collection_cache、az_native_backend、az_native_leaf 五套测试，103 passed。隔离源副本构建成功，未覆盖共享原生 DLL。
+- [指标、复现与适用范围](performance/native-decision-root-20261019.md)。
+
 ## 注入选牌器的回合准备时序（2026-10-19）
 
 原生 CardSelectCmd 在 Selector 非空时不调用 SignalPlayerChoiceBegun，CombatManager 等待整个 SetupPlayerTurn 完成后才执行 AfterSideTurnStart；普通 UI 选择则先暂停准备并执行侧开始钩子。此前模拟对两者都提前执行侧开始。seed2000291 固定12动作重放中提前施加 RAMPART，使炮塔错误多25格挡。SimulatedCombatState 在主线程根捕获冻结 TurnSetupChoicesPauseSideStart，Fork 继承并进入指纹，回合续执行据此安装提前回调；后台不读取 Selector。固定错误前缀修复后完整对账，原 seed 完整14决策、9HP获胜。native_selector_turn_start_v1 是诊断重放夹具，不是训练样本。Python 回归103 passed；原生选择异常增加现场输出，仍严格失败。
