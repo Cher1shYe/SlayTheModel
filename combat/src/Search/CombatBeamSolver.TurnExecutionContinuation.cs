@@ -75,7 +75,8 @@ internal sealed partial class CombatBeamSolver
             simulator.AppendExecutionContinuation(new PlayerStartFrame(progress, next));
             return true;
         }
-        using var beforeChoice = !progress.SideStarted && stage <= PlayerStartStage.AfterPlayer
+        using var beforeChoice = combat.TurnSetupChoicesPauseSideStart
+            && !progress.SideStarted && stage <= PlayerStartStage.AfterPlayer
             ? choices.BeforeNextTake(StartSide) : null;
         if (stage <= PlayerStartStage.BeforeHand)
         {

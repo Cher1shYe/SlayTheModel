@@ -1,5 +1,10 @@
 # CombatSolver 开发笔记与未来构想
 
+## 注入选牌器的回合准备时序（2026-10-19）
+
+原生 CardSelectCmd 在 Selector 非空时不调用 SignalPlayerChoiceBegun，CombatManager 等待整个 SetupPlayerTurn 完成后才执行 AfterSideTurnStart；普通 UI 选择则先暂停准备并执行侧开始钩子。此前模拟对两者都提前执行侧开始。seed2000291 固定12动作重放中提前施加 RAMPART，使炮塔错误多25格挡。SimulatedCombatState 在主线程根捕获冻结 TurnSetupChoicesPauseSideStart，Fork 继承并进入指纹，回合续执行据此安装提前回调；后台不读取 Selector。固定错误前缀修复后完整对账，原 seed 完整14决策、9HP获胜。native_selector_turn_start_v1 是诊断重放夹具，不是训练样本。Python 回归103 passed；原生选择异常增加现场输出，仍严格失败。
+
+
 ## HEADBUTT 终局选择与 CALAMITY 生成 STOMP（2026-10-19）
 
 HEADBUTT 的攻击结束战斗后，原生 FromCombatPile 返回空集合；GetSpec 在同一时点返回 null，不留下 pending choice。seed37005 混合牌组修复前复现 pending-choice mismatch，修复后8决策、66HP获胜。原 seed2000228 重跑暴露 CALAMITY 生成 STOMP 费用3/2差异：原生已记录 CardPlayFinished，延迟补偿计数尚未更新。STOMP 进场费用改读冻结根与预测完成历史，完成条目保存 round/side/player-turn，续执行 Fork 按值复制，不读取推进后的 live 历史。修复后原配方18决策、15HP获胜，生成并打出2费 STOMP；同批 seed2000229 为17决策、21HP获胜。Python 夹具 native_headbutt_terminal_v1 与 native_calamity_stomp_entry_v1 保留终局、普通选牌及生成费用证据。旧缓存只校验保留，不宣称重跑。

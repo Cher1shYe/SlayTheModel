@@ -90,9 +90,13 @@ internal static class GenericCollection
                 continue;
             }
             var steps = new List<object>();
+            string[]? diagnosticActions = job.TryGetProperty("diagnosticActions", out var replay)
+                ? replay.EnumerateArray().Select(x => x.GetString()!).ToArray() : null;
+            if (diagnosticActions is { Length: 0 }) throw new InvalidDataException("Empty diagnostic replay");
             var wall = Stopwatch.StartNew();
             while (!native.Terminal && steps.Count < 100 && native.Round <= 40)
             {
+                if (diagnosticActions != null && steps.Count == diagnosticActions.Length) break;
                 await env.RestoreAsync([], cancellation);
                 env.SetRootPlayerHp(native.Hp);
                 if (!env.MatchesLiveRoot(native.CombatStateForSimulation, native.HasPendingChoice, native.ChoiceSignature))
@@ -111,19 +115,26 @@ internal static class GenericCollection
                 CombatSolverMctsAction selected;
                 var visits = legal.ToDictionary(a => a.Key, _ => 0);
                 int simulations = 0;
+                var timingEnvironment = new ReplayTimingEnvironment(env);
+                double evaluationMs = 0;
+                double priorWallBefore = prior.WallMs, encodeBefore = prior.EncodeMs, inferBefore = prior.InferMs;
+                long callsBefore = prior.Calls;
                 int valueCalls=0,leafBackups=0,terminalBackups=0; double valueSum=0, heuristicSum=0, evaluatedValueSum=0, meanBackupDepth=0;
                 Func<int,CancellationToken,Task<double>>? evaluator = leaf.Mode == "heuristic" ? null : async (depth,ct) => {
+                    var evaluationTimer = Stopwatch.StartNew();
                     string branchBefore=env.CurrentContinuationKey;
                     double heuristic=env.EvaluateCutoff();
                     double learned=await prior.ValueAsync(env.ExportGenericValueObservation(hp,steps.Count+depth),ct);
                     if(branchBefore!=env.CurrentContinuationKey) throw new InvalidDataException("Value projection mutated its branch");
                     double combined=leaf.Combine(heuristic,learned);
                     valueCalls++; valueSum+=learned; heuristicSum+=heuristic; evaluatedValueSum+=combined;
+                    evaluationMs += evaluationTimer.Elapsed.TotalMilliseconds;
                     return combined;
                 };
                 var timer = Stopwatch.StartNew();
                 string? liveBefore = native.HasPendingChoice ? null : NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation);
-                if (legal.Count == 1) selected = legal[0];
+                if (diagnosticActions != null) selected = legal.Single(a => a.Key == diagnosticActions[steps.Count]);
+                else if (legal.Count == 1) selected = legal[0];
                 else if (arm == "policy")
                 {
                     selected = legal[Enumerable.Range(0, legal.Count).MaxBy(i => probabilities[i])];
@@ -131,7 +142,7 @@ internal static class GenericCollection
                 else
                 {
                     // Fresh root: visit targets describe this decision only, with no retained-label ambiguity.
-                    var result = await new ReplayMcts<CombatSolverMctsAction>(env, seed: seed + steps.Count, policyPrior: provider, leafValue:evaluator)
+                    var result = await new ReplayMcts<CombatSolverMctsAction>(timingEnvironment, seed: seed + steps.Count, policyPrior: provider, leafValue:evaluator)
                         .SearchAsync([], env.RootKey, TimeSpan.FromMilliseconds(budgetMs), TimeSpan.FromMilliseconds(budgetMs), cancellation);
                     foreach (var stat in result.Statistics) visits[stat.Action.Key] = stat.Visits;
                     simulations = result.CompletedSimulations;
@@ -169,7 +180,14 @@ internal static class GenericCollection
                     throw new InvalidDataException($"Full native successor continuation mismatch: seed={seed} decision={steps.Count} action={selected.Key}");
                 }
                 if (native.HasPendingChoice && !env.MatchesLiveRoot(native.CombatStateForSimulation, true, native.ChoiceSignature))
-                    throw new InvalidDataException("Native selector mismatch");
+                {
+                    File.WriteAllText(output + ".failure.json", JsonSerializer.Serialize(new {
+                        recipe=entry.GetProperty("recipe").Clone(), steps, observation, action=selected.Key,
+                        predicted=env.CurrentState, predictedChoice=env.ChoiceSignature,
+                        predictedDiagnostics=env.ChoiceDiagnostics, actualChoice=native.ChoiceSignature,
+                        actualActions=native.LegalActions() }));
+                    throw new InvalidDataException($"Native selector mismatch: seed={seed} decision={steps.Count} action={selected.Key} predicted={env.ChoiceSignature} actual={native.ChoiceSignature}");
+                }
                 string successorParityScope;
                 try
                 {
@@ -185,9 +203,22 @@ internal static class GenericCollection
                     throw new InvalidDataException($"Endpoint contract at decision={steps.Count} action={selected.Key}",error);
                 }
                 steps.Add(new { observation, action = selected.Key, visits, simulations, seconds,
+                    searchTiming = new { timingEnvironment.RestoreMs, timingEnvironment.ApplyMs,
+                        timingEnvironment.Restores, timingEnvironment.Applies,
+                        evaluationMs, inferenceWallMs=prior.WallMs-priorWallBefore,
+                        encodeMs=prior.EncodeMs-encodeBefore, inferMs=prior.InferMs-inferBefore,
+                        inferenceCalls=prior.Calls-callsBefore },
                     leafDiagnostics=new { valueCalls,valueSum,heuristicSum,evaluatedValueSum,leafBackups,terminalBackups,meanBackupDepth },
                     forced = legal.Count == 1, automaticForcedChoices, featureParity = true, successorParity = true, successorParityScope,
                     terminalAfter = native.Terminal, hpAfter = native.Hp });
+            }
+            if (diagnosticActions != null)
+            {
+                if (steps.Count != diagnosticActions.Length) throw new InvalidDataException("Diagnostic replay ended early");
+                File.WriteAllText(output, JsonSerializer.Serialize(new {
+                    format="native-diagnostic-replay-v1", recipe=entry.GetProperty("recipe").Clone(), steps,
+                    terminal=native.Terminal, hp=native.Hp, continuation=env.CurrentContinuationStateText }));
+                continue;
             }
             bool truncated = !native.Terminal;
             var end = env.CurrentState;

@@ -1,5 +1,7 @@
 # CombatSolver 架构与职责地图
 
+根快照的 `TurnSetupChoicesPauseSideStart` 冻结原生 Selector 是否为空，Fork 按值继承且进入指纹；普通 UI 的选择暂停与注入式选择器等待整个 SetupPlayerTurn 的时序由同一续执行状态机区分。后台不得读取 Selector。
+
 `CombatPredictionCardPlayFinishedEntry` 保存完成时的 round、side 与单人 player-turn，续执行 Fork 按值继承；STOMP 进场费用读取冻结根与当前回合的完成条目，包含 AfterCardPlayed 生成它之前刚完成的攻击。
 
 `CombatPredictionHistory` 拥有模拟历史及六项累计值；单人身份在模拟器建立时冻结，三类 Fork 按值继承。`CombatHistoryCounterKey` 只按原条件消费累计值，不维护第二份账本。测试构建逐事件核对独立全扫描。

@@ -47,6 +47,9 @@ internal sealed partial class SimulatedCombatState
     private readonly EncounterModel? _encounter;
     private readonly IReadOnlyList<string> _encounterSlots;
     private readonly RootCombatHistorySnapshot _rootHistory;
+    // Native CardSelectCmd skips SignalPlayerChoiceBegun with an injected selector.
+    // Freeze this main-thread fact: workers must not query the live selector stack.
+    internal bool TurnSetupChoicesPauseSideStart { get; }
     private readonly IReadOnlySet<Creature> _rootCreatures;
     private readonly AbstractModel[] _rootHookListeners;
     private readonly AbstractModel[] _rootRunHookListeners;
@@ -260,6 +263,7 @@ internal sealed partial class SimulatedCombatState
         _encounter = inner.Encounter;
         _encounterSlots = inner.Encounter?.Slots.ToArray() ?? [];
         _rootHistory = RootCombatHistorySnapshot.Capture();
+        TurnSetupChoicesPauseSideStart = MegaCrit.Sts2.Core.Commands.CardSelectCmd.Selector == null;
         _brightestFlameMaxHpSpent = CaptureBrightestFlameMaxHpSpent(_rootHistory.CardPlaysStarted);
         _rootCreatures = inner.Creatures
             .Concat(inner.Players.Select(player => player.Osty).OfType<Creature>())
@@ -450,6 +454,7 @@ internal sealed partial class SimulatedCombatState
         _encounter = source._encounter;
         _encounterSlots = source._encounterSlots;
         _rootHistory = source._rootHistory;
+        TurnSetupChoicesPauseSideStart = source.TurnSetupChoicesPauseSideStart;
         _rootCreatures = source._rootCreatures;
         _rootHookListeners = source._rootHookListeners;
         _rootRunHookListeners = source._rootRunHookListeners;
@@ -2216,6 +2221,8 @@ internal sealed partial class SimulatedCombatState
         ref StateFingerprintBuilder fingerprint,
         CombatPredictionSimulator simulator)
     {
+        fingerprint.Add("turn_setup_choice_pause");
+        fingerprint.Add(TurnSetupChoicesPauseSideStart);
         if (AdaptedOnPlay is { } adaptedOnPlay)
         {
             fingerprint.Add("onplay_configuration");
