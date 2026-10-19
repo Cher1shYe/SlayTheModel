@@ -6,6 +6,7 @@ using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using HarmonyLib;
+using CombatSolver.Engine.InCombat.Mirrors.Orbs;
 
 namespace CombatSolver.Api;
 
@@ -32,8 +33,8 @@ public sealed partial class NativeMctsSimulationSession
         var combat = (SimulatedCombatState)simulator.State.CombatState;
         var player = capturedRoot.PlayerIdentity;
         var pcs = simulator.State.GetPlayerCombatState(player);
-        if (combat.GetOsty(player) != null || pcs.OrbQueue.Orbs.Count != 0)
-            throw new NotSupportedException("Generic value projection does not yet cover companions/orbs");
+        if (combat.GetOsty(player) != null)
+            throw new NotSupportedException("Generic value projection does not yet cover companions");
         object Card(PredictedCard predicted) {
             var c=predicted.Preview;
             return new {
@@ -82,7 +83,9 @@ public sealed partial class NativeMctsSimulationSession
                     Relics=combat.RelicsOf(player).Select(r=>new { ModelId=r.Id.ToString() }).ToArray(),
                     Potions=Enumerable.Range(0,genericPotionSlots).Select(i=>(i,p:combat.GetPotionAtSlot(player,i)))
                         .Where(x=>x.p!=null).Select(x=>new { SlotIndex=x.i, ModelId=x.p!.Id.ToString() }).ToArray(),
-                    Orbs=Array.Empty<object>(), Gold=combat.GetPlayerGold(player), OrbCapacity=(int?)null } },
+                    Orbs=pcs.OrbQueue.Orbs.Select(o=>new { ModelId=o.Id.ToString(),
+                        Passive=(int)OrbMirrors.GetPassiveValue(simulator,o), Evoke=(int)OrbMirrors.GetEvokeValue(simulator,o) }).ToArray(),
+                    Gold=combat.GetPlayerGold(player), OrbCapacity=pcs.OrbQueue.Capacity>0 ? (int?)pcs.OrbQueue.Capacity : null } },
                 Creatures=new[]{player.Creature}.Concat(combat.Enemies).OrderBy(c=>c.CombatId).Select(Creature).ToArray(),
                 EnemyIntents=Array.Empty<object>(),Companions=Array.Empty<object>(),ActiveChoice=(object?)null,PendingManualActions=Array.Empty<object>() },
             cards=all.Select(c=>new {index=indices[c],data=Card(c)}).ToArray(),intents,

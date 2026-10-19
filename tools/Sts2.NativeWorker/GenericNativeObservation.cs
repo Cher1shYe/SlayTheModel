@@ -13,6 +13,9 @@ public sealed partial class NativeSession
     public object ExportGenericObservation(IReadOnlyList<CombatSolverMctsAction> actions, int initialHp, int decisions)
     {
         var observation = CombatCaptureService.BuildObservation(_state, decisions);
+        int capacity=_player.PlayerCombatState!.OrbQueue.Capacity;
+        observation=observation with { Players=observation.Players.Select(p=>p with {
+            OrbCapacity=capacity>0 ? (int?)capacity : null }).ToArray() };
         observation.Validate();
         var allCards = _player.PlayerCombatState!.AllPiles.SelectMany(p => p.Cards).ToArray();
         object Card(CardModel c) => new {

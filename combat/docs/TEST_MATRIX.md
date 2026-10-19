@@ -1,5 +1,9 @@
 ﻿# CombatSolver 测试清单
 
+## 通用暗黑球投影（2026-10-19）
+
+原失败产物 native_search_orb_fixed_20261019；独立原生 native_orb_search_parity_20261019 共 25 决策、24 帧带球，严格分支/live 对账；native_dark_orb_projection_v1.json.gz 验证容量、被动 6、随回合增长的激发值及训练转换。
+
 ## 保留根历史回归（2026-10-19）
 
 TUNNELER_WEAK seed 1600000142：28 决策完整 continuation 对账，证据 sts2-rl-agent/output/native_frozen_history_20261019/。native_tear_asunder_history_v1.json.gz 断言第 14 决策 TEAR_ASUNDER 后敌人格挡 11，不能为历史重复计数导致的 1。
