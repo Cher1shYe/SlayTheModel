@@ -26,7 +26,9 @@ internal sealed class SearchReplayEvidence
         => sink.Info("[CombatSolver/Evidence] FAILED_CANDIDATE " + JsonSerializer.Serialize(new
         {
             schemaVersion = 1, stage, node.Turn, node.ActionCount, attemptedAction,
-            prefix = node.Actions, turnSetupChoices = node.GetTurnSetupChoices(),
+            prefix = node.ExternalRouteOwned ? null : node.Actions,
+            prefixOwnedByExternalSearch = node.ExternalRouteOwned,
+            turnSetupChoices = node.GetTurnSetupChoices(),
             node.Snapshot.PlayerHp, node.Snapshot.PlayerBlock, node.Snapshot.Energy, node.Snapshot.Stars,
             node.Snapshot.HandCount, node.Snapshot.EnemyHp,
             hasPendingCycleExitObservation = node.PendingCycleExitObservation != null,

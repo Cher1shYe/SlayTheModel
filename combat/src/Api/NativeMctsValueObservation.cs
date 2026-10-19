@@ -10,8 +10,7 @@ namespace CombatSolver.Api;
 public sealed partial class NativeMctsSimulationSession
 {
     // Pure branch projection. No collector/live combat reads are permitted here.
-    // Nullable DTO fields mirror the existing collector's basic projection; the
-    // `cards.data` supplement supplies actual mutable costs, upgrades and variables.
+    // DTO fields follow native serialization; all mutable values come from this branch.
     public object ExportGenericValueObservation(int initialHp, int decisions)
     {
         ThrowIfDisposed();
@@ -54,8 +53,12 @@ public sealed partial class NativeMctsSimulationSession
             return new { target=e.CombatId, intents=move.Move.Intents.Select(i => new {
                 kind=i.GetType().Name, damage=i is AttackIntent ? damage : 0 }).ToArray() };
         }).ToArray();
+        int? SerializedEnergyCost(PredictedCard card) {
+            int cost=card.GetEnergyCostValueWithModifiers(simulator);
+            return cost==card.Preview.EnergyCost.Canonical ? null : cost;
+        }
         var piles=pcs.AllPiles.Select(p => new { PileType=p.Type.ToString(), Cards=p.Cards.Select(c => new {
-            CombatCardIndex=indices[c], ModelId=c.Preview.Id.ToString(), EnergyCost=(int?)null,
+            CombatCardIndex=indices[c], ModelId=c.Preview.Id.ToString(), EnergyCost=SerializedEnergyCost(c),
             AfflictionId=c.Preview.Affliction?.Id.ToString(), AfflictionCount=c.Preview.Affliction?.Amount ?? 0,
             Keywords=c.Preview.Keywords.Select(k=>k.ToString()).Order().ToArray(), UpgradeLevel=(int?)null,
             EnchantmentId=(string?)null, EnchantmentAmount=(int?)null, Display=(object?)null }).ToArray() }).ToArray();
@@ -68,7 +71,7 @@ public sealed partial class NativeMctsSimulationSession
                     Potions=Enumerable.Range(0,genericPotionSlots).Select(i=>(i,p:combat.GetPotionAtSlot(player,i)))
                         .Where(x=>x.p!=null).Select(x=>new { SlotIndex=x.i, ModelId=x.p!.Id.ToString() }).ToArray(),
                     Orbs=Array.Empty<object>(), Gold=combat.GetPlayerGold(player), OrbCapacity=(int?)null } },
-                Creatures=new[]{player.Creature}.Concat(combat.Enemies).Select(Creature).ToArray(),
+                Creatures=new[]{player.Creature}.Concat(combat.Enemies).OrderBy(c=>c.CombatId).Select(Creature).ToArray(),
                 EnemyIntents=Array.Empty<object>(),Companions=Array.Empty<object>(),ActiveChoice=(object?)null,PendingManualActions=Array.Empty<object>() },
             cards=all.Select(c=>new {index=indices[c],data=Card(c)}).ToArray(),intents,
             choice=(object?)null,actions=Array.Empty<object>()

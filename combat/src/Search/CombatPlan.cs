@@ -1078,6 +1078,9 @@ internal sealed record SearchNode(
     ContinuationStamp? TurnSetupPlayState = null)
 {
     private IReadOnlyList<PlanAction>? _actions;
+    // External MCTS owns its route. This snapshot node retains an absolute action
+    // count for replay accounting, but must never fabricate a Beam parent chain.
+    public bool ExternalRouteOwned { get; init; }
 
     // Cycle evidence is discovered only after the simulator snapshot has produced this node.
     // Keep the positional member (and therefore record equality/deconstruction/with semantics),

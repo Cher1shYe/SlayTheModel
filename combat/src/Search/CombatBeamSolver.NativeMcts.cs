@@ -199,7 +199,7 @@ internal sealed partial class CombatBeamSolver
         snapshot.PlayerDead || snapshot.AllEnemiesDead || snapshot.BoundaryReason != SearchBoundaryReason.None,
         null,
         snapshot,
-        CombatProgressState.Capture(snapshot));
+        CombatProgressState.Capture(snapshot)) { ExternalRouteOwned = true };
 
     private IReadOnlyList<PlanAction> NativeMctsPreparedActions(SimulationSnapshot snapshot, int actionCount)
     {

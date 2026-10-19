@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 外部采集费用／召唤／诊断回归（2026-10-19）
+
+`check_native_scope_repair.py` 在单人范围重跑旧失败配方、对应升级牌及新随机种子；成功轨迹逐决策核对费用编码、实体顺序、完整稳定后继与终局奖励。`smoke/SlayTheModel.CollectionContracts.Smoke` 使用实际编译程序集验证外部节点诊断不会物化 Beam 父链，普通 Beam 非法链仍报错；同一 smoke 覆盖选择边界及稳定端点 HP／终局失配拒绝。两个真实升级轨迹保存为 Python 腐坏拒绝夹具。待选牌边界只比较选择合同，选择完成后才比较完整 continuation；不将中间态声称为完整状态等价。证据与次数见 [单人回归报告](../../../../sts2-rl-agent/docs/NATIVE_SCOPE_REPAIR_20261019.md)。
+
 ## 原生价值分支投影（2026-10-19）
 
 上层 `check_native_generic.py --leaf-mode heuristic|learned|mixed` 有界验收三模式各两场，混合模式另校验 8 个冻结验证配方；普通根按完全一致的编码实体对账，叶子投影前后核对分支 continuation，搜索前后核对真实根不变。覆盖目标伤害随 Power 变化、升级、动态牌堆、选牌及等价重复实例。终局不用网络；挂起选牌不做价值投影。外部 ReplaySearch smoke 测试混合算术／选择影响、终局优先、选牌续接、非有限值及截止拒绝；Python 验证录制数据、配置传播、来源／回放隔离及学习者／冠军恢复。详细证据与未覆盖边界见 [价值叶子验收](../../../../sts2-rl-agent/docs/NATIVE_VALUE_MCTS_20261019.md)。
