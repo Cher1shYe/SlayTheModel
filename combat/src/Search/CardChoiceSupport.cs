@@ -67,7 +67,7 @@ internal static partial class CardChoiceSupport
         return card switch
         {
             HiddenDaggers => new PlanCardChoice(PlanChoiceEffect.Discard, PileType.Hand, []),
-            Brand or Scavenge => new PlanCardChoice(PlanChoiceEffect.Exhaust, PileType.Hand, []),
+            Scavenge => new PlanCardChoice(PlanChoiceEffect.Exhaust, PileType.Hand, []),
             _ => null,
         };
     }
@@ -143,7 +143,7 @@ internal static partial class CardChoiceSupport
             Seance => Spec(owner, PlanChoiceEffect.Transform, PileType.Draw,
                 card.DynamicVars.Cards.IntValue, owner.DrawPile.Cards),
             Transfigure => Spec(owner, PlanChoiceEffect.Modify, PileType.Hand, 1, owner.Hand.Cards),
-            Brand => Spec(owner, PlanChoiceEffect.Exhaust, PileType.Hand, 1, owner.Hand.Cards),
+            Brand => simulator.IsOverOrEnding ? null : Spec(owner, PlanChoiceEffect.Exhaust, PileType.Hand, 1, owner.Hand.Cards),
             Cleanse => Spec(owner, PlanChoiceEffect.Exhaust, PileType.Draw, 1, owner.DrawPile.Cards),
             Nightmare => Spec(owner, PlanChoiceEffect.Nightmare, PileType.Hand, 1, owner.Hand.Cards),
             HandTrick => Spec(owner, PlanChoiceEffect.ApplySly, PileType.Hand, 1,

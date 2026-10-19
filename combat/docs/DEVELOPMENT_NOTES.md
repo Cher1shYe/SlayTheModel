@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## BRAND 自伤与终局选牌（2026-10-19）
+
+显式 OnPlay mirror 在选牌前执行自伤，移除 Batch042 延迟补偿。INFERNO 自伤击杀终局后不请求 FromHand，不再制造 RequiredEmptyChoice；空手仍通过无选择后处理加力量。seed37004 最小配方6决策、76HP获胜，涵盖普通选牌、无选牌和终局；实际失败 seed2000129 重跑29决策、31HP获胜，完整对账。native_brand_inferno_terminal_v1 保留回归轨迹。第三方 Brand 覆盖需遵循此时序，不能重复施加自伤。
+
 ## HIDDEN_GEM 可打出状态牌（2026-10-19）
 
 候选过滤按 v0.111.0 排除 Curse/Quest，而非 Status/Curse，保留可打出状态牌；优先攻击/技能/能力的顺序不变。seed37003 最小配方修复前第4决策后继/RNG不一致，修复后24决策完整对账，实际打出 replay=3 的 SLIMED。原 seed2000125 重跑51决策通过。夹具 native_hidden_gem_status_v1 固定状态牌重放及完整后继契约。第三方覆盖 HiddenGem mirror 应遵守此候选范围。

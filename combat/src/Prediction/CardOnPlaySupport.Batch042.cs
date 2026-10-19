@@ -29,15 +29,6 @@ internal static partial class CardOnPlaySupport
             case BouncingFlask:
                 ApplyBouncingFlask(simulator, combat, card);
                 break;
-            case Brand:
-                simulator.Damage(
-                    [owner],
-                    card.DynamicVars.HpLoss.BaseValue,
-                    ValueProp.Unblockable | ValueProp.Unpowered | ValueProp.Move,
-                    owner,
-                    playedCard,
-                    null);
-                break;
             case CaptureSpirit when target != null:
                 ApplyCaptureSpirit(
                     simulator,

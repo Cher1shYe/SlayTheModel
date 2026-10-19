@@ -157,6 +157,7 @@ internal static partial class CardOnPlayMirrors
         registry.Register<Cinder>(CardSelectionCardMirrors.CinderOnPlay);
         registry.Register<DrainPower>(CardSelectionCardMirrors.DrainPowerOnPlay);
         registry.Register<HiddenGem>(CardSelectionCardMirrors.HiddenGemOnPlay);
+        registry.Register<Brand>(CardSelectionCardMirrors.BrandOnPlay);
         registry.Register<SeekerStrike>(CardSelectionCardMirrors.SeekerStrikeOnPlay);
         registry.Register<Thrash>(CardSelectionCardMirrors.ThrashOnPlay);
         registry.Register<TrueGrit>(CardSelectionCardMirrors.TrueGritOnPlay);

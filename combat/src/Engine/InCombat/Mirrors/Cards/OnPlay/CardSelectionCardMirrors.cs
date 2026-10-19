@@ -173,6 +173,15 @@ internal static class CardSelectionCardMirrors
         context.Simulator.History.CardsSelected([selectedCard]);
     }
 
+    public static void BrandOnPlay(Brand card, CardOnPlayMirrorContext context)
+    {
+        context.Simulator.Damage([card.Owner.Creature], card.DynamicVars.HpLoss.BaseValue,
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unblockable |
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Unpowered |
+            MegaCrit.Sts2.Core.ValueProps.ValueProp.Move,
+            card.Owner.Creature, context.Card, context.CardPlay);
+    }
+
     public static void SeekerStrikeOnPlay(SeekerStrike card, CardOnPlayMirrorContext context)
     {
         context.AttackSingle();

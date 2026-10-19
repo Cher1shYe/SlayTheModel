@@ -147,6 +147,9 @@ internal sealed partial class SimulatedCombatState :
         CombatPredictionSimulator simulator,
         PredictedCard card)
     {
+        // Brand's self-damage can end combat through Inferno before FromHand runs.
+        if (card.Preview is MegaCrit.Sts2.Core.Models.Cards.Brand && simulator.IsOverOrEnding)
+            return true;
         ISet<uint> processedEnemyDeaths = _activeCardExecutionDeaths ?? new HashSet<uint>();
         CardChoiceSpec? spec = CardChoiceSupport.GetSpec(simulator, card);
         if (spec != null)
