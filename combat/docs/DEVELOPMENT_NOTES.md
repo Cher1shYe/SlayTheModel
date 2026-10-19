@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## Burrowed 破盾眩晕时序（2026-10-19，未发布）
+
+TUNNELER_NORMAL / seed 1600000067 在第 8 回合入口发生模拟 BELOW_MOVE 与原生 STUNNED 分歧。BurrowedPower 原先忽略 AfterBlockBroken，再在伤害历史中补偿，不能覆盖与后续怪物转移相同的事件时序。改由 AfterBlockBroken mirror 在破盾当场设置分支眩晕、强制 STUNNED→BITE_MOVE、移除 Burrowed 并清空格挡；删除旧历史补偿。原配方严格 continuation 对账完整通过 44 决策／16 回合；原 69 场完整缓存重验后编码、动作和奖励相同，17 项 Python 特征与缓存测试通过。
+
 ## 外部采集先预测后执行（2026-10-19，未发布）
 
 SLITHERING_STRANGLER_NORMAL / seed 1600000053 的 CATASTROPHE+ 暴露外部采集先推进 live、后回放预测的时序问题。GenericCollection 先解析 live 动作身份，完成 Promote 预测后再执行真实动作；完整后继和选牌边界仍严格对账。失败配方完整 16 决策通过，包含多次出牌和嵌套选择；16 项 Python 特征与缓存测试通过。额外根预览物化尝试未解决问题，已撤回；保留失败时的模拟手牌键诊断。

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## Burrowed 破盾回调回归（2026-10-19）
+
+固定 TUNNELER_NORMAL / seed 1600000067，原模型纯策略：修复前 decision 19 的 EndTurn 后眩晕状态失配，修复后 44 决策／16 回合完整原生 continuation 对账通过。产物 `sts2-rl-agent/output/native_burrow_hook_final_20261019/`；回归夹具 `tests/fixtures/native_tunneler_burrow_v1.json.gz`，可用通用 `check_native_feature_regression.py --fixture` 重跑；Python 断言 StunIntent 出现、跨越第 8 回合与全轨迹严格校验。
+
 ## CATASTROPHE 预测与实机推进顺序（2026-10-19）
 
 固定 seed 1600000053、原 initial.pt，修复前 Promote 在实机动作之后回放时报手牌缺失；先预测后推进后 16 决策完整成功。证据 `sts2-rl-agent/output/native_promote_order_20261019/`；夹具 `tests/fixtures/native_catastrophe_sequence_v1.json.gz`，可经 `check_native_feature_regression.py --fixture <该夹具> --checkpoint <原 initial.pt> --out <新目录>` 重跑。Python 回归覆盖重复 CATASTROPHE 出牌、选择、完整轨迹校验与逐场缓存恢复。
