@@ -14,6 +14,7 @@ internal enum PredictedDeathPhase
     None,
     Reviving,
     PermanentlyDead,
+    RevivingBeforeCleanup,
 }
 
 internal sealed partial class SimulatedCombatState
@@ -43,11 +44,11 @@ internal sealed partial class SimulatedCombatState
 
     public bool CanPerformMonsterMove(CombatPredictionSimulator simulator, Creature creature)
         => simulator.State.GetCreature(creature).IsAlive
-            || _deathPhases?.GetValueOrDefault(creature) == PredictedDeathPhase.Reviving;
+            || IsReviving(creature);
 
     private int RevivingEnemyHp(Creature creature, int capturedMaxHp)
     {
-        if (_deathPhases?.GetValueOrDefault(creature) != PredictedDeathPhase.Reviving)
+        if (!IsReviving(creature))
             return 0;
         if (creature.Monster is DecimillipedeSegment)
         {
@@ -95,9 +96,9 @@ internal sealed partial class SimulatedCombatState
         ForceMonsterMove(creature, "RESPAWN_MOVE");
     }
 
-    public void BeginIllusionRevive(Creature creature)
+    public void BeginIllusionRevive(Creature creature, bool beforeCleanup = false)
     {
-        if (_deathPhases?.GetValueOrDefault(creature) == PredictedDeathPhase.Reviving)
+        if (IsReviving(creature))
             return;
         BranchMonsterAiState ai = GetMonsterAiState(creature);
         string? followUp = GetPower<IllusionPower>(creature)?.FollowUpStateId
@@ -112,7 +113,7 @@ internal sealed partial class SimulatedCombatState
             FollowUpStateId = followUp,
             MustPerformOnceBeforeTransitioning = true,
         };
-        SetDeathPhase(creature, PredictedDeathPhase.Reviving);
+        SetDeathPhase(creature, beforeCleanup ? PredictedDeathPhase.RevivingBeforeCleanup : PredictedDeathPhase.Reviving);
         ForceMonsterMove(creature, revive);
     }
 
@@ -134,9 +135,13 @@ internal sealed partial class SimulatedCombatState
 
     public void CompleteDeathPhase(Creature creature)
     {
-        if (_deathPhases?.GetValueOrDefault(creature) is not PredictedDeathPhase.Reviving)
-            SetDeathPhase(creature, PredictedDeathPhase.PermanentlyDead);
+        SetDeathPhase(creature, IsReviving(creature)
+            ? PredictedDeathPhase.Reviving : PredictedDeathPhase.PermanentlyDead);
     }
+
+    private bool IsReviving(Creature creature)
+        => _deathPhases?.GetValueOrDefault(creature) is PredictedDeathPhase.Reviving
+            or PredictedDeathPhase.RevivingBeforeCleanup;
 
     public bool HasCompletedDeathEffects(Creature creature)
         => _deathPhases?.GetValueOrDefault(creature) is PredictedDeathPhase.Reviving or PredictedDeathPhase.PermanentlyDead;

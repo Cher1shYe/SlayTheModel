@@ -70,9 +70,6 @@ internal static class DeathPowerSupport
                 case AdaptablePower:
                     combat.BeginAdaptableRevive(dead);
                     break;
-                case IllusionPower:
-                    combat.BeginIllusionRevive(dead);
-                    break;
                 case InfestedPower:
                     for (int index = 0; index < 4; index++)
                     {

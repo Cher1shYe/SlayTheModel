@@ -3007,3 +3007,7 @@ Beam 中间排序与最终选择分离。稳健预设把 `1 HP` 约视为 `3` �
 `ShrinkPower.AfterDeath` now removes the branch power immediately when its applier dies and removal was not prevented. Removed the delayed end-of-card compensation and its coverage exceptions; the registered mirror owns this behavior. Native v0.111.0 removes Shrink at this hook, so later hits use the restored damage multiplier.
 
 Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 CONFLAGRATION+: old prediction left FUZZY_WURM_CRAWLER at 10 HP vs native 9 after SHRINKER_BEETLE died. Isolated repaired full-prefix replay passed all 30 decisions with complete continuation/feature checks; next observation has 9 HP and no Shrink. Python fixture: native_shrink_multihit_v1.json.gz. Shared runtime DLL was not rebuilt.
+
+### 2026-10-19：幻象死亡后的能力施加时点
+
+原生 v0.111.0 的 IllusionPower.AfterDeath 立即进入复活状态，拒绝后续 PowerCmd.Apply。此前领域清理延至出牌末，导致 MANGLE 击倒幻象后仍施加减力量。现由 AfterDeath 镜像启动复活，使用 RevivingBeforeCleanup 保留待处理死亡清理；清理完成后归并到 Reviving。阶段随既有分支字典 Fork 并进入指纹，不读取 live 可变状态。隔离 DLL 以冻结候选 seed1600000286 完整严格回放23决策通过，覆盖击倒、复活及后续回合。

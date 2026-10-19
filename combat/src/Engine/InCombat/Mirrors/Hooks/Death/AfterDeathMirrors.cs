@@ -56,8 +56,19 @@ internal static class AfterDeathMirrors
         registry.Register<PossessSpeedPower>(HandlePossess);
         registry.Register<SteamEruptionPower>(HandleSteamEruption);
         registry.Register<ShrinkPower>(HandleShrink);
+        registry.Register<IllusionPower>(HandleIllusion);
 
         return registry;
+    }
+
+    private static void HandleIllusion(IllusionPower power, AfterDeathMirrorContext context)
+    {
+        if (context.WasRemovalPrevented || context.Creature != power.Owner)
+            return;
+        if (context.CombatState is not SimulatedCombatState combat)
+            throw new InvalidOperationException("Illusion death requires captured revival state.");
+        // Native blocks subsequent powers immediately; deferred cleanup must still run.
+        combat.BeginIllusionRevive(context.Creature, beforeCleanup: true);
     }
 
     private static void HandleShrink(ShrinkPower power, AfterDeathMirrorContext context)

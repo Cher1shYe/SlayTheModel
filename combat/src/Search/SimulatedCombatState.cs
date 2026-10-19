@@ -2832,7 +2832,7 @@ internal sealed partial class SimulatedCombatState
     bool ICombatPredictionCreatureSemantics.IsHittable(Creature creature)
     {
         if (_deathPhases?.GetValueOrDefault(creature) is PredictedDeathPhase.Reviving
-            or PredictedDeathPhase.PermanentlyDead)
+            or PredictedDeathPhase.RevivingBeforeCleanup or PredictedDeathPhase.PermanentlyDead)
         {
             return false;
         }
