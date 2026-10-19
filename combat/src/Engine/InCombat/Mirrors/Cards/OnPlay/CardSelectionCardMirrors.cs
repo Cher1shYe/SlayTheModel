@@ -153,7 +153,8 @@ internal static class CardSelectionCardMirrors
         var eligibleCards = drawPile.Cards
             .Where(predictedCard =>
                 !predictedCard.HasKeyword(context.State, CardKeyword.Unplayable) &&
-                predictedCard.Preview.Type is not CardType.Status and not CardType.Curse &&
+                // v0.111.0 excludes Curse/Quest; playable Status cards remain eligible.
+                predictedCard.Preview.Type is not CardType.Curse and not CardType.Quest &&
                 predictedCard.Preview.GetEnchantedReplayCount() < 1)
             .ToList();
         var preferredCards = eligibleCards

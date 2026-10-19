@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## HIDDEN_GEM 可打出状态牌（2026-10-19）
+
+候选过滤按 v0.111.0 排除 Curse/Quest，而非 Status/Curse，保留可打出状态牌；优先攻击/技能/能力的顺序不变。seed37003 最小配方修复前第4决策后继/RNG不一致，修复后24决策完整对账，实际打出 replay=3 的 SLIMED。原 seed2000125 重跑51决策通过。夹具 native_hidden_gem_status_v1 固定状态牌重放及完整后继契约。第三方覆盖 HiddenGem mirror 应遵守此候选范围。
+
 ## 属性返还与多段攻击（2026-10-19）
 
 PossessStrength/PossessSpeed 的返还移至 AfterDeath mirror，并删除延迟死亡补偿；分支账本返还后清空，避免重复。seed 2000063 的旋风斩先击杀 THE_LOST，随后命中从10提升为12，击杀21 HP的 THE_FORGOTTEN。原生固定配方11决策、40 HP获胜，完整后继对账通过；native_possess_multihit_v1 夹具保留证据。适配器应遵守每次伤害后的死亡时点，不应推迟到整张牌结束。
