@@ -54,6 +54,7 @@ internal static class AfterDeathMirrors
         registry.Register<DampenPower>(HandleDampen);
         registry.Register<PossessStrengthPower>(HandlePossess);
         registry.Register<PossessSpeedPower>(HandlePossess);
+        registry.Register<SteamEruptionPower>(HandleSteamEruption);
 
         return registry;
     }
@@ -66,6 +67,15 @@ internal static class AfterDeathMirrors
             throw new InvalidOperationException("Possess death requires captured stolen-stat state.");
         // Return stolen stats before the next hit of a multi-hit attack.
         combat.RefundPossessedStats(context.Creature);
+    }
+
+    private static void HandleSteamEruption(SteamEruptionPower power, AfterDeathMirrorContext context)
+    {
+        if (context.WasRemovalPrevented || context.Creature != power.Owner)
+            return;
+        if (context.CombatState is not SimulatedCombatState combat)
+            throw new InvalidOperationException("Steam eruption requires captured monster phase state.");
+        combat.TryTriggerSteamEruptionDeath(context.Simulator, context.Creature);
     }
 
     private static void HandleDampen(DampenPower power, AfterDeathMirrorContext context)

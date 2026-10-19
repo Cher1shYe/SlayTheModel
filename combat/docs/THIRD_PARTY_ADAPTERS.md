@@ -1,5 +1,9 @@
 # 第三方 Mod 适配手册
 
+## SteamEruption 多段攻击阶段切换（2026-10-19）
+
+SteamEruption 从延迟死亡补偿移至 AfterDeath mirror，保持唯一结算点，使后续命中继续作用于新阶段。seed2000147 HAVOC/TEAR_ASUNDER 原错误新阶段 HP999999999，实际999999989；修复后29决策完整对账，native_steam_multihit_v1 锁定阶段后多段伤害。第三方镜像不得把阶段转换延迟到整个攻击结束。
+
 ## BRAND 自伤与终局选牌（2026-10-19）
 
 显式 OnPlay mirror 在选牌前执行自伤，移除 Batch042 延迟补偿。INFERNO 自伤击杀终局后不请求 FromHand，不再制造 RequiredEmptyChoice；空手仍通过无选择后处理加力量。seed37004 最小配方6决策、76HP获胜，涵盖普通选牌、无选牌和终局；实际失败 seed2000129 重跑29决策、31HP获胜，完整对账。native_brand_inferno_terminal_v1 保留回归轨迹。第三方 Brand 覆盖需遵循此时序，不能重复施加自伤。
