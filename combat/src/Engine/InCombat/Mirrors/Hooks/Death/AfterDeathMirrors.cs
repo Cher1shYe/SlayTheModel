@@ -52,8 +52,20 @@ internal static class AfterDeathMirrors
         registry.Register<StockPower>(HandleStock);
         registry.Register<CrabRagePower>(HandleCrabRage);
         registry.Register<DampenPower>(HandleDampen);
+        registry.Register<PossessStrengthPower>(HandlePossess);
+        registry.Register<PossessSpeedPower>(HandlePossess);
 
         return registry;
+    }
+
+    private static void HandlePossess(PowerModel power, AfterDeathMirrorContext context)
+    {
+        if (context.WasRemovalPrevented || context.Creature != power.Owner)
+            return;
+        if (context.CombatState is not SimulatedCombatState combat)
+            throw new InvalidOperationException("Possess death requires captured stolen-stat state.");
+        // Return stolen stats before the next hit of a multi-hit attack.
+        combat.RefundPossessedStats(context.Creature);
     }
 
     private static void HandleDampen(DampenPower power, AfterDeathMirrorContext context)

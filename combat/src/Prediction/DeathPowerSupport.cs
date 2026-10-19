@@ -104,9 +104,6 @@ internal static class DeathPowerSupport
                     MonsterSpawnSupport.Spawn<SneakyGremlin>(simulator, combat, dead, "sneaky");
                     MonsterSpawnSupport.AddCreated(simulator, combat, dead, fat);
                     break;
-                case PossessSpeedPower or PossessStrengthPower:
-                    combat.RefundPossessedStats(dead);
-                    break;
             }
             if (simulator.HasPendingChoice)
                 return false;

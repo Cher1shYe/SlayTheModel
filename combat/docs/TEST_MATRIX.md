@@ -1,4 +1,8 @@
-﻿# CombatSolver 测试清单
+# CombatSolver 测试清单
+
+## 属性返还与多段攻击（2026-10-19）
+
+PossessStrength/PossessSpeed 的返还移至 AfterDeath mirror，并删除延迟死亡补偿；分支账本返还后清空，避免重复。seed 2000063 的旋风斩先击杀 THE_LOST，随后命中从10提升为12，击杀21 HP的 THE_FORGOTTEN。原生固定配方11决策、40 HP获胜，完整后继对账通过；native_possess_multihit_v1 夹具保留证据。适配器应遵守每次伤害后的死亡时点，不应推迟到整张牌结束。
 
 ## EVIL_EYE 与有界训练（2026-10-19）
 
