@@ -10,6 +10,8 @@
 
 ## 当前精简分支的局部合同
 
+`NativeMctsValueObservation` 是当前完整模拟分支的公开特征投影：只读预测牌堆／Power／AI／资源，动态目标使用模拟器查询，意图使用分支预测与镜像伤害，不调用 live 动态委托。仅非终局、无挂起选择时可调用；同伴／球／多个独立攻击意图组明确拒绝。外层 worker 与真实根编码对账，驻留 Python 服务拥有网络推理，ReplayMcts 拥有叶子回传及截止处理；API 不依赖上层采集协议程序集或训练模型。`LiveSelectionSemanticKey` 仅供主线程合法选择覆盖对账，按完整卡牌语义键多重集合合并等价实例，不得用于后台读取 live。
+
 `NativeMctsPriorObservation` 是 Native MCTS session 的只读试验导出端；卡牌、HP、牌堆、Power、意图和合法动作来自当前预测分支。它不加载网络、不训练、不执行 Python 模拟。上层 worker 持有驻留推理进程，ReplayMcts 持有节点先验缓存及 PUCT 选择；默认不注入先验。当前特征合同仅支持明确校验的初始牌组与单一怪物试验，未知机制显式失败，不能解释为通用观察协议。
 
 SlayTheModel Native MCTS 的开场选择由上层 worker 在 `SetupPlayerTurn` 前调用 API 冻结稳定根，API 复用已有回合准备分支生成；不能捕获原生待选项中间态。开场分支快照属于 NativeMctsSimulationSession，跨 rollout 保留并在 session 释放时统一销毁；上层 worker 只持有冻结根的 session 工厂与原生重放输入。

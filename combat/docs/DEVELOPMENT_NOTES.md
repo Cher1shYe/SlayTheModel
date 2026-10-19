@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 原生 MCTS 价值观察（2026-10-19，未发布）
+
+新增 `ExportGenericValueObservation`，从当前完整预测分支导出通用公开特征供外部价值网络读取，不捕获 live 状态。动态目标、怪物伤害、费用／升级及 Power 使用分支查询；明确拒绝当前未覆盖的同伴／球与多攻击意图分组。外部 MCTS 支持手写、学习和混合非终局评分，终局奖励优先；正式 Beam 不变。`LiveSelectionSemanticKey` 修正等价重复卡牌按选项序号误判缺失的覆盖检查，仍校验完整状态键。三模式 6 场采集及 8 场冻结网络验证共 223 个决策检查通过，130 项 Python 回归和 C# ReplaySearch smoke 通过；详见 [价值叶子验收](../../../../sts2-rl-agent/docs/NATIVE_VALUE_MCTS_20261019.md)。未正式训练、发布或推送。
+
 ## 原生采集 continuation 的 Power 角色分组（2026-10-19，未发布）
 
 通用原生采集的真实／模拟对账发现：新施加玩家 Power 在 `EffectivePowers` 中可能排在敌人 Power 后，live 则按角色遍历。`AppendPowers` 现稳定按 Owner.CombatId 分组，保留同一角色内部的 Power 顺序及全部状态字段，不改变结算或搜索。失败基线为 BYRDONIS、seed 2000000 的 INFLAME 后继，唯一差异是跨角色顺序；通用采集验收已覆盖该路径及多怪、选择和升级，见 [通用协议验收](../../../../sts2-rl-agent/docs/NATIVE_GENERIC_PROTOCOL_20261019.md)。未提升版本、发包或启动正式训练。

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 原生价值分支投影（2026-10-19）
+
+上层 `check_native_generic.py --leaf-mode heuristic|learned|mixed` 有界验收三模式各两场，混合模式另校验 8 个冻结验证配方；普通根按完全一致的编码实体对账，叶子投影前后核对分支 continuation，搜索前后核对真实根不变。覆盖目标伤害随 Power 变化、升级、动态牌堆、选牌及等价重复实例。终局不用网络；挂起选牌不做价值投影。外部 ReplaySearch smoke 测试混合算术／选择影响、终局优先、选牌续接、非有限值及截止拒绝；Python 验证录制数据、配置传播、来源／回放隔离及学习者／冠军恢复。详细证据与未覆盖边界见 [价值叶子验收](../../../../sts2-rl-agent/docs/NATIVE_VALUE_MCTS_20261019.md)。
+
 ## 通用采集 continuation 分组回归（2026-10-19）
 
 `sts2-rl-agent/scripts/check_native_generic.py` 用 4 个训练侧原生配方及独立冻结的 8 个纯网络验证配方逐决策比较 continuation、合法动作及终局 HP／V7 奖励。覆盖 Power 角色分组顺序、升级、真实选择／自动唯一选择及最多三敌场景。普通非终局比较完整 continuation；挂起选择只证明选择合同，终局只证明胜负／HP／奖励，不能扩写为全部内部状态等价。Python 保存原生轨迹作为腐坏拒绝、恢复和学习者／冠军回归夹具；详情及结果见 [通用协议验收](../../../../sts2-rl-agent/docs/NATIVE_GENERIC_PROTOCOL_20261019.md)。

@@ -52,11 +52,13 @@ public sealed partial class NativeMctsSimulationSession : IDisposable
     private IReadOnlyList<string> choiceDiagnostics = [];
     private int actionCount;
     private bool disposed;
+    private readonly int genericPotionSlots;
     private readonly (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] rewardEnemies;
 
     internal NativeMctsSimulationSession(CombatRootSnapshot capturedRoot, bool includeTurnSetup = false)
     {
         this.capturedRoot = capturedRoot;
+        genericPotionSlots = capturedRoot.PlayerIdentity.PotionSlots.Count;
         driver = NativeMctsSimulation.CreateDriver(capturedRoot, includeTurnSetup);
         root = includeTurnSetup ? driver.NativeMctsCreateSetupRoot() : driver.NativeMctsCreateRoot();
         current = root;
@@ -356,6 +358,10 @@ public static class NativeMctsSimulationApi
     public static string CaptureLiveContinuationKey(CombatState state)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             ContinuationStamp.CaptureLive(state).StateText)));
+
+    public static string LiveSelectionSemanticKey(IReadOnlyList<MegaCrit.Sts2.Core.Models.CardModel> options, IEnumerable<int> selected)
+        => System.Text.Json.JsonSerializer.Serialize(selected.Select(i => CardChoiceSupport.ChoiceCardKey(options[i]))
+            .Order(StringComparer.Ordinal).ToArray());
 
     public static string CaptureLiveContinuationStateText(CombatState state)
         => ContinuationStamp.CaptureLive(state).StateText;
