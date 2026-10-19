@@ -414,7 +414,9 @@ internal sealed record ContinuationStamp(string StateText)
     private static void AppendPowers(StringBuilder text, IEnumerable<PowerModel> powers, CombatPredictionSimulator? simulator = null)
     {
         text.Append(";P=");
-        foreach (PowerModel power in powers.Where(power => power.Amount != 0))
+        // EffectivePowers can append a newly applied player power after enemy powers.
+        // Canonicalize owner groups while retaining each owner's semantic power order.
+        foreach (PowerModel power in powers.Where(power => power.Amount != 0).OrderBy(power => power.Owner.CombatId))
         {
             text.Append(power.Owner.CombatId).Append(':').Append(power.Id.Entry).Append('=')
                 .Append(power.Amount).Append('/')

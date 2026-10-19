@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 通用采集 continuation 分组回归（2026-10-19）
+
+`sts2-rl-agent/scripts/check_native_generic.py` 用 4 个训练侧原生配方及独立冻结的 8 个纯网络验证配方逐决策比较 continuation、合法动作及终局 HP／V7 奖励。覆盖 Power 角色分组顺序、升级、真实选择／自动唯一选择及最多三敌场景。普通非终局比较完整 continuation；挂起选择只证明选择合同，终局只证明胜负／HP／奖励，不能扩写为全部内部状态等价。Python 保存原生轨迹作为腐坏拒绝、恢复和学习者／冠军回归夹具；详情及结果见 [通用协议验收](../../../../sts2-rl-agent/docs/NATIVE_GENERIC_PROTOCOL_20261019.md)。
+
 ## 原生训练采集观察 v2（2026-10-19）
 
 上层 `sts2-rl-agent/scripts/check_native_backend.py` 是有界验收入口：六种牌、BYRDONIS_ELITE 与单怪 NIBBITS_WEAK，4 场采集加独立冻结的 24 场纯网络验证。逐决策独立捕获与非终局 continuation 对账，费用／基础伤害／格挡／抽牌数与原有 Python 描述核对。终局胜负／HP／V7 标签核对；末位舍入差单独记录。数据腐坏、失败续采、验证集隔离、更新与验证中断后的恢复在 Python 契约测试中覆盖。完整验收数值见 [后端 v2 报告](../../../../sts2-rl-agent/docs/NATIVE_BACKEND_V2_20261019.md)。不将 headless 速度解释为可见 Steam 性能。
