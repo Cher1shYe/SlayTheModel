@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 原生 MCTS 配置生效与 STRATAGEM 完整组合（2026-10-19）
+
+MYTES_NORMAL / seed 1600000034：修复前 decision 5 合法动作覆盖失败；传入专用 searchProfile 后纯策略整场 12 决策通过。首个选择从 10 张候选取 2 张，语义去重后 37 个组合全部存在。Python `tests/test_native_feature_regression.py` 用组合枚举独立核对；真实回归可用 `scripts/check_native_feature_regression.py --fixture tests/fixtures/native_stratagem_choices_v1.json.gz --checkpoint <原 initial.pt> --out <新目录>` 运行。实际证据：`sts2-rl-agent/output/native_stratagem_fixed_20261019/`；旧 38 场重验与相等证据：`native_stratagem_cache_revalidation_20261019/`。
+
 ## 原生特征 HEXED 与降级计算缓存（2026-10-19）
 
 失败配方 KNIGHTS_ELITE / seed 1600000029：使用原冻结模型的纯策略全战斗，逐根执行分支／真实价值特征严格对账，覆盖 EVIL_EYE+ 的 HEXED → Ethereal 以及 EXPECT_A_FIGHT 降级后的计算型基础值。修复后 6 决策通过；31 场既有完整缓存重验，编码输入、动作和奖励无变化。Python 的 `scripts/check_native_feature_regression.py --checkpoint <原 initial.pt> --out <新目录>` 可复现；`tests/fixtures/native_hexed_calculated_v1.json.gz` 保存通过轨迹，`tests/test_native_feature_regression.py` 检查对应特征。证据位于 `sts2-rl-agent/output/native_hexed_final_20261019/` 和 `native_hexed_cache_revalidation_20261019/`。

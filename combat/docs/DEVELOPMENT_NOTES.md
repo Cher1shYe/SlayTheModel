@@ -1,5 +1,9 @@
 # CombatSolver 开发笔记与未来构想
 
+## 原生 MCTS 搜索配置传递（2026-10-19，未发布）
+
+CreateDriver 虽创建专用 profile，却未传入 CombatBeamSolver 的 searchProfile 参数，导致执行器仍使用默认 Beam 配额。MYTES_NORMAL / seed 1600000034 的 STRATAGEM 洗牌二选在默认 18 分支限制下丢失合法组合。显式传递已有 profile 后，首个选择保留全部 37 个语义组合，固定模型整场 12 决策通过；原 38 场完整缓存在新版本重验，编码输入、动作和终局全部不变。严格合法动作对账保留；未移除通用嵌套选择的资源边界。
+
 ## 原生价值特征 HEXED／计算变量修复（2026-10-19，未发布）
 
 原生验证 seed=1600000029、KNIGHTS_ELITE 暴露两处观察差异：卡牌 Preview.Keywords 未应用分支全局关键词；降级后的 CalculatedVar.BaseValue 仍可保留旧显示缓存。价值投影改用现有 GetKeywords(state)，真实及分支变量特征统一通过 CalculatedVar.GetBaseVar 读取基础值，不计算伤害、不修改 live 模型。原固定配方修复前失败，修复后整场 6 决策通过；此前完成的 31 场用同模型重验，编码输入、动作、HP 与终局奖励全部相同。34 项 Python 特征／缓存／价值测试通过，保留严格根特征一致性检查。无版本提升或发布。

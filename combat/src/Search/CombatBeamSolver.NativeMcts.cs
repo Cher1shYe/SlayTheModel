@@ -271,7 +271,7 @@ internal static class NativeMctsSimulation
             new SearchDiagnosticsSink(static _ => { }, static _ => { }),
             new SearchFramePressureSignal(), new SearchMemoryPressureSignal());
         return new CombatBeamSolver(root, SolverDisplayNames.EmptyForHeadlessHost(),
-            new BattleDamageSnapshot(0, 0, 0, []), policy);
+            new BattleDamageSnapshot(0, 0, 0, []), policy, searchProfile: profile);
     }
 
     // End-turn plans include enemy-turn and next-turn choices in TurnStartChoices.
