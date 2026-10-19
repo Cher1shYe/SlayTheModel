@@ -833,7 +833,9 @@ internal static partial class CardChoiceSupport
             .StableShuffle(simulator.Rng.CombatCardSelection)
             .Take(playedCard.Preview.DynamicVars.Cards.IntValue)
             .ToList();
-        if (options.Count == 0)
+        // Native computes/shuffles options first, then FromCombatPile returns
+        // no selection when the preceding attack has ended the combat.
+        if (simulator.IsOverOrEnding || options.Count == 0)
             return null;
         simulator.History.CardsSelected(options);
         simulator.History.RecordRisk(PredictionRiskReason.UnresolvedPlayerChoice);

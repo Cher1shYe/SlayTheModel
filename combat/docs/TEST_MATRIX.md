@@ -1,5 +1,9 @@
 ﻿# CombatSolver 测试清单
 
+## SeekerStrike 击杀终局（2026-10-19）
+
+原配方 native_seeker_terminal_fixed_20261019 完整通过；native_seeker_killing_blow_20261019 的 seed 37002/SLIMES_WEAK/10 张 SEEKER_STRIKE+，10 决策满血胜利。native_seeker_terminal_v1.json.gz 验证最终动作、terminalAfter 和 complete_continuation。
+
 ## 通用暗黑球投影（2026-10-19）
 
 原失败产物 native_search_orb_fixed_20261019；独立原生 native_orb_search_parity_20261019 共 25 决策、24 帧带球，严格分支/live 对账；native_dark_orb_projection_v1.json.gz 验证容量、被动 6、随回合增长的激发值及训练转换。

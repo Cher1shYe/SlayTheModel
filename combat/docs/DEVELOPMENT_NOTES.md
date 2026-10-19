@@ -1,5 +1,9 @@
 ﻿# CombatSolver 开发笔记与未来构想
 
+## SeekerStrike 击杀后取消选择（2026-10-19，未发布）
+
+BuildSeekerSpec 保留原生先洗牌候选的 RNG 消耗，再在 IsOverOrEnding 时返回无选择，与 FromCombatPile 终局行为一致。原失败 seed 2000025 重跑完整通过；独立全 SeekerStrike+ 配方 10 决策、80 HP 获胜，最后一击不再留下 pending choice。
+
 ## 通用价值充能球投影（2026-10-19，未发布）
 
 SPLASH 可生成异职业攻击并在搜索内充能暗黑球。价值投影现在通过 OrbMirrors 读取分支被动、激发值与容量，实机同样投影容量；伙伴仍显式拒绝。原失败 seed 2000005 完整 26 决策获胜；独立 DARKNESS 测试 25 决策、24 个带球实机帧完整对账。正式范围随后按用户要求排除 SPLASH 及生成链。
