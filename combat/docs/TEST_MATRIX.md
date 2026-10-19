@@ -3848,3 +3848,6 @@ pwsh -NoProfile -File tools\run-unattended-test.ps1 -ScenarioId MONSTER-MOVES-BA
 Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 CONFLAGRATION+: old prediction left FUZZY_WURM_CRAWLER at 10 HP vs native 9 after SHRINKER_BEETLE died. Isolated repaired full-prefix replay passed all 30 decisions with complete continuation/feature checks; next observation has 9 HP and no Shrink. Python fixture: native_shrink_multihit_v1.json.gz. Shared runtime DLL was not rebuilt.
 
 - 2026-10-19 幻象 + MANGLE：冻结候选 seed1600000286，THE_OBSCURA_NORMAL；第5决策击倒 PARAFRIGHT，后续能力不得附着；23决策完整 native/simulation continuation 严格一致，含复活后继续战斗。Python 轨迹夹具 `native_illusion_mangle_v1.json.gz`。测试使用隔离 DLL。
+
+
+2026-10-19 ThinkingAhead+ / Hellraiser 终局选牌：seed2020144 TWO_TAILED_RATS_NORMAL，7步固定轨迹最后抽牌致胜，HP32且无挂起选择。夹具 native_thinking_ahead_terminal_v1.json.gz；隔离DLL及正常PUCT完整配方通过。

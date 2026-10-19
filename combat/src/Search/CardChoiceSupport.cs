@@ -122,7 +122,8 @@ internal static partial class CardChoiceSupport
             Survivor or Acrobatics or DaggerThrow => Spec(owner, PlanChoiceEffect.Discard, PileType.Hand, 1, owner.Hand.Cards),
             BurningPact => Spec(owner, PlanChoiceEffect.Exhaust, PileType.Hand, 1, owner.Hand.Cards),
             Prepared => Spec(owner, PlanChoiceEffect.Discard, PileType.Hand, card.DynamicVars.Cards.IntValue, owner.Hand.Cards),
-            ThinkingAhead => Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Hand, 1, owner.Hand.Cards),
+            // Draw hooks (Hellraiser) can end combat before native FromHand.
+            ThinkingAhead => simulator.IsOverOrEnding ? null : Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Hand, 1, owner.Hand.Cards),
             Glimmer or PhotonCut => Spec(owner, PlanChoiceEffect.MoveToDrawTop, PileType.Hand,
                 card.DynamicVars["PutBack"].IntValue, owner.Hand.Cards),
             Scavenge => Spec(owner, PlanChoiceEffect.Exhaust, PileType.Hand, 1,

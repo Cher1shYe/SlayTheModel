@@ -3011,3 +3011,6 @@ Evidence: frozen candidate-1 seed 1600000037, OVERGROWTH_CRAWLERS, decision 28 C
 ### 2026-10-19：幻象死亡后的能力施加时点
 
 原生 v0.111.0 的 IllusionPower.AfterDeath 立即进入复活状态，拒绝后续 PowerCmd.Apply。此前领域清理延至出牌末，导致 MANGLE 击倒幻象后仍施加减力量。现由 AfterDeath 镜像启动复活，使用 RevivingBeforeCleanup 保留待处理死亡清理；清理完成后归并到 Reviving。阶段随既有分支字典 Fork 并进入指纹，不读取 live 可变状态。隔离 DLL 以冻结候选 seed1600000286 完整严格回放23决策通过，覆盖击倒、复活及后续回合。
+
+
+2026-10-19：ThinkingAhead 抽牌触发 Hellraiser 自动攻击结束战斗时，CardChoiceSupport 按原生 FromHand.IsOverOrEnding 返回无选择。seed2020144 原失败7步严格重放通过；另以原学习者与250ms PUCT重跑通过。
