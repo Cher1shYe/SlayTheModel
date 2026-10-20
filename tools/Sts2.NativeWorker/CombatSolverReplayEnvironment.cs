@@ -48,7 +48,7 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     {
         RestoreAsync([], CancellationToken.None).GetAwaiter().GetResult();
         if (livePendingChoice)
-            return state.PendingChoice && PendingChoiceSignature() == liveChoiceSignature;
+            return state.PendingChoice && ChoiceSignaturesMatch(PendingChoiceSignature(), liveChoiceSignature);
         if (state.PendingChoice) return false;
         return CurrentContinuationKey == NativeMctsSimulationApi.CaptureLiveContinuationKey(combat);
     }
@@ -61,6 +61,20 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
                     .SelectMany(action => action.SelectedCards ?? [])
                     .Select(card => card.CardId).Distinct().Order())
             : "";
+
+    internal static bool ChoiceSignaturesMatch(string predicted, string native)
+    {
+        if (string.Equals(predicted, native, StringComparison.Ordinal))
+            return true;
+
+        // FromChooseACardScreen reports 0..1 to ICardSelector even when its
+        // native screen cannot be skipped. The prediction spec owns the true
+        // semantic minimum. Accept only this narrow 1..1 versus 0..1 adapter
+        // discrepancy, with an otherwise identical ordered option identity set.
+        return predicted.StartsWith("1:1:", StringComparison.Ordinal)
+            && native.StartsWith("0:1:", StringComparison.Ordinal)
+            && predicted.AsSpan(4).SequenceEqual(native.AsSpan(4));
+    }
 
     public void Promote(CombatSolverMctsAction action)
     {

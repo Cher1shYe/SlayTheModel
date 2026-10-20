@@ -1,5 +1,12 @@
 # CombatSolver 开发笔记与未来构想
 
+## SlayTheModel MCTS 战斗选择面与药水（2026-10-19）
+
+- 新增目录驱动的 `combat-potion-verify`：遍历 v0.111.0 `ModelDb.AllPotions` 的 66 项，63 种正式手动药水逐瓶核对 Native MCTS 动作与原生完整 continuation；仙女瓶保留自动死亡保护并从上层手动输入枚举移除，废弃占位和游戏测试模型不进入搜索。最终 ReplayMcts 固定夹具完成 350 次模拟，格挡药根分支取得 117 visits。
+- Native MCTS 的普通动作面新增 Combat Solver 已登记药水，公开身份保存物理槽位、模型和目标；展开直接复用现有 `PreparePotionActions`、`PotionExecutionSupport` 和 `PotionChoiceContinuation`，未复制药水效果。九种原版选牌药水因此与 41 种单人选牌卡、开局遗物及跨回合选择共用 PlanCardChoice 与 Fork/continuation 合同。
+- 只有一个实际候选的必选单选不再暴露伪选择节点。原生会自动完成唯一候选，例如只有一张弃牌时的液态记忆；预测现在同步到动作完成后的状态。多候选即使语义去重后只剩一个分支，也仍保留选择节点；赌博药水已验证冷 worker 从挂起多选恢复。
+- 上层 worker 将自用药水的模拟 null 目标映射为原生玩家 combat ID，并仅在预测为不可跳过 `1..1`、候选集合完全相同时接受原生 ChooseACard 接口报告的 `0..1`。该兼容不改变可跳过选择。详细原生验证见测试清单；未验证第三方药水或可见游戏整局。
+
 ## SlayTheModel 赌博筹码开场选择（2026-10-16）
 
 - 修复 worker 从开战 checkpoint 恢复时拒绝入口待选项的问题。仅在选择根重建时，于原生 `SetupPlayerTurn` 前冻结首回合稳定根，再用已有 `BuildTurnSetupRoots` 重放回合准备；禁止从悬停的选牌中间态捕获并重复抽牌。

@@ -506,6 +506,9 @@ internal static class CollectorCombatProjector
         CombatState state,
         bool allowTurnStart = false)
     {
+        if (!allowTurnStart)
+            return CombatCaptureService.GetPotionActions(state);
+
         var actions = new List<CombatActionDescriptor>();
         foreach (var player in state.Players.OrderBy(player => player.NetId))
         {

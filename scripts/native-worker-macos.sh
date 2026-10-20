@@ -16,7 +16,7 @@ Usage: ./scripts/native-worker-macos.sh [options]
 
   --game-app PATH
   --ritsu-lib-root PATH
-  --mode verify|collector-policy-verify|event-checkpoint-verify|knowledge-demon-verify|gambling-chip-verify|benchmark
+  --mode verify|collector-policy-verify|event-checkpoint-verify|knowledge-demon-verify|gambling-chip-verify|combat-choice-verify|combat-potion-verify|benchmark
   --timeout-seconds NUMBER
   --skip-build
 EOF
@@ -41,7 +41,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-case "$mode" in verify|collector-policy-verify|event-checkpoint-verify|knowledge-demon-verify|gambling-chip-verify|benchmark) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
+case "$mode" in verify|collector-policy-verify|event-checkpoint-verify|knowledge-demon-verify|gambling-chip-verify|combat-choice-verify|combat-potion-verify|benchmark) ;; *) echo "Invalid --mode: $mode" >&2; exit 2 ;; esac
 if [[ ! "$timeout_seconds" =~ ^[1-9][0-9]*$ ]]; then
     echo "--timeout-seconds must be a positive integer." >&2
     exit 2

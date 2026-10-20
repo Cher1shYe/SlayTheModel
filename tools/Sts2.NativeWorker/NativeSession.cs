@@ -94,6 +94,29 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
             var end = new CombatActionDescriptor(CombatActionKind.EndTurn, _player.NetId);
             return new SearchAction(predicted.Key, end);
         }
+        if (predicted.Kind == "UsePotion")
+        {
+            if (predicted.PotionSlot < 0)
+                throw new InvalidOperationException("Predicted potion has no physical slot.");
+            var potion = _player.GetPotionAtSlotIndex(predicted.PotionSlot)
+                ?? throw new InvalidOperationException(
+                    $"Predicted potion slot {predicted.PotionSlot} is now empty.");
+            if (!string.Equals(potion.Id.Entry, predicted.PotionId, StringComparison.Ordinal))
+                throw new InvalidOperationException(
+                    $"Predicted potion identity changed at slot {predicted.PotionSlot}.");
+            uint? targetCombatId = predicted.TargetCombatId;
+            if (targetCombatId is null
+                && potion.TargetType is TargetType.AnyPlayer or TargetType.Self)
+            {
+                targetCombatId = _player.Creature.CombatId;
+            }
+            var use = new CombatActionDescriptor(
+                CombatActionKind.UsePotion,
+                _player.NetId,
+                PotionIndex: checked((uint)predicted.PotionSlot),
+                TargetCreatureId: targetCombatId);
+            return new SearchAction(predicted.Key, use);
+        }
         if (predicted.Kind != "PlayCard")
             throw new InvalidOperationException($"Unsupported prediction action {predicted.Kind}.");
         var card = NativeMctsSimulationApi.ResolveLiveCard(_state, predicted);
@@ -258,8 +281,13 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
                 Enumerate([], 0, count, choices);
             return choices;
         }
-        return CombatCaptureService.GetLegalActions(_state).Select(action =>
-            new SearchAction($"{action.Kind}:{action.CombatCardIndex}:{action.TargetCreatureId}", action)).ToArray();
+        return CombatCaptureService.GetLegalActions(_state)
+            .Concat(CombatCaptureService.GetPotionActions(_state))
+            .Distinct()
+            .Select(action =>
+            new SearchAction(
+                $"{action.Kind}:{action.CombatCardIndex}:{action.PotionIndex}:{action.TargetCreatureId}",
+                action)).ToArray();
     }
 
     private void Enumerate(List<int> selected, int start, int remaining, List<SearchAction> result)
@@ -386,6 +414,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
         double Score(SearchAction action)
         {
             if (action.Combat?.Kind == CombatActionKind.EndTurn) return -1000;
+            if (action.Combat?.Kind == CombatActionKind.UsePotion) return 50;
             var card = _player.PlayerCombatState!.Hand.Cards.Single(candidate =>
                 NetCombatCard.FromModel(candidate).CombatCardIndex == action.Combat!.CombatCardIndex);
             var target = _state.Creatures.FirstOrDefault(creature => creature.CombatId == action.Combat!.TargetCreatureId);
@@ -425,6 +454,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     {
         if (_choice != null) return actions[0];
         return actions.OrderBy(action => action.Combat?.Kind == CombatActionKind.EndTurn ? 10 :
+            action.Combat?.Kind == CombatActionKind.UsePotion ? 2 :
             _player.PlayerCombatState!.Hand.Cards.Single(card => NetCombatCard.FromModel(card).CombatCardIndex == action.Combat!.CombatCardIndex).Type
                 == CardType.Attack ? 0 : 1).First();
     }

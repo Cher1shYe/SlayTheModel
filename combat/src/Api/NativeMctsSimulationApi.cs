@@ -16,6 +16,8 @@ public sealed record NativeMctsAction(
     int CardUpgradeLevel,
     string CardEnchantmentId,
     uint? TargetCombatId,
+    int PotionSlot = -1,
+    string PotionId = "",
     string CardType = "",
     bool GainsBlock = false,
     decimal Damage = 0,
@@ -140,9 +142,16 @@ public sealed class NativeMctsSimulationSession : IDisposable
         choiceDiagnostics = expansion.ChoiceDiagnostics;
         if (expansion.Resolved.Count == 0)
             throw new InvalidOperationException($"Prediction action {action.Key} produced no resolved state.");
-        if (expansion.Resolved.Count == 1 && expansion.Resolved[0].Action.Choice == null
+        bool hasNoChoices = expansion.Resolved.Count == 1
+            && expansion.Resolved[0].Action.Choice == null
             && expansion.Resolved[0].Action.NestedChoices is not { Count: > 0 }
-            && expansion.Resolved[0].Action.TurnStartChoices is not { Count: > 0 })
+            && expansion.Resolved[0].Action.TurnStartChoices is not { Count: > 0 };
+        // A mandatory selector with one actual option is auto-completed by native
+        // STS2. Do not infer this from one semantic branch alone: two identical
+        // card instances can collapse to one prediction branch while the native
+        // selector still requires the player to choose an instance.
+        if (expansion.Resolved.Count == 1
+            && (hasNoChoices || expansion.AutoResolveSingleBranch))
         {
             current = expansion.Resolved[0].Snapshot;
             transient.Add(current);

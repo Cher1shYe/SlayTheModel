@@ -2,10 +2,12 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
 using MegaCrit.Sts2.Core.Entities.Multiplayer;
 using MegaCrit.Sts2.Core.Entities.Players;
 using MegaCrit.Sts2.Core.GameActions.Multiplayer;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Potions;
 using MegaCrit.Sts2.Core.Runs;
 using MegaCrit.Sts2.Core.Saves;
 using SlayTheModel.Sts2.Protocol;
@@ -209,6 +211,63 @@ public static class CombatCaptureService
             .OrderBy(action => action.ActorPlayerId)
             .ThenBy(action => action.Kind)
             .ThenBy(action => action.CombatCardIndex)
+            .ThenBy(action => action.TargetCreatureId)
+            .ToArray();
+    }
+
+    /// <summary>
+    /// Enumerates native combat potion inputs separately from the v1 card/end-turn
+    /// surface. MCTS and replay callers opt into these actions only when their
+    /// simulator can model the concrete potion; collectors retain the full native set.
+    /// </summary>
+    public static IReadOnlyList<CombatActionDescriptor> GetPotionActions(CombatState state)
+    {
+        ArgumentNullException.ThrowIfNull(state);
+        var actions = new List<CombatActionDescriptor>();
+        foreach (var player in state.Players.OrderBy(player => player.NetId))
+        {
+            if (player.PlayerCombatState?.Phase != PlayerTurnPhase.Play
+                || !player.CanUseOrRemovePotions)
+            {
+                continue;
+            }
+
+            for (var slot = 0; slot < player.PotionSlots.Count; slot++)
+            {
+                PotionModel? potion = player.PotionSlots[slot];
+                if (potion is null || potion is FairyInABottle
+                    || potion.IsQueued || !potion.PassesCustomUsabilityCheck)
+                    continue;
+
+                if (potion.TargetType is TargetType.AnyEnemy or TargetType.AnyAlly or TargetType.AnyPlayer)
+                {
+                    foreach (Creature target in state.Creatures
+                                 .Where(target => target.IsAlive && potion.IsValidTarget(target))
+                                 .OrderBy(target => target.CombatId))
+                    {
+                        if (target.CombatId is { } combatId)
+                        {
+                            actions.Add(new CombatActionDescriptor(
+                                CombatActionKind.UsePotion,
+                                player.NetId,
+                                PotionIndex: checked((uint)slot),
+                                TargetCreatureId: combatId));
+                        }
+                    }
+                }
+                else
+                {
+                    actions.Add(new CombatActionDescriptor(
+                        CombatActionKind.UsePotion,
+                        player.NetId,
+                        PotionIndex: checked((uint)slot)));
+                }
+            }
+        }
+
+        return actions
+            .OrderBy(action => action.ActorPlayerId)
+            .ThenBy(action => action.PotionIndex)
             .ThenBy(action => action.TargetCreatureId)
             .ToArray();
     }

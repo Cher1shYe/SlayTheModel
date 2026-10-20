@@ -59,3 +59,15 @@ Combat Solver 的选牌 token 按卡牌 ID 与升级等级计算实例序号。�
 异常恢复还有两层问题：冷 worker 不能从挂起选择状态直接捕获根，却访问未初始化的预测状态；取消旧选择时，敌方回合任务不属于普通动作执行器，未等它结束就建立新战斗会留下 UNSET_MOVE。现从开战快照重放已发生输入恢复选择，严格核对状态，并在新战斗前排空旧回合任务。
 
 `-Mode knowledge-demon-verify` 已通过正常 HP 下实际 IPC 的选择恢复、三轮诅咒两条路线（测试 HP 1000，共 18 回合完整原生/预测状态对账）及既有普通选牌、头槌身份回归。未声称整场胜率提高或完成可见 UI 验证。修复 worker 已发布到配置引用的 native-host 目录，重启游戏后生效。
+
+## 2026-10-19：战斗选择面与药水
+
+Native MCTS 的公开动作现在包含 Combat Solver 能精确模拟的药水，动作身份携带物理槽位、药水模型和目标。worker 把模拟侧的隐含自身目标转换为原生协议中的玩家 combat ID；手动用药进入动作前缀，并能在同步打开选牌时成为本次选择的重建触发动作。相邻同槽用药不再被当作重复输入删掉。
+
+药水使用复用 Combat Solver 已有的 `PreparePotionActions`、`PotionExecutionSupport` 和 `PotionChoiceContinuation`。原生只有一个实际候选的必选单选自动完成；多个候选即使语义去重后只有一个结果，仍保留选择节点。冷 worker 已在赌博药水的挂起多选中从 checkpoint 与前缀恢复并返回选择。工具箱等原生页面会把不可跳过的单选报告成 `0..1`，worker 只在预测明确为 `1..1` 且候选身份完全相同时接受这一接口差异，不把真正可跳过的选择改成必选。
+
+`combat-choice-verify` 在 macOS ARM64 v0.111.0 无头原生进程中通过：工具箱、选择悖论、烤手套、探寻打击、六种跨回合选择能力、普通格挡药，以及九种原版选牌药水均核对完整 continuation；液态记忆的唯一候选走原生自动完成，其余夹具覆盖随机生成、抽牌堆、手牌范围、多选与冷启动恢复。`collector-policy-verify` 追加赌博药水和子选择后得到 6 组 decision/action/result/reward，均为 `native-mcts` / `native_checkpoint_privileged` 且无 gap。赌博筹码、知识恶魔、通用 smoke 回归通过。尚未完成可见游戏整局和第三方药水验证。
+
+随后新增 `combat-potion-verify`，直接遍历 v0.111.0 的 `ModelDb.AllPotions`。目录中的 63 种正式手动药水全部由 Native MCTS 枚举并执行，逐瓶与原生完整 continuation 对账；九种选择药水同时走完选择。每瓶在铁甲战士夹具中核对使用完成后的状态，不代表穷尽所有跨回合与遗物组合。仙女瓶已验证不提供手动动作，自动死亡保护由既有引擎处理，本次没有新增死亡触发验证；`DEPRECATED_POTION` 与 `MOCK_DISCARD_AND_ADD_SHIVS_POTION` 作为内部目录模型明确不进入搜索。最终固定单防御牌夹具的 ReplayMcts 在 350 次完成模拟中访问格挡药根分支 117 次，证明药水不只存在于协议结构，也实际进入 UCT 树。
+
+2026-10-20 同步前审查进一步将选择签名兼容严格限定到 `1..1` / `0..1`，避免错误接受 `1..2` / `0..2` 等多选差异。新增 7 个边界用例，并重新通过 macOS ARM64 的 `combat-choice-verify`，含开局选择、牌内选择、跨回合能力、九种选牌药水与冷 worker 恢复；本次未重跑无关测试。
