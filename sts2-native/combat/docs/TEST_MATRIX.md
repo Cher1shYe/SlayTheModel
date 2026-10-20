@@ -3865,3 +3865,7 @@ Pending projection modifier follow-up: the disposable pending replay clears only
 
 ## 2026-10-20 AlphaZero selector occurrence projection
 Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authoritative token numbering), then require exact StateKey equality. The old projection numbered full-state matches first, so generated BLOODLETTING at occurrence1 was missing beside an original deck copy. MECHA_KNIGHT_ELITE seed1600000033 failed before fix; corrected full 44-decision fight ends in normal death with all strict contracts passing. Timed 21-action automatic/manual selection chain also passes. All 33 prior results retained with audited provenance; corrected full fight admitted. Only isolated AlphaZero DLL changed.
+
+## 2026-10-20：回合开始监听顺序回归
+
+Python `tests/test_native_turn_power_order.py` 覆盖三份原生严格回放：seed 4020303 的原失败边界（15 动作），以及 PREP_TIME/DEMON_FORM 双向施加顺序（各 5 动作、两个 EndTurn）。逐动作 featureParity/successorParity 为真；两回合后的 Vigor=8、Strength=6，生成顺序跟随施加顺序。旧运行时在原场景的第 15 动作拒绝，修复运行时完整 continuation 一致。此证据不声称全部历史缓存重新运行。

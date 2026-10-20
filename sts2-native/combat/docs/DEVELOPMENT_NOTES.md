@@ -3029,3 +3029,7 @@ Pending projection modifier follow-up: the disposable pending replay clears only
 
 ## 2026-10-20 AlphaZero selector occurrence projection
 Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authoritative token numbering), then require exact StateKey equality. The old projection numbered full-state matches first, so generated BLOODLETTING at occurrence1 was missing beside an original deck copy. MECHA_KNIGHT_ELITE seed1600000033 failed before fix; corrected full 44-decision fight ends in normal death with all strict contracts passing. Timed 21-action automatic/manual selection chain also passes. All 33 prior results retained with audited provenance; corrected full fight admitted. Only isolated AlphaZero DLL changed.
+
+## 2026-10-20：回合开始能力顺序
+
+`PersistentPowerSupport.TriggerOwnerAfterSideTurnStart` 按冻结分支的能力监听顺序结算，遍历前快照监听列表。此前按类型固定顺序执行，PREP_TIME 先于 DEMON_FORM 时错误地先生成力量再生成活力，导致完整 continuation 拒绝。保留原严格比较，不排序或忽略 Power 顺序。seed 4020303 的 15 动作原轨迹：旧 DLL 失败、新隔离 DLL 通过。另以三张牌分别先施加两种能力、跨两个回合验证顺序及层数；完整证据在 Python 的 native_turn_power_order 三份夹具。

@@ -170,74 +170,79 @@ internal static class PersistentPowerSupport
         SimulatedCombatState combat,
         Creature owner)
     {
-        int biasedCognition = combat.GetAmount<BiasedCognitionPower>(owner);
-        if (biasedCognition > 0)
-            combat.Apply<FocusPower>(owner, -biasedCognition, owner);
-
-        int coolant = combat.GetAmount<CoolantPower>(owner);
-        if (coolant > 0 && owner.Player is { } coolantPlayer)
+        // Native Hook dispatch follows the captured power insertion order. Snapshot
+        // listeners before applying effects: newly added powers must not join this pass.
+        foreach (PowerModel power in combat.EffectivePowers().Where(p => p.Owner == owner).ToArray())
         {
-            int distinctOrbs = simulator.State.GetPlayerCombatState(coolantPlayer).OrbQueue.Orbs
-                .Select(static orb => orb.Id)
-                .Distinct()
-                .Count();
-            simulator.GainBlock(owner, distinctOrbs * coolant, ValueProp.Unpowered);
-            if (simulator.HasPendingChoice)
-                return false;
-        }
+            int biasedCognition = power is BiasedCognitionPower ? power.Amount : 0;
+            if (biasedCognition > 0)
+                combat.Apply<FocusPower>(owner, -biasedCognition, owner);
 
-        int demonForm = combat.GetAmount<DemonFormPower>(owner);
-        if (demonForm > 0)
-            combat.Apply<StrengthPower>(owner, demonForm, owner);
-
-        FeralPower? feral = combat.GetPower<FeralPower>(owner);
-        if (feral is { Amount: > 0 })
-            simulator.StateStore.Get(feral, () => new FeralPredictionState(feral)).ZeroCostAttacksPlayed = 0;
-
-        int furnace = combat.GetAmount<FurnacePower>(owner);
-        if (furnace > 0 && owner.Player is { } furnacePlayer)
-        {
-            Forge(simulator, furnacePlayer, furnace);
-            if (simulator.HasPendingChoice)
-                return false;
-        }
-
-        int neurosurge = combat.GetAmount<NeurosurgePower>(owner);
-        if (neurosurge > 0)
-            combat.Apply<DoomPower>(owner, neurosurge, owner);
-
-        int noxiousFumes = combat.GetAmount<NoxiousFumesPower>(owner);
-        if (noxiousFumes > 0)
-        {
-            foreach (Creature opponent in combat.GetOpponentsOf(owner))
+            int coolant = power is CoolantPower ? power.Amount : 0;
+            if (coolant > 0 && owner.Player is { } coolantPlayer)
             {
-                if (simulator.State.IsHittable(opponent))
-                    combat.Apply<PoisonPower>(opponent, noxiousFumes, owner);
+                int distinctOrbs = simulator.State.GetPlayerCombatState(coolantPlayer).OrbQueue.Orbs
+                    .Select(static orb => orb.Id)
+                    .Distinct()
+                    .Count();
+                simulator.GainBlock(owner, distinctOrbs * coolant, ValueProp.Unpowered);
+                if (simulator.HasPendingChoice)
+                    return false;
             }
+
+            int demonForm = power is DemonFormPower ? power.Amount : 0;
+            if (demonForm > 0)
+                combat.Apply<StrengthPower>(owner, demonForm, owner);
+
+            FeralPower? feral = power as FeralPower;
+            if (feral is { Amount: > 0 })
+                simulator.StateStore.Get(feral, () => new FeralPredictionState(feral)).ZeroCostAttacksPlayed = 0;
+
+            int furnace = power is FurnacePower ? power.Amount : 0;
+            if (furnace > 0 && owner.Player is { } furnacePlayer)
+            {
+                Forge(simulator, furnacePlayer, furnace);
+                if (simulator.HasPendingChoice)
+                    return false;
+            }
+
+            int neurosurge = power is NeurosurgePower ? power.Amount : 0;
+            if (neurosurge > 0)
+                combat.Apply<DoomPower>(owner, neurosurge, owner);
+
+            int noxiousFumes = power is NoxiousFumesPower ? power.Amount : 0;
+            if (noxiousFumes > 0)
+            {
+                foreach (Creature opponent in combat.GetOpponentsOf(owner))
+                {
+                    if (simulator.State.IsHittable(opponent))
+                        combat.Apply<PoisonPower>(opponent, noxiousFumes, owner);
+                }
+            }
+
+            int prepTime = power is PrepTimePower ? power.Amount : 0;
+            if (prepTime > 0)
+                combat.Apply<VigorPower>(owner, prepTime, owner);
+
+            int reflect = power is ReflectPower ? power.Amount : 0;
+            if (reflect > 0)
+                combat.SetAmount<ReflectPower>(owner, reflect - 1);
+
+            int shadowStep = power is ShadowStepPower ? power.Amount : 0;
+            if (shadowStep > 0)
+            {
+                combat.Apply<DoubleDamagePower>(owner, shadowStep, owner);
+                combat.SetAmount<ShadowStepPower>(owner, 0);
+            }
+
+            int wraithForm = power is WraithFormPower ? power.Amount : 0;
+            if (wraithForm > 0)
+                combat.Apply<DexterityPower>(owner, -wraithForm, owner);
+
+            int clarity = power is ClarityPower ? power.Amount : 0;
+            if (clarity > 0)
+                combat.SetAmount<ClarityPower>(owner, clarity - 1);
         }
-
-        int prepTime = combat.GetAmount<PrepTimePower>(owner);
-        if (prepTime > 0)
-            combat.Apply<VigorPower>(owner, prepTime, owner);
-
-        int reflect = combat.GetAmount<ReflectPower>(owner);
-        if (reflect > 0)
-            combat.SetAmount<ReflectPower>(owner, reflect - 1);
-
-        int shadowStep = combat.GetAmount<ShadowStepPower>(owner);
-        if (shadowStep > 0)
-        {
-            combat.Apply<DoubleDamagePower>(owner, shadowStep, owner);
-            combat.SetAmount<ShadowStepPower>(owner, 0);
-        }
-
-        int wraithForm = combat.GetAmount<WraithFormPower>(owner);
-        if (wraithForm > 0)
-            combat.Apply<DexterityPower>(owner, -wraithForm, owner);
-
-        int clarity = combat.GetAmount<ClarityPower>(owner);
-        if (clarity > 0)
-            combat.SetAmount<ClarityPower>(owner, clarity - 1);
         return !simulator.HasPendingChoice;
     }
 
