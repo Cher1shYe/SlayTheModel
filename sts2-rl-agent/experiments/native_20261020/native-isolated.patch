@@ -1,0 +1,464 @@
+--- a/src/SlayTheModel.Search/ReplayMcts.cs
++++ b/src/SlayTheModel.Search/ReplayMcts.cs
+@@ -30,7 +30,8 @@
+ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1,
+     Func<IReadOnlyList<TAction>, CancellationToken, Task<IReadOnlyList<double>>>? policyPrior = null,
+     double cPuct = 1.5,
+-    Func<int, CancellationToken, Task<double>>? leafValue = null)
++    Func<int, CancellationToken, Task<double>>? leafValue = null,
++    Func<IReadOnlyList<TAction>, int, CancellationToken, Task<(IReadOnlyList<double> Priors, double Value)>>? policyValue = null)
+     where TAction : notnull
+ {
+     private sealed class Node(string key, IReadOnlyList<TAction> actions)
+@@ -40,6 +41,7 @@
+         public IReadOnlyList<TAction> Actions { get; } = actions;
+         public Dictionary<TAction, double>? Priors;
+         public Dictionary<TAction, Node> Children { get; } = [];
++        public double? NetworkValue;
+         public int Visits;
+         public double Sum;
+         public double Best = double.NegativeInfinity;
+@@ -57,12 +59,20 @@
+ 
+     public void Reset() => _root = null;
+ 
+-    private async Task<Node> CreateNodeAsync(string key, IReadOnlyList<TAction> actions, CancellationToken cancellation)
++    private async Task<Node> CreateNodeAsync(string key, IReadOnlyList<TAction> actions, CancellationToken cancellation, int depth = 0)
+     {
+         var node = new Node(key, actions);
+-        if (policyPrior == null || actions.Count == 0) return node;
++        if ((policyPrior == null && policyValue == null) || actions.Count == 0) return node;
+         if (!double.IsFinite(cPuct) || cPuct < 0) throw new ArgumentOutOfRangeException(nameof(cPuct));
+-        var values = await policyPrior(actions, cancellation);
++        IReadOnlyList<double> values;
++        if (policyValue != null)
++        {
++            var joint=await policyValue(actions, depth, cancellation);
++            values=joint.Priors; node.NetworkValue=joint.Value;
++            if (!double.IsFinite(joint.Value) || joint.Value < -1 || joint.Value > 1)
++                throw new InvalidDataException("Invalid network leaf value");
++        }
++        else values = await policyPrior!(actions, cancellation);
+         if (values.Count != actions.Count || values.Any(p => !double.IsFinite(p) || p < 0)
+             || !double.IsFinite(values.Sum()) || values.Sum() <= 0)
+             throw new InvalidDataException("Prior must provide one finite nonnegative probability per legal action.");
+@@ -123,7 +133,7 @@
+                         if (expanded)
+                         {
+                             successor = await CreateNodeAsync(environment.StateKey(),
+-                                environment.Terminal ? [] : environment.LegalActions(), deadline.Token);
++                                environment.Terminal ? [] : environment.LegalActions(), deadline.Token, depth + 1);
+                             node.Children.Add(selected, successor);
+                         }
+                         else if (environment.StateKey() != successor!.Key)
+@@ -160,7 +170,7 @@
+                 // Learned/mixed search evaluates the first completed expanded leaf.
+                 // Pending selectors are resolved by rollout before any value query.
+                 while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested
+-                    && (leafValue == null || !environment.CanEvaluate))
++                    && (policyValue == null && (leafValue == null || !environment.CanEvaluate)))
+                 {
+                     var actions = environment.LegalActions();
+                     if (actions.Count == 0) throw new InvalidDataException("Rollout has no legal action.");
+@@ -172,11 +182,12 @@
+                 // transition or suspended selection has no complete endpoint to score.
+                 if (depth == 0 || !environment.CanEvaluate) continue;
+                 var value = environment.Terminal ? environment.EvaluateTerminal()
++                    : policyValue != null ? node.NetworkValue ?? throw new InvalidDataException("Missing expanded leaf value")
+                     : leafValue == null ? environment.EvaluateCutoff()
+                     : await leafValue(depth, deadline.Token);
+                 // Inference replies must be drained by the client, but an expired
+                 // request cannot contribute a partial simulation to visit targets.
+-                if (leafValue != null) deadline.Token.ThrowIfCancellationRequested();
++                if (leafValue != null || policyValue != null) deadline.Token.ThrowIfCancellationRequested();
+                 if (!double.IsFinite(value) || value < -1 || value > 1)
+                     throw new InvalidDataException("Expected a finite utility in [-1, 1].");
+                 foreach (var visited in path)
+--- a/tools/Sts2.NativeWorker/GenericCollection.cs
++++ b/tools/Sts2.NativeWorker/GenericCollection.cs
+@@ -116,6 +116,8 @@
+                 }
+                 var legal = env.LegalActions();
+                 var observation = native.ExportGenericObservation(legal, hp, steps.Count);
++                var projectedPolicy=env.ExportGenericPolicyObservation(hp,steps.Count);
++                await prior.PolicyValueAsync(projectedPolicy,cancellation,observation);
+                 if (leaf.Mode != "heuristic" && !native.HasPendingChoice)
+                     await prior.ValueAsync(env.ExportGenericValueObservation(hp, steps.Count), cancellation, observation);
+                 var probabilities = await prior.PredictAsync(observation, cancellation);
+@@ -144,6 +146,19 @@
+                     evaluationMs += evaluationTimer.Elapsed.TotalMilliseconds;
+                     return combined;
+                 };
++                int nodePolicyCalls=0, pendingPolicyCalls=0, nonRootPolicyCalls=0;
++                async Task<(IReadOnlyList<double> Priors, double Value)> Joint(IReadOnlyList<CombatSolverMctsAction> actions, int depth, CancellationToken ct)
++                {
++                    var t=Stopwatch.StartNew();
++                    string before=env.CurrentContinuationKey;
++                    var frame=env.ExportGenericPolicyObservation(hp,steps.Count+depth);
++                    var result=await prior.PolicyValueAsync(frame,ct);
++                    if(before!=env.CurrentContinuationKey) throw new InvalidDataException("Policy/value projection mutated branch");
++                    nodePolicyCalls++; if(depth>0)nonRootPolicyCalls++; if(env.CurrentState.PendingChoice)pendingPolicyCalls++;
++                    valueCalls++; valueSum+=result.Value; evaluatedValueSum+=result.Value;
++                    evaluationMs+=t.Elapsed.TotalMilliseconds;
++                    return result;
++                }
+                 var timer = Stopwatch.StartNew();
+                 string? liveBefore = native.HasPendingChoice ? null : NativeMctsSimulationApi.CaptureLiveContinuationKey(native.CombatStateForSimulation);
+                 if (diagnosticActions != null && !(job.TryGetProperty("benchmarkReplay", out var benchmarkReplay) && benchmarkReplay.GetBoolean()))
+@@ -156,7 +171,7 @@
+                 else
+                 {
+                     // Fresh root: visit targets describe this decision only, with no retained-label ambiguity.
+-                    var result = await new ReplayMcts<CombatSolverMctsAction>(timingEnvironment, seed: seed + steps.Count, policyPrior: provider, leafValue:evaluator)
++                    var result = await new ReplayMcts<CombatSolverMctsAction>(timingEnvironment, seed: seed + steps.Count, policyValue: Joint)
+                         .SearchAsync([], env.RootKey, TimeSpan.FromMilliseconds(budgetMs), TimeSpan.FromMilliseconds(budgetMs), cancellation);
+                     foreach (var stat in result.Statistics) visits[stat.Action.Key] = stat.Visits;
+                     simulations = result.CompletedSimulations;
+@@ -230,7 +245,7 @@
+                         evaluationMs, inferenceWallMs=prior.WallMs-priorWallBefore,
+                         encodeMs=prior.EncodeMs-encodeBefore, inferMs=prior.InferMs-inferBefore,
+                         inferenceCalls=prior.Calls-callsBefore },
+-                    leafDiagnostics=new { valueCalls,valueSum,heuristicSum,evaluatedValueSum,leafBackups,terminalBackups,meanBackupDepth },
++                    leafDiagnostics=new { nodePolicyCalls,pendingPolicyCalls,nonRootPolicyCalls,valueCalls,valueSum,heuristicSum,evaluatedValueSum,leafBackups,terminalBackups,meanBackupDepth },
+                     forced = legal.Count == 1, automaticForcedChoices, featureParity = true, successorParity = true, successorParityScope,
+                     terminalAfter = native.Terminal, hpAfter = native.Hp });
+             }
+@@ -255,7 +270,7 @@
+             if (!double.IsFinite(searchReward) || Math.Abs(searchReward - reward) > 1e-15)
+                 throw new InvalidDataException($"Native terminal reward mismatch: {searchReward:R} vs {reward:R}");
+             var payload = new { format = "native-generic-collection-v1", identity, modelSha256 = prior.ModelIdentity,
+-                recipe = entry.GetProperty("recipe").Clone(), searchMode = leaf.Mode == "heuristic" ? "root-prior-uniform-tree-rollout-v1" : "root-prior-uniform-tree-leaf-v1",
++                recipe = entry.GetProperty("recipe").Clone(), searchMode = "all-node-policy-pure-value-v1",
+                 leafMode=leaf.Mode,valueMix=leaf.Mix,
+                 teacherInformation = "native_checkpoint_privileged", encounter = native.EncounterId,
+                 seed, initialHp = hp, arm, budgetMs, complete = !truncated, split = entry.GetProperty("split").GetString(),
+--- a/tools/Sts2.NativeWorker/StarterPriorClient.cs
++++ b/tools/Sts2.NativeWorker/StarterPriorClient.cs
+@@ -34,6 +34,14 @@
+     public Task<IReadOnlyList<double>> PredictAsync(object observation, CancellationToken cancellation)
+         => Task.FromResult<IReadOnlyList<double>>(Request(observation, cancellation)
+             .GetProperty("priors").EnumerateArray().Select(p => p.GetDouble()).ToArray());
++
++    public Task<(IReadOnlyList<double> Priors, double Value)> PolicyValueAsync(object observation, CancellationToken cancellation, object? expected = null)
++    {
++        var result = Request(new { operation="policy_value", observation, expected }, cancellation);
++        double value=result.GetProperty("value").GetDouble();
++        if (!double.IsFinite(value) || value < -1 || value > 1) throw new InvalidDataException("Invalid joint value");
++        return Task.FromResult(((IReadOnlyList<double>)result.GetProperty("priors").EnumerateArray().Select(x=>x.GetDouble()).ToArray(), value));
++    }
+ 
+     public Task<double> ValueAsync(object observation, CancellationToken cancellation, object? expected = null)
+     {
+--- a/tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs
++++ b/tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs
+@@ -35,7 +35,7 @@
+     public string RootKey => rootKey;
+     public NativeMctsState CurrentState => state;
+     public bool Terminal => state.Terminal;
+-    public bool CanEvaluate => !state.PendingChoice;
++    public bool CanEvaluate => true;
+     public void SetRootPlayerHp(int hp) => rootPlayerHp = hp;
+     public void BeginRollout() => rolloutStartHp = state.PendingChoice ? rootPlayerHp : state.PlayerHp;
+     public string RewardContextKey => rolloutStartHp.ToString(System.Globalization.CultureInfo.InvariantCulture);
+@@ -44,6 +44,8 @@
+         => (session ?? throw new InvalidOperationException("Missing prediction root")).ExportStarterPriorObservation(initialHp, collectionV2);
+     public string CurrentContinuationKey
+         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
++    public object ExportGenericPolicyObservation(int initialHp, int decisions)
++        => (session ?? throw new InvalidOperationException("Missing policy branch")).ExportGenericPolicyObservation(initialHp, decisions);
+     public object ExportGenericValueObservation(int initialHp, int decisions)
+         => (session ?? throw new InvalidOperationException("Missing value branch")).ExportGenericValueObservation(initialHp, decisions);
+     public string CurrentContinuationStateText
+--- a/tools/Sts2.NativeWorker/Worker.cs
++++ b/tools/Sts2.NativeWorker/Worker.cs
+@@ -41,6 +41,15 @@
+                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;
+                 foreach (var type in Enum.GetValues<MegaCrit.Sts2.Core.Logging.LogType>())
+                     MegaCrit.Sts2.Core.Logging.Logger.SetLogLevelForType(type, MegaCrit.Sts2.Core.Logging.LogLevel.Warn);
++                using (var diagnosticJob = System.Text.Json.JsonDocument.Parse(File.ReadAllText(System.Environment.GetEnvironmentVariable("STS2_COLLECTION_PILOT_JOB")!)))
++                {
++                    if (diagnosticJob.RootElement.TryGetProperty("verifyFatalBoundary", out var verify) && verify.GetBoolean())
++                    {
++                        await FatalBoundaryVerification.RunAsync(session, timeout.Token);
++                        GetTree().Quit();
++                        return;
++                    }
++                }
+                 await CollectionPilot.RunAsync(session, timeout.Token);
+                 GetTree().Quit();
+                 return;
+--- a/combat/src/Api/NativeMctsValueObservation.cs
++++ b/combat/src/Api/NativeMctsValueObservation.cs
+@@ -25,11 +25,34 @@
+     // Pure branch projection. No collector/live combat reads are permitted here.
+     // DTO fields follow native serialization; all mutable values come from this branch.
+     public object ExportGenericValueObservation(int initialHp, int decisions)
++        => ExportGenericObservation(initialHp, decisions, false);
++
++    public object ExportGenericPolicyObservation(int initialHp, int decisions)
++        => ExportGenericObservation(initialHp, decisions, true);
++
++    private object ExportGenericObservation(int initialHp, int decisions, bool policy)
+     {
+         ThrowIfDisposed();
+-        if (currentDescription.PendingChoice || currentDescription.Terminal)
++        if ((!policy && currentDescription.PendingChoice) || currentDescription.Terminal)
+             throw new InvalidOperationException("Value projection requires a completed nonterminal branch");
+-        var simulator = (CombatPredictionSimulator)current.Simulator;
++        SimulationSnapshot? projection = null;
++        CardChoiceSpec? spec = null;
++        if (currentDescription.PendingChoice)
++        {
++            var group = pendingChoices!.Values.First();
++            projection = driver.NativeMctsPendingProjection(current, group.Branches[0].Action, group.ChoiceIndex, actionCount - 1);
++            var pendingSimulator = (CombatPredictionSimulator)projection.Simulator;
++            spec = TurnStartChoiceSupport.BuildPendingSpec(pendingSimulator,
++                (SimulatedCombatState)pendingSimulator.State.CombatState, capturedRoot.PlayerIdentity);
++            // This disposable replay is used only to project features, never resumed.
++            // Synchronous hook enumeration stops at a pending transaction, but read-only
++            // cost/damage modifiers must still apply when displaying that selector.
++            ((SimulatedCombatState)pendingSimulator.State.CombatState).ClearPendingTurnStartChoice();
++        }
++        try
++        {
++        var projected = projection ?? current;
++        var simulator = (CombatPredictionSimulator)projected.Simulator;
+         var combat = (SimulatedCombatState)simulator.State.CombatState;
+         var player = capturedRoot.PlayerIdentity;
+         var pcs = simulator.State.GetPlayerCombatState(player);
+@@ -75,11 +98,33 @@
+             AfflictionId=c.Preview.Affliction?.Id.ToString(), AfflictionCount=c.Preview.Affliction?.Amount ?? 0,
+             Keywords=c.GetKeywords(simulator.State).Select(k=>k.ToString()).Order().ToArray(), UpgradeLevel=(int?)null,
+             EnchantmentId=(string?)null, EnchantmentAmount=(int?)null, Display=(object?)null }).ToArray() }).ToArray();
++        var options = spec == null ? Array.Empty<PredictedCard>() :
++            spec.SourcePile == PileType.Draw ? spec.Options.OrderBy(c=>c.Preview.Rarity).ThenBy(c=>c.Preview.Id).ToArray() : spec.Options.ToArray();
++        object Features(NativeMctsAction action)
++        {
++            if (action.SelectedCards is { } selected)
++            {
++                var choices = selected.Select(token => {
++                    var matches = options.Select((c,i)=>(c,i)).Where(x=>x.c.Preview.Id.Entry==token.CardId && x.c.Preview.CurrentUpgradeLevel==token.UpgradeLevel).ToArray();
++                    if (token.OptionOccurrence >= matches.Length) throw new InvalidOperationException($"Projected selector occurrence missing: token={System.Text.Json.JsonSerializer.Serialize(token)} options={string.Join(";",options.Select(c=>CardChoiceSupport.ChoiceCardKey(c)))}");
++                    // PlanCardToken occurrences count ID + upgrade, including distinct
++                    // persistent/generated states. Validate full state after resolving it.
++                    var match=matches[token.OptionOccurrence];
++                    if (CardChoiceSupport.ChoiceCardKey(match.c)!=token.StateKey)
++                        throw new InvalidOperationException("Projected selector full state mismatch");
++                    return new { index=match.i, card=Card(match.c) };
++                }).ToArray();
++                return new { kind="Choose", selected=choices };
++            }
++            PredictedCard? card = action.Kind == "PlayCard" ? pcs.Hand.Cards
++                .Where(c=>CardChoiceSupport.ChoiceCardKey(c)==action.CardStateKey).ElementAt(action.CardStateOccurrence) : null;
++            return new { kind=action.Kind, source=card == null ? null : Card(card), target=action.TargetCombatId, potion=(int?)null };
++        }
+         return new {
+             version="native-generic-observation-v1",initialHp,decisions,
+-            observation=new { SchemaVersion=5, RoundNumber=current.Turn, CurrentSide=0,
++            observation=new { SchemaVersion=5, RoundNumber=projected.Turn, CurrentSide=0,
+                 Players=new[] { new { PlayerId=1UL, CharacterId=player.Character.Id.ToString(), Energy=pcs.Energy,
+-                    Stars=pcs.Stars, TurnNumber=current.Turn, Phase="Play", Piles=piles,
++                    Stars=pcs.Stars, TurnNumber=projected.Turn, Phase=pcs.Phase.ToString(), Piles=piles,
+                     Relics=combat.RelicsOf(player).Select(r=>new { ModelId=r.Id.ToString() }).ToArray(),
+                     Potions=Enumerable.Range(0,genericPotionSlots).Select(i=>(i,p:combat.GetPotionAtSlot(player,i)))
+                         .Where(x=>x.p!=null).Select(x=>new { SlotIndex=x.i, ModelId=x.p!.Id.ToString() }).ToArray(),
+@@ -89,7 +134,10 @@
+                 Creatures=new[]{player.Creature}.Concat(combat.Enemies).OrderBy(c=>c.CombatId).Select(Creature).ToArray(),
+                 EnemyIntents=Array.Empty<object>(),Companions=Array.Empty<object>(),ActiveChoice=(object?)null,PendingManualActions=Array.Empty<object>() },
+             cards=all.Select(c=>new {index=indices[c],data=Card(c)}).ToArray(),intents,
+-            choice=(object?)null,actions=Array.Empty<object>()
++            choice=spec == null ? null : (object)new { min=Math.Min(spec.MinCount,options.Length), max=Math.Min(spec.MaxCount,options.Length), options=options.Select(Card).ToArray() },
++            actions=policy ? currentDescription.LegalActions.Select(a=>(object)new { Key=a.Key, features=Features(a) }).ToArray() : Array.Empty<object>()
+         };
++        }
++        finally { projection?.ReleaseSimulator(); }
+     }
+ }
+--- a/combat/src/Search/CombatBeamSolver.NativeMcts.cs
++++ b/combat/src/Search/CombatBeamSolver.NativeMcts.cs
+@@ -15,6 +15,24 @@
+     // currently being materialized; the worker prints them if native and predicted choice
+     // boundaries disagree.
+     private List<string>? _nativeMctsChoiceDiagnostics;
++
++    internal SimulationSnapshot NativeMctsPendingProjection(SimulationSnapshot parent, PlanAction full, int consumed, int actionCount)
++    {
++        PlanAction partial;
++        if (full.Kind == PlanActionKind.EndTurn)
++            partial = full with { TurnStartChoices = (full.TurnStartChoices ?? []).Take(consumed).ToArray() };
++        else
++        {
++            var nested = full.NestedChoices ?? [];
++            int before = Math.Min(consumed, full.NestedChoicesBeforePrimary);
++            bool primary = full.Choice != null && consumed > full.NestedChoicesBeforePrimary;
++            int after = Math.Max(0, consumed - full.NestedChoicesBeforePrimary - (full.Choice != null ? 1 : 0));
++            partial = full with { Choice = primary ? full.Choice : null,
++                NestedChoices = nested.Take(before).Concat(nested.Skip(full.NestedChoicesBeforePrimary).Take(after)).ToArray(),
++                NestedChoicesBeforePrimary = before };
++        }
++        return ReplayAction(NativeMctsNode(parent, actionCount), partial);
++    }
+ 
+     internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
+ 
+--- a/combat/src/Prediction/CorePowerSupport.cs
++++ b/combat/src/Prediction/CorePowerSupport.cs
+@@ -31,10 +31,7 @@
+     {
+         CardModel card = playedCard.Preview;
+         Creature owner = playedCard.Preview.Owner.Creature;
+-        bool targetDeathTriggersFatal = target == null
+-            || combat.EffectivePowers()
+-                .Where(power => power.Owner == target)
+-                .All(power => power.ShouldOwnerDeathTriggerFatal());
++        bool targetDeathTriggersFatal = TargetDeathTriggersFatal(simulator, combat, target);
+         MonologuePower[] pendingMonologues = combat.CapturePendingMonologues(owner);
+         CardOnPlaySupport.Apply(
+             simulator,
+@@ -55,7 +52,7 @@
+         }
+         combat.ResolveMonologues(owner, pendingMonologues);
+         combat.SynchronizePanacheState(simulator, owner);
+-        if (card is Armaments or IronWave or Taunt)
++        if (card is Armaments or Taunt)
+         {
+             SimCreatureState ownerState = simulator.State.GetCreature(owner);
+             if (ownerState.Block <= ownerBlockBefore)
+@@ -411,6 +408,38 @@
+         if (simulator.HasPendingChoice)
+             return false;
+         simulator.SynchronizePowerAmountPredictionStates();
++        return true;
++    }
++
++    // ApplyCardPowers runs after the card's damage. A lethal hit has already zeroed
++    // the target's powers, so the post-damage EffectivePowers list can no longer see
++    // MinionPower/ReattachPower and would wrongly report a fatal kill. The stored
++    // instances survive at amount 0 in the simulator; consult them first.
++    internal static bool TargetDeathTriggersFatal(CombatPredictionSimulator simulator, SimulatedCombatState combat, Creature? target)
++    {
++        if (target == null)
++            return true;
++        if (combat.GetPower<MinionPower>(target) is { } minion
++            && !minion.ShouldOwnerDeathTriggerFatal())
++            return false;
++        if (combat.GetPower<ReattachPower>(target) != null
++            && combat.GetTeammatesOf(target).Any(other => other != target
++                && combat.GetAmount<ReattachPower>(other) > 0
++                && simulator.State.GetCreature(other).IsAlive))
++            return false;
++        foreach (PowerModel power in combat.EffectivePowers())
++        {
++            // Reattach is evaluated from branch state above; never call its live reader.
++            if (power is ReattachPower)
++                continue;
++            if (power.Owner == target
++                || (target.CombatId is uint targetCombatId
++                    && power.Owner?.CombatId == targetCombatId))
++            {
++                if (!power.ShouldOwnerDeathTriggerFatal())
++                    return false;
++            }
++        }
+         return true;
+     }
+ 
+--- a/combat/src/Engine/InCombat/Simulation/CombatPredictionSimulator.Attack.cs
++++ b/combat/src/Engine/InCombat/Simulation/CombatPredictionSimulator.Attack.cs
+@@ -122,6 +122,7 @@
+                 return;
+ 
+             var cardSource = State.FindCard(card) ?? new PredictedCard(card);
++            HashSet<uint> processedEnemyDeaths = [];
+ 
+             for (var i = 0; i < hitCount; i++)
+             {
+@@ -154,6 +155,16 @@
+                 if (HasPendingChoice)
+                     return;
+                 attackCommand.AddResultsInternal(results);
++                // Vanilla awaits AfterDeath hooks at the moment each hit kills a
++                // creature, before the next hit of the same AttackCommand. Resolve
++                // them here so spawned / replacement enemies become legal targets
++                // for the remaining hits instead of only after the whole card.
++                if (State.CombatState is ICombatPredictionEnemyDeathSink deathSink)
++                {
++                    deathSink.ResolvePendingEnemyDeaths(this, processedEnemyDeaths);
++                    if (HasPendingChoice)
++                        return;
++                }
+             }
+ 
+             completed = true;
+--- /dev/null
++++ b/combat/src/Api/NativeMctsFatalBoundaryVerification.cs
+@@ -0,0 +1,36 @@
++using CombatSolver.Engine.InCombat.Simulation;
++using MegaCrit.Sts2.Core.Models.Powers;
++
++namespace CombatSolver.Api;
++
++public sealed partial class NativeMctsSimulationSession
++{
++    // Diagnostic only: branch mutations must not touch parent/sibling/live states.
++    public void VerifyFatalBoundaryForTesting()
++    {
++        var parent = (CombatPredictionSimulator)root.Simulator;
++        var branch = parent.Fork();
++        var sibling = parent.Fork();
++        var combat = (SimulatedCombatState)branch.State.CombatState;
++        var enemies = combat.KnownEnemies.ToArray();
++        var target = enemies.First(e => combat.GetPower<ReattachPower>(e) != null);
++        var others = enemies.Where(e => e != target && combat.GetAmount<ReattachPower>(e) > 0).ToArray();
++        if (others.Length == 0) throw new InvalidOperationException("Reattach fixture requires multiple segments.");
++        var liveHp = enemies.Select(e => e.CurrentHp).ToArray();
++        branch.State.GetCreature(target).CurrentHp = 0;
++        if (CorePowerSupport.TargetDeathTriggersFatal(branch, combat, target))
++            throw new InvalidOperationException("Surviving branch segment must prevent Fatal.");
++        foreach (var other in others) branch.State.GetCreature(other).CurrentHp = 0;
++        if (!CorePowerSupport.TargetDeathTriggersFatal(branch, combat, target))
++            throw new InvalidOperationException("All branch segments dead must permit Fatal independently of live HP.");
++        var descendant = branch.Fork();
++        if (!CorePowerSupport.TargetDeathTriggersFatal(descendant, (SimulatedCombatState)descendant.State.CombatState, target))
++            throw new InvalidOperationException("Fatal state lost through Fork.");
++        if (CorePowerSupport.TargetDeathTriggersFatal(sibling, (SimulatedCombatState)sibling.State.CombatState, target))
++            throw new InvalidOperationException("Sibling was contaminated by branch deaths.");
++        if (others.Any(e => parent.State.GetCreature(e).IsDead || sibling.State.GetCreature(e).IsDead))
++            throw new InvalidOperationException("Parent/sibling state changed.");
++        if (!liveHp.SequenceEqual(enemies.Select(e => e.CurrentHp)))
++            throw new InvalidOperationException("Diagnostic mutated live HP.");
++    }
++}
+--- /dev/null
++++ b/tools/Sts2.NativeWorker/FatalBoundaryVerification.cs
+@@ -0,0 +1,30 @@
++using CombatSolver.Api;
++using MegaCrit.Sts2.Core.Commands;
++using MegaCrit.Sts2.Core.Models.Powers;
++
++internal static class FatalBoundaryVerification
++{
++    internal static async Task RunAsync(NativeSession native, CancellationToken cancellation)
++    {
++        native.ChoiceFixture = true;
++        native.ChoiceFixtureCards = Enumerable.Repeat("STRIKE_IRONCLAD", 5).ToArray();
++        native.EncounterId = "DECIMILLIPEDE_ELITE";
++        await native.ResetAsync("FATAL-BRANCH-BOUNDARY", cancellation);
++        var combat = native.CombatStateForSimulation;
++        using var prediction = NativeMctsSimulationApi.Capture(combat);
++        prediction.VerifyFatalBoundaryForTesting();
++        var segments = combat.Enemies.Where(e => e.HasPower<ReattachPower>()).ToArray();
++        var hp = segments.Select(e => e.CurrentHp).ToArray();
++        // Advance live HP after capture; the frozen prediction must retain its own HP.
++        try
++        {
++            foreach (var other in segments.Skip(1)) await CreatureCmd.SetCurrentHp(other, 0);
++            prediction.VerifyFatalBoundaryForTesting();
++        }
++        finally
++        {
++            for (int i = 0; i < segments.Length; i++) await CreatureCmd.SetCurrentHp(segments[i], hp[i]);
++        }
++        Godot.GD.Print("FATAL_BOUNDARY_PASS branch-alive/dead; live-divergence; parent/sibling/descendant isolation");
++    }
++}

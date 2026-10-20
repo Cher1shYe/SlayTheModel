@@ -26,6 +26,9 @@ def raw_leaf_settings(raw):
     mode,mix=raw.get('leafMode','heuristic'),raw.get('valueMix',.5)
     leaf_settings(mode,mix)
     expected=SCHEMA['search'] if mode=='heuristic' else VALUE_SEARCH
+    if raw['searchMode']=='all-node-policy-pure-value-v1':
+        if mode!='learned': raise ValueError('AlphaZero search requires pure learned value')
+        expected='all-node-policy-pure-value-v1'
     if raw['searchMode']!=expected: raise ValueError('Native leaf mode/search contract mismatch')
     return mode,mix
 
@@ -154,11 +157,12 @@ def validate_packed(p, *, value_only=False):
             raise ValueError('Invalid/oversized generic feature object')
 
 
-def validate_raw(raw, *, allow_validation_cutoff=False, allow_training_cutoff=False):
+def validate_raw(raw, *, allow_validation_cutoff=False, allow_training_cutoff=False, allow_search_validation_cutoff=False):
     mode,mix=raw_leaf_settings(raw)
     truncated=raw.get('complete') is False
     permitted_cutoff=(allow_validation_cutoff and raw.get('arm')=='policy' and raw.get('split')=='validation'
-                      or allow_training_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='train')
+                      or allow_training_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='train'
+                      or allow_search_validation_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='validation')
     if truncated and not permitted_cutoff:
         raise ValueError('Truncated trajectory requires explicit split/arm admission')
     if (raw['format']!=FORMAT or raw['teacherInformation']!='native_checkpoint_privileged'

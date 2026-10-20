@@ -1,0 +1,136 @@
+{
+  "epoch_training": {
+    "baseline": {
+      "episodes": 296,
+      "mean_backup_depth": 3.2261205477995816,
+      "mean_simulations": 457.19793072424653,
+      "mean_utility": 0.48917771609336386,
+      "searched_decisions": 4446,
+      "truncated": 1,
+      "win_rate": 0.7601351351351351,
+      "wins": 225
+    },
+    "candidate": {
+      "episodes": 296,
+      "mean_backup_depth": 3.6674536846789185,
+      "mean_simulations": 410.2324706923247,
+      "mean_utility": 0.5758474255714943,
+      "searched_decisions": 4521,
+      "truncated": 1,
+      "win_rate": 0.8040540540540541,
+      "wins": 238
+    },
+    "candidate_sha256": "9603642088b8a926abc61ab95de1080c69e15cd4194f7fab8866aa1b9ff98b13",
+    "collection": {
+      "episodes": 1024,
+      "mean_backup_depth": 3.211584721087173,
+      "mean_simulations": 464.9002638182871,
+      "mean_utility": 0.5274392444520117,
+      "searched_decisions": 15541,
+      "truncated": 4,
+      "win_rate": 0.78125,
+      "wins": 800
+    },
+    "dataset": {
+      "dataset_id": "38d1010378b0d92b78b99ea7ba5681e6bbde907b16901f12c112978d22aef9c0",
+      "drop_last": false,
+      "epochs": 3,
+      "samples": 18327,
+      "updates": 861
+    },
+    "initial_sha256": "b95195162750e188ecfad53d9eadcf730b18c097f60c6bc438ba5331a119d034",
+    "paired": {
+      "ci95": [
+        0.02935778735270059,
+        0.14595213919459302
+      ],
+      "episodes": 296,
+      "mean_gain": 0.08666970947813046,
+      "probability_positive": 0.9975
+    }
+  },
+  "alphazero": {
+    "arms": {
+      "candidate": {
+        "fights": 296,
+        "mean_backup_depth": 4.138213399419427,
+        "mean_node_policy_calls": 82.21627598407784,
+        "mean_search_ms": 502.4304318443167,
+        "mean_simulations": 426.7335249889429,
+        "mean_utility": 0.5595486081473657,
+        "median_simulations": 107.0,
+        "searched_decisions": 4522,
+        "terminal_backup_fraction": 0.8106435803904153,
+        "truncated": 1,
+        "win_rate": 0.7972972972972973,
+        "wins": 236
+      },
+      "champion": {
+        "fights": 296,
+        "mean_backup_depth": 3.1829268411576046,
+        "mean_node_policy_calls": 85.73916083916085,
+        "mean_search_ms": 502.40643988344993,
+        "mean_simulations": 497.84568764568763,
+        "mean_utility": 0.2782346469297483,
+        "median_simulations": 107.0,
+        "searched_decisions": 4290,
+        "terminal_backup_fraction": 0.8306690177445197,
+        "truncated": 0,
+        "win_rate": 0.6554054054054054,
+        "wins": 194
+      }
+    },
+    "caveat": "Single paired frozen-recipe run; same-host timed search. Simulations include terminal revisits; depth is meanBackupDepth, not maximum.",
+    "gained_wins": 45,
+    "lost_wins": 3,
+    "paired": {
+      "ci95": [
+        0.19617004420587952,
+        0.3683205565631663
+      ],
+      "episodes": 296,
+      "mean_gain": 0.2813139612176174,
+      "probability_positive": 1.0
+    }
+  },
+  "policy_only": {
+    "arms": {
+      "candidate": {
+        "deaths": 99,
+        "decisions": 5291,
+        "fights": 296,
+        "forced_decisions": 989,
+        "mean_episode_wall_seconds": 0.46634104425675676,
+        "mean_utility": 0.29651123154780035,
+        "simulations": 0,
+        "truncated": 1,
+        "win_rate": 0.6621621621621622,
+        "wins": 196
+      },
+      "champion": {
+        "deaths": 102,
+        "decisions": 5573,
+        "fights": 296,
+        "forced_decisions": 1029,
+        "mean_episode_wall_seconds": 0.48583467094594596,
+        "mean_utility": 0.2772227039702516,
+        "simulations": 0,
+        "truncated": 1,
+        "win_rate": 0.652027027027027,
+        "wins": 193
+      }
+    },
+    "caveat": "Pure network argmax, no search. Value projections are checked for parity but do not select actions. Protocol budgetMs=500 is unused. Episode wall time includes engine and strict validation overhead.",
+    "gained_wins": 13,
+    "lost_wins": 10,
+    "paired": {
+      "ci95": [
+        -0.04120294861497724,
+        0.08035883164235015
+      ],
+      "episodes": 296,
+      "mean_gain": 0.019288527577548713,
+      "probability_positive": 0.738
+    }
+  }
+}

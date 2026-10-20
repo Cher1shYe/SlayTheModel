@@ -1,0 +1,46 @@
+{
+  "src/SlayTheModel.Search/ReplayMcts.cs": {
+    "before_sha256": "91328301ab5481f42cde0c7fced3b50e20c8a674e93211b3b5e1d80056f69212",
+    "after_sha256": "4027b9b429996473f8625c7f87930b362be7e6c4f5e5b6a829139efd8b5f655a"
+  },
+  "tools/Sts2.NativeWorker/GenericCollection.cs": {
+    "before_sha256": "842b1afae09baa676a66984be1938c6c34bee1a5649db8592c6672087e61d9df",
+    "after_sha256": "3049dca91962f6944f1b2152a72efd4b046dcabbba12358086b005ea21acf303"
+  },
+  "tools/Sts2.NativeWorker/StarterPriorClient.cs": {
+    "before_sha256": "49a52dcc1e4a70669a254d76dcc57b4588f8c5e992ab9587e58d53ac1630383f",
+    "after_sha256": "96848024a20ce12161ff9c710c5723763d498fae238fad66490d8ddd2285902c"
+  },
+  "tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs": {
+    "before_sha256": "8721273a4deac6eeb92f91c57d222fe8b6d080ad0387d554b1ae697aa956260a",
+    "after_sha256": "9b4adefdc272f7eb5d65f74625277fade41fc519aa7f56927d78deed9840b70f"
+  },
+  "tools/Sts2.NativeWorker/Worker.cs": {
+    "before_sha256": "9ed33db09dd42a3ec5eb7655ec7725d1db17bca42da2022d269c8448558a7287",
+    "after_sha256": "2685b520262d5bccb8848b03cd6e0c4f4441557b80f3862e58de43ff30dd70d2"
+  },
+  "combat/src/Api/NativeMctsValueObservation.cs": {
+    "before_sha256": "e92fa1def60719d7da9203119249fa53807371273d65a2c59a56bc394f3c161e",
+    "after_sha256": "dcefadb946c3c9fa61acd11c5ed64958c867cea9d24ae07bec0b68a582c738f7"
+  },
+  "combat/src/Search/CombatBeamSolver.NativeMcts.cs": {
+    "before_sha256": "a24e126914d0dc4eecba6b89859be9c3e947081f4b87cf7fbae8ba9e43f0d7cb",
+    "after_sha256": "7cfc4f2127e99b128b707a08f5d29b0b995c799dc52f1378216508f54df4247a"
+  },
+  "combat/src/Prediction/CorePowerSupport.cs": {
+    "before_sha256": "9edc3f521b2787a73910294a129b163ea95eb18637da8d9e7ef37929248b9174",
+    "after_sha256": "cb9cc5468afe6b46e25112cb7bf20cc42dfdaf55eb93c0152ae39d31c8100736"
+  },
+  "combat/src/Engine/InCombat/Simulation/CombatPredictionSimulator.Attack.cs": {
+    "before_sha256": "1e3c333f5de02e23b3db798f5a7b672c26512809ab7f9f577eac96c2089abc13",
+    "after_sha256": "1b1095f3cadf66dff234a08583f988ae9a71a76530f45a719547780b89b261bc"
+  },
+  "combat/src/Api/NativeMctsFatalBoundaryVerification.cs": {
+    "before_sha256": null,
+    "after_sha256": "ee52ff4db69bd1ecb6249b23dadc3846cf1fc2ae0b43df23b0be9a08e276128d"
+  },
+  "tools/Sts2.NativeWorker/FatalBoundaryVerification.cs": {
+    "before_sha256": null,
+    "after_sha256": "3b30f8dbc787c4e9725085330e135fb30599fd6190d7cffdf0ef4e82269d093c"
+  }
+}

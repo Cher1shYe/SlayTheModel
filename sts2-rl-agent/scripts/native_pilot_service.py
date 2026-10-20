@@ -49,6 +49,20 @@ def main():
         try:
             start = perf_counter()
             d = json.loads(line)
+            if d.get('operation') == 'policy_value':
+                obs=encode(d['observation'])
+                if d.get('expected') is not None:
+                    expected=encode(d['expected'])
+                    if obs != expected:
+                        import itertools
+                        for section in ['entities','actions']:
+                            for i,(x,y) in enumerate(itertools.zip_longest(obs[section],expected[section])):
+                                if x!=y: raise ValueError(f'Branch/live policy features differ {section}[{i}]: {x} != {y}')
+                encoded=perf_counter()
+                probabilities,value=model.predict(obs)
+                print(json.dumps(dict(priors=[probabilities[a['Key']] for a in d['observation']['actions']],value=value,
+                    encodeMs=(encoded-start)*1000,inferMs=(perf_counter()-encoded)*1000)),flush=True)
+                continue
             if d.get('operation') == 'value':
                 if not generic: raise ValueError('Generic value checkpoint required')
                 obs=encode(d['observation'],value_only=True)
