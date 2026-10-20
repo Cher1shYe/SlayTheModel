@@ -532,3 +532,5 @@ NativeReplayDriver 保存开战/结束观察器抛出的原始异常，由 Advan
 ### 挂起选择的网络Power投影
 
 NativeMctsValueObservation在挂起卡牌事务中通过PredictionStateStore.TryGetReadOnly读取PowerAmountPredictionState覆盖值。该覆盖值可能先于PowerModel克隆同步；数值与零层过滤共用此读取。只读投影不得为了输出特征调用SynchronizePowerAmountPredictionStates或写入默认状态。原事务尾声继续拥有同步和清理。
+
+Native MCTS selector ownership: completed whole-action combinations are bounded search results, not an exhaustive catalog for every later selector. After consuming a pending choice, NativeMctsSimulationSession asks CombatBeamSolver.NativeMctsContinueChoice to replay the exact consumed prefix and rebuild the suffix under its normal choice budget; old endpoint snapshots are released after replacement. Neither live state nor gameplay RNG is mutated by this projection. No budget increase or strict parity exception is introduced.

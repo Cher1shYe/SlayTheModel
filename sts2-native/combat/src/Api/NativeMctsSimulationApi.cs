@@ -139,25 +139,28 @@ public sealed partial class NativeMctsSimulationSession : IDisposable
             pendingChoices = null;
 
             int nextIndex = selectedGroup.ChoiceIndex + 1;
-            var withMoreChoices = selectedGroup.Branches
+            // Rebuild from the chosen prefix before releasing its old endpoint snapshots.
+            // In particular, nested selectors must not expose a budget-pruned suffix as
+            // the complete native option set.
+            var refreshed = driver.NativeMctsContinueChoice(current,
+                selectedGroup.Branches[0].Action, nextIndex, actionCount - 1)
+                .Select(item => new PendingChoiceBranch(item.Action, item.Snapshot)).ToArray();
+            ReleaseBranches(selectedGroup.Branches);
+            if (refreshed.Length == 0)
+                throw new InvalidOperationException("Committed choice produced no resolved continuation.");
+            var withMoreChoices = refreshed
                 .Where(branch => ChoiceCount(branch.Action) > nextIndex)
-                .GroupBy(branch => NativeMctsSimulation.ChoiceKey(
-                    branch.Action, branch.Action, nextIndex), StringComparer.Ordinal)
-                .ToDictionary(group => group.Key,
-                    group => new PendingChoiceGroup(group.ToArray(), nextIndex),
-                    StringComparer.Ordinal);
+                .GroupBy(branch => NativeMctsSimulation.ChoiceKey(branch.Action, branch.Action, nextIndex), StringComparer.Ordinal)
+                .ToDictionary(group => group.Key, group => new PendingChoiceGroup(group.ToArray(), nextIndex), StringComparer.Ordinal);
             if (withMoreChoices.Count > 0)
             {
-                ReleaseBranches(selectedGroup.Branches
-                    .Where(branch => ChoiceCount(branch.Action) <= nextIndex));
+                if (refreshed.Any(branch => ChoiceCount(branch.Action) <= nextIndex))
+                    throw new InvalidOperationException("Identical choice prefix has inconsistent continuation boundaries.");
                 pendingChoices = withMoreChoices;
                 currentDescription = BuildPendingDescription();
                 return currentDescription;
             }
-
-            PendingChoiceBranch final = selectedGroup.Branches
-                .Single(branch => ChoiceCount(branch.Action) == nextIndex);
-            ReleaseBranches(selectedGroup.Branches.Where(branch => !ReferenceEquals(branch, final)));
+            PendingChoiceBranch final = refreshed.Single(branch => ChoiceCount(branch.Action) == nextIndex);
             current = final.Snapshot;
             transient.Add(current);
             currentDescription = driver.NativeMctsDescribe(current, actionCount);

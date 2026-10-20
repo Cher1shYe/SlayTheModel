@@ -18,6 +18,11 @@ internal sealed partial class CombatBeamSolver
 
     internal SimulationSnapshot NativeMctsPendingProjection(SimulationSnapshot parent, PlanAction full, int consumed, int actionCount)
     {
+        return ReplayAction(NativeMctsNode(parent, actionCount), NativeMctsConsumedPrefix(full, consumed));
+    }
+
+    private static PlanAction NativeMctsConsumedPrefix(PlanAction full, int consumed)
+    {
         PlanAction partial;
         if (full.Kind == PlanActionKind.EndTurn)
             partial = full with { TurnStartChoices = (full.TurnStartChoices ?? []).Take(consumed).ToArray() };
@@ -31,7 +36,19 @@ internal sealed partial class CombatBeamSolver
                 NestedChoices = nested.Take(before).Concat(nested.Skip(full.NestedChoicesBeforePrimary).Take(after)).ToArray(),
                 NestedChoicesBeforePrimary = before };
         }
-        return ReplayAction(NativeMctsNode(parent, actionCount), partial);
+        return partial;
+    }
+
+    // Completed combinations are search-budgeted, not an exhaustive selector catalog.
+    // Once a choice is committed, regenerate the remaining tree from that exact prefix
+    // with its own normal budget instead of inheriting an ancestor's residual quota.
+    internal IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> NativeMctsContinueChoice(
+        SimulationSnapshot parent, PlanAction full, int consumed, int actionCount)
+    {
+        var node = NativeMctsNode(parent, actionCount);
+        var partial = NativeMctsConsumedPrefix(full, consumed);
+        var pending = ReplayAction(node, partial);
+        return ResolveRoundChoiceBranches(node, partial, pending).ToArray();
     }
 
     internal SimulationSnapshot NativeMctsCreateRoot() => Replay([]);
