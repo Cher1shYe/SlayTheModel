@@ -247,3 +247,14 @@ def test_surprise_summons_before_next_inferno_trigger():
     assert enemies == {'MONSTER.FAT_GREMLIN': 8, 'MONSTER.SNEAKY_GREMLIN': 1}
     assert raw['outcome']['won'] and raw['outcome']['finalHp'] == 47
     assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+
+def test_hand_draw_autoplay_terminal_stops_before_crimson_mantle():
+    with gzip.open('tests/fixtures/native_hand_draw_terminal_v1.json.gz', 'rt', encoding='utf-8') as f:
+        raw = json.load(f)
+    validate_raw(raw)
+    assert raw['seed'] == 1600000187 and len(raw['steps']) == 28
+    step = raw['steps'][-1]
+    assert step['action'].startswith('EndTurn:') and step['hpAfter'] == 10
+    assert raw['outcome']['won'] and raw['outcome']['finalHp'] == 10
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])

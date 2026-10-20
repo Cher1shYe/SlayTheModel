@@ -3882,3 +3882,8 @@ Python tests/test_native_slippery_pending.py：native_slippery_pending_prefix.js
 ### 2026-10-21 PPO：Surprise / Inferno 死亡召唤时序
 
 PPO S seed8000467 / GREMLIN_MERC_NORMAL：旧实现 decision13 EndTurn 后预测两小怪 HP17/10，原生 HP8/1；新隔离运行时同配方完整18决策通过严格契约、HP47获胜。夹具 sts2-rl-agent/tests/fixtures/native_surprise_inferno_v1.json.gz；test_surprise_summons_before_next_inferno_trigger。相关 Python 回归44 passed。
+
+
+### 2026-10-21 手牌抽取自动出牌终局
+
+seed1600000187 / PHANTASMAL_GARDENERS_ELITE，旧 decision27 EndTurn 预测胜利HP9、原生HP10；新隔离DLL完整28决策严格通过，HP10。回归夹具 native_hand_draw_terminal_v1.json.gz。非终局自伤/召唤哨兵 seed8000467 完整18决策通过，HP47。Python相关回归52 passed。

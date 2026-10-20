@@ -120,6 +120,13 @@ internal sealed partial class CombatBeamSolver
         }
         if (stage <= PlayerStartStage.AfterPlayer)
         {
+            // Native checks the turn cancellation token after hand draw. Autoplay
+            // can finish combat during that draw, before AfterPlayerTurnStart.
+            if (simulator.CheckWinCondition(combat.GetPlayerTurnNumber(player)))
+            {
+                choices.AssertConsumed();
+                return SearchBoundaryReason.None;
+            }
             combat.TriggerAfterPlayerTurnStart(simulator, player.Creature, choices);
             if (Suspended(PlayerStartStage.Side)) return SearchBoundaryReason.PendingChoice;
         }

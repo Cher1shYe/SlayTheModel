@@ -3051,3 +3051,8 @@ Evidence: old isolated runtime reproduces the failure at decision15; fixed exact
 ### 2026-10-21 PPO：Surprise / Inferno 死亡召唤时序
 
 SurprisePower 的召唤从延迟死亡清理移至 AfterDeath mirror，与 v0.111.0 原生时序一致；避免 CrimsonMantle 自伤触发 Inferno 击杀后，后续 Inferno 自伤漏打新召唤敌人。保留 Thievery→Heist 转移及创建/加入顺序。
+
+
+### 2026-10-21 手牌抽取自动出牌终局
+
+在手牌抽取及其自动出牌完成之后、AfterPlayerTurnStart 之前加入原生终局安全检查点。v0.111.0 CombatManager.PlayerTurnStart 的 Draw 后检查取消；此前 Hellraiser 抽牌击杀最后敌人后仍结算 CrimsonMantle 自伤，终局HP多扣1。只在监听器序列之前检查，不在序列中逐监听器中断。
