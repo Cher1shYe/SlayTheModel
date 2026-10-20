@@ -3037,3 +3037,6 @@ Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authorit
 ## 2026-10-20：VANTOM 消耗层数的选牌投影
 
 seed4040737 VANTOM_BOSS 的 FLASH_OF_STEEL 命中后进入选牌：Slippery 的预测覆盖值已从7减至6，PowerModel仍为7，直到卡牌尾声才同步。完整挂起状态检查通过，但网络投影误读旧克隆数值。Generic policy/value projection 改用 TryGetReadOnly<PowerAmountPredictionState>，不存在覆盖值时才读取PowerModel；零层能力不导出。投影不写入StateStore、不触发同步或推进选择，严格校验保持。采集器在策略投影失配时保存原轨迹/实机与预测投影，再原样抛错。旧隔离运行时复现；修复后原9动作回放和同seed完整49决策通过（覆盖8至0层）。
+## 2026-10-20 — Howl end-turn listener order
+
+`AfterAutoPostPlayPhaseEntered` now snapshots card listeners in current simulated pile order, retaining non-card listener slots. Native v0.111.0 CombatState.IterateHookListeners enumerates AllPiles at dispatch; persistent card registration order is not equivalent after generated/original copies move between piles. THE_KIN_BOSS seed6000062 diverged at decision22 EndTurn: two upgraded HowlFromBeyond instances exchanged discard positions. Exact23-action replay now matches the full original live continuation; both seeds6000062/6000063 complete under greedy and noisy sampling (4 full strict runs). Targeted Python suite:114 passed. Evidence: sts2-rl-agent/output/exploration_r3_1024_e3_20261020/howl-fix/. Only independent comparison resumed; original self-evolution remains paused.

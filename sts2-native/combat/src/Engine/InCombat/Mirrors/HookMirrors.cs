@@ -1196,7 +1196,18 @@ internal static partial class HookMirrors
     {
         var context = new AfterAutoPostPlayMirrorContext { Simulator = simulator, Player = player };
 
-        foreach (var listener in IterateCombatHookListeners(simulator, MirroredHookMask.AfterAutoPostPlayPhaseEntered))
+        // Vanilla snapshots combat listeners in current pile order before dispatch.
+        // Registration order survives moves and is not the order of exhausted Howls.
+        List<AbstractModel> listeners = [];
+        foreach (var item in IterateCombatHookListeners(simulator, MirroredHookMask.AfterAutoPostPlayPhaseEntered)) listeners.Add(item);
+        var cardOrder = simulator.State.Players
+            .SelectMany(owner => simulator.State.GetPlayerCombatState(owner).AllCards)
+            .Select((card, index) => (card.Preview, index))
+            .ToDictionary(pair => pair.Preview, pair => pair.index);
+        var orderedCards = new Queue<CardModel>(listeners.OfType<CardModel>().OrderBy(card => cardOrder[card]));
+        for (int i = 0; i < listeners.Count; i++)
+            if (listeners[i] is CardModel) listeners[i] = orderedCards.Dequeue();
+        foreach (var listener in listeners)
         {
             AfterAutoPostPlayPhaseEnteredMirrors.Invoke(listener, context);
             if (simulator.HasPendingChoice)

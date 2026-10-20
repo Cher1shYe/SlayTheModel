@@ -3873,3 +3873,5 @@ Python `tests/test_native_turn_power_order.py` 覆盖三份原生严格回放：
 ## 2026-10-20：Slippery挂起选牌与层数消耗
 
 Python tests/test_native_slippery_pending.py：native_slippery_pending_prefix.json.gz 保存原seed4040737前9动作，断言第9动作是FLASH_OF_STEEL引发的选择且Slippery=6；native_slippery_pending_full.json.gz 保存同配方49决策完整战斗，检查全程feature/successor parity，涵盖8层、1层及耗尽。旧运行时在第9决策投影读到7而原生6，新运行时通过。证据位于output/portable_buildcheck2_20261020/control/slippery-fix。
+
+- Howl current-pile order regression (2026-10-20): `tests/test_native_howl_order.py` in sts2-rl-agent; gz prefix/full native fixtures. Exact23-action THE_KIN_BOSS prefix includes distinct original/generated upgraded Howls; full strict replay and both collection-policy modes verified. 114 targeted tests passed. Isolated runtime: exploration_r3_1024_e3_20261020/native-howls-v2. Existing62 collection/4 smoke caches audited and retained with cache_origin, not rerun.
