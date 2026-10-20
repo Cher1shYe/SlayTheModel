@@ -3034,6 +3034,6 @@ Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authorit
 
 `PersistentPowerSupport.TriggerOwnerAfterSideTurnStart` 按冻结分支的能力监听顺序结算，遍历前快照监听列表。此前按类型固定顺序执行，PREP_TIME 先于 DEMON_FORM 时错误地先生成力量再生成活力，导致完整 continuation 拒绝。保留原严格比较，不排序或忽略 Power 顺序。seed 4020303 的 15 动作原轨迹：旧 DLL 失败、新隔离 DLL 通过。另以三张牌分别先施加两种能力、跨两个回合验证顺序及层数；完整证据在 Python 的 native_turn_power_order 三份夹具。
 
-## 2026-10-20：无形者消耗层数的选牌投影
+## 2026-10-20：VANTOM 消耗层数的选牌投影
 
 seed4040737 VANTOM_BOSS 的 FLASH_OF_STEEL 命中后进入选牌：Slippery 的预测覆盖值已从7减至6，PowerModel仍为7，直到卡牌尾声才同步。完整挂起状态检查通过，但网络投影误读旧克隆数值。Generic policy/value projection 改用 TryGetReadOnly<PowerAmountPredictionState>，不存在覆盖值时才读取PowerModel；零层能力不导出。投影不写入StateStore、不触发同步或推进选择，严格校验保持。采集器在策略投影失配时保存原轨迹/实机与预测投影，再原样抛错。旧隔离运行时复现；修复后原9动作回放和同seed完整49决策通过（覆盖8至0层）。
