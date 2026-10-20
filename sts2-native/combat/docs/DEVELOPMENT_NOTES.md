@@ -3046,3 +3046,8 @@ seed4040737 VANTOM_BOSS 的 FLASH_OF_STEEL 命中后进入选牌：Slippery 的�
 Seed 6000145 (VANTOM_BOSS), THINKING_AHEAD+ with three Hidden Gem replays: the fourth selector exposed only three options instead of six. Native OnPlay draws two then selects one on each replay. Whole-action completed combinations are budgeted; their remaining suffix cannot serve as an exhaustive native selector catalog. NativeMctsContinueChoice now replays the consumed prefix and re-expands the remaining choices under the normal budget, without raising limits or relaxing parity. Contradictory terminal/pending continuations fail explicitly.
 
 Evidence: old isolated runtime reproduces the failure at decision15; fixed exact prefix completes17 decisions with all six final-selector options. Same recipe full strict search completes33 decisions, wins with7HP. Existing ThinkingAhead terminal and HiddenGem status traces replay on the fixed runtime. Fixtures native_thinking_replay_prefix/full and tests/test_native_thinking_replay.py cover this boundary. Independent exploration experiment migrated149 completed collection fights plus4 smoke fights after backups and strict revalidation; old trajectories were not rerun. Original self-evolution remains paused.
+
+
+### 2026-10-21 PPO：Surprise / Inferno 死亡召唤时序
+
+SurprisePower 的召唤从延迟死亡清理移至 AfterDeath mirror，与 v0.111.0 原生时序一致；避免 CrimsonMantle 自伤触发 Inferno 击杀后，后续 Inferno 自伤漏打新召唤敌人。保留 Thievery→Heist 转移及创建/加入顺序。

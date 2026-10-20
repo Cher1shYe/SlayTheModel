@@ -14,8 +14,7 @@ internal static class DeathPowerSupport
     /// </summary>
     /// <remarks>
     /// 补货、寄生和惊吓都会生成主要敌人，结算完成前应保留战斗。
-    /// 补货与寄生在 AfterDeath 镜像内、旧个体移出阵容前生成替补；惊吓仍由
-    /// <see cref="CorePowerSupport.ApplyEnemyDeathPowers" /> 的领域清理结算。
+    /// 补货、寄生与惊吓在 AfterDeath 镜像内、旧个体移出阵容前生成替补。
     ///
     /// 幻象和重接不在这里：它们复活的是同一个个体，走的是
     /// <c>SimulatedCombatState.RevivingEnemyHp</c> 那条既有的有效生命路径。
@@ -72,22 +71,6 @@ internal static class DeathPowerSupport
                     break;
                 case ReattachPower:
                     combat.BeginReattach(simulator, dead);
-                    break;
-                case SurprisePower:
-                    Creature fat = MonsterSpawnSupport.Create<FatGremlin>(simulator, combat, "fat");
-                    foreach (ThieveryPower thievery in combat.EffectivePowers()
-                                 .OfType<ThieveryPower>()
-                                 .Where(candidate => candidate.Owner == dead && candidate.Amount > 0)
-                                 .ToArray())
-                    {
-                        HeistPower heist = combat.AddPowerInstance<HeistPower>(
-                            fat,
-                            thievery.DynamicVars.Gold.IntValue,
-                            dead);
-                        heist._target = thievery.Target;
-                    }
-                    MonsterSpawnSupport.Spawn<SneakyGremlin>(simulator, combat, dead, "sneaky");
-                    MonsterSpawnSupport.AddCreated(simulator, combat, dead, fat);
                     break;
             }
             if (simulator.HasPendingChoice)

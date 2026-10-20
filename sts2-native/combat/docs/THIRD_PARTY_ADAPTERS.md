@@ -658,3 +658,8 @@ Pending projection modifier follow-up: the disposable pending replay clears only
 
 ## 2026-10-20 AlphaZero selector occurrence projection
 Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authoritative token numbering), then require exact StateKey equality. The old projection numbered full-state matches first, so generated BLOODLETTING at occurrence1 was missing beside an original deck copy. MECHA_KNIGHT_ELITE seed1600000033 failed before fix; corrected full 44-decision fight ends in normal death with all strict contracts passing. Timed 21-action automatic/manual selection chain also passes. All 33 prior results retained with audited provenance; corrected full fight admitted. Only isolated AlphaZero DLL changed.
+
+
+### 2026-10-21 PPO：Surprise / Inferno 死亡召唤时序
+
+SurprisePower.AfterDeath 已由 AfterDeathMirrors 注册并立即镜像，不再由 DeathPowerSupport 延迟补偿；死亡召唤须在后续伤害命令之前完成，禁止同时保留镜像和兜底产生重复召唤。

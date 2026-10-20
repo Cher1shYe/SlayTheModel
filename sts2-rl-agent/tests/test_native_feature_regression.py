@@ -234,3 +234,16 @@ def test_injected_selector_finishes_setup_before_rampart_hook():
     assert 'LIVING_SHIELD' not in raw['continuation']
     assert '/TURRET_OPERATOR/-/17/41/0/RELOAD_MOVE' in raw['continuation']
     assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+
+def test_surprise_summons_before_next_inferno_trigger():
+    from sts2_env.az.ppo import trajectory_rows
+    with gzip.open('tests/fixtures/native_surprise_inferno_v1.json.gz', 'rt', encoding='utf-8') as f:
+        raw = json.load(f)
+    trajectory_rows(raw, raw['modelSha256'])
+    assert raw['seed'] == 8000467 and len(raw['steps']) == 18
+    assert raw['steps'][13]['action'].startswith('EndTurn:')
+    enemies = {c['MonsterId']: c['CurrentHp'] for c in raw['steps'][14]['observation']['observation']['Creatures'] if c['MonsterId']}
+    assert enemies == {'MONSTER.FAT_GREMLIN': 8, 'MONSTER.SNEAKY_GREMLIN': 1}
+    assert raw['outcome']['won'] and raw['outcome']['finalHp'] == 47
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])

@@ -59,8 +59,32 @@ internal static class AfterDeathMirrors
         registry.Register<ShrinkPower>(HandleShrink);
         registry.Register<IllusionPower>(HandleIllusion);
         registry.Register<InfestedPower>(HandleInfested);
+        registry.Register<SurprisePower>(HandleSurprise);
 
         return registry;
+    }
+
+    private static void HandleSurprise(SurprisePower power, AfterDeathMirrorContext context)
+    {
+        if (context.WasRemovalPrevented || context.Creature != power.Owner)
+            return;
+        if (context.CombatState is not SimulatedCombatState combat)
+            throw new InvalidOperationException("Surprise death requires captured spawn state.");
+        // Native summons during AfterDeath, before subsequent self-damage / Inferno hooks.
+        Creature fat = MonsterSpawnSupport.Create<FatGremlin>(context.Simulator, combat, "fat");
+        foreach (ThieveryPower thievery in combat.EffectivePowers()
+                     .OfType<ThieveryPower>()
+                     .Where(candidate => candidate.Owner == context.Creature && candidate.Amount > 0)
+                     .ToArray())
+        {
+            HeistPower heist = combat.AddPowerInstance<HeistPower>(
+                fat,
+                thievery.DynamicVars.Gold.IntValue,
+                context.Creature);
+            heist._target = thievery.Target;
+        }
+        MonsterSpawnSupport.Spawn<SneakyGremlin>(context.Simulator, combat, context.Creature, "sneaky");
+        MonsterSpawnSupport.AddCreated(context.Simulator, combat, context.Creature, fat);
     }
 
     private static void HandleInfested(InfestedPower power, AfterDeathMirrorContext context)

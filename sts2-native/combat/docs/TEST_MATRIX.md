@@ -3877,3 +3877,8 @@ Python tests/test_native_slippery_pending.py：native_slippery_pending_prefix.js
 - Howl current-pile order regression (2026-10-20): `tests/test_native_howl_order.py` in sts2-rl-agent; gz prefix/full native fixtures. Exact23-action THE_KIN_BOSS prefix includes distinct original/generated upgraded Howls; full strict replay and both collection-policy modes verified. 114 targeted tests passed. Isolated runtime: exploration_r3_1024_e3_20261020/native-howls-v2. Existing62 collection/4 smoke caches audited and retained with cache_origin, not rerun.
 
 - Native MCTS repeated THINKING_AHEAD selection (seed6000145): `sts2-rl-agent/tests/test_native_thinking_replay.py`, fixtures `native_thinking_replay_prefix.json.gz` (17 exact-prefix decisions, six fourth-selector options) and `native_thinking_replay_full.json.gz` (33 decisions, strict completion). Regression includes native replays of ThinkingAhead terminal and HiddenGem status fixtures. Full-action choice budgets must not truncate later native selector option catalogs.
+
+
+### 2026-10-21 PPO：Surprise / Inferno 死亡召唤时序
+
+PPO S seed8000467 / GREMLIN_MERC_NORMAL：旧实现 decision13 EndTurn 后预测两小怪 HP17/10，原生 HP8/1；新隔离运行时同配方完整18决策通过严格契约、HP47获胜。夹具 sts2-rl-agent/tests/fixtures/native_surprise_inferno_v1.json.gz；test_surprise_summons_before_next_inferno_trigger。相关 Python 回归44 passed。
