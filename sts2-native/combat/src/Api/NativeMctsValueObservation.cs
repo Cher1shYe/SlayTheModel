@@ -7,6 +7,7 @@ using MegaCrit.Sts2.Core.MonsterMoves.Intents;
 using MegaCrit.Sts2.Core.Localization.DynamicVars;
 using HarmonyLib;
 using CombatSolver.Engine.InCombat.Mirrors.Orbs;
+using CombatSolver.Engine.InCombat.Mirrors.Hooks;
 
 namespace CombatSolver.Api;
 
@@ -70,12 +71,19 @@ public sealed partial class NativeMctsSimulationSession
         }
         var all = pcs.AllPiles.SelectMany(p => p.Cards).ToArray();
         var indices = all.Select((c,i) => (c,i)).ToDictionary(x => x.c, x => x.i);
+        // A draw/selection may suspend the card before shadow amounts are flushed
+        // into PowerModel clones. Read the branch overlay without synchronizing or
+        // mutating the pending transaction (including consumed, zero-layer powers).
+        int PowerAmount(PowerModel power) =>
+            simulator.StateStore.TryGetReadOnly<PowerAmountPredictionState>(power, out var shadow)
+                ? shadow!.Amount : power.Amount;
         object Creature(Creature c) {
             var state = simulator.State.GetCreature(c);
             return new { CombatId=c.CombatId, PlayerId=c==player.Creature ? (ulong?)1 : null,
                 MonsterId=c.Monster?.Id.ToString(), CurrentHp=state.CurrentHp, MaxHp=state.MaxHp, Block=state.Block,
-                Powers=combat.EffectivePowers().Where(p => p.Owner==c && p.Amount!=0)
-                    .Select(p => new { ModelId=p.Id.ToString(), Amount=p.Amount }).ToArray() };
+                Powers=combat.EffectivePowers().Where(p => p.Owner==c)
+                    .Select(p => new { ModelId=p.Id.ToString(), Amount=PowerAmount(p) })
+                    .Where(p => p.Amount!=0).ToArray() };
         }
         var moves = combat.CurrentMonsterMoves();
         var intents = combat.Enemies.Select(e => {

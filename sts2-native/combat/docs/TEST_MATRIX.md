@@ -3869,3 +3869,7 @@ Resolve PlanCardToken.OptionOccurrence among matching ID + upgrade (the authorit
 ## 2026-10-20：回合开始监听顺序回归
 
 Python `tests/test_native_turn_power_order.py` 覆盖三份原生严格回放：seed 4020303 的原失败边界（15 动作），以及 PREP_TIME/DEMON_FORM 双向施加顺序（各 5 动作、两个 EndTurn）。逐动作 featureParity/successorParity 为真；两回合后的 Vigor=8、Strength=6，生成顺序跟随施加顺序。旧运行时在原场景的第 15 动作拒绝，修复运行时完整 continuation 一致。此证据不声称全部历史缓存重新运行。
+
+## 2026-10-20：Slippery挂起选牌与层数消耗
+
+Python tests/test_native_slippery_pending.py：native_slippery_pending_prefix.json.gz 保存原seed4040737前9动作，断言第9动作是FLASH_OF_STEEL引发的选择且Slippery=6；native_slippery_pending_full.json.gz 保存同配方49决策完整战斗，检查全程feature/successor parity，涵盖8层、1层及耗尽。旧运行时在第9决策投影读到7而原生6，新运行时通过。证据位于output/portable_buildcheck2_20261020/control/slippery-fix。

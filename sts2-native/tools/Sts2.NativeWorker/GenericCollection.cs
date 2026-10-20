@@ -119,7 +119,15 @@ internal static class GenericCollection
                 var legal = env.LegalActions();
                 var observation = native.ExportGenericObservation(legal, hp, steps.Count);
                 var projectedPolicy=env.ExportGenericPolicyObservation(hp,steps.Count);
-                await prior.PolicyValueAsync(projectedPolicy,cancellation,observation);
+                try { await prior.PolicyValueAsync(projectedPolicy,cancellation,observation); }
+                catch (InvalidDataException)
+                {
+                    File.WriteAllText(output + ".failure.json", JsonSerializer.Serialize(new {
+                        recipe=entry.GetProperty("recipe").Clone(), decision=steps.Count, steps,
+                        observation, projectedPolicy, pending=env.CurrentState.PendingChoice
+                    }));
+                    throw;
+                }
                 if (leaf.Mode != "heuristic" && !native.HasPendingChoice)
                     await prior.ValueAsync(env.ExportGenericValueObservation(hp, steps.Count), cancellation, observation);
                 var probabilities = await prior.PredictAsync(observation, cancellation);

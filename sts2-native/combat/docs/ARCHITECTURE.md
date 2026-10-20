@@ -528,3 +528,7 @@ NativeReplayDriver 保存开战/结束观察器抛出的原始异常，由 Advan
 
 
 `CardGenerationPotionMirrors.Generate` 的可选simulator将无色药水和CosmicConcoction的战斗生成接入既有根候选池；无simulator的预览保持原筛选。复用仅含原序候选模型，生成卡、升级、选择和RNG仍由当前分支拥有；两种AddsToHand形态不变。
+
+### 挂起选择的网络Power投影
+
+NativeMctsValueObservation在挂起卡牌事务中通过PredictionStateStore.TryGetReadOnly读取PowerAmountPredictionState覆盖值。该覆盖值可能先于PowerModel克隆同步；数值与零层过滤共用此读取。只读投影不得为了输出特征调用SynchronizePowerAmountPredictionStates或写入默认状态。原事务尾声继续拥有同步和清理。
