@@ -1,0 +1,12 @@
+{
+  "id": "SlayTheModelDataCollector",
+  "name": "SlayTheModel Human Data Collector",
+  "author": "SlayTheModel",
+  "description": "Records local human run trajectories as durable versioned JSONL. It never uploads data or controls the game.",
+  "version": "0.1.0",
+  "has_pck": false,
+  "has_dll": true,
+  "min_game_version": "0.111.0",
+  "dependencies": [],
+  "affects_gameplay": false
+}

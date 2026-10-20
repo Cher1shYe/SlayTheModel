@@ -101,10 +101,10 @@ def test_parallel_failure_drains_and_resume_reuses_completed_fights(tmp_path,mon
     assert backend.collect(checkpoint,recipes,tmp_path/'cache')==episodes
 
 
-@pytest.mark.parametrize('workers',[0,5,True,1.5])
+@pytest.mark.parametrize('workers',[0,9,True,1.5])
 def test_invalid_parallel_count(tmp_path,workers):
     backend,_,_=setup(tmp_path)
-    with pytest.raises(ValueError,match='1-4'): backend.configure_workers(workers)
+    with pytest.raises(ValueError,match='1-8'): backend.configure_workers(workers)
 
 
 def test_four_worker_bound_no_later_wave_after_failure(tmp_path,monkeypatch):

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "PR18-FOREIGN-ONPLAY-BOUNDARY",
+  "forceShortSearchOnly": true,
+  "shortSearchBudgetOverrideMilliseconds": 1500,
+  "verifyPredictionFailureBoundaries": true,
+  "verifyIncrementalSearch": true,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120
+}

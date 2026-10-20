@@ -3,7 +3,7 @@
     "budget_ms": 100,
     "game": "D:/Steam/steamapps/common/Slay the Spire 2",
     "kind": "native-collection-v2",
-    "repo": "../sts2_datacollection/SlayTheModel"
+    "repo": "../sts2-native"
   },
   "content": "ironclad-colorless-all-v6",
   "evaluation": {

@@ -1,0 +1,2478 @@
+{
+  "date": "2026-09-08",
+  "cpu": "AMD Ryzen 7 7840H / Zen 4 / 8 cores / 16 logical CPUs / 16 MiB shared L3",
+  "baselineProductionCommit": "36aef6a",
+  "branchAtStart": "perf/veryhigh-quality-preserving @ d8ad510",
+  "settings": {
+    "preset": "VeryHigh",
+    "shortNodes": 10000,
+    "noGcBudgetGB": 16,
+    "requestTimeoutSeconds": 120,
+    "detailedDiagnostics": false,
+    "incremental": false,
+    "stopAtFirstResult": true
+  },
+  "records": [
+    {
+      "label": "warmup",
+      "runId": "0c18aa428d6645c8a47d71848c45efaf",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 11294.5447,
+        "totalElapsedMilliseconds": 11311.6947,
+        "workerAllocatedBytes": 7627801056,
+        "totalWorkerAllocatedBytes": 7627864000,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 36080.2199,
+        "managedLiveBytes": 7725116280,
+        "managedHeapBytes": 70341752,
+        "managedFragmentedBytes": 4017584,
+        "workingSetBytes": 9280765952,
+        "privateMemoryBytes": 18706796544,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9335508992,
+        "firstObservedRssBytes": 199577600,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop8-start",
+      "runId": "c7e66e62a0c74dfea16508fc7af2b7ee",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5638.0952,
+        "totalElapsedMilliseconds": 5638.7131,
+        "workerAllocatedBytes": 7397623248,
+        "totalWorkerAllocatedBytes": 7397625360,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 9227.6904,
+        "managedLiveBytes": 7491265632,
+        "managedHeapBytes": 135062224,
+        "managedFragmentedBytes": 61080256,
+        "workingSetBytes": 9215361024,
+        "privateMemoryBytes": 18960306176,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9289678848,
+        "firstObservedRssBytes": 7482642432,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop1",
+      "runId": "fe30bda8e94a41e7b8c21e70b2630f47",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 18024.8646,
+        "totalElapsedMilliseconds": 18024.9138,
+        "workerAllocatedBytes": 7445758480,
+        "totalWorkerAllocatedBytes": 7445760592,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 0,
+        "parallelActionReplayWaves": 0,
+        "parallelActionReplayWorkItems": 0,
+        "maxParallelActionReplayConcurrency": 0,
+        "deferredRoundChoiceActions": 0,
+        "deferredRoundChoiceLayerWidthTotal": 0,
+        "maxDeferredRoundChoiceLayerWidth": 0,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 0,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 21494.5489,
+        "managedLiveBytes": 7559678456,
+        "managedHeapBytes": 134741168,
+        "managedFragmentedBytes": 61293296,
+        "workingSetBytes": 10003259392,
+        "privateMemoryBytes": 19053813760,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 10037907456,
+        "firstObservedRssBytes": 9235390464,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop2",
+      "runId": "8d941b78bf304472ab6614490d660efd",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 11568.0908,
+        "totalElapsedMilliseconds": 11568.2383,
+        "workerAllocatedBytes": 7429249216,
+        "totalWorkerAllocatedBytes": 7429251328,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 2,
+        "parallelActionReplayWaves": 32,
+        "parallelActionReplayWorkItems": 64,
+        "maxParallelActionReplayConcurrency": 2,
+        "deferredRoundChoiceActions": 10,
+        "deferredRoundChoiceLayerWidthTotal": 126,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 10,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 15153.3729,
+        "managedLiveBytes": 7530867736,
+        "managedHeapBytes": 135067240,
+        "managedFragmentedBytes": 61334672,
+        "workingSetBytes": 9355329536,
+        "privateMemoryBytes": 19097288704,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9985687552,
+        "firstObservedRssBytes": 9980448768,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop4",
+      "runId": "b31256ddb90548d8b1bdc080fab97a7c",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 7396.7074,
+        "totalElapsedMilliseconds": 7396.9819,
+        "workerAllocatedBytes": 7402862160,
+        "totalWorkerAllocatedBytes": 7402864272,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 4,
+        "parallelActionReplayWaves": 15,
+        "parallelActionReplayWorkItems": 47,
+        "maxParallelActionReplayConcurrency": 4,
+        "deferredRoundChoiceActions": 5,
+        "deferredRoundChoiceLayerWidthTotal": 75,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 5,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 10975.8276,
+        "managedLiveBytes": 7498942408,
+        "managedHeapBytes": 135560984,
+        "managedFragmentedBytes": 61222168,
+        "workingSetBytes": 9416712192,
+        "privateMemoryBytes": 19138158592,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9444532224,
+        "firstObservedRssBytes": 9331990528,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop8-end",
+      "runId": "ca4546dfc4824616901bfa7a19305805",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5338.4834,
+        "totalElapsedMilliseconds": 5338.9385,
+        "workerAllocatedBytes": 7392148272,
+        "totalWorkerAllocatedBytes": 7392150384,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 8880.9975,
+        "managedLiveBytes": 7485741360,
+        "managedHeapBytes": 136155336,
+        "managedFragmentedBytes": 61272784,
+        "workingSetBytes": 9812746240,
+        "privateMemoryBytes": 19165908992,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9846427648,
+        "firstObservedRssBytes": 9380581376,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "dop8-full-pmu",
+      "runId": "e304caaff9954817ae0e07ca6969277d",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 4,
+          "noGcStarts": 4,
+          "noGcEndAttempts": 3,
+          "noGcEnds": 3,
+          "noGcRestarts": 3,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Deep",
+        "boundary": "None",
+        "selectedExpanded": 34239,
+        "selectedTransitions": 493066,
+        "selectedChoiceBranches": 342306,
+        "choiceReplayAttempts": 342306,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 1452,
+        "cycleRegionCandidatesConsidered": 3292,
+        "cycleRegionCandidatesAdmitted": 3039,
+        "cycleRegionCandidatesDropped": 253,
+        "cycleRegionProgressEpochs": 1451,
+        "cycleRegionProbeCandidatesAdmitted": 0,
+        "cycleRegionProgressCandidatesAdmitted": 1419,
+        "cycleRegionMaxActionFamilies": 1,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 3037,
+        "orderedMutationOrdinaryFallbacks": 335,
+        "orderedMutationColdAtomicCommitted": 134,
+        "orderedMutationColdAtomicRejected": 1409,
+        "totalExpanded": 46239,
+        "totalTransitions": 636428,
+        "totalChoiceBranches": 431140,
+        "elapsedMilliseconds": 30382.8933,
+        "totalElapsedMilliseconds": 40331.4039,
+        "workerAllocatedBytes": 27495822272,
+        "totalWorkerAllocatedBytes": 35388096000,
+        "totalGen0Collections": 6,
+        "totalGen1Collections": 6,
+        "totalGen2Collections": 6,
+        "totalGcPauseMilliseconds": 83.641,
+        "maxGcPauseMilliseconds": 29.998,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 119,
+        "parallelActionReplayWorkItems": 438,
+        "maxParallelActionReplayConcurrency": 7,
+        "deferredRoundChoiceActions": 80,
+        "deferredRoundChoiceLayerWidthTotal": 1363,
+        "maxDeferredRoundChoiceLayerWidth": 22,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 80,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 10,
+        "shufflesCrossed": 1,
+        "score": -1000004236064,
+        "projectedBattleHpLost": 9,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "COLORLESS_POTION",
+            "title": "无色药水",
+            "turn": 6,
+            "slot": 1
+          }
+        ],
+        "onlyDeathRoutes": true,
+        "finalHp": 0,
+        "finalEnemyHp": 385,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 43948.1497,
+        "managedLiveBytes": 15649443416,
+        "managedHeapBytes": 16734189880,
+        "managedFragmentedBytes": 4801325448,
+        "workingSetBytes": 18650505216,
+        "privateMemoryBytes": 38074716160,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 15405185991,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 18691907584,
+        "firstObservedRssBytes": 9765650432,
+        "sampleMilliseconds": 100,
+        "pid": 1907466
+      }
+    },
+    {
+      "label": "hash-a1-warmup",
+      "runId": "524e0266c6e5442299b49502d5ec29bb",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 10956.263,
+        "totalElapsedMilliseconds": 10972.9279,
+        "workerAllocatedBytes": 7579554816,
+        "totalWorkerAllocatedBytes": 7579617760,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 35498.0774,
+        "managedLiveBytes": 7674099624,
+        "managedHeapBytes": 79391992,
+        "managedFragmentedBytes": 13190464,
+        "workingSetBytes": 9243979776,
+        "privateMemoryBytes": 18605268992,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9298382848,
+        "firstObservedRssBytes": 200470528,
+        "sampleMilliseconds": 100,
+        "pid": 1921352
+      }
+    },
+    {
+      "label": "hash-a1-short",
+      "runId": "246844f6fc7b44a0b3f7487fe0ea68c5",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5747.6689,
+        "totalElapsedMilliseconds": 5748.3728,
+        "workerAllocatedBytes": 7396798192,
+        "totalWorkerAllocatedBytes": 7396800304,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 9298.5712,
+        "managedLiveBytes": 7490392832,
+        "managedHeapBytes": 114148240,
+        "managedFragmentedBytes": 40168568,
+        "workingSetBytes": 9228832768,
+        "privateMemoryBytes": 18862579712,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9262395392,
+        "firstObservedRssBytes": 7451594752,
+        "sampleMilliseconds": 100,
+        "pid": 1921352
+      }
+    },
+    {
+      "label": "hash-b1-warmup",
+      "runId": "8dbeb93af16f4ef99d74df8a9babebea",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 11124.0385,
+        "totalElapsedMilliseconds": 11139.4164,
+        "workerAllocatedBytes": 7593499136,
+        "totalWorkerAllocatedBytes": 7593562080,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 35854.9615,
+        "managedLiveBytes": 7687997600,
+        "managedHeapBytes": 70114464,
+        "managedFragmentedBytes": 3761328,
+        "workingSetBytes": 9248833536,
+        "privateMemoryBytes": 18599464960,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9302110208,
+        "firstObservedRssBytes": 170332160,
+        "sampleMilliseconds": 100,
+        "pid": 1925066
+      }
+    },
+    {
+      "label": "hash-b1-short",
+      "runId": "b3c12fffa86246559cf99069e9500466",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5569.5856,
+        "totalElapsedMilliseconds": 5570.268,
+        "workerAllocatedBytes": 7397485328,
+        "totalWorkerAllocatedBytes": 7397487440,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 9090.0514,
+        "managedLiveBytes": 7491006136,
+        "managedHeapBytes": 139304360,
+        "managedFragmentedBytes": 65247168,
+        "workingSetBytes": 9208115200,
+        "privateMemoryBytes": 18836688896,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9273200640,
+        "firstObservedRssBytes": 7454576640,
+        "sampleMilliseconds": 100,
+        "pid": 1925066
+      }
+    },
+    {
+      "label": "hash-b2-warmup",
+      "runId": "b6da595e07574f21aae280aba6698589",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 11037.1795,
+        "totalElapsedMilliseconds": 11052.8412,
+        "workerAllocatedBytes": 7594644544,
+        "totalWorkerAllocatedBytes": 7594707488,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 35539.7194,
+        "managedLiveBytes": 7686623168,
+        "managedHeapBytes": 80154200,
+        "managedFragmentedBytes": 13785408,
+        "workingSetBytes": 9246699520,
+        "privateMemoryBytes": 18598658048,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9301192704,
+        "firstObservedRssBytes": 198692864,
+        "sampleMilliseconds": 100,
+        "pid": 1930038
+      }
+    },
+    {
+      "label": "hash-b2-short",
+      "runId": "e9b9f16df72442a0ad0e67c045be0463",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5610.1236,
+        "totalElapsedMilliseconds": 5610.6701,
+        "workerAllocatedBytes": 7399084480,
+        "totalWorkerAllocatedBytes": 7399086592,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 9086.4164,
+        "managedLiveBytes": 7492258968,
+        "managedHeapBytes": 111565608,
+        "managedFragmentedBytes": 37852848,
+        "workingSetBytes": 9211645952,
+        "privateMemoryBytes": 18831572992,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9269858304,
+        "firstObservedRssBytes": 7432806400,
+        "sampleMilliseconds": 100,
+        "pid": 1930038
+      }
+    },
+    {
+      "label": "hash-a2-warmup",
+      "runId": "365f9186153b47d5a9f570cd60fb9e9c",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 11210.4113,
+        "totalElapsedMilliseconds": 11225.7937,
+        "workerAllocatedBytes": 7622136400,
+        "totalWorkerAllocatedBytes": 7622199344,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 35664.5583,
+        "managedLiveBytes": 7714173744,
+        "managedHeapBytes": 80055472,
+        "managedFragmentedBytes": 13705976,
+        "workingSetBytes": 9286602752,
+        "privateMemoryBytes": 18603266048,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9332310016,
+        "firstObservedRssBytes": 199081984,
+        "sampleMilliseconds": 100,
+        "pid": 1935042
+      }
+    },
+    {
+      "label": "hash-a2-short",
+      "runId": "f84d9e08202049338620882443e4bcb8",
+      "status": "Passed",
+      "solverMetrics": {
+        "gcLifecycle": {
+          "forcedCollections": 0,
+          "noGcStartAttempts": 1,
+          "noGcStarts": 1,
+          "noGcEndAttempts": 0,
+          "noGcEnds": 0,
+          "noGcRestarts": 0,
+          "noGcLosses": 0
+        },
+        "gcLifecycleAttribution": "ExclusiveSearchScope",
+        "phase": "Short",
+        "boundary": "NodeLimit",
+        "selectedExpanded": 10000,
+        "selectedTransitions": 144368,
+        "selectedChoiceBranches": 101808,
+        "choiceReplayAttempts": 101808,
+        "choiceReplayBudgetExhaustions": 0,
+        "choiceBranchesDroppedByBudget": 0,
+        "cycleRegionsDetected": 359,
+        "cycleRegionCandidatesConsidered": 1081,
+        "cycleRegionCandidatesAdmitted": 878,
+        "cycleRegionCandidatesDropped": 203,
+        "cycleRegionProgressEpochs": 421,
+        "cycleRegionProbeCandidatesAdmitted": 38,
+        "cycleRegionProgressCandidatesAdmitted": 370,
+        "cycleRegionMaxActionFamilies": 22,
+        "orderedMutationCandidatesAdmitted": 2048,
+        "orderedMutationLeaseExpiredBudget": 2330,
+        "orderedMutationOrdinaryFallbacks": 158,
+        "orderedMutationColdAtomicCommitted": 76,
+        "orderedMutationColdAtomicRejected": 1110,
+        "totalExpanded": 10000,
+        "totalTransitions": 144368,
+        "totalChoiceBranches": 101808,
+        "elapsedMilliseconds": 5649.8013,
+        "totalElapsedMilliseconds": 5650.3875,
+        "workerAllocatedBytes": 7397397008,
+        "totalWorkerAllocatedBytes": 7397399120,
+        "totalGen0Collections": 0,
+        "totalGen1Collections": 0,
+        "totalGen2Collections": 0,
+        "totalGcPauseMilliseconds": 0,
+        "maxGcPauseMilliseconds": 0,
+        "maxParallelConcurrency": 8,
+        "parallelActionReplayWaves": 5,
+        "parallelActionReplayWorkItems": 18,
+        "maxParallelActionReplayConcurrency": 5,
+        "deferredRoundChoiceActions": 4,
+        "deferredRoundChoiceLayerWidthTotal": 59,
+        "maxDeferredRoundChoiceLayerWidth": 19,
+        "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+        "deferredRoundChoiceFinitePrimaryLayers": 4,
+        "deferredRoundChoiceFinitePendingFallbacks": 0,
+        "parallelRoundChoiceReplayWaves": 0,
+        "parallelRoundChoiceReplayWorkItems": 0,
+        "maxParallelRoundChoiceReplayConcurrency": 0,
+        "searchedTurns": 8,
+        "shufflesCrossed": 1,
+        "score": -3246059,
+        "projectedBattleHpLost": 3,
+        "potionCount": 1,
+        "potionUses": [
+          {
+            "id": "GAMBLERS_BREW",
+            "title": "赌徒特酿",
+            "turn": 1,
+            "slot": 0
+          }
+        ],
+        "onlyDeathRoutes": false,
+        "finalHp": 38,
+        "finalEnemyHp": 420,
+        "combatEndedTurn": null,
+        "capturedAtElapsedMilliseconds": 9199.8055,
+        "managedLiveBytes": 7490461736,
+        "managedHeapBytes": 137531968,
+        "managedFragmentedBytes": 63928248,
+        "workingSetBytes": 9200787456,
+        "privateMemoryBytes": 18850590720,
+        "configuredNoGcRegionEnabled": true,
+        "configuredNoGcRegionBudgetBytes": 16000000000,
+        "gcLatencyMode": "NoGCRegion",
+        "noGcRegionActive": true,
+        "noGcRegionBudgetBytes": 16000000000,
+        "noGcRegionRolloverCount": 0
+      },
+      "memory": {
+        "sampledPeakRssBytes": 9260044288,
+        "firstObservedRssBytes": 7501877248,
+        "sampleMilliseconds": 100,
+        "pid": 1935042
+      }
+    }
+  ],
+  "threadTiming": {
+    "dop1": {
+      "solverSeconds": 18.0249138,
+      "observedSearchWindowSeconds": 18.028177647967823,
+      "sampleWindowSeconds": 18.077077365946025,
+      "threadCpuSeconds": {
+        "other": 8.162157696000001,
+        "gc": 0.000258387,
+        "threadpool": 17.92318028800001
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.012599887,
+        "gc": 0.0,
+        "threadpool": 0.0043166179999999995
+      },
+      "searchMeanCores": 0.9914866172871546,
+      "processMeanCores": 1.443020674356387,
+      "laneMeanCores": 0.0,
+      "threadpoolMeanCores": 0.9914866172871546
+    },
+    "dop2": {
+      "solverSeconds": 11.5682383,
+      "observedSearchWindowSeconds": 11.556313205044717,
+      "sampleWindowSeconds": 11.609047539997846,
+      "threadCpuSeconds": {
+        "other": 5.350918505000002,
+        "gc": 0.00015033,
+        "threadpool": 1.8264746919999997,
+        "lane": 17.483430828999975
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.011987877000000006,
+        "gc": 0.0,
+        "threadpool": 0.0029905009999999987,
+        "lane": 0.011395188999999998
+      },
+      "searchMeanCores": 1.663349680882051,
+      "processMeanCores": 2.124289203832871,
+      "laneMeanCores": 1.5060176787770496,
+      "threadpoolMeanCores": 0.15733200210500117
+    },
+    "dop4": {
+      "solverSeconds": 7.3969819,
+      "observedSearchWindowSeconds": 7.409771307022311,
+      "sampleWindowSeconds": 7.462422956014052,
+      "threadCpuSeconds": {
+        "other": 3.537790937000002,
+        "gc": 6.8667e-05,
+        "threadpool": 1.6673404439999986,
+        "lane": 18.548881332999986
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.004925948000000004,
+        "gc": 0.0,
+        "threadpool": 0.0023568970000000006,
+        "lane": 0.025877731000000022
+      },
+      "searchMeanCores": 2.7090694129990984,
+      "processMeanCores": 3.1831593466377166,
+      "laneMeanCores": 2.4856379010320273,
+      "threadpoolMeanCores": 0.22343151196707095
+    },
+    "dop8-end": {
+      "solverSeconds": 5.3389385,
+      "observedSearchWindowSeconds": 5.328234864049591,
+      "sampleWindowSeconds": 5.382472141995095,
+      "threadCpuSeconds": {
+        "other": 2.8863926229999977,
+        "gc": 0.001349351,
+        "threadpool": 1.601585093,
+        "lane": 21.946310291000035
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.0018434279999999994,
+        "gc": 0.0,
+        "threadpool": 0.0017881080000000003,
+        "lane": 0.10389088899999996
+      },
+      "searchMeanCores": 4.374921924866973,
+      "processMeanCores": 4.91143040978216,
+      "laneMeanCores": 4.077366256997533,
+      "threadpoolMeanCores": 0.29755566786943893
+    },
+    "dop8-full-pmu": {
+      "solverSeconds": 40.3314039,
+      "observedSearchWindowSeconds": 40.37678963202052,
+      "sampleWindowSeconds": 40.43104968499392,
+      "threadCpuSeconds": {
+        "other": 21.85256675500008,
+        "gc": 3.637139557,
+        "threadpool": 17.306617038999978,
+        "lane": 104.6806256050003
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.18806458599999992,
+        "gc": 0.0007011210000000003,
+        "threadpool": 0.026647555000000003,
+        "lane": 0.6686451459999979
+      },
+      "searchMeanCores": 3.0171673403096464,
+      "processMeanCores": 3.6476161293120417,
+      "laneMeanCores": 2.5891147130877674,
+      "threadpoolMeanCores": 0.42805262722187915
+    },
+    "dop8-start": {
+      "solverSeconds": 5.6387131,
+      "observedSearchWindowSeconds": 5.607285475009121,
+      "sampleWindowSeconds": 5.659612388000824,
+      "threadCpuSeconds": {
+        "other": 3.7871293999999978,
+        "gc": 7.5332e-05,
+        "threadpool": 1.684684734,
+        "lane": 23.696829833999995
+      },
+      "threadRunqueueSeconds": {
+        "other": 0.003163333000000001,
+        "gc": 0.0,
+        "threadpool": 0.0029589049999999995,
+        "lane": 0.062414824999999945
+      },
+      "searchMeanCores": 4.484673653943578,
+      "processMeanCores": 5.153836923857505,
+      "laneMeanCores": 4.187005789343563,
+      "threadpoolMeanCores": 0.2976678646000156
+    }
+  },
+  "threadTimingScope": "/proc/<pid>/task/<tid>/schedstat at 50 ms; search proxy = expansion lanes + all .NET TP Worker threads; log-observed SEARCH_WORKER_START to SEARCH_GC_LIFECYCLE, with sampling boundary and exiting-thread error.",
+  "hardwareCounters": [
+    {
+      "counter-value": "563964491521.000000",
+      "unit": "",
+      "event": "cycles:u",
+      "event-runtime": 50358103624,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "1056232277744.000000",
+      "unit": "",
+      "event": "instructions:u",
+      "event-runtime": 50358103624,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "242408193896.000000",
+      "unit": "",
+      "event": "branches:u",
+      "event-runtime": 50358103624,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "2546644009.000000",
+      "unit": "",
+      "event": "branch-misses:u",
+      "event-runtime": 50358103624,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "398373174141.000000",
+      "unit": "",
+      "event": "L1-dcache-loads:u",
+      "event-runtime": 49168541870,
+      "pcnt-running": 32.0
+    },
+    {
+      "counter-value": "19276985604.000000",
+      "unit": "",
+      "event": "L1-dcache-load-misses:u",
+      "event-runtime": 49168541870,
+      "pcnt-running": 32.0
+    },
+    {
+      "counter-value": "10248782375.000000",
+      "unit": "",
+      "event": "dTLB-loads:u",
+      "event-runtime": 49168541870,
+      "pcnt-running": 32.0
+    },
+    {
+      "counter-value": "259299827.000000",
+      "unit": "",
+      "event": "dTLB-load-misses:u",
+      "event-runtime": 49168541870,
+      "pcnt-running": 32.0
+    },
+    {
+      "counter-value": "36992023099.000000",
+      "unit": "",
+      "event": "cache-references:u",
+      "event-runtime": 49971395194,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "7635891787.000000",
+      "unit": "",
+      "event": "cache-misses:u",
+      "event-runtime": 49971395194,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "43628392209.000000",
+      "unit": "",
+      "event": "L1-icache-loads:u",
+      "event-runtime": 49971395194,
+      "pcnt-running": 33.0
+    },
+    {
+      "counter-value": "398714335.000000",
+      "unit": "",
+      "event": "L1-icache-load-misses:u",
+      "event-runtime": 49971395194,
+      "pcnt-running": 33.0
+    }
+  ],
+  "hardwareRatios": {
+    "ipc": 1.872870178218782,
+    "branchMissPercent": 1.0505602009858555,
+    "branchMissesPer1000Instructions": 2.411064367810612
+  },
+  "hardwareScope": "Whole process user-mode search lifecycle window, including headless game loop/GC/JIT. Groups multiplexed ~32-33%; scaled counts are estimates. Generic cache events map to L2 rather than LLC on this CPU.",
+  "branchSampling": {
+    "totalSamples": 64823,
+    "searchSamples": 53097,
+    "missingStack": 4,
+    "groups": {
+      "other": 2906,
+      "snapshot": 17290,
+      "replay": 25341,
+      "retention": 765,
+      "fork": 6795
+    },
+    "leaf": [
+      [
+        "[unknown] libcoreclr.so",
+        7035
+      ],
+      [
+        "CombatSolver.StateFingerprintBuilder::Add",
+        2495
+      ],
+      [
+        "[unknown] perf-1907466.map",
+        1337
+      ],
+      [
+        "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+        1312
+      ],
+      [
+        "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass",
+        1233
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::RemapCachedModels",
+        815
+      ],
+      [
+        "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper",
+        721
+      ],
+      [
+        "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfInterface",
+        712
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+        639
+      ],
+      [
+        "__tls_get_addr",
+        593
+      ],
+      [
+        "MegaCrit.Sts2.Core.Models.CardModel::CompareTo",
+        582
+      ],
+      [
+        "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode",
+        572
+      ],
+      [
+        "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfAny",
+        563
+      ],
+      [
+        "CombatSolver.RitsuEmptyCapabilityFastPath::CanSkip",
+        543
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::Snapshot",
+        527
+      ],
+      [
+        "System.Collections.Generic.Dictionary`2[System.ValueTuple`2[System.__Canon,System.__Canon],System.__Canon]::FindValue",
+        464
+      ],
+      [
+        "System.ValueTuple`2[System.__Canon,System.__Canon]::GetHashCode",
+        444
+      ],
+      [
+        "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+        431
+      ],
+      [
+        "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::Equals",
+        408
+      ],
+      [
+        "CombatSolver.Engine.Common.SimCardPile::Fork",
+        343
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::GetBaseHookListeners",
+        324
+      ],
+      [
+        "System.Runtime.CompilerServices.ConditionalWeakTable`2+Container[System.__Canon,System.__Canon]::FindEntry",
+        321
+      ],
+      [
+        "System.String::CompareOrdinalHelper",
+        309
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::NormalizePowerAfflictions",
+        295
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::IsCombatEnding",
+        286
+      ],
+      [
+        "System.Collections.Generic.Dictionary`2[System.__Canon,System.Int32]::FindValue",
+        280
+      ],
+      [
+        "CombatSolver.Engine.Common.PredictedCard::CompareTo",
+        277
+      ],
+      [
+        "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::InsertionSort",
+        271
+      ],
+      [
+        "System.Object::Equals",
+        257
+      ],
+      [
+        "CombatSolver.StrategicEffectContext::Build",
+        257
+      ]
+    ],
+    "inclusive": [
+      [
+        "[unknown] libcoreclr.so",
+        53096
+      ],
+      [
+        "[unknown] libc.so.6",
+        53096
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::ReplayAction",
+        49337
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+<>c__DisplayClass338_0::<ReplayAction>b__0",
+        49305
+      ],
+      [
+        "CombatSolver.SearchTransitionGuard::Execute",
+        49301
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::Replay",
+        49190
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+ParallelExpansionExecutor::Execute",
+        47400
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::EvaluateRawExpansion",
+        47309
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+ParallelExpansionExecutor+ExpansionLane::Run",
+        28757
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::GenerateRawCardCandidates",
+        24863
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::GeneratePreparedCardAction",
+        24387
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::ReplayPlannedChoiceBranch",
+        23913
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+ParallelExpansionExecutor+ExpansionWorkItem::Execute",
+        18500
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::Snapshot",
+        17290
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::GenerateRawPotionCandidates",
+        13653
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::AddResolvedCardCandidates",
+        12392
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+<ResolveExplicitCardChoiceBranches>d__303::MoveNext",
+        12133
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+<ResolvePrimaryCardChoiceBranches>d__300::MoveNext",
+        11992
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+<ResolvePrimaryCardChoiceLayer>d__302::MoveNext",
+        11638
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::ManualPlay",
+        8860
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+<BuildEndTurnBranches>d__288::MoveNext",
+        8763
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::GenerateRawEndTurnCandidates",
+        8747
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::AdvanceRound",
+        8006
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::OnPlayWrapper",
+        7137
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::Fork",
+        6795
+      ],
+      [
+        "CombatSolver.CombatSearchCoordinator+<>c__DisplayClass3_0::<SolveCore>b__0",
+        5838
+      ],
+      [
+        "System.Threading.Tasks.Task`1[System.__Canon]::InnerInvoke",
+        5838
+      ],
+      [
+        "CombatSolver.CombatSearchCoordinator::SolveWithNarrowBeamRecovery",
+        5838
+      ],
+      [
+        "CombatSolver.SolverController+<>c__DisplayClass166_0::<RequestSearch>b__0",
+        5838
+      ],
+      [
+        "CombatSolver.CombatSearchCoordinator::SolveCore",
+        5838
+      ],
+      [
+        "System.Threading.Tasks.Task::ExecuteWithThreadLocal",
+        5838
+      ],
+      [
+        "System.Threading.ThreadPoolWorkQueue::Dispatch",
+        5838
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::Solve",
+        5838
+      ],
+      [
+        "System.Threading.PortableThreadPool+WorkerThread::WorkerThreadStart",
+        5838
+      ],
+      [
+        "CombatSolver.CombatSearchCoordinator::Solve",
+        5838
+      ],
+      [
+        "System.Threading.ExecutionContext::RunFromThreadPoolDispatchLoop",
+        5838
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::SolveCore",
+        5826
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionState::Fork",
+        5606
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::BuildStateKey",
+        5015
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::Prune",
+        4757
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+BeamRetentionPolicy::RankBest",
+        4592
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::CombatSolver.Engine.Common.ICombatPredictionForkableState.Fork",
+        4466
+      ],
+      [
+        "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`2[System.__Canon,System.__Canon]::Invoke",
+        4056
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::EvaluateStandPat",
+        4018
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::EffectivePowers",
+        3592
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::AppendFingerprint",
+        3333
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+        3197
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::BuildProjectedShuffleOrder",
+        2523
+      ],
+      [
+        "CombatSolver.StateFingerprintBuilder::Add",
+        2495
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::NormalizeCardAfflictions",
+        2362
+      ],
+      [
+        "System.Collections.Generic.List`1[System.__Canon]::Sort",
+        2205
+      ],
+      [
+        "System.Array::Sort",
+        2128
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+BeamRetentionPolicy::FindBestStandPat",
+        2111
+      ],
+      [
+        "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::Sort",
+        2110
+      ],
+      [
+        "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::IntroSort",
+        2099
+      ],
+      [
+        "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+        1987
+      ],
+      [
+        "CombatSolver.CombatBeamSolver+BeamRetentionPolicy::FindBestFreshResourceStandPat",
+        1948
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::CanPlay",
+        1817
+      ],
+      [
+        "CombatSolver.CombatBeamSolver::CalculateReachableHandPotential",
+        1777
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::NormalizePowerAfflictions",
+        1699
+      ],
+      [
+        "CombatSolver.Engine.Common.PredictionUtils::CloneModelForSimulation",
+        1691
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::AddToPile",
+        1652
+      ],
+      [
+        "CombatSolver.PotionChoiceSupport::Apply",
+        1616
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::ForkPower",
+        1585
+      ],
+      [
+        "CombatSolver.SimulatedCombatState::RestoreHookListenerCaches",
+        1534
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::Draw",
+        1532
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::AddGeneratedCardsToCombat",
+        1504
+      ],
+      [
+        "CombatSolver.CorePowerSupport::ApplyCardPowers",
+        1369
+      ],
+      [
+        "CombatSolver.Engine.InCombat.Mirrors.Cards.OnPlay.GeneralCardMirrors::GeneralAttackOnPlay",
+        1354
+      ],
+      [
+        "[unknown] perf-1907466.map",
+        1337
+      ]
+    ],
+    "callers": {
+      "[unknown] libcoreclr.so": [
+        [
+          "[unknown] libcoreclr.so",
+          296765
+        ],
+        [
+          "[unknown] libc.so.6",
+          53096
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+          406
+        ],
+        [
+          "System.Object::MemberwiseClone",
+          371
+        ],
+        [
+          "CombatSolver.Engine.Common.MirroredHookListenerFilter::Filter",
+          324
+        ],
+        [
+          "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`2[System.__Canon,System.__Canon]::Invoke",
+          234
+        ]
+      ],
+      "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue": [
+        [
+          "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::TryGetValue",
+          255
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::IsCombatEnding",
+          213
+        ],
+        [
+          "CombatSolver.CombatBeamSolver::BuildProjectedShuffleOrder",
+          158
+        ],
+        [
+          "CombatSolver.CardChoiceSupport::CardValue",
+          128
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionState::GetCreature",
+          69
+        ],
+        [
+          "CombatSolver.StrategicEffectContext::Build",
+          65
+        ]
+      ],
+      "[unknown] perf-1907466.map": [
+        [
+          "CombatSolver.CombatBeamSolver::Snapshot",
+          86
+        ],
+        [
+          "MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVarSet::Clone",
+          76
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::ExecuteAttack",
+          65
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::RestoreHookListenerCaches",
+          45
+        ],
+        [
+          "System.Linq.Enumerable::TryGetFirst",
+          44
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::ModifyEnergyCostInCombat",
+          38
+        ]
+      ],
+      "System.Runtime.CompilerServices.CastHelpers::StelemRef_Helper": [
+        [
+          "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+          213
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetBaseHookListeners",
+          186
+        ],
+        [
+          "System.Collections.Generic.List`1[System.__Canon]::AddWithResize",
+          56
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::EffectivePowers",
+          38
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::RemapCachedModels",
+          37
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionHistory::Record",
+          37
+        ]
+      ],
+      "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners": [
+        [
+          "CombatSolver.SimulatedCombatState::EffectivePowers",
+          3037
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetActiveHookListeners",
+          134
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::CombatSolver.Engine.Common.ICombatPredictionCreatureSemantics.IsHittable",
+          9
+        ],
+        [
+          "CombatSolver.CombatBeamSolver::BuildStateKey",
+          8
+        ],
+        [
+          "CombatSolver.PowerLifecycleSupport::UpdateSurroundedForTarget",
+          2
+        ],
+        [
+          "MegaCrit.Sts2.Core.Hooks.Hook::ModifyKeywordsInCombat",
+          2
+        ]
+      ],
+      "CombatSolver.StateFingerprintBuilder::Add": [
+        [
+          "CombatSolver.SimulatedCombatState::AppendFingerprint",
+          388
+        ],
+        [
+          "CombatSolver.CombatBeamSolver::BuildStateKey",
+          172
+        ],
+        [
+          "CombatSolver.CombatBeamSolver::AppendCyclePileShape",
+          172
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetPowerFingerprint",
+          166
+        ],
+        [
+          "CombatSolver.CombatBeamSolver::AppendPile",
+          124
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::AppendPowerLifecycleFingerprint",
+          95
+        ]
+      ],
+      "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfInterface": [
+        [
+          "CombatSolver.StrategicEffectMirrors::Contributes",
+          106
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::AfterCardPlayed",
+          53
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::ModifyDamage",
+          52
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::OnPlayWrapper",
+          31
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::AddToPile",
+          29
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Mirrors.HookMirrors::ModifyEnergyCostInCombat",
+          22
+        ]
+      ],
+      "MegaCrit.Sts2.Core.Models.CardModel::CompareTo": [
+        [
+          "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::PickPivotAndPartition",
+          365
+        ],
+        [
+          "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::InsertionSort",
+          306
+        ],
+        [
+          "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::IntroSort",
+          135
+        ],
+        [
+          "System.Collections.Generic.GenericArraySortHelper`1[System.__Canon]::Sort",
+          1
+        ]
+      ],
+      "CombatSolver.SimulatedCombatState::RemapCachedModels": [
+        [
+          "CombatSolver.SimulatedCombatState::RestoreHookListenerCaches",
+          954
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::CombatSolver.Engine.Common.ICombatPredictionForkableState.Fork",
+          9
+        ]
+      ],
+      "System.Runtime.CompilerServices.CastHelpers::IsInstanceOfClass": [
+        [
+          "CombatSolver.SimulatedCombatState::GetEffectiveHookListeners",
+          446
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::EffectivePowers",
+          201
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetBaseHookListeners",
+          155
+        ],
+        [
+          "CombatSolver.SimulatedCombatState::GetActiveHookListeners",
+          94
+        ],
+        [
+          "CombatSolver.RelicPredictionStateSupport::IsTracked",
+          53
+        ],
+        [
+          "dynamicClass::MegaCrit.Sts2.Core.Models.CardModel.get_CurrentStarCost_Patch1",
+          40
+        ]
+      ],
+      "System.Collections.Generic.ObjectEqualityComparer`1[System.__Canon]::GetHashCode": [
+        [
+          "System.Collections.Generic.Dictionary`2[System.__Canon,System.__Canon]::FindValue",
+          185
+        ],
+        [
+          "System.Collections.Generic.HashSet`1[System.__Canon]::FindItemIndex",
+          182
+        ],
+        [
+          "System.Collections.Generic.HashSet`1[System.__Canon]::AddIfNotPresent",
+          137
+        ],
+        [
+          "System.Collections.Generic.Dictionary`2[System.__Canon,System.Int32]::FindValue",
+          45
+        ],
+        [
+          "CombatSolver.Engine.Common.Mirrors.MethodMirrorRegistry`2[System.__Canon,System.__Canon]::Lookup",
+          25
+        ],
+        [
+          "System.Collections.Generic.Dictionary`2[System.__Canon,System.Int32]::TryInsert",
+          18
+        ]
+      ],
+      "__tls_get_addr": [
+        [
+          "[unknown] libcoreclr.so",
+          38
+        ],
+        [
+          "MegaCrit.Sts2.Core.Models.PowerModel::GetTypeForAmount",
+          31
+        ],
+        [
+          "dynamicClass::STS2RitsuLib.Models.Capabilities.CardModelCapabilityHost.ApplyCardType_Patch1",
+          30
+        ],
+        [
+          "System.Object::MemberwiseClone",
+          27
+        ],
+        [
+          "CombatSolver.Engine.InCombat.Simulation.CombatPredictionSimulator::Fork",
+          19
+        ],
+        [
+          "System.Linq.Enumerable+Iterator`1[System.__Canon]::GetEnumerator",
+          13
+        ]
+      ]
+    }
+  },
+  "branchSamplingLimit": "Ordinary branch-miss PMI samples may skid; no IBS precision or exact branch-source attribution.",
+  "hashComparison": {
+    "results": [
+      {
+        "name": "hash-a1-short",
+        "runId": "246844f6fc7b44a0b3f7487fe0ea68c5",
+        "milliseconds": 5748.3728,
+        "allocatedBytes": 7396800304,
+        "workFieldsCompared": 90,
+        "differences": {},
+        "actionsCompared": 59,
+        "actionLinesEqual": true
+      },
+      {
+        "name": "hash-b1-short",
+        "runId": "b3c12fffa86246559cf99069e9500466",
+        "milliseconds": 5570.268,
+        "allocatedBytes": 7397487440,
+        "workFieldsCompared": 90,
+        "differences": {},
+        "actionsCompared": 59,
+        "actionLinesEqual": true
+      },
+      {
+        "name": "hash-b2-short",
+        "runId": "e9b9f16df72442a0ad0e67c045be0463",
+        "milliseconds": 5610.6701,
+        "allocatedBytes": 7399086592,
+        "workFieldsCompared": 90,
+        "differences": {},
+        "actionsCompared": 59,
+        "actionLinesEqual": true
+      },
+      {
+        "name": "hash-a2-short",
+        "runId": "f84d9e08202049338620882443e4bcb8",
+        "milliseconds": 5650.3875,
+        "allocatedBytes": 7397399120,
+        "workFieldsCompared": 90,
+        "differences": {},
+        "actionsCompared": 59,
+        "actionLinesEqual": true
+      }
+    ],
+    "baselineMeanMilliseconds": 5699.38015,
+    "candidateMeanMilliseconds": 5590.46905,
+    "meanReductionPercent": 1.9109288577635941,
+    "design": "ABBA: fresh process + 10k warmup + one 10k formal run per entry; two samples per variant; no statistical significance claimed"
+  },
+  "codegenProbe": {
+    "mode": "same local .NET FullOpts, tiered compilation disabled only for standalone codegen probe",
+    "oldScalarCodeBytes": 107,
+    "newScalarCodeBytes": 83,
+    "newScalarFieldMemoryOperands": 4,
+    "newScalarConditionalBranches": 0,
+    "fingerprintOracleInputs": 200005
+  },
+  "retainedProductionChange": "StateFingerprintBuilder.Add(ulong): compute both mixing chains in local scalars and store final fields once; algorithm/bit result unchanged.",
+  "notVerified": [
+    "visible Steam performance",
+    "Windows game",
+    "full native combat with candidate",
+    "normal-profile candidate performance",
+    "IBS load latency/DRAM bandwidth/false-sharing attribution",
+    "exact per-parent service/queue/barrier times"
+  ]
+}

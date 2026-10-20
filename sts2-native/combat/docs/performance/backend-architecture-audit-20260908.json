@@ -1,0 +1,373 @@
+{
+  "sourceCommit": "9076b19",
+  "productionSourceEquivalentTo": "b168b68",
+  "scope": "Audit existing backend; no new backend, production optimization or policy change retained.",
+  "diagnostic": {
+    "runId": "ba7606885e0a4de4814747b5b22452c1",
+    "status": "Passed",
+    "solverMetrics": {
+      "gcLifecycle": {
+        "forcedCollections": 0,
+        "noGcStartAttempts": 1,
+        "noGcStarts": 1,
+        "noGcEndAttempts": 0,
+        "noGcEnds": 0,
+        "noGcRestarts": 0,
+        "noGcLosses": 0
+      },
+      "gcLifecycleAttribution": "ExclusiveSearchScope",
+      "phase": "Short",
+      "boundary": "NodeLimit",
+      "selectedExpanded": 10000,
+      "selectedTransitions": 144368,
+      "selectedChoiceBranches": 101808,
+      "choiceReplayAttempts": 101808,
+      "choiceReplayBudgetExhaustions": 0,
+      "choiceBranchesDroppedByBudget": 0,
+      "cycleRegionsDetected": 359,
+      "cycleRegionCandidatesConsidered": 1081,
+      "cycleRegionCandidatesAdmitted": 878,
+      "cycleRegionCandidatesDropped": 203,
+      "cycleRegionProgressEpochs": 421,
+      "cycleRegionProbeCandidatesAdmitted": 38,
+      "cycleRegionProgressCandidatesAdmitted": 370,
+      "cycleRegionMaxActionFamilies": 22,
+      "orderedMutationCandidatesAdmitted": 2048,
+      "orderedMutationLeaseExpiredBudget": 2330,
+      "orderedMutationOrdinaryFallbacks": 158,
+      "orderedMutationColdAtomicCommitted": 76,
+      "orderedMutationColdAtomicRejected": 1110,
+      "totalExpanded": 10000,
+      "totalTransitions": 144368,
+      "totalChoiceBranches": 101808,
+      "elapsedMilliseconds": 11250.1078,
+      "totalElapsedMilliseconds": 11265.2423,
+      "workerAllocatedBytes": 7581831256,
+      "totalWorkerAllocatedBytes": 7581894200,
+      "totalGen0Collections": 0,
+      "totalGen1Collections": 0,
+      "totalGen2Collections": 0,
+      "totalGcPauseMilliseconds": 0,
+      "maxGcPauseMilliseconds": 0,
+      "maxParallelConcurrency": 8,
+      "parallelActionReplayWaves": 5,
+      "parallelActionReplayWorkItems": 18,
+      "maxParallelActionReplayConcurrency": 5,
+      "deferredRoundChoiceActions": 4,
+      "deferredRoundChoiceLayerWidthTotal": 59,
+      "maxDeferredRoundChoiceLayerWidth": 19,
+      "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+      "deferredRoundChoiceFinitePrimaryLayers": 4,
+      "deferredRoundChoiceFinitePendingFallbacks": 0,
+      "parallelRoundChoiceReplayWaves": 0,
+      "parallelRoundChoiceReplayWorkItems": 0,
+      "maxParallelRoundChoiceReplayConcurrency": 0,
+      "searchedTurns": 8,
+      "shufflesCrossed": 1,
+      "score": -3246059,
+      "projectedBattleHpLost": 3,
+      "potionCount": 1,
+      "potionUses": [
+        {
+          "id": "GAMBLERS_BREW",
+          "title": "赌徒特酿",
+          "turn": 1,
+          "slot": 0
+        }
+      ],
+      "onlyDeathRoutes": false,
+      "finalHp": 38,
+      "finalEnemyHp": 420,
+      "combatEndedTurn": null,
+      "capturedAtElapsedMilliseconds": 35845.8767,
+      "managedLiveBytes": 7676366664,
+      "managedHeapBytes": 70294032,
+      "managedFragmentedBytes": 3992752,
+      "workingSetBytes": 9249972224,
+      "privateMemoryBytes": 18615902208,
+      "configuredNoGcRegionEnabled": true,
+      "configuredNoGcRegionBudgetBytes": 16000000000,
+      "gcLatencyMode": "NoGCRegion",
+      "noGcRegionActive": true,
+      "noGcRegionBudgetBytes": 16000000000,
+      "noGcRegionRolloverCount": 0
+    },
+    "counterScope": "One fresh process / one CombatSearchCoordinator.Solve; disabled during root setup, enabled at Solve entry, thread-local counters aggregated at scope disposal after workers finish. Only one report observed.",
+    "counters": {
+      "fork_calls": 144370,
+      "fork_power_calls": 1567382,
+      "card_wrapper_forks": 6851214,
+      "card_model_clones": 114062,
+      "normalize_calls": 305949,
+      "affliction_card_visits": 14590762,
+      "power_affliction_card_visits": 14590762,
+      "sword_sage_card_visits": 14590762,
+      "base_listener_builds": 194761,
+      "effective_listener_builds": 265147,
+      "mirror_layout_builds": 232688,
+      "mirror_layout_entries": 22633410,
+      "snapshots": 144370,
+      "pending_choice_snapshots": 4898,
+      "card_listener_notifications": 112843,
+      "filtered_hook_slots_examined": 169490742,
+      "filtered_hook_receivers_yielded": 3615508,
+      "rng_set_forks": 144370,
+      "base_listener_invalidations": 206253,
+      "effective_listener_invalidations": 317483
+    },
+    "counterDefinitions": {
+      "fork_calls": "Successful stable-boundary Simulator.Fork entries, before graph copying.",
+      "fork_power_calls": "ForkPower invocations before TryRemap; may include mapping hits; not an exact deep-clone count.",
+      "card_wrapper_forks": "PredictedCard.Fork invocations creating branch-owned wrappers.",
+      "card_model_clones": "CloneCardStateForSimulation invocations only; excludes other native/generation clone entry points.",
+      "normalize_calls": "NormalizeCardAfflictions invocations.",
+      "affliction_card_visits": "One increment inside the Hex/Tangled/Ringing full-card loop.",
+      "power_affliction_card_visits": "One increment inside NormalizePowerAfflictions full-card loop.",
+      "sword_sage_card_visits": "One increment inside NormalizeSwordSageReplays full-card loop, before type/clone filtering.",
+      "base_listener_builds": "GetBaseHookListeners cache misses entering list construction.",
+      "effective_listener_builds": "GetEffectiveHookListeners cache misses, including paths returning baseListeners.",
+      "mirror_layout_builds": "Filter requires a new type layout because null or ordered types mismatch.",
+      "mirror_layout_entries": "Sum of source.Count at each new type-layout construction.",
+      "snapshots": "Search Snapshot invocations.",
+      "pending_choice_snapshots": "Snapshot invocations with PendingChoice in the incoming boundary argument, before Snapshot can adjust it.",
+      "card_listener_notifications": "NotifyHookListenerStructureChanged invocations, including no observer.",
+      "filtered_hook_slots_examined": "Mask tests in the MirroredHookListenerSnapshot enumerator only; excludes fallback/unfiltered/native enumeration.",
+      "filtered_hook_receivers_yielded": "Successful yields from that same filtered mask loop; does not assert handler completion.",
+      "rng_set_forks": "CombatPredictionRngSet.Fork invocations; production Fork clones nine streams.",
+      "base_listener_invalidations": "InvalidateBaseHookListeners calls, including already invalid caches.",
+      "effective_listener_invalidations": "InvalidateHookListeners calls, including nested calls from base invalidation and already invalid caches."
+    },
+    "notPerformanceComparison": true,
+    "workloadCommandWithoutTemporaryInstrumentation": [
+      "./tools/run-unattended-test.sh",
+      "--scenario-id",
+      "VH-BACKEND-AUDIT-BASELINE",
+      "--character-id",
+      "NECROBINDER",
+      "--seed",
+      "SEARCH_PERF_NECROBINDER_POTION",
+      "--encounter-id",
+      "AEONGLASS_BOSS",
+      "--ascension",
+      "10",
+      "--act-index-for-test",
+      "2",
+      "--enemy-current-hp",
+      "526",
+      "--initial-player-hp",
+      "41",
+      "--initial-player-max-hp",
+      "76",
+      "--clear-run-deck",
+      "--run-cards-path",
+      "coverage/unattended/search-performance-necrobinder-projected-run-cards.json",
+      "--relics-path",
+      "coverage/unattended/search-performance-necrobinder-projected-relics.json",
+      "--potions-path",
+      "coverage/unattended/search-performance-necrobinder-projected-potions.json",
+      "--cards-json",
+      "[]",
+      "--potion-policy-for-test",
+      "RequireAtLeastOne",
+      "--performance-preset-for-test",
+      "VeryHigh",
+      "--search-max-degree-of-parallelism-for-test",
+      "8",
+      "--enable-no-gc-region-for-test",
+      "1",
+      "--no-gc-region-budget-gigabytes-for-test",
+      "16",
+      "--enable-detailed-diagnostic-logs-for-test",
+      "0",
+      "--stop-after-initial-solver-result-assertion",
+      "--timeout-seconds",
+      "120",
+      "--keep-game-open",
+      "--force-short-search-only"
+    ]
+  },
+  "derived": {
+    "filteredSlotsPerReceiverYield": 46.87881813565341,
+    "filteredMaskSkipPercent": 97.8668404201098,
+    "threeNormalizationLoopVisits": 43772286,
+    "threeNormalizationVisitsPerTransition": 303.1993655103624
+  },
+  "existingTraceReanalysis": {
+    "sourceRunId": "b94855f1e72246adb05cf4779cf3f88a",
+    "sourceProductionCommit": "b168b68",
+    "newGameRun": false,
+    "description": "Offline reanalysis of previous 25-second EventPipe trace. GCAllocationTick estimates with CombatBeamSolver in stack; Snapshot > Fork > Replay > Retention > Other precedence gives non-overlapping categories. Not CPU/wall percentages or exact bytes.",
+    "allTickBytes": 15945377544,
+    "searchTickBytes": 15929601432,
+    "searchTicks": 147921,
+    "groups": [
+      {
+        "name": "replay_excluding_fork_snapshot",
+        "sampledBytes": 5774446032,
+        "percentSearch": 36.249783503057834
+      },
+      {
+        "name": "fork_outside_snapshot",
+        "sampledBytes": 4733507600,
+        "percentSearch": 29.71516657341562
+      },
+      {
+        "name": "snapshot_including_nested_work",
+        "sampledBytes": 2193746896,
+        "percentSearch": 13.771511518129488
+      },
+      {
+        "name": "beam_retention_outside_replay",
+        "sampledBytes": 1648886512,
+        "percentSearch": 10.351084545578479
+      },
+      {
+        "name": "other_search",
+        "sampledBytes": 1579014392,
+        "percentSearch": 9.912453859818582
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "hook_scan",
+      "path": "src/Engine/InCombat/Mirrors/HookMirrors.cs",
+      "line": 1286,
+      "anchor": "while (next < filtered.Layout.Entries.Length)"
+    },
+    {
+      "id": "hook_layout",
+      "path": "src/Engine/Common/MirroredHookListenerFilter.cs",
+      "line": 89,
+      "anchor": "if (layout is null || !layout.Matches(source))"
+    },
+    {
+      "id": "normalize",
+      "path": "src/Search/SimulatedCombatState.cs",
+      "line": 1374,
+      "anchor": "public void NormalizeCardAfflictions("
+    },
+    {
+      "id": "normalize_power",
+      "path": "src/Search/SimulatedCombatState.PowerLifecycle.cs",
+      "line": 158,
+      "anchor": "private void NormalizePowerAfflictions("
+    },
+    {
+      "id": "live_read",
+      "path": "src/Search/SimulatedCombatState.PowerLifecycle.cs",
+      "line": 243,
+      "anchor": "int liveAmount = player.Creature.GetPower<SwordSagePower>()?.Amount ?? 0;"
+    },
+    {
+      "id": "root_power_capture",
+      "path": "src/Search/SimulatedCombatState.cs",
+      "line": 304,
+      "anchor": "_rootPowerAmounts = rootPowers"
+    },
+    {
+      "id": "fork",
+      "path": "src/Engine/InCombat/Simulation/CombatPredictionSimulator.cs",
+      "line": 151,
+      "anchor": "public CombatPredictionSimulator Fork()"
+    },
+    {
+      "id": "card_fork",
+      "path": "src/Engine/Common/PredictedCard.cs",
+      "line": 150,
+      "anchor": "internal PredictedCard Fork("
+    },
+    {
+      "id": "power_fork",
+      "path": "src/Search/SimulatedCombatState.Fork.cs",
+      "line": 271,
+      "anchor": "private static PowerModel ForkPower("
+    },
+    {
+      "id": "choice_replay",
+      "path": "src/Search/CombatBeamSolver.Expansion.cs",
+      "line": 1442,
+      "anchor": "SimulationSnapshot? replayedChoice = ReplayPlannedChoiceBranch(node, resolvedAction);"
+    },
+    {
+      "id": "settlement",
+      "path": "src/Search/CombatBeamSolver.Expansion.cs",
+      "line": 2954,
+      "anchor": "internal static bool SettleReplayActionBoundary("
+    },
+    {
+      "id": "state_store_read",
+      "path": "src/Engine/Common/PredictionStateStore.cs",
+      "line": 70,
+      "anchor": "public TState GetReadOnly<TArgument, TState>("
+    },
+    {
+      "id": "shuffle_projection",
+      "path": "src/Search/CombatBeamSolver.StateEvaluation.cs",
+      "line": 735,
+      "anchor": "private (StateFingerprint Key, int Value) BuildProjectedShuffleOrder("
+    },
+    {
+      "id": "history_fork",
+      "path": "src/Engine/InCombat/Simulation/CombatPredictionHistory.cs",
+      "line": 438,
+      "anchor": "internal CombatPredictionHistory Fork("
+    }
+  ],
+  "findings": [
+    {
+      "id": "A0",
+      "kind": "root-ownership issue",
+      "verified": "static code path",
+      "proposal": "Use captured root SwordSage amount for initial replay baseline and avoid later live reads.",
+      "needs": "Root-capture/live-mutation contract, generated-card baseline and fork isolation."
+    },
+    {
+      "id": "A1",
+      "kind": "bounded performance candidate",
+      "verified": "filtered scan/yield counts",
+      "proposal": "Reuse ordered participating positions per immutable layout/hook with bounded on-demand metadata; keep current branch models and suspension semantics.",
+      "needs": "Fixed-work A/B and mask/order/duplicates/external-type/patch/Fork contracts; metadata allocation must be measured."
+    },
+    {
+      "id": "A2",
+      "kind": "bounded performance candidate",
+      "verified": "normalization loop visits and repeated call sites",
+      "proposal": "Start with one normalization family: event/version based dirty state and affected-card set, preserving existing settlement points.",
+      "needs": "Power removal, generated cards, affliction replacement, upgrades, nested choices, turn lifecycle and fork tests."
+    },
+    {
+      "id": "A3",
+      "kind": "ownership constraint",
+      "verified": "eager fork plus mutable references escape through APIs",
+      "proposal": "Keep existing graph ownership; do not introduce general Power/StateStore/RNG COW or pooled simulators in this scope."
+    },
+    {
+      "id": "A4",
+      "kind": "replay boundary constraint",
+      "verified": "choices replay from stable parent; active transactions not forkable",
+      "proposal": "Retain replay boundary for now; continuation execution would be a larger change, separate from lightweight probe snapshots."
+    },
+    {
+      "id": "A5",
+      "kind": "evaluation constraint",
+      "verified": "eager snapshot plus multiple ranking consumers",
+      "proposal": "Audit dependency-complete caching of selected pure derived components; do not move transposition earlier or return partial scores without full consumer audit."
+    }
+  ],
+  "validation": {
+    "temporaryBuild": "Release passed, 0 warnings/errors; CopyModOnBuild=false",
+    "diagnosticRequest": "Passed; work and coarse quality equal previous fixed-short baseline, not a full semantic equivalence proof",
+    "temporaryInstrumentation": "All eleven modified production files restored; temporary helper removed; isolated instance stopped.",
+    "finalChecks": "JSON, source anchors, report links, counters and work consistency, no source diff",
+    "notRun": [
+      "new performance A/B",
+      "native full combat regression",
+      "root-live mutation reproduction",
+      "DOP contract",
+      "visible Steam",
+      "Windows game",
+      "full release gates"
+    ]
+  }
+}

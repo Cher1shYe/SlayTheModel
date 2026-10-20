@@ -1,0 +1,6 @@
+[
+  { "cardId": "DEFLECT", "pile": "Hand", "dynamicVars": { "Block": 1 } },
+  { "cardId": "DEFLECT", "pile": "Hand", "dynamicVars": { "Block": 2 } },
+  { "cardId": "DEFLECT", "pile": "Hand", "dynamicVars": { "Block": 3 } },
+  { "cardId": "DEFLECT", "pile": "Hand", "dynamicVars": { "Block": 4 } }
+]

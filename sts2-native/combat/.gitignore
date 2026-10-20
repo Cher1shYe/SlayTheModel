@@ -1,0 +1,34 @@
+# Godot / .NET build output
+.godot/
+bin/
+obj/
+
+# Machine-local dependency paths
+local.props
+
+# IDE and OS files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+Thumbs.db
+
+# Runtime logs and temporary files
+*.log
+*.tmp
+*.bak
+.local/
+releases/*.zip
+releases/*.publish-state.json
+
+# Python caches for the analysis tools
+__pycache__/
+*.pyc
+# Local evidence output and release artifacts
+/outputs/
+/releases/
+
+# Scratch images kept in the working tree but never committed
+新封面1.png

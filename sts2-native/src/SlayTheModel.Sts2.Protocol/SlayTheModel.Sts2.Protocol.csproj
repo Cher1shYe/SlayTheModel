@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Versioned, game-assembly-independent state and action protocol for SlayTheModel.</Description>
+  </PropertyGroup>
+</Project>

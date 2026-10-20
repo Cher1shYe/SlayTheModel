@@ -1,4 +1,153 @@
-## 最新进度：MCTS 价值估计与采集模型可选（2026-10-18）
+# 当前入口：1024 场 AlphaZero 自进化与 Linux 服务器部署（2026-10-20）
+
+本分支现在包含新候选权重、296 条冻结验证配方、原生 worker 和 CombatSolver
+源码，以及独立构建／采集／训练／验证／断点恢复入口。无需复制作者的 `output/`
+目录，也不再需要先寻找旧原生快照再应用补丁。
+
+默认方案：**新候选初始化、每轮 1024 场、3 个完整 epoch、500ms/决策、
+8 workers、batch64、lr=0.0003、10 轮**。MCTS 每个新非终局节点使用策略头和
+纯模型价值；终局及已批准的时间截断使用 V7。冠军独立保留，以同一批 296
+配方的配对 V7 增益区间决定晋升。严格校验失败会终止，不跳过异常样本。
+
+**部署状态：Windows 已有真实 8-worker 采集和参数更新验收；Linux 路径已实现，
+尚未在 Linux 实机验收。** 空白服务器仅 `git clone` 仍不能采集，因为采集器
+依赖正版游戏运行时。Linux `sts2.dll` 必须匹配当前已核验的 v0.111.0 摘要；
+如果不匹配，需要先审计该平台的游戏构建，不能改 hash 或关闭检查来绕过。
+
+## Linux：从空白服务器开始
+
+以下以 **Ubuntu 24.04 x86_64、Python 3.12** 为部署示例。采集无需桌面；
+当前推理和训练入口使用 CPU，安装 CUDA 不会自动让它改用 GPU。8 workers
+会各自启动游戏及推理进程，服务器需要足够的 CPU、内存和磁盘；本地尚未
+测量 Linux 峰值内存。每轮数百个优化器断点可能占约 30GB，十轮另需预留
+数百 GB，加上游戏、轨迹及构建文件；默认不自动清理断点。
+
+### 1. 系统、Python 和 .NET
+
+```bash
+sudo apt-get update
+sudo apt-get install -y git curl ca-certificates python3 python3-venv \
+  build-essential libicu74 libssl3t64 zlib1g libstdc++6
+git clone --branch codex/training-readiness-fixes \
+  https://github.com/Cher1shYe/SlayTheModel.git
+cd SlayTheModel/sts2-rl-agent
+python3 -m venv .venv-az
+source .venv-az/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -e '.[az,dev]'
+
+curl -fsSL https://dot.net/v1/dotnet-install.sh -o /tmp/sts2-dotnet-install.sh
+bash /tmp/sts2-dotnet-install.sh --version 9.0.306 --install-dir "$HOME/.dotnet"
+export DOTNET_ROOT="$HOME/.dotnet"
+export PATH="$DOTNET_ROOT:$PATH"
+dotnet --info
+python -c 'import torch, numpy; print(torch.__version__, numpy.__version__)'
+```
+
+`.NET 9.0.306` 与仓库 `global.json` 对齐；安装脚本不会替你安装系统依赖。
+参见 [微软 Linux 安装文档](https://learn.microsoft.com/en-us/dotnet/core/install/linux-scripted-manual)。
+重新登录时再次激活 venv 并设置上述 `DOTNET_ROOT`、`PATH`。
+
+### 2. 准备游戏与 RitsuLib：不能省略
+
+使用你有权访问的 Steam 安装／备份取得 **Linux x86_64 v0.111.0** 游戏文件，
+以及 RitsuLib 的 `compat/0.111.0` 和 `shared` 目录。可从自己的 Linux Steam
+安装复制到服务器。不要把 Windows `.exe` 改名当作 Linux 程序，也不要假设
+Steam 当前最新版等于本项目锁定版。本文不提供未经核实的旧版 depot/manifest ID，
+也不分发游戏文件或 Steam 凭据。
+
+例如放置为：
+
+```text
+/srv/sts2/game/
+  SlayTheSpire2.x86_64
+  SlayTheSpire2.pck
+  release_info.json
+  data_sts2_linuxbsd_x86_64/
+    sts2.dll
+    GodotSharp.dll
+    0Harmony.dll
+    ...其余原安装文件
+/srv/sts2/ritsulib/
+  compat/0.111.0/STS2-RitsuLib.dll
+  compat/0.111.0/STS2-RitsuLib.Runtime.dll
+  shared/STS2-RitsuLib.Shared.dll
+  shared/STS2-RitsuLib.Ui.dll
+  shared/STS2-RitsuLib.Settings.dll
+  ...其余原安装文件
+```
+
+保留 Linux 文件的执行权限。可先执行 `ldd /srv/sts2/game/SlayTheSpire2.x86_64`，
+按输出补齐缺少的系统库。不要使用普通 Godot 替代游戏自带的定制引擎。
+`sts2.dll` 的准入 SHA256 为：
+
+```text
+0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9
+```
+
+该摘要来自已核验 Windows 构建；**尚未证明 Linux 发行文件与它一致**。检查器
+只接受相同程序集，发现差异会在编译前明确停止。服务器尚无游戏文件时，请先
+完成这一步；仓库不能替代这项外部依赖，也不能据此宣称 Linux 已端到端跑通。
+
+### 3. 独立构建及短程验收
+
+仍在 `sts2-rl-agent/` 且 venv 已激活：
+
+```bash
+python -m pytest tests/test_native_az_self_evolution.py \
+  tests/test_native_epoch_experiment.py tests/test_native_collection_cache.py -q
+
+python scripts/prepare_native_az_self_evolution.py \
+  --out output/az1024_linux \
+  --game /srv/sts2/game \
+  --ritsu /srv/sts2/ritsulib
+
+RUN="$(realpath output/az1024_linux)"
+python -u "$RUN/python/scripts/run_native_az_self_evolution.py" \
+  --experiment "$RUN" --verify-and-stop
+cat "$RUN/startup-check.json"
+cat "$RUN/progress.json"
+```
+
+准备脚本复制本仓库源码，在新目录中编译，不向游戏 mods 目录安装文件。
+首次需从 NuGet 获取 Godot .NET SDK／Publicizer 等依赖。构建失败保留诊断目录，
+修复依赖后换一个新的输出目录准备；不要覆盖已用于采集的 DLL。
+
+短程验收用 8 workers 完成前 16 场，再对 64 条真实决策做一次**独立试更新**、
+验证权重变化和重新加载一致性，然后自动退出。该试更新不进入正式学习者；
+16 场严格缓存会在正式续跑时复用。只有 `status=passed` 才代表这台服务器的
+实际采集→训练接线通过；不等于完整 1024 场或学习收益已验证。
+
+### 4. 正式运行、进度和续跑
+
+```bash
+RUN="$(realpath output/az1024_linux)"
+stamp="$(date +%Y%m%d_%H%M%S)"
+nohup .venv-az/bin/python -u \
+  "$RUN/python/scripts/run_native_az_self_evolution.py" \
+  --experiment "$RUN" --resume \
+  >"$RUN/run-$stamp.stdout.log" 2>"$RUN/run-$stamp.stderr.log" &
+echo "$!" > "$RUN/launcher.pid"
+
+cat "$RUN/progress.json"
+cat "$RUN/run/state.json"
+```
+
+实时进度每 5 秒更新。失败后先查 stderr 和当前 shard 的 `workers/*/worker.log`；
+完成的战斗和每一步优化器断点已持久化。环境、源码及配置未变化时用相同
+`--resume` 命令恢复。修复源码／游戏版本后不能盲改 identity，必须重新审计或
+启动独立新实验。已启动运行必须继续使用它自己的冻结 `python/` 入口，不能
+在训练期间 `git pull` 后直接换成工作区脚本或重编译它的 DLL。
+
+以上命令不创建定时任务。当前本机测试已按要求停止，没有正式训练在后台继续。
+Windows 使用同一个准备脚本，传 Windows 游戏／RitsuLib 路径；后台启动示例和
+本次结果见 [1024/8-worker 说明](sts2-rl-agent/docs/AZ_SELF_EVOLUTION_1024_W8.md)。
+候选权重见 [模型说明](sts2-rl-agent/models/epoch1024_e3_500ms/README.md)；
+原生来源与许可见 [原生部署说明](sts2-native/PORTABLE_WORKER.md)。
+
+---
+
+## 历史进度：MCTS 价值估计与采集模型可选（2026-10-18）
 
 MCTS 非终局叶子支持 `heuristic`（手写风险评分）、`learned`（价值网络）、`mixed`（两者线性混合）三种模式。`--value-mix` 是混合时学习价值的权重，范围 0～1；胜负／时间上限仍按原有 V7 搜索终局规则结算，不用网络覆盖。默认继续 `heuristic`，未改搜索预算、牌池或验证晋级规则。
 

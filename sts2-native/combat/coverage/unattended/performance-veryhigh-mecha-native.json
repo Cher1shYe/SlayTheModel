@@ -1,0 +1,152 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "PERFORMANCE-VERYHIGH-MECHA-NATIVE",
+  "characterId": "SILENT",
+  "seed": "VH_PERF_MECHA",
+  "encounterId": "MECHA_KNIGHT_ELITE",
+  "enemyCurrentHp": 300,
+  "initialPlayerHp": 65,
+  "initialPlayerMaxHp": 65,
+  "clearRunDeck": true,
+  "runCards": [
+    {
+      "cardId": "STRIKE_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "STRIKE_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "STRIKE_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "DEFEND_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "DEFEND_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "DEFEND_SILENT",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "SURVIVOR",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "OUTBREAK",
+      "upgradeLevels": 1,
+      "enchantmentId": "SLITHER",
+      "enchantmentAmount": 1
+    },
+    {
+      "cardId": "FOOTWORK",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "BACKFLIP",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "ESCAPE_PLAN",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "BLADE_OF_INK",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "SNAKEBITE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "PIERCING_WAIL",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "CALCULATED_GAMBLE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "CLOAK_AND_DAGGER",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "MALAISE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "SUPPRESS",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "BUBBLE_BUBBLE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "PREPARED",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "HAZE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "DEADLY_POISON",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "DODGE_AND_ROLL",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "MIRAGE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "TOOLS_OF_THE_TRADE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "CALCULATED_GAMBLE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "MALAISE",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "ULTIMATE_DEFEND",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "PIERCING_WAIL",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "FOOTWORK",
+      "upgradeLevels": 1
+    }
+  ],
+  "cards": [],
+  "performancePresetForTest": "VeryHigh",
+  "searchMaxDegreeOfParallelismForTest": 4,
+  "enableNoGcRegionForTest": true,
+  "noGcRegionBudgetGigabytesForTest": 16,
+  "enableDetailedDiagnosticLogsForTest": false,
+  "measureSearchPhases": false,
+  "deploymentFastModeForTest": "Instant",
+  "deploymentInterActionDelaySecondsForTest": 0,
+  "expectedInitialOnlyDeathRoutesFound": false,
+  "expectedInitialProjectedBattleHpLostAtMost": 8,
+  "expectedInitialCombatEndedTurn": 7,
+  "expectedInitialPotionCount": 0,
+  "expectedInitialExecutableActionCountAtLeast": 1,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120,
+  "exitOnComplete": true
+}

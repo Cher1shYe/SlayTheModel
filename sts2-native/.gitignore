@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+**/.godot/
+**/.local/
+artifacts/
+*.dll
+*.exe
+*.pdb
+*.pck
+*.log
+local.props

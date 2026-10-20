@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "ROUTE-CACHE-RECORD-V0111",
+  "seed": "ROUTECACHE031",
+  "characterId": "IRONCLAD",
+  "encounterId": "FUZZY_WURM_CRAWLER_WEAK",
+  "enemyCurrentHp": 12,
+  "initialPlayerEnergy": 1,
+  "forceShortSearchOnly": true,
+  "shortSearchBudgetOverrideMilliseconds": 1500,
+  "timeoutSeconds": 120,
+  "exitOnComplete": true
+}

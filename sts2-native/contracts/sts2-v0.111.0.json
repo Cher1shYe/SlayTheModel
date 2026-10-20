@@ -1,0 +1,193 @@
+{
+  "name": "SlayTheModel simulator ABI for STS2 public-beta v0.111.0",
+  "game_version": "v0.111.0",
+  "sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "required_types": [
+    {
+      "full_name": "MegaCrit.Sts2.Core.Runs.RunState",
+      "required_members": [
+        {
+          "kind": "method",
+          "name": "FromSerializable",
+          "signature": "MegaCrit.Sts2.Core.Runs.RunState (MegaCrit.Sts2.Core.Saves.SerializableRun)",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Runs.RunRngSet",
+      "required_members": [
+        {
+          "kind": "method",
+          "name": "ToSerializable",
+          "signature": "MegaCrit.Sts2.Core.Saves.Runs.SerializableRunRngSet ()",
+          "visibility": "public"
+        },
+        {
+          "kind": "method",
+          "name": "LoadFromSerializable",
+          "signature": "void (MegaCrit.Sts2.Core.Saves.Runs.SerializableRunRngSet)",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Combat.CombatState",
+      "required_members": [
+        {
+          "kind": "method",
+          "name": ".ctor",
+          "signature": "void (MegaCrit.Sts2.Core.Models.EncounterModel, MegaCrit.Sts2.Core.Runs.IRunState, System.Collections.Generic.IReadOnlyList`1<MegaCrit.Sts2.Core.Models.ModifierModel>, System.Collections.Generic.IReadOnlyList`1<MegaCrit.Sts2.Core.Models.BadgeModel>, MegaCrit.Sts2.Core.Models.Singleton.MultiplayerScalingModel)",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "Players",
+          "signature": "System.Collections.Generic.IReadOnlyList`1<MegaCrit.Sts2.Core.Entities.Players.Player>",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "Creatures",
+          "signature": "System.Collections.Generic.IReadOnlyList`1<MegaCrit.Sts2.Core.Entities.Creatures.Creature>",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "RoundNumber",
+          "signature": "int",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "CurrentSide",
+          "signature": "MegaCrit.Sts2.Core.Combat.CombatSide",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState",
+      "required_members": [
+        {
+          "kind": "method",
+          "name": "FromRun",
+          "signature": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState (MegaCrit.Sts2.Core.Runs.IRunState, MegaCrit.Sts2.Core.GameActions.GameAction)",
+          "visibility": "public"
+        },
+        {
+          "kind": "method",
+          "name": "Serialize",
+          "signature": "void (MegaCrit.Sts2.Core.Multiplayer.Serialization.PacketWriter)",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "Rng",
+          "signature": "MegaCrit.Sts2.Core.Saves.Runs.SerializableRunRngSet",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "Players",
+          "signature": "System.Collections.Generic.List`1<MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState+PlayerState>",
+          "visibility": "public"
+        },
+        {
+          "kind": "property",
+          "name": "Creatures",
+          "signature": "System.Collections.Generic.List`1<MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState+CreatureState>",
+          "visibility": "public"
+        }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState+PlayerState",
+      "required_members": [
+        { "kind": "field", "name": "piles", "visibility": "public" },
+        { "kind": "field", "name": "energy", "signature": "int", "visibility": "public" },
+        { "kind": "field", "name": "phase", "visibility": "public" },
+        { "kind": "field", "name": "turnNumber", "signature": "int", "visibility": "public" },
+        { "kind": "field", "name": "rngSet", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState+CardState",
+      "required_members": [
+        { "kind": "field", "name": "card", "visibility": "public" },
+        { "kind": "field", "name": "energyCost", "signature": "System.Nullable`1<int>", "visibility": "public" },
+        { "kind": "field", "name": "keywords", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState+CreatureState",
+      "required_members": [
+        { "kind": "field", "name": "currentHp", "signature": "int", "visibility": "public" },
+        { "kind": "field", "name": "maxHp", "signature": "int", "visibility": "public" },
+        { "kind": "field", "name": "block", "signature": "int", "visibility": "public" },
+        { "kind": "field", "name": "powers", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Models.CardModel",
+      "required_members": [
+        { "kind": "method", "name": "CanPlay", "signature": "bool ()", "visibility": "public" },
+        { "kind": "method", "name": "CanPlayTargeting", "signature": "bool (MegaCrit.Sts2.Core.Entities.Creatures.Creature)", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetCombatCard",
+      "required_members": [
+        { "kind": "method", "name": "FromModel", "signature": "MegaCrit.Sts2.Core.Entities.Multiplayer.NetCombatCard (MegaCrit.Sts2.Core.Models.CardModel)", "visibility": "public" },
+        { "kind": "method", "name": "ToCardModel", "signature": "MegaCrit.Sts2.Core.Models.CardModel ()", "visibility": "public" },
+        { "kind": "property", "name": "CombatCardIndex", "signature": "uint", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.GameActions.PlayCardAction",
+      "required_members": [
+        { "kind": "method", "name": ".ctor", "signature": "void (MegaCrit.Sts2.Core.Models.CardModel, MegaCrit.Sts2.Core.Entities.Creatures.Creature)", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.GameActions.UsePotionAction",
+      "required_members": [
+        { "kind": "method", "name": ".ctor", "signature": "void (MegaCrit.Sts2.Core.Models.PotionModel, MegaCrit.Sts2.Core.Entities.Creatures.Creature, bool)", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.GameActions.EndPlayerTurnAction",
+      "required_members": [
+        { "kind": "method", "name": ".ctor", "signature": "void (MegaCrit.Sts2.Core.Entities.Players.Player, int)", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.GameActions.Multiplayer.ActionQueueSet",
+      "required_members": [
+        { "kind": "method", "name": "EnqueueWithoutSynchronizing", "signature": "void (MegaCrit.Sts2.Core.GameActions.GameAction)", "visibility": "public" },
+        { "kind": "method", "name": "GetReadyAction", "signature": "MegaCrit.Sts2.Core.GameActions.GameAction ()", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.GameActions.ActionExecutor",
+      "required_members": [
+        { "kind": "method", "name": ".ctor", "signature": "void (MegaCrit.Sts2.Core.GameActions.Multiplayer.ActionQueueSet)", "visibility": "public" },
+        { "kind": "method", "name": "FinishedExecutingActions", "signature": "System.Threading.Tasks.Task ()", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Multiplayer.Game.ChecksumTracker",
+      "required_members": [
+        { "kind": "method", "name": "GenerateChecksum", "signature": "uint (MegaCrit.Sts2.Core.Entities.Multiplayer.NetFullCombatState)", "visibility": "public" }
+      ]
+    },
+    {
+      "full_name": "MegaCrit.Sts2.Core.Multiplayer.Replay.CombatReplay",
+      "required_members": [
+        { "kind": "field", "name": "serializableRun", "signature": "MegaCrit.Sts2.Core.Saves.SerializableRun", "visibility": "public" },
+        { "kind": "field", "name": "events", "visibility": "public" },
+        { "kind": "field", "name": "checksumData", "visibility": "public" }
+      ]
+    }
+  ]
+}

@@ -109,8 +109,8 @@ class NativeBackend(BaseBackend):
         self.configure_search(config.get('leaf_mode','heuristic'),config.get('value_mix',.5))
 
     def configure_workers(self,workers):
-        if type(workers) is not int or not 1<=workers<=4:
-            raise ValueError('Native collection supports 1-4 workers')
+        if type(workers) is not int or not 1<=workers<=8:
+            raise ValueError('Native collection supports 1-8 workers')
         self.workers=workers
 
     def _prepare_parallel(self,directory):
@@ -125,6 +125,8 @@ class NativeBackend(BaseBackend):
         import shutil
         import subprocess
         import uuid
+        import sys
+        from .native_platform import worker_executable, stop_process_tree
         directory=job.parent
         project=directory/'project'
         project.mkdir(exist_ok=True)
@@ -140,16 +142,16 @@ class NativeBackend(BaseBackend):
         (project/'.godot').mkdir(exist_ok=True)
         (project/'.godot/global_script_class_cache.cfg').write_text('list=Array[Dictionary]([])')
         env=dict(os.environ,STS2_COLLECTION_PILOT_JOB=str(job),
-                 STS2_GAME_PACK=str(self.game/'SlayTheSpire2.pck'),STS2_WORKER_MODE='collection-pilot')
-        command=[str(self.repo/'artifacts/native-host/NativeWorker.exe'),'--headless',
+                 STS2_GAME_PACK=str(self.game/'SlayTheSpire2.pck'),STS2_WORKER_MODE='collection-pilot',
+                 STS2_PYTHON_EXECUTABLE=sys.executable)
+        command=[str(worker_executable(self.repo)),'--headless',
                  '--path',str(project),'--log-file',str(directory/'godot.log')]
         with Path(log).open('a',encoding='utf-8') as stream:
             process=subprocess.Popen(command,env=env,stdout=stream,stderr=subprocess.STDOUT,
-                creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0))
+                creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0), start_new_session=os.name != 'nt')
             try: code=process.wait(timeout=120)
             except BaseException:
-                subprocess.run(['taskkill','/PID',str(process.pid),'/T','/F'],capture_output=True)
-                process.wait()
+                stop_process_tree(process)
                 raise
             if code: raise RuntimeError(f'Native worker exit {code}; completed fights retained; see {log}')
 

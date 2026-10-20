@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Framework-independent Monte Carlo tree search primitives for SlayTheModel.</Description>
+  </PropertyGroup>
+</Project>

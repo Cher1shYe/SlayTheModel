@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "PR15-POTION-VALUE-TIERS",
+  "potions": [{ "potionId": "SWIFT_POTION" }],
+  "forceShortSearchOnly": true,
+  "shortSearchBudgetOverrideMilliseconds": 1500,
+  "verifyIncrementalSearch": true,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120
+}

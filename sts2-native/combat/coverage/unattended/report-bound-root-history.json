@@ -1,0 +1,25 @@
+[
+  {
+    "monsterId": "BigDummy",
+    "moveId": "NOTHING",
+    "enemyHpBefore": 999,
+    "playerEnergyBefore": 3,
+    "clearAllPowersBeforeMove": true,
+    "clearPlayerPilesBeforeMove": true,
+    "powersBeforeMove": [
+      { "powerId": "CHAINS_OF_BINDING_POWER", "target": "Player", "amount": 1 },
+      { "powerId": "DARK_EMBRACE_POWER", "target": "Player", "amount": 1 }
+    ],
+    "cardsBeforeMove": [
+      { "cardId": "DEFEND_IRONCLAD", "pile": "Hand", "afflictionId": "BOUND" },
+      { "cardId": "POMMEL_STRIKE", "pile": "Hand" },
+      { "cardId": "DAZED", "pile": "Hand" },
+      { "cardId": "STRIKE_IRONCLAD", "pile": "Draw", "count": 3 }
+    ],
+    "cardPlayChecksAfterMove": [
+      { "cardId": "POMMEL_STRIKE", "target": "Enemy" }
+    ],
+    "triggerPlayerTurnEndAfterMove": true,
+    "triggerPlayerSetupAfterMove": true
+  }
+]

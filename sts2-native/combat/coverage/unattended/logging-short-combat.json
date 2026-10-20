@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "scenarioId": "VISIBLE-LOGGING-CAPTURE-0300",
+  "characterId": "IRONCLAD",
+  "encounterId": "FUZZY_WURM_CRAWLER_WEAK",
+  "seed": "LOGGING-CAPTURE-0300",
+  "cards": [],
+  "preserveNativeCombatStateForTest": true,
+  "forceShortSearchOnly": true,
+  "shortSearchBudgetOverrideMilliseconds": 2000,
+  "deploymentFastModeForTest": "Instant",
+  "deploymentInterActionDelaySecondsForTest": 0,
+  "expectedUnexpectedReplansAtMost": 0,
+  "exportBugReportAfterCombat": true,
+  "exitOnComplete": true
+}

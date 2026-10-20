@@ -1,0 +1,1317 @@
+{
+  "baseline": "2352d08",
+  "cpuProfile": {
+    "event": "cpu-clock:u",
+    "frequencyHz": 199,
+    "callGraph": "frame pointer + JIT symbols",
+    "totalSamples": 33067,
+    "searchSamples": 26683,
+    "missingStackSamples": 2,
+    "stacksAtLeast127Frames": 14,
+    "processGroups": [
+      {
+        "name": "confirmed_search",
+        "weightNanoseconds": 134085410375,
+        "percent": 80.69374300662292
+      },
+      {
+        "name": "other_or_unanchored",
+        "weightNanoseconds": 25748740500,
+        "percent": 15.495811534157921
+      },
+      {
+        "name": "tiered_compilation_thread",
+        "weightNanoseconds": 5643215375,
+        "percent": 3.396135119605649
+      },
+      {
+        "name": "gc_thread",
+        "weightNanoseconds": 688442125,
+        "percent": 0.41431033961351194
+      }
+    ],
+    "disjointSearchGroups": [
+      {
+        "name": "snapshot_evaluation",
+        "weightNanoseconds": 37221100875,
+        "percent": 27.75924746093018,
+        "samples": 7407
+      },
+      {
+        "name": "round_simulation",
+        "weightNanoseconds": 35944719125,
+        "percent": 26.807330510062588,
+        "samples": 7153
+      },
+      {
+        "name": "replay_other",
+        "weightNanoseconds": 20954771250,
+        "percent": 15.627927894164824,
+        "samples": 4170
+      },
+      {
+        "name": "fork",
+        "weightNanoseconds": 16592962750,
+        "percent": 12.374920361278717,
+        "samples": 3302
+      },
+      {
+        "name": "other_search",
+        "weightNanoseconds": 11864320125,
+        "percent": 8.84833039763145,
+        "samples": 2361
+      },
+      {
+        "name": "card_execution",
+        "weightNanoseconds": 8341707500,
+        "percent": 6.221189521418132,
+        "samples": 1660
+      },
+      {
+        "name": "retention_other",
+        "weightNanoseconds": 3160803625,
+        "percent": 2.357306149983135,
+        "samples": 629
+      },
+      {
+        "name": "potion_execution",
+        "weightNanoseconds": 5025125,
+        "percent": 0.0037477045309747777,
+        "samples": 1
+      }
+    ],
+    "inclusiveMechanisms": [
+      {
+        "name": "hook_callbacks",
+        "weightNanoseconds": 28025122125,
+        "percent": 20.900948169246337
+      },
+      {
+        "name": "mirror_registry_dispatch",
+        "weightNanoseconds": 21753766125,
+        "percent": 16.223812914589814
+      },
+      {
+        "name": "hook_listener_bookkeeping",
+        "weightNanoseconds": 13075375250,
+        "percent": 9.751527189596372
+      },
+      {
+        "name": "mutable_model_cloning",
+        "weightNanoseconds": 8502511500,
+        "percent": 6.341116066409325
+      },
+      {
+        "name": "state_key",
+        "weightNanoseconds": 8135677375,
+        "percent": 6.067533635648165
+      },
+      {
+        "name": "reachable_hand_value",
+        "weightNanoseconds": 5150753125,
+        "percent": 3.8413971442491475
+      },
+      {
+        "name": "damage_resolution",
+        "weightNanoseconds": 4542713000,
+        "percent": 3.3879248960011994
+      },
+      {
+        "name": "card_affliction_normalization",
+        "weightNanoseconds": 3879396500,
+        "percent": 2.8932278979125288
+      },
+      {
+        "name": "projected_shuffle",
+        "weightNanoseconds": 3145728250,
+        "percent": 2.346063036390211
+      },
+      {
+        "name": "history",
+        "weightNanoseconds": 1537688250,
+        "percent": 1.146797586478282
+      }
+    ]
+  },
+  "replayAttribution": {
+    "runId": "cdac48bf950342f8b749c6219a32e581",
+    "scope": "Parallel replay elapsed and thread allocations; excludes prepared forks before replay; includes GC and scheduling waits; not CPU or request elapsed",
+    "rows": [
+      {
+        "Name": "replay:END_TURN",
+        "Count": 125097,
+        "Milliseconds": 62477.976026,
+        "AllocatedBytes": 7626781768
+      },
+      {
+        "Name": "replay:ACROBATICS",
+        "Count": 51763,
+        "Milliseconds": 15950.704446,
+        "AllocatedBytes": 1076399896
+      },
+      {
+        "Name": "replay:PREPARED",
+        "Count": 37454,
+        "Milliseconds": 9980.702853,
+        "AllocatedBytes": 876967176
+      },
+      {
+        "Name": "replay:DAGGER_THROW",
+        "Count": 32236,
+        "Milliseconds": 7679.73427,
+        "AllocatedBytes": 707069464
+      },
+      {
+        "Name": "replay:STRIKE_SILENT",
+        "Count": 14370,
+        "Milliseconds": 3543.411654,
+        "AllocatedBytes": 245387968
+      },
+      {
+        "Name": "replay:DEFEND_SILENT",
+        "Count": 11891,
+        "Milliseconds": 3260.845895,
+        "AllocatedBytes": 179345824
+      },
+      {
+        "Name": "replay:SURVIVOR",
+        "Count": 10635,
+        "Milliseconds": 2582.386314,
+        "AllocatedBytes": 196148336
+      },
+      {
+        "Name": "replay:SHIV",
+        "Count": 8405,
+        "Milliseconds": 2262.847137,
+        "AllocatedBytes": 154527744
+      },
+      {
+        "Name": "replay:FLECHETTES",
+        "Count": 7000,
+        "Milliseconds": 2235.058919,
+        "AllocatedBytes": 141206472
+      },
+      {
+        "Name": "replay:LEADING_STRIKE",
+        "Count": 3730,
+        "Milliseconds": 1640.105302,
+        "AllocatedBytes": 100809768
+      },
+      {
+        "Name": "replay:LEG_SWEEP",
+        "Count": 3316,
+        "Milliseconds": 1306.351463,
+        "AllocatedBytes": 62384792
+      },
+      {
+        "Name": "replay:NEUTRALIZE",
+        "Count": 3826,
+        "Milliseconds": 1178.037327,
+        "AllocatedBytes": 81347456
+      },
+      {
+        "Name": "replay:BACKFLIP",
+        "Count": 3518,
+        "Milliseconds": 1150.431581,
+        "AllocatedBytes": 59491312
+      },
+      {
+        "Name": "replay:FOOTWORK",
+        "Count": 3807,
+        "Milliseconds": 973.705432,
+        "AllocatedBytes": 64636520
+      },
+      {
+        "Name": "replay:EXPERTISE",
+        "Count": 4203,
+        "Milliseconds": 957.387762,
+        "AllocatedBytes": 76619872
+      },
+      {
+        "Name": "replay:JACK_OF_ALL_TRADES",
+        "Count": 2370,
+        "Milliseconds": 945.596642,
+        "AllocatedBytes": 59548736
+      },
+      {
+        "Name": "replay:ECHOING_SLASH",
+        "Count": 3052,
+        "Milliseconds": 926.680818,
+        "AllocatedBytes": 55350368
+      },
+      {
+        "Name": "replay:BURST",
+        "Count": 2772,
+        "Milliseconds": 912.970403,
+        "AllocatedBytes": 48074712
+      },
+      {
+        "Name": "replay:SERPENT_FORM",
+        "Count": 3343,
+        "Milliseconds": 858.837589,
+        "AllocatedBytes": 59295112
+      },
+      {
+        "Name": "replay:BOLAS",
+        "Count": 3421,
+        "Milliseconds": 825.396904,
+        "AllocatedBytes": 62882896
+      },
+      {
+        "Name": "replay:TOOLS_OF_THE_TRADE",
+        "Count": 2810,
+        "Milliseconds": 727.67138,
+        "AllocatedBytes": 44097712
+      },
+      {
+        "Name": "replay:DODGE_AND_ROLL",
+        "Count": 1719,
+        "Milliseconds": 673.568303,
+        "AllocatedBytes": 33443864
+      },
+      {
+        "Name": "replay:DAGGER_SPRAY",
+        "Count": 2453,
+        "Milliseconds": 580.511666,
+        "AllocatedBytes": 47462192
+      },
+      {
+        "Name": "replay:MASTER_PLANNER",
+        "Count": 1727,
+        "Milliseconds": 576.714123,
+        "AllocatedBytes": 29354288
+      },
+      {
+        "Name": "replay:REFLEX",
+        "Count": 2203,
+        "Milliseconds": 536.799321,
+        "AllocatedBytes": 33046144
+      },
+      {
+        "Name": "replay:TRACKING",
+        "Count": 1357,
+        "Milliseconds": 394.602029,
+        "AllocatedBytes": 23666168
+      },
+      {
+        "Name": "replay:CALCULATED_GAMBLE",
+        "Count": 345,
+        "Milliseconds": 237.693993,
+        "AllocatedBytes": 9531152
+      },
+      {
+        "Name": "replay:ADRENALINE",
+        "Count": 374,
+        "Milliseconds": 145.510861,
+        "AllocatedBytes": 6427264
+      },
+      {
+        "Name": "replay:route_0",
+        "Count": 1,
+        "Milliseconds": 46.864362,
+        "AllocatedBytes": 3426480
+      },
+      {
+        "Name": "replay:route_40",
+        "Count": 1,
+        "Milliseconds": 4.713662,
+        "AllocatedBytes": 897128
+      },
+      {
+        "Name": "replay:ETERNAL_ARMOR",
+        "Count": 1,
+        "Milliseconds": 0.650958,
+        "AllocatedBytes": 116672
+      },
+      {
+        "Name": "boundary:END_TURN:None",
+        "Count": 101061,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:LEADING_STRIKE:None",
+        "Count": 3730,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:FLECHETTES:None",
+        "Count": 7000,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:TRACKING:None",
+        "Count": 1357,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:PREPARED:None",
+        "Count": 33518,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:TOOLS_OF_THE_TRADE:None",
+        "Count": 2810,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:LEG_SWEEP:None",
+        "Count": 3316,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:DEFEND_SILENT:None",
+        "Count": 11891,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:ECHOING_SLASH:None",
+        "Count": 3052,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:ACROBATICS:None",
+        "Count": 45439,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:FOOTWORK:None",
+        "Count": 3807,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:ACROBATICS:PendingChoice",
+        "Count": 6324,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "pending-source:ACROBATICS",
+        "Count": 14912,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:PREPARED:PendingChoice",
+        "Count": 3936,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "pending-source:PREPARED",
+        "Count": 3617,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:END_TURN:PendingChoice",
+        "Count": 24036,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "pending-source:TOOLS_OF_THE_TRADE_POWER",
+        "Count": 14469,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:SHIV:None",
+        "Count": 8405,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:CALCULATED_GAMBLE:None",
+        "Count": 345,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:ADRENALINE:None",
+        "Count": 374,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:SURVIVOR:None",
+        "Count": 9002,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:SURVIVOR:PendingChoice",
+        "Count": 1633,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "pending-source:SURVIVOR",
+        "Count": 3733,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:MASTER_PLANNER:None",
+        "Count": 1727,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:STRIKE_SILENT:None",
+        "Count": 14370,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:EXPERTISE:None",
+        "Count": 4203,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:BACKFLIP:None",
+        "Count": 3518,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:JACK_OF_ALL_TRADES:None",
+        "Count": 2370,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:NEUTRALIZE:None",
+        "Count": 3826,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:REFLEX:None",
+        "Count": 2203,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:DAGGER_SPRAY:None",
+        "Count": 2453,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:DODGE_AND_ROLL:None",
+        "Count": 1719,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:BURST:None",
+        "Count": 2772,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:SERPENT_FORM:None",
+        "Count": 3343,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:BOLAS:None",
+        "Count": 3421,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:DAGGER_THROW:None",
+        "Count": 27460,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:DAGGER_THROW:PendingChoice",
+        "Count": 4776,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "pending-source:DAGGER_THROW",
+        "Count": 3974,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:ETERNAL_ARMOR:None",
+        "Count": 1,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:route_0:None",
+        "Count": 1,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      },
+      {
+        "Name": "boundary:route_40:None",
+        "Count": 1,
+        "Milliseconds": 0,
+        "AllocatedBytes": 0
+      }
+    ]
+  },
+  "shortAbba": {
+    "sourceCommit": "2352d08 + demand-driven FirstAttackDamage",
+    "mode": "Linux headless, real BaseLib/Ritsu, fresh process; single primary search with fixed custom profile; both potion slots disabled; result dump after captured search metrics, no search instrumentation",
+    "profile": {
+      "beamWidth": 512,
+      "maxExpandedNodes": 10000,
+      "softTimeBudgetMilliseconds": 300000,
+      "maxCardBranchesPerNode": 100,
+      "maxPileChoiceBranchesPerAction": 42,
+      "maxHandChoiceBranchesPerAction": 54,
+      "fixedBudget": true
+    },
+    "dop": 16,
+    "noGcRegionGB": 16,
+    "fixedResultFields": {
+      "reused": "False",
+      "reused_from_turn": "-",
+      "expanded": "10000",
+      "total_expanded": "10000",
+      "dominance_pruned": "1264",
+      "top_queue_dropped": "0",
+      "duplicate_cards_pruned": "1077",
+      "choice_branches": "83399",
+      "total_choice_branches": "83399",
+      "choice_replay_attempts": "83399",
+      "choice_replay_budget_exhaustions": "0",
+      "choice_branches_dropped_by_budget": "0",
+      "shuffle_branches_pruned": "0",
+      "sold_hp_branches_pruned": "0",
+      "replays": "2",
+      "forks": "152494",
+      "transitions": "152494",
+      "total_transitions": "152494",
+      "cache_hits": "0",
+      "stand_pat": "2598",
+      "snapshot_reuses": "11207",
+      "transposition_pruned": "10375",
+      "repeatable_no_progress_pruned": "0",
+      "cycle_shapes": "0",
+      "cycle_probe_continuations": "0",
+      "cycle_candidates_protected": "0",
+      "cycle_continuations_stopped": "0",
+      "cycle_regions": "0",
+      "cycle_region_considered": "0",
+      "cycle_region_admitted": "0",
+      "cycle_region_dropped": "0",
+      "cycle_region_progress_epochs": "0",
+      "cycle_region_probe_admitted": "0",
+      "cycle_region_progress_admitted": "0",
+      "cycle_region_max_action_families": "0",
+      "ordered_admitted": "0",
+      "ordered_lease_expired_budget": "0",
+      "ordered_ordinary_fallback": "0",
+      "cold_atomic_committed": "0",
+      "cold_atomic_rejected": "0",
+      "cross_turn_candidates_protected": "18",
+      "cross_turn_continuations_stopped": "0",
+      "primary_incumbent_pruned": "0",
+      "primary_incumbent_updates": "0",
+      "stand_pat_probes": "2598",
+      "parallel_max_concurrency": "16",
+      "parallel_action_max_concurrency": "16",
+      "deferred_round_choice_max_width": "45",
+      "deferred_round_choice_finite_fallback_scope": "pending_only",
+      "parallel_round_choice_max_concurrency": "16",
+      "node_limit_snapshots_released": "840",
+      "transition_cache_hits": "0",
+      "searched_turns": "8",
+      "boundary": "NodeLimit",
+      "shuffles_crossed": "2",
+      "unavoidable_hp_lost": "54",
+      "sold_hp": "18",
+      "future_sold_hp": "18",
+      "battle_hp_lost_so_far": "0",
+      "projected_battle_hp_lost": "72",
+      "recovered_hp": "0",
+      "relic_heal": "0",
+      "death_save_relic_hp": "0",
+      "long_term_resource": "0",
+      "anger_copies": "0",
+      "battle_potions_used_so_far": "0",
+      "potion_count": "0",
+      "potion_hp_saved": "0",
+      "potion_hp_required": "0",
+      "potion_branches_rejected": "0",
+      "theft_policy": "-",
+      "outstanding_stolen_resource": "0",
+      "score": "-7530028",
+      "final_hp": "13",
+      "final_block": "55",
+      "final_enemy_hp": "516",
+      "combat_ended_turn": "-",
+      "death_turn": "-",
+      "only_death_routes": "False",
+      "act_ending_boss": "False",
+      "boss_hp_relief": "None",
+      "engine_risk": "False",
+      "unsupported_intent": "False",
+      "modeled_damage_exact": "False"
+    },
+    "fixedFieldCount": 84,
+    "fullRouteEqual": true,
+    "actionCount": 28,
+    "means": {
+      "totalElapsedMilliseconds": {
+        "A": 10210.9654,
+        "B": 9897.9974,
+        "changePercent": -3.065018710179934
+      },
+      "totalWorkerAllocatedBytes": {
+        "A": 7079164768,
+        "B": 7039503048,
+        "changePercent": -0.5602598795169
+      },
+      "totalGcPauseMilliseconds": {
+        "A": 0,
+        "B": 0,
+        "changePercent": null
+      }
+    },
+    "samples": [
+      {
+        "label": "A1",
+        "runId": "87fa1cac53764b4eaa67f04afffde243",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 1,
+            "noGcStarts": 1,
+            "noGcEndAttempts": 0,
+            "noGcEnds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 10000,
+          "selectedTransitions": 152494,
+          "selectedChoiceBranches": 83399,
+          "choiceReplayAttempts": 83399,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 10000,
+          "totalTransitions": 152494,
+          "totalChoiceBranches": 83399,
+          "elapsedMilliseconds": 10288.6264,
+          "totalElapsedMilliseconds": 10304.6349,
+          "workerAllocatedBytes": 7077138064,
+          "totalWorkerAllocatedBytes": 7077225784,
+          "totalGen0Collections": 0,
+          "totalGen1Collections": 0,
+          "totalGen2Collections": 0,
+          "totalGcPauseMilliseconds": 0,
+          "maxGcPauseMilliseconds": 0,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 317,
+          "parallelActionReplayWorkItems": 52899,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 7984,
+          "deferredRoundChoiceLayerWidthTotal": 69151,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 7984,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 250,
+          "parallelRoundChoiceReplayWorkItems": 90850,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 2,
+          "score": -7530027.9,
+          "projectedBattleHpLost": 72,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 13,
+          "finalEnemyHp": 516,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 33572.8798,
+          "managedLiveBytes": 7203443928,
+          "managedHeapBytes": 95895168,
+          "managedFragmentedBytes": 15798136,
+          "workingSetBytes": 8689938432,
+          "privateMemoryBytes": 18614063104,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 43.38732324098237,
+          "sampledPeakRssBytes": 8745381888,
+          "pid": 1025135
+        },
+        "scheduling": {
+          "deferred_round_choice_width_total": "69151",
+          "parallel_action_waves": "317",
+          "parallel_action_work_items": "52899",
+          "parallel_work_items": "9999",
+          "deferred_round_choice_finite_primary_layers": "7984",
+          "deferred_round_choice_finite_pending_fallbacks": "0",
+          "parallel_round_choice_work_items": "90850",
+          "deferred_round_choice_actions": "7984",
+          "parallel_round_choice_waves": "250",
+          "deferred_round_choice_finite_fallbacks": "0",
+          "parallel_waves": "326"
+        }
+      },
+      {
+        "label": "B1",
+        "runId": "7aea76b190b240f1b430ae5961156670",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 1,
+            "noGcStarts": 1,
+            "noGcEndAttempts": 0,
+            "noGcEnds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 10000,
+          "selectedTransitions": 152494,
+          "selectedChoiceBranches": 83399,
+          "choiceReplayAttempts": 83399,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 10000,
+          "totalTransitions": 152494,
+          "totalChoiceBranches": 83399,
+          "elapsedMilliseconds": 9811.9141,
+          "totalElapsedMilliseconds": 9828.5768,
+          "workerAllocatedBytes": 7045413624,
+          "totalWorkerAllocatedBytes": 7045500856,
+          "totalGen0Collections": 0,
+          "totalGen1Collections": 0,
+          "totalGen2Collections": 0,
+          "totalGcPauseMilliseconds": 0,
+          "maxGcPauseMilliseconds": 0,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 317,
+          "parallelActionReplayWorkItems": 52899,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 7984,
+          "deferredRoundChoiceLayerWidthTotal": 69151,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 7984,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 250,
+          "parallelRoundChoiceReplayWorkItems": 90850,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 2,
+          "score": -7530027.9,
+          "projectedBattleHpLost": 72,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 13,
+          "finalEnemyHp": 516,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 32968.9196,
+          "managedLiveBytes": 7171728056,
+          "managedHeapBytes": 95039664,
+          "managedFragmentedBytes": 14726576,
+          "workingSetBytes": 8671637504,
+          "privateMemoryBytes": 18630889472,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 42.57623073796276,
+          "sampledPeakRssBytes": 8719278080,
+          "pid": 1029757
+        },
+        "scheduling": {
+          "deferred_round_choice_width_total": "69151",
+          "parallel_action_waves": "317",
+          "parallel_action_work_items": "52899",
+          "parallel_work_items": "9999",
+          "deferred_round_choice_finite_primary_layers": "7984",
+          "deferred_round_choice_finite_pending_fallbacks": "0",
+          "parallel_round_choice_work_items": "90850",
+          "deferred_round_choice_actions": "7984",
+          "parallel_round_choice_waves": "250",
+          "deferred_round_choice_finite_fallbacks": "0",
+          "parallel_waves": "326"
+        }
+      },
+      {
+        "label": "B2",
+        "runId": "c996fa6de68348a39feae1559f0d3760",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 1,
+            "noGcStarts": 1,
+            "noGcEndAttempts": 0,
+            "noGcEnds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 10000,
+          "selectedTransitions": 152494,
+          "selectedChoiceBranches": 83399,
+          "choiceReplayAttempts": 83399,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 10000,
+          "totalTransitions": 152494,
+          "totalChoiceBranches": 83399,
+          "elapsedMilliseconds": 9949.9805,
+          "totalElapsedMilliseconds": 9967.418,
+          "workerAllocatedBytes": 7033418008,
+          "totalWorkerAllocatedBytes": 7033505240,
+          "totalGen0Collections": 0,
+          "totalGen1Collections": 0,
+          "totalGen2Collections": 0,
+          "totalGcPauseMilliseconds": 0,
+          "maxGcPauseMilliseconds": 0,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 317,
+          "parallelActionReplayWorkItems": 52899,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 7984,
+          "deferredRoundChoiceLayerWidthTotal": 69151,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 7984,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 250,
+          "parallelRoundChoiceReplayWorkItems": 90850,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 2,
+          "score": -7530027.9,
+          "projectedBattleHpLost": 72,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 13,
+          "finalEnemyHp": 516,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 33298.88,
+          "managedLiveBytes": 7157600712,
+          "managedHeapBytes": 95703520,
+          "managedFragmentedBytes": 15616624,
+          "workingSetBytes": 8638660608,
+          "privateMemoryBytes": 18608177152,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 41.491340718988795,
+          "sampledPeakRssBytes": 8683663360,
+          "pid": 1034460
+        },
+        "scheduling": {
+          "deferred_round_choice_width_total": "69151",
+          "parallel_action_waves": "317",
+          "parallel_action_work_items": "52899",
+          "parallel_work_items": "9999",
+          "deferred_round_choice_finite_primary_layers": "7984",
+          "deferred_round_choice_finite_pending_fallbacks": "0",
+          "parallel_round_choice_work_items": "90850",
+          "deferred_round_choice_actions": "7984",
+          "parallel_round_choice_waves": "250",
+          "deferred_round_choice_finite_fallbacks": "0",
+          "parallel_waves": "326"
+        }
+      },
+      {
+        "label": "A2",
+        "runId": "7c244624129949679d0f663dea0c37e3",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 0,
+            "noGcStartAttempts": 1,
+            "noGcStarts": 1,
+            "noGcEndAttempts": 0,
+            "noGcEnds": 0,
+            "noGcRestarts": 0,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 10000,
+          "selectedTransitions": 152494,
+          "selectedChoiceBranches": 83399,
+          "choiceReplayAttempts": 83399,
+          "choiceReplayBudgetExhaustions": 0,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 10000,
+          "totalTransitions": 152494,
+          "totalChoiceBranches": 83399,
+          "elapsedMilliseconds": 10100.3067,
+          "totalElapsedMilliseconds": 10117.2959,
+          "workerAllocatedBytes": 7081016520,
+          "totalWorkerAllocatedBytes": 7081103752,
+          "totalGen0Collections": 0,
+          "totalGen1Collections": 0,
+          "totalGen2Collections": 0,
+          "totalGcPauseMilliseconds": 0,
+          "maxGcPauseMilliseconds": 0,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 317,
+          "parallelActionReplayWorkItems": 52899,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 7984,
+          "deferredRoundChoiceLayerWidthTotal": 69151,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 7984,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 250,
+          "parallelRoundChoiceReplayWorkItems": 90850,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 2,
+          "score": -7530027.9,
+          "projectedBattleHpLost": 72,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 13,
+          "finalEnemyHp": 516,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 33393.7312,
+          "managedLiveBytes": 7205179272,
+          "managedHeapBytes": 95585384,
+          "managedFragmentedBytes": 15485656,
+          "workingSetBytes": 8726605824,
+          "privateMemoryBytes": 18668666880,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 42.99196027801372,
+          "sampledPeakRssBytes": 8790069248,
+          "pid": 1039353
+        },
+        "scheduling": {
+          "deferred_round_choice_width_total": "69151",
+          "parallel_action_waves": "317",
+          "parallel_action_work_items": "52899",
+          "parallel_work_items": "9999",
+          "deferred_round_choice_finite_primary_layers": "7984",
+          "deferred_round_choice_finite_pending_fallbacks": "0",
+          "parallel_round_choice_work_items": "90850",
+          "deferred_round_choice_actions": "7984",
+          "parallel_round_choice_waves": "250",
+          "deferred_round_choice_finite_fallbacks": "0",
+          "parallel_waves": "326"
+        }
+      }
+    ]
+  },
+  "longPair": {
+    "fixedFieldCount": 84,
+    "fullRouteEqual": true,
+    "actionCount": 40,
+    "samples": [
+      {
+        "label": "cpu-demand-A1",
+        "runId": "25657a07c7944495aed4650ef56c6bce",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 1,
+            "noGcStartAttempts": 2,
+            "noGcStarts": 2,
+            "noGcEndAttempts": 1,
+            "noGcEnds": 1,
+            "noGcRestarts": 1,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 20000,
+          "selectedTransitions": 349198,
+          "selectedChoiceBranches": 212548,
+          "choiceReplayAttempts": 212548,
+          "choiceReplayBudgetExhaustions": 68,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 20000,
+          "totalTransitions": 349198,
+          "totalChoiceBranches": 212548,
+          "elapsedMilliseconds": 22263.1091,
+          "totalElapsedMilliseconds": 22279.4619,
+          "workerAllocatedBytes": 19516648208,
+          "totalWorkerAllocatedBytes": 19516737112,
+          "totalGen0Collections": 2,
+          "totalGen1Collections": 2,
+          "totalGen2Collections": 2,
+          "totalGcPauseMilliseconds": 33.266,
+          "maxGcPauseMilliseconds": 32.186,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 709,
+          "parallelActionReplayWorkItems": 103805,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 11949,
+          "deferredRoundChoiceLayerWidthTotal": 105569,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 11949,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 564,
+          "parallelRoundChoiceReplayWorkItems": 176704,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 5,
+          "score": -3610039.9,
+          "projectedBattleHpLost": 3,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 82,
+          "finalEnemyHp": 508,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 45489.8385,
+          "managedLiveBytes": 10267553080,
+          "managedHeapBytes": 10767551128,
+          "managedFragmentedBytes": 9513931096,
+          "workingSetBytes": 12476272640,
+          "privateMemoryBytes": 29460131840,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 57.36259896302363,
+          "sampledPeakRssBytes": 12515450880,
+          "pid": 1012783
+        }
+      },
+      {
+        "label": "cpu-demand-B1",
+        "runId": "a4ff26fef547498ab73e8405c7aa859a",
+        "status": "Passed",
+        "metrics": {
+          "gcLifecycle": {
+            "forcedCollections": 1,
+            "noGcStartAttempts": 2,
+            "noGcStarts": 2,
+            "noGcEndAttempts": 1,
+            "noGcEnds": 1,
+            "noGcRestarts": 1,
+            "noGcLosses": 0
+          },
+          "gcLifecycleAttribution": "ExclusiveSearchScope",
+          "boundary": "NodeLimit",
+          "selectedExpanded": 20000,
+          "selectedTransitions": 349198,
+          "selectedChoiceBranches": 212548,
+          "choiceReplayAttempts": 212548,
+          "choiceReplayBudgetExhaustions": 68,
+          "choiceBranchesDroppedByBudget": 0,
+          "cycleRegionsDetected": 0,
+          "cycleRegionCandidatesConsidered": 0,
+          "cycleRegionCandidatesAdmitted": 0,
+          "cycleRegionCandidatesDropped": 0,
+          "cycleRegionProgressEpochs": 0,
+          "cycleRegionProbeCandidatesAdmitted": 0,
+          "cycleRegionProgressCandidatesAdmitted": 0,
+          "cycleRegionMaxActionFamilies": 0,
+          "orderedMutationCandidatesAdmitted": 0,
+          "orderedMutationLeaseExpiredBudget": 0,
+          "orderedMutationOrdinaryFallbacks": 0,
+          "orderedMutationColdAtomicCommitted": 0,
+          "orderedMutationColdAtomicRejected": 0,
+          "totalExpanded": 20000,
+          "totalTransitions": 349198,
+          "totalChoiceBranches": 212548,
+          "elapsedMilliseconds": 23608.5761,
+          "totalElapsedMilliseconds": 23626.0043,
+          "workerAllocatedBytes": 19459138296,
+          "totalWorkerAllocatedBytes": 19459227688,
+          "totalGen0Collections": 3,
+          "totalGen1Collections": 3,
+          "totalGen2Collections": 2,
+          "totalGcPauseMilliseconds": 2450.97,
+          "maxGcPauseMilliseconds": 2426.28,
+          "maxParallelConcurrency": 16,
+          "parallelActionReplayWaves": 711,
+          "parallelActionReplayWorkItems": 103874,
+          "maxParallelActionReplayConcurrency": 16,
+          "deferredRoundChoiceActions": 11997,
+          "deferredRoundChoiceLayerWidthTotal": 105881,
+          "maxDeferredRoundChoiceLayerWidth": 45,
+          "deferredRoundChoiceFiniteQuotaFallbacks": 0,
+          "deferredRoundChoiceFinitePrimaryLayers": 11997,
+          "deferredRoundChoiceFinitePendingFallbacks": 0,
+          "parallelRoundChoiceReplayWaves": 566,
+          "parallelRoundChoiceReplayWorkItems": 177042,
+          "maxParallelRoundChoiceReplayConcurrency": 16,
+          "searchedTurns": 8,
+          "shufflesCrossed": 5,
+          "score": -3610039.9,
+          "projectedBattleHpLost": 3,
+          "potionCount": 0,
+          "potionUses": [],
+          "onlyDeathRoutes": false,
+          "finalHp": 82,
+          "finalEnemyHp": 508,
+          "combatEndedTurn": null,
+          "capturedAtElapsedMilliseconds": 46838.7692,
+          "managedLiveBytes": 9696069440,
+          "managedHeapBytes": 1234886672,
+          "managedFragmentedBytes": 496863880,
+          "workingSetBytes": 11522068480,
+          "privateMemoryBytes": 19846578176,
+          "configuredNoGcRegionEnabled": true,
+          "configuredNoGcRegionBudgetBytes": 16000000000,
+          "gcLatencyMode": "NoGCRegion",
+          "noGcRegionActive": true,
+          "noGcRegionBudgetBytes": 16000000000,
+          "noGcRegionRolloverCount": 0
+        },
+        "measurement": {
+          "returnCode": 0,
+          "launcherElapsedSeconds": 57.86277293000603,
+          "sampledPeakRssBytes": 12182736896,
+          "pid": 1018229
+        }
+      }
+    ]
+  },
+  "limitations": [
+    "Linux headless only; no visible Steam or Windows deployment",
+    "Fixed short sample is not original 100000-node request",
+    "Long pair did not demonstrate elapsed improvement; GC pauses differ",
+    "Initial broad strategic fixture failed at unrelated unaffordable DanseMacabre assertion; focused replacement only covers affected field consumers"
+  ],
+  "strategicContract": {
+    "runId": "59a763860109428888c6a6eeb3acd1f6",
+    "status": "Passed",
+    "completedChecks": [
+      "StrategicContextDemand:NativeLethality:Eradicate:OrdinaryPolicy:RegisteredField"
+    ]
+  },
+  "standPatContract": {
+    "runId": "d95c36f1f2e04e1faaf9e41ce1378b09",
+    "status": "Passed",
+    "completedChecks": [
+      "CheckpointContinuationMatchedNativeEncodingUnverified",
+      "StandPatMemoryBoundary"
+    ]
+  }
+}

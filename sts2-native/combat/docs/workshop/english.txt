@@ -1,0 +1,64 @@
+[h1]Combat Solver[/h1]
+
+Combat Solver is a single-player combat planner for Slay the Spire 2.
+
+Once combat starts, it simulates your hand, draw and discard piles, enemy actions, potions, relics and future turns in the background. The overlay shows the best route found within your search budget, projected HP loss and key actions. Follow the advice yourself, execute one turn, or let auto-play handle the fight.
+
+[h2]Features[/h2]
+
+[list]
+[*]Multi-turn planning: explores future draws, shuffles, enemy actions and resources, not just the current hand.
+[*]Readable routes: displays cards, targets, choices, potions, end-turn actions and important relic triggers by turn.
+[*]Projected HP loss: prioritizes survival, confirmed victory and total combat HP loss rather than immediate damage alone.
+[*]Per-potion policies: choose Smart use, Always use, or Disabled / Protected for each potion. Newly acquired potions default to Smart use.
+[*]Three ways to play: advice only, execute this turn, or continuous auto-play.
+[*]Stop controls: interrupt a search from the overlay and start a new calculation when ready.
+[*]Native card choices: turn-start choices and draw/discard selections still use the game's own screens and animations.
+[*]Route reuse: continues an existing plan when the live game matches its prediction; recalculates when the state changes.
+[*]Adjustable budgets: Low, Medium, High, Very High and Custom presets, with separate memory and parallelism settings.
+[*]Bug reports: upload a report from Settings, or export it locally for manual submission.
+[/list]
+
+[h2]Getting started[/h2]
+
+[olist]
+[*]Subscribe to and enable the required RitsuLib mod.
+[*]Enable Combat Solver and enter a single-player combat.
+[*]Wait for cards and turn-start effects to finish resolving. The solver starts automatically by default.
+[*]Review the recommended route, execute the current turn, or enable auto-play.
+[/olist]
+
+[h2]Code origins, permission and credits[/h2]
+
+Combat Solver's embedded combat simulation core uses and adapts parts of Random Foreseer, with permission from its original author, [b]hotwords123[/b].
+
+That code relationship remains in the current version, including foundations for combat state, card piles, RNG, forks, history and mirrors. Combat Solver builds on this work with multi-turn search, route reuse, automatic execution, native choice handling and performance controls. It does not load or distribute the Random Foreseer assembly as a runtime dependency; this separation does not change the origins of the code.
+
+Thank you to hotwords123 and Random Foreseer. Permission, attribution and third-party notices are included with the source and every binary distribution.
+
+Random Foreseer: search for Random Foreseer on Steam Workshop, or hotwords123/StS2.RandomForeseer on GitHub.
+Combat Solver source: search for Torch1230/CombatSolver on GitHub.
+
+[h2]Requirements and compatibility[/h2]
+
+[list]
+[*]Requires RitsuLib 0.5.18 or later.
+[*]Targets Slay the Spire 2 version 0.111.0.
+[*]Single-player combat only; multiplayer is not supported.
+[*]Background search does not modify the live game's RNG.
+[*]Search is bounded by time, node and memory budgets. The recommended route is the best found within those limits, not a guarantee of a mathematically optimal solution.
+[/list]
+
+[h2]Performance[/h2]
+
+Search can use substantial CPU and memory. The default is the Medium preset with a 16 GB search memory budget. The preset and memory budget are saved separately, so adjust them to your PC. Search runs in the background and periodically yields CPU time to reduce its impact on gameplay and animations.
+
+[h2]Community and feedback[/h2]
+
+[b]QQ community: 1106541324[/b]
+
+Share builds, discuss runs and suggest improvements. For incorrect routes, unexpected recalculations, execution failures or game errors, use Upload report in the mod's Settings. Reports include automatic issue classification to help diagnosis. The reporting backend was developed with community support from iRyougi. You can also use Export report to keep a local copy.
+
+When following up, include the report ID and a description of what happened.
+
+Author: Torch
