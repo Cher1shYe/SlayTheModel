@@ -4,3 +4,7 @@ scripts/__pycache__/
 # Local scratch probes
 _tmp_*.py
 _dbg_*.py
+
+# Local tool/artifact trees, not part of the repo
+sts2_datacollection/
+sts2-rl-agent/profile_output/
