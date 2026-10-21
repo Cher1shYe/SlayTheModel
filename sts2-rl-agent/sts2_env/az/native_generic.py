@@ -157,12 +157,15 @@ def validate_packed(p, *, value_only=False):
             raise ValueError('Invalid/oversized generic feature object')
 
 
-def validate_raw(raw, *, allow_validation_cutoff=False, allow_training_cutoff=False, allow_search_validation_cutoff=False):
+def validate_raw(raw, *, allow_validation_cutoff=False, allow_training_cutoff=False, allow_search_validation_cutoff=False,
+                 allow_ppo_training_cutoff=False):
     mode,mix=raw_leaf_settings(raw)
     truncated=raw.get('complete') is False
     permitted_cutoff=(allow_validation_cutoff and raw.get('arm')=='policy' and raw.get('split')=='validation'
                       or allow_training_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='train'
-                      or allow_search_validation_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='validation')
+                      or allow_search_validation_cutoff and raw.get('arm') in ('puct','uct') and raw.get('split')=='validation'
+                      or allow_ppo_training_cutoff and raw.get('arm')=='policy' and raw.get('split')=='train'
+                      and raw.get('policySample') is True)
     if truncated and not permitted_cutoff:
         raise ValueError('Truncated trajectory requires explicit split/arm admission')
     if (raw['format']!=FORMAT or raw['teacherInformation']!='native_checkpoint_privileged'

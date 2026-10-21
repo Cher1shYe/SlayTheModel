@@ -177,6 +177,22 @@ def validate(info,codec):
             if type(f['remaining'])is not int or not 1<=f['remaining']<=100000:raise ValueError('Invalid random auto count')
         else:raise ValueError('Unknown execution frame')
 
+def restore_hand_draw_listener(owner, name):
+    from sts2_env.core.enums import PowerId
+    from sts2_env.core.creature import get_power_class
+    from sts2_env.powers.base import PowerInstance
+    power_id = PowerId[name]
+    if power_id in owner.powers:
+        return owner.powers[power_id]
+    cls = get_power_class(power_id)
+    # The native queue snapshots listeners before earlier hooks can consume
+    # powers. A removed listener with the inherited no-op is safe to recreate
+    # only in the queue, never as an active power or an extra damage bonus.
+    if cls is not None and cls.before_hand_draw_late is PowerInstance.before_hand_draw_late:
+        return cls(0)
+    raise ValueError(f'Missing stateful hand-draw listener: {name}')
+
+
 def restore(world,info,codec):
     world.visible_card_events=list(info.history.public_events)
     from sts2_env.core.enums import ValueProp
@@ -224,7 +240,7 @@ def restore(world,info,codec):
     world._pending_play=ctx(d['active']) if d['active'] is not None else None
     world._pending_draw={**d['draw'],'owner':world.player} if d['draw'] else None
     from sts2_env.core.enums import PowerId
-    world._pending_hand_draw_hooks=[(world.player,world.player.powers[PowerId[n]]) for n in d['hooks']]
+    world._pending_hand_draw_hooks=[(world.player,restore_hand_draw_listener(world.player,n)) for n in d['hooks']]
     world._pending_end_turn=d['end_turn']
     world._pending_end_turn_stage=d['end_stage']
     world._pending_pile_operation=({**d['pile'],'cards':[cards[i] for i in d['pile']['cards']],'owner':world.player} if d['pile'] else None)
@@ -264,6 +280,22 @@ def restore(world,info,codec):
         return dict(kind='auto_batch',cards=[cards[i] for i in f['cards']],force_exhaust=f['force_exhaust'],random_targets=f['random_targets'])
     world._play_continuations=[frame(f) for f in d['frames']]
 
+def validate_play_finish(events, started, finished):
+    """Allow a resolving card's witnessed upgrade, retaining strict nesting."""
+    start, finish = events[started], events[finished]
+    if start[2] != finish[2]:
+        raise ValueError('Mismatched public play turn')
+    if start[1] == finish[1]:
+        return
+    # Dampen removal may restore an upgrade while an outer Havoc is still
+    # resolving an automatic play. Do not accept arbitrary face mismatches.
+    if (not start[1].endswith('+') and finish[1] == start[1] + '+'
+            and ('upgrade', start[1], finish[1], start[2])
+            in events[started + 1:finished]):
+        return
+    raise ValueError('Mismatched public play finish')
+
+
 def finish_history(before,world,history):
     events=tuple(world.visible_card_events)
     if events[:len(before.history.public_events)]!=before.history.public_events:raise ValueError('Public event journal prefix changed')
@@ -289,7 +321,7 @@ def finish_history(before,world,history):
         elif event[0]=='finish':
             if not stack:raise ValueError('Finish without public start')
             started=stack.pop()
-            if events[started][1]!=event[1]:raise ValueError('Mismatched public play finish')
+            validate_play_finish(events, started, index)
             if event[3]:suppressed.add(started)
     basic=tuple((e[1],e[2]) for i,e in enumerate(events) if e[0]=='start'
         and e[1].removesuffix('+') in (*BASIC,'BRAND') and i not in suppressed)

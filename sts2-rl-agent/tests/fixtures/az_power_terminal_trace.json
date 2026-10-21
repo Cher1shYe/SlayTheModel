@@ -1,0 +1,182 @@
+{
+  "scenario": {
+    "ascension": 0,
+    "character_id": "Ironclad",
+    "content_manifest_version": "ironclad-colorless-all-v6",
+    "deck": [
+      {
+        "card_id": "AUTOMATION",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "BATTLE_TRANCE",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "BODY_SLAM",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "BREAK",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "BURNING_PACT",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "CATASTROPHE",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "EVIL_EYE",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "FASTEN",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "FEED",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "FINESSE",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "GOLD_AXE",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "HAVOC",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "HEADBUTT",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "JACKPOT",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "MIMIC",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "NOSTALGIA_CARD",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "OFFERING",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "PANACHE_CARD",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "ROLLING_BOULDER",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "SALVO",
+        "count": 1,
+        "upgraded": true
+      },
+      {
+        "card_id": "SCRAWL",
+        "count": 1,
+        "upgraded": false
+      },
+      {
+        "card_id": "SEEKER_STRIKE",
+        "count": 1,
+        "upgraded": false
+      }
+    ],
+    "encounter_id": "setup_soul_fysh_boss",
+    "environment_seed": 1758393829,
+    "family_id": "all-content-arbitrary-v1",
+    "player_hp": 80,
+    "player_max_hp": 80,
+    "potions": [],
+    "relics": [],
+    "rules_version": "az-combat-v1",
+    "scenario_id": "all-validation-stratified-0000-0286",
+    "schema_version": "az-scenario-v1",
+    "split": "validation"
+  },
+  "actions": [
+    21,
+    26,
+    2,
+    3,
+    1,
+    3,
+    26,
+    4,
+    0,
+    26,
+    3,
+    31,
+    4,
+    31,
+    3,
+    56,
+    1,
+    9,
+    0,
+    46,
+    6,
+    8,
+    2,
+    0,
+    51,
+    41,
+    8,
+    4,
+    0,
+    26,
+    1,
+    16,
+    16,
+    2,
+    3,
+    0,
+    11,
+    3,
+    3,
+    0,
+    2,
+    1,
+    4,
+    2,
+    4
+  ],
+  "limits": {
+    "max_decisions": 400,
+    "max_turns": 40
+  },
+  "reward_version": "risk-terminal-v7"
+}

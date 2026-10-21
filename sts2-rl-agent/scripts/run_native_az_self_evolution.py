@@ -12,6 +12,7 @@ import traceback
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import torch
 from scripts.run_native_epoch_experiment import sha, summary, train_epochs
+from scripts.native_checkpoint_retention import POLICY, prune_checkpoints
 from sts2_env.az.all_runner import paired_gain
 from sts2_env.az.config import atomic_json, content_hash
 from sts2_env.az.model_factory import load_transformer_checkpoint, save_transformer_checkpoint
@@ -21,6 +22,32 @@ from sts2_env.az.rewards import V7
 from sts2_env.az.native_platform import lock_run
 
 SEARCH = 'all-node-policy-pure-value-v1'
+
+
+def validation_enabled(config):
+    mode = config.get('promotion_mode', 'paired-validation')
+    if mode not in ('paired-validation', 'direct-no-validation'):
+        raise ValueError(f'Unknown promotion mode: {mode}')
+    return mode == 'paired-validation'
+
+
+def complete_candidate(config, state, candidate, collected, losses, iteration, evaluate):
+    if validation_enabled(config):
+        evaluated = evaluate()
+        candidate_rows = rows(evaluated)
+        comparison = paired_gain(state['champion_rows'], candidate_rows)
+        promoted = comparison['ci95'][0] > 0
+        validation = summary(evaluated)
+    else:
+        candidate_rows, comparison, validation, promoted = None, None, None, True
+    record = dict(iteration=iteration, candidate=candidate, promoted=promoted, paired=comparison,
+                  validation=validation, collection=summary(collected), updates=len(losses),
+                  promotion_mode=config.get('promotion_mode', 'paired-validation'))
+    if promoted:
+        state.update(champion=candidate, champion_rows=candidate_rows)
+    state.update(learner=candidate, pending=None, phase='collection')
+    state['history'].append(record)
+    return record
 
 
 class AlphaZeroBackend(NativeBackend):
@@ -67,6 +94,7 @@ def main():
     if not build_inputs or any(sha_file(path) != digest for path, digest in build_inputs.items()):
         raise ValueError('Game/RitsuLib build input changed')
     training = config['training']
+    use_validation = validation_enabled(config)
     if (config['search']['prior_mode'] != SEARCH or config['search']['leaf_mode'] != 'learned'
             or config['search']['value_mix'] != 1. or config['workers'] != 8
             or training['episodes_per_iteration'] != 1024 or training['epochs'] != 3
@@ -87,6 +115,7 @@ def main():
         raise ValueError('Initial candidate checksum mismatch')
     identity = content_hash(dict(config=config, protocol=protocol, provenance=backend.provenance,
                                  runtime=expected_runtime, build_inputs=build_inputs, runner=sha(__file__),
+                                 retention=sha(Path(__file__).with_name('native_checkpoint_retention.py')),
                                  epoch_runner=sha(Path(__file__).with_name('run_native_epoch_experiment.py'))))
     state_path = out/'state.json'
     if state_path.exists():
@@ -103,8 +132,10 @@ def main():
             raise ValueError('Resume state missing')
         state = dict(identity=identity, history=[], pending=None, phase='collection',
                      learner='models/initial.pt', champion='models/initial.pt', champion_rows=None,
+                     retention_policy=POLICY, epoch_checkpoints=[], checkpoint_gc={},
                      checkpoint_hashes={'models/initial.pt': sha(source)})
         atomic_json(state_path, state)
+    prune_checkpoints(base, state_path, state)
     progress = dict(status='running', pid=os.getpid(), workers=8, budget_ms=backend.budget,
                     search=SEARCH, planned_fights_per_iteration=1024, epochs=3)
     lock, stop = threading.Lock(), threading.Event()
@@ -183,7 +214,7 @@ def main():
             dataset_id = content_hash([(s['episode_id'], s['step_index']) for s in samples])
             atomic_json(directory/'dataset.json', dict(dataset_id=dataset_id, samples=len(samples),
                 epochs=training['epochs'], updates=training['epochs']*math.ceil(len(samples)/training['batch_size'])))
-            if state['champion_rows'] is None:
+            if use_validation and state['champion_rows'] is None:
                 publish(phase='baseline_validation')
                 baseline = fights(state['champion'], backend.validation, out/'baseline')
                 state['champion_rows'] = rows(baseline)
@@ -206,24 +237,22 @@ def main():
                 save_transformer_checkpoint(base/name, model, config=config, training_state=training_state)
                 remember(name)
                 pending['update_checkpoint'] = name
+                if count % math.ceil(len(samples)/training['batch_size']) == 0:
+                    if name not in state['epoch_checkpoints']:
+                        state['epoch_checkpoints'].append(name)
                 state['phase'] = 'training'
                 atomic_json(state_path, state)
+                prune_checkpoints(base, state_path, state)
                 publish(phase='training', updates=count, latest_metrics=training_state['history'][-1])
             model, losses = train_epochs(model, samples, training, dataset_id, resume, persist)
             candidate = pending['update_checkpoint']
-            publish(phase='candidate_validation')
-            evaluated = fights(candidate, backend.validation, directory/'validation')
-            candidate_rows = rows(evaluated)
-            comparison = paired_gain(state['champion_rows'], candidate_rows)
-            promoted = comparison['ci95'][0] > 0
-            record = dict(iteration=iteration, candidate=candidate, promoted=promoted, paired=comparison,
-                          validation=summary(evaluated), collection=summary(collected), updates=len(losses))
-            if promoted:
-                state.update(champion=candidate, champion_rows=candidate_rows)
-            state.update(learner=candidate, pending=None, phase='collection')
-            state['history'].append(record)
+            def evaluate():
+                publish(phase='candidate_validation')
+                return fights(candidate, backend.validation, directory/'validation')
+            record = complete_candidate(config, state, candidate, collected, losses, iteration, evaluate)
             atomic_json(directory/'report.json', record)
             atomic_json(state_path, state)
+            prune_checkpoints(base, state_path, state)
         state['phase'] = 'completed'
         atomic_json(state_path, state)
         publish(status='completed', phase='completed', history=state['history'])

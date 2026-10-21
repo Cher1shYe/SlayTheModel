@@ -134,14 +134,44 @@ def capture(world):
     visible = [p for p in world.player.powers
                if not (p.name in ('STRENGTH', 'DEXTERITY')
                        and world.player.powers[p].amount == 0)]
-    return canonical_json(dict(order=[p.name for p in visible],
+    data = dict(order=[p.name for p in visible],
         calamity=sorted(attack_sources),blocks=blocks,rupture=sorted(pending),
         counters={p.name:getattr(world.player.powers[p],COUNTERS[p.name]) for p in visible if p.name in COUNTERS},
-        extras={p.name: extras[p.name] for p in visible if p.name in extras}))
+        extras={p.name: extras[p.name] for p in visible if p.name in extras})
+    from sts2_env.core.enums import PowerId
+    if PowerId.DAMPEN in world.player.powers:
+        from dataclasses import asdict
+        from .content_expansion import CODEC
+        power = world.player.powers[PowerId.DAMPEN]
+        zones = ('hand', 'draw_pile', 'discard_pile', 'exhaust_pile', 'play_pile')
+        cards = []
+        for card in power._downgraded_cards:
+            zone = next((z for z in zones if any(c is card for c in getattr(world, z))), 'detached')
+            cards.append([zone, asdict(CODEC.capture(card))])
+        # No hidden draw order or instance IDs: only public faces and pile membership.
+        data['dampen'] = dict(active=power._active, cards=sorted(cards, key=canonical_json),
+            casters=sorted(i for i, enemy in enumerate(world.enemies) if enemy in power.casters))
+    return canonical_json(data)
 
 def read(info):
     data=json.loads(info.power_memory)
-    if set(data)!={'order','counters','extras','rupture','blocks','calamity'} or type(data['order'])is not list or len(set(data['order']))!=len(data['order']):raise ValueError('Invalid public power order')
+    required = {'order','counters','extras','rupture','blocks','calamity'}
+    if set(data) - {'dampen'} != required or type(data['order'])is not list or len(set(data['order']))!=len(data['order']):raise ValueError('Invalid public power order')
+    if ('DAMPEN' in data['order']) != ('dampen' in data):
+        raise ValueError('Dampen requires explicit public restoration memory')
+    if 'dampen' in data:
+        from .card_memory import parse
+        from .content_expansion import CODEC
+        d = data['dampen']
+        if (set(d) != {'active', 'cards', 'casters'} or type(d['active']) is not bool
+                or type(d['cards']) is not list or len(d['cards']) > 1000
+                or type(d['casters']) is not list or len(set(d['casters'])) != len(d['casters'])
+                or any(type(i) is not int or not 0 <= i < len(info.enemies) for i in d['casters'])):
+            raise ValueError('Invalid Dampen memory')
+        for row in d['cards']:
+            if type(row) is not list or len(row) != 2 or row[0] not in ('hand','draw_pile','discard_pile','exhaust_pile','play_pile','detached'):
+                raise ValueError('Invalid Dampen card reference')
+            parse(row[1], CODEC)
     from sts2_env.core.enums import PowerId
     if any(n not in PowerId.__members__ for n in data['order']):raise ValueError('Unknown ordered power')
     expected={n for n in data['order'] if n in COUNTERS}
@@ -170,8 +200,33 @@ def read(info):
 def restore(world,info):
     from sts2_env.core.enums import PowerId
     data=read(info)
-    if set(data['order'])!={p.name for p in world.player.powers}:raise ValueError('Public power order disagrees with powers')
-    world.player.powers={PowerId[n]:world.player.powers[PowerId[n]] for n in data['order']}
+    # Capture omits zero Strength/Dexterity from order, while basic status rows
+    # may retain zero Dexterity. Preserve those rows without inventing an order.
+    hidden = {pid: power for pid, power in world.player.powers.items()
+              if pid.name in ('STRENGTH', 'DEXTERITY') and power.amount == 0}
+    if set(data['order']) != {p.name for p in world.player.powers if p not in hidden}:
+        raise ValueError('Public power order disagrees with powers')
+    world.player.powers = {**{PowerId[n]: world.player.powers[PowerId[n]] for n in data['order']}, **hidden}
+    if 'dampen' in data:
+        from .card_memory import parse
+        from .content_expansion import CODEC
+        d = data['dampen']
+        power = world.player.powers[PowerId.DAMPEN]
+        power._active = d['active']
+        power.casters = {world.enemies[i] for i in d['casters']}
+        pools = {z: list(getattr(world, z)) for z in ('hand','draw_pile','discard_pile','exhaust_pile','play_pile')}
+        power._downgraded_cards = []
+        for zone, face in d['cards']:
+            state = parse(face, CODEC)
+            if zone == 'detached':
+                card = CODEC.restore(state)
+                card.owner = world.player
+            else:
+                card = next((c for c in pools[zone] if CODEC.capture(c) == state), None)
+                if card is None:
+                    raise ValueError('Dampen card absent from public pile')
+                pools[zone].remove(card)
+            power._downgraded_cards.append(card)
     for n,v in data['counters'].items():setattr(world.player.powers[PowerId[n]],COUNTERS[n],v)
     for name,attrs in data['extras'].items():
         power=world.player.powers[PowerId[name]]

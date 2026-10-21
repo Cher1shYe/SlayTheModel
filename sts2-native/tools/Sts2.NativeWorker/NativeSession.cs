@@ -55,6 +55,7 @@ public sealed partial class NativeSession(Node host) : ICardSelector, IReplayEnv
     private object? _verificationChoiceRequest;
     private (MegaCrit.Sts2.Core.Entities.Creatures.Creature Identity, int MaxHp)[] _rewardEnemies = [];
     public int Hp => _player.Creature.CurrentHp;
+    public int MaxHp => _player.Creature.MaxHp;
     public int Round => _state.RoundNumber;
     public bool Terminal => _player.Creature.IsDead || CombatManager.Instance.IsOverOrEnding;
     public bool Won => Terminal && !_player.Creature.IsDead && !_state.Enemies.Any(enemy => enemy.IsAlive);

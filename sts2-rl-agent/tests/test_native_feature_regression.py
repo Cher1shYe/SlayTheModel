@@ -236,6 +236,57 @@ def test_injected_selector_finishes_setup_before_rampart_hook():
     assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
 
 
+def test_surrounded_history_after_live_enemy_death():
+    with gzip.open('tests/fixtures/native_surrounded_frozen_v1.json.gz','rt',encoding='utf-8') as f:
+        raw=json.load(f)
+    validate_raw(raw)
+    assert raw['seed']==1600000102 and len(raw['steps'])==55
+    before,after=raw['steps'][45:47]
+    assert before['action'].startswith('PlayCard:BOLAS:') and before['hpAfter']==29
+    creatures=after['observation']['observation']['Creatures']
+    assert next(c for c in creatures if c['PlayerId'] is not None)['CurrentHp']==29
+    assert not any(c['MonsterId']=='MONSTER.CRUSHER' for c in creatures)
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+def test_shrink_removed_between_multihit_attacks_on_applier_death():
+    with gzip.open('tests/fixtures/native_shrink_multihit_v1.json.gz','rt',encoding='utf-8') as f:
+        raw=json.load(f)
+    validate_raw(raw)
+    assert raw['seed']==1600000037 and len(raw['steps'])==30
+    before,after=raw['steps'][28:30]
+    assert before['action'].startswith('PlayCard:CONFLAGRATION:')
+    creatures=after['observation']['observation']['Creatures']
+    assert not any(c['MonsterId']=='MONSTER.SHRINKER_BEETLE' for c in creatures)
+    assert next(c for c in creatures if c['MonsterId']=='MONSTER.FUZZY_WURM_CRAWLER')['CurrentHp']==9
+    player=next(c for c in creatures if c['PlayerId'] is not None)
+    assert not any(p['ModelId']=='POWER.SHRINK_POWER' for p in player['Powers'])
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+
+def test_illusion_killing_mangle_blocks_followup_power_before_cleanup():
+    with gzip.open('tests/fixtures/native_illusion_mangle_v1.json.gz','rt',encoding='utf-8') as f:
+        raw=json.load(f)
+    validate_raw(raw)
+    assert raw['seed']==1600000286
+    before,after=raw['steps'][5:7]
+    assert before['action'].startswith('PlayCard:MANGLE:')
+    illusion=next(c for c in after['observation']['observation']['Creatures'] if c['MonsterId']=='MONSTER.PARAFRIGHT')
+    assert illusion['CurrentHp']==0
+    assert {p['ModelId'] for p in illusion['Powers']}=={'POWER.ILLUSION_POWER','POWER.MINION_POWER'}
+    assert any(c['MonsterId']=='MONSTER.PARAFRIGHT' and c['CurrentHp']>0 for s in raw['steps'][7:] for c in s['observation']['observation']['Creatures'])
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+
+def test_thinking_ahead_draw_autoplay_terminal_has_no_choice():
+    with gzip.open('tests/fixtures/native_thinking_ahead_terminal_v1.json.gz','rt',encoding='utf-8') as f:
+        raw=json.load(f)
+    assert raw['format']=='native-diagnostic-replay-v1'
+    assert len(raw['steps'])==7 and raw['terminal'] and raw['hp']==32
+    assert raw['steps'][-1]['action'].startswith('PlayCard:THINKING_AHEAD:')
+    assert raw['steps'][-1]['terminalAfter']
+    assert all(s['featureParity'] and s['successorParity'] for s in raw['steps'])
+
+
 def test_surprise_summons_before_next_inferno_trigger():
     from sts2_env.az.ppo import trajectory_rows
     with gzip.open('tests/fixtures/native_surprise_inferno_v1.json.gz', 'rt', encoding='utf-8') as f:

@@ -90,7 +90,11 @@ class CardStateCodec:
         # extra state rather than dropping it while claiming lossless restoration.
         if set(vars(card)) - {f.name for f in fields(reference)} - {"owner", "energy_spent"}:
             raise ValueError("Unaudited attached card state")
-        if hasattr(card, "energy_spent") and (type(card.energy_spent) is not int or not 0 <= card.energy_spent <= (self.policy.max_x_energy_spent if card.has_energy_cost_x else 3)):
+        # Admitted afflictions (e.g. Tangled) can raise a non-X payment above 3.
+        # Payment is transient engine bookkeeping; the public play history audits
+        # the actual amount. Keep the same finite energy bound as X payments.
+        payment_limit = self.policy.max_x_energy_spent if (card.has_energy_cost_x or self.policy.afflictions) else 3
+        if hasattr(card, "energy_spent") and (type(card.energy_spent) is not int or not 0 <= card.energy_spent <= payment_limit):
             raise ValueError("Unaudited energy spending")
         allowed={"_turn_cost_override", "_stars_spent_for_play"}
         if self.policy.generated_metadata:allowed|={"_turn_star_cost_override","_is_clone"}

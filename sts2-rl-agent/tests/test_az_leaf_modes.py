@@ -64,6 +64,15 @@ def test_terminal_reward_is_authoritative_in_every_mode(mode):
     assert all(e.q == -.75 for e in result.root.edges.values())
 
 
+def test_search_reports_actual_depth_separately_from_budget():
+    shallow = search('learned', depth=1, budget=32)
+    assert shallow.simulations == 32
+    assert shallow.mean_depth == shallow.max_depth_reached == 1
+    deeper = search('learned', depth=256, budget=32)
+    assert deeper.simulations == 32
+    assert 1 <= deeper.mean_depth <= deeper.max_depth_reached <= 32
+
+
 @pytest.mark.parametrize('settings', [dict(leaf_mode='typo'), dict(value_mix=-.1),
     dict(value_mix=1.1), dict(value_mix=float('nan')), dict(value_mix=True),
     dict(collection_model='candidate')])

@@ -15,6 +15,24 @@ trains on that round's complete collection, with no dropped tail. Adam state and
 RNG continue across rounds. The learner collects subsequent rounds even if it
 does not become champion.
 
+Checkpoint retention is `latest-epoch-candidate-champion-v1`: retain the initial
+model, latest committed recovery checkpoint, every completed epoch boundary,
+all round candidates and champions. Roles may share one immutable file.
+Every update still persists the complete Adam state, Torch RNG and loss history.
+Only after publishing the new recovery pointer does a durable GC journal retire
+obsolete update files; interrupted deletion is idempotent on resume. Unknown
+files and all battle caches are untouched. The final third-epoch checkpoint
+also serves as that round's candidate.
+
+Existing frozen runs need the audited migration tool
+`scripts/migrate_native_checkpoint_retention.py --experiment <directory>` while
+the runner and its workers are stopped. It verifies the old run identity and
+all checkpoint hashes, backs up state/config/runner metadata, installs only
+the retention runner/helper, and verifies cache bytes were unchanged. Native
+runtime, training configuration and search provenance remain unchanged.
+Fifteen focused tests passed, including bit-exact interrupted training after
+pruning and recovery after an interruption during garbage collection.
+
 Champion selection uses the same 296 frozen validation recipes with the same
 500 ms AlphaZero search. Promotion requires the paired V7 utility gain's
 bootstrap 95% interval lower bound to exceed zero. This entry point does not
@@ -123,3 +141,20 @@ Start-Process -WindowStyle Hidden `
 Use the frozen runner under the experiment's `python/` directory. No periodic
 monitoring task was created. Prior experiment caches, model checkpoints and
 champion weights remain untouched.
+
+### Direct training continuation (2026-10-20)
+
+The active run `output/portable_buildcheck2_20261020` was switched at the user's
+request to `promotion_mode: direct-no-validation`. It resumes round 2 with its
+existing 128 fights and round 1 learner. Subsequent rounds collect 1024 fights,
+train three full epochs, and promote the resulting checkpoint without baseline
+or candidate evaluation. Reports use null validation/paired metrics rather than
+claiming an evaluated improvement. The default for other runs remains paired
+validation.
+
+`scripts/migrate_native_direct_training.py` requires a paused collection boundary,
+checks the old run identity, runtime, checkpoint hashes and recovery payload,
+backs up metadata and the frozen runner, and records the new identity. Existing
+battle cache files remain byte-identical and undergo normal strict checks on
+resume. Native DLLs are not rebuilt. Historical reports and retained checkpoints
+are preserved; checkpoint retention continues unchanged.

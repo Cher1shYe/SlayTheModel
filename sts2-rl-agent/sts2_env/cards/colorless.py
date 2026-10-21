@@ -1011,11 +1011,16 @@ def make_alchemize(upgraded: bool = False) -> CardInstance:
 
 
 def make_hand_of_greed(upgraded: bool = False) -> CardInstance:
+    # Decompiled static metadata forbids combat generation for this card.  The
+    # factory has to agree with create_card, otherwise the same token carries a
+    # different flag depending on the construction path and the public-card
+    # audit rejects a legal hand card.
     return CardInstance(
         card_id=CardId.HAND_OF_GREED, cost=2, card_type=CardType.ATTACK,
         target_type=TargetType.ANY_ENEMY, rarity=CardRarity.RARE,
         base_damage=25 if upgraded else 20, upgraded=upgraded,
         effect_vars={"gold": 25 if upgraded else 20},
+        can_be_generated_in_combat=False,
         instance_id=_get_next_id(),
     )
 

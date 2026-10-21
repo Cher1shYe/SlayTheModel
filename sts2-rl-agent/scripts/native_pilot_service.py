@@ -28,7 +28,10 @@ def main():
     native_transformer.TOKEN_HASH_CACHE_ENABLED = cache_option == '1'
     header = torch.load(args.checkpoint, map_location='cpu', weights_only=True)
     generic = header.get('content_manifest_version') == CONTENT
-    model, _ = load_transformer_checkpoint(args.checkpoint, TIER, CONTENT if generic else ALL_CONTENT, V7)
+    # Native PPO may use any explicitly versioned Transformer tier. The loader
+    # still verifies the complete tier configuration, architecture and schema.
+    tier = header['config']['tier'] if generic else TIER
+    model, _ = load_transformer_checkpoint(args.checkpoint, tier, CONTENT if generic else ALL_CONTENT, V7)
     model.eval().requires_grad_(False)
     with open(args.checkpoint, 'rb') as stream:
         sha = hashlib.sha256(stream.read()).hexdigest()

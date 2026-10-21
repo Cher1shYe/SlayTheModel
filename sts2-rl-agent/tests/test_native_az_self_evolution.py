@@ -4,6 +4,26 @@ from scripts.run_native_az_self_evolution import recipes_for, AlphaZeroBackend
 from sts2_env.az.native_generic_backend import NativeBackend
 
 
+def test_direct_promotion_never_calls_validation(monkeypatch):
+    import scripts.run_native_az_self_evolution as runner
+    monkeypatch.setattr(runner, 'summary', lambda raws: {'fights': len(raws)})
+    state = dict(champion='old.pt', learner='old.pt', champion_rows=[{'old': True}],
+                 pending={'update_checkpoint': 'new.pt'}, history=[])
+    def forbidden():
+        pytest.fail('Direct promotion must not run validation')
+    record = runner.complete_candidate({'promotion_mode': 'direct-no-validation'},
+        state, 'new.pt', [1, 2], [1, 2, 3], 1, forbidden)
+    assert state['champion'] == state['learner'] == 'new.pt'
+    assert state['champion_rows'] is None and state['pending'] is None
+    assert state['history'] == [record]
+    assert record['promoted'] and record['validation'] is None and record['paired'] is None
+    assert record['updates'] == 3
+    assert runner.validation_enabled({})
+    assert not runner.validation_enabled({'promotion_mode': 'direct-no-validation'})
+    with pytest.raises(ValueError):
+        runner.validation_enabled({'promotion_mode': 'typo'})
+
+
 def test_eight_workers_supported_without_relaxing_bounds():
     backend = NativeBackend.__new__(NativeBackend)
     backend.configure_workers(8)

@@ -1535,6 +1535,10 @@ class CombatState:
                     self._fire_after_card_played_late(card)
                 ctx["awaiting_after_hook"] = False
                 if self.is_over:
+                    # Completed powers have already left the public card inventory.
+                    # A lethal after-play hook must not leave that same card in play.
+                    if card.is_power and card in owner_state.play:
+                        owner_state.play.remove(card)
                     self._pending_play = None
                     return
 
@@ -1591,6 +1595,8 @@ class CombatState:
                 apply_enchantment_after_card_played(card)
                 self._fire_after_card_played_late(card)
             if self.is_over:
+                if card.is_power and card in owner_state.play:
+                    owner_state.play.remove(card)
                 self._pending_play = None
                 return
 

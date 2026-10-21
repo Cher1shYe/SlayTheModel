@@ -12,6 +12,21 @@ using SlayTheModel.Search;
 // Bounded collection adapter, independent of NativeEvolution and its training protocol.
 internal static class GenericCollection
 {
+    // Same finite battle progress ledger and pending-choice risk as the V7 cutoff.
+    // Capture only at checked live endpoints, never from a searched leaf.
+    private static object Potential(CombatSolverReplayEnvironment env, NativeSession native, int initialHp)
+    {
+        var state = env.CurrentState;
+        double damage = env.EnemyDamageFraction;
+        double risk = native.HasPendingChoice ? 1d : Math.Clamp((double)state.IncomingDamage / Math.Max(1, native.Hp), 0, 1);
+        double value = native.Terminal ? 0d : CombatRolloutReward.Evaluate(false, false,
+            native.Hp, native.MaxHp, initialHp, damage, risk * native.Hp);
+        // Pending descriptions retain the pre-action snapshot; live HP/max HP
+        // belong to the observed selector boundary (e.g. Scrolls then Stratagem).
+        return new { version="v7-potential-v1", hp=native.Hp, maxHp=native.MaxHp,
+            initialHp, damage, risk, terminal=native.Terminal, pendingChoice=native.HasPendingChoice, value };
+    }
+
     internal static async Task RunAsync(NativeSession native, CancellationToken cancellation)
     {
         using var document = JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("STS2_COLLECTION_PILOT_JOB")!));
@@ -34,6 +49,7 @@ internal static class GenericCollection
         string source = job.GetProperty("source").GetString()!;
         string identity = job.GetProperty("identity").GetString()!;
         int budgetMs = job.GetProperty("budgetMs").GetInt32();
+        bool policySample = job.TryGetProperty("policySample", out var ps) && ps.GetBoolean();
         var leaf = new LeafValuePolicy(job.TryGetProperty("leafMode",out var lm) ? lm.GetString()! : "heuristic",
             job.TryGetProperty("valueMix",out var vm) ? vm.GetDouble() : .5);
         var cases = job.GetProperty("cases").EnumerateArray().ToArray();
@@ -66,6 +82,8 @@ internal static class GenericCollection
                 .Where(x => x.EndsWith('+')).Select(x => x.TrimEnd('+')).ToHashSet();
             int seed = entry.GetProperty("seed").GetInt32(), hp = entry.GetProperty("hp").GetInt32();
             string arm = entry.GetProperty("arm").GetString()!;
+            if (policySample && (arm != "policy" || job.TryGetProperty("diagnosticActions", out _)))
+                throw new InvalidDataException("Policy sampling requires an unmodified policy trajectory");
             string output = entry.GetProperty("output").GetString()!;
             if (arm is not ("policy" or "uct" or "puct") || hp < 1 || hp > 80 || File.Exists(output))
                 throw new InvalidDataException("Unsupported pilot case or existing output");
@@ -117,9 +135,11 @@ internal static class GenericCollection
                     throw new InvalidDataException("Native/simulation root mismatch");
                 }
                 var legal = env.LegalActions();
+                var potentialBefore = Potential(env, native, hp);
                 var observation = native.ExportGenericObservation(legal, hp, steps.Count);
                 var projectedPolicy=env.ExportGenericPolicyObservation(hp,steps.Count);
-                try { await prior.PolicyValueAsync(projectedPolicy,cancellation,observation); }
+                double behaviorValue;
+                try { behaviorValue = (await prior.PolicyValueAsync(projectedPolicy,cancellation,observation)).Value; }
                 catch (InvalidDataException)
                 {
                     File.WriteAllText(output + ".failure.json", JsonSerializer.Serialize(new {
@@ -131,6 +151,9 @@ internal static class GenericCollection
                 if (leaf.Mode != "heuristic" && !native.HasPendingChoice)
                     await prior.ValueAsync(env.ExportGenericValueObservation(hp, steps.Count), cancellation, observation);
                 var probabilities = await prior.PredictAsync(observation, cancellation);
+                var behaviorProbabilities = PolicySampling.Normalize(probabilities, legal.Count);
+                double? policyUniform = policySample
+                    ? new Random(unchecked(seed * 397 ^ steps.Count * 7919 ^ 20261021)).NextDouble() : null;
                 string decisionRoot = env.StateKey();
                 var rootPriors = legal.Select((a, i) => (a.Key, Probability: probabilities[i])).ToDictionary(a => a.Key, a => a.Probability);
                 Func<IReadOnlyList<CombatSolverMctsAction>, CancellationToken, Task<IReadOnlyList<double>>>? provider = arm == "puct"
@@ -176,7 +199,9 @@ internal static class GenericCollection
                 else if (legal.Count == 1) selected = legal[0];
                 else if (arm == "policy")
                 {
-                    selected = legal[Enumerable.Range(0, legal.Count).MaxBy(i => probabilities[i])];
+                    selected = policySample
+                        ? legal[PolicySampling.Sample(behaviorProbabilities, policyUniform!.Value)]
+                        : legal[Enumerable.Range(0, legal.Count).MaxBy(i => probabilities[i])];
                 }
                 else
                 {
@@ -249,7 +274,10 @@ internal static class GenericCollection
                         actual=new {terminal=native.Terminal,hp=native.Hp,won=native.Won,round=native.Round} }));
                     throw new InvalidDataException($"Endpoint contract at decision={steps.Count} action={selected.Key}",error);
                 }
-                steps.Add(new { observation, action = selected.Key, searchAction, visits, simulations, seconds,
+                var potentialAfter = Potential(env, native, hp);
+                steps.Add(new { potentialBefore, potentialAfter, behaviorProbabilities, behaviorValue, policyUniform,
+                    behaviorLogProbability = policySample ? Math.Log(behaviorProbabilities[Array.FindIndex(legal.ToArray(), a => a.Key == selected.Key)]) : (double?)null,
+                    observation, action = selected.Key, searchAction, visits, simulations, seconds,
                     searchTiming = new { timingEnvironment.RestoreMs, timingEnvironment.ApplyMs,
                         timingEnvironment.Restores, timingEnvironment.Applies,
                         evaluationMs, inferenceWallMs=prior.WallMs-priorWallBefore,
@@ -272,7 +300,7 @@ internal static class GenericCollection
             double cutoffRisk = end.PendingChoice ? 1d : Math.Clamp((double)end.IncomingDamage / Math.Max(1,native.Hp),0,1);
             double cutoffDamage = env.EnemyDamageFraction;
             double searchReward = truncated
-                ? CombatRolloutReward.Evaluate(false,false,native.Hp,end.PlayerMaxHp,hp,cutoffDamage,cutoffRisk*native.Hp)
+                ? CombatRolloutReward.Evaluate(false,false,native.Hp,native.MaxHp,hp,cutoffDamage,cutoffRisk*native.Hp)
                 : env.EvaluateTerminal();
             // Canonical Python V7 operation order; native rollout divides before multiplying.
             // Permit only floating-point roundoff, preserving both values as audit evidence.
@@ -283,8 +311,8 @@ internal static class GenericCollection
                 recipe = entry.GetProperty("recipe").Clone(), searchMode = "all-node-policy-pure-value-v1",
                 leafMode=leaf.Mode,valueMix=leaf.Mix,
                 teacherInformation = "native_checkpoint_privileged", encounter = native.EncounterId,
-                seed, initialHp = hp, arm, budgetMs, complete = !truncated, split = entry.GetProperty("split").GetString(),
-                outcome = new { won = native.Won, finalHp = native.Hp, maxHp = end.PlayerMaxHp,
+                seed, initialHp = hp, arm, budgetMs, policySample, complete = !truncated, split = entry.GetProperty("split").GetString(),
+                outcome = new { won = native.Won, finalHp = native.Hp, maxHp = native.MaxHp,
                     reward, searchReward, decisions = steps.Count, turns = native.Round,
                     terminationReason = truncated ? "time_limit" : native.Won ? "win" : "death",
                     cutoff = truncated ? (object)new { damage=cutoffDamage, risk=cutoffRisk, pendingChoice=native.HasPendingChoice } : null },

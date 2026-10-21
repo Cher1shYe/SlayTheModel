@@ -1,5 +1,6 @@
 """Keyed particle PUCT. Every node rebuilds its own public candidate table."""
 from dataclasses import dataclass
+from collections import OrderedDict
 from math import sqrt
 from time import perf_counter
 import numpy as np
@@ -25,6 +26,8 @@ class DynamicSearchResult:
     forced_action: bool
     model_version: str
     root: OutcomeNode
+    mean_depth: float = 0.
+    max_depth_reached: int = 0
 
 
 def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_seed=0,
@@ -88,6 +91,7 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
             return DynamicSearchResult(key, {key: 0}, {key: 1.}, {key: 1.}, 0,
                                        perf_counter()-started, True, model_version, root)
         expand(info, root, training)
+        depths = []
         for _ in range(budget):
             particle = sample(info, rng)
             if particle.info.key() != info.key():
@@ -126,6 +130,7 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
                     value = leaf_value(successor, value)
             if not np.isfinite(value) or not -1 <= value <= 1:
                 raise ValueError('Invalid backed-up utility')
+            depths.append(len(path))
             for edge in path:
                 edge.visits += 1
                 edge.total_value += value
@@ -134,7 +139,8 @@ def search_dynamic(info, sample, evaluate, candidates, *, model_version, search_
         action = (root.legal_mask[int(rng.choice(len(target), p=list(target.values())))] if temperature
                   else max(root.legal_mask, key=lambda k: (visits[k], root.edges[k].q, root.edges[k].prior) if risk_search else (visits[k], root.edges[k].prior)))
         return DynamicSearchResult(action, visits, target, {k: e.prior for k, e in root.edges.items()},
-                                   budget, perf_counter()-started, False, model_version, root)
+                                   budget, perf_counter()-started, False, model_version, root,
+                                   float(np.mean(depths)), max(depths))
     finally:
         card_base._next_instance_id = saved_id
 
@@ -154,7 +160,49 @@ class KeyedParticle:
         return self.particle.step(mapping[key])
 
 
-def plan_dynamic(info, model, **kwargs):
+class _SearchEvaluationCache:
+    """Bounded, search-local memoization of immutable public inputs only.
+
+    Include the derived mask: InformationState.key deliberately omits it so
+    mismatched masks must still reach the encoder's contract validation.
+    Never retain a world, hidden state, RNG or data from a previous model call.
+    """
+    def __init__(self, model, capacity=256):
+        self.model, self.capacity = model, capacity
+        self.identities = OrderedDict()
+        self.entries = OrderedDict()
+
+    def entry(self, public):
+        identity = id(public)
+        cached = self.identities.get(identity)
+        if cached is None:
+            key = (public.key(), public.legal_mask)
+            # Retaining the object prevents Python from recycling its id.
+            self.identities[identity] = (public, key)
+            if len(self.identities) > self.capacity:
+                self.identities.popitem(last=False)
+        else:
+            key = cached[1]
+            self.identities.move_to_end(identity)
+        if key not in self.entries:
+            self.entries[key] = [encode_entities(public), None]
+            if len(self.entries) > self.capacity:
+                self.entries.popitem(last=False)
+        else:
+            self.entries.move_to_end(key)
+        return self.entries[key]
+
+    def encode(self, public):
+        return self.entry(public)[0]
+
+    def predict(self, public):
+        entry = self.entry(public)
+        if entry[1] is None:
+            entry[1] = self.model.predict(entry[0])
+        return entry[1]
+
+
+def plan_dynamic(info, model, *, cache_evaluations=True, **kwargs):
     if type(info) is not InformationState:
         raise TypeError('Dynamic planner accepts public InformationState only')
     from .transformer_network import TransformerPolicyValueNetwork
@@ -169,8 +217,12 @@ def plan_dynamic(info, model, **kwargs):
     if requested == DYNAMIC_RISK:
         from .risk_reward import search_utility
         kwargs['cutoff_reward'] = search_utility
-    encode_entities(info)
+    # The uncached path remains available for exact differential regression tests.
+    cache = _SearchEvaluationCache(model) if cache_evaluations else None
+    encode = cache.encode if cache else encode_entities
+    evaluate = cache.predict if cache else lambda public: model.predict(encode(public))
+    encode(info)
     sampler = BeliefSampler()
     return search_dynamic(info, lambda public, rng: KeyedParticle(sampler.sample(public, rng)),
-        lambda public: model.predict(encode_entities(public)),
-        lambda public: (a.action_key for a in encode_entities(public).actions if a.legal), **kwargs)
+        evaluate,
+        lambda public: (a.action_key for a in encode(public).actions if a.legal), **kwargs)

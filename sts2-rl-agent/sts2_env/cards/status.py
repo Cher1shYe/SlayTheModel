@@ -217,9 +217,13 @@ def make_debris() -> CardInstance:
 
 
 def make_frantic_escape() -> CardInstance:
+    # Decompiled static metadata forbids combat generation for this status.
+    # create_card already applies it; the raw factory must agree so the same
+    # token does not change flags between construction paths.
     return CardInstance(
         card_id=CardId.FRANTIC_ESCAPE, cost=1, card_type=CardType.STATUS,
         target_type=TargetType.SELF, rarity=CardRarity.STATUS,
+        can_be_generated_in_combat=False,
         instance_id=_get_next_id(),
     )
 

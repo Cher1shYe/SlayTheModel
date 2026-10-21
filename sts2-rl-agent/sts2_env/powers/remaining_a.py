@@ -951,7 +951,12 @@ class DampenPower(PowerInstance):
                 card.star_cost = base.star_cost
                 card.original_cost = base.original_cost
                 card.cost = current_cost if had_turn_override else base.cost
-                restore_self_mutating_card_progress(card, progress)
+                suppressed = getattr(combat, '_suppress_card_state_events', False)
+                combat._suppress_card_state_events = True
+                try:
+                    restore_self_mutating_card_progress(card, progress)
+                finally:
+                    combat._suppress_card_state_events = suppressed
                 if owner.has_power(PowerId.HEX):
                     card.keywords = frozenset(set(card.keywords) | {"ethereal"})
                 card.log_public_state_change(previous)

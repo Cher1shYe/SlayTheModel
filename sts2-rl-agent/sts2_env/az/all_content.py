@@ -395,15 +395,24 @@ def sample_particle(info, search_rng):
         if info.player_strength:
             world.apply_power_to(world.player, PowerId.STRENGTH, info.player_strength, applier=world.player)
         if info.history.exhausted_this_turn:
-            pool = list(world.exhaust_pile)
+            # This is an event history, not a selection from the current pile.
+            # Dampen removal can upgrade a card after it was exhausted. As with
+            # played-card history above, reconstruct detached event snapshots.
+            # The engine's reader only tests whether an event belongs to owner.
             for token in info.history.exhausted_this_turn:
-                card = next(c for c in pool if _token(c) == token)
-                pool.remove(card)
+                card = _play_token(token)
+                card.owner = world.player
                 world._exhaust_events_this_turn.append(card)
         if info.player_abilities:
             from sts2_env.core.enums import PowerId as _PowerId
             for name, amount in info.player_abilities:
-                world.apply_power_to(world.player, _PowerId[name], amount, applier=world.player)
+                if name == 'DAMPEN':
+                    # The card faces already contain Dampen's historical effect.
+                    # Applying it again would downgrade later Aggression upgrades.
+                    from sts2_env.core.creature import get_power_class
+                    world.player.powers[_PowerId[name]] = get_power_class(_PowerId[name])(amount)
+                else:
+                    world.apply_power_to(world.player, _PowerId[name], amount, applier=world.player)
                 # A visible player power is observed at a player decision, so the
                 # enemy turn that applied it has already ended and its first
                 # duration tick has been consumed.
