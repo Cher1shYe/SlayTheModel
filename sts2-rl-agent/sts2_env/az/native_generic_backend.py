@@ -39,11 +39,11 @@ def validate_protocol(p):
     return rows
 
 
-def make_recipe(seed, encounter, cards, split):
+def make_recipe(seed, encounter, cards, split, hp=None):
     rng=random.Random(seed)
     # The manifest is a curriculum, not a Python implementation whitelist.
     deck=rng.choices(cards,k=10)
-    r=dict(seed=seed,encounter=encounter,deck=deck,hp=rng.choice([40,60,80]),split=split)
+    r=dict(seed=seed,encounter=encounter,deck=deck,hp=rng.choice([40,60,80]) if hp is None else hp,split=split)
     return validate_recipe(dict(r,scenario_id=content_hash(r)))
 
 

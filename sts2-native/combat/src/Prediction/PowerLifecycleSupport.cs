@@ -42,9 +42,9 @@ internal static class PowerLifecycleSupport
                 continue;
             SurroundedPredictionState state = simulator.StateStore
                 .Get(power, () => new SurroundedPredictionState(power));
-            if (combat.GetPower<BackAttackLeftPower>(target) is not null)
+            if (combat.GetAmount<BackAttackLeftPower>(target) > 0)
                 state.Facing = SurroundedPower.Direction.Left;
-            else if (combat.GetPower<BackAttackRightPower>(target) is not null)
+            else if (combat.GetAmount<BackAttackRightPower>(target) > 0)
                 state.Facing = SurroundedPower.Direction.Right;
         }
     }

@@ -5,6 +5,7 @@ import torch
 from .native_generic import validate_raw, raw_leaf_settings
 from .native_transformer import batch_native
 from .network import masked_log_probs
+from . import cost_reward
 from .risk_reward import utility
 
 
@@ -24,7 +25,7 @@ def potential(facts, initial_hp, terminal, hp):
     return expected
 
 
-def trajectory_rows(raw, model_sha, shaping_coefficient=0.):
+def trajectory_rows(raw, model_sha, shaping_coefficient=0., reward_mode='v7'):
     packed = validate_raw(raw, allow_ppo_training_cutoff=True)
     if (raw['modelSha256'] != model_sha or raw['split'] != 'train'
             or raw['arm'] != 'policy' or raw.get('policySample') is not True
@@ -32,7 +33,9 @@ def trajectory_rows(raw, model_sha, shaping_coefficient=0.):
         raise ValueError('PPO requires current-policy sampled native training trajectories')
     if not math.isfinite(shaping_coefficient) or not 0 <= shaping_coefficient <= 1:
         raise ValueError('Invalid shaping coefficient')
-    rows = []
+    if reward_mode not in ('v7', 'cost'):
+        raise ValueError('Unknown PPO reward mode')
+    rows, turns = [], 0
     for s, obs in zip(raw['steps'], packed):
         keys = [a['Key'] for a in s['observation']['actions']]
         p = s['behaviorProbabilities']
@@ -54,7 +57,17 @@ def trajectory_rows(raw, model_sha, shaping_coefficient=0.):
         rows.append(dict(observation=obs, action=s['action'], old_logp=logp,
                          old_value=value, old_probabilities=ordered, forced=s['forced'],
                          scenario_id=raw['recipe']['scenario_id'], step=len(rows)))
-        if shaping_coefficient:
+        if reward_mode == 'cost':
+            index = len(rows) - 1
+            hp_before = raw['initialHp'] if index == 0 else raw['steps'][index-1]['hpAfter']
+            before = cost_reward.cost(hp_before, raw['initialHp'], turns)
+            if s['action'].startswith('EndTurn'):
+                turns += 1
+            after = cost_reward.cost(s['hpAfter'], raw['initialHp'], turns)
+            if not math.isfinite(before) or not math.isfinite(after):
+                raise ValueError('Nonfinite battle cost')
+            rows[-1]['shaping_reward'] = before - after
+        elif shaping_coefficient:
             index = len(rows) - 1
             hp_before = raw['initialHp'] if index == 0 else raw['steps'][index-1]['hpAfter']
             before = potential(s['potentialBefore'], raw['initialHp'], False, hp_before)
@@ -78,6 +91,15 @@ def trajectory_rows(raw, model_sha, shaping_coefficient=0.):
             rows[-1]['shaping_reward'] = shaping_coefficient * ((0. if final else after) - before)
             rows[-1]['potential'] = before
     return rows
+
+
+def terminal_reward(raw, reward_mode='v7'):
+    """Episode-end payoff: native V7, or the linear cost objective's R_end."""
+    if reward_mode == 'v7':
+        return raw['outcome']['reward']
+    if reward_mode == 'cost':
+        return cost_reward.terminal(raw)
+    raise ValueError('Unknown PPO reward mode')
 
 
 def advantages(rows, terminal_reward, gamma=1., gae_lambda=.95):

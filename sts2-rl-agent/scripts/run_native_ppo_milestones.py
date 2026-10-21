@@ -52,6 +52,34 @@ def main():
         if view.get('error'):
             compact['error'] = 'See pipeline-detail.json and stderr logs'
         atomic_json(base/'milestone-progress.json', compact)
+        last = training.get('last_batch') or {}
+        lines = ['# PPO linear-cost reward - live progress', '',
+                 f'Updated: {view["updated_at"]}',
+                 f'Stage: {view["stage"]} / status {view["status"]}',
+                 f'Collected: {training.get("battles_completed", 0)} / {view["target"]} battles',
+                 f'Trained: {training.get("battles_trained", 0)} / {view["target"]} battles; '
+                 f'updates {training.get("updates", 0)}',
+                 f'Reward: {training.get("reward_mode", "?")} '
+                 f'(win +0.8 / death -0.7 / time_limit -0.4, linear HP cost, weak turn cost)', '',
+                 '## Last rollout']
+        if last:
+            lines += [f'- battles {last.get("battles")}, wins {last.get("wins")}',
+                      f'- mean training return {last.get("mean_training_return", 0.):+.4f}',
+                      f'- mean V7 (audit only) {last.get("mean_v7", 0.):+.4f}',
+                      f'- time limits {last.get("time_limits")}',
+                      f'- value targets outside [-1,1] {last.get("value_targets_outside_unit")}']
+        else:
+            lines.append('- waiting for the first completed rollout')
+        lines += ['', '## Evaluations (296 frozen recipes, pure-network greedy)']
+        for count in ('512', '1024', '1536', '2048'):
+            item = milestones[count]
+            if item.get('results'):
+                lines.append(f'- {count}: {item["results"]["wins"]}/296 = '
+                             f'{item["results"]["win_rate"]*100:.2f}% win, '
+                             f'V7 {item["results"]["mean_utility"]:.4f}')
+            else:
+                lines.append(f'- {count}: {item.get("status")} {item.get("completed", 0)}/296')
+        (base/'LIVE_PROGRESS.md').write_text('\n'.join(lines) + '\n', encoding='utf8')
 
     def run(command, directory, label):
         stamp = datetime.now().strftime('%Y%m%d_%H%M%S_%f')

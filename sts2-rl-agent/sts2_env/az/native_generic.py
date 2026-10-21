@@ -38,7 +38,7 @@ def validate_recipe(r):
         raise ValueError('Generic recipe fields differ')
     if (not isinstance(r['encounter'], str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}', r['encounter'])
             or r['split'] not in ('train', 'validation') or type(r['seed']) is not int
-            or not 0 <= r['seed'] < 2_000_000_000 or type(r['hp']) is not int or not 1 <= r['hp'] <= 80
+            or not 0 <= r['seed'] < 2_000_000_000 or type(r['hp']) is not int or not 1 <= r['hp'] <= 9999
             or not isinstance(r['deck'], list) or not 1 <= len(r['deck']) <= 60
             or any(not isinstance(c,str) or not re.fullmatch(r'[A-Z][A-Z0-9_]{0,99}\+?',c) for c in r['deck'])):
         raise ValueError('Malformed generic recipe')

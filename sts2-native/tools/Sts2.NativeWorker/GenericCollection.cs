@@ -85,12 +85,16 @@ internal static class GenericCollection
             if (policySample && (arm != "policy" || job.TryGetProperty("diagnosticActions", out _)))
                 throw new InvalidDataException("Policy sampling requires an unmodified policy trajectory");
             string output = entry.GetProperty("output").GetString()!;
-            if (arm is not ("policy" or "uct" or "puct") || hp < 1 || hp > 80 || File.Exists(output))
+            if (arm is not ("policy" or "uct" or "puct") || hp < 1 || hp > 9999 || File.Exists(output))
                 throw new InvalidDataException("Unsupported pilot case or existing output");
             native.EnterRoomForVerification = async (run, encounter) =>
             {
                 var player = run.Players.Single();
                 foreach (var relic in player.Relics.ToArray()) player.RemoveRelicInternal(relic, silent: true);
+                // Entry HP above the character's max HP needs a raised cap first; the
+                // normal 40/60/80 recipes stay byte-for-byte on the old path.
+                if (hp > player.Creature.MaxHp)
+                    await CreatureCmd.SetMaxHp(player.Creature, hp);
                 await CreatureCmd.SetCurrentHp(player.Creature, hp);
                 await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter);
             };

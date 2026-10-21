@@ -19,7 +19,7 @@ from sts2_env.az.native_generic import CONTENT
 from sts2_env.az.native_generic_backend import NativeBackend, make_recipe
 from sts2_env.az.native_platform import lock_run
 from sts2_env.az.rewards import V7
-from sts2_env.az import ppo
+from sts2_env.az import cost_reward, ppo
 
 
 class Backend(NativeBackend):
@@ -27,7 +27,8 @@ class Backend(NativeBackend):
         return self._execute_parallel(job, log)
 
     def raw_validator(self, raw):
-        return ppo.trajectory_rows(raw, raw['modelSha256'], self.shaping_coefficient)
+        return ppo.trajectory_rows(raw, raw['modelSha256'], self.shaping_coefficient,
+                                   self.reward_mode)
 
 
 def main():
@@ -57,6 +58,7 @@ def main():
             raise ValueError(f'Game/Ritsu build dependency changed: {path}')
     backend = Backend(config['backend'], protocol, base)
     backend.shaping_coefficient = config.get('shaping_coefficient', 0.)
+    backend.reward_mode = config.get('reward_mode', 'v7')
     backend.configure_workers(config['workers'])
     backend.configure_search('learned', 1.)
     backend.search_job.update(policySample=True, collectionPolicy='greedy', cPuct=1.5,
@@ -93,6 +95,7 @@ def main():
     status = dict(status='running', pid=os.getpid(), workers=config['workers'], algorithm='PPO-Clip',
                   initialization='random', search=False, checkpoint_every_battles=config['checkpoint_every'],
                   tier=config['tier'], parameters=sum(p.numel() for p in model.parameters()),
+                  reward_mode=backend.reward_mode, recipe_hp=config.get('recipe_hp'),
                   kl_check_interval=config.get('kl_check_interval', 1),
                   learning_rate=config['learning_rate'], kl_scope=config.get('kl_scope', 'minibatch'))
     guard = threading.RLock()
@@ -180,13 +183,16 @@ def main():
             behavior_sha = sha(behavior)
             recipes = [make_recipe(config['recipe_seed'] + cycle * config['rollout_battles'] + i,
                          protocol['encounters'][(cycle*config['rollout_battles']+i) % len(protocol['encounters'])],
-                         protocol['cards'], 'train') for i in range(config['rollout_battles'])]
+                         protocol['cards'], 'train', config.get('recipe_hp')) for i in range(config['rollout_battles'])]
             # Cache reuse executes all source, identity, outcome and parity validations.
             raws = backend.fights(behavior, recipes, cache, 'policy')
-            training = []
+            training, returns = [], []
             for raw in raws:
-                training.extend(ppo.advantages(ppo.trajectory_rows(raw, behavior_sha, backend.shaping_coefficient), raw['outcome']['reward'],
-                                                config['gamma'], config['gae_lambda']))
+                rows = ppo.trajectory_rows(raw, behavior_sha, backend.shaping_coefficient,
+                                           backend.reward_mode)
+                terminal = ppo.terminal_reward(raw, backend.reward_mode)
+                training.extend(ppo.advantages(rows, terminal, config['gamma'], config['gae_lambda']))
+                returns.append(cost_reward.total(rows, terminal))
             ppo.normalize_advantages(training)
             dataset = content_hash(dict(behavior=behavior_sha, files={r['recipe']['scenario_id']:
                         sha(cache/f'{r["recipe"]["scenario_id"]}.json') for r in raws}))
@@ -227,8 +233,10 @@ def main():
             if status['status'] == 'paused':
                 break
             record = dict(cycle=cycle, battles=len(raws), rows=len(training), dataset=dataset,
+                          reward_mode=backend.reward_mode,
                           shaping_coefficient=backend.shaping_coefficient,
                           mean_shaping_return=sum(r.get('shaping_reward', 0.) for r in training)/len(raws),
+                          mean_training_return=sum(returns)/len(returns),
                           value_targets_outside_unit=sum(abs(r['return']) > 1 for r in training),
                           wins=sum(r['outcome']['won'] for r in raws),
                           mean_v7=sum(r['outcome']['reward'] for r in raws)/len(raws),
