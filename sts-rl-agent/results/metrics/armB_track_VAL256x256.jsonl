@@ -1,0 +1,15 @@
+{"epoch": 1, "val_mse": 0.1444, "eval_floor": 6.68, "win_rate": 0}
+{"epoch": 2, "val_mse": 0.0355, "eval_floor": 8.28, "win_rate": 0}
+{"epoch": 3, "val_mse": 0.0167, "eval_floor": 7.68, "win_rate": 0}
+{"epoch": 4, "val_mse": 0.0112, "eval_floor": 8.28, "win_rate": 0}
+{"epoch": 5, "val_mse": 0.0082, "eval_floor": 8.62, "win_rate": 0}
+{"epoch": 6, "val_mse": 0.0058, "eval_floor": 8.2, "win_rate": 0}
+{"epoch": 7, "val_mse": 0.0042, "eval_floor": 8.74, "win_rate": 0}
+{"epoch": 8, "val_mse": 0.0035, "eval_floor": 7.72, "win_rate": 0}
+{"epoch": 9, "val_mse": 0.0033, "eval_floor": 7.34, "win_rate": 0}
+{"epoch": 10, "val_mse": 0.0057, "eval_floor": 7.96, "win_rate": 0}
+{"epoch": 11, "val_mse": 0.0045, "eval_floor": 7.64, "win_rate": 0}
+{"epoch": 12, "val_mse": 0.0024, "eval_floor": 8.1, "win_rate": 0}
+{"epoch": 13, "val_mse": 0.0023, "eval_floor": 8.18, "win_rate": 0}
+{"epoch": 14, "val_mse": 0.0018, "eval_floor": 7.74, "win_rate": 0}
+{"epoch": 15, "val_mse": 0.0015, "eval_floor": 8.76, "win_rate": 0}

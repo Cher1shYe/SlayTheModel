@@ -1,2 +1,0 @@
-# Preserve evidence bytes: witness SHA-256 must survive cross-platform checkout.
-docs/g23f_audit/*.json -text

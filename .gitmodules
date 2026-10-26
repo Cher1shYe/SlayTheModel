@@ -1,0 +1,6 @@
+[submodule "simulator/json"]
+	path = simulator/json
+	url = https://github.com/nlohmann/json.git
+[submodule "simulator/pybind11"]
+	path = simulator/pybind11
+	url = https://github.com/pybind/pybind11.git

@@ -1,0 +1,6 @@
+{"round": 0, "D_size": 50742, "gen_floor": 23.28, "imit_acc": 0.4497, "eval_floor": 12.08}
+{"round": 1, "D_size": 77437, "gen_floor": 11.91, "imit_acc": 0.4456, "eval_floor": 11.76}
+{"round": 2, "D_size": 102457, "gen_floor": 11.86, "imit_acc": 0.4366, "eval_floor": 11.32}
+{"round": 3, "D_size": 129854, "gen_floor": 12.01, "imit_acc": 0.4332, "eval_floor": 11.5}
+{"round": 4, "D_size": 157549, "gen_floor": 12.41, "imit_acc": 0.4332, "eval_floor": 12.24}
+{"round": 5, "D_size": 186590, "gen_floor": 12.41, "imit_acc": 0.4372, "eval_floor": 11.22}

@@ -1,1 +1,0 @@
-{"passed": true, "snapshots": 8, "counts": {"train": 48, "validation": 256, "unseen_combination": 24, "unseen_id": 24}, "source_witnesses": 4, "uniform_search_budgets": [8, 32, 128]}

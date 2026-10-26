@@ -1,0 +1,16 @@
+{"game": 512, "train": 21.99, "eval": 28.5}
+{"game": 1024, "train": 23.09, "eval": 31.52}
+{"game": 1504, "train": 24.19, "eval": 34.3}
+{"game": 2016, "train": 26.65, "eval": 33.44}
+{"game": 2528, "train": 29.86, "eval": 32.44}
+{"game": 3008, "train": 33.12, "eval": 34.48}
+{"game": 3520, "train": 34.32, "eval": 34.7}
+{"game": 4000, "train": 35.71, "eval": 35.54}
+{"game": 4512, "train": 36.65, "eval": 37.2}
+{"game": 5024, "train": 37.08, "eval": 34.04}
+{"game": 5504, "train": 36.41, "eval": 34.96}
+{"game": 6016, "train": 37.99, "eval": 34.92}
+{"game": 6528, "train": 38.2, "eval": 36.88}
+{"game": 7008, "train": 38.57, "eval": 36.06}
+{"game": 7520, "train": 38.18, "eval": 37.36}
+{"game": 8000, "train": 39.49, "eval": 37.56}
