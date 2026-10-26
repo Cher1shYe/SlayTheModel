@@ -18,3 +18,4 @@ deployment/selfplay_fast_s512_r10/
 **/tmp/
 **/tb_armS/
 **/latest_training_state.pt
+deployment/runs_v2/

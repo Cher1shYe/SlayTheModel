@@ -10,6 +10,7 @@
 #include <functional>
 #include <memory>
 #include <random>
+#include <unordered_map>
 #include <iostream>
 #include <limits>
 
@@ -37,6 +38,21 @@ namespace sts::search {
         EvalFnc evalFnc;
         double explorationParameter = 3*sqrt(2);
 
+        // Root-prior PUCT: when usePuct is set, root edges are selected by
+        // Q + cPuct * prior * sqrt(N) / (1 + n) and new root children are
+        // sampled proportional to the prior instead of uniformly.
+        bool usePuct = false;
+        double cPuct = 3.0;
+        // >0: blend the PUCT sqrt term toward classic UCB as the root
+        // accumulates simulations (prior early, diversity late).
+        double annealCount = 0.0;
+        // 1: keep the UCB log schedule but allocate exploration by prior.
+        int priorMode = 0;
+        // 0: random playouts (native); 1: expert-greedy with epsilon noise.
+        int playoutMode = 0;
+        double playoutEpsilon = 0.0;
+        std::unordered_map<std::uint32_t, double> rootPriors;
+
         double bestActionValue = std::numeric_limits<double>::min();
         double minActionValue = std::numeric_limits<double>::max();
         int outcomePlayerHp = 0;
@@ -62,6 +78,7 @@ namespace sts::search {
         int selectFirstActionForLeafNode(const Node &leafNode);
 
         void playoutRandom(BattleContext &state, std::vector<Action> &actionStack);
+        void playoutGreedy(BattleContext &state, std::vector<Action> &actionStack);
 
         void enumerateActionsForNode(Node &node, const BattleContext &bc);
         void enumerateCardActions(Node &node, const BattleContext &bc);

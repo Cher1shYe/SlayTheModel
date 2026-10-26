@@ -1456,6 +1456,259 @@ PYBIND11_MODULE(slaythespire, m) {
         return pybind11::make_tuple(result, count, elapsed);
     });
 
+    m.def("rollout_native", [](const BattleContext &root, int repeats) {
+        if (repeats <= 0 || root.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need a live state and positive repeats");
+        search::BattleScumSearcher2 searcher(root);
+        std::vector<search::Action> path;
+        double sum = 0.0;
+        for (int i = 0; i < repeats; ++i) {
+            BattleContext state = root;
+            path.clear();
+            searcher.playoutRandom(state, path);
+            sum += search::BattleScumSearcher2::evaluateEndState(state);
+        }
+        return sum / static_cast<double>(repeats);
+    });
+
+    m.def("mcts_puct", [](const BattleContext &bc, int sims,
+                          const std::unordered_map<std::uint32_t, double> &priors, double cPuct,
+                          double annealCount, int priorMode) {
+        search::BattleScumSearcher2 searcher(bc);
+        searcher.usePuct = true;
+        searcher.cPuct = cPuct;
+        searcher.annealCount = annealCount;
+        searcher.priorMode = priorMode;
+        searcher.rootPriors = priors;
+        searcher.search(sims);
+        search::Action result(search::ActionType::END_TURN);
+        if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty())
+            result = searcher.bestActionSequence.front();
+        else {
+            std::int64_t best = -1;
+            for (const auto &e : searcher.root.edges)
+                if (e.node.simulationCount > best) { best = e.node.simulationCount; result = e.action; }
+        }
+        return result;
+    });
+
+    m.def("mcts_puct_timed", [](const BattleContext &bc, double milliseconds,
+                                const std::unordered_map<std::uint32_t, double> &priors, double cPuct,
+                                double annealCount, int priorMode) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto start = std::chrono::steady_clock::now();
+        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
+        search::Action result(search::ActionType::END_TURN);
+        std::int64_t count = 0;
+        {
+            search::BattleScumSearcher2 searcher(bc);
+            searcher.usePuct = true;
+            searcher.cPuct = cPuct;
+            searcher.annealCount = annealCount;
+            searcher.priorMode = priorMode;
+            searcher.rootPriors = priors;
+            search::g_debug_scum_search = &searcher;
+            do { searcher.step(); ++count; }
+            while (std::chrono::steady_clock::now() < deadline);
+            if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+                result = searcher.bestActionSequence.front();
+            } else {
+                std::int64_t visits = -1;
+                for (const auto &edge : searcher.root.edges) {
+                    if (edge.node.simulationCount > visits) {
+                        visits = edge.node.simulationCount;
+                        result = edge.action;
+                    }
+                }
+            }
+            search::g_debug_scum_search = nullptr;
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(result, count, elapsed);
+    });
+
+    m.def("mcts_restarts_timed", [](const BattleContext &bc, double milliseconds,
+                                    const std::unordered_map<std::uint32_t, double> &priors,
+                                    double cPuct, double annealCount, int priorMode,
+                                    int nRuns, bool usePuct) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        if (nRuns < 1) nRuns = 1;
+        const auto start = std::chrono::steady_clock::now();
+        const double per = milliseconds / static_cast<double>(nRuns);
+        search::Action bestAction(search::ActionType::END_TURN);
+        double bestVal = std::numeric_limits<double>::lowest();
+        std::int64_t total = 0;
+        for (int r = 0; r < nRuns; ++r) {
+            const auto deadline = std::chrono::steady_clock::now() +
+                std::chrono::duration<double, std::milli>(per);
+            search::BattleScumSearcher2 searcher(bc);
+            searcher.usePuct = usePuct;
+            searcher.cPuct = cPuct;
+            searcher.annealCount = annealCount;
+            searcher.priorMode = priorMode;
+            searcher.rootPriors = priors;
+            searcher.randGen.seed(bc.seed + bc.floorNum + 7919 * (r + 1));
+            search::g_debug_scum_search = &searcher;
+            std::int64_t count = 0;
+            do { searcher.step(); ++count; }
+            while (std::chrono::steady_clock::now() < deadline);
+            total += count;
+            search::Action cur(search::ActionType::END_TURN);
+            if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+                cur = searcher.bestActionSequence.front();
+            } else {
+                std::int64_t visits = -1;
+                for (const auto &e : searcher.root.edges)
+                    if (e.node.simulationCount > visits) { visits = e.node.simulationCount; cur = e.action; }
+            }
+            if (searcher.bestActionValue > bestVal) {
+                bestVal = searcher.bestActionValue;
+                bestAction = cur;
+            }
+            search::g_debug_scum_search = nullptr;
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(bestAction, total, elapsed);
+    }, "N independent restarts inside one time budget; returns the best line's first action");
+
+    m.def("mcts_ex_timed", [](const BattleContext &bc, double milliseconds,
+                              const std::unordered_map<std::uint32_t, double> &priors,
+                              double cPuct, double annealCount, int priorMode,
+                              int playoutMode, double playoutEpsilon, bool usePuct) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto start = std::chrono::steady_clock::now();
+        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
+        search::Action result(search::ActionType::END_TURN);
+        std::int64_t count = 0;
+        {
+            search::BattleScumSearcher2 searcher(bc);
+            searcher.usePuct = usePuct;
+            searcher.cPuct = cPuct;
+            searcher.annealCount = annealCount;
+            searcher.priorMode = priorMode;
+            searcher.rootPriors = priors;
+            searcher.playoutMode = playoutMode;
+            searcher.playoutEpsilon = playoutEpsilon;
+            search::g_debug_scum_search = &searcher;
+            do { searcher.step(); ++count; }
+            while (std::chrono::steady_clock::now() < deadline);
+            if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+                result = searcher.bestActionSequence.front();
+            } else {
+                std::int64_t visits = -1;
+                for (const auto &edge : searcher.root.edges) {
+                    if (edge.node.simulationCount > visits) {
+                        visits = edge.node.simulationCount;
+                        result = edge.action;
+                    }
+                }
+            }
+            search::g_debug_scum_search = nullptr;
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(result, count, elapsed);
+    }, "time-budgeted search with selectable playout policy");
+
+    m.def("mcts_stats_timed", [](const BattleContext &bc, double milliseconds,
+                                 const std::unordered_map<std::uint32_t, double> &priors,
+                                 double cPuct, double annealCount, int priorMode, bool usePuct) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto deadline = std::chrono::steady_clock::now() +
+            std::chrono::duration<double, std::milli>(milliseconds);
+        search::BattleScumSearcher2 searcher(bc);
+        searcher.usePuct = usePuct;
+        searcher.cPuct = cPuct;
+        searcher.annealCount = annealCount;
+        searcher.priorMode = priorMode;
+        searcher.rootPriors = priors;
+        search::g_debug_scum_search = &searcher;
+        std::int64_t count = 0;
+        do { searcher.step(); ++count; }
+        while (std::chrono::steady_clock::now() < deadline);
+        std::vector<std::uint32_t> bits;
+        std::vector<std::int64_t> visits;
+        std::vector<double> evalsums;
+        for (const auto &e : searcher.root.edges) {
+            bits.push_back(e.action.bits);
+            visits.push_back(e.node.simulationCount);
+            evalsums.push_back(e.node.evaluationSum);
+        }
+        search::g_debug_scum_search = nullptr;
+        return pybind11::make_tuple(bits, visits, evalsums, count);
+    }, "time-budgeted root search with per-edge visits and evaluation sums");
+
+    m.def("mcts_visits", [](const BattleContext &bc, int sims) {
+        search::BattleScumSearcher2 searcher(bc);
+        searcher.search(sims);
+        search::Action result(search::ActionType::END_TURN);
+        if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty())
+            result = searcher.bestActionSequence.front();
+        else {
+            std::int64_t best = -1;
+            for (const auto &e : searcher.root.edges)
+                if (e.node.simulationCount > best) { best = e.node.simulationCount; result = e.action; }
+        }
+        std::vector<std::uint32_t> bits;
+        std::vector<std::int64_t> visits;
+        for (const auto &e : searcher.root.edges) {
+            bits.push_back(e.action.bits);
+            visits.push_back(e.node.simulationCount);
+        }
+        return pybind11::make_tuple(result, bits, visits);
+    }, "run MCTS and return best action plus root visit counts");
+
+    m.def("mcts_visits_timed", [](const BattleContext &bc, double milliseconds) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto deadline = std::chrono::steady_clock::now() +
+            std::chrono::duration<double, std::milli>(milliseconds);
+        search::BattleScumSearcher2 searcher(bc);
+        search::g_debug_scum_search = &searcher;
+        std::int64_t count = 0;
+        do { searcher.step(); ++count; }
+        while (std::chrono::steady_clock::now() < deadline);
+        search::Action result(search::ActionType::END_TURN);
+        if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty())
+            result = searcher.bestActionSequence.front();
+        else {
+            std::int64_t best = -1;
+            for (const auto &e : searcher.root.edges)
+                if (e.node.simulationCount > best) { best = e.node.simulationCount; result = e.action; }
+        }
+        std::vector<std::uint32_t> bits;
+        std::vector<std::int64_t> visits;
+        for (const auto &e : searcher.root.edges) {
+            bits.push_back(e.action.bits);
+            visits.push_back(e.node.simulationCount);
+        }
+        search::g_debug_scum_search = nullptr;
+        return pybind11::make_tuple(result, bits, visits, count);
+    }, "time-budgeted MCTS with root visit counts");
+
+    m.def("rollout_value", [](const BattleContext &bc, int n) {
+        if (n <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need a live state and positive rollouts");
+        search::BattleScumSearcher2 searcher(bc);
+        std::vector<search::Action> path;
+        double total = 0.0;
+        for (int i = 0; i < n; ++i) {
+            BattleContext state = bc;
+            path.clear();
+            searcher.playoutRandom(state, path);
+            const double hp = static_cast<double>(state.player.curHp) /
+                              static_cast<double>(std::max(1, state.player.maxHp));
+            total += (state.outcome == Outcome::PLAYER_VICTORY ? 1.0 : 0.0) + hp;
+        }
+        return total / static_cast<double>(n);
+    }, "expected win + HP fraction of n random native rollouts");
+
     // ******************** OUT-OF-COMBAT GAME ACTION API ********************
     // generic interface to drive map / rest / shop / event / rewards decisions from python,
     // mirroring the in-combat forward-search api (get_legal_game_actions + GameAction.execute)

@@ -68,7 +68,8 @@ void search::BattleScumSearcher2::step() {
             actionStack.push_back(edgeTaken.action);
             searchStack.push_back(&edgeTaken.node);
 
-            playoutRandom(curState, actionStack);
+            if (playoutMode == 0) playoutRandom(curState, actionStack);
+            else playoutGreedy(curState, actionStack);
             updateFromPlayout(searchStack, actionStack, curState);
             return;
 
@@ -120,6 +121,29 @@ double search::BattleScumSearcher2::evaluateEdge(const search::BattleScumSearche
         qualityValue = avgEvaluation / evalRange;
     }
 
+    if (usePuct && (&parent == &root)) {
+        const double fallback = 1.0 / static_cast<double>(parent.edges.size());
+        auto it = rootPriors.find(edge.action.bits);
+        const double prior = (it != rootPriors.end() && it->second > 0.0) ? it->second : fallback;
+        const double logTerm = std::sqrt(std::log(parent.simulationCount + 1.0)
+                / (edge.node.simulationCount + 1.0));
+        if (priorMode == 1) {
+            return qualityValue + explorationParameter
+                    * (prior * static_cast<double>(parent.edges.size())) * logTerm;
+        }
+        const double puctTerm = cPuct * prior * std::sqrt(parent.simulationCount + 1.0)
+                / (1.0 + edge.node.simulationCount);
+        if (priorMode == 4) {
+            return qualityValue + explorationParameter * logTerm + puctTerm;
+        }
+        if (annealCount <= 0.0) {
+            return qualityValue + puctTerm;
+        }
+        const double weight = annealCount / (annealCount + static_cast<double>(parent.simulationCount));
+        return qualityValue + weight * puctTerm
+                + (1.0 - weight) * explorationParameter * logTerm;
+    }
+
     double explorationValue = explorationParameter *
             std::sqrt(std::log(parent.simulationCount+1) / (edge.node.simulationCount+1));
 
@@ -145,6 +169,27 @@ int search::BattleScumSearcher2::selectBestEdgeToSearch(const search::BattleScum
 }
 
 int search::BattleScumSearcher2::selectFirstActionForLeafNode(const search::BattleScumSearcher2::Node &leafNode) {
+    if (usePuct && (&leafNode == &root) && !rootPriors.empty() && leafNode.edges.size() > 1) {
+        std::vector<double> w(leafNode.edges.size());
+        const double fallback = 0.01 / static_cast<double>(leafNode.edges.size());
+        double total = 0.0;
+        for (std::size_t i = 0; i < leafNode.edges.size(); ++i) {
+            auto it = rootPriors.find(leafNode.edges[i].action.bits);
+            double p = (it != rootPriors.end()) ? it->second : fallback;
+            if (p < 0.0) p = 0.0;
+            w[i] = p;
+            total += p;
+        }
+        if (total > 0.0) {
+            std::uniform_real_distribution<double> dist(0.0, total);
+            double r = dist(randGen);
+            for (std::size_t i = 0; i < w.size(); ++i) {
+                r -= w[i];
+                if (r <= 0.0) return static_cast<int>(i);
+            }
+            return static_cast<int>(w.size()) - 1;
+        }
+    }
     auto dist = std::uniform_int_distribution<int>(0, static_cast<int>(leafNode.edges.size())-1);
     return dist(randGen);
 }
@@ -169,6 +214,46 @@ void search::BattleScumSearcher2::playoutRandom(BattleContext &state, std::vecto
         action.execute(state);
 
         tempNode.edges.clear();
+    }
+}
+
+void search::BattleScumSearcher2::playoutGreedy(BattleContext &state, std::vector<Action> &actionStack) {
+    Node tempNode; // temp
+    while (!isTerminalState(state)) {
+        ++simulationIdx;
+        tempNode.edges.clear();
+        enumerateActionsForNode(tempNode, state);
+        if (tempNode.edges.empty()) {
+            break;
+        }
+        int chosen = -1;
+        std::uniform_real_distribution<double> flip(0.0, 1.0);
+        if (playoutEpsilon > 0.0 && flip(randGen) < playoutEpsilon) {
+            std::uniform_int_distribution<int> dist(0, static_cast<int>(tempNode.edges.size()) - 1);
+            chosen = dist(randGen);
+        } else {
+            // cards are sorted by expert play order; prefer the first card,
+            // then end the turn, and only then spend a potion.
+            for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
+                if (tempNode.edges[i].action.getActionType() == ActionType::CARD) { chosen = static_cast<int>(i); break; }
+            }
+            if (chosen < 0) {
+                for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
+                    if (tempNode.edges[i].action.getActionType() == ActionType::END_TURN) { chosen = static_cast<int>(i); break; }
+                }
+            }
+            if (chosen < 0) {
+                for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
+                    if (tempNode.edges[i].action.getActionType() == ActionType::POTION) { chosen = static_cast<int>(i); break; }
+                }
+            }
+            if (chosen < 0) {
+                chosen = 0;
+            }
+        }
+        const auto action = tempNode.edges[chosen].action;
+        actionStack.push_back(action);
+        action.execute(state);
     }
 }
 
