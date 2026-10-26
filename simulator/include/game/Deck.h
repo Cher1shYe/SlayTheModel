@@ -23,7 +23,7 @@ namespace sts {
     typedef std::function<bool(const Card &)> CardPredicate;
 
     struct Deck {
-        static constexpr int MAX_SIZE = 96;
+        static constexpr int MAX_SIZE = 128;
 
         fixed_list<Card,MAX_SIZE> cards;
 

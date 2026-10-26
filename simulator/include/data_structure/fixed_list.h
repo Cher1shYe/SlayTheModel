@@ -6,6 +6,7 @@
 #define STS_LIGHTSPEED_FIXEDLIST_H
 
 #include <array>
+#include <stdexcept>
 
 namespace sts {
 
@@ -80,6 +81,7 @@ namespace sts {
 
 
         void insert(int idx, T t) {
+            if (list_size >= capacity) throw std::length_error("fixed_list overflow capacity=" + std::to_string(capacity));
             for (int i = list_size; i > idx; --i) {
                 arr[i] = arr[i-1];
             }
@@ -88,6 +90,7 @@ namespace sts {
         }
 
         void insert(iterator it, T t) {
+            if (list_size >= capacity) throw std::length_error("fixed_list overflow capacity=" + std::to_string(capacity));
             for (T* i = arr.end()-1; i != it; --i) {
                 *i = *(i-1);
             }
@@ -96,6 +99,7 @@ namespace sts {
         }
 
         void push_back(T t) {
+            if (list_size >= capacity) throw std::length_error("fixed_list overflow capacity=" + std::to_string(capacity));
             arr[list_size++] = std::move(t);
         }
 
@@ -128,6 +132,7 @@ namespace sts {
         }
 
         void resize(int size) {
+            if (size > capacity) throw std::length_error("fixed_list overflow capacity=" + std::to_string(capacity));
             list_size = size;
         }
 

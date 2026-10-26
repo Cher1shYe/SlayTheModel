@@ -8,6 +8,7 @@
 - `simulator/`：本地修订后的 sts_lightspeed 源码，包含 Windows 兼容、战斗规则、状态快照以及定时 MCTS 接口。
 - `deployment/`：训练启动器、自对弈、评测、数值稳定修复及 fast PUCT 优化。
 - `deployment/results_puct_vs_mcts/`：等时间 PUCT vs 原生 MCTS 的配对评测结果（150 seeds）。
+- `deployment/results_soft_teacher/`：2026-10-27 soft 教师蒸馏 / 价值目标的 150-seed 配对结果。
 - `deployment/training_audit_v3/selfplay/`：训练驱动实际使用的兼容源码模板，不包含训练日志。
 - `deployment/selfplay_6x40_s64/` 与 `deployment/selfplay_stable_s512_r1/`：仅包含启动器所需的历史源码、配置和指定初始化权重，不是完整实验结果。
 - `SOURCE_MANIFEST.json`：复制的本地文件 SHA256 清单。
@@ -182,6 +183,77 @@ Python 侧新增 `deployment/selfplay_v2.py` 的评测模式：
 - 价值网没有进入最终方案：所有把它塞进搜索的尝试（叶值、根先验、比较值、完成 Q）都是负结果。
   若要继续提升网络部分，最可行的是用当前 46.6 层的搜索做 self-distillation（根访问数当策略目标），
   或者按 GAZ PTP 的方式改训练目标（比较型 value），而不是调温度或加宽网络。
+  这两条已于 2026-10-27 验证，见下文“Soft 教师自蒸馏与比较型 value”：均未提升 130 ms 层数。
+
+## Soft 教师自蒸馏与比较型 value：验证结果（2026-10-27）
+
+本节直接验证上节"局限"里提出的两条后续路线。全部评估仍使用 150 seeds 逐种子配对；
+搜索参数与上节一致（cPuct=3、playoutMode=1、ε=0.05、priorMode=0、best-line 选根）。
+
+### 1. 用 46.6 层搜索做 self-distillation（根访问数当策略目标）
+
+改动：`deployment/selfplay_v3_soft.py --teacher-cpp`。每个战斗决策用当前 policy 给 C++ 搜索作根先验，
+`mcts_stats_ex_timed` 在 130 ms（扣除 policy 前向）内返回 best-line 动作与根访问数；执行 best-line 动作，
+训练目标为根访问分布（soft target）。从 armD round4 续训 2 轮 × 400 局，`lr_policy=1e-4`，value 冻结。
+对照组 `--teacher-onehot 1`：同一教师、同一执行动作，只把目标换成 best-line one-hot。
+
+先验确实变尖、也更贴近教师（192 个 held-out 状态）：
+
+| 指标 | armD r4 | soft 蒸馏 r2 |
+|---|---|---|
+| 先验熵 / top-1 | 0.847 / 0.357 | 0.719 / 0.464 |
+| 与教师访问 argmax 一致 | 59.4% | 62.5% |
+| KL(访问‖先验) | 0.715 | 0.661 |
+
+但搜索层数没有提升（150 seeds，130 ms）：
+
+| 先验 | native_greedy | puct_greedy | 先验贡献（puct−native） |
+|---|---|---|---|
+| armD r4 | 45.59 | 46.51 | +0.91±0.41 |
+| soft 蒸馏 | 44.96 | 46.70 | +1.74±0.57（双差 +0.83±0.54，t=1.53） |
+| one-hot 对照 | 45.00 | 46.59 | +1.59±0.52（双差 +0.68±0.51） |
+
+40 ms 预算（先验主导区）暴露了问题：
+
+| 先验 | 先验贡献 |
+|---|---|
+| armD r4 | +2.28±0.58 |
+| soft 蒸馏 T=1 | +0.80±0.53 |
+| soft 蒸馏 T=2 | +0.88±0.53 |
+| soft 蒸馏 T=0.5 | −1.37±0.67 |
+| one-hot 对照 | +0.85±0.61 |
+
+结论：soft 与 one-hot 几乎没有差别（130 ms DiD −0.15±0.50；40 ms +0.05±0.61），
+说明问题不在"访问数当目标"，而在于把教师的搜索动作蒸馏进 reactive policy 会让先验在低预算下变差：
+先验被教尖的速度快于教准（每个置信度档位的正确率都低于蒸馏前；高置信样本 3.6%→17.7%），
+温度压平也无法恢复。130 ms 下绝对层数不动，+2～3 层的预期没有出现。
+
+### 2. 比较型 value / run-level 价值目标
+
+- 离线（300 局，225/75 划分）：`floor_reg` 的 run-level Spearman 0.695、run 配对准确率 0.746，
+  `floor_pair` 0.580/0.702；`z_reg`、`z_pair` 与 base 持平。
+- 放进搜索（PUCT@512，30 seeds，policy 固定 armD r4）：base 36.47；
+  z_reg −1.10（ns）、**floor_reg −6.70（t=−4.70）**、**floor_pair −5.53（t=−3.67）**、z_pair +1.10（ns）。
+  整局层数在同一局内几乎恒定，作为叶子会抹掉战斗内的战术区分度。
+- 双 actor GAZ PTP（`deployment/gaz_ptp.py`）：current=armD r4、historical=armD r0，同种子同决策步 k 配对，
+  目标 `sign(floor_current − floor_historical)`，Bradley-Terry（τ=0.5），3397 训练对 / 781 验证对。
+  验证配对准确率 55.2%→58.4%，run Spearman 0.445；但 PUCT@512 原始 −5.83±1.63（t=−3.57），
+  把输出尺度校准到 base 的 std 后仍 −5.30±1.85（t=−2.87）。
+- 结论：run-level 的配对信号可以学出"哪一局更好"，但没有转成"哪一步更好"的搜索叶子。
+  论文原版的联合 `V(s,s′)` + 在线双 actor 循环仍未实现；若继续，比较参照应是**同一场战斗内**的状态，
+  否则目标仍然是 run-level 的。
+
+### 3. 同轮工程修复
+
+- `Deck::MAX_SIZE` 96→128：修复 seed 381834348 在第 48 层商店买第 97 张牌时 `fixed_list` 栈溢出
+  （原表现为 `*** stack smashing detected ***`）。`fixed_list` 的 `push_back/insert/resize` 增加越界检查，
+  越界抛 `std::length_error` 而不是写坏内存。
+- `mcts_stats_timed` 增加可选 `playoutMode/playoutEpsilon`（默认 0/0.0，兼容旧调用）；
+  新增 `mcts_stats_ex_timed(bc, ms, priors, cPuct, anneal, priorMode, playoutMode, eps, usePuct)`，
+  返回 `(best_action, bits, visits, evalsums, count)`，供教师闭环直接拿根访问分布。
+- `selfplay_v3_soft.py` 把单局异常写入 `errors.jsonl` 并继续（>2% 才中止），soft/one-hot 各 800 局均 0 失败。
+
+结果文件：`deployment/results_soft_teacher/`，完整报告 `deployment/soft_teacher_value_report.md`。
 
 ## 来源与许可
 

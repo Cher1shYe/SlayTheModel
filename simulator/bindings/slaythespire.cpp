@@ -1617,7 +1617,8 @@ PYBIND11_MODULE(slaythespire, m) {
 
     m.def("mcts_stats_timed", [](const BattleContext &bc, double milliseconds,
                                  const std::unordered_map<std::uint32_t, double> &priors,
-                                 double cPuct, double annealCount, int priorMode, bool usePuct) {
+                                 double cPuct, double annealCount, int priorMode, bool usePuct,
+                                 int playoutMode, double playoutEpsilon) {
         if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
             throw std::invalid_argument("Need positive budget and nonterminal state");
         const auto deadline = std::chrono::steady_clock::now() +
@@ -1628,6 +1629,8 @@ PYBIND11_MODULE(slaythespire, m) {
         searcher.annealCount = annealCount;
         searcher.priorMode = priorMode;
         searcher.rootPriors = priors;
+        searcher.playoutMode = playoutMode;
+        searcher.playoutEpsilon = playoutEpsilon;
         search::g_debug_scum_search = &searcher;
         std::int64_t count = 0;
         do { searcher.step(); ++count; }
@@ -1642,7 +1645,55 @@ PYBIND11_MODULE(slaythespire, m) {
         }
         search::g_debug_scum_search = nullptr;
         return pybind11::make_tuple(bits, visits, evalsums, count);
-    }, "time-budgeted root search with per-edge visits and evaluation sums");
+    }, pybind11::arg("bc"), pybind11::arg("milliseconds"), pybind11::arg("priors"),
+       pybind11::arg("cPuct"), pybind11::arg("annealCount"), pybind11::arg("priorMode"),
+       pybind11::arg("usePuct"), pybind11::arg("playoutMode") = 0,
+       pybind11::arg("playoutEpsilon") = 0.0,
+       "time-budgeted root search with per-edge visits and evaluation sums");
+
+    m.def("mcts_stats_ex_timed", [](const BattleContext &bc, double milliseconds,
+                                    const std::unordered_map<std::uint32_t, double> &priors,
+                                    double cPuct, double annealCount, int priorMode,
+                                    int playoutMode, double playoutEpsilon, bool usePuct) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto deadline = std::chrono::steady_clock::now() +
+            std::chrono::duration<double, std::milli>(milliseconds);
+        search::BattleScumSearcher2 searcher(bc);
+        searcher.usePuct = usePuct;
+        searcher.cPuct = cPuct;
+        searcher.annealCount = annealCount;
+        searcher.priorMode = priorMode;
+        searcher.rootPriors = priors;
+        searcher.playoutMode = playoutMode;
+        searcher.playoutEpsilon = playoutEpsilon;
+        search::g_debug_scum_search = &searcher;
+        std::int64_t count = 0;
+        do { searcher.step(); ++count; }
+        while (std::chrono::steady_clock::now() < deadline);
+        search::Action result(search::ActionType::END_TURN);
+        if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+            result = searcher.bestActionSequence.front();
+        } else {
+            std::int64_t best = -1;
+            for (const auto &edge : searcher.root.edges) {
+                if (edge.node.simulationCount > best) {
+                    best = edge.node.simulationCount;
+                    result = edge.action;
+                }
+            }
+        }
+        std::vector<std::uint32_t> bits;
+        std::vector<std::int64_t> visits;
+        std::vector<double> evalsums;
+        for (const auto &e : searcher.root.edges) {
+            bits.push_back(e.action.bits);
+            visits.push_back(e.node.simulationCount);
+            evalsums.push_back(e.node.evaluationSum);
+        }
+        search::g_debug_scum_search = nullptr;
+        return pybind11::make_tuple(result, bits, visits, evalsums, count);
+    }, "time-budgeted search with selectable playout; returns best-line action plus root stats");
 
     m.def("mcts_visits", [](const BattleContext &bc, int sims) {
         search::BattleScumSearcher2 searcher(bc);
