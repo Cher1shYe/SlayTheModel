@@ -1,0 +1,10 @@
+{
+  "modid": "steamstateexport",
+  "name": "Steam State Export",
+  "author_list": ["Slow Take"],
+  "description": "Exports exact combat RNG state for local MCTS calibration.",
+  "version": "0.1.0",
+  "sts_version": "12-18-2022",
+  "mts_version": "3.30.0",
+  "dependencies": ["basemod", "CommunicationMod"]
+}

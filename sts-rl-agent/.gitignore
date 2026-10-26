@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Local runtime and recording artifacts
+.env
+*.env
+!.env.example
+log/
+materials/
+runs/
+ckpts_*/
+tb_*/
+# Local OBS/video-production helpers
+eval/obs_record.py
+eval/record_demo.py
+eval/run_watch.command
+eval/watch.py
+*.mp4
+*.mov
+*.webm
+*.aiff
+*.m4a
+
+# Native/Java build output
+build/
+build*/
+*.so
+*.dylib
+*.jar
+CMakeFiles/
+CMakeCache.txt
+
+# Editor/OS
+.DS_Store
+.idea/
+.vscode/

@@ -1,0 +1,1361 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index d04312b..21feb94 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,7 +8,11 @@ project(
+ file (GLOB_RECURSE sts_lightspeed_SOURCES CONFIGURE_DEPENDS "src/*.cpp")
+ 
+ set(CMAKE_CXX_STANDARD 17)
+-set(CMAKE_CXX_FLAGS  "-Wno-shift-count-overflow -O3")
++if(MSVC)
++    add_compile_options(/O2 /EHsc /bigobj)
++else()
++    set(CMAKE_CXX_FLAGS "-Wno-shift-count-overflow -O3")
++endif()
+ 
+ add_subdirectory(json)
+ add_subdirectory(pybind11)
+diff --git a/bindings/bindings-util.cpp b/bindings/bindings-util.cpp
+index 471ce96..a7db701 100644
+--- a/bindings/bindings-util.cpp
++++ b/bindings/bindings-util.cpp
+@@ -11,6 +11,9 @@
+ #include "game/Game.h"
+ #include "game/Map.h"
+ 
++#include "combat/BattleContext.h"
++#include "sim/search/Action.h"
++
+ #include "slaythespire.h"
+ 
+ namespace sts {
+@@ -292,4 +295,59 @@ namespace sts::py {
+         return false;
+     }
+ 
++    // Enumerates all valid actions in the current battle state for forward search.
++    std::vector<search::Action> getLegalActions(const BattleContext &bc) {
++        using search::Action;
++        using search::ActionType;
++
++        std::vector<Action> actions;
++
++        if (bc.outcome != Outcome::UNDECIDED) {
++            return actions;
++        }
++
++        if (bc.inputState == InputState::CARD_SELECT) {
++            return Action::enumerateCardSelectActions(bc);
++        }
++
++        if (bc.inputState != InputState::PLAYER_NORMAL) {
++            return actions;
++        }
++
++        const int monsterCount = bc.monsters.monsterCount;
++
++        // Card actions: every card in hand against every monster slot.
++        for (int cardIdx = 0; cardIdx < bc.cards.cardsInHand; ++cardIdx) {
++            for (int targetIdx = 0; targetIdx < monsterCount; ++targetIdx) {
++                Action a(ActionType::CARD, cardIdx, targetIdx);
++                if (a.isValidAction(bc)) {
++                    actions.push_back(a);
++                }
++            }
++        }
++
++        // Potion actions: drink against every monster slot, plus discard.
++        for (int potionIdx = 0; potionIdx < bc.potionCapacity; ++potionIdx) {
++            for (int targetIdx = 0; targetIdx < monsterCount; ++targetIdx) {
++                Action a(ActionType::POTION, potionIdx, targetIdx);
++                if (a.isValidAction(bc)) {
++                    actions.push_back(a);
++                }
++            }
++            // discard potion uses a target idx > 5
++            Action discard(ActionType::POTION, potionIdx, 6);
++            if (discard.isValidAction(bc)) {
++                actions.push_back(discard);
++            }
++        }
++
++        // End turn.
++        Action endTurn(ActionType::END_TURN);
++        if (endTurn.isValidAction(bc)) {
++            actions.push_back(endTurn);
++        }
++
++        return actions;
++    }
++
+ }
+\ No newline at end of file
+diff --git a/bindings/slaythespire.cpp b/bindings/slaythespire.cpp
+index a9afe35..4cbe58d 100644
+--- a/bindings/slaythespire.cpp
++++ b/bindings/slaythespire.cpp
+@@ -1,3 +1,4 @@
++#include <chrono>
+ //
+ // Created by keega on 9/16/2021.
+ //
+@@ -9,24 +10,340 @@
+ 
+ #include <sstream>
+ #include <algorithm>
++#include <cctype>
++#include <stdexcept>
+ 
+ #include "sim/ConsoleSimulator.h"
+ #include "sim/search/ScumSearchAgent2.h"
++#include "sim/search/GameAction.h"
++#include "sim/search/BattleScumSearcher2.h"
++#include "sim/search/ExpertKnowledge.h"
++#include "game/Shop.h"
+ #include "sim/SimHelpers.h"
+ #include "sim/PrintHelpers.h"
+ #include "game/Game.h"
+ 
++#include "combat/BattleContext.h"
++#include "combat/Player.h"
++#include "combat/Monster.h"
++#include "combat/CardInstance.h"
++#include "combat/InputState.h"
++#include "sim/search/Action.h"
++#include "constants/MonsterMoves.h"
++#include "constants/PlayerStatusEffects.h"
++#include "constants/MonsterStatusEffects.h"
++
+ #include "slaythespire.h"
+ 
+ 
+ using namespace sts;
+ 
++namespace {
++    namespace py = pybind11;
++
++    std::string normalizedName(const std::string &value) {
++        std::string out;
++        for (const unsigned char ch : value) {
++            if (std::isalnum(ch)) out.push_back(static_cast<char>(std::tolower(ch)));
++        }
++        return out;
++    }
++
++    template <typename T, std::size_t N>
++    int enumFromNames(const std::string &name, const T (&names)[N]) {
++        const auto wanted = normalizedName(name);
++        for (std::size_t i = 0; i < N; ++i) {
++            if (normalizedName(names[i]) == wanted) return static_cast<int>(i);
++        }
++        throw std::invalid_argument("unknown enum name: " + name);
++    }
++
++    CardInstance snapshotCard(const py::dict &src, int uniqueId) {
++        const auto id = static_cast<CardId>(py::cast<int>(src["id"]));
++        if (id == CardId::INVALID) throw std::invalid_argument("snapshot card id is INVALID");
++        const int upgrades = src.contains("upgrades") ? py::cast<int>(src["upgrades"]) : 0;
++        CardInstance card(id, upgrades > 0);
++        card.uniqueId = static_cast<std::int16_t>(uniqueId);
++        if (src.contains("misc")) card.specialData = static_cast<std::int16_t>(py::cast<int>(src["misc"]));
++        if (src.contains("cost")) card.costForTurn = static_cast<std::int8_t>(py::cast<int>(src["cost"]));
++        return card;
++    }
++
++    void setPlayerStatus(Player &player, PlayerStatus status, int amount, bool justApplied) {
++        switch (status) {
++            case PlayerStatus::ARTIFACT: player.artifact = amount; break;
++            case PlayerStatus::DEXTERITY: player.dexterity = amount; break;
++            case PlayerStatus::FOCUS: player.focus = amount; break;
++            case PlayerStatus::STRENGTH: player.strength = amount; break;
++            default: {
++                const int idx = static_cast<int>(status);
++                if (idx <= 0 || idx >= static_cast<int>(PlayerStatus::THE_BOMB) + 1) {
++                    throw std::invalid_argument("invalid player status id");
++                }
++                if (idx < 64) player.statusBits0 |= 1ULL << idx;
++                else player.statusBits1 |= 1ULL << (idx - 64);
++                player.statusMap[status] = static_cast<std::int16_t>(amount);
++            }
++        }
++        if (justApplied) player.justAppliedBits |= 1ULL << static_cast<int>(status);
++    }
++
++    void setMonsterStatus(Monster &monster, MonsterStatus status, int amount) {
++        const int idx = static_cast<int>(status);
++        if (idx < 0 || status == MonsterStatus::INVALID) throw std::invalid_argument("invalid monster status id");
++        monster.statusBits |= 1ULL << idx;
++        switch (status) {
++            case MonsterStatus::ARTIFACT: monster.artifact = amount; break;
++            case MonsterStatus::BLOCK_RETURN: monster.blockReturn = amount; break;
++            case MonsterStatus::CHOKED: monster.choked = amount; break;
++            case MonsterStatus::CORPSE_EXPLOSION: monster.corpseExplosion = amount; break;
++            case MonsterStatus::LOCK_ON: monster.lockOn = amount; break;
++            case MonsterStatus::MARK: monster.mark = amount; break;
++            case MonsterStatus::METALLICIZE: monster.metallicize = amount; break;
++            case MonsterStatus::PLATED_ARMOR: monster.platedArmor = amount; break;
++            case MonsterStatus::POISON: monster.poison = amount; break;
++            case MonsterStatus::REGEN: monster.regen = amount; break;
++            case MonsterStatus::SHACKLED: monster.shackled = amount; break;
++            case MonsterStatus::STRENGTH: monster.strength = amount; break;
++            case MonsterStatus::VULNERABLE: monster.vulnerable = amount; break;
++            case MonsterStatus::WEAK: monster.weak = amount; break;
++            case MonsterStatus::ANGRY:
++            case MonsterStatus::BEAT_OF_DEATH:
++            case MonsterStatus::CURIOSITY:
++            case MonsterStatus::CURL_UP:
++            case MonsterStatus::ENRAGE:
++            case MonsterStatus::FADING:
++            case MonsterStatus::FLIGHT:
++            case MonsterStatus::GENERIC_STRENGTH_UP:
++            case MonsterStatus::INTANGIBLE:
++            case MonsterStatus::MALLEABLE:
++            case MonsterStatus::MODE_SHIFT:
++            case MonsterStatus::RITUAL:
++            case MonsterStatus::SLOW:
++            case MonsterStatus::SPORE_CLOUD:
++            case MonsterStatus::THIEVERY:
++            case MonsterStatus::THORNS:
++            case MonsterStatus::TIME_WARP: monster.uniquePower0 = amount; break;
++            case MonsterStatus::INVINCIBLE:
++            case MonsterStatus::REACTIVE:
++            case MonsterStatus::SHARP_HIDE: monster.uniquePower1 = amount; break;
++            default: break;
++        }
++    }
++
++    Random randomFromSnapshot(const py::dict &src) {
++        Random rng;
++        rng.seed0 = py::cast<std::uint64_t>(src["seed0"]);
++        rng.seed1 = py::cast<std::uint64_t>(src["seed1"]);
++        rng.counter = py::cast<std::int32_t>(src["counter"]);
++        return rng;
++    }
++
++    void setRelicCounter(Player &player, RelicId id, int counter) {
++        switch (id) {
++            case RelicId::HAPPY_FLOWER: player.happyFlowerCounter = counter; break;
++            case RelicId::INCENSE_BURNER: player.incenseBurnerCounter = counter; break;
++            case RelicId::INK_BOTTLE: player.inkBottleCounter = counter; break;
++            case RelicId::INSERTER: player.inserterCounter = counter; break;
++            case RelicId::NUNCHAKU: player.nunchakuCounter = counter; break;
++            case RelicId::PEN_NIB: player.penNibCounter = counter; break;
++            case RelicId::SUNDIAL: player.sundialCounter = counter; break;
++            default: break;
++        }
++    }
++
++    BattleContext battleFromSnapshot(const py::dict &snapshot, std::uint64_t determinizationSeed) {
++        BattleContext bc;
++        bc.seed = py::cast<std::uint64_t>(snapshot["seed"]);
++        bc.floorNum = py::cast<int>(snapshot["floor"]);
++        bc.ascension = snapshot.contains("ascension") ? py::cast<int>(snapshot["ascension"]) : 0;
++        bc.encounter = snapshot.contains("encounter")
++            ? static_cast<MonsterEncounter>(py::cast<int>(snapshot["encounter"]))
++            : MonsterEncounter::INVALID;
++        bc.turn = std::max(0, py::cast<int>(snapshot["turn"]) - 1);
++        bc.outcome = Outcome::UNDECIDED;
++        bc.inputState = InputState::PLAYER_NORMAL;
++        bc.isBattleOver = false;
++        bc.endTurnQueued = false;
++        bc.turnHasEnded = false;
++        bc.skipMonsterTurn = false;
++        bc.monsterTurnIdx = 6;
++        bc.actionQueue.clear();
++        bc.cardQueue.clear();
++        bc.miscBits.reset();
++
++        if (snapshot.contains("rngs")) {
++            const auto rngs = py::cast<py::dict>(snapshot["rngs"]);
++            bc.aiRng = randomFromSnapshot(py::cast<py::dict>(rngs["ai"]));
++            bc.cardRandomRng = randomFromSnapshot(py::cast<py::dict>(rngs["card_random"]));
++            bc.miscRng = randomFromSnapshot(py::cast<py::dict>(rngs["misc"]));
++            bc.monsterHpRng = randomFromSnapshot(py::cast<py::dict>(rngs["monster_hp"]));
++            bc.potionRng = randomFromSnapshot(py::cast<py::dict>(rngs["potion"]));
++            bc.shuffleRng = randomFromSnapshot(py::cast<py::dict>(rngs["shuffle"]));
++        } else {
++            bc.aiRng = Random(determinizationSeed + 1);
++            bc.cardRandomRng = Random(determinizationSeed + 2);
++            bc.miscRng = Random(determinizationSeed + 3);
++            bc.monsterHpRng = Random(determinizationSeed + 4);
++            bc.potionRng = Random(determinizationSeed + 5);
++            bc.shuffleRng = Random(determinizationSeed + 6);
++        }
++
++        bc.player = Player();
++        const auto player = py::cast<py::dict>(snapshot["player"]);
++        bc.player.cc = CharacterClass::IRONCLAD;
++        bc.player.curHp = py::cast<int>(player["current_hp"]);
++        bc.player.maxHp = py::cast<int>(player["max_hp"]);
++        bc.player.block = py::cast<int>(player["block"]);
++        bc.player.energy = py::cast<int>(player["energy"]);
++        bc.player.energyPerTurn = static_cast<std::int8_t>(player.contains("energy_per_turn") ? py::cast<int>(player["energy_per_turn"]) : 3);
++        bc.player.cardsPlayedThisTurn = snapshot.contains("cards_played_this_turn") ? py::cast<int>(snapshot["cards_played_this_turn"]) : 0;
++        bc.player.attacksPlayedThisTurn = snapshot.contains("attacks_played_this_turn") ? py::cast<int>(snapshot["attacks_played_this_turn"]) : 0;
++        bc.player.skillsPlayedThisTurn = snapshot.contains("skills_played_this_turn") ? py::cast<int>(snapshot["skills_played_this_turn"]) : 0;
++        bc.player.cardsDiscardedThisTurn = snapshot.contains("cards_discarded_this_turn") ? py::cast<int>(snapshot["cards_discarded_this_turn"]) : 0;
++        bc.player.timesDamagedThisCombat = snapshot.contains("times_damaged") ? py::cast<int>(snapshot["times_damaged"]) : 0;
++        if (player.contains("powers")) {
++            for (const auto item : py::cast<py::list>(player["powers"])) {
++                const auto power = py::cast<py::dict>(item);
++                const auto status = static_cast<PlayerStatus>(py::cast<int>(power["id"]));
++                const int amount = py::cast<int>(power["amount"]);
++                if (status == PlayerStatus::THE_BOMB && power.contains("bomb_turns")) {
++                    switch (py::cast<int>(power["bomb_turns"])) {
++                        case 1: bc.player.bomb1 += amount; break;
++                        case 2: bc.player.bomb2 += amount; break;
++                        default: bc.player.bomb3 += amount; break;
++                    }
++                } else {
++                    setPlayerStatus(bc.player, status, amount,
++                        power.contains("just_applied") && py::cast<bool>(power["just_applied"]));
++                }
++            }
++        }
++
++        bc.cards = CardManager();
++        int uniqueId = 0;
++        const auto loadCards = [&](const char *key, auto &target, auto notify) {
++            for (const auto item : py::cast<py::list>(snapshot[key])) {
++                auto card = snapshotCard(py::cast<py::dict>(item), uniqueId++);
++                bc.cards.notifyAddCardToCombat(card);
++                (bc.cards.*notify)(card);
++                target.push_back(card);
++            }
++        };
++        for (const auto item : py::cast<py::list>(snapshot["hand"])) {
++            if (bc.cards.cardsInHand >= CardManager::MAX_HAND_SIZE) throw std::invalid_argument("snapshot hand exceeds simulator capacity");
++            auto card = snapshotCard(py::cast<py::dict>(item), uniqueId++);
++            bc.cards.notifyAddCardToCombat(card);
++            bc.cards.notifyAddToHand(card);
++            bc.cards.hand[bc.cards.cardsInHand++] = card;
++        }
++        loadCards("draw_pile", bc.cards.drawPile, &CardManager::notifyAddToDrawPile);
++        loadCards("discard_pile", bc.cards.discardPile, &CardManager::notifyAddToDiscardPile);
++        for (const auto item : py::cast<py::list>(snapshot["exhaust_pile"])) {
++            auto card = snapshotCard(py::cast<py::dict>(item), uniqueId++);
++            bc.cards.notifyAddCardToCombat(card);
++            bc.cards.exhaustPile.push_back(card);
++        }
++        bc.cards.nextUniqueCardId = uniqueId;
++
++        bc.monsters = MonsterGroup();
++        const auto monsters = py::cast<py::list>(snapshot["monsters"]);
++        if (monsters.size() > bc.monsters.arr.size()) throw std::invalid_argument("snapshot monster count exceeds simulator capacity");
++        bc.monsters.monsterCount = static_cast<int>(monsters.size());
++        bc.monsters.monstersAlive = 0;
++        for (int i = 0; i < bc.monsters.monsterCount; ++i) {
++            const auto src = py::cast<py::dict>(monsters[i]);
++            auto &monster = bc.monsters.arr[i];
++            monster = Monster();
++            monster.idx = i;
++            monster.id = static_cast<MonsterId>(py::cast<int>(src["id"]));
++            if (monster.id == MonsterId::INVALID) throw std::invalid_argument("snapshot monster id is INVALID");
++            monster.curHp = py::cast<int>(src["current_hp"]);
++            monster.maxHp = py::cast<int>(src["max_hp"]);
++            monster.block = py::cast<int>(src["block"]);
++            monster.halfDead = src.contains("half_dead") && py::cast<bool>(src["half_dead"]);
++            monster.isEscapingB = src.contains("is_gone") && py::cast<bool>(src["is_gone"]);
++            monster.moveHistory[0] = static_cast<MMID>(py::cast<int>(src["move"]));
++            monster.moveHistory[1] = src.contains("last_move")
++                ? static_cast<MMID>(py::cast<int>(src["last_move"])) : MMID::INVALID;
++            monster.miscInfo = src.contains("misc_info") ? py::cast<int>(src["misc_info"]) : 0;
++            if (src.contains("powers")) {
++                for (const auto item : py::cast<py::list>(src["powers"])) {
++                    const auto power = py::cast<py::dict>(item);
++                    setMonsterStatus(monster,
++                        static_cast<MonsterStatus>(py::cast<int>(power["id"])),
++                        py::cast<int>(power["amount"]));
++                }
++            }
++            if (!monster.isEscapingB && monster.curHp > 0) ++bc.monsters.monstersAlive;
++        }
++
++        bc.potionCapacity = 0;
++        bc.potionCount = 0;
++        if (snapshot.contains("potions")) {
++            const auto potions = py::cast<py::list>(snapshot["potions"]);
++            if (potions.size() > bc.potions.size()) throw std::invalid_argument("snapshot potion count exceeds simulator capacity");
++            bc.potionCapacity = static_cast<int>(potions.size());
++            for (int i = 0; i < bc.potionCapacity; ++i) {
++                bc.potions[i] = static_cast<Potion>(py::cast<int>(potions[i]));
++                if (bc.potions[i] != Potion::EMPTY_POTION_SLOT) ++bc.potionCount;
++            }
++        }
++        if (snapshot.contains("relics")) {
++            for (const auto item : py::cast<py::list>(snapshot["relics"])) {
++                const auto relic = py::cast<py::dict>(item);
++                const int id = py::cast<int>(relic["id"]);
++                if (id < 64) bc.player.relicBits0 |= 1ULL << id;
++                else if (id < 128) bc.player.relicBits1 |= 1ULL << (id - 64);
++                if (relic.contains("counter")) {
++                    const int counter = py::cast<int>(relic["counter"]);
++                    if (counter >= 0) setRelicCounter(bc.player, static_cast<RelicId>(id), counter);
++                }
++            }
++        }
++        return bc;
++    }
++}
++
+ PYBIND11_MODULE(slaythespire, m) {
+     m.doc() = "pybind11 example plugin"; // optional module docstring
+     m.def("play", &sts::py::play, "play Slay the Spire Console");
+     m.def("get_seed_str", &SeedHelper::getString, "gets the integral representation of seed string used in the game ui");
+     m.def("get_seed_long", &SeedHelper::getLong, "gets the seed string representation of an integral seed");
+     m.def("getNNInterface", &sts::NNInterface::getInstance, "gets the NNInterface object");
++    m.def("card_id_from_name", [](const std::string &name) {
++        try { return enumFromNames(name, cardEnumStrings); }
++        catch (const std::invalid_argument &) { return enumFromNames(name, cardNames); }
++    });
++    m.def("monster_id_from_name", [](const std::string &name) { return enumFromNames(name, monsterIdStrings); });
++    m.def("monster_move_id_from_name", [](const std::string &name) { return enumFromNames(name, monsterMoveStrings); });
++    m.def("player_status_id_from_name", [](const std::string &name) {
++        try { return enumFromNames(name, playerStatusEnumStrings); }
++        catch (const std::invalid_argument &) { return enumFromNames(name, playerStatusStrings); }
++    });
++    m.def("monster_status_id_from_name", [](const std::string &name) {
++        try { return enumFromNames(name, monsterStatusEnumStrings); }
++        catch (const std::invalid_argument &) { return enumFromNames(name, enemyStatusStrings); }
++    });
++    m.def("relic_id_from_name", [](const std::string &name) {
++        const auto wanted = normalizedName(name);
++        for (int i = 0; i <= static_cast<int>(RelicId::INVALID); ++i) {
++            if (normalizedName(getRelicName(static_cast<RelicId>(i))) == wanted ||
++                normalizedName(relicIds[i]) == wanted ||
++                normalizedName(relicEnumNames[i]) == wanted) return i;
++        }
++        throw std::invalid_argument("unknown relic name: " + name);
++    });
++    m.def("potion_id_from_name", [](const std::string &name) {
++        try { return enumFromNames(name, potionEnumNames); }
++        catch (const std::invalid_argument &) {
++            try { return enumFromNames(name, potionIds); }
++            catch (const std::invalid_argument &) { return enumFromNames(name, potionNames); }
++        }
++    });
++    m.def("boss_relic_ordering", [](int id) {
++        return search::Expert::getBossRelicOrdering(static_cast<RelicId>(id));
++    });
+ 
+     pybind11::class_<NNInterface> nnInterface(m, "NNInterface");
+     nnInterface.def("getObservation", &NNInterface::getObservation, "get observation array given a GameContext")
+@@ -38,6 +355,11 @@ PYBIND11_MODULE(slaythespire, m) {
+     agent.def_readwrite("simulation_count_base", &search::ScumSearchAgent2::simulationCountBase, "number of simulations the agent uses for monte carlo tree search each turn")
+         .def_readwrite("boss_simulation_multiplier", &search::ScumSearchAgent2::bossSimulationMultiplier, "bonus multiplier to the simulation count for boss fights")
+         .def_readwrite("pause_on_card_reward", &search::ScumSearchAgent2::pauseOnCardReward, "causes the agent to pause so as to cede control to the user when it encounters a card reward choice")
++        .def_readwrite("pause_on_map", &search::ScumSearchAgent2::pauseOnMap, "pause and cede control on the map (path choice) screen")
++        .def_readwrite("pause_on_rest", &search::ScumSearchAgent2::pauseOnRest, "pause and cede control on the rest site (campfire) screen")
++        .def_readwrite("pause_on_shop", &search::ScumSearchAgent2::pauseOnShop, "pause and cede control on the shop screen")
++        .def_readwrite("pause_on_event", &search::ScumSearchAgent2::pauseOnEvent, "pause and cede control on event screens that have a real choice")
++        .def_readwrite("pause_on_battle", &search::ScumSearchAgent2::pauseOnBattle, "pause at the start of each battle so the caller can drive combat with its own model")
+         .def_readwrite("print_logs", &search::ScumSearchAgent2::printLogs, "when set to true, the agent prints state information as it makes actions")
+         .def("playout", &search::ScumSearchAgent2::playout);
+ 
+@@ -69,6 +391,43 @@ PYBIND11_MODULE(slaythespire, m) {
+                [] (const GameContext &gc) { return std::vector(gc.relics.relics); },
+                "returns a copy of the list of relics"
+         )
++        .def_property_readonly("cur_event",
++               [](const GameContext &gc) { return static_cast<int>(gc.curEvent); },
++               "integer id of the current event (Event enum); for encoding event-screen choices"
++        )
++        .def("map_node_room",
++             [](const GameContext &gc, int x, int y) {
++                 if (!gc.map || x < 0 || x > 6 || y < 0 || y > 14) return Room::INVALID;
++                 return gc.map->getNode(x, y).room;
++             },
++             "room type of the map node at (x, y); used to describe path-choice candidates"
++        )
++        .def("get_map_nn",
++             [](const GameContext &gc) {
++                 if (!gc.map) return std::vector<int>();
++                 return sts::py::getNNMapRepresentation(*gc.map);   // full map graph (edges + room types) as a vector
++             },
++             "NN encoding of the whole current map (edges + room types); global lookahead features for path planning"
++        )
++        .def("map_node_children",
++             [](const GameContext &gc, int x, int y) {
++                 std::vector<int> kids;
++                 if (!gc.map || x < 0 || x > 6 || y < 0 || y > 13) return kids;
++                 const auto &node = gc.map->getNode(x, y);
++                 for (int i = 0; i < node.edgeCount; ++i) kids.push_back(node.edges[i]);
++                 return kids;
++             },
++             "x-coords of the child nodes (next row) reachable from node (x,y); for position-relative path lookahead"
++        )
++        .def("get_shop_cards",
++             [](const GameContext &gc) {
++                 std::vector<std::pair<Card,int>> out;          // (card, price); price -1 if slot empty/sold
++                 const auto &s = gc.info.shop;
++                 for (int i = 0; i < 7; ++i) out.emplace_back(s.cards[i], s.cardPrice(i));
++                 return out;
++             },
++             "the 7 shop card slots as (Card, price) pairs (price -1 if empty)"
++        )
+         .def("__repr__", [](const GameContext &gc) {
+             std::ostringstream oss;
+             oss << "<" << gc << ">";
+@@ -828,6 +1187,310 @@ PYBIND11_MODULE(slaythespire, m) {
+         .value("RED_CIRCLET", RelicId::RED_CIRCLET)
+         .value("INVALID", RelicId::INVALID);
+ 
++    // ******************** BATTLE / FORWARD-SEARCH API ********************
++
++    pybind11::enum_<Outcome>(m, "Outcome")
++        .value("UNDECIDED", Outcome::UNDECIDED)
++        .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
++        .value("PLAYER_LOSS", Outcome::PLAYER_LOSS);
++
++    pybind11::enum_<InputState>(m, "InputState")
++        .value("EXECUTING_ACTIONS", InputState::EXECUTING_ACTIONS)
++        .value("PLAYER_NORMAL", InputState::PLAYER_NORMAL)
++        .value("CARD_SELECT", InputState::CARD_SELECT);
++
++    pybind11::enum_<search::ActionType>(m, "SearchActionType")
++        .value("CARD", search::ActionType::CARD)
++        .value("POTION", search::ActionType::POTION)
++        .value("SINGLE_CARD_SELECT", search::ActionType::SINGLE_CARD_SELECT)
++        .value("MULTI_CARD_SELECT", search::ActionType::MULTI_CARD_SELECT)
++        .value("END_TURN", search::ActionType::END_TURN);
++
++    // a useful subset of player statuses for has_status / get_status
++    pybind11::enum_<PlayerStatus>(m, "PlayerStatus")
++        .value("VULNERABLE", PlayerStatus::VULNERABLE)
++        .value("WEAK", PlayerStatus::WEAK)
++        .value("FRAIL", PlayerStatus::FRAIL)
++        .value("STRENGTH", PlayerStatus::STRENGTH)
++        .value("DEXTERITY", PlayerStatus::DEXTERITY)
++        .value("FOCUS", PlayerStatus::FOCUS)
++        .value("ARTIFACT", PlayerStatus::ARTIFACT)
++        .value("METALLICIZE", PlayerStatus::METALLICIZE)
++        .value("REGEN", PlayerStatus::REGEN)
++        .value("PLATED_ARMOR", PlayerStatus::PLATED_ARMOR)
++        .value("DEMON_FORM", PlayerStatus::DEMON_FORM)
++        .value("RITUAL", PlayerStatus::RITUAL)
++        .value("THORNS", PlayerStatus::THORNS)
++        .value("BARRICADE", PlayerStatus::BARRICADE)
++        .value("INTANGIBLE", PlayerStatus::INTANGIBLE)
++        .value("NO_BLOCK", PlayerStatus::NO_BLOCK)
++        .value("ENTANGLED", PlayerStatus::ENTANGLED);
++
++    pybind11::enum_<MonsterStatus>(m, "MonsterStatus")
++        .value("VULNERABLE", MonsterStatus::VULNERABLE)
++        .value("WEAK", MonsterStatus::WEAK)
++        .value("POISON", MonsterStatus::POISON)
++        .value("STRENGTH", MonsterStatus::STRENGTH)
++        .value("ARTIFACT", MonsterStatus::ARTIFACT)
++        .value("METALLICIZE", MonsterStatus::METALLICIZE)
++        .value("REGEN", MonsterStatus::REGEN)
++        .value("PLATED_ARMOR", MonsterStatus::PLATED_ARMOR)
++        .value("BLOCK_RETURN", MonsterStatus::BLOCK_RETURN)
++        .value("MARK", MonsterStatus::MARK)
++        .value("LOCK_ON", MonsterStatus::LOCK_ON)
++        .value("SHACKLED", MonsterStatus::SHACKLED)
++        .value("INTANGIBLE", MonsterStatus::INTANGIBLE)
++        .value("CHOKED", MonsterStatus::CHOKED);
++
++    pybind11::class_<DamageInfo>(m, "DamageInfo")
++        .def_readonly("damage", &DamageInfo::damage)
++        .def_readonly("attack_count", &DamageInfo::attackCount);
++
++    pybind11::class_<CardInstance>(m, "CardInstance")
++        .def_property_readonly("id", &CardInstance::getId)
++        .def_property_readonly("name", [](const CardInstance &c) { return std::string(c.getName()); })
++        .def_property_readonly("type", &CardInstance::getType)
++        .def_property_readonly("upgraded", &CardInstance::isUpgraded)
++        .def_readonly("cost", &CardInstance::cost)
++        .def_readonly("cost_for_turn", &CardInstance::costForTurn)
++        .def_property_readonly("requires_target", &CardInstance::requiresTarget)
++        .def("__repr__", [](const CardInstance &c) {
++            std::ostringstream os;
++            os << "<slaythespire.CardInstance " << c.getName() << ">";
++            return os.str();
++        });
++
++    pybind11::class_<Player>(m, "Player")
++        .def_readonly("cur_hp", &Player::curHp)
++        .def_readonly("max_hp", &Player::maxHp)
++        .def_readonly("block", &Player::block)
++        .def_readonly("energy", &Player::energy)
++        .def_readonly("strength", &Player::strength)
++        .def_readonly("dexterity", &Player::dexterity)
++        .def_readonly("focus", &Player::focus)
++        .def_readonly("artifact", &Player::artifact)
++        .def("has_status", &Player::hasStatusRuntime)
++        .def("get_status", &Player::getStatusRuntime);
++
++    pybind11::class_<Monster>(m, "Monster")
++        .def_readonly("cur_hp", &Monster::curHp)
++        .def_readonly("max_hp", &Monster::maxHp)
++        .def_readonly("block", &Monster::block)
++        .def_readonly("strength", &Monster::strength)
++        .def_readonly("vulnerable", &Monster::vulnerable)
++        .def_readonly("weak", &Monster::weak)
++        .def_readonly("poison", &Monster::poison)
++        .def_property_readonly("name", [](const Monster &mo) { return std::string(mo.getName()); })
++        .def_property_readonly("alive", &Monster::isAlive)
++        .def_property_readonly("targetable", &Monster::isTargetable)
++        .def_property_readonly("is_attacking", &Monster::isAttacking)
++        .def_property_readonly("intent", [](const Monster &mo) {
++            if (mo.moveHistory[0] == MMID::INVALID) {
++                return std::string("UNKNOWN");
++            }
++            return std::string(monsterMoveStrings[static_cast<int>(mo.moveHistory[0])]);
++        })
++        .def("intent_damage", &Monster::getMoveBaseDamage)
++        .def("has_status", &Monster::hasStatusInternal)
++        .def("get_status", &Monster::getStatusInternal);
++
++    pybind11::class_<search::Action>(m, "SearchAction")
++        .def(pybind11::init<search::ActionType>())
++        .def(pybind11::init<search::ActionType, int>())
++        .def(pybind11::init<search::ActionType, int, int>())
++        .def_property_readonly("action_type", &search::Action::getActionType)
++        .def_property_readonly("source_idx", &search::Action::getSourceIdx)
++        .def_property_readonly("target_idx", &search::Action::getTargetIdx)
++        .def_property_readonly("select_idx", &search::Action::getSelectIdx)
++        .def_property_readonly("selected_idxs", [](const search::Action &a) {
++            const auto idxs = a.getSelectedIdxs();
++            return std::vector<int>(idxs.begin(), idxs.end());
++        })
++        .def_readonly("bits", &search::Action::bits)
++        .def("is_valid", &search::Action::isValidAction)
++        .def("execute", &search::Action::execute)
++        .def("desc", [](const search::Action &a, const BattleContext &bc) {
++            std::ostringstream os;
++            a.printDesc(os, bc);
++            return os.str();
++        })
++        .def("__repr__", [](const search::Action &a) {
++            std::ostringstream os;
++            os << "<slaythespire.SearchAction type=" << static_cast<int>(a.getActionType())
++               << " src=" << a.getSourceIdx() << " tgt=" << a.getTargetIdx() << ">";
++            return os.str();
++        });
++
++    pybind11::class_<BattleContext>(m, "BattleContext")
++        .def(pybind11::init<>())
++        .def("init", pybind11::overload_cast<const GameContext&>(&BattleContext::init),
++             "initialize the battle from a GameContext that is in the BATTLE screen state")
++        .def("init_encounter",
++             pybind11::overload_cast<const GameContext&, MonsterEncounter>(&BattleContext::init),
++             "initialize the battle from a GameContext with an explicit monster encounter")
++        .def("clone", [](const BattleContext &bc) { return BattleContext(bc); },
++             "returns a deep copy of the battle (value semantics, RNG included) for deterministic lookahead")
++        .def_static("from_snapshot", &battleFromSnapshot,
++             "reconstruct a search state from a validated Steam combat snapshot and a determinization seed")
++        .def("exit_battle", &BattleContext::exitBattle,
++             "write the battle results back into the GameContext")
++        .def_readonly("outcome", &BattleContext::outcome)
++        .def_readonly("input_state", &BattleContext::inputState)
++        .def_readonly("turn", &BattleContext::turn)
++        .def_readonly("encounter", &BattleContext::encounter)
++        .def_readonly("player", &BattleContext::player)
++        .def_property_readonly("monsters", [](const BattleContext &bc) {
++            const int count = bc.monsters.monsterCount;
++            return std::vector<Monster>(bc.monsters.arr.begin(), bc.monsters.arr.begin() + count);
++        }, "returns the live monsters in the battle (truncated to monsterCount)")
++        .def_property_readonly("hand", [](const BattleContext &bc) {
++            const int count = bc.cards.cardsInHand;
++            return std::vector<CardInstance>(bc.cards.hand.begin(), bc.cards.hand.begin() + count);
++        }, "returns the cards currently in hand (truncated to cardsInHand)")
++        .def_property_readonly("draw_pile", [](const BattleContext &bc) {
++            return std::vector<CardInstance>(bc.cards.drawPile.begin(), bc.cards.drawPile.end());
++        }, "cards currently in the draw pile")
++        .def_property_readonly("discard_pile", [](const BattleContext &bc) {
++            return std::vector<CardInstance>(bc.cards.discardPile.begin(), bc.cards.discardPile.end());
++        }, "cards currently in the discard pile")
++        .def_property_readonly("exhaust_pile", [](const BattleContext &bc) {
++            return std::vector<CardInstance>(bc.cards.exhaustPile.begin(), bc.cards.exhaustPile.end());
++        }, "cards currently in the exhaust pile")
++        .def_property_readonly("rng_states", [](const BattleContext &bc) {
++            const auto state = [](const Random &rng) {
++                pybind11::dict value;
++                value["seed0"] = rng.seed0;
++                value["seed1"] = rng.seed1;
++                value["counter"] = rng.counter;
++                return value;
++            };
++            pybind11::dict values;
++            values["ai"] = state(bc.aiRng);
++            values["card_random"] = state(bc.cardRandomRng);
++            values["misc"] = state(bc.miscRng);
++            values["monster_hp"] = state(bc.monsterHpRng);
++            values["potion"] = state(bc.potionRng);
++            values["shuffle"] = state(bc.shuffleRng);
++            return values;
++        })
++        .def_property_readonly("snapshot_counters", [](const BattleContext &bc) {
++            pybind11::dict values;
++            values["energy_per_turn"] = bc.player.energyPerTurn;
++            values["happy_flower"] = bc.player.happyFlowerCounter;
++            values["incense_burner"] = bc.player.incenseBurnerCounter;
++            values["ink_bottle"] = bc.player.inkBottleCounter;
++            values["inserter"] = bc.player.inserterCounter;
++            values["nunchaku"] = bc.player.nunchakuCounter;
++            values["pen_nib"] = bc.player.penNibCounter;
++            values["sundial"] = bc.player.sundialCounter;
++            return values;
++        })
++        .def("__repr__", [](const BattleContext &bc) {
++            std::ostringstream os;
++            os << bc;
++            return os.str();
++        });
++
++    m.def("get_legal_actions", &sts::py::getLegalActions,
++          "enumerate all legal actions in the current battle state for forward search");
++
++    // Measurement-only helper: same native random rollout used by MCTS.
++    m.def("benchmark_native_rollouts", [](const BattleContext &root, int repeats) {
++        if (repeats <= 0 || root.outcome != Outcome::UNDECIDED)
++            throw std::invalid_argument("Need a live state and positive repeats");
++        search::BattleScumSearcher2 searcher(root);
++        std::int64_t actions = 0, hpSum = 0;
++        std::vector<search::Action> path;
++        for (int i = 0; i < repeats; ++i) {
++            BattleContext state = root;
++            path.clear();
++            searcher.playoutRandom(state, path);
++            actions += static_cast<std::int64_t>(path.size());
++            hpSum += state.player.curHp;
++        }
++        return pybind11::make_tuple(actions, hpSum);
++    });
++
++    m.def("mcts_recommend",
++          [](const BattleContext &bc, int sims) {
++              search::BattleScumSearcher2 searcher(bc);     // copies bc internally
++              searcher.search(sims);
++              if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
++                  return searcher.bestActionSequence.front();   // first action of the best found line
++              }
++              const search::Action *best = nullptr; long maxsim = -1;   // else most-visited root edge
++              for (const auto &e : searcher.root.edges) {
++                  if (e.node.simulationCount > maxsim) { maxsim = e.node.simulationCount; best = &e.action; }
++              }
++              return best ? *best : search::Action(search::ActionType::END_TURN);
++          },
++          "run MCTS from the given battle state and return its recommended next action (BC teacher oracle)");
++
++    m.def("mcts_recommend_timed", [](const BattleContext &bc, double milliseconds) {
++        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
++            throw std::invalid_argument("Need positive budget and nonterminal state");
++        const auto start = std::chrono::steady_clock::now();
++        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
++        search::Action result(search::ActionType::END_TURN);
++        std::int64_t count = 0;
++        {
++            search::BattleScumSearcher2 searcher(bc);
++            search::g_debug_scum_search = &searcher;
++            do { searcher.step(); ++count; }
++            while (std::chrono::steady_clock::now() < deadline);
++            if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
++                result = searcher.bestActionSequence.front();
++            } else {
++                std::int64_t visits = -1;
++                for (const auto &edge : searcher.root.edges) {
++                    if (edge.node.simulationCount > visits) {
++                        visits = edge.node.simulationCount;
++                        result = edge.action;
++                    }
++                }
++            }
++            search::g_debug_scum_search = nullptr;
++        }
++        const double elapsed = std::chrono::duration<double, std::milli>(
++            std::chrono::steady_clock::now() - start).count();
++        return pybind11::make_tuple(result, count, elapsed);
++    });
++
++    // ******************** OUT-OF-COMBAT GAME ACTION API ********************
++    // generic interface to drive map / rest / shop / event / rewards decisions from python,
++    // mirroring the in-combat forward-search api (get_legal_game_actions + GameAction.execute)
++
++    pybind11::enum_<search::GameAction::RewardsActionType>(m, "RewardsActionType")
++        .value("CARD", search::GameAction::RewardsActionType::CARD)
++        .value("GOLD", search::GameAction::RewardsActionType::GOLD)
++        .value("KEY", search::GameAction::RewardsActionType::KEY)
++        .value("POTION", search::GameAction::RewardsActionType::POTION)
++        .value("RELIC", search::GameAction::RewardsActionType::RELIC)
++        .value("CARD_REMOVE", search::GameAction::RewardsActionType::CARD_REMOVE)
++        .value("SKIP", search::GameAction::RewardsActionType::SKIP);
++
++    pybind11::class_<search::GameAction>(m, "GameAction")
++        .def(pybind11::init<std::uint32_t>())
++        .def_readonly("bits", &search::GameAction::bits)
++        .def_property_readonly("idx1", &search::GameAction::getIdx1, "primary index: map node x / rest option / event option / shop slot / reward slot")
++        .def_property_readonly("idx2", &search::GameAction::getIdx2)
++        .def_property_readonly("idx3", &search::GameAction::getIdx3)
++        .def_property_readonly("is_potion_action", &search::GameAction::isPotionAction)
++        .def_property_readonly("rewards_action_type", &search::GameAction::getRewardsActionType,
++                               "only meaningful on REWARDS / SHOP screens (CARD/RELIC/POTION/CARD_REMOVE/SKIP)")
++        .def("is_valid", &search::GameAction::isValidAction)
++        .def("execute", &search::GameAction::execute, "apply this choice to the GameContext")
++        .def("__repr__", [](const search::GameAction &a) {
++            std::ostringstream os;
++            os << "<slaythespire.GameAction bits=" << a.bits
++               << " idx1=" << a.getIdx1() << " idx2=" << a.getIdx2() << ">";
++            return os.str();
++        });
++
++    m.def("get_legal_game_actions",
++          [](const GameContext &gc) { return search::GameAction::getAllActionsInState(gc); },
++          "enumerate all legal out-of-combat game actions in the current screen state");
++
+ #ifdef VERSION_INFO
+     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
+ #else
+@@ -836,5 +1499,3 @@ PYBIND11_MODULE(slaythespire, m) {
+ }
+ 
+ // os.add_dll_directory("C:\\Program Files\\mingw-w64\\x86_64-8.1.0-posix-seh-rt_v6-rev0\\mingw64\\bin")
+-
+-
+diff --git a/bindings/slaythespire.h b/bindings/slaythespire.h
+index 6ec4658..f5df7c1 100644
+--- a/bindings/slaythespire.h
++++ b/bindings/slaythespire.h
+@@ -10,6 +10,7 @@
+ #include <array>
+ 
+ #include "constants/Rooms.h"
++#include "sim/search/Action.h"
+ 
+ namespace sts {
+ 
+@@ -61,6 +62,8 @@ namespace sts {
+         std::vector<int> getNNMapRepresentation(const Map &map);
+         Room getRoomType(const Map &map, int x, int y);
+         bool hasEdge(const Map &map, int x, int y, int x2);
++
++        std::vector<search::Action> getLegalActions(const BattleContext &bc);
+     }
+ 
+ 
+diff --git a/include/combat/ActionQueue.h b/include/combat/ActionQueue.h
+index 86d91d3..493f478 100644
+--- a/include/combat/ActionQueue.h
++++ b/include/combat/ActionQueue.h
+@@ -14,7 +14,7 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
++    struct BattleContext;
+     typedef std::function<void (BattleContext &)> ActionFunction;
+ 
+     struct Action {
+diff --git a/include/combat/Actions.h b/include/combat/Actions.h
+index fe960c1..21cbab4 100644
+--- a/include/combat/Actions.h
++++ b/include/combat/Actions.h
+@@ -21,9 +21,9 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
+-    class CardInstance;
+-    class CardQueueItem;
++    struct BattleContext;
++    struct CardInstance;
++    struct CardQueueItem;
+ 
+     typedef std::array<std::uint16_t,5> DamageMatrix;
+ 
+@@ -155,7 +155,7 @@ namespace sts {
+ 
+         static Action SuicideAction(int monsterIdx, bool triggerRelics);
+ 
+-        static Action PoisonLoseHpAction();
++        static Action PoisonLoseHpAction(int targetIdx, int amount);
+         static Action RemovePlayerDebuffs(); // Orange Pellets Relic
+ 
+         static Action DualityAction(); // Duality Relic
+diff --git a/include/combat/BattleContext.h b/include/combat/BattleContext.h
+index 767bbcd..c9a5f5b 100644
+--- a/include/combat/BattleContext.h
++++ b/include/combat/BattleContext.h
+@@ -40,7 +40,7 @@ namespace sts {
+             "PLAYER_LOSS",
+     };
+ 
+-    class GameContext;
++    struct GameContext;
+ 
+     extern thread_local BattleContext *g_debug_bc;
+ 
+diff --git a/include/combat/CardInstance.h b/include/combat/CardInstance.h
+index f937f8f..2ad4178 100644
+--- a/include/combat/CardInstance.h
++++ b/include/combat/CardInstance.h
+@@ -14,8 +14,8 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
+-    class Card;
++    struct BattleContext;
++    struct Card;
+ 
+     struct CardInstance  {
+         // bytes
+diff --git a/include/combat/CardManager.h b/include/combat/CardManager.h
+index 4b76b31..b7a9e29 100644
+--- a/include/combat/CardManager.h
++++ b/include/combat/CardManager.h
+@@ -16,8 +16,8 @@
+ 
+ namespace sts {
+ 
+-    class GameContext;
+-    class Card;
++    struct GameContext;
++    struct Card;
+ 
+     struct CardManager {
+ 
+diff --git a/include/combat/Monster.h b/include/combat/Monster.h
+index efb4f41..9a8f193 100644
+--- a/include/combat/Monster.h
++++ b/include/combat/Monster.h
+@@ -19,7 +19,7 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
++    struct BattleContext;
+ 
+     struct DamageInfo {
+         int damage = 0;
+diff --git a/include/combat/Player.h b/include/combat/Player.h
+index fda6fb6..a86b1fe 100644
+--- a/include/combat/Player.h
++++ b/include/combat/Player.h
+@@ -28,7 +28,7 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
++    struct BattleContext;
+ 
+     struct Player {
+         CharacterClass cc;
+diff --git a/include/data_structure/fixed_list.h b/include/data_structure/fixed_list.h
+index 0192a70..6ef78a3 100644
+--- a/include/data_structure/fixed_list.h
++++ b/include/data_structure/fixed_list.h
+@@ -35,19 +35,19 @@ namespace sts {
+         }
+ 
+         iterator begin() {
+-            return arr.begin();
++            return arr.data();
+         }
+ 
+         const_iterator begin() const {
+-            return arr.begin();
++            return arr.data();
+         }
+ 
+         iterator end() {
+-            return arr.begin()+list_size;
++            return arr.data()+list_size;
+         }
+ 
+         const_iterator end() const {
+-            return arr.begin()+list_size;
++            return arr.data()+list_size;
+         }
+ 
+         T& operator[](int idx) {
+diff --git a/include/game/Deck.h b/include/game/Deck.h
+index 7ee3ff4..ae0f273 100644
+--- a/include/game/Deck.h
++++ b/include/game/Deck.h
+@@ -16,9 +16,9 @@ namespace sts {
+ 
+ 
+     class Random;
+-    class GameContext;
+-    class SelectScreenCard;
+-    class SaveFile;
++    struct GameContext;
++    struct SelectScreenCard;
++    struct SaveFile;
+ 
+     typedef std::function<bool(const Card &)> CardPredicate;
+ 
+diff --git a/include/game/GameContext.h b/include/game/GameContext.h
+index 04fceda..6ee4f8e 100644
+--- a/include/game/GameContext.h
++++ b/include/game/GameContext.h
+@@ -138,11 +138,11 @@ namespace sts {
+     };
+ 
+ 
+-    class GameContext;
++    struct GameContext;
+     typedef std::function<void(GameContext&)> GameContextAction;
+ 
+-    class BattleContext;
+-    class SaveFile;
++    struct BattleContext;
++    struct SaveFile;
+ 
+     struct GameContext {
+         static constexpr float SHRINE_CHANCE = 0.25F;
+diff --git a/include/game/RelicContainer.h b/include/game/RelicContainer.h
+index d812b59..6ea022e 100644
+--- a/include/game/RelicContainer.h
++++ b/include/game/RelicContainer.h
+@@ -18,7 +18,7 @@ namespace sts {
+         int data;
+     };
+ 
+-    class GameContext;
++    struct GameContext;
+ 
+     struct RelicContainer {
+ 
+diff --git a/include/game/Rewards.h b/include/game/Rewards.h
+index 9abc55b..764d5bd 100644
+--- a/include/game/Rewards.h
++++ b/include/game/Rewards.h
+@@ -17,7 +17,7 @@
+ 
+ namespace sts {
+ 
+-    class GameContext;
++    struct GameContext;
+ 
+     struct Rewards {
+         int goldRewardCount = 0;
+diff --git a/include/game/SaveFile.h b/include/game/SaveFile.h
+index db28638..29fb248 100644
+--- a/include/game/SaveFile.h
++++ b/include/game/SaveFile.h
+@@ -27,7 +27,7 @@
+ 
+ namespace sts {
+ 
+-    class GameContext;
++    struct GameContext;
+ 
+     namespace Save {
+ 
+diff --git a/include/game/Shop.h b/include/game/Shop.h
+index d5763a8..2c32535 100644
+--- a/include/game/Shop.h
++++ b/include/game/Shop.h
+@@ -13,7 +13,7 @@
+ 
+ namespace sts {
+ 
+-    class GameContext;
++    struct GameContext;
+ 
+     struct Shop {
+         int prices[13];
+diff --git a/include/sim/BattleSimulator.h b/include/sim/BattleSimulator.h
+index b045190..ed10dbf 100644
+--- a/include/sim/BattleSimulator.h
++++ b/include/sim/BattleSimulator.h
+@@ -10,8 +10,8 @@
+ 
+ namespace sts {
+ 
+-    class BattleContext;
+-    class GameContext;
++    struct BattleContext;
++    struct GameContext;
+     struct SimulatorContext;
+ 
+     struct BattleSimulator {
+diff --git a/include/sim/ConsoleSimulator.h b/include/sim/ConsoleSimulator.h
+index 3fba41a..9fd27f7 100644
+--- a/include/sim/ConsoleSimulator.h
++++ b/include/sim/ConsoleSimulator.h
+@@ -15,7 +15,7 @@
+ 
+ namespace sts {
+ 
+-    class BattleSimulator;
++    struct BattleSimulator;
+ 
+     struct SimulatorContext {
+         // state
+diff --git a/include/sim/PrintHelpers.h b/include/sim/PrintHelpers.h
+index b70f25b..42f79c3 100644
+--- a/include/sim/PrintHelpers.h
++++ b/include/sim/PrintHelpers.h
+@@ -18,10 +18,10 @@
+ 
+ namespace sts {
+ 
+-    class CardInstance;
+-    class BattleContext;
+-    class GameContext;
+-    class Deck;
++    struct CardInstance;
++    struct BattleContext;
++    struct GameContext;
++    struct Deck;
+ 
+     template<int size>
+     static std::ostream& operator<<(std::ostream& os,  const fixed_list<Card, size> &cards) {
+diff --git a/include/sim/RandomAgent.h b/include/sim/RandomAgent.h
+index 13fd2f9..45a1be7 100644
+--- a/include/sim/RandomAgent.h
++++ b/include/sim/RandomAgent.h
+@@ -12,8 +12,8 @@
+ 
+ namespace sts {
+ 
+-    class GameContext;
+-    class BattleContext;
++    struct GameContext;
++    struct BattleContext;
+ 
+     typedef std::default_random_engine Rng;
+     typedef std::function <bool(const GameContext &gc)> GameContextPredicate;
+diff --git a/include/sim/search/Action.h b/include/sim/search/Action.h
+index 45eba1b..3f56e9c 100644
+--- a/include/sim/search/Action.h
++++ b/include/sim/search/Action.h
+@@ -15,7 +15,7 @@
+ 
+ 
+ namespace sts {
+-    class BattleContext;
++    struct BattleContext;
+ }
+ 
+ 
+diff --git a/include/sim/search/BattleScumSearcher2.h b/include/sim/search/BattleScumSearcher2.h
+index e2e9cdd..61e2a28 100644
+--- a/include/sim/search/BattleScumSearcher2.h
++++ b/include/sim/search/BattleScumSearcher2.h
+@@ -19,7 +19,7 @@ namespace sts::search {
+ 
+     // to find a solution to a battle with tree pruning
+     struct BattleScumSearcher2 {
+-        class Edge;
++        struct Edge;
+         struct Node {
+             std::int64_t simulationCount = 0;
+             double evaluationSum = 0;
+diff --git a/include/sim/search/GameAction.h b/include/sim/search/GameAction.h
+index 978eb8a..8d99f2e 100644
+--- a/include/sim/search/GameAction.h
++++ b/include/sim/search/GameAction.h
+@@ -11,7 +11,7 @@
+ #include <vector>
+ 
+ namespace sts {
+-    class GameContext;
++    struct GameContext;
+ }
+ 
+ namespace sts::search {
+diff --git a/include/sim/search/ScumSearchAgent2.h b/include/sim/search/ScumSearchAgent2.h
+index ffa449b..809fade 100644
+--- a/include/sim/search/ScumSearchAgent2.h
++++ b/include/sim/search/ScumSearchAgent2.h
+@@ -14,7 +14,7 @@
+ 
+ namespace sts::search {
+ 
+-    class BattleScumSearcher2;
++    struct BattleScumSearcher2;
+ 
+     struct ScumSearchAgent2 {
+         std::int64_t simulationCountTotal;
+@@ -23,6 +23,13 @@ namespace sts::search {
+         int stepCount = 0;
+         bool paused = false;
+         bool pauseOnCardReward = false;
++        // pause and cede control to the caller (python) on these out-of-combat decision screens,
++        // so an external policy (e.g. a learned model) can make the choice instead of the built-in heuristic.
++        bool pauseOnMap = false;
++        bool pauseOnRest = false;
++        bool pauseOnShop = false;
++        bool pauseOnEvent = false;
++        bool pauseOnBattle = false;   // cede combat to caller (python drives BattleContext with a learned model)
+ 
+         bool printActions = false;
+         bool printLogs = false;
+diff --git a/pybind11 b/pybind11
+index 787d2c8..a2e59f0 160000
+--- a/pybind11
++++ b/pybind11
+@@ -1 +1 @@
+-Subproject commit 787d2c88cafa4d07fb38c9519c485a86323cfcf4
++Subproject commit a2e59f0e7065404b44dfe92a28aca47ba1378dc4
+diff --git a/src/combat/Actions.cpp b/src/combat/Actions.cpp
+index 93db96f..30dc957 100644
+--- a/src/combat/Actions.cpp
++++ b/src/combat/Actions.cpp
+@@ -927,8 +927,26 @@ Action Actions::SuicideAction(int monsterIdx, bool triggerRelics) {
+     }};
+ }
+ 
+-Action Actions::PoisonLoseHpAction() {
+-    return sts::Action();
++Action Actions::PoisonLoseHpAction(int targetIdx, int amount) {
++    return {[targetIdx, amount](BattleContext &bc) {
++        if (bc.outcome != Outcome::UNDECIDED) {
++            return;
++        }
++        auto &monster = bc.monsters.arr[targetIdx];
++        if (!monster.isDeadOrEscaped() && monster.curHp > 0) {
++            int hpLoss = std::max(0, amount);
++            if (monster.hasStatus<MS::INTANGIBLE>()) {
++                hpLoss = std::min(hpLoss, 1);
++            }
++            // Poison is HP loss: preserve block and avoid normal-attack triggers.
++            // This helper applies Invincible and the existing HP-loss/death hooks.
++            if (hpLoss > 0) monster.damageUnblockedHelper(bc, hpLoss);
++        }
++        // Death can remove powers (e.g. the Awakened One's first phase).
++        if (monster.hasStatus<MS::POISON>()) {
++            monster.decrementStatus<MS::POISON>();
++        }
++    }};
+ }
+ 
+ Action Actions::RemovePlayerDebuffs() {
+diff --git a/src/combat/BattleContext.cpp b/src/combat/BattleContext.cpp
+index 965faef..dcaade3 100644
+--- a/src/combat/BattleContext.cpp
++++ b/src/combat/BattleContext.cpp
+@@ -763,19 +763,8 @@ void BattleContext::executeActions() {
+             continue;
+         }
+ 
+-        // can't win check
+-        if (cards.cardsInHand + cards.discardPile.size() + cards.drawPile.size() == 0) {
+-            bool hasDamageWithoutCards = player.hasStatus<PS::OMEGA>() ||
+-                    player.hasStatus<PS::THORNS>() ||
+-                    player.bomb1 ||
+-                    player.bomb2 ||
+-                    player.bomb3;
+-
+-            if (!hasDamageWithoutCards && monsters.arr[0].id != MonsterId::TRANSIENT) {
+-                outcome = Outcome::PLAYER_LOSS;
+-                break;
+-            }
+-        }
++        // Empty card piles are not a loss: potions and delayed damage can
++        // still win. Let normal actions and turn resolution decide the outcome.
+ 
+         if (outcome != Outcome::UNDECIDED) {
+             break;
+@@ -1073,7 +1062,7 @@ void BattleContext::useAttackCard() {
+         }
+ 
+         case CardId::IRON_WAVE: {
+-            addToBot( Actions::GainBlock(calculateCardBlock(calculateCardBlock(up  ? 7 : 5))) );
++            addToBot( Actions::GainBlock(calculateCardBlock(up ? 7 : 5)) );
+             addToBot( Actions::AttackEnemy(t, calculateCardDamage(c, t, up ? 7 : 5)) );
+             break;
+         }
+@@ -2266,7 +2255,7 @@ void BattleContext::drinkPotion(int idx, int target) {
+ 
+ 
+         case Potion::BLOOD_POTION: {
+-            int healAmt = static_cast<int>((static_cast<float>(player.maxHp * (hasBark ? 20 : 40)) / 100.0f));
++            int healAmt = static_cast<int>((static_cast<float>(player.maxHp * (hasBark ? 40 : 20)) / 100.0f));
+             addToBot(Actions::HealPlayer(healAmt));
+             break;
+         }
+diff --git a/src/combat/Monster.cpp b/src/combat/Monster.cpp
+index 95c005d..c5cc36a 100644
+--- a/src/combat/Monster.cpp
++++ b/src/combat/Monster.cpp
+@@ -34,7 +34,7 @@ void Monster::applyStartOfTurnPowers(BattleContext &bc) {
+     }
+ 
+     if (hasStatus<MS::POISON>() && !bc.monsters.areMonstersBasicallyDead()) {
+-        bc.addToBot(Actions::PoisonLoseHpAction());
++        bc.addToBot(Actions::PoisonLoseHpAction(idx, getStatus<MS::POISON>()));
+     }
+ }
+ 
+diff --git a/src/game/Map.cpp b/src/game/Map.cpp
+index fe0f287..20cbf48 100644
+--- a/src/game/Map.cpp
++++ b/src/game/Map.cpp
+@@ -1,3 +1,4 @@
++#include <vector>
+ //
+ // Created by gamerpuppy on 6/24/2021.
+ //
+@@ -722,7 +723,8 @@ void assignRoomsToNodes(Map &map, Room *rooms, int roomsSize) {
+ void assignRooms(Map &map, Random &rng, int ascensionLevel) {
+     RoomCounts counts = getRoomCountsAndAssignFixed(map);
+ 
+-    Room rooms[counts.unassigned];
++    std::vector<Room> roomStorage(counts.unassigned);
++    Room *rooms = roomStorage.data();
+     fillRoomArray(rooms, counts, ascensionLevel > 0 ? ELITE_ROOM_CHANCE_A1 : ELITE_ROOM_CHANCE_A0);
+ 
+     for (int i=counts.unassigned; i>1; i--) {
+diff --git a/src/sim/search/ScumSearchAgent2.cpp b/src/sim/search/ScumSearchAgent2.cpp
+index 53aa5d2..a0c1a74 100644
+--- a/src/sim/search/ScumSearchAgent2.cpp
++++ b/src/sim/search/ScumSearchAgent2.cpp
+@@ -35,6 +35,7 @@ void search::ScumSearchAgent2::playout(GameContext &gc) {
+ 
+     while (gc.outcome == GameOutcome::UNDECIDED && !paused) {
+         if (gc.screenState == ScreenState::BATTLE) {
++            if (pauseOnBattle) { paused = true; return; }   // cede to caller: python drives the battle
+             bc = BattleContext();
+             bc.init(gc);
+ 
+@@ -149,6 +150,8 @@ void search::ScumSearchAgent2::stepOutOfCombatPolicy(GameContext &gc) {
+ 
+     switch (gc.screenState) {
+         case ScreenState::EVENT_SCREEN:
++            // cede to caller only if there is a real choice (MATCH_AND_KEEP / no-select events have 0 valid bits)
++            if (pauseOnEvent && search::GameAction::getValidEventSelectBits(gc) != 0) { paused = true; return; }
+             stepEventPolicy(gc);
+             break;
+ 
+@@ -166,6 +169,7 @@ void search::ScumSearchAgent2::stepOutOfCombatPolicy(GameContext &gc) {
+         }
+ 
+         case ScreenState::SHOP_ROOM: {
++            if (pauseOnShop) { paused = true; return; }
+             bool purchased = false;
+             for (int i = 0; i < 3; ++i) {
+                 if (gc.info.shop.relicPrice(i) != -1 &&  gc.gold >= gc.info.shop.relicPrice(i)) {
+@@ -202,6 +206,7 @@ void search::ScumSearchAgent2::stepOutOfCombatPolicy(GameContext &gc) {
+         }
+ 
+         case ScreenState::REST_ROOM: {
++            if (pauseOnRest) { paused = true; return; }
+             if (gc.curHp > 50 && gc.deck.getUpgradeableCount() > 0 && !gc.hasRelic(RelicId::FUSION_HAMMER)) {
+                 takeAction(gc, 1);
+             } else if (gc.curHp < 15 && !gc.relics.has(RelicId::COFFEE_DRIPPER)){
+@@ -219,6 +224,10 @@ void search::ScumSearchAgent2::stepOutOfCombatPolicy(GameContext &gc) {
+             break;
+ 
+         case ScreenState::MAP_SCREEN:
++            if (pauseOnMap) { paused = true; return; }
++            stepRandom(gc);
++            return;
++
+         default:
+             stepRandom(gc);
+             return;
+diff --git a/src/sim/search/SimpleAgent.cpp b/src/sim/search/SimpleAgent.cpp
+index 3c31b97..b7f856a 100644
+--- a/src/sim/search/SimpleAgent.cpp
++++ b/src/sim/search/SimpleAgent.cpp
+@@ -1,3 +1,4 @@
++#include <chrono>
+ //
+ // Created by keega on 9/27/2021.
+ //

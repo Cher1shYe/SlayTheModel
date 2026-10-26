@@ -1,0 +1,15 @@
+{"game": 416, "train_floor": 10.25, "eval_floor": 10.88}
+{"game": 800, "train_floor": 10.03, "eval_floor": 10.9}
+{"game": 1216, "train_floor": 10.19, "eval_floor": 11.14}
+{"game": 1600, "train_floor": 10.22, "eval_floor": 11.12}
+{"game": 2016, "train_floor": 9.91, "eval_floor": 11.46}
+{"game": 2400, "train_floor": 10.59, "eval_floor": 11.44}
+{"game": 2816, "train_floor": 10.17, "eval_floor": 11.48}
+{"game": 3200, "train_floor": 10.58, "eval_floor": 11.08}
+{"game": 3616, "train_floor": 10.56, "eval_floor": 11.58}
+{"game": 4000, "train_floor": 10.48, "eval_floor": 11.38}
+{"game": 4416, "train_floor": 10.21, "eval_floor": 11.58}
+{"game": 4800, "train_floor": 10.69, "eval_floor": 11.66}
+{"game": 5216, "train_floor": 10.71, "eval_floor": 12.06}
+{"game": 5600, "train_floor": 10.7, "eval_floor": 12}
+{"game": 6000, "train_floor": 10.77, "eval_floor": 11.82}
