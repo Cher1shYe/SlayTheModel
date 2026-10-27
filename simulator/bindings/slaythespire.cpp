@@ -1,4 +1,7 @@
 #include <chrono>
+#include <mutex>
+#include <atomic>
+#include <thread>
 //
 // Created by keega on 9/16/2021.
 //
@@ -344,6 +347,39 @@ PYBIND11_MODULE(slaythespire, m) {
     m.def("boss_relic_ordering", [](int id) {
         return search::Expert::getBossRelicOrdering(static_cast<RelicId>(id));
     });
+    m.def("set_save_potions", [](bool v) { search::setSavePotions(v); },
+          "when true the search only considers potions in boss encounters");
+
+    m.def("set_playout_target", [](int v) { search::setPlayoutTarget(v); },
+          "0: greedy playouts hit the highest-index target, 1: lowest-HP target");
+
+    m.def("set_playout_order", [](int v) { search::setPlayoutOrder(v); },
+          "0: static expert card order, 1: attacks first when no defense is needed");
+
+    m.def("set_playout_guard", [](int v) { search::setPlayoutGuard(v); },
+          "lethal-turn guard for greedy playouts: 0 off, 1 trigger when the "
+          "incoming damage would kill, 2 trigger above 60% of current HP");
+
+    m.def("set_playout_variants", [](int v) { search::setPlayoutVariants(v); },
+          "rollout portfolio size: cycle greedy rollout variants across simulations");
+    m.def("set_boss_relic_mode", [](int v) { search::Expert::setBossRelicMode(v); },
+          "0: original boss-relic table, 1: pyramid/snecko top, 2: energy first");
+
+    m.def("reset_playout_variant_stats", []() { search::resetVariantStats(); },
+          "reset the per-variant best-line counters");
+    m.def("playout_variant_stats", []() { return search::variantStats(); },
+          "how often each portfolio variant produced the best line");
+
+    m.def("set_playout_determinize", [](int v) { search::setDeterminize(v); },
+          "1: re-shuffle the remaining draw pile at the start of every greedy "
+          "playout so rollouts sample the unseen future instead of replaying "
+          "one fixed draw order");
+
+    m.def("set_win_hp_weight", [](double v) { search::setWinHpWeight(v); },
+          "weight of remaining HP in the won-battle evaluation (default 1.0)");
+
+    m.def("set_win_potion_weight", [](double v) { search::setWinPotionWeight(v); },
+          "value of one unused potion in the won-battle evaluation (default 4.0)");
 
     pybind11::class_<NNInterface> nnInterface(m, "NNInterface");
     nnInterface.def("getObservation", &NNInterface::getObservation, "get observation array given a GameContext")
@@ -359,13 +395,35 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_readwrite("pause_on_rest", &search::ScumSearchAgent2::pauseOnRest, "pause and cede control on the rest site (campfire) screen")
         .def_readwrite("pause_on_shop", &search::ScumSearchAgent2::pauseOnShop, "pause and cede control on the shop screen")
         .def_readwrite("pause_on_event", &search::ScumSearchAgent2::pauseOnEvent, "pause and cede control on event screens that have a real choice")
+        .def_readwrite("pause_on_card_select", &search::ScumSearchAgent2::pauseOnCardSelect, "pause and cede control on card-select screens (upgrade/remove targets)")
         .def_readwrite("pause_on_battle", &search::ScumSearchAgent2::pauseOnBattle, "pause at the start of each battle so the caller can drive combat with its own model")
         .def_readwrite("print_logs", &search::ScumSearchAgent2::printLogs, "when set to true, the agent prints state information as it makes actions")
         .def("playout", &search::ScumSearchAgent2::playout);
 
     pybind11::class_<GameContext> gameContext(m, "GameContext");
     gameContext.def(pybind11::init<CharacterClass, std::uint64_t, int>())
+        .def("clone", [](const GameContext &gc) {
+                 GameContext copy = gc;
+                 // The map pointer is shared between copies and act transitions
+                 // overwrite it in place (*map = Map::fromSeed(...)), so clones
+                 // must own a deep copy or they corrupt each other's map.
+                 if (gc.map) copy.map = std::make_shared<sts::Map>(*gc.map);
+                 return copy;
+             },
+             "deep copy of the game state (map included)")
         .def("pick_reward_card", &sts::py::pickRewardCard, "choose to obtain the card at the specified index in the card reward list")
+        .def_property_readonly("select_screen_cards", [](const GameContext &gc) {
+                 std::vector<Card> cards;
+                 for (int i = 0; i < gc.info.toSelectCards.size(); ++i)
+                     cards.push_back(gc.info.toSelectCards[i].card);
+                 return cards;
+             }, "cards offered on the current card-select screen (upgrade/remove/transform)")
+        .def_property_readonly("select_screen_type", [](const GameContext &gc) {
+                 return static_cast<int>(gc.info.selectScreenType);
+             }, "CardSelectScreenType of the current card-select screen")
+        .def("choose_select_card", [](GameContext &gc, int idx) {
+                 gc.chooseSelectCardScreenOption(idx);
+             }, "select the card at index idx on the current card-select screen")
         .def("skip_reward_cards", &sts::py::skipRewardCards, "choose to skip the card reward (increases max_hp by 2 with singing bowl)")
         .def("get_card_reward", &sts::py::getCardReward, "return the current card reward list")
         .def_property_readonly("encounter", [](const GameContext &gc) { return gc.info.encounter; })
@@ -456,6 +514,14 @@ PYBIND11_MODULE(slaythespire, m) {
 
         .def_readwrite("card_rarity_factor", &GameContext::cardRarityFactor)
         .def_readwrite("potion_chance", &GameContext::potionChance)
+        .def_readonly("potion_count", &GameContext::potionCount)
+        .def_readonly("potion_capacity", &GameContext::potionCapacity)
+        .def_property_readonly("potions", [](const GameContext &gc) {
+            std::vector<int> out;
+            for (int i = 0; i < gc.potionCapacity; ++i)
+                out.push_back(static_cast<int>(gc.potions[i]));
+            return out;
+        }, "potion slots as ids")
         .def_readwrite("monster_chance", &GameContext::monsterChance)
         .def_readwrite("shop_chance", &GameContext::shopChance)
         .def_readwrite("treasure_chance", &GameContext::treasureChance)
@@ -564,6 +630,10 @@ PYBIND11_MODULE(slaythespire, m) {
         .value("CURSE", CardType::CURSE)
         .value("STATUS", CardType::STATUS)
         .value("INVALID", CardType::INVALID);
+
+    m.def("card_obtain_weight", [](CardId id, bool upgraded) {
+        return search::Expert::getObtainWeight(id, upgraded);
+    }, "expert-tuned static obtain weight for a card (0-100)");
 
     pybind11::enum_<CardId>(m, "CardId")
         .value("INVALID", CardId::INVALID)
@@ -1339,6 +1409,13 @@ PYBIND11_MODULE(slaythespire, m) {
         .def_readonly("turn", &BattleContext::turn)
         .def_readonly("encounter", &BattleContext::encounter)
         .def_readonly("player", &BattleContext::player)
+        .def_readonly("potion_count", &BattleContext::potionCount)
+        .def_property_readonly("potions", [](const BattleContext &bc) {
+            std::vector<int> out;
+            for (int i = 0; i < bc.potionCapacity; ++i)
+                out.push_back(static_cast<int>(bc.potions[i]));
+            return out;
+        }, "potion slots as ids (EMPTY_POTION_SLOT when unused)")
         .def_property_readonly("monsters", [](const BattleContext &bc) {
             const int count = bc.monsters.monsterCount;
             return std::vector<Monster>(bc.monsters.arr.begin(), bc.monsters.arr.begin() + count);
@@ -1575,6 +1652,182 @@ PYBIND11_MODULE(slaythespire, m) {
         return pybind11::make_tuple(bestAction, total, elapsed);
     }, "N independent restarts inside one time budget; returns the best line's first action");
 
+    m.def("mcts_ex_timed_parallel", [](const BattleContext &bc, double milliseconds,
+                              const std::unordered_map<std::uint32_t, double> &priors,
+                              double cPuct, double annealCount, int priorMode,
+                              int playoutMode, double playoutEpsilon, bool usePuct,
+                              int threads) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        if (threads < 1) threads = 1;
+        const auto start = std::chrono::steady_clock::now();
+        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
+        std::vector<std::unique_ptr<search::BattleScumSearcher2>> searchers;
+        searchers.reserve(threads);
+        for (int t = 0; t < threads; ++t) {
+            searchers.emplace_back(new search::BattleScumSearcher2(bc));
+            auto &s = *searchers.back();
+            s.usePuct = usePuct;
+            s.cPuct = cPuct;
+            s.annealCount = annealCount;
+            s.priorMode = priorMode;
+            s.rootPriors = priors;
+            s.playoutMode = playoutMode;
+            s.playoutEpsilon = playoutEpsilon;
+            s.setSeed(static_cast<std::uint32_t>(bc.seed + bc.floorNum + 7919u * (t + 1)));
+        }
+        std::vector<std::thread> pool;
+        pool.reserve(threads);
+        for (int t = 0; t < threads; ++t) {
+            pool.emplace_back([&searchers, t, deadline]() {
+                auto &s = *searchers[t];
+                do { s.step(); } while (std::chrono::steady_clock::now() < deadline);
+            });
+        }
+        for (auto &th : pool) th.join();
+
+        struct Agg { std::int64_t visits = 0; double qsum = 0.0; int votes = 0;
+                     search::Action action{search::ActionType::END_TURN}; };
+        std::unordered_map<std::uint32_t, Agg> agg;
+        std::int64_t total = 0;
+        for (auto &sp : searchers) {
+            for (const auto &edge : sp->root.edges) {
+                auto &a = agg[edge.action.bits];
+                a.action = edge.action;
+                a.visits += edge.node.simulationCount;
+                a.qsum += edge.node.evaluationSum;
+                total += edge.node.simulationCount;
+            }
+            // Same decision rule as the single-threaded path: when a searcher
+            // found a winning line, its first action is that tree's choice.
+            if (sp->outcomePlayerHp > 0 && !sp->bestActionSequence.empty()) {
+                const auto &a0 = sp->bestActionSequence.front();
+                auto &a = agg[a0.bits];
+                a.action = a0;
+                a.votes += 1;
+            }
+        }
+        search::Action result(search::ActionType::END_TURN);
+        int bestVotes = -1;
+        std::int64_t bestVisits = -1;
+        double bestQ = -1e18;
+        for (const auto &kv : agg) {
+            const auto &a = kv.second;
+            double q = a.visits > 0 ? a.qsum / a.visits : -1e18;
+            if (a.votes > bestVotes ||
+                (a.votes == bestVotes && (a.visits > bestVisits ||
+                 (a.visits == bestVisits && q > bestQ)))) {
+                bestVotes = a.votes;
+                bestVisits = a.visits;
+                bestQ = q;
+                result = a.action;
+            }
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(result, total, elapsed);
+    }, "time-budgeted root-parallel search (threads independent trees, aggregated by root visits)");
+
+    m.def("mcts_ex_timed_mt", [](const BattleContext &bc, double milliseconds,
+                              const std::unordered_map<std::uint32_t, double> &priors,
+                              double cPuct, double annealCount, int priorMode,
+                              int playoutMode, double playoutEpsilon, bool usePuct,
+                              int threads) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        if (threads < 1) threads = 1;
+        const auto start = std::chrono::steady_clock::now();
+        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
+        search::BattleScumSearcher2 searcher(bc);
+        searcher.usePuct = usePuct;
+        searcher.cPuct = cPuct;
+        searcher.annealCount = annealCount;
+        searcher.priorMode = priorMode;
+        searcher.rootPriors = priors;
+        searcher.playoutMode = playoutMode;
+        searcher.playoutEpsilon = playoutEpsilon;
+        searcher.setSeed(static_cast<std::uint32_t>(bc.seed + bc.floorNum + 1));
+        std::mutex treeMutex;
+        std::mutex seedMutex;
+        std::atomic<std::int64_t> count{0};
+        std::vector<std::thread> pool;
+        pool.reserve(threads);
+        for (int t = 0; t < threads; ++t) {
+            pool.emplace_back([&searcher, &treeMutex, &seedMutex, &count, &deadline, playoutMode, playoutEpsilon]() {
+                while (std::chrono::steady_clock::now() < deadline) {
+                    BattleContext state;
+                    std::vector<search::BattleScumSearcher2::Node *> stack;
+                    std::vector<search::Action> acts;
+                    bool needPlayout = false;
+                    {
+                        // Serialised tree traversal + expansion.  Node addresses are
+                        // stable because a node's edge vector is filled exactly once.
+                        std::lock_guard<std::mutex> lk(treeMutex);
+                        state = *searcher.rootState;
+                        stack.push_back(&searcher.root);
+                        while (true) {
+                            auto &node = *stack.back();
+                            if (searcher.isTerminalState(state)) break;
+                            if (node.edges.empty()) {
+                                searcher.enumerateActionsForNode(node, state);
+                                const int idx = searcher.selectFirstActionForLeafNode(node);
+                                auto &edge = node.edges[idx];
+                                edge.action.execute(state);
+                                acts.push_back(edge.action);
+                                stack.push_back(&edge.node);
+                                edge.node.pending += 1;
+                                needPlayout = true;
+                                break;
+                            }
+                            const int idx = searcher.selectBestEdgeToSearch(node);
+                            auto &edge = node.edges[idx];
+                            edge.action.execute(state);
+                            acts.push_back(edge.action);
+                            stack.push_back(&edge.node);
+                            edge.node.pending += 1;
+                        }
+                        if (!needPlayout) {
+                            searcher.updateFromPlayout(stack, acts, state);
+                            for (std::size_t i = 1; i < stack.size(); ++i) stack[i]->pending -= 1;
+                            count.fetch_add(1, std::memory_order_relaxed);
+                            continue;
+                        }
+                    }
+                    if (playoutMode == 0 || playoutEpsilon > 0.0) {
+                        // random playouts / exploration consume the shared RNG stream
+                        std::lock_guard<std::mutex> lk(seedMutex);
+                        if (playoutMode == 0) searcher.playoutRandom(state, acts);
+                        else searcher.playoutGreedy(state, acts);
+                    } else {
+                        searcher.playoutGreedy(state, acts);
+                    }
+                    {
+                        std::lock_guard<std::mutex> lk(treeMutex);
+                        searcher.updateFromPlayout(stack, acts, state);
+                        for (std::size_t i = 1; i < stack.size(); ++i) stack[i]->pending -= 1;
+                    }
+                    count.fetch_add(1, std::memory_order_relaxed);
+                }
+            });
+        }
+        for (auto &th : pool) th.join();
+        search::Action result(search::ActionType::END_TURN);
+        if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+            result = searcher.bestActionSequence.front();
+        } else {
+            std::int64_t visits = -1;
+            for (const auto &edge : searcher.root.edges) {
+                if (edge.node.simulationCount > visits) {
+                    visits = edge.node.simulationCount;
+                    result = edge.action;
+                }
+            }
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(result, count.load(), elapsed);
+    }, "time-budgeted shared-tree multithreaded search (virtual loss)");
+
     m.def("mcts_ex_timed", [](const BattleContext &bc, double milliseconds,
                               const std::unordered_map<std::uint32_t, double> &priors,
                               double cPuct, double annealCount, int priorMode,
@@ -1614,6 +1867,49 @@ PYBIND11_MODULE(slaythespire, m) {
             std::chrono::steady_clock::now() - start).count();
         return pybind11::make_tuple(result, count, elapsed);
     }, "time-budgeted search with selectable playout policy");
+
+    m.def("mcts_line_ex_timed", [](const BattleContext &bc, double milliseconds,
+                              const std::unordered_map<std::uint32_t, double> &priors,
+                              double cPuct, double annealCount, int priorMode,
+                              int playoutMode, double playoutEpsilon, bool usePuct) {
+        if (!std::isfinite(milliseconds) || milliseconds <= 0 || bc.outcome != Outcome::UNDECIDED)
+            throw std::invalid_argument("Need positive budget and nonterminal state");
+        const auto start = std::chrono::steady_clock::now();
+        const auto deadline = start + std::chrono::duration<double, std::milli>(milliseconds);
+        search::Action result(search::ActionType::END_TURN);
+        std::vector<std::uint32_t> line;
+        std::int64_t count = 0;
+        {
+            search::BattleScumSearcher2 searcher(bc);
+            searcher.usePuct = usePuct;
+            searcher.cPuct = cPuct;
+            searcher.annealCount = annealCount;
+            searcher.priorMode = priorMode;
+            searcher.rootPriors = priors;
+            searcher.playoutMode = playoutMode;
+            searcher.playoutEpsilon = playoutEpsilon;
+            search::g_debug_scum_search = &searcher;
+            do { searcher.step(); ++count; }
+            while (std::chrono::steady_clock::now() < deadline);
+            if (searcher.outcomePlayerHp > 0 && !searcher.bestActionSequence.empty()) {
+                result = searcher.bestActionSequence.front();
+                for (const auto &a : searcher.bestActionSequence) line.push_back(a.bits);
+            } else {
+                std::int64_t visits = -1;
+                for (const auto &edge : searcher.root.edges) {
+                    if (edge.node.simulationCount > visits) {
+                        visits = edge.node.simulationCount;
+                        result = edge.action;
+                    }
+                }
+                line.push_back(result.bits);
+            }
+            search::g_debug_scum_search = nullptr;
+        }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+            std::chrono::steady_clock::now() - start).count();
+        return pybind11::make_tuple(result, line, count, elapsed);
+    }, "time-budgeted search that also returns the whole best action line");
 
     m.def("mcts_stats_timed", [](const BattleContext &bc, double milliseconds,
                                  const std::unordered_map<std::uint32_t, double> &priors,
@@ -1686,13 +1982,15 @@ PYBIND11_MODULE(slaythespire, m) {
         std::vector<std::uint32_t> bits;
         std::vector<std::int64_t> visits;
         std::vector<double> evalsums;
+        std::vector<std::int64_t> wins;
         for (const auto &e : searcher.root.edges) {
             bits.push_back(e.action.bits);
             visits.push_back(e.node.simulationCount);
             evalsums.push_back(e.node.evaluationSum);
+            wins.push_back(e.node.winCount);
         }
         search::g_debug_scum_search = nullptr;
-        return pybind11::make_tuple(result, bits, visits, evalsums, count);
+        return pybind11::make_tuple(result, bits, visits, evalsums, wins, count);
     }, "time-budgeted search with selectable playout; returns best-line action plus root stats");
 
     m.def("mcts_visits", [](const BattleContext &bc, int sims) {

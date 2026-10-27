@@ -64,7 +64,7 @@ def _install_aux(V, torch):
 def init_worker(source):
     global torch, np, F, sts, B, V, MC, SP, AG
     os.environ['STS_BOT_DIR'] = source
-    sys.path[:0] = [str(ROOT / 'simulator/build312/Release'), str(ROOT / 'deployment'), source]
+    sys.path[:0] = [str(ROOT / os.environ.get('STS_SO_DIR', 'simulator/build312/Release')), str(ROOT / 'deployment'), source]
     import torch
     import numpy as np
     import torch.nn.functional as F
@@ -91,7 +91,8 @@ class EnsemblePolicy:
 
     def score(self, state, descs):
         rows = torch.stack([torch.tensor(state + c, dtype=torch.float32) for c in descs])
-        return self.net(rows)
+        out = self.net(rows)
+        return out.squeeze(-1) if getattr(out, 'ndim', 1) > 1 else out
 
     def eval(self):
         return self
@@ -432,6 +433,22 @@ def root_pick(tree, cfg):
 
 
 def run_battle_eval(bc, policy, value, cfg, rng, mode):
+    try:
+        sts.set_playout_determinize(int(cfg.get('determinize', 0) or 0))
+    except AttributeError:
+        pass
+    try:
+        sts.set_playout_guard(int(cfg.get('playout_guard', 0) or 0))
+    except AttributeError:
+        pass
+    try:
+        sts.set_playout_variants(int(cfg.get('playout_variants', 0) or 0))
+    except AttributeError:
+        pass
+    _hp0 = int(bc.player.cur_hp)
+    _maxhp = int(bc.player.max_hp)
+    _enc = str(bc.encounter)
+    _floor = -1
     preds = []
     decisions = 0
     searched = 0
@@ -439,6 +456,17 @@ def run_battle_eval(bc, policy, value, cfg, rng, mode):
     sims = 0
     timed_ms = float(cfg.get('eval_timed_ms', 130.0))
     ref_bc = None
+    # Planned-line commitment: after a search, replay the first `commit_line`
+    # actions of the winning line directly instead of re-searching every
+    # decision.  The simulator is RNG-exact, so the line that was evaluated is
+    # the line that will happen; re-searching only lets search noise move the
+    # agent off it.  A mismatched bit (dead target, changed input state) drops
+    # the rest of the plan.
+    _commit_n = int(cfg.get('commit_line', 0) or 0)
+    _pending = []
+    _plan0 = -1
+    _repl = 0
+    _mism = 0
     while bc.outcome == sts.Outcome.UNDECIDED:
         actions = sts.get_legal_actions(bc)
         if not actions:
@@ -447,6 +475,16 @@ def run_battle_eval(bc, policy, value, cfg, rng, mode):
             actions[0].execute(bc)
             decisions += 1
             continue
+        if _pending:
+            _hit = next((a for a in actions if int(a.bits) == int(_pending[0])), None)
+            if _hit is not None:
+                _hit.execute(bc)
+                _pending.pop(0)
+                decisions += 1
+                _repl += 1
+                continue
+            _mism += 1
+            _pending = []
         state = B.encode_battle(bc)
         hand = list(bc.hand)
         t0 = time.perf_counter()
@@ -493,21 +531,149 @@ def run_battle_eval(bc, policy, value, cfg, rng, mode):
             with torch.inference_mode():
                 preds.append(float(value.value(state).item()))
                 tp = time.perf_counter()
-                logits = policy.score(state, [B.cand_desc(bc, a, hand) for a in actions])
-                probs = torch.softmax(logits / float(cfg.get('prior_temp', 1.0)), dim=0).tolist()
+                if float(cfg.get('prior_from_value', 0.0)) > 0.0:
+                    # Root priors from the value net: one forward per candidate
+                    # child state, standardised and sharpened.
+                    _base = float(value.value(state).item())
+                    _tv = []
+                    for _a in actions:
+                        try:
+                            _b2 = bc.clone()
+                            _a.execute(_b2)
+                            if _b2.outcome != sts.Outcome.UNDECIDED:
+                                _tv.append(2.0 if _b2.outcome == sts.Outcome.PLAYER_VICTORY else 0.0)
+                            else:
+                                _tv.append(float(value.value(B.encode_battle(_b2)).item()))
+                        except Exception:
+                            _tv.append(_base)
+                    _t = torch.tensor(_tv, dtype=torch.float32)
+                    _w = float(cfg.get('prior_vw', 1.0))
+                    _pp = torch.softmax((_t - _t.max()) / float(cfg.get('value_prior_temp', 0.05)),
+                                        dim=0).tolist()
+                    logits = policy.score(state, [B.cand_desc(bc, a, hand) for a in actions])
+                    _pn = torch.softmax(logits / float(cfg.get('prior_temp', 1.0)), dim=0).tolist()
+                    probs = [((1.0 - _w) if _w < 1.0 else 0.0) * _pn[i] + _w * _pp[i]
+                             for i in range(len(actions))]
+                else:
+                    logits = policy.score(state, [B.cand_desc(bc, a, hand) for a in actions])
+                    probs = torch.softmax(logits / float(cfg.get('prior_temp', 1.0)), dim=0).tolist()
                 policy_ms = (time.perf_counter() - tp) * 1000.0
             budget = max(1.0, timed_ms - policy_ms)
             prior_map = {} if mode == 'native_greedy_timed' else {
                 int(a.bits): float(pr) for a, pr in zip(actions, probs)}
-            recommended, count, _el = sts.mcts_ex_timed(
-                bc, budget, prior_map, float(cfg.get('cpuct_native', 3.0)),
-                float(cfg.get('puct_anneal', 0.0)), int(cfg.get('puct_prior_mode', 0)),
-                int(cfg.get('playout_mode', 1)), float(cfg.get('playout_eps', 0.0)),
-                mode == 'puct_greedy_timed')
+            if cfg.get('danger_mask') and mode != 'native_greedy_timed':
+                # When the next monster turn can take most of the remaining
+                # health, concentrate the root search on actions that add
+                # block.  Replays of lost boss fights show the search spending
+                # every point of energy on damage in exactly these spots,
+                # because the greedy rollout assumes average draws from then on
+                # and therefore always finds a line that survives.
+                _thr = float(cfg.get('danger_thresh', 0.8))
+                _inc = 0
+                for _m in bc.monsters:
+                    if not _m.alive:
+                        continue
+                    try:
+                        _d = _m.intent_damage(bc)
+                        _n = max(1, int(getattr(_d, 'attackCount', 1) or 1))
+                        _base = int(_d.damage) + int(_m.strength)
+                        if int(_m.weak) > 0:
+                            _base = int(_base * 0.75)
+                        _inc += max(0, _base) * _n
+                    except Exception:
+                        pass
+                _unblocked = max(0, _inc - int(bc.player.block))
+                if os.environ.get('STS_MASK_DEBUG'):
+                    print('MASKCHK inc=%d hp=%d blk=%d unblk=%d thr=%.2f' % (
+                        _inc, int(bc.player.cur_hp), int(bc.player.block), _unblocked, _thr),
+                        file=sys.stderr)
+                if _unblocked >= _thr * max(1, int(bc.player.cur_hp)):
+                    _km = set()
+                    _b0 = int(bc.player.block)
+                    for _a in actions:
+                        try:
+                            _st = bc.clone()
+                            _a.execute(_st)
+                        except Exception:
+                            continue
+                        if int(_st.player.block) > _b0:
+                            _km.add(int(_a.bits))
+                    if 0 < len(_km) < len(actions):
+                        _tot = sum(probs[i] for i, a in enumerate(actions)
+                                   if int(a.bits) in _km) or 1.0
+                        prior_map = {int(a.bits): (probs[i] / _tot
+                                                   if int(a.bits) in _km else 1e-8)
+                                     for i, a in enumerate(actions)}
+            _nthreads = int(cfg.get('threads', 1) or 1)
+            if _nthreads > 1 and hasattr(sts, 'mcts_ex_timed_parallel'):
+                recommended, count, _el = sts.mcts_ex_timed_parallel(
+                    bc, budget, prior_map, float(cfg.get('cpuct_native', 3.0)),
+                    float(cfg.get('puct_anneal', 0.0)), int(cfg.get('puct_prior_mode', 0)),
+                    int(cfg.get('playout_mode', 1)), float(cfg.get('playout_eps', 0.0)),
+                    mode == 'puct_greedy_timed', _nthreads)
+            elif int(cfg.get('root_pick_mode', 0) or 0):
+                # Robust root selection: the default rule returns the first action
+                # of the single best-scoring rollout line, i.e. a maximum over a
+                # few hundred noisy samples.  Pool every sample per root edge
+                # instead and rank by mean evaluation (mode 1) or visits (mode 2).
+                _res, _bits, _vis, _esum, _wins, count = sts.mcts_stats_ex_timed(
+                    bc, budget, prior_map, float(cfg.get('cpuct_native', 3.0)),
+                    float(cfg.get('puct_anneal', 0.0)), int(cfg.get('puct_prior_mode', 0)),
+                    int(cfg.get('playout_mode', 1)), float(cfg.get('playout_eps', 0.0)),
+                    mode == 'puct_greedy_timed')
+                _tot = sum(_vis) or 1
+                _mode = int(cfg.get('root_pick_mode'))
+                _k = None
+                if _mode in (3, 4):
+                    # Among the root edges that produced at least one won
+                    # playout, prefer the one that wins most often: the plain
+                    # best-line rule cannot tell a 5% line from a 30% line.
+                    _wfloor = max(1.0, float(cfg.get('root_pick_floor', 0.01)) * _tot)
+                    _wc = [i for i in range(len(_vis))
+                           if _wins[i] > 0 and _vis[i] >= _wfloor]
+                    if _wc:
+                        if _mode == 3:
+                            _k = max(_wc, key=lambda i: _wins[i] / float(_vis[i]))
+                        else:
+                            _k = max(_wc, key=lambda i: (float(_wins[i]),
+                                                         _wins[i] / float(_vis[i])))
+                    elif any(w > 0 for w in _wins):
+                        _k = max(range(len(_vis)), key=lambda i: _wins[i])
+                elif _mode == 2:
+                    _k = max(range(len(_vis)), key=lambda i: _vis[i])
+                else:
+                    _floor = max(1.0, float(cfg.get('root_pick_floor', 0.02)) * _tot)
+                    _cand = [i for i in range(len(_vis)) if _vis[i] >= _floor]
+                    if not _cand:
+                        _cand = list(range(len(_vis)))
+                    _k = max(_cand, key=lambda i: _esum[i] / max(1.0, float(_vis[i])))
+                if _k is None:
+                    recommended = _res
+                else:
+                    recommended = next((a for a in actions if int(a.bits) == int(_bits[_k])),
+                                       actions[_k] if _k < len(actions) else actions[0])
+            elif _commit_n > 0 and hasattr(sts, 'mcts_line_ex_timed'):
+                recommended, _line, count, _el = sts.mcts_line_ex_timed(
+                    bc, budget, prior_map, float(cfg.get('cpuct_native', 3.0)),
+                    float(cfg.get('puct_anneal', 0.0)), int(cfg.get('puct_prior_mode', 0)),
+                    int(cfg.get('playout_mode', 1)), float(cfg.get('playout_eps', 0.0)),
+                    mode == 'puct_greedy_timed')
+                _pending = [int(x) for x in _line[1:1 + _commit_n]]
+                _plan0 = int(recommended.bits)
+            else:
+                recommended, count, _el = sts.mcts_ex_timed(
+                    bc, budget, prior_map, float(cfg.get('cpuct_native', 3.0)),
+                    float(cfg.get('puct_anneal', 0.0)), int(cfg.get('puct_prior_mode', 0)),
+                    int(cfg.get('playout_mode', 1)), float(cfg.get('playout_eps', 0.0)),
+                    mode == 'puct_greedy_timed')
             sims += int(count)
             idx = next((i for i, a in enumerate(actions) if a.bits == recommended.bits), -1)
             if idx < 0:
                 idx = max(range(len(probs)), key=lambda i: probs[i])
+            if _pending and int(actions[idx].bits) != _plan0:
+                # the search's first action could not be mapped onto a legal
+                # action, so the stored line no longer follows from this state
+                _pending = []
         elif mode == 'puct_refprior_timed':
             # GAZ Play-to-Plan's comparative value, at inference: a frozen
             # greedy reference ("past self") advances one step per decision,
@@ -817,7 +983,9 @@ def run_battle_eval(bc, policy, value, cfg, rng, mode):
     z, win, hp = battle_targets(bc)
     vals = [(p, z) for p in preds]
     return dict(win=win, hp=hp, decisions=decisions, full=decisions,
-                searched=searched, search_ms=search_ms, sims=sims), vals
+                searched=searched, search_ms=search_ms, sims=sims,
+                hp0=_hp0, maxhp=_maxhp, enc=_enc, floor=_floor,
+                replayed=_repl, mismatches=_mism), vals
 
 
 def play(job):

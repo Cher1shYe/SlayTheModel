@@ -13,8 +13,43 @@
 #include <unordered_map>
 #include <iostream>
 #include <limits>
+#include <vector>
 
 namespace sts::search {
+
+    // When enabled, potion actions are only enumerated in boss encounters so
+    // that the search stops spending potions on hallway fights.
+    void setSavePotions(bool v);
+
+    // 0: greedy playouts attack the highest-index targetable monster (legacy).
+    // 1: greedy playouts focus the lowest-HP targetable monster.
+    void setPlayoutTarget(int mode);
+    int playoutTarget();
+
+    // 0: static expert card ordering.  1: when no incoming damage would get
+    // through, deprioritise skills so attacks (the win condition) come first.
+    void setPlayoutOrder(int mode);
+    void setDeterminize(int mode);
+    void setPlayoutGuard(int mode);
+    int playoutOrder();
+    // >0: cycle the greedy rollout through `count` policy variants (target /
+    // ordering / guard), one per simulation, so the search explores different
+    // lines instead of replaying the same deterministic one.  0 = single policy.
+    void setPlayoutVariants(int count);
+    // Diagnostics: how often each portfolio variant produced the best line.
+    void resetVariantStats();
+    std::vector<std::int64_t> variantStats();
+
+    // Weight of remaining HP inside a won battle (default 1.0).  Larger values
+    // make the search trade win probability for health, smaller values make it
+    // trade health for win probability.
+    void setWinHpWeight(double w);
+    double winHpWeight();
+
+    // Value of one unused potion at the end of a won battle (default 4.0).
+    void setWinPotionWeight(double w);
+    double winPotionWeight();
+    bool savePotionsEnabled();
 
     typedef std::function<double (const BattleContext&)> EvalFnc;
 
@@ -24,6 +59,10 @@ namespace sts::search {
         struct Node {
             std::int64_t simulationCount = 0;
             double evaluationSum = 0;
+            // virtual loss: simulations currently in flight below this node
+            int pending = 0;
+            // number of playouts through this node that ended in a won battle
+            std::int64_t winCount = 0;
             std::vector<Edge> edges;
         };
 
@@ -51,6 +90,9 @@ namespace sts::search {
         // 0: random playouts (native); 1: expert-greedy with epsilon noise.
         int playoutMode = 0;
         double playoutEpsilon = 0.0;
+        // portfolio: which rollout variant the current step uses
+        std::int64_t stepCounter = 0;
+        int curVariant = 0;
         std::unordered_map<std::uint32_t, double> rootPriors;
 
         double bestActionValue = std::numeric_limits<double>::min();
@@ -64,6 +106,10 @@ namespace sts::search {
         std::vector<Action> actionStack;
 
         explicit BattleScumSearcher2(const BattleContext &bc, EvalFnc evalFnc=&evaluateEndState);
+
+        // Root-parallel search: independent searchers must not share an RNG
+        // stream, otherwise every thread explores the same tree.
+        void setSeed(std::uint32_t s) { randGen.seed(s); }
 
         // public methods
         void search(int64_t simulations);

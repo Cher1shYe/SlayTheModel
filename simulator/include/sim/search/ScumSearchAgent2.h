@@ -29,6 +29,7 @@ namespace sts::search {
         bool pauseOnRest = false;
         bool pauseOnShop = false;
         bool pauseOnEvent = false;
+        bool pauseOnCardSelect = false;   // cede card-select screens (smith/remove targets)
         bool pauseOnBattle = false;   // cede combat to caller (python drives BattleContext with a learned model)
 
         bool printActions = false;

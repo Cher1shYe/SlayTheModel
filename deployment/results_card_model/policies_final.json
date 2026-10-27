@@ -1,0 +1,4 @@
+[
+ {"scorer":"need","need_w":{"sustain":0.5,"balance":0.5,"block_act3":1.3},"boss_rest":0.95,"playout_target":1,"final_pot_w":0.0,"smith_target":"tier"},
+ {"scorer":"need","need_w":{"sustain":0.5,"balance":0.5,"block_act3":1.3},"boss_rest":0.95,"playout_target":1,"final_pot_w":0.0,"smith_target":"tier","boss_relic_mode":2,"cfg":{"playout_variants":8}}
+]

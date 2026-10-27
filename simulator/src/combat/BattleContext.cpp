@@ -726,15 +726,11 @@ void BattleContext::executeActions() {
     while (true)
     {
         if (++loopCount > 1000000 || monsters.monstersAlive < 0 || turn > 500) {
-            // something went wrong
-            if (turn > 500) {
-                outcome = Outcome::PLAYER_LOSS;
-                break;
-            }
-
-            std::cerr << seed << std::endl;
-            std::cout << *this << '\n';
-            assert(false);
+            // Runaway state (e.g. a pathological action queue).  End the battle
+            // as a loss instead of printing the whole context forever, which
+            // floods stdout when asserts are disabled.
+            outcome = Outcome::PLAYER_LOSS;
+            break;
         }
 
         if (inputState != InputState::EXECUTING_ACTIONS) {

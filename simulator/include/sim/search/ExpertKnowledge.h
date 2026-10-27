@@ -13,6 +13,10 @@ namespace sts::search::Expert {
 
     int getPlayOrdering(CardId id);
     int getBossRelicOrdering(RelicId id);
+    // 0: original table.  1: treat Runic Pyramid / Snecko Eye as top
+    // tier.  2: energy relics above all else.
+    void setBossRelicMode(int mode);
+    int bossRelicMode();
     int getObtainWeight(CardId id);
     int getObtainWeight(CardId id, bool upgraded);
 

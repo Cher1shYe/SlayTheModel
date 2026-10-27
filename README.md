@@ -9,6 +9,7 @@
 - `deployment/`：训练启动器、自对弈、评测、数值稳定修复及 fast PUCT 优化。
 - `deployment/results_puct_vs_mcts/`：等时间 PUCT vs 原生 MCTS 的配对评测结果（150 seeds）。
 - `deployment/results_soft_teacher/`：2026-10-27 soft 教师蒸馏 / 价值目标的 150-seed 配对结果。
+- `deployment/results_card_model/`：2026-10-27 选牌模型与 40 ms 战斗代理的实验报告与关键配对结果（600 局留出集）。
 - `deployment/training_audit_v3/selfplay/`：训练驱动实际使用的兼容源码模板，不包含训练日志。
 - `deployment/selfplay_6x40_s64/` 与 `deployment/selfplay_stable_s512_r1/`：仅包含启动器所需的历史源码、配置和指定初始化权重，不是完整实验结果。
 - `SOURCE_MANIFEST.json`：复制的本地文件 SHA256 清单。
@@ -254,6 +255,58 @@ Python 侧新增 `deployment/selfplay_v2.py` 的评测模式：
 - `selfplay_v3_soft.py` 把单局异常写入 `errors.jsonl` 并继续（>2% 才中止），soft/one-hot 各 800 局均 0 失败。
 
 结果文件：`deployment/results_soft_teacher/`，完整报告 `deployment/soft_teacher_value_report.md`。
+
+## 选牌模型与 40 ms 战斗代理：实验与结论（2026-10-27）
+
+**结论：40 ms/决策下 Ironclad A0 全流程通关率 70.0%（420/600，两个全新留出集），未达到 80% 的验收标准。**
+本轮净收益 +2.0pp，来自两项各 +1.8pp 的改动；选牌模型本身的改动实测无正收益。
+
+交付配置：
+
+```json
+{"scorer":"need","need_w":{"sustain":0.5,"balance":0.5,"block_act3":1.3},
+ "boss_rest":0.95,"playout_target":1,"final_pot_w":0.0,"smith_target":"tier",
+ "boss_relic_mode":2,"cfg":{"playout_variants":8}}
+```
+
+| 留出集（各 300 seeds，未参与调参） | 上一轮最好 | 本轮交付 | Δ |
+|---|---|---|---|
+| seeds 1500–1799 | 203 (67.7%) | 208 (69.3%) | +5 |
+| seeds 2100–2399 | 205 (68.3%) | 212 (70.7%) | +7 |
+| **合计 600 局** | **408 (68.0%)** | **420 (70.0%)** | **+12 胜 / +2.0pp** |
+
+两项有效改动（同 batch 配对，均有留出集复现）：
+
+- **rollout 策略组合** `sts.set_playout_variants(8)`：每次仿真按 `simIdx % 8` 轮换 8 种 greedy rollout
+  策略（打最低 HP / 最大进伤 / HP 比例最低 / 最高序号 / 无穿伤先攻 / 致命回合守卫 / 有穿伤先防 / 补刀），
+  1800 局配对 **+1.8pp**（层 +0.34±0.12）。
+- **能量遗物优先** `sts.set_boss_relic_mode(2)`：BOSS 遗物按"所有能量遗物优先"排序，**+11/600（+1.8pp）**；
+  反向的 `mode=1`（Pyramid/Snecko 优先）是 −17 —— 该代理极度缺能量。
+
+关键结论（完整 20+ 项实验与数字见 `deployment/results_card_model/report.md`）：
+
+- **算力饱和**：40/100/200/400 ms 的胜率是 66.7/68.0/66.7/66.7%（150 seeds）。40 ms 中位 5058 次仿真/决策。
+- **rollout 是确定性的**：给定真实抽牌顺序，greedy line 唯一 → 搜索等价于"在一族线里取最好的一条"。
+  对 rollout 重洗抽牌堆 −32 胜/150：强项恰恰是"用真实抽牌顺序找一条确定能赢的线"。
+- **失败分散**：每场战斗败率 1.52%，50 场致命战斗分散在 14 种遭遇，无单点可调；BOSS 入口 HP 是最强判别因子。
+- **选牌不是瓶颈**：`net_w=0`（去掉 ArmG 网络）与 `net_w=1` 胜场完全相同；自对弈微调选牌网 +2/300；
+  need 权重各项 ≤0。反过来 **商店"先买遗物"比让网络挑高 9.7pp** —— 本环境里遗物 >> 卡牌。
+- **论文**：`paper/` 下 10 篇只有 SpireBench 可直接落地，其判别量（无穿伤先攻、伤害/能量排序、补刀、
+  少休息多升级、act1 多 AOE）逐条实测全部 ≤0，因为它描述的是"弱 LLM → 普通人类"这段差距。
+
+复现（`STS_SO_DIR` 必须显式给出，否则 `probe8.py` 会静默回落到未重编的 `simulator/build312`，
+所有配置会跑出一模一样的数字）：
+
+```bash
+cd simulator/build_det && ../../.venv/bin/cmake --build . --target slaythespire -j 16
+
+cd /home/doulingfeng/idea/sts
+STS_SO_DIR=simulator/build_det .venv/bin/python deployment/probe8.py \
+  --policies "$(cat deployment/results_card_model/policies_final.json)" \
+  --seeds 300 --seed-offset 2100 --out /tmp/final.json
+```
+
+结果文件：`deployment/results_card_model/`（9 个配对评测 JSON + 报告 + 交付策略 JSON）。
 
 ## 来源与许可
 

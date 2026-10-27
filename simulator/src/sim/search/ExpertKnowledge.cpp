@@ -200,7 +200,59 @@ int sts::search::Expert::getPlayOrdering(CardId id) {
 
 }
 
+static int g_bossRelicMode = 0;
+
+void search::Expert::setBossRelicMode(int mode) { g_bossRelicMode = mode; }
+int search::Expert::bossRelicMode() { return g_bossRelicMode; }
+
 int search::Expert::getBossRelicOrdering(RelicId id) {
+    if (g_bossRelicMode == 1) {
+        // Runic Pyramid and Snecko Eye are top-tier for a search agent (the
+        // simulator shows card costs and enemy intents, so their "downsides"
+        // cost nothing); energy relics stay high.
+        switch (id) {
+            case RelicId::RUNIC_PYRAMID: return 0;
+            case RelicId::SNECKO_EYE: return 0;
+            case RelicId::RUNIC_DOME: return 0;
+            case RelicId::COFFEE_DRIPPER: return 1;
+            case RelicId::PHILOSOPHERS_STONE:
+            case RelicId::VELVET_CHOKER:
+            case RelicId::FUSION_HAMMER: return 2;
+            case RelicId::BLACK_BLOOD:
+            case RelicId::CURSED_KEY:
+            case RelicId::RUNIC_CUBE: return 3;
+            case RelicId::ECTOPLASM:
+            case RelicId::PANDORAS_BOX:
+            case RelicId::SACRED_BARK: return 4;
+            case RelicId::ASTROLABE:
+            case RelicId::BLACK_STAR: return 5;
+            case RelicId::TINY_HOUSE:
+            case RelicId::CALLING_BELL:
+            case RelicId::BUSTED_CROWN:
+            case RelicId::MARK_OF_PAIN:
+            case RelicId::SOZU: return 6;
+            case RelicId::SLAVERS_COLLAR: return 20;
+            default: return 100;
+        }
+    }
+    if (g_bossRelicMode == 2) {
+        // energy above everything
+        switch (id) {
+            case RelicId::RUNIC_DOME:
+            case RelicId::COFFEE_DRIPPER:
+            case RelicId::ECTOPLASM:
+            case RelicId::FUSION_HAMMER:
+            case RelicId::CURSED_KEY:
+            case RelicId::PHILOSOPHERS_STONE:
+            case RelicId::VELVET_CHOKER:
+            case RelicId::SNECKO_EYE: return 0;
+            case RelicId::BUSTED_CROWN:
+            case RelicId::MARK_OF_PAIN:
+            case RelicId::RUNIC_PYRAMID: return 1;
+            case RelicId::BLACK_BLOOD: return 2;
+            default: return 10;
+        }
+    }
     switch (id) {
         case RelicId::RUNIC_DOME:
             return -1;

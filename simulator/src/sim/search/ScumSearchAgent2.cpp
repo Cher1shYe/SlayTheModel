@@ -186,6 +186,7 @@ void search::ScumSearchAgent2::stepOutOfCombatPolicy(GameContext &gc) {
         }
 
         case ScreenState::CARD_SELECT: {
+            if (pauseOnCardSelect) { paused = true; return; }
             cardSelectPolicy(gc);
             break;
         }

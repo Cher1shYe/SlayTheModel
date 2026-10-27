@@ -2,8 +2,11 @@
 // Created by keega on 9/18/2021.
 //
 
+#include <algorithm>
+#include <cstdint>
 #include "sim/search/BattleScumSearcher2.h"
 #include "sim/search/ExpertKnowledge.h"
+#include "constants/MonsterEncounters.h"
 
 #include <utility>
 #include <string>
@@ -11,10 +14,42 @@
 
 using namespace sts;
 
-std::int64_t simulationIdx = 0; // for debugging
+thread_local std::int64_t simulationIdx = 0; // for debugging
 
 namespace sts::search {
     thread_local search::BattleScumSearcher2 *g_debug_scum_search;
+
+    static bool g_savePotions = false;
+    static int g_playoutTarget = 0;
+    static int g_playoutOrder = 0;
+    static int g_determinize = 0;
+    static int g_playoutGuard = 0;
+    static int g_playoutVariants = 0;
+    static thread_local std::int64_t g_variantWins[16] = {0};
+    void setPlayoutTarget(int mode) { g_playoutTarget = mode; }
+    int playoutTarget() { return g_playoutTarget; }
+    void setPlayoutOrder(int mode) { g_playoutOrder = mode; }
+    int playoutOrder() { return g_playoutOrder; }
+    void setDeterminize(int mode) { g_determinize = mode; }
+    int determinize() { return g_determinize; }
+    // 0: off; 1: when the incoming damage alone would kill the player and no
+    // block is up, demote attacks so a defensive card is played first;
+    // 2: same, but the trigger is "incoming >= 60% of current HP".
+    void setPlayoutGuard(int mode) { g_playoutGuard = mode; }
+    void setPlayoutVariants(int count) { g_playoutVariants = count; }
+    void resetVariantStats() { for (int i = 0; i < 16; ++i) g_variantWins[i] = 0; }
+    std::vector<std::int64_t> variantStats() {
+        return std::vector<std::int64_t>(g_variantWins, g_variantWins + 16);
+    }
+    int playoutGuard() { return g_playoutGuard; }
+    static double g_winHpWeight = 1.0;
+    static double g_winPotionWeight = 4.0;
+    void setWinHpWeight(double w) { if (w > 0.0) g_winHpWeight = w; }
+    double winHpWeight() { return g_winHpWeight; }
+    void setWinPotionWeight(double w) { if (w >= 0.0) g_winPotionWeight = w; }
+    double winPotionWeight() { return g_winPotionWeight; }
+    void setSavePotions(bool v) { g_savePotions = v; }
+    bool savePotionsEnabled() { return g_savePotions; }
 }
 
 
@@ -41,6 +76,14 @@ void search::BattleScumSearcher2::search(int64_t simulations) {
 }
 
 void search::BattleScumSearcher2::step() {
+    // Rollout portfolio: each simulation uses a different greedy variant so
+    // that N simulations explore N distinct lines instead of one repeated line.
+    const int nVariants = g_playoutVariants < 0 ? -g_playoutVariants : g_playoutVariants;
+    const bool adaptiveVariants = g_playoutVariants < 0;
+    const bool diversifyNow = nVariants > 0
+            && (!adaptiveVariants || bestActionValue < 1000.0);
+    curVariant = diversifyNow ? static_cast<int>(stepCounter % nVariants) : 0;
+    ++stepCounter;
     searchStack = {&root};
     actionStack.clear();
     BattleContext curState;
@@ -93,16 +136,20 @@ void search::BattleScumSearcher2::updateFromPlayout(const std::vector<Node *> &s
         bestActionSequence = actionStack;
         bestActionValue = evaluation;
         outcomePlayerHp = endState.player.curHp;
+        const int vi = curVariant % 16;
+        if (vi >= 0 && curVariant >= 0) ++g_variantWins[vi];
     }
 
     if (evaluation < minActionValue) {
         minActionValue = evaluation;
     }
 
+    const bool won = evaluation > 1000.0;
     for (auto it = stack.rbegin(); it != stack.rend(); ++it) {
         auto &node = *(*it);
         ++node.simulationCount;
         node.evaluationSum += evaluation;
+        if (won) ++node.winCount;
     }
 }
 
@@ -114,9 +161,17 @@ double search::BattleScumSearcher2::evaluateEdge(const search::BattleScumSearche
 
     const auto &edge = parent.edges[edgeIdx];
 
+    // Virtual loss: in-flight simulations below this edge count as visits with a
+    // pessimistic value so parallel threads explore different lines.  With
+    // pending == 0 this is identical to the single-threaded rule.
+    const double evalRangeNow = bestActionValue - minActionValue;
+    const double pendingLoss = evalRangeNow > 0 ? 0.4 * evalRangeNow : 0.0;
+    const double effCount = static_cast<double>(edge.node.simulationCount) + edge.node.pending;
+    const double effSum = edge.node.evaluationSum - pendingLoss * edge.node.pending;
+
     double qualityValue = 0;
     if (!bestActionSequence.empty()) {
-        auto avgEvaluation = edge.node.evaluationSum / (edge.node.simulationCount+1);
+        auto avgEvaluation = effSum / (effCount + 1.0);
         double evalRange = bestActionValue - minActionValue;
         qualityValue = avgEvaluation / evalRange;
     }
@@ -126,13 +181,13 @@ double search::BattleScumSearcher2::evaluateEdge(const search::BattleScumSearche
         auto it = rootPriors.find(edge.action.bits);
         const double prior = (it != rootPriors.end() && it->second > 0.0) ? it->second : fallback;
         const double logTerm = std::sqrt(std::log(parent.simulationCount + 1.0)
-                / (edge.node.simulationCount + 1.0));
+                / (effCount + 1.0));
         if (priorMode == 1) {
             return qualityValue + explorationParameter
                     * (prior * static_cast<double>(parent.edges.size())) * logTerm;
         }
         const double puctTerm = cPuct * prior * std::sqrt(parent.simulationCount + 1.0)
-                / (1.0 + edge.node.simulationCount);
+                / (1.0 + effCount);
         if (priorMode == 4) {
             return qualityValue + explorationParameter * logTerm + puctTerm;
         }
@@ -145,7 +200,7 @@ double search::BattleScumSearcher2::evaluateEdge(const search::BattleScumSearche
     }
 
     double explorationValue = explorationParameter *
-            std::sqrt(std::log(parent.simulationCount+1) / (edge.node.simulationCount+1));
+            std::sqrt(std::log(parent.simulationCount+1) / (effCount+1.0));
 
     return qualityValue + explorationValue;
 }
@@ -218,42 +273,226 @@ void search::BattleScumSearcher2::playoutRandom(BattleContext &state, std::vecto
 }
 
 void search::BattleScumSearcher2::playoutGreedy(BattleContext &state, std::vector<Action> &actionStack) {
-    Node tempNode; // temp
+    if (g_determinize != 0 && state.cards.drawPile.size() > 1) {
+        // Determinized rollout ("perfect information Monte Carlo" with a fresh
+        // sample of the unseen future): the real draw order is unknown to the
+        // player, yet the simulator replays one fixed order in every playout.
+        // Re-shuffling the remaining pile at the start of each playout makes
+        // each rollout an independent draw rather than a repeat of the same
+        // deterministic line, so extra search budget actually averages out
+        // draw luck instead of resampling one branch.
+        std::shuffle(state.cards.drawPile.begin(), state.cards.drawPile.end(), randGen);
+    }
+    // Fast path: the greedy playout plays the first card in expert order and never
+    // chooses a potion (END_TURN precedes potions in the edge list), so the full
+    // edge enumeration can be skipped in PLAYER_NORMAL states.  This is the hot
+    // loop of the search.  Non-standard input states (card-select screens) still
+    // use the generic enumeration and take its first option, exactly like the
+    // generic greedy chooser does.
+    int targetMode = playoutTarget();
+    int orderMode = playoutOrder();
+    int guardMode = playoutGuard();
+    if (curVariant != 0) {
+        switch (curVariant % 12) {
+            case 1: targetMode = 3; break;   // focus the biggest incoming threat
+            case 2: targetMode = 2; break;   // focus the lowest hp fraction
+            case 3: targetMode = 0; break;   // legacy: highest slot
+            case 4: orderMode = 1; break;    // attack-first ordering
+            case 5: guardMode = 1; break;    // lethal-turn defensive guard
+            case 6: orderMode = 2; break;    // block-first while damage is incoming
+            case 7: targetMode = 4; break;   // finish off a killable target
+            case 8: orderMode = 8; break;   // cheapest card first
+            case 9: orderMode = 9; break;   // play a killer blow first
+            case 10: orderMode = 10; break; // best damage per energy first
+            case 11: targetMode = 3; orderMode = 9; break;  // threat + kill first
+            default: break;                  // 0: configured policy
+        }
+    }
     while (!isTerminalState(state)) {
         ++simulationIdx;
-        tempNode.edges.clear();
-        enumerateActionsForNode(tempNode, state);
-        if (tempNode.edges.empty()) {
-            break;
+        if (state.inputState != InputState::PLAYER_NORMAL) {
+            Node tempNode;
+            enumerateActionsForNode(tempNode, state);
+            if (tempNode.edges.empty()) break;
+            const auto a = tempNode.edges[0].action;
+            actionStack.push_back(a);
+            a.execute(state);
+            continue;
         }
-        int chosen = -1;
-        std::uniform_real_distribution<double> flip(0.0, 1.0);
-        if (playoutEpsilon > 0.0 && flip(randGen) < playoutEpsilon) {
-            std::uniform_int_distribution<int> dist(0, static_cast<int>(tempNode.edges.size()) - 1);
-            chosen = dist(randGen);
-        } else {
-            // cards are sorted by expert play order; prefer the first card,
-            // then end the turn, and only then spend a potion.
-            for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
-                if (tempNode.edges[i].action.getActionType() == ActionType::CARD) { chosen = static_cast<int>(i); break; }
-            }
-            if (chosen < 0) {
-                for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
-                    if (tempNode.edges[i].action.getActionType() == ActionType::END_TURN) { chosen = static_cast<int>(i); break; }
+        Action chosen(ActionType::END_TURN);
+        if (state.isCardPlayAllowed()) {
+            if (playoutEpsilon > 0.0) {
+                std::uniform_real_distribution<double> flip(0.0, 1.0);
+                if (flip(randGen) < playoutEpsilon) {
+                    std::vector<int> playable;
+                    for (int h = 0; h < state.cards.cardsInHand; ++h) {
+                        if (state.cards.hand[h].canUseOnAnyTarget(state)) playable.push_back(h);
+                    }
+                    if (!playable.empty()) {
+                        std::uniform_int_distribution<int> pick(0, static_cast<int>(playable.size()) - 1);
+                        const int h = playable[pick(randGen)];
+                        const auto &c = state.cards.hand[h];
+                        if (c.requiresTarget()) {
+                            int tIdx = -1;
+                            for (int i = state.monsters.monsterCount - 1; i >= 0; --i) {
+                                if (state.monsters.arr[i].isTargetable()) { tIdx = i; break; }
+                            }
+                            if (tIdx >= 0) chosen = Action(ActionType::CARD, h, tIdx);
+                        } else {
+                            chosen = Action(ActionType::CARD, h);
+                        }
+                        actionStack.push_back(chosen);
+                        chosen.execute(state);
+                        continue;
+                    }
                 }
             }
-            if (chosen < 0) {
-                for (std::size_t i = 0; i < tempNode.edges.size(); ++i) {
-                    if (tempNode.edges[i].action.getActionType() == ActionType::POTION) { chosen = static_cast<int>(i); break; }
+            int bestHand = -1;
+            int bestOrder = std::numeric_limits<int>::max();
+            int incoming = 0;
+            if (orderMode != 0 || guardMode != 0) {
+                for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                    const auto &m = state.monsters.arr[i];
+                    if (m.curHp <= 0) continue;
+                    const auto d = m.getMoveBaseDamage(state);
+                    incoming += d.damage * d.attackCount;
                 }
             }
-            if (chosen < 0) {
-                chosen = 0;
+            const bool needDefense = incoming > state.player.block;
+            // Lethal-turn guard: the greedy playout otherwise walks straight
+            // into a killing blow when the expert order happens to rank its
+            // attacks first, which makes every defensive line look lost.
+            bool guardNow = false;
+            if (guardMode != 0 && state.player.block <= 0 && incoming > 0) {
+                const int hp = state.player.curHp;
+                guardNow = guardMode == 1 ? (incoming >= hp)
+                                               : (incoming * 10 >= hp * 6);
+            }
+            const int nHand = state.cards.cardsInHand;
+            for (int h = 0; h < nHand; ++h) {
+                const auto &c = state.cards.hand[h];
+                if (!c.canUseOnAnyTarget(state)) continue;
+                int ord = search::Expert::getPlayOrdering(c.getId());
+                const int ctype = static_cast<int>(c.getType());
+                if (orderMode == 8) {
+                    // energy-aware: spend the cheap cards first
+                    ord += static_cast<int>(c.cost) * 40;
+                } else if (orderMode == 9) {
+                    // if this card can finish a monster this turn, play it first
+                    const int dmgc = Card(c.getId(), c.isUpgraded()).getBaseDamage();
+                    if (dmgc > 0) {
+                        for (int t = 0; t < state.monsters.monsterCount; ++t) {
+                            const auto &m = state.monsters.arr[t];
+                            if (m.isTargetable() && m.curHp <= dmgc) { ord -= 1000; break; }
+                        }
+                    }
+                } else if (orderMode == 10) {
+                    // damage per energy first
+                    const int dmgc = Card(c.getId(), c.isUpgraded()).getBaseDamage();
+                    const int costc = c.cost > 0 ? static_cast<int>(c.cost) : 0;
+                    ord -= (dmgc * 10) / (costc + 1);
+                }
+                if (orderMode == 4 || orderMode == 5 || orderMode == 7) {
+                    const int amp = (orderMode == 5) ? 60 : 20;
+                    std::uniform_int_distribution<int> jd(-amp, amp);
+                    ord += jd(randGen);
+                }
+                // orderMode 1: attacks first when nothing gets through.
+                // orderMode 2: blocks/skills first while unblocked damage is coming.
+                // orderMode 3: both.
+                if ((orderMode == 1 || orderMode == 3) && !needDefense && ctype == 1) {
+                    ord += 1000;
+                }
+                if ((orderMode == 2 || orderMode == 3) && needDefense && ctype == 0) {
+                    ord += 1000;
+                }
+                if (guardNow && static_cast<int>(c.getType()) == 0) {
+                    ord += 1000;
+                }
+                if (ord < bestOrder) { bestOrder = ord; bestHand = h; }
+            }
+            if (bestHand >= 0) {
+                const auto &c = state.cards.hand[bestHand];
+                if (c.requiresTarget()) {
+                    int tIdx = -1;
+                    const int mode = targetMode;
+                    if (mode == 1) {
+                        int bestHp = std::numeric_limits<int>::max();
+                        for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                            if (!state.monsters.arr[i].isTargetable()) continue;
+                            if (state.monsters.arr[i].curHp < bestHp) {
+                                bestHp = state.monsters.arr[i].curHp;
+                                tIdx = i;
+                            }
+                        }
+                    } else if (mode == 2) {
+                        std::int64_t bestNum = -1, bestDen = 1;
+                        for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                            const auto &m = state.monsters.arr[i];
+                            if (!m.isTargetable()) continue;
+                            const std::int64_t num = m.curHp;
+                            const std::int64_t den = std::max(1, m.maxHp);
+                            if (bestNum < 0 || num * bestDen < bestNum * den) {
+                                bestNum = num; bestDen = den; tIdx = i;
+                            }
+                        }
+                    } else if (mode == 4) {
+                        // finish off: prefer a monster this card can kill this turn
+                        const int dmg = std::max(1,
+                                Card(c.getId(), c.isUpgraded()).getBaseDamage());
+                        int bestHp = std::numeric_limits<int>::max();
+                        for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                            const auto &m = state.monsters.arr[i];
+                            if (!m.isTargetable()) continue;
+                            if (m.curHp <= dmg && m.curHp < bestHp) {
+                                bestHp = m.curHp;
+                                tIdx = i;
+                            }
+                        }
+                        if (tIdx < 0) {
+                            int lowHp = std::numeric_limits<int>::max();
+                            for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                                if (!state.monsters.arr[i].isTargetable()) continue;
+                                if (state.monsters.arr[i].curHp < lowHp) {
+                                    lowHp = state.monsters.arr[i].curHp;
+                                    tIdx = i;
+                                }
+                            }
+                        }
+                    } else if (mode == 5) {
+                        // line diversity: hit a uniformly random target
+                        std::vector<int> tgt;
+                        for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                            if (state.monsters.arr[i].isTargetable()) tgt.push_back(i);
+                        }
+                        if (!tgt.empty()) {
+                            std::uniform_int_distribution<int> td(0, static_cast<int>(tgt.size()) - 1);
+                            tIdx = tgt[td(randGen)];
+                        }
+                    } else if (mode == 3) {
+                        int bestThreat = -1, bestHp = std::numeric_limits<int>::max();
+                        for (int i = 0; i < state.monsters.monsterCount; ++i) {
+                            const auto &m = state.monsters.arr[i];
+                            if (!m.isTargetable()) continue;
+                            const auto dmg = m.getMoveBaseDamage(state);
+                            const int threat = dmg.damage * dmg.attackCount;
+                            if (threat > bestThreat || (threat == bestThreat && m.curHp < bestHp)) {
+                                bestThreat = threat; bestHp = m.curHp; tIdx = i;
+                            }
+                        }
+                    } else {
+                        for (int i = state.monsters.monsterCount - 1; i >= 0; --i) {
+                            if (state.monsters.arr[i].isTargetable()) { tIdx = i; break; }
+                        }
+                    }
+                    if (tIdx >= 0) chosen = Action(ActionType::CARD, bestHand, tIdx);
+                } else {
+                    chosen = Action(ActionType::CARD, bestHand);
+                }
             }
         }
-        const auto action = tempNode.edges[chosen].action;
-        actionStack.push_back(action);
-        action.execute(state);
+        actionStack.push_back(chosen);
+        chosen.execute(state);
     }
 }
 
@@ -345,6 +584,10 @@ void search::BattleScumSearcher2::enumerateCardActions(search::BattleScumSearche
 
 void search::BattleScumSearcher2::enumeratePotionActions(search::BattleScumSearcher2::Node &node,
                                                               const BattleContext &bc) {
+
+    if (savePotionsEnabled() && !sts::isBossEncounter(bc.encounter)) {
+        return;
+    }
 
     const auto hasValidTarget = bc.monsters.getTargetableCount() > 0;
 
@@ -490,10 +733,10 @@ double getNonMinionMonsterCurHpRatio(const BattleContext &bc) {
 }
 
 double search::BattleScumSearcher2::evaluateEndState(const BattleContext &bc) {
-    double potionScore = bc.potionCount * 4;
+    double potionScore = bc.potionCount * winPotionWeight();
 
     if (bc.outcome == Outcome::PLAYER_VICTORY) {
-        return 100 * (35 + bc.player.curHp + potionScore - (bc.turn * 0.01));
+        return 100 * (35 + winHpWeight() * bc.player.curHp + potionScore - (bc.turn * 0.01));
 
     } else {
 //        double statusScore =
