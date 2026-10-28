@@ -61,6 +61,14 @@ enum EventId : int {
     EV_TRIAL,
     EV_WAR_HISTORIAN_REPY,
     EV_BATTLEWORN_DUMMY,
+    // Ancients (act 1-3). Neow is act 1; the others are act 2/3 + shared Darv.
+    EV_DARV,
+    EV_OROBAS,
+    EV_PAEL,
+    EV_TEZCATARA,
+    EV_NONUPEIPE,
+    EV_TANX,
+    EV_VAKUU,
     EV_COUNT
 };
 
@@ -112,6 +120,13 @@ const EventInfo EVENTS[EV_COUNT] = {
     {"TRIAL", EventStatus::UNSUPPORTED, 2},
     {"WAR_HISTORIAN_REPY", EventStatus::UNSUPPORTED, -1},
     {"BATTLEWORN_DUMMY", EventStatus::UNSUPPORTED, 2},
+    {"DARV", EventStatus::APPROXIMATE, 3},
+    {"OROBAS", EventStatus::APPROXIMATE, 3},
+    {"PAEL", EventStatus::APPROXIMATE, 3},
+    {"TEZCATARA", EventStatus::APPROXIMATE, 3},
+    {"NONUPEIPE", EventStatus::APPROXIMATE, 3},
+    {"TANX", EventStatus::APPROXIMATE, 3},
+    {"VAKUU", EventStatus::APPROXIMATE, 3},
 };
 
 bool event_allowed_now(const RunContext &rc, int id) {
@@ -121,6 +136,7 @@ bool event_allowed_now(const RunContext &rc, int id) {
         case EV_POTION_COURIER: return rc.act > 0;
         case EV_WELCOME_TO_WONGOS: return rc.act == 1 && rc.gold >= 100;
         case EV_STONE_OF_ALL_TIME: return rc.act == 1 && rc.potionCount > 0;
+        case EV_UNREST_SITE: return rc.hp * 10 <= rc.maxHp * 7;
         default: return true;
     }
 }
@@ -258,9 +274,315 @@ void set_page(RunContext &rc, int page, int options) {
     rc.eventChoiceCount = static_cast<std::int8_t>(options);
 }
 
+void add_deck_card(RunContext &rc, CardId id, bool upgrade = false) {
+    Card c = rc.make_run_card(id, upgrade);
+    rc.add_card_to_deck(c);
+}
+
+int pick_one(const int *pool, int n, Rng &rng) {
+    return n > 0 ? pool[rng.next_int(0, n - 1)] : 0;
+}
+
+// C# UnstableShuffle: Fisher-Yates from the end.
+void shuffle_ints(int *a, int n, Rng &rng) {
+    for (int i = n - 1; i > 0; --i) {
+        const int j = rng.next_int(0, i);
+        const int t = a[i];
+        a[i] = a[j];
+        a[j] = t;
+    }
+}
+
+int deck_flag_count(const RunContext &rc, std::uint16_t flag) {
+    int n = 0;
+    for (int i = 0; i < rc.deckCount; ++i) n += card_has(rc.deck[i], flag) ? 1 : 0;
+    return n;
+}
+
+// Swift's base enchantability: playable (non-status/curse) cards.
+int swift_enchantable(const RunContext &rc) {
+    int n = 0;
+    for (int i = 0; i < rc.deckCount; ++i) {
+        const CardType t = card_def(rc.deck[i].id).type;
+        if (t == CardType::ATTACK || t == CardType::SKILL || t == CardType::POWER) ++n;
+    }
+    return n;
+}
+
+// Instinct: playable attacks with a non-X, positive cost.
+int instinct_enchantable(const RunContext &rc) {
+    int n = 0;
+    for (int i = 0; i < rc.deckCount; ++i) {
+        const Card &c = rc.deck[i];
+        const CardDef &d = card_def(c.id);
+        if (d.type != CardType::ATTACK || (d.flags & CF_UNPLAYABLE)) continue;
+        const int cost = c.upgraded ? d.costUp : d.cost;
+        if (cost > 0) ++n;
+    }
+    return n;
+}
+
+int removable_cards(const RunContext &rc) {
+    int n = 0;
+    for (int i = 0; i < rc.deckCount; ++i) {
+        if (rc.deck[i].id != CardId::INVALID) ++n;
+    }
+    return n;
+}
+
+// ScrollBoxes.CanGenerateBundles: >= 4 unlocked commons and >= 2 uncommons.
+bool can_generate_bundles() {
+    int common = 0;
+    int uncommon = 0;
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+        const CardDef &d = card_def(static_cast<CardId>(i));
+        if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) continue;
+        if (d.rarity == Rarity::COMMON) ++common;
+        else if (d.rarity == Rarity::UNCOMMON) ++uncommon;
+    }
+    return common >= 4 && uncommon >= 2;
+}
+
+// Generate the three relic offers for an Ancient, mirroring the C# event's
+// GenerateInitialOptions. The chosen relic id is stored per option so the
+// public observation exposes the actual choice.
+void generate_ancient_options(RunContext &rc, int id) {
+    Rng rng = event_rng(rc, id);
+    int opts[3] = {0, 0, 0};
+    switch (id) {
+        case EV_NEOW: {
+            int curses[6];
+            int cn = 0;
+            curses[cn++] = static_cast<int>(RelicId::CURSED_PEARL);
+            curses[cn++] = static_cast<int>(RelicId::LARGE_CAPSULE);
+            curses[cn++] = static_cast<int>(RelicId::LEAFY_POULTICE);
+            curses[cn++] = static_cast<int>(RelicId::PRECARIOUS_SHEARS);
+            if (can_generate_bundles()) curses[cn++] = static_cast<int>(RelicId::SCROLL_BOXES);
+            curses[cn++] = static_cast<int>(RelicId::SILVER_CRUCIBLE);  // single player
+            const int curse = pick_one(curses, cn, rng);
+            static const int positives[9] = {
+                static_cast<int>(RelicId::ARCANE_SCROLL),
+                static_cast<int>(RelicId::BOOMING_CONCH),
+                static_cast<int>(RelicId::POMANDER),
+                static_cast<int>(RelicId::GOLDEN_PEARL),
+                static_cast<int>(RelicId::LEAD_PAPERWEIGHT),
+                static_cast<int>(RelicId::NEW_LEAF),
+                static_cast<int>(RelicId::NEOWS_TORMENT),
+                static_cast<int>(RelicId::PRECISE_SCISSORS),
+                static_cast<int>(RelicId::LOST_COFFER)};
+            int list[12];
+            int n = 0;
+            for (const int r : positives) {
+                if (curse == static_cast<int>(RelicId::CURSED_PEARL) &&
+                    r == static_cast<int>(RelicId::GOLDEN_PEARL)) continue;
+                if (curse == static_cast<int>(RelicId::PRECARIOUS_SHEARS) &&
+                    r == static_cast<int>(RelicId::PRECISE_SCISSORS)) continue;
+                if (curse == static_cast<int>(RelicId::LEAFY_POULTICE) &&
+                    r == static_cast<int>(RelicId::NEW_LEAF)) continue;
+                list[n++] = r;
+            }
+            list[n++] = static_cast<int>(rng.next_bool() ? RelicId::NUTRITIOUS_OYSTER
+                                                         : RelicId::STONE_HUMIDIFIER);
+            if (curse != static_cast<int>(RelicId::LARGE_CAPSULE)) {
+                list[n++] = static_cast<int>(rng.next_bool() ? RelicId::LAVA_ROCK
+                                                             : RelicId::SMALL_CAPSULE);
+            }
+            shuffle_ints(list, n, rng);
+            opts[0] = list[0];
+            opts[1] = list[1];
+            opts[2] = curse;
+            break;
+        }
+        case EV_OROBAS: {
+            static const int pool1[3] = {
+                static_cast<int>(RelicId::ELECTRIC_SHRYMP),
+                static_cast<int>(RelicId::GLASS_EYE),
+                static_cast<int>(RelicId::SAND_CASTLE)};
+            int list[4];
+            for (int i = 0; i < 3; ++i) list[i] = pool1[i];
+            list[3] = rng.next_float() < 1.0f / 3.0f
+                          ? static_cast<int>(RelicId::PRISMATIC_GEM)
+                          : static_cast<int>(RelicId::SEA_GLASS);
+            opts[0] = pick_one(list, 4, rng);
+            static const int pool2[3] = {
+                static_cast<int>(RelicId::ALCHEMICAL_COFFER),
+                static_cast<int>(RelicId::DRIFTWOOD),
+                static_cast<int>(RelicId::RADIANT_PEARL)};
+            opts[1] = pick_one(pool2, 3, rng);
+            // Touch of Orobas (Burning Blood -> Black Blood) and Archaic Tooth
+            // (Bash -> Break) are both available to the Ironclad at run start.
+            static const int pool3[2] = {
+                static_cast<int>(RelicId::TOUCH_OF_OROBAS),
+                static_cast<int>(RelicId::ARCHAIC_TOOTH)};
+            opts[2] = pick_one(pool3, 2, rng);
+            break;
+        }
+        case EV_PAEL: {
+            static const int pool1[3] = {
+                static_cast<int>(RelicId::PAELS_FLESH),
+                static_cast<int>(RelicId::PAELS_HORN),
+                static_cast<int>(RelicId::PAELS_TEARS)};
+            opts[0] = pick_one(pool1, 3, rng);
+            int list[8];
+            int n = 0;
+            list[n++] = static_cast<int>(RelicId::PAELS_WING);
+            if (deck_flag_count(rc, CF_DEFEND) >= 3) {
+                list[n++] = static_cast<int>(RelicId::PAELS_CLAW);
+            }
+            if (removable_cards(rc) >= 5) {
+                list[n++] = static_cast<int>(RelicId::PAELS_TOOTH);
+            }
+            // C# list.AddRange(list) duplicates the current entries.
+            const int dup = n;
+            for (int i = 0; i < dup; ++i) list[n++] = list[i];
+            list[n++] = static_cast<int>(RelicId::PAELS_GROWTH);
+            opts[1] = pick_one(list, n, rng);
+            int list2[3];
+            int n2 = 0;
+            list2[n2++] = static_cast<int>(RelicId::PAELS_EYE);
+            list2[n2++] = static_cast<int>(RelicId::PAELS_BLOOD);
+            list2[n2++] = static_cast<int>(RelicId::PAELS_LEGION);  // no existing pet
+            opts[2] = pick_one(list2, n2, rng);
+            break;
+        }
+        case EV_TEZCATARA: {
+            static const int p1[3] = {static_cast<int>(RelicId::NUTRITIOUS_SOUP),
+                                      static_cast<int>(RelicId::VERY_HOT_COCOA),
+                                      static_cast<int>(RelicId::YUMMY_COOKIE)};
+            static const int p2[4] = {static_cast<int>(RelicId::BIIIG_HUG),
+                                      static_cast<int>(RelicId::STORYBOOK),
+                                      static_cast<int>(RelicId::SEAL_OF_GOLD),
+                                      static_cast<int>(RelicId::TOASTY_MITTENS)};
+            static const int p3[3] = {static_cast<int>(RelicId::GOLDEN_COMPASS),
+                                      static_cast<int>(RelicId::PUMPKIN_CANDLE),
+                                      static_cast<int>(RelicId::TOY_BOX)};
+            opts[0] = pick_one(p1, 3, rng);
+            opts[1] = pick_one(p2, 4, rng);
+            opts[2] = pick_one(p3, 3, rng);
+            break;
+        }
+        case EV_NONUPEIPE: {
+            int list[10];
+            int n = 0;
+            static const int pool[9] = {
+                static_cast<int>(RelicId::BLESSED_ANTLER),
+                static_cast<int>(RelicId::BRILLIANT_SCARF),
+                static_cast<int>(RelicId::DELICATE_FROND),
+                static_cast<int>(RelicId::DIAMOND_DIADEM),
+                static_cast<int>(RelicId::FUR_COAT),
+                static_cast<int>(RelicId::GLITTER),
+                static_cast<int>(RelicId::JEWELRY_BOX),
+                static_cast<int>(RelicId::LOOMING_FRUIT),
+                static_cast<int>(RelicId::SIGNET_RING)};
+            for (int i = 0; i < 9; ++i) list[n++] = pool[i];
+            if (swift_enchantable(rc) >= 4) {
+                list[n++] = static_cast<int>(RelicId::BEAUTIFUL_BRACELET);
+            }
+            shuffle_ints(list, n, rng);
+            opts[0] = list[0];
+            opts[1] = list[1];
+            opts[2] = list[2];
+            break;
+        }
+        case EV_TANX: {
+            int list[10];
+            int n = 0;
+            static const int pool[9] = {
+                static_cast<int>(RelicId::CLAWS),
+                static_cast<int>(RelicId::CROSSBOW),
+                static_cast<int>(RelicId::IRON_CLUB),
+                static_cast<int>(RelicId::MEAT_CLEAVER),
+                static_cast<int>(RelicId::SAI),
+                static_cast<int>(RelicId::SPIKED_GAUNTLETS),
+                static_cast<int>(RelicId::TANXS_WHISTLE),
+                static_cast<int>(RelicId::THROWING_AXE),
+                static_cast<int>(RelicId::WAR_HAMMER)};
+            for (int i = 0; i < 9; ++i) list[n++] = pool[i];
+            if (instinct_enchantable(rc) >= 3) {
+                list[n++] = static_cast<int>(RelicId::TRI_BOOMERANG);
+            }
+            shuffle_ints(list, n, rng);
+            opts[0] = list[0];
+            opts[1] = list[1];
+            opts[2] = list[2];
+            break;
+        }
+        case EV_VAKUU: {
+            static const int p1[3] = {static_cast<int>(RelicId::BLOOD_SOAKED_ROSE),
+                                      static_cast<int>(RelicId::WHISPERING_EARRING),
+                                      static_cast<int>(RelicId::FIDDLE)};
+            static const int p2[3] = {static_cast<int>(RelicId::PRESERVED_FOG),
+                                      static_cast<int>(RelicId::SERE_TALON),
+                                      static_cast<int>(RelicId::DISTINGUISHED_CAPE)};
+            static const int p3[4] = {static_cast<int>(RelicId::CHOICES_PARADOX),
+                                      static_cast<int>(RelicId::MUSIC_BOX),
+                                      static_cast<int>(RelicId::LORDS_PARASOL),
+                                      static_cast<int>(RelicId::JEWELED_MASK)};
+            int a[3] = {p1[0], p1[1], p1[2]};
+            int b[3] = {p2[0], p2[1], p2[2]};
+            int c[4] = {p3[0], p3[1], p3[2], p3[3]};
+            shuffle_ints(a, 3, rng);
+            shuffle_ints(b, 3, rng);
+            shuffle_ints(c, 4, rng);
+            opts[0] = a[0];
+            opts[1] = b[0];
+            opts[2] = c[0];
+            break;
+        }
+        case EV_DARV: {
+            // One random relic from each valid boss-relic set whose filter
+            // passes (C# Darv._validRelicSets).
+            int list[9];
+            int n = 0;
+            static const int singles[7] = {
+                static_cast<int>(RelicId::ASTROLABE),
+                static_cast<int>(RelicId::BLACK_STAR),
+                static_cast<int>(RelicId::CALLING_BELL),
+                static_cast<int>(RelicId::EMPTY_CAGE),
+                static_cast<int>(RelicId::PANDORAS_BOX),
+                static_cast<int>(RelicId::RUNIC_PYRAMID),
+                static_cast<int>(RelicId::SNECKO_EYE)};
+            for (int i = 0; i < 7; ++i) list[n++] = singles[i];
+            if (rc.act == 1) {
+                static const int act2[2] = {static_cast<int>(RelicId::ECTOPLASM),
+                                            static_cast<int>(RelicId::SOZU)};
+                list[n++] = pick_one(act2, 2, rng);
+            } else if (rc.act == 2) {
+                static const int act3[2] = {
+                    static_cast<int>(RelicId::PHILOSOPHERS_STONE),
+                    static_cast<int>(RelicId::VELVET_CHOKER)};
+                list[n++] = pick_one(act3, 2, rng);
+            }
+            shuffle_ints(list, n, rng);
+            if (rng.next_bool()) {
+                opts[0] = list[0];
+                opts[1] = list[1];
+                opts[2] = static_cast<int>(RelicId::DUSTY_TOME);
+            } else {
+                opts[0] = list[0];
+                opts[1] = list[1];
+                opts[2] = list[2];
+            }
+            break;
+        }
+        default:
+            break;
+    }
+    for (int i = 0; i < 3; ++i) rc.eventRelics[i] = opts[i];
+    set_page(rc, 0, 3);
+}
+
 int option_count_for(const RunContext &rc) {
     switch (rc.eventId) {
-        case EV_NEOW: return 3;
+        case EV_NEOW:
+        case EV_DARV:
+        case EV_OROBAS:
+        case EV_PAEL:
+        case EV_TEZCATARA:
+        case EV_NONUPEIPE:
+        case EV_TANX:
+        case EV_VAKUU:
+            return 3;
         case EV_DENSE_VEGETATION: return rc.eventPage == 0 ? 2 : 1;
         case EV_TABLET_OF_TRUTH: return 2;
         case EV_WELCOME_TO_WONGOS: return 4;
@@ -290,8 +612,43 @@ int event_pool_for_act(int act, int *out, int maxOut) {
 }
 
 int event_ancient_for_act(int act) {
-    (void)act;
-    return EV_NEOW;  // act-1 ancient; acts 2/3 ancients are not reachable as map nodes
+    // Repository-level compatibility accessor; the per-run choice is stored in
+    // RunContext::ancientId (see event_pick_ancient).
+    return act == 1 ? EV_OROBAS : act == 2 ? EV_NONUPEIPE : EV_NEOW;
+}
+
+int event_ancient_for_act(const RunContext &rc) { return rc.ancientId; }
+
+// RunManager.GenerateRooms assigns the shared ancients (Darv) to acts 2/3
+// before any act's rooms are generated.
+void event_plan_shared_ancients(RunContext &rc) {
+    int available = 1;  // Darv, all unlocks
+    for (int act = 1; act < MAX_ACTS; ++act) {
+        const int count = rc.runRng[RNG_UP_FRONT].next_int(0, available);
+        if (count > 0) {
+            rc.sharedAncientInAct[act] = true;
+            available = 0;
+        }
+    }
+}
+
+// ActModel.GenerateRooms end: NextItem(GetUnlockedAncients + shared subset).
+int event_pick_ancient(RunContext &rc) {
+    int pool[4];
+    int n = 0;
+    if (rc.act == 0) {
+        pool[n++] = EV_NEOW;
+    } else if (rc.act == 1) {
+        pool[n++] = EV_OROBAS;
+        pool[n++] = EV_PAEL;
+        pool[n++] = EV_TEZCATARA;
+    } else {
+        pool[n++] = EV_NONUPEIPE;
+        pool[n++] = EV_TANX;
+        pool[n++] = EV_VAKUU;
+    }
+    if (rc.act >= 1 && rc.sharedAncientInAct[rc.act]) pool[n++] = EV_DARV;
+    return pool[rc.runRng[RNG_UP_FRONT].next_int(0, n - 1)];
 }
 
 void event_begin(RunContext &rc, int eventId, bool ancient) {
@@ -306,36 +663,18 @@ void event_begin(RunContext &rc, int eventId, bool ancient) {
         finish_event(rc);
         return;
     }
-    Rng rng = event_rng(rc, eventId);
     switch (eventId) {
-        case EV_NEOW: {
-            static const RelicId positives[9] = {
-                RelicId::ARCANE_SCROLL, RelicId::BOOMING_CONCH, RelicId::POMANDER,
-                RelicId::GOLDEN_PEARL, RelicId::LEAD_PAPERWEIGHT, RelicId::NEW_LEAF,
-                RelicId::NEOWS_TORMENT, RelicId::PRECISE_SCISSORS, RelicId::LOST_COFFER};
-            static const RelicId curses[4] = {RelicId::CURSED_PEARL, RelicId::LARGE_CAPSULE,
-                                              RelicId::LEAFY_POULTICE,
-                                              RelicId::PRECARIOUS_SHEARS};
-            int pool[16];
-            int n = 0;
-            for (const RelicId id : positives) pool[n++] = static_cast<int>(id);
-            pool[n++] = static_cast<int>(rng.next_bool() ? RelicId::NUTRITIOUS_OYSTER
-                                                         : RelicId::STONE_HUMIDIFIER);
-            pool[n++] = static_cast<int>(rng.next_bool() ? RelicId::LAVA_ROCK
-                                                         : RelicId::SMALL_CAPSULE);
-            // UnstableShuffle then take 2.
-            for (int i = n - 1; i > 0; --i) {
-                const int j = rng.next_int(0, i);
-                std::swap(pool[i], pool[j]);
-            }
-            rc.eventRelics[0] = pool[0];
-            rc.eventRelics[1] = pool[1];
-            rc.eventRelics[2] = static_cast<int>(curses[rng.next_int(0, 3)]);
-            rc.eventChoiceCount = 3;
-            set_page(rc, 0, 3);
+        case EV_NEOW:
+        case EV_DARV:
+        case EV_OROBAS:
+        case EV_PAEL:
+        case EV_TEZCATARA:
+        case EV_NONUPEIPE:
+        case EV_TANX:
+        case EV_VAKUU:
             (void)ancient;
+            generate_ancient_options(rc, eventId);
             break;
-        }
         case EV_AROMA_OF_CHAOS:
         case EV_SUNKEN_STATUE:
         case EV_WELLSPRING:
@@ -400,9 +739,16 @@ bool event_choose(RunContext &rc, int option) {
     const int id = rc.eventId;
     Rng rng = event_rng(rc, id);
     switch (id) {
-        case EV_NEOW: {
+        case EV_NEOW:
+        case EV_DARV:
+        case EV_OROBAS:
+        case EV_PAEL:
+        case EV_TEZCATARA:
+        case EV_NONUPEIPE:
+        case EV_TANX:
+        case EV_VAKUU: {
             const RelicId pick = static_cast<RelicId>(rc.eventRelics[option]);
-            add_relic(rc, pick);
+            if (pick != RelicId::INVALID) add_relic(rc, pick);
             finish_event(rc);
             return true;
         }
@@ -458,6 +804,7 @@ bool event_choose(RunContext &rc, int option) {
                 add_random_potion_event(rc, rng, false);
             } else {
                 remove_deck_index(rc, random_deck_index(rc, rng));
+                add_deck_card(rc, CardId::GUILTY);
             }
             finish_event(rc);
             return true;
@@ -495,6 +842,7 @@ bool event_choose(RunContext &rc, int option) {
         case EV_UNREST_SITE: {
             if (option == 0) {
                 heal(rc, rc.maxHp - rc.hp);
+                add_deck_card(rc, CardId::POOR_SLEEP);
             } else {
                 lose_max_hp(rc, 8);
                 if (rc.screen == RunScreen::RUN_OVER) return true;
@@ -522,7 +870,7 @@ bool event_choose(RunContext &rc, int option) {
                 run_gain_gold(rc, rng.next_int(41, 68));
             } else {
                 add_random_shared_relic(rc, rng, false);
-                // Clumsy curse is not part of the modelled card set.
+                add_deck_card(rc, CardId::CLUMSY);
             }
             finish_event(rc);
             return true;
@@ -626,7 +974,7 @@ bool event_choose(RunContext &rc, int option) {
                     copy.uid = rc.nextUid++;
                     rc.add_card_to_deck(copy);
                 }
-                // Bad Luck curse is not part of the modelled card set.
+                add_deck_card(rc, CardId::BAD_LUCK);
             }
             finish_event(rc);
             return true;
@@ -646,7 +994,7 @@ bool event_choose(RunContext &rc, int option) {
         case EV_LOST_WISP: {
             if (option == 0) {
                 add_relic(rc, RelicId::LOST_WISP);
-                // Decay curse is not part of the modelled card set.
+                add_deck_card(rc, CardId::DECAY);
             } else {
                 run_gain_gold(rc, 60 + rng.next_int(-15, 15));
             }

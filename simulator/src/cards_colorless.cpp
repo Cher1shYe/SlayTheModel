@@ -194,6 +194,22 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::PROLONG:
             if (bc.player.block > 0) bc.add_player_power(PowerId::BLOCK_NEXT_TURN, bc.player.block);
             return true;
+        case CardId::OUTMANEUVER:
+            bc.nextTurnEnergy += card_var(card, VarId::ENERGY);
+            return true;
+        case CardId::RELAX:
+            bc.gain_block(card_block(card), true);
+            bc.nextTurnDraw += card_var(card, VarId::CARDS);
+            bc.nextTurnEnergy += card_var(card, VarId::ENERGY);
+            return true;
+        case CardId::BRIGHTEST_FLAME: {
+            bc.player.energy += card_var(card, VarId::ENERGY);
+            bc.draw_cards(card_var(card, VarId::CARDS));
+            const int loss = std::min(card_var(card, VarId::MAX_HP), std::max(0, bc.player.hp - 1));
+            bc.player.maxHp = std::max(1, bc.player.maxHp - loss);
+            bc.player.hp -= loss;
+            return true;
+        }
         case CardId::PROWESS:
             bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::STRENGTH));
             bc.add_player_power(PowerId::DEXTERITY, card_var(card, VarId::DEXTERITY));

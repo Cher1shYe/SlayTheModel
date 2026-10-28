@@ -9380,6 +9380,2731 @@
   }
  },
  {
+  "id": "ASCENDERS_BANE",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Ascender's Bane",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal",
+   "ethereal",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": true,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "ethereal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": true,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "ethereal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": true,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "BAD_LUCK",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Bad Luck",
+  "description": "At the end of your turn, if this is in your Hand, lose {HpLoss:diff()} HP.",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "hp_loss": 13
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "hp_loss": 13
+    },
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "hp_loss": 13
+    },
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "CLUMSY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Clumsy",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "ethereal",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": true,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "ethereal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": true,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "ethereal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": true,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "CURSE_OF_THE_BELL",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Curse of the Bell",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "DEBT",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Debt",
+  "description": "At the end of your turn, if this is in your [gold]Hand[/gold], lose {Gold:diff()} [gold]Gold[/gold].",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "gold": 10
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "gold": 10
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "gold": 10
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "DECAY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Decay",
+  "description": "At the end of your turn, if this is in your [gold]Hand[/gold], take {Damage:diff()} damage.",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "damage": 2
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "damage": 2
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "damage": 2
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "DOUBT",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Doubt",
+  "description": "At the end of your turn, if this is in your [gold]Hand[/gold], gain {WeakPower:diff()} [gold]Weak[/gold].",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "weak": 1
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "weak": 1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "weak": 1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "ENTHRALLED",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Enthralled",
+  "description": "If this is in your [gold]Hand[/gold], it must be played before other cards.",
+  "cost": 2,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "FOLLY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Folly",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal",
+   "innate",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": true,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "innate",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "innate",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "GREED",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Greed",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "eternal",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "eternal",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "GUILTY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Guilty",
+  "description": "Removed from your [gold]Deck[/gold] after {Combats:diff()} {Combats:plural:combat|combats}.",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "combats": 5
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "combats": 5
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "combats": 5
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "INJURY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Injury",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "NORMALITY",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Normality",
+  "description": "You cannot play more than 3 cards this turn.{InCombat:\n({CalculatedCards:plural:{} card|{} cards} left)|}",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "calc_base": 3,
+   "calc_extra": -1
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "calc_base": 3,
+     "calc_extra": -1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "calc_base": 3,
+     "calc_extra": -1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "POOR_SLEEP",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Poor Sleep",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "retain",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": true,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "retain",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": true,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "retain",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": true,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "REGRET",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Regret",
+  "description": "At the end of your turn, if this is in your [gold]Hand[/gold], lose 1 HP for each card in your [gold]Hand[/gold].",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "SHAME",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Shame",
+  "description": "At the end of your turn, if this is in your [gold]Hand[/gold], gain {Frail:diff()} [gold]Frail[/gold].",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "frail": 1
+  },
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "frail": 1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "frail": 1
+    },
+    "keywords": [
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "SPORE_MIND",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Spore Mind",
+  "description": "",
+  "cost": 1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "WRITHE",
+  "pool": "curse",
+  "multiplayer_only": false,
+  "title": "Writhe",
+  "description": "",
+  "cost": -1,
+  "x_cost": false,
+  "type": "CURSE",
+  "target": "NONE",
+  "rarity": "CURSE",
+  "keywords": [
+   "innate",
+   "unplayable"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": true,
+   "retain": false,
+   "unplayable": true
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "innate",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": true
+   },
+   "upgraded": {
+    "cost": -1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "innate",
+     "unplayable"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": true
+   }
+  }
+ },
+ {
+  "id": "APOTHEOSIS",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Apotheosis",
+  "description": "[gold]Upgrade[/gold] ALL your cards.",
+  "cost": 2,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "exhaust",
+   "innate"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": true,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust",
+     "innate"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust",
+     "innate"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "APPARITION",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Apparition",
+  "description": "Gain {IntangiblePower:diff()} [gold]Intangible[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "ethereal",
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": true,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "intangible_power": 1
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "intangible_power": 1
+    },
+    "keywords": [
+     "ethereal",
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": true,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "intangible_power": 1
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "BRIGHTEST_FLAME",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Brightest Flame",
+  "description": "Gain {Energy:energyIcons()}.\nDraw {Cards:diff()} {Cards:plural:card|cards}.\nLose {MaxHp:diff()} Max HP.",
+  "cost": 0,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "ANCIENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "max_hp": 1,
+   "cards": 2,
+   "energy": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "max_hp": 1,
+     "cards": 2,
+     "energy": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "max_hp": 1,
+     "cards": 3,
+     "energy": 3
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "BYRD_SWOOP",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Byrd Swoop",
+  "description": "Deal {Damage:diff()} damage.",
+  "cost": 0,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 14,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": 14,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": 18,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "CALTROPS",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Caltrops",
+  "description": "Whenever you are attacked, deal {ThornsPower:diff()} damage back.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "POWER",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "thorns_power": 3
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "thorns_power": 3
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "thorns_power": 5
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "CLASH",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Clash",
+  "description": "Can only be played if every card in your [gold]Hand[/gold] is an Attack.\nDeal {Damage:diff()} damage.",
+  "cost": 0,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 14,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": 14,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": 18,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "DISTRACTION",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Distraction",
+  "description": "Add a random Skill into your [gold]Hand[/gold]. It's free to play this turn.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "DUAL_WIELD",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Dual Wield",
+  "description": "Choose an Attack or Power card. Add {IfUpgraded:show:{Cards} copies|a copy} of that card into your [gold]Hand[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "cards": 1
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 1
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "ENLIGHTENMENT",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Enlightenment",
+  "description": "Reduce the cost of ALL cards in your [gold]Hand[/gold] to 1 this {IfUpgraded:show:combat|turn}.",
+  "cost": 0,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "ENTRENCH",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Entrench",
+  "description": "Double your [gold]Block[/gold].",
+  "cost": 2,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "EXTERMINATE",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Exterminate",
+  "description": "Deal {Damage:diff()} damage to ALL enemies {Repeat:diff()} times.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ALL_ENEMIES",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 3,
+  "base_block": null,
+  "effect_vars": {
+   "repeat": 4
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 3,
+    "base_block": null,
+    "effect_vars": {
+     "repeat": 4
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 4,
+    "base_block": null,
+    "effect_vars": {
+     "repeat": 4
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "FEEDING_FRENZY_CARD",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Feeding Frenzy",
+  "description": "Gain {StrengthPower:diff()} [gold]Strength[/gold] this turn.",
+  "cost": 0,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "strength": 5
+  },
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "strength": 5
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "strength": 7
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "HELLO_WORLD_CARD",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Hello World",
+  "description": "At the start of your turn, add a random Common card into your [gold]Hand[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "POWER",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "innate"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "MAD_SCIENCE",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Mad Science",
+  "description": "{CardType:choose(Attack|Skill|Power):Deal {Damage:diff()} damage{Violence: {ViolenceHits:diff()} times|}.|Gain {Block:diff()} [gold]Block[/gold].||???}{HasRider:{Sapping:\nApply {SappingWeak:diff()} [gold]Weak[/gold].\nApply {SappingVulnerable:diff()} [gold]Vulnerable[/gold].|}{Choking:\nWhenever you play a card this turn, the enemy loses {ChokingDamage:diff()} HP.|}{Energized:\nGain {EnergizedEnergy:energyIcons()}.|}{Wisdom:\nDraw {WisdomCards:diff()} cards.|}{Chaos:\nAdd a random card into your [gold]Hand[/gold]. It's free to play this turn.|}{Expertise:Gain {ExpertiseStrength:diff()} [gold]Strength[/gold].\nGain {ExpertiseDexterity:diff()} [gold]Dexterity[/gold].|}{Curious:Powers cost {CuriousReduction:diff()} {energyPrefix:energyIcons(1)} less.|}{Improvement:At the end of combat, [gold]Upgrade[/gold] a random card.|}|{CardType:choose(Attack|Skill|Power):\n???|\n???|???|???}}",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 12,
+  "base_block": null,
+  "effect_vars": {
+   "block": 8,
+   "sapping_weak": 2,
+   "sapping_vulnerable": 2,
+   "violence_hits": 3,
+   "choking_damage": 6,
+   "energized_energy": 2,
+   "wisdom_cards": 3,
+   "expertise_strength": 2,
+   "expertise_dexterity": 2,
+   "curious_reduction": 1,
+   "rider": 0
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 12,
+    "base_block": null,
+    "effect_vars": {
+     "block": 8,
+     "sapping_weak": 2,
+     "sapping_vulnerable": 2,
+     "violence_hits": 3,
+     "choking_damage": 6,
+     "energized_energy": 2,
+     "wisdom_cards": 3,
+     "expertise_strength": 2,
+     "expertise_dexterity": 2,
+     "curious_reduction": 1,
+     "rider": 0
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 12,
+    "base_block": null,
+    "effect_vars": {
+     "block": 8,
+     "sapping_weak": 2,
+     "sapping_vulnerable": 2,
+     "violence_hits": 3,
+     "choking_damage": 6,
+     "energized_energy": 2,
+     "wisdom_cards": 3,
+     "expertise_strength": 2,
+     "expertise_dexterity": 2,
+     "curious_reduction": 1,
+     "rider": 0
+    },
+    "keywords": [
+     "innate"
+    ],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": true,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "MAUL",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Maul",
+  "description": "Deal {Damage:diff()} damage twice.\nIncrease the damage of ALL Maul cards by {Increase:diff()} this combat.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "ANCIENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 5,
+  "base_block": null,
+  "effect_vars": {
+   "increase": 1
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 5,
+    "base_block": null,
+    "effect_vars": {
+     "increase": 1
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 6,
+    "base_block": null,
+    "effect_vars": {
+     "increase": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "METAMORPHOSIS",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Metamorphosis",
+  "description": "Add {Cards:diff()} random Attacks into your [gold]Draw Pile[/gold]. They're free to play this combat.",
+  "cost": 2,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "cards": 3
+  },
+  "variants": {
+   "base": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 3
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 5
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "NEOWS_FURY",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Neow's Fury",
+  "description": "Deal {Damage:diff()} damage.\nPut up to {Cards:diff()} {Cards:plural:card|cards} from your [gold]Discard Pile[/gold] into your [gold]Hand[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 10,
+  "base_block": null,
+  "effect_vars": {
+   "cards": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 10,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 2
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 14,
+    "base_block": null,
+    "effect_vars": {
+     "cards": 2
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "OUTMANEUVER",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Outmaneuver",
+  "description": "Next turn, gain {Energy:energyIcons()}.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {
+   "energy": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "energy": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {
+     "energy": 3
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "PECK",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Peck",
+  "description": "Deal {Damage:diff()} damage {Repeat:diff()} times.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 2,
+  "base_block": null,
+  "effect_vars": {
+   "repeat": 3
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 2,
+    "base_block": null,
+    "effect_vars": {
+     "repeat": 3
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 2,
+    "base_block": null,
+    "effect_vars": {
+     "repeat": 4
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "REBOUND",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Rebound",
+  "description": "Deal {Damage:diff()} damage.\nPut the next card you play this turn on top of your [gold]Draw Pile[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 9,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 9,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 12,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "RELAX",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Relax",
+  "description": "Gain {Block:diff()} [gold]Block[/gold].\nNext turn, draw {Cards:diff()} {Cards:plural:card|cards} and gain {Energy:energyIcons()}.",
+  "cost": 3,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": 15,
+  "effect_vars": {
+   "cards": 2,
+   "energy": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 3,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 15,
+    "effect_vars": {
+     "cards": 2,
+     "energy": 2
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 3,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 17,
+    "effect_vars": {
+     "cards": 3,
+     "energy": 3
+    },
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "RIP_AND_TEAR",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Rip and Tear",
+  "description": "Deal {Damage:diff()} damage to a random enemy twice.",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "RANDOM_ENEMY",
+  "rarity": "UNCOMMON",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 7,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 7,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 9,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "SQUASH",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Squash",
+  "description": "Deal {Damage:diff()} damage.\nApply {VulnerablePower:diff()} [gold]Vulnerable[/gold].",
+  "cost": 1,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 10,
+  "base_block": null,
+  "effect_vars": {
+   "vulnerable": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 10,
+    "base_block": null,
+    "effect_vars": {
+     "vulnerable": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": 12,
+    "base_block": null,
+    "effect_vars": {
+     "vulnerable": 3
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "STACK",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Stack",
+  "description": "Gain [gold]Block[/gold] equal to the number of cards in your [gold]Discard Pile[/gold]{IfUpgraded:show: +{CalculationBase}|}.{InCombat:\n(Gain {CalculatedBlock:diff()} [gold]Block[/gold])|}",
+  "cost": 1,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": 0,
+  "effect_vars": {
+   "calc_base": 0,
+   "calc_extra": 1
+  },
+  "variants": {
+   "base": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 0,
+    "effect_vars": {
+     "calc_base": 0,
+     "calc_extra": 1
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 1,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 3,
+    "effect_vars": {
+     "calc_base": 3,
+     "calc_extra": 1
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "TORIC_TOUGHNESS",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Toric Toughness",
+  "description": "Gain {Block:diff()} [gold]Block[/gold].\nGain {Block:diff()} [gold]Block[/gold] at the start of the next {Turns:diff()} {Turns:plural:turn|turns}.",
+  "cost": 2,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "EVENT",
+  "keywords": [],
+  "tags": [],
+  "flags": {
+   "exhausts": false,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": 5,
+  "effect_vars": {
+   "turns": 2
+  },
+  "variants": {
+   "base": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 5,
+    "effect_vars": {
+     "turns": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 2,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": 7,
+    "effect_vars": {
+     "turns": 2
+    },
+    "keywords": [],
+    "exhausts": false,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "WISH",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Wish",
+  "description": "Put a card from your [gold]Draw Pile[/gold] into your [gold]Hand[/gold].",
+  "cost": 0,
+  "x_cost": false,
+  "type": "SKILL",
+  "target": "SELF",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": null,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 0,
+    "x_cost": false,
+    "base_damage": null,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust",
+     "retain"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": true,
+    "unplayable": false
+   }
+  }
+ },
+ {
+  "id": "WHISTLE",
+  "pool": "event",
+  "multiplayer_only": false,
+  "title": "Whistle",
+  "description": "Deal {Damage:diff()} damage.\n[gold]Stun[/gold] the enemy.",
+  "cost": 3,
+  "x_cost": false,
+  "type": "ATTACK",
+  "target": "ANY_ENEMY",
+  "rarity": "ANCIENT",
+  "keywords": [
+   "exhaust"
+  ],
+  "tags": [],
+  "flags": {
+   "exhausts": true,
+   "ethereal": false,
+   "innate": false,
+   "retain": false,
+   "unplayable": false
+  },
+  "base_damage": 33,
+  "base_block": null,
+  "effect_vars": {},
+  "variants": {
+   "base": {
+    "cost": 3,
+    "x_cost": false,
+    "base_damage": 33,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   },
+   "upgraded": {
+    "cost": 3,
+    "x_cost": false,
+    "base_damage": 44,
+    "base_block": null,
+    "effect_vars": {},
+    "keywords": [
+     "exhaust"
+    ],
+    "exhausts": true,
+    "ethereal": false,
+    "innate": false,
+    "retain": false,
+    "unplayable": false
+   }
+  }
+ },
+ {
   "id": "DISINTEGRATION",
   "pool": "token",
   "multiplayer_only": false,

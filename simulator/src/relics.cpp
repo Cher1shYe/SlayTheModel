@@ -693,6 +693,8 @@ void relics_exhausted(BattleContext &bc, const Card &card) {
 void relics_shuffled(BattleContext &bc) {
     if (relic_has(bc, RelicId::PENDULUM)) bc.draw_cards(1);
     if (relic_has(bc, RelicId::THE_ABACUS)) bc.player.block += 6;
+    // Biiig Hug: after each shuffle, a Soot is added to the draw pile.
+    if (relic_has(bc, RelicId::BIIIG_HUG)) add_to_draw(bc, CardId::SOOT, 1);
 }
 
 void relics_turn_end(BattleContext &bc) {
@@ -930,11 +932,23 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
 
         // event / ancient relics
         case RelicId::ALCHEMICAL_COFFER:
+            // +4 slots and four random potions (C# PotionSlots 4).
             rc.potionSlots = std::min(MAX_POTIONS, rc.potionSlots + 4);
-            fill_potions(rc);
+            for (int i = 0; i < 4 && rc.potionCount < rc.potionSlots; ++i) {
+                add_random_potion(rc);
+            }
             break;
         case RelicId::ARCANE_SCROLL: add_random_deck_card(rc, Rarity::RARE); break;
-        case RelicId::ARCHAIC_TOOTH: transform_random_cards(rc, 1, true, true); break;
+        case RelicId::ARCHAIC_TOOTH: {
+            // Transcendence: the starter card becomes its ancient card
+            // (Ironclad: Bash -> Break), preserving upgrade state.
+            for (int i = 0; i < rc.deckCount; ++i) {
+                if (rc.deck[i].id != CardId::BASH) continue;
+                rc.deck[i].id = CardId::BREAK;
+                break;
+            }
+            break;
+        }
         case RelicId::ASTROLABE: transform_random_cards(rc, 3, true, false); break;
         case RelicId::BIG_MUSHROOM: rc.maxHp += 20; rc.hp += 20; break;
         case RelicId::BIIIG_HUG: remove_random_cards(rc, 4); break;
@@ -943,7 +957,10 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
             break;
         case RelicId::CHOSEN_CHEESE: break;  // applied at combat end
         case RelicId::CLAWS: transform_random_cards(rc, 6, false, false); break;
-        case RelicId::CURSED_PEARL: run_gain_gold(rc, 333); break;
+        case RelicId::CURSED_PEARL:
+            add_deck_card(rc, CardId::GREED);
+            run_gain_gold(rc, 333);
+            break;
         case RelicId::DISTINGUISHED_CAPE:
             rc.maxHp = std::max(1, rc.maxHp - 9);
             rc.hp = std::min(rc.hp, rc.maxHp);
@@ -988,7 +1005,7 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
         case RelicId::NEW_LEAF: transform_random_cards(rc, 1, false, false); break;
         case RelicId::NUTRITIOUS_OYSTER: rc.maxHp += 11; rc.hp += 11; break;
         case RelicId::PAELS_HORN:
-            for (int i = 0; i < 2; ++i) add_deck_card(rc, pick_card_type(rc.runRng[RNG_NICHE], CardType::SKILL));
+            for (int i = 0; i < 2; ++i) add_deck_card(rc, CardId::RELAX);
             break;
         case RelicId::PANDORAS_BOX: transform_random_cards(rc, 99, false, true); break;
         case RelicId::POMANDER: upgrade_random_cards(rc, 1); break;
@@ -1011,7 +1028,7 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
         case RelicId::SIGNET_RING: run_gain_gold(rc, 999); break;
         case RelicId::SILVER_CRUCIBLE: rc.silverCrucibleUses = 3; break;
         case RelicId::SMALL_CAPSULE: rc.add_relic(run_random_relic(rc.runRng[RNG_NICHE], rc)); break;
-        case RelicId::STORYBOOK: add_deck_card(rc, pick_card_type(rc.runRng[RNG_NICHE], CardType::POWER)); break;
+        case RelicId::STORYBOOK: add_deck_card(rc, CardId::BRIGHTEST_FLAME); break;
         case RelicId::TANXS_WHISTLE: add_random_deck_card(rc, Rarity::UNCOMMON, false, true); break;
         case RelicId::TEA_OF_DISCOURTESY: rc.nextCombatDazed = 2; break;
         case RelicId::TOUCH_OF_OROBAS: {

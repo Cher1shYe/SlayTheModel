@@ -170,3 +170,16 @@ def test_relic_damage_combination():
     hp0 = both.monsters[0][1]
     assert play_by_id(both, "Strike")
     assert hp0 - both.monsters[0][1] == 10  # (6 + 1 strength) + 3
+
+
+def test_whispering_earring_can_end_the_combat_on_turn_one():
+    # The opening hand is auto-played, so the battle can already be decided
+    # when init() returns. RunContext must resolve it instead of exposing a
+    # COMBAT screen with no legal actions.
+    bludgeon = card_id("Bludgeon")
+    bc = sim.BattleContext()
+    bc.init(sim.Encounter.SETUP_SHRINKER_BEETLE_WEAK, 1, [bludgeon] * 10,
+            [False] * 10, 0, 80, 80,
+            [int(sim.RelicId.WHISPERING_EARRING)], [])
+    assert bc.outcome == sim.Outcome.PLAYER_VICTORY
+    assert bc.legal_actions() == []

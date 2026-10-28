@@ -211,6 +211,9 @@ void RunContext::init(std::uint32_t seedValue, int ascensionLevel) {
     for (int i = 0; i < PRNG_COUNT; ++i) {
         playerRng[i] = Rng(seed + 1u, PLAYER_RNG_NAMES[i]);
     }
+    // The shared ancients (Darv) are allocated to acts 2/3 before any act's
+    // rooms are generated (C# RunManager.GenerateRooms).
+    event_plan_shared_ancients(*this);
     hp = 80;
     maxHp = 80;
     gold = 99;
@@ -223,8 +226,6 @@ void RunContext::init(std::uint32_t seedValue, int ascensionLevel) {
     for (int i = 0; i < 4; ++i) add_card_to_deck(make_run_card(CardId::DEFEND_IRONCLAD, false));
     add_card_to_deck(make_run_card(CardId::BASH, false));
     start_act(0);
-    // Every standard run starts inside the act-1 Ancient event.
-    enter_map_point(map.startIdx);
 }
 
 void RunContext::roll_act_rooms() {
@@ -284,6 +285,8 @@ void RunContext::roll_act_rooms() {
         const int j = rng.next_int(0, i);
         std::swap(eventBag[i], eventBag[j]);
     }
+    // ActModel.GenerateRooms picks the Ancient last, from the same stream.
+    ancientId = static_cast<std::int8_t>(event_pick_ancient(*this));
 }
 
 void RunContext::start_act(int actIndex) {
@@ -299,6 +302,9 @@ void RunContext::start_act(int actIndex) {
     generate_act_map(map, mapRng, actIndex);
     roll_act_rooms();
     screen = RunScreen::MAP;
+    // Every act begins at its Ancient node (Neow in act 1, the act 2/3 Ancient
+    // otherwise); entering it opens the event.
+    enter_map_point(map.startIdx);
 }
 
 void RunContext::add_potion(PotionId id) {
@@ -388,6 +394,11 @@ void RunContext::begin_combat(Encounter enc) {
     }
     inBattle = true;
     screen = RunScreen::COMBAT;
+    // A combat can already be decided on turn 1 (Whispering Earring auto-plays
+    // the opening hand, and a relic damage effect can finish the encounter
+    // before the player acts). Resolve it now; leaving screen=COMBAT with no
+    // legal actions stalls the run.
+    if (battle.outcome != Outcome::UNDECIDED) finish_combat();
 }
 
 void RunContext::roll_card_reward(bool boss) {
@@ -642,7 +653,7 @@ void RunContext::enter_map_point(int nodeIdx) {
     RoomType room = RoomType::MONSTER;
     switch (point) {
         case MapPointType::ANCIENT:
-            event_begin(*this, event_ancient_for_act(act), true);
+            event_begin(*this, event_ancient_for_act(*this), true);
             return;
         case MapPointType::UNKNOWN:
             room = static_cast<RoomType>(roll_unknown_room_type());
@@ -726,6 +737,8 @@ void RunContext::finish_combat() {
     inBattle = false;
     sync_potions_from_battle();
     sync_relics_from_battle();
+    // Seal of Gold spends real run gold during combat.
+    gold = std::max(0, battle.gold);
     const bool eventFight = eventCombat;
     if (battle.outcome == Outcome::PLAYER_VICTORY) {
         hp = battle.player.hp;

@@ -90,8 +90,11 @@ with stream counters that participate in snapshots and in the state hash.
    - Treasure: 42-52 gold and a rarity-rolled relic, respecting Silver Crucible.
 4. Boss victory offers a boss card reward. After acts 1/2 the next act map is
    generated and entered; after act 3 the run is won. Combats can kill the run.
-5. Acts 2/3 Ancient rooms are not placed; the opening Ancient exists only at the
-   start of act 1 (documented as UNSUPPORTED for acts 2/3).
+5. Every act starts at its Ancient node: act 1 rolls Neow, act 2 rolls one of
+   Orobas/Pael/Tezcatara, act 3 rolls one of Nonupeipe/Tanx/Vakuu, and the shared
+   Darv is assigned to at most one of acts 2/3. Offer pools follow the C#
+   generators; each option grants its relic (secondary relic effects are listed
+   in the coverage manifest).
 
 ## Economy and rewards
 
@@ -145,7 +148,7 @@ hidden event outcomes.
 - every card playable, every potion usable, every implemented relic surviving a
   combat, every event relic obtainable;
 - automated full A0 Ironclad wins from the opening Ancient to the act-3 boss
-  (seeds 26 and 32 in the checked-in deterministic heuristic); and
+  (seeds 24 and 32 in the checked-in deterministic heuristic); and
 - one training step for each Python head.
 
 Run `python -m pytest tests -q`; build notes are in `README.md`.
@@ -155,6 +158,8 @@ Run `python -m pytest tests -q`; build notes are in `README.md`.
 - Other characters, act 4, and other game modes.
 - UI-level card/enchantment/potion selection; events needing them use
   deterministic substitutes and are marked APPROXIMATE.
-- Curses outside combat, pets, and map-manipulation event relics.
+- Pets and map-manipulation event relics. Curses are modelled as cards,
+  including their in-combat end-of-turn effects and Normality's play
+  restriction.
 - Byte-exact reproduction of every reference RNG-consumption call; behavior is
   golden-traced where possible and otherwise documented as approximate.

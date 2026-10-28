@@ -12,7 +12,7 @@ constexpr int COMBAT_OBS_DIM = 21 + MAX_MONSTERS * 10;
 // Versioned public schema.  Anything a player can see is encoded; RNG state,
 // draw order and future intents are not.  Bump both versions when the layout
 // changes and keep old checkpoints loadable only by their matching version.
-constexpr int PUBLIC_OBS_VERSION = 2;
+constexpr int PUBLIC_OBS_VERSION = 3;
 constexpr int ACTION_SCHEMA_VERSION = 2;
 
 constexpr int PUB_BASE = 20;
@@ -30,7 +30,8 @@ constexpr int POWER_COUNT = static_cast<int>(PowerId::COUNT);
 
 constexpr int PUBLIC_RUN_DIM =
     PUB_BASE + PUB_SCREENS + static_cast<int>(CardId::COUNT) + 2 * RELIC_COUNT +
-    POTION_COUNT + MAP_MAX_POINTS * PUB_MAP_FEAT + PUB_EVENT_N + PUB_EVENT_CHOICES * PUB_EVENT_FEAT + 4 +
+    POTION_COUNT + MAP_MAX_POINTS * PUB_MAP_FEAT + PUB_EVENT_N +
+    PUB_EVENT_CHOICES * (PUB_EVENT_FEAT + RELIC_COUNT) + 4 +
     PUB_CARD_REWARD_N * CARD_FEAT_DIM + MAX_SHOP_CARDS * (CARD_FEAT_DIM + 2) +
     MAX_SHOP_RELICS * (RELIC_COUNT + 2) + MAX_SHOP_POTIONS * (POTION_COUNT + 2) + PUB_SHOP_META;
 

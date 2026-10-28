@@ -7,7 +7,7 @@ namespace sts2 {
 constexpr int MAX_HAND = 10;
 constexpr int MAX_PILE = 160;
 constexpr int MAX_MONSTERS = 4;
-constexpr int MAX_POTIONS = 5;
+constexpr int MAX_POTIONS = 12;
 constexpr int BASE_POTION_SLOTS = 3;
 constexpr int MAX_RELICS = 32;
 
@@ -147,6 +147,10 @@ struct BattleContext {
     bool inMonsterTurn = false;
     int turn1Energy = 0;
     int gold = 0;
+    int nextTurnEnergy = 0;
+    int nextTurnDraw = 0;
+    bool weakSkipTick = false;   // Doubt/Shame: skip the tick at this turn's end
+    bool frailSkipTick = false;
     Card lastPlayedCard{};
     bool hasLastPlayed = false;
 
@@ -169,6 +173,10 @@ struct BattleContext {
 
     [[nodiscard]] std::vector<Action> legal_actions() const;
     bool step(const Action &action);
+
+    // Determinization for player-usable search: shuffle zones whose order the
+    // player cannot see (draw/discard) and replace the hidden future-RNG stream.
+    void resample_hidden(std::uint32_t seed);
 
     void start_player_turn();
     void end_player_turn();

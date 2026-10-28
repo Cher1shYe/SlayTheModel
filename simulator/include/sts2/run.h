@@ -61,6 +61,8 @@ struct RunContext {
     std::uint64_t visitedLo = 0;
     std::uint64_t visitedHi = 0;
     std::int8_t lastPointType = 0;
+    std::int8_t ancientId = 0;              // EventId of this act's Ancient
+    bool sharedAncientInAct[MAX_ACTS]{};    // Darv assignment (C# GenerateRooms)
 
     // --- deck ---------------------------------------------------------------
     Card deck[MAX_DECK]{};
@@ -209,7 +211,10 @@ struct EventInfo {
 const EventInfo *event_info(int id);
 int event_count();
 int event_pool_for_act(int act, int *out, int maxOut);  // implemented-only ids
-int event_ancient_for_act(int act);
+int event_ancient_for_act(int act);  // legacy: act 1 -> Neow
+int event_ancient_for_act(const RunContext &rc);
+void event_plan_shared_ancients(RunContext &rc);
+int event_pick_ancient(RunContext &rc);
 void event_begin(RunContext &rc, int eventId, bool ancient);
 int event_option_count(const RunContext &rc);
 bool event_option_available(const RunContext &rc, int option);

@@ -17,6 +17,16 @@ static void remove_at(Card *arr, int &count, int idx) {
     --count;
 }
 
+// Normality: while it is in hand, no more cards can be played once three have
+// been played this turn (C# Normality.ShouldPlay).
+static bool normality_blocks(const BattleContext &bc) {
+    if (bc.cardsPlayedThisTurn < 3) return false;
+    for (int i = 0; i < bc.handCount; ++i) {
+        if (bc.hand[i].id == CardId::NORMALITY) return true;
+    }
+    return false;
+}
+
 int &power_ref(Player &p, PowerId id) {
     switch (id) {
         case PowerId::STRENGTH: return p.strength;
@@ -145,6 +155,25 @@ Card *BattleContext::find_in_draw(std::uint16_t uid) {
 
 // ---------------------------------------------------------------- turn flow
 
+void BattleContext::resample_hidden(std::uint32_t seed) {
+    Rng shuffle(seed);
+    for (int i = drawCount - 1; i > 0; --i) {
+        const int j = shuffle.next_int(0, i);
+        Card t = draw[i];
+        draw[i] = draw[j];
+        draw[j] = t;
+    }
+    for (int i = discardCount - 1; i > 0; --i) {
+        const int j = shuffle.next_int(0, i);
+        Card t = discard[i];
+        discard[i] = discard[j];
+        discard[j] = t;
+    }
+    // The future monster-AI / shuffle rolls are hidden from the player.
+    rng = Rng(seed ^ 0x9E3779B9u);
+    potionRng = Rng(seed ^ 0x5F3759DFu);
+}
+
 void BattleContext::start_player_turn() {
     ++turn;
     // PlatingPower.BeforeSideTurnStart: at the start of round 1 enemies gain
@@ -167,7 +196,8 @@ void BattleContext::start_player_turn() {
     }
     int baseEnergy = player.energyPerTurn;
     if (player_power(PowerId::PYRE) > 0) baseEnergy += player_power(PowerId::PYRE);
-    player.energy = relics_energy_for_turn(*this, baseEnergy);
+    player.energy = relics_energy_for_turn(*this, baseEnergy) + nextTurnEnergy;
+    nextTurnEnergy = 0;
 
     cardsPlayedThisTurn = 0;
     attacksPlayedThisTurn = 0;
@@ -207,7 +237,17 @@ void BattleContext::start_player_turn() {
     for (int i = 0; i < returnNextTurnCount; ++i) add_card_to_hand(returnNextTurn[i]);
     returnNextTurnCount = 0;
 
-    draw_cards(relics_modify_draw(*this, player.drawPerTurn));
+    // Innate: start each combat with these cards in hand.
+    if (turn == 1) {
+        for (int i = drawCount - 1; i >= 0; --i) {
+            if (!card_has(draw[i], CF_INNATE)) continue;
+            Card c = draw[i];
+            remove_at(draw, drawCount, i);
+            add_card_to_hand(c);
+        }
+    }
+    draw_cards(relics_modify_draw(*this, player.drawPerTurn) + nextTurnDraw);
+    nextTurnDraw = 0;
     if (outcome != Outcome::UNDECIDED) return;
     relics_hand_drawn(*this);
 
@@ -336,8 +376,10 @@ void BattleContext::end_player_turn() {
         }
     }
     if (player.vulnerable > 0) --player.vulnerable;
-    if (player.weak > 0) --player.weak;
-    if (player.frail > 0) --player.frail;
+    if (player.weak > 0 && !weakSkipTick) --player.weak;
+    if (player.frail > 0 && !frailSkipTick) --player.frail;
+    weakSkipTick = false;
+    frailSkipTick = false;
     if (player_power(PowerId::SHRINK) > 0) add_player_power(PowerId::SHRINK, -1);
     add_player_power(PowerId::FLAME_BARRIER, 0);
     player.power[static_cast<int>(PowerId::FLAME_BARRIER)] = 0;
@@ -403,7 +445,8 @@ void BattleContext::draw_cards(int count) {
 }
 
 void BattleContext::discard_hand() {
-    // end-of-turn in-hand status triggers
+    // end-of-turn in-hand status/curses triggers (C# HasTurnEndInHandEffect).
+    const int handAtEnd = handCount;
     for (int i = 0; i < handCount && outcome == Outcome::UNDECIDED; ++i) {
         const Card &c = hand[i];
         switch (c.id) {
@@ -415,6 +458,32 @@ void BattleContext::discard_hand() {
             case CardId::BECKON:
                 lose_hp(card_var(c, VarId::HP_LOSS));
                 break;
+            // Curses -----------------------------------------------------
+            case CardId::DECAY:  // DamageVar 2, unpowered but blockable
+                damage_player(card_var(c, VarId::DAMAGE));
+                break;
+            case CardId::BAD_LUCK:  // 13 unblockable/unpowered
+                lose_hp(card_var(c, VarId::HP_LOSS));
+                break;
+            case CardId::REGRET:  // HP loss equal to cards in hand at turn end
+                lose_hp(handAtEnd);
+                break;
+            case CardId::DOUBT: {
+                // Apply 1 Weak; an existing Weak keeps its normal tick.
+                if (player.weak == 0) weakSkipTick = true;
+                player.weak += card_var(c, VarId::WEAK);
+                break;
+            }
+            case CardId::SHAME: {
+                if (player.frail == 0) frailSkipTick = true;
+                player.frail += card_var(c, VarId::FRAIL);
+                break;
+            }
+            case CardId::DEBT: {
+                const int loss = std::min(card_var(c, VarId::GOLD), gold);
+                gold -= loss;
+                break;
+            }
             default:
                 break;
         }
@@ -1055,7 +1124,8 @@ std::vector<Action> BattleContext::legal_actions() const {
     Action end;
     end.type = ActionType::END_TURN;
     actions.push_back(end);
-    for (int i = 0; i < handCount; ++i) {
+    const bool noMoreCards = normality_blocks(*this);
+    for (int i = 0; i < handCount && !noMoreCards; ++i) {
         const Card &c = hand[i];
         if (!card_is_playable(c)) continue;
         if (c.id == CardId::PACTS_END && exhaustCount < card_var(c, VarId::CARDS)) continue;
@@ -1133,6 +1203,7 @@ bool BattleContext::step(const Action &action) {
     }
     if (action.type == ActionType::PLAY_CARD) {
         if (action.hand >= handCount) return false;
+        if (normality_blocks(*this)) return false;
         const Card &c = hand[action.hand];
         if (!card_is_playable(c)) return false;
         if (c.id == CardId::PACTS_END && exhaustCount < card_var(c, VarId::CARDS)) return false;
@@ -1159,6 +1230,7 @@ bool BattleContext::step(const Action &action) {
 
 void BattleContext::play_card(int handIdx, int target) {
     if (handIdx < 0 || handIdx >= handCount) return;
+    if (normality_blocks(*this)) return;
     Card card = hand[handIdx];
     int cost = card_cost(card);
     if (player_power(PowerId::CORRUPTION) > 0 && card_is_skill(card)) cost = 0;

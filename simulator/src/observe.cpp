@@ -300,6 +300,8 @@ std::vector<float> public_observation(const RunContext &rc) {
         v.push_back(rc.eventRelics[i] / 300.0f);
         v.push_back(rc.eventCombat ? 1.0f : 0.0f);
         v.push_back(i == rc.eventPage ? 1.0f : 0.0f);
+        // Relic offers (Ancients): identity is part of the visible choice.
+        push_one_hot(v, rc.eventRelics[i], RELIC_COUNT);
     }
     for (int i = 0; i < 4; ++i) v.push_back(rc.eventData[i] / 100.0f);
 

@@ -23,8 +23,8 @@ def main() -> None:
     ref = pathlib.Path(args.ref).resolve()
     sys.path.insert(0, str(ref))
     from sts2_env.cards.factory import (  # noqa: PLC0415
-        CHARACTER_CARD_POOLS_BY_ID, COLORLESS_CARD_POOL, STATUS_CARD_POOL,
-        TOKEN_CARD_POOL, create_card)
+        CHARACTER_CARD_POOLS_BY_ID, COLORLESS_CARD_POOL, CURSE_CARD_POOL,
+        EVENT_CARD_POOL, STATUS_CARD_POOL, TOKEN_CARD_POOL, create_card)
     from sts2_env.core.card_pools import CardPoolId  # noqa: PLC0415
     from sts2_env.cards.factory import is_multiplayer_only_card  # noqa: PLC0415
 
@@ -43,6 +43,8 @@ def main() -> None:
     pools = [("ironclad", c) for c in CHARACTER_CARD_POOLS_BY_ID[CardPoolId.IRONCLAD]]
     pools += [("colorless", c) for c in COLORLESS_CARD_POOL]
     pools += [("status", c) for c in STATUS_CARD_POOL]
+    pools += [("curse", c) for c in CURSE_CARD_POOL]
+    pools += [("event", c) for c in EVENT_CARD_POOL]
     pools += [("token", c) for c in TOKEN_CARD_POOL]
     for pool, cid in pools:
         variants = {}
