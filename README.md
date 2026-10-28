@@ -165,6 +165,7 @@ This machine, MinGW -O3, single thread:
 | Python `RunEnv` + heuristic policy | 19.9 completed runs/s, 6310 env steps/s, 270 combats/s |
 | Root search, oracle, 32 sims/decision | 90,479 completed sims/s (2827 decisions/s) |
 | Root search, resampled hidden zones, 32 sims/decision | 55,280 completed sims/s (1728 decisions/s) |
+| Resampled search, 64 sims/decision, 1 / 2 / 4 threads | 136,665 / 240,766 / 330,999 sims/s |
 | Network + search self-play | 3917 sims/s, 490 valid samples/s, 633 env steps/s |
 | C++ native greedy combats (Shrinker Beetle, 2.9 turns) | ~240,000 combats/s |
 | C++ native greedy combats (Cultists, 6.2 turns) | ~130,000 combats/s |
