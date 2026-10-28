@@ -18,9 +18,9 @@ from .common import (
     card_feature_array,
     new_run,
     public_observation,
-    screen_action,
     sim,
 )
+from .heuristics import run_policy
 from .nets import CardScorer, load_checkpoint, save_checkpoint
 
 
@@ -72,7 +72,7 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False,
             if not ok:
                 break
             continue
-        if not rc.step(*screen_action(rc)):
+        if not rc.step(*run_policy(rc)):
             break
     else:
         status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"

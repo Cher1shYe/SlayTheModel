@@ -14,9 +14,11 @@ struct SearchResult {
 Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon = 0.0);
 double rollout(BattleContext &bc, Rng &rng, double epsilon = 0.05, int maxSteps = 500);
 SearchResult search(const BattleContext &root, int simulations, double c = 1.5,
-                    double epsilon = 0.05, std::uint32_t seed = 0);
+                    double epsilon = 0.05, std::uint32_t seed = 0,
+                    bool resample_hidden = false);
 SearchResult search_priors(const BattleContext &root, int simulations,
                            const std::vector<double> &priors, double c = 1.5,
-                           double epsilon = 0.05, std::uint32_t seed = 0);
+                           double epsilon = 0.05, std::uint32_t seed = 0,
+                           bool resample_hidden = false);
 
 }  // namespace sts2

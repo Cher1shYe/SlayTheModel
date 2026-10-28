@@ -14,7 +14,8 @@ all content unlocked, Ironclad, Ascension 0**: one complete climb from the
 opening Ancient through acts 1-3 to victory or death. The rules contract and the
 per-item coverage manifest are in
 [`docs/a0-ironclad-contract.md`](docs/a0-ironclad-contract.md) and
-[`docs/a0-ironclad-coverage.md`](docs/a0-ironclad-coverage.md).
+[`docs/a0-ironclad-coverage.md`](docs/a0-ironclad-coverage.md); evaluation
+protocol and fixed-seed results are in [`docs/evaluation.md`](docs/evaluation.md).
 Decompiled game code was consulted locally as a behavior reference; no game
 assemblies or assets are committed here.
 
@@ -33,12 +34,14 @@ agent/
   run_env.py               training-facing full-run env, JSONL, thread-pool batch
   heuristics.py            baseline run/combat policies used by the tests
   nets.py                  CardScorer (run-level), CombatNet (combat policy/value)
+  policy.py                strategy entry points for every run screen + eval summary
   card_train.py            REINFORCE card-selection training
-  selfplay.py              PUCT self-play training (C++ search, network priors)
+  selfplay.py              root-PUCT self-play training (C++ search, network priors)
 deployment/
   train_local.py           CLI: card | selfplay | benchmark
-  benchmark_speed.py       throughput numbers
-  selfplay_compare.py      evaluate two checkpoints
+  benchmark_speed.py       throughput numbers (completed runs/simulations only)
+  evaluate.py              fixed-seed evaluation: heuristic vs network vs search
+  selfplay_compare.py      evaluate two checkpoints against the heuristic baseline
 docs/                      rules contract + generated coverage manifest
 tests/test_smoke.py        engine, run, determinism, coverage and training checks
 ```
@@ -76,6 +79,12 @@ python -m deployment.train_local card     # card-selection REINFORCE
 python -m deployment.train_local selfplay # combat self-play
 python -m deployment.train_local benchmark
 pytest tests -q
+python -m deployment.evaluate --split test --seeds 1000 \
+    --combat-checkpoint runs/v3/selfplay/combat.pt \
+    --card-checkpoint runs/v3/card/card.pt \
+    --strategies heuristic,network,network_combat,network_cards,search_resampled
+python -m deployment.selfplay_compare --kind combat --split val --seeds 500 \
+    --a runs/v3/selfplay/combat.pt --simulations 16 --resample
 simulator/bench.exe run 2000             # full-run throughput, greedy policy
 simulator/bench.exe map 500              # map-generation throughput
 simulator/bench.exe 10000                # combat throughput (Shrinker Beetle)
@@ -104,7 +113,25 @@ play_and_log(26, run_policy, combat_policy, "runs/traj.jsonl")
 ```
 
 Checkpoints go to `runs/card/card.pt` and `runs/selfplay/combat.pt`; both
-scripts accept `--resume` and `--out-dir`.
+scripts accept `--resume` and `--out-dir`. Current models:
+
+- `runs/v3/card/card.pt` — card reward model (comparable to the heuristic card
+  policy on validation seeds).
+- `runs/v4/selfplay/combat.pt` — visit-target combat self-play.
+- `runs/v4b/selfplay/combat.pt` — value-target combat self-play
+  (`--target value`); used with root search in the final evaluation.
+
+Older checkpoints are left in place. See `docs/evaluation.md` for the fixed-seed
+comparison.
+
+Seed splits are disjoint and fixed in `agent/policy.py`: train `10,000,000+`,
+val `20,000,000+`, test `30,000,000+`. `search` is oracle root search over the
+true draw order; `search_resampled` re-draws hidden draw/discard zones and the
+future RNG stream per simulation and is the only search variant quoted as
+player-usable. Search visits each root action once in descending-prior order
+before PUCT, so a peaked network prior cannot collapse the budget onto one
+action. `network_combat` (network combat + heuristic cards) and `network_cards`
+(heuristic combat + network cards) separate the two learned heads.
 
 ## Full-run model
 
@@ -133,13 +160,19 @@ This machine, MinGW -O3, single thread:
 
 | Path | Result |
 | --- | --- |
-| C++ native greedy full runs | ~64 runs/s (~470 combat rooms/s) |
-| C++ map generation | ~180 maps/s; ~5–12 ms per act map |
-| Python `RunEnv` + heuristic 1-ply policy | ~41 runs/s (1 worker) |
-| Python `RunEnv` batch, 2 / 4 / 8 workers | ~44 / 34 / 30 runs/s (policy loop is GIL-bound; native calls release the GIL) |
+| C++ native greedy full runs | 102.3 runs/s, 3535 combats, mean floor 12.4 |
+| C++ map generation | 9.08 ms/run init inside the full-run benchmark |
+| Python `RunEnv` + heuristic policy | 19.9 completed runs/s, 6310 env steps/s, 270 combats/s |
+| Root search, oracle, 32 sims/decision | 90,479 completed sims/s (2827 decisions/s) |
+| Root search, resampled hidden zones, 32 sims/decision | 55,280 completed sims/s (1728 decisions/s) |
+| Network + search self-play | 3917 sims/s, 490 valid samples/s, 633 env steps/s |
 | C++ native greedy combats (Shrinker Beetle, 2.9 turns) | ~240,000 combats/s |
 | C++ native greedy combats (Cultists, 6.2 turns) | ~130,000 combats/s |
-| C++ MCTS | measured separately via `bench.exe <n> <encounter> <sims>` |
+
+Numbers come from `python -m deployment.benchmark_speed --runs 500
+--simulations 8 --mcts-sims 32 --mcts-decisions 300` (single thread) and only
+count completed runs/simulations. Batch worker scaling is GIL-bound in the
+Python policy loop; native search releases the GIL.
 
 A full run spends almost all of its native time generating the act map
 (~90% of `init`); combat itself is ~1.5 µs per action. Map generation is
@@ -155,10 +188,11 @@ self-play/search threads scale; Python-side policy bookkeeping does not.
 
 | Constant | Size | Contents |
 | --- | --- | --- |
-| `RUN_OBS_DIM` | 192 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
-| `CARD_FEAT_DIM` | 191 | card one-hot, cost, type, rarity, upgrade, price |
+| `RUN_OBS_DIM` | 237 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
+| `PUBLIC_OBS_DIM` | 13929 | schema v3 public run + combat observation, event-choice relic one-hots |
+| `CARD_FEAT_DIM` | 236 | card one-hot, cost, type, rarity, upgrade, price |
 | `COMBAT_OBS_DIM` | 61 | player status block + 4 monster slots |
-| `ACTION_FEAT_DIM` | 188 | action type, card one-hot, cost, target, damage/block |
+| `ACTION_FEAT_DIM` | 304 | action schema v2: type, card/potion one-hot, cost, target, damage/block |
 
 `observe_public()` exposes only player-visible information (deck, resources,
 visible map, in-combat hand/piles/intents); draw order, future intents, RNG
@@ -169,9 +203,11 @@ state and hidden event outcomes are not included.
 Generated from the reference engine by `simulator/tools/dump_*.py` and
 `gen_*.py` (cards, monsters, potions, relics):
 
-- **176 cards**: 87 Ironclad, 64 colorless, 11 status, 14 tokens. All 163
-  single-player cards are playable; the 13 multiplayer-only cards are present
-  but inert and marked UNSUPPORTED.
+- **221 cards**: 87 Ironclad, 64 colorless, 11 status, 14 tokens, 18 curses,
+  27 event cards. All single-player cards are playable; multiplayer-only cards
+  are present but inert and marked UNSUPPORTED. Curses are real cards: Decay,
+  Regret, Bad Luck, Doubt, Shame and Debt apply their end-of-turn effects, and
+  Normality blocks playing more than three cards in a turn.
 - **108 monsters / 89 A0 encounters** with reference AI state machines, intents,
   random/conditional branches, repeats, summons and recorded move effects. 62
   encounters are in the acts 1-3 climb plus the Dense Vegetation event fight;
@@ -183,31 +219,39 @@ Generated from the reference engine by `simulator/tools/dump_*.py` and
 - **289 relics, 241 implemented**: all 132 event/ancient relics, all 8
   Ironclad-pool relics and 101 of 116 shared relics. Only implemented relics
   enter random drop pools. Rest sites expose Shovel Dig and Girya Lift.
-- **47 events**: 3 implemented, 15 approximate (deterministic substitutes for
-  card/enchantment/curse UIs), 29 unsupported and excluded from event bags.
-  Neow (opening Ancient) is approximate because curse card effects are not
-  modeled.
+- **54 events**: 3 fully executable, 22 approximate (deterministic substitutes
+  for card/enchantment UIs and curated event-relic effects), 29 unsupported and
+  excluded from event bags. All seven Ancients (Neow, Orobas, Pael,
+  Tezcatara, Nonupeipe, Tanx, Vakuu) and shared Darv generate their C# offer
+  pools and grant the chosen relic.
 - **Map**: standard 7-column act maps with 15/14/13 rooms; the generated map and
   its room counts are covered by golden tests.
 
 Known approximations (full list in the coverage manifest): event
-card/enchantment selection uses RNG substitutes, curses are absent outside
-combat, some event relics needing enchantments/pets/map manipulation are no-ops
-or substitutes, potion rewards auto-add when slots are free, and the exact
-tagged GrabBag ordering is approximated. Acts 2/3 Ancient rooms and act 4 are
-unsupported. Card text is never parsed; semantics follow the reference effect
-code.
+card/enchantment selection uses RNG substitutes, enchantments remain
+approximated by upgrades, some event relics needing enchantments/pets/map
+manipulation are no-ops or substitutes, potion rewards auto-add when slots are
+free, and the exact tagged GrabBag ordering is approximated. Act 4 is out of
+scope. Card text is never parsed; semantics follow the reference effect code.
 
 ## Verification
 
-`pytest tests -q` (22 tests) checks observation/action dimensions, the full
+`pytest tests -q` (77 tests) checks observation/action dimensions, the full
 event manifest gating, every card/potion/implemented relic, map golden hashes
 and structural invariants, deterministic replay and snapshot/restore equality,
-room/economy transitions, boss reward/act changes, JSONL output, and automated
-A0 Ironclad wins from the opening Ancient to the act-3 boss (seeds 26 and 32).
+room/economy transitions, boss reward/act changes, JSONL output, Ancient offer
+pools and grants, curse mechanics, search resampling/completed-simulation
+accounting, and automated A0 Ironclad wins from the opening Ancient to the
+act-3 boss (seeds 24 and 32).
 Differential traces against a live headless client are not available in this
 environment; unverified behavior is marked APPROXIMATE/UNSUPPORTED rather than
 claimed exact.
+
+Current fixed-seed status (1000 test seeds, 16-simulation search) is in
+[`docs/evaluation.md`](docs/evaluation.md): the heuristic wins 10.2%, the card
+model with heuristic combat wins 10.9%, the v4b combat network wins 1.5%, and
+the same network with resampled root search wins 4.8%. The combat model is still
+below the heuristic baseline; the card model is comparable, not proven better.
 
 The Python package `sts2_env` was removed per the pure-C++ requirement; the
 reference engine remains at

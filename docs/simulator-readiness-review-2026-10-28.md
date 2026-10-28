@@ -114,3 +114,19 @@
 5. 根据真实训练负载优化地图初始化、进程或原生批处理、批量推理及 GIL 释放；同时报告环境步/s、有效训练样本/s和局长。
 
 当前不需要先堆 GPU 或追求更高的卡牌计数。最有价值的下一步是让现有内容和训练样本可信。
+
+## 修复状态（同日后续提交）
+
+本节记录上述检查后的改动，不修改上面的原始发现，便于对照。
+
+- **规则错误**：Sword Boomerang 的伤害修正只计算一次；Mangle/Dark Shackles 的临时力量恢复符号和登记已修正；Alchemize 接入真实药水系统。每项都有带前后状态的语义测试（`tests/test_effects.py`）。
+- **怪物生成/运行**：未知条件不再默认恒真，生成器遇到未映射分支直接报错；运行期条件按参考源码显式实现，Lagavulin 的 ASLEEP 有回归测试。静态源码给出端点的 HP 区间标为 `static`，只有采样值的标为 `sampled_only`，不再把少量样本的极值当真实区间。
+- **训练样本与终止语义**：训练器不再固定选择事件选项 0；所有屏幕使用合法动作；episode 状态区分 `terminated`/`truncated`/`error`，异常 episode 不进入训练；评估报告异常率。
+- **观测与动作**：公开观测升级到 schema v3（13929 维），包含完整手牌、遗物/药水、可见地图与候选对象；动作 schema v2 编码 USE_POTION 及药水身份、CHOOSE 的非手牌候选。checkpoint 带 obs/action 版本与参数形状校验，不匹配时拒绝加载。
+- **战斗开局即结束**：Whispering Earring 会把起手牌全部自动打出，可能在第 1 回合开始前就结束战斗。此前 `RunContext` 会停在 `COMBAT` 且没有合法动作，训练器直接崩溃；现在 `begin_combat` 检测到已判定结果就立即走 `finish_combat`，并有语义测试覆盖。
+- **搜索**：明确为“根节点 PUCT + 贪心 rollout”，不是完整多层 MCTS，value head 不参与搜索；oracle 与隐藏信息重采样（`resample_hidden`）分开评估；搜索入口释放 GIL；基准只统计真正完成的 simulation。修复了带先验的低模拟数搜索只访问单一动作的问题（先按先验顺序给每个根动作一次访问，再进入 PUCT）。
+- **内容**：事件从 47 增至 54（3 个可执行、22 个近似、29 个排除）；第 2/3 幕 Ancient（Orobas/Pael/Tezcatara/Nonupeipe/Tanx/Vakuu 与共享 Darv）按 C# 选项池生成并可授予遗物；诅咒成为真实卡牌（含回合结束效果与 Normality 限制），新增 27 张事件卡。
+- **覆盖口径**：`docs/a0-ironclad-coverage.md` 区分 EXECUTABLE/EFFECT_TESTED/APPROXIMATE/UNSUPPORTED，事件遗物与不可达事件卡单独标注，不再笼统标 IMPLEMENTED。
+- **评估**：固定且不相交的 train/val/test 种子区间；比较 heuristic、纯网络、网络+搜索；报告胜率、Wilson 95% CI、幕到达、失血、异常率。当前结果与复现命令见 `docs/evaluation.md`。
+
+仍未解决：没有真实客户端逐步轨迹，因此没有任何项目标为 reference-validated；附魔仍用升级替代；29 个事件仍排除；战斗网络在 1000 个独立测试种子上胜率 1.5%，带重采样根搜索 4.8%，仍低于启发式 10.2%；选卡模型 10.9%，与基线相当但没有证明更强。详见 `docs/evaluation.md`。

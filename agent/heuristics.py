@@ -98,7 +98,12 @@ def combat_policy(env) -> tuple:
 
 
 def run_policy(env) -> tuple:
-    rc = env.rc
+    """Deterministic policy for every non-combat screen.
+
+    Accepts a RunEnv or a bare RunContext (the non-combat screens only read
+    run state).
+    """
+    rc = getattr(env, "rc", env)
     screen = rc.screen
     legal = [(int(t), int(i)) for t, i in rc.legal_actions()]
     if screen == SCREEN.MAP:

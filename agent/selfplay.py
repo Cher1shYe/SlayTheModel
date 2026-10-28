@@ -23,9 +23,9 @@ from .common import (
     combat_action_arrays,
     new_run,
     public_combat_observation,
-    screen_action,
     sim,
 )
+from .heuristics import run_policy
 from .nets import CombatNet, load_checkpoint, save_checkpoint
 
 
@@ -41,12 +41,14 @@ class Episode:
 
 
 def play_episode(seed: int, model: CombatNet, simulations: int = 16,
-                 sample: bool = True, epsilon: float = 0.05) -> dict:
+                 sample: bool = True, epsilon: float = 0.05,
+                 target_mode: str = "visits", value_temperature: float = 0.5) -> dict:
     rc = new_run(seed)
     rng = np.random.default_rng(seed)
     records: list[Episode] = []
     combat_start = 0
     steps = 0
+    simulations_done = 0
     status = "error"
     while rc.screen != SCREEN.RUN_OVER and steps < 5000:
         steps += 1
@@ -60,17 +62,29 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
                 logits, _value = model.policy_value(
                     torch.from_numpy(state)[None], torch.from_numpy(feats)[None])
                 probs = torch.softmax(logits[0], dim=-1).numpy().astype(np.float64)
-                s_actions, visits, _values, sims_done = bc.search_priors(
-                    simulations, probs.tolist(), 1.5, 0.05, seed & 0x7FFFFFFF)
+                s_actions, visits, values, sims_done = bc.search_priors(
+                    simulations, probs.tolist(), 1.5, 0.05, seed & 0x7FFFFFFF,
+                    resample=True)
+                simulations_done += int(sims_done)
                 visits = np.asarray(visits, dtype=np.float32)
                 if visits.sum() <= 0:
                     visits = probs.astype(np.float32)
-                target = visits / max(1e-8, float(visits.sum()))
+                if target_mode == "value":
+                    # PUCT with few simulations spreads visits nearly uniformly;
+                    # use the mean rollout value per root action as the target.
+                    means = np.asarray(values, dtype=np.float32) / np.maximum(visits, 1)
+                    means = np.where(visits > 0, means, -1.0)
+                    z = (means - means.max()) / value_temperature
+                    target = np.exp(z) * (visits > 0)
+                else:
+                    target = visits
+                target = target / max(1e-8, float(target.sum()))
                 records.append(Episode(state, feats, target))
                 if sample and rng.random() < epsilon:
                     idx = int(rng.integers(0, len(visits)))
                 elif sample:
-                    idx = int(rng.choice(len(visits), p=target.astype(np.float64) / target.sum()))
+                    prob = target.astype(np.float64)
+                    idx = int(rng.choice(len(visits), p=prob / prob.sum()))
                 else:
                     idx = int(np.argmax(visits))
                 action = s_actions[idx]
@@ -85,14 +99,15 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
                 combat_start = len(records)
             continue
 
-        action = screen_action(rc)
+        action = run_policy(rc)
         if not rc.step(*action):
             break
     else:
         status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
     return {"records": records if status == "terminated" else [],
             "won": bool(rc.won) and status == "terminated",
-            "floor": int(rc.floor), "hp": int(rc.hp), "status": status}
+            "floor": int(rc.floor), "hp": int(rc.hp), "status": status,
+            "steps": steps, "simulations": simulations_done}
 
 
 def pad_batch(records: list[Episode]):
@@ -151,7 +166,8 @@ def evaluate(model: CombatNet, simulations: int = 16, runs: int = 50, seed: int 
 
 def train(iterations: int = 20, episodes_per_iter: int = 16, simulations: int = 16,
           seed: int = 1, out_dir: str = "runs/selfplay", resume: str | None = None,
-          lr: float = 3e-4, eval_every: int = 5, eval_runs: int = 30) -> CombatNet:
+          lr: float = 3e-4, eval_every: int = 5, eval_runs: int = 30,
+          target_mode: str = "visits") -> CombatNet:
     torch.set_num_threads(1)
     model = CombatNet()
     if resume and pathlib.Path(resume).exists():
@@ -163,7 +179,8 @@ def train(iterations: int = 20, episodes_per_iter: int = 16, simulations: int = 
 
     for it in range(1, iterations + 1):
         start = time.time()
-        episodes = [play_episode(seed * 100000 + it * 1000 + i, model, simulations, sample=True)
+        episodes = [play_episode(seed * 100000 + it * 1000 + i, model, simulations,
+                                 sample=True, target_mode=target_mode)
                     for i in range(episodes_per_iter)]
         valid = [e for e in episodes if e["status"] == "terminated"]
         abnormal = len(episodes) - len(valid)
@@ -189,9 +206,11 @@ def main(argv=None):
     parser.add_argument("--out-dir", default="runs/selfplay")
     parser.add_argument("--resume", default=None)
     parser.add_argument("--eval-runs", type=int, default=30)
+    parser.add_argument("--target", choices=["visits", "value"], default="visits")
     args = parser.parse_args(argv)
     model = train(args.iterations, args.episodes_per_iter, args.simulations,
-                  args.seed, args.out_dir, args.resume, eval_runs=args.eval_runs)
+                  args.seed, args.out_dir, args.resume, eval_runs=args.eval_runs,
+                  target_mode=args.target)
     print("eval", evaluate(model, args.simulations, args.eval_runs), flush=True)
 
 

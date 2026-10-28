@@ -1,5 +1,6 @@
 #include "sts2/search.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace sts2 {
@@ -95,7 +96,8 @@ double rollout(BattleContext &bc, Rng &rng, double epsilon, int maxSteps) {
 
 static SearchResult search_impl(const BattleContext &root, int simulations, double c,
                                 double epsilon, std::uint32_t seed,
-                                const std::vector<double> *priors) {
+                                const std::vector<double> *priors,
+                                bool resample_hidden) {
     SearchResult result;
     result.actions = root.legal_actions();
     result.visits.assign(result.actions.size(), 0);
@@ -104,12 +106,30 @@ static SearchResult search_impl(const BattleContext &root, int simulations, doub
 
     Rng rng(seed);
     int total = 0;
+    // With priors, UCB alone never visits an action the prior has not already
+    // sent a simulation to: q=0 for unvisited actions, so a peaked softmax
+    // collapses the whole budget onto one action. Seed one visit per action in
+    // descending prior order first, then run PUCT over the visited set.
+    std::vector<int> init_order;
+    if (priors) {
+        init_order.resize(result.actions.size());
+        for (int i = 0; i < static_cast<int>(init_order.size()); ++i) init_order[i] = i;
+        std::stable_sort(init_order.begin(), init_order.end(), [&](int a, int b) {
+            const double pa = a < static_cast<int>(priors->size()) ? (*priors)[a] : 0.0;
+            const double pb = b < static_cast<int>(priors->size()) ? (*priors)[b] : 0.0;
+            return pa > pb;
+        });
+    }
+    int next_init = 0;
     for (int sim = 0; sim < simulations; ++sim) {
         int pick = -1;
         if (!priors) {
             for (int i = 0; i < static_cast<int>(result.visits.size()); ++i) {
                 if (result.visits[i] == 0) { pick = i; break; }
             }
+        }
+        if (pick < 0 && next_init < static_cast<int>(init_order.size())) {
+            pick = init_order[next_init++];
         }
         if (pick < 0) {
             double best = -1e18;
@@ -128,6 +148,10 @@ static SearchResult search_impl(const BattleContext &root, int simulations, doub
         }
         if (pick < 0) pick = 0;
         BattleContext bc = root;
+        if (resample_hidden) {
+            bc.resample_hidden(static_cast<std::uint32_t>(
+                rng.next_int(0, 1000000000)));
+        }
         if (!bc.step(result.actions[pick])) continue;
         const double v = rollout(bc, rng, epsilon);
         result.values[pick] += v;
@@ -139,14 +163,14 @@ static SearchResult search_impl(const BattleContext &root, int simulations, doub
 }
 
 SearchResult search(const BattleContext &root, int simulations, double c, double epsilon,
-                    std::uint32_t seed) {
-    return search_impl(root, simulations, c, epsilon, seed, nullptr);
+                    std::uint32_t seed, bool resample_hidden) {
+    return search_impl(root, simulations, c, epsilon, seed, nullptr, resample_hidden);
 }
 
 SearchResult search_priors(const BattleContext &root, int simulations,
                            const std::vector<double> &priors, double c, double epsilon,
-                           std::uint32_t seed) {
-    return search_impl(root, simulations, c, epsilon, seed, &priors);
+                           std::uint32_t seed, bool resample_hidden) {
+    return search_impl(root, simulations, c, epsilon, seed, &priors, resample_hidden);
 }
 
 }  // namespace sts2

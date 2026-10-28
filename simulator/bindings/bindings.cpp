@@ -275,22 +275,35 @@ PYBIND11_MODULE(sts2_sim, m) {
         }, py::arg("epsilon") = 0.05, py::arg("seed") = 0,
            py::call_guard<py::gil_scoped_release>())
         .def("search", [](const BattleContext &bc, int simulations, double c, double epsilon,
-                          std::uint32_t seed) {
-            SearchResult r = search(bc, simulations, c, epsilon, seed);
+                          std::uint32_t seed, bool resample) {
+            SearchResult r;
+            {
+                py::gil_scoped_release release;
+                r = search(bc, simulations, c, epsilon, seed, resample);
+            }
             py::list actions;
             for (const Action &a : r.actions) actions.append(action_tuple(a));
             return py::make_tuple(actions, r.visits, r.values, r.simulations);
         }, py::arg("simulations") = 16, py::arg("c") = 1.5,
-           py::arg("epsilon") = 0.05, py::arg("seed") = 0)
+           py::arg("epsilon") = 0.05, py::arg("seed") = 0,
+           py::arg("resample") = false)
         .def("search_priors", [](const BattleContext &bc, int simulations,
                                  const std::vector<double> &priors, double c, double epsilon,
-                                 std::uint32_t seed) {
-            SearchResult r = search_priors(bc, simulations, priors, c, epsilon, seed);
+                                 std::uint32_t seed, bool resample) {
+            SearchResult r;
+            {
+                py::gil_scoped_release release;
+                r = search_priors(bc, simulations, priors, c, epsilon, seed, resample);
+            }
             py::list actions;
             for (const Action &a : r.actions) actions.append(action_tuple(a));
             return py::make_tuple(actions, r.visits, r.values, r.simulations);
         }, py::arg("simulations"), py::arg("priors"), py::arg("c") = 1.5,
-           py::arg("epsilon") = 0.05, py::arg("seed") = 0)
+           py::arg("epsilon") = 0.05, py::arg("seed") = 0,
+           py::arg("resample") = false)
+        .def("resample_hidden", [](BattleContext &bc, std::uint32_t seed) {
+            bc.resample_hidden(seed);
+        }, py::arg("seed"))
         .def("action_features", [](const BattleContext &bc, int type, int hand, int target, int uid) {
             return combat_action_features(bc, make_action(type, hand, target, uid));
         })
@@ -303,6 +316,9 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("player_hp", [](const BattleContext &bc) { return bc.player.hp; })
         .def_property_readonly("player_max_hp", [](const BattleContext &bc) { return bc.player.maxHp; })
         .def_property_readonly("player_block", [](const BattleContext &bc) { return bc.player.block; })
+        .def_property_readonly("player_weak", [](const BattleContext &bc) { return bc.player.weak; })
+        .def_property_readonly("player_frail", [](const BattleContext &bc) { return bc.player.frail; })
+        .def_readwrite("gold", &BattleContext::gold)
         .def_property_readonly("energy", [](const BattleContext &bc) { return bc.player.energy; })
         .def_property_readonly("strength", [](const BattleContext &bc) { return bc.player.strength; })
         .def_property_readonly("dexterity", [](const BattleContext &bc) { return bc.player.dexterity; })
@@ -314,6 +330,16 @@ PYBIND11_MODULE(sts2_sim, m) {
                                           bc.hand[i].upgraded,
                                           card_cost(bc.hand[i])));
             }
+            return out;
+        })
+        .def_property_readonly("draw", [](const BattleContext &bc) {
+            py::list out;
+            for (int i = 0; i < bc.drawCount; ++i) out.append(static_cast<int>(bc.draw[i].id));
+            return out;
+        })
+        .def_property_readonly("discard", [](const BattleContext &bc) {
+            py::list out;
+            for (int i = 0; i < bc.discardCount; ++i) out.append(static_cast<int>(bc.discard[i].id));
             return out;
         })
         .def_property_readonly("draw_count", [](const BattleContext &bc) { return bc.drawCount; })
@@ -483,6 +509,18 @@ PYBIND11_MODULE(sts2_sim, m) {
             rc.add_potion(static_cast<PotionId>(id));
         })
         .def_property_readonly("event_id", [](const RunContext &rc) { return static_cast<int>(rc.eventId); })
+        .def_property_readonly("ancient_id", [](const RunContext &rc) { return static_cast<int>(rc.ancientId); })
+        .def("start_act", [](RunContext &rc, int actIndex) {
+            if (actIndex < 0 || actIndex >= MAX_ACTS) return false;
+            rc.start_act(actIndex);
+            return true;
+        })
+        .def("begin_event", [](RunContext &rc, int eventId) {
+            const sts2::EventInfo *info = sts2::event_info(eventId);
+            if (info == nullptr) return false;
+            sts2::event_begin(rc, eventId, info->act == 3);
+            return true;
+        })
         .def_property_readonly("event_name", [](const RunContext &rc) {
             const EventInfo *info = sts2::event_info(rc.eventId);
             return std::string(info ? info->name : "");

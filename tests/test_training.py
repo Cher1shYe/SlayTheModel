@@ -67,3 +67,77 @@ def test_selfplay_episode_records_match_public_schema():
         assert rec.state.shape == (sim.PUBLIC_COMBAT_OBS_DIM,)
         assert rec.acts.shape[1] == sim.ACTION_FEAT_DIM
         assert abs(float(np.sum(rec.target)) - 1.0) < 1e-4
+
+
+def test_hidden_zone_resampling_preserves_composition():
+    from agent.common import sim as s
+
+    bc = s.BattleContext()
+    cards = [73, 74, 75, 76, 77, 78, 79, 80, 81, 82]
+    bc.init(s.Encounter.SETUP_LAGAVULIN_MATRIARCH_BOSS, 5, cards,
+            [False] * len(cards), 0, 200, 200, [], [])
+    before = list(bc.draw)
+    assert before
+    bc.resample_hidden(12345)
+    assert sorted(bc.draw) == sorted(before)
+    assert bc.draw != before  # deterministic seed must actually permute
+
+
+def test_search_reports_completed_simulations_and_resamples():
+    from agent.run_env import RunEnv
+    from agent.heuristics import run_policy
+
+    env = RunEnv(3)
+    guard = 0
+    while env.screen != SCREEN.COMBAT and guard < 400:
+        guard += 1
+        assert env.step(run_policy(env))
+    assert env.screen == SCREEN.COMBAT
+    actions, visits, values, done = env.battle.search(8, 1.5, 0.05, 7, True)
+    assert len(actions) == len(visits) == len(values)
+    assert 0 < done <= 8
+    assert sum(visits) == done
+
+
+def test_prior_search_visits_every_action_once():
+    from agent.run_env import RunEnv
+    from agent.heuristics import run_policy
+
+    env = RunEnv(3)
+    guard = 0
+    while env.screen != SCREEN.COMBAT and guard < 400:
+        guard += 1
+        assert env.step(run_policy(env))
+    bc = env.battle
+    n = len(bc.legal_actions())
+    # Peaked priors: without the initialising pass every simulation would land
+    # on the argmax action and the root search would just echo the network.
+    priors = [1e-6] * n
+    priors[0] = 1.0
+    actions, visits, _values, done = bc.search_priors(n, priors, 1.5, 0.05, 7, True)
+    assert done == n
+    assert all(v == 1 for v in visits), visits
+    assert len(set(actions)) == n
+
+
+def test_policy_entry_points_are_legal_and_status_is_classified():
+    from agent.policy import Strategy, play_run_strategy, summarize
+
+    from agent.nets import CombatNet
+
+    torch.set_num_threads(1)
+    card_model, combat_model = CardScorer(), CombatNet()
+    for strategy, model in (
+            (Strategy(combat="heuristic", cards="heuristic"), card_model),
+            (Strategy(combat="network", cards="network"), combat_model),
+            (Strategy(combat="search", cards="network", simulations=2,
+                      resample=True), combat_model),
+            (Strategy(combat="search", cards="network", simulations=2,
+                      resample=True, search_select="value"), combat_model)):
+        result = play_run_strategy(2, model, strategy, card_model=card_model)
+        assert result["status"] in ("terminated", "truncated", "error")
+        assert 1 <= result["act"] <= 3
+    summary = summarize([result])
+    assert summary["runs"] == 1
+    assert 0.0 <= summary["win_rate"] <= 1.0
+    assert summary["win_ci95"][0] <= summary["win_rate"] <= summary["win_ci95"][1]
