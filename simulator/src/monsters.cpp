@@ -18,6 +18,10 @@ const EncounterDef &encounter_def(int index) {
     return ENCOUNTER_DEFS[index];
 }
 
+const EncounterPattern &encounter_pattern(int index) {
+    return ENC_PATTERNS[index];
+}
+
 int encounter_count() { return static_cast<int>(Encounter::COUNT); }
 
 static const MonStateDef &state_of(const MonsterDef &def, int local) {

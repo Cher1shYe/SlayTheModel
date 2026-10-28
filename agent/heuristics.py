@@ -86,6 +86,10 @@ def combat_policy(env) -> tuple:
         if not clone.step(*a):
             continue
         value = clone.rollout(0.1, seed + i * 7919)
+        # When every rollout loses, prefer acting over passing (a card that
+        # blocks or deals damage is never worse than idling).
+        if int(a[0]) != int(sim.ActionType.END_TURN):
+            value += 1e-3
         if value > best_value:
             best, best_value = a, value
     if best is None:

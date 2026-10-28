@@ -11,6 +11,7 @@
      44
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND_MOVE": {
      "kind": "random",
@@ -186,29 +187,29 @@
    "initial": [
     [
      "HAMMER_UPPERCUT_MOVE",
-     6
-    ],
-    [
-     "SHARPEN_MOVE",
-     3
+     411
     ],
     [
      "ONE_TWO_MOVE",
-     3
+     406
+    ],
+    [
+     "SHARPEN_MOVE",
+     207
     ]
    ],
    "initial8": [
     [
      "HAMMER_UPPERCUT_MOVE",
-     6
-    ],
-    [
-     "SHARPEN_MOVE",
-     3
+     411
     ],
     [
      "ONE_TWO_MOVE",
-     3
+     406
+    ],
+    [
+     "SHARPEN_MOVE",
+     207
     ]
    ],
    "moves": {
@@ -309,6 +310,7 @@
      75
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -340,13 +342,13 @@
    "initial": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -379,6 +381,7 @@
      150
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -410,13 +413,13 @@
    "initial": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -449,6 +452,7 @@
      300
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -480,13 +484,13 @@
    "initial": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "NOTHING_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -519,6 +523,7 @@
      24
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BITE_MOVE": {
      "kind": "move",
@@ -560,13 +565,13 @@
    "initial": [
     [
      "BITE_MOVE",
-     15
+     1279
     ]
    ],
    "initial8": [
     [
      "BITE_MOVE",
-     15
+     1279
     ]
    ],
    "moves": {
@@ -599,6 +604,7 @@
      49
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "HEADBUTT_MOVE": {
      "kind": "move",
@@ -680,13 +686,13 @@
    "initial": [
     [
      "HEADBUTT_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "HEADBUTT_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -721,6 +727,7 @@
      44
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TRASH_MOVE": {
      "kind": "move",
@@ -776,13 +783,13 @@
    "initial": [
     [
      "TOXIC_SPIT_MOVE",
-     9
+     769
     ]
    ],
    "initial8": [
     [
      "TOXIC_SPIT_MOVE",
-     9
+     769
     ]
    ],
    "moves": {
@@ -821,6 +828,7 @@
      39
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "THRASH_MOVE": {
      "kind": "move",
@@ -900,13 +908,13 @@
    "initial": [
     [
      "THRASH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "THRASH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -947,6 +955,7 @@
      132
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INITIAL_SLEEP_MOVE": {
      "kind": "move",
@@ -1050,13 +1059,13 @@
    "initial": [
     [
      "INITIAL_SLEEP_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "INITIAL_SLEEP_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -1109,6 +1118,7 @@
      99
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SWOOP_MOVE": {
      "kind": "move",
@@ -1164,13 +1174,13 @@
    "initial": [
     [
      "SWOOP_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SWOOP_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -1205,6 +1215,7 @@
      262
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "STAMP_MOVE": {
      "kind": "move",
@@ -1376,13 +1387,13 @@
    "initial": [
     [
      "STAMP_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "STAMP_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -1471,6 +1482,7 @@
      67
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CLAMP_MOVE": {
      "kind": "move",
@@ -1526,21 +1538,21 @@
    "initial": [
     [
      "CLAMP_MOVE",
-     6
+     512
     ],
     [
      "SCREECH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CLAMP_MOVE",
-     6
+     512
     ],
     [
      "SCREECH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -1613,6 +1625,7 @@
      60
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "READY_MOVE": {
      "kind": "move",
@@ -1702,21 +1715,21 @@
    "initial": [
     [
      "READY_MOVE",
-     18
+     1536
     ],
     [
      "STRONG_PUNCH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "READY_MOVE",
-     18
+     1536
     ],
     [
      "STRONG_PUNCH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -1777,6 +1790,7 @@
      70
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CHARGE_UP_MOVE": {
      "kind": "move",
@@ -1924,13 +1938,13 @@
    "initial": [
     [
      "CHARGE_UP_MOVE",
-     18
+     1536
     ]
    ],
    "initial8": [
     [
      "CHARGE_UP_MOVE",
-     18
+     1536
     ]
    ],
    "moves": {
@@ -2023,6 +2037,7 @@
      29
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "WHIP_SLAP_MOVE": {
      "kind": "move",
@@ -2101,30 +2116,30 @@
    },
    "initial": [
     [
-     "WHIP_SLAP_MOVE",
-     11
+     "GOOP_MOVE",
+     854
     ],
     [
-     "GOOP_MOVE",
-     10
+     "WHIP_SLAP_MOVE",
+     854
     ],
     [
      "GLOMP_MOVE",
-     9
+     852
     ]
    ],
    "initial8": [
     [
-     "WHIP_SLAP_MOVE",
-     11
+     "GOOP_MOVE",
+     854
     ],
     [
-     "GOOP_MOVE",
-     10
+     "WHIP_SLAP_MOVE",
+     854
     ],
     [
      "GLOMP_MOVE",
-     9
+     852
     ]
    ],
    "moves": {
@@ -2175,6 +2190,7 @@
      42
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INCANTATION_MOVE": {
      "kind": "move",
@@ -2230,13 +2246,13 @@
    "initial": [
     [
      "INCANTATION_MOVE",
-     12
+     1024
     ]
    ],
    "initial8": [
     [
      "INCANTATION_MOVE",
-     12
+     1024
     ]
    ],
    "moves": {
@@ -2275,6 +2291,7 @@
      54
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INCANTATION_MOVE": {
      "kind": "move",
@@ -2330,13 +2347,13 @@
    "initial": [
     [
      "INCANTATION_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "INCANTATION_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -2375,6 +2392,7 @@
      56
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "WRITHE_MOVE": {
      "kind": "move",
@@ -2574,29 +2592,29 @@
    "initial": [
     [
      "CONSTRICT_MOVE",
-     6
+     512
     ],
     [
      "WRITHE_MOVE",
-     6
+     512
     ],
     [
      "BULK_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CONSTRICT_MOVE",
-     6
+     512
     ],
     [
      "WRITHE_MOVE",
-     6
+     512
     ],
     [
      "BULK_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -2665,6 +2683,7 @@
      21
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -2847,6 +2866,7 @@
      172
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "FORBIDDEN_INCANTATION_MOVE": {
      "kind": "move",
@@ -2902,13 +2922,13 @@
    "initial": [
     [
      "FORBIDDEN_INCANTATION_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "FORBIDDEN_INCANTATION_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -2947,6 +2967,7 @@
      165
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "DRAMATIC_OPEN_MOVE": {
      "kind": "move",
@@ -3060,13 +3081,13 @@
    "initial": [
     [
      "DRAMATIC_OPEN_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "DRAMATIC_OPEN_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -3119,6 +3140,7 @@
      155
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BEES_MOVE": {
      "kind": "move",
@@ -3198,13 +3220,13 @@
    "initial": [
     [
      "BEES_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "BEES_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -3267,6 +3289,7 @@
      29
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -3384,29 +3407,29 @@
    "initial": [
     [
      "SKITTER_MOVE",
-     12
+     1024
     ],
     [
      "MANDIBLE_MOVE",
-     12
+     1024
     ],
     [
      "ENRAGE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SKITTER_MOVE",
-     12
+     1024
     ],
     [
      "MANDIBLE_MOVE",
-     12
+     1024
     ],
     [
      "ENRAGE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -3457,6 +3480,7 @@
      155
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "fabricateBranch": {
      "kind": "cond",
@@ -3610,21 +3634,21 @@
    "initial": [
     [
      "FABRICATING_STRIKE_MOVE",
-     3
+     257
     ],
     [
      "FABRICATE_MOVE",
-     3
+     255
     ]
    ],
    "initial8": [
     [
      "FABRICATING_STRIKE_MOVE",
-     3
+     257
     ],
     [
      "FABRICATE_MOVE",
-     3
+     255
     ]
    ],
    "moves": {
@@ -3715,6 +3739,7 @@
      165
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -3946,13 +3971,13 @@
    "initial": [
     [
      "SWIPE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SWIPE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -4009,6 +4034,7 @@
      29
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RANDOM": {
      "kind": "random",
@@ -4102,13 +4128,13 @@
    "initial": [
     [
      "STICKY_SHOT_MOVE",
-     11
+     1108
     ]
    ],
    "initial8": [
     [
      "STICKY_SHOT_MOVE",
-     11
+     1108
     ]
    ],
    "moves": {
@@ -4147,6 +4173,7 @@
      53
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INITIAL": {
      "kind": "random",
@@ -4326,21 +4353,21 @@
    "initial": [
     [
      "FRAIL_SPORES_MOVE",
-     8
+     682
     ],
     [
      "SMASH_MOVE",
-     4
+     342
     ]
    ],
    "initial8": [
     [
      "FRAIL_SPORES_MOVE",
-     8
+     682
     ],
     [
      "SMASH_MOVE",
-     4
+     342
     ]
    ],
    "moves": {
@@ -4395,6 +4422,7 @@
      36
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "STICKY_SHOT": {
      "kind": "move",
@@ -4450,13 +4478,13 @@
    "initial": [
     [
      "STICKY_SHOT",
-     14
+     1110
     ]
    ],
    "initial8": [
     [
      "STICKY_SHOT",
-     14
+     1110
     ]
    ],
    "moves": {
@@ -4507,6 +4535,7 @@
      78
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ILLUSION_MOVE": {
      "kind": "move",
@@ -4668,13 +4697,13 @@
    "initial": [
     [
      "ILLUSION_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "ILLUSION_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -4765,6 +4794,7 @@
      56
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -4906,13 +4936,13 @@
    "initial": [
     [
      "LATCH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "LATCH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5003,6 +5033,7 @@
      199
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TONGUE_LASH": {
      "kind": "move",
@@ -5142,13 +5173,13 @@
    "initial": [
     [
      "TONGUE_LASH",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "TONGUE_LASH",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5215,6 +5246,7 @@
      59
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "FIRST_ACID_GOOP": {
      "kind": "move",
@@ -5294,13 +5326,13 @@
    "initial": [
     [
      "FIRST_ACID_GOOP",
-     12
+     1024
     ]
    ],
    "initial8": [
     [
      "FIRST_ACID_GOOP",
-     12
+     1024
     ]
    ],
    "moves": {
@@ -5341,6 +5373,7 @@
      158
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SHOCKING_SLAP": {
      "kind": "move",
@@ -5440,13 +5473,13 @@
    "initial": [
     [
      "SHOCKING_SLAP",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SHOCKING_SLAP",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5511,6 +5544,7 @@
      53
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "GIMME_MOVE": {
      "kind": "move",
@@ -5610,13 +5644,13 @@
    "initial": [
     [
      "GIMME_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "GIMME_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5689,6 +5723,7 @@
      15
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SPAWNED_MOVE": {
      "kind": "move",
@@ -5744,13 +5779,13 @@
    "initial": [
     [
      "SPAWNED_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SPAWNED_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5775,6 +5810,7 @@
      18
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SPAWNED_MOVE": {
      "kind": "move",
@@ -5830,13 +5866,13 @@
    "initial": [
     [
      "SPAWNED_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SPAWNED_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -5861,6 +5897,7 @@
      67
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -6040,13 +6077,13 @@
    "initial": [
     [
      "RAMMING_SPEED_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "RAMMING_SPEED_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -6139,6 +6176,7 @@
      126
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TENDERIZING_GOOP_MOVE": {
      "kind": "move",
@@ -6256,13 +6294,13 @@
    "initial": [
     [
      "TENDERIZING_GOOP_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "TENDERIZING_GOOP_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -6303,6 +6341,7 @@
      215
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "JAB_MOVE": {
      "kind": "move",
@@ -6426,13 +6465,13 @@
    "initial": [
     [
      "JAB_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "JAB_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -6503,6 +6542,7 @@
      18
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "JAB_MOVE": {
      "kind": "move",
@@ -6620,21 +6660,21 @@
    "initial": [
     [
      "JAB_MOVE",
-     12
+     1024
     ],
     [
      "WHIRLWIND_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "JAB_MOVE",
-     12
+     1024
     ],
     [
      "WHIRLWIND_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -6671,6 +6711,7 @@
      209
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "THRASH_MOVE": {
      "kind": "move",
@@ -6818,13 +6859,13 @@
    "initial": [
     [
      "THRASH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "THRASH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -6923,6 +6964,7 @@
      199
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TARGETING_RETICLE_MOVE": {
      "kind": "move",
@@ -7050,13 +7092,13 @@
    "initial": [
     [
      "TARGETING_RETICLE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "TARGETING_RETICLE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -7119,6 +7161,7 @@
      108
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -7250,13 +7293,13 @@
    "initial": [
     [
      "RAM_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "RAM_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -7297,6 +7340,7 @@
      97
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "HEX": {
      "kind": "move",
@@ -7414,13 +7458,13 @@
    "initial": [
     [
      "HEX",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "HEX",
-     6
+     512
     ]
    ],
    "moves": {
@@ -7461,6 +7505,7 @@
      89
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "FIRST_POWER_SHIELD_MOVE": {
      "kind": "move",
@@ -7598,13 +7643,13 @@
    "initial": [
     [
      "FIRST_POWER_SHIELD_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "FIRST_POWER_SHIELD_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -7669,6 +7714,7 @@
      399
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CURSE_OF_KNOWLEDGE_MOVE": {
      "kind": "move",
@@ -7808,13 +7854,13 @@
    "initial": [
     [
      "CURSE_OF_KNOWLEDGE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CURSE_OF_KNOWLEDGE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -7865,6 +7911,7 @@
      233
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SLEEP_MOVE": {
      "kind": "move",
@@ -8038,13 +8085,13 @@
    "initial": [
     [
      "SLEEP_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SLEEP_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -8141,6 +8188,7 @@
      82
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ADVANCED_GAS_MOVE": {
      "kind": "move",
@@ -8240,13 +8288,13 @@
    "initial": [
     [
      "ADVANCED_GAS_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "ADVANCED_GAS_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -8309,6 +8357,7 @@
      141
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "WEB_CANNON_MOVE": {
      "kind": "move",
@@ -8408,13 +8457,13 @@
    "initial": [
     [
      "WEB_CANNON_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "WEB_CANNON_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -8487,6 +8536,7 @@
      76
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -8618,13 +8668,13 @@
    "initial": [
     [
      "CLAW_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CLAW_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -8665,6 +8715,7 @@
      320
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CHARGE_MOVE": {
      "kind": "move",
@@ -8778,13 +8829,13 @@
    "initial": [
     [
      "CHARGE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CHARGE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -8895,6 +8946,7 @@
      101
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -9091,6 +9143,7 @@
      69
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TOXIC_MOVE": {
      "kind": "move",
@@ -9180,21 +9233,21 @@
    "initial": [
     [
      "TOXIC_MOVE",
-     6
+     512
     ],
     [
      "SUCK_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "TOXIC_MOVE",
-     6
+     512
     ],
     [
      "SUCK_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -9261,6 +9314,7 @@
      48
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BUTT_MOVE": {
      "kind": "move",
@@ -9374,29 +9428,29 @@
    "initial": [
     [
      "SLICE_MOVE",
-     6
+     512
     ],
     [
      "HISS_MOVE",
-     6
+     512
     ],
     [
      "BUTT_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SLICE_MOVE",
-     6
+     512
     ],
     [
      "HISS_MOVE",
-     6
+     512
     ],
     [
      "BUTT_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -9447,6 +9501,7 @@
      42
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SHRINKER_MOVE": {
      "kind": "move",
@@ -9526,13 +9581,13 @@
    "initial": [
     [
      "SHRINKER_MOVE",
-     12
+     1024
     ]
    ],
    "initial8": [
     [
      "SHRINKER_MOVE",
-     12
+     1024
     ]
    ],
    "moves": {
@@ -9565,14 +9620,15 @@
   "OVICOPTER": {
    "hp": {
     "A0": [
-     125,
-     129
+     124,
+     130
     ],
     "A8": [
-     127,
-     131
+     126,
+     132
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "LAY_EGGS_MOVE": {
      "kind": "move",
@@ -9712,13 +9768,13 @@
    "initial": [
     [
      "LAY_EGGS_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "LAY_EGGS_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -9873,6 +9929,7 @@
      243
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "MAGISTRATE_SCRUTINY": {
      "kind": "move",
@@ -9986,13 +10043,13 @@
    "initial": [
     [
      "MAGISTRATE_SCRUTINY",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "MAGISTRATE_SCRUTINY",
-     6
+     512
     ]
    ],
    "moves": {
@@ -10049,6 +10106,7 @@
      33
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -10194,37 +10252,37 @@
    "initial": [
     [
      "FLAIL_MOVE",
-     6
+     512
     ],
     [
      "BITE_MOVE",
-     6
+     512
     ],
     [
      "LASH_MOVE",
-     6
+     512
     ],
     [
      "ENLARGE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "FLAIL_MOVE",
-     6
+     512
     ],
     [
      "BITE_MOVE",
-     6
+     512
     ],
     [
      "LASH_MOVE",
-     6
+     512
     ],
     [
      "ENLARGE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -10277,6 +10335,7 @@
      68
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INFECT_MOVE": {
      "kind": "move",
@@ -10332,13 +10391,13 @@
    "initial": [
     [
      "INFECT_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "INFECT_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -10411,6 +10470,7 @@
      211
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TACKLE_1_MOVE": {
      "kind": "move",
@@ -10538,13 +10598,13 @@
    "initial": [
     [
      "TACKLE_1_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "TACKLE_1_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -10585,6 +10645,7 @@
      419
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "PUPPET_STRINGS_MOVE": {
      "kind": "move",
@@ -10798,13 +10859,13 @@
    "initial": [
     [
      "PUPPET_STRINGS_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "PUPPET_STRINGS_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -10925,6 +10986,7 @@
      22
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RELOAD_MOVE": {
      "kind": "move",
@@ -10980,13 +11042,13 @@
    "initial": [
     [
      "RELOAD_MOVE",
-     5
+     304
     ]
    ],
    "initial8": [
     [
      "RELOAD_MOVE",
-     5
+     304
     ]
    ],
    "moves": {
@@ -11014,13 +11076,14 @@
    "hp": {
     "A0": [
      21,
-     23
+     25
     ],
     "A8": [
      22,
-     24
+     26
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "TRACK_MOVE": {
      "kind": "move",
@@ -11076,13 +11139,13 @@
    "initial": [
     [
      "TRACK_MOVE",
-     3
+     311
     ]
    ],
    "initial8": [
     [
      "TRACK_MOVE",
-     3
+     311
     ]
    ],
    "moves": {
@@ -11113,14 +11176,15 @@
   "BRUTE_RUBY_RAIDER": {
    "hp": {
     "A0": [
-     31,
-     32
+     30,
+     33
     ],
     "A8": [
-     32,
-     33
+     31,
+     34
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BEAT_MOVE": {
      "kind": "move",
@@ -11176,13 +11240,13 @@
    "initial": [
     [
      "BEAT_MOVE",
-     2
+     311
     ]
    ],
    "initial8": [
     [
      "BEAT_MOVE",
-     2
+     311
     ]
    ],
    "moves": {
@@ -11214,13 +11278,14 @@
    "hp": {
     "A0": [
      18,
-     22
+     23
     ],
     "A8": [
      19,
-     23
+     24
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "KILLSHOT_MOVE": {
      "kind": "move",
@@ -11252,13 +11317,13 @@
    "initial": [
     [
      "KILLSHOT_MOVE",
-     5
+     302
     ]
    ],
    "initial8": [
     [
      "KILLSHOT_MOVE",
-     5
+     302
     ]
    ],
    "moves": {
@@ -11281,6 +11346,7 @@
      23
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SWING_1": {
      "kind": "move",
@@ -11380,13 +11446,13 @@
    "initial": [
     [
      "SWING_1",
-     3
+     308
     ]
    ],
    "initial8": [
     [
      "SWING_1",
-     3
+     308
     ]
    ],
    "moves": {
@@ -11433,6 +11499,7 @@
      38
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CHOMP": {
      "kind": "move",
@@ -11550,29 +11617,29 @@
    "initial": [
     [
      "MORE_TEETH",
-     18
+     1536
     ],
     [
      "CHOMP",
-     12
+     1024
     ],
     [
      "CHEW",
-     12
+     1024
     ]
    ],
    "initial8": [
     [
      "MORE_TEETH",
-     18
+     1536
     ],
     [
      "CHOMP",
-     12
+     1024
     ],
     [
      "CHEW",
-     12
+     1024
     ]
    ],
    "moves": {
@@ -11623,6 +11690,7 @@
      49
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SEA_KICK_MOVE": {
      "kind": "move",
@@ -11712,13 +11780,13 @@
    "initial": [
     [
      "SEA_KICK_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SEA_KICK_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -11767,6 +11835,7 @@
      58
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "PRESSURIZE_MOVE": {
      "kind": "move",
@@ -11822,13 +11891,13 @@
    "initial": [
     [
      "JET_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "JET_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -11877,6 +11946,7 @@
      84
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INERTIA_MOVE": {
      "kind": "move",
@@ -12000,13 +12070,13 @@
    "initial": [
     [
      "SMASH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SMASH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -12117,6 +12187,7 @@
      276
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "VOMIT_ICHOR_MOVE": {
      "kind": "move",
@@ -12230,13 +12301,13 @@
    "initial": [
     [
      "VOMIT_ICHOR_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "VOMIT_ICHOR_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -12413,6 +12484,7 @@
      12
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BUTT_MOVE": {
      "kind": "move",
@@ -12444,13 +12516,13 @@
    "initial": [
     [
      "BUTT_MOVE",
-     16
+     1199
     ]
    ],
    "initial8": [
     [
      "BUTT_MOVE",
-     16
+     1199
     ]
    ],
    "moves": {
@@ -12473,6 +12545,7 @@
      16
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RANDOM": {
      "kind": "random",
@@ -12566,21 +12639,21 @@
    "initial": [
     [
      "BUTT_MOVE",
-     8
+     597
     ],
     [
      "GOOP_MOVE",
-     6
+     596
     ]
    ],
    "initial8": [
     [
      "BUTT_MOVE",
-     8
+     597
     ],
     [
      "GOOP_MOVE",
-     6
+     596
     ]
    ],
    "moves": {
@@ -12619,6 +12692,7 @@
      56
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CONSTRICT": {
      "kind": "move",
@@ -12746,13 +12820,13 @@
    "initial": [
     [
      "CONSTRICT",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CONSTRICT",
-     6
+     512
     ]
    ],
    "moves": {
@@ -12803,6 +12877,7 @@
      36
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ENERGY_ORB_MOVE": {
      "kind": "move",
@@ -12844,13 +12919,13 @@
    "initial": [
     [
      "ENERGY_ORB_MOVE",
-     8
+     682
     ]
    ],
    "initial8": [
     [
      "ENERGY_ORB_MOVE",
-     8
+     682
     ]
    ],
    "moves": {
@@ -12887,6 +12962,7 @@
      42
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -13038,13 +13114,13 @@
    "initial": [
     [
      "OIL_SPRAY_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "OIL_SPRAY_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -13099,6 +13175,7 @@
      89
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SNORE_MOVE": {
      "kind": "move",
@@ -13190,13 +13267,13 @@
    "initial": [
     [
      "SNORE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SNORE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -13253,6 +13330,7 @@
      221
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BECKON_MOVE": {
      "kind": "move",
@@ -13400,13 +13478,13 @@
    "initial": [
     [
      "BECKON_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "BECKON_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -13505,6 +13583,7 @@
      254
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -13646,13 +13725,13 @@
    "initial": [
     [
      "SOUL_BURN_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SOUL_BURN_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -13705,6 +13784,7 @@
      124
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "PROTRUDING_SPIKES_MOVE": {
      "kind": "move",
@@ -13784,13 +13864,13 @@
    "initial": [
     [
      "PROTRUDING_SPIKES_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "PROTRUDING_SPIKES_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -13845,6 +13925,7 @@
      150
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "CRASH_MOVE": {
      "kind": "move",
@@ -13958,13 +14039,13 @@
    "initial": [
     [
      "CRASH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "CRASH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -14031,6 +14112,7 @@
      111
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RESPAWN_MOVE": {
      "kind": "move",
@@ -14286,13 +14368,13 @@
    "initial": [
     [
      "BITE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "BITE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -14425,6 +14507,7 @@
      9999
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "NOTHING": {
      "kind": "move",
@@ -14456,13 +14539,13 @@
    "initial": [
     [
      "NOTHING",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "NOTHING",
-     6
+     512
     ]
    ],
    "moves": {
@@ -14485,6 +14568,7 @@
      341
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "LIQUIFY_GROUND_MOVE": {
      "kind": "move",
@@ -14622,13 +14706,13 @@
    "initial": [
     [
      "LIQUIFY_GROUND_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "LIQUIFY_GROUND_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -14747,6 +14831,7 @@
      63
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "QUICK_SLASH_MOVE": {
      "kind": "move",
@@ -14826,21 +14911,21 @@
    "initial": [
     [
      "POWER_DANCE_MOVE",
-     6
+     512
     ],
     [
      "QUICK_SLASH_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "POWER_DANCE_MOVE",
-     6
+     512
     ],
     [
      "QUICK_SLASH_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -14891,6 +14976,7 @@
      199
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ORB_OF_FRAILTY_MOVE": {
      "kind": "move",
@@ -15014,13 +15100,13 @@
    "initial": [
     [
      "ORB_OF_FRAILTY_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "ORB_OF_FRAILTY_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15091,6 +15177,7 @@
      99
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "DEBILITATING_SMOG": {
      "kind": "move",
@@ -15156,13 +15243,13 @@
    "initial": [
     [
      "DEBILITATING_SMOG",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "DEBILITATING_SMOG",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15223,6 +15310,7 @@
      111
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "MIASMA": {
      "kind": "move",
@@ -15298,13 +15386,13 @@
    "initial": [
     [
      "MIASMA",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "MIASMA",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15373,6 +15461,7 @@
      129
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ILLUSION_MOVE": {
      "kind": "move",
@@ -15538,13 +15627,13 @@
    "initial": [
     [
      "ILLUSION_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "ILLUSION_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15617,6 +15706,7 @@
      84
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "THIEVERY_MOVE": {
      "kind": "move",
@@ -15754,13 +15844,13 @@
    "initial": [
     [
      "THIEVERY_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "THIEVERY_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15815,6 +15905,7 @@
      26
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -15920,21 +16011,21 @@
    "initial": [
     [
      "WHIRL_MOVE",
-     12
+     1024
     ],
     [
      "SPIKEN_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "WHIRL_MOVE",
-     12
+     1024
     ],
     [
      "SPIKEN_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -15975,6 +16066,7 @@
      92
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "BITE_MOVE": {
      "kind": "move",
@@ -16088,13 +16180,13 @@
    "initial": [
     [
      "BITE_MOVE",
-     12
+     1024
     ]
    ],
    "initial8": [
     [
      "BITE_MOVE",
-     12
+     1024
     ]
    ],
    "moves": {
@@ -16145,6 +16237,7 @@
      55
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SHIELD_SLAM_BRANCH": {
      "kind": "cond",
@@ -16236,13 +16329,13 @@
    "initial": [
     [
      "SHIELD_SLAM_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SHIELD_SLAM_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -16291,6 +16384,7 @@
      51
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "UNLOAD_MOVE_1": {
      "kind": "move",
@@ -16370,13 +16464,13 @@
    "initial": [
     [
      "UNLOAD_MOVE_1",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "UNLOAD_MOVE_1",
-     6
+     512
     ]
    ],
    "moves": {
@@ -16417,6 +16511,7 @@
      22
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "RAND": {
      "kind": "random",
@@ -16586,29 +16681,29 @@
    "initial": [
     [
      "SCREECH_MOVE",
-     6
+     512
     ],
     [
      "SCRATCH_MOVE",
-     6
+     512
     ],
     [
      "DISEASE_BITE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SCREECH_MOVE",
-     6
+     512
     ],
     [
      "SCRATCH_MOVE",
-     6
+     512
     ],
     [
      "DISEASE_BITE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -16651,6 +16746,7 @@
      183
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "INK_BLOT_MOVE": {
      "kind": "move",
@@ -16764,13 +16860,13 @@
    "initial": [
     [
      "INK_BLOT_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "INK_BLOT_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -16861,6 +16957,7 @@
      64
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SWIPE_MOVE": {
      "kind": "move",
@@ -16950,13 +17047,13 @@
    "initial": [
     [
      "SWIPE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "SWIPE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -16997,6 +17094,7 @@
      260
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "PRESSURIZE_MOVE": {
      "kind": "move",
@@ -17256,13 +17354,13 @@
    "initial": [
     [
      "PRESSURIZE_MOVE",
-     6
+     512
     ]
    ],
    "initial8": [
     [
      "PRESSURIZE_MOVE",
-     6
+     512
     ]
    ],
    "moves": {
@@ -17403,6 +17501,7 @@
      512
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "WHAT_IS_IT_MOVE": {
      "kind": "move",
@@ -17539,6 +17638,7 @@
      6
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "DISTRACT_MOVE": {
      "kind": "move",
@@ -17655,6 +17755,7 @@
      12
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "EXPLODE_MOVE": {
      "kind": "move",
@@ -17725,6 +17826,7 @@
      25
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "GUARD_MOVE": {
      "kind": "move",
@@ -17785,6 +17887,7 @@
      28
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "NOISE_MOVE": {
      "kind": "move",
@@ -17871,6 +17974,7 @@
      21
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "SLAM_MOVE": {
      "kind": "move",
@@ -17949,6 +18053,7 @@
      40
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "STRIKE": {
      "kind": "move",
@@ -18019,6 +18124,7 @@
      28
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "STAB_MOVE": {
      "kind": "move",
@@ -18103,6 +18209,7 @@
      18
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "HATCH_MOVE": {
      "kind": "move",
@@ -18207,6 +18314,7 @@
      28
     ]
    },
+   "hp_source": "sampled_only",
    "states": {
     "ZAP": {
      "kind": "move",
@@ -18271,104 +18379,113 @@
   "setup_axebots_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "AXEBOT",
       "AXEBOT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_axebots_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "AXEBOT",
       "AXEBOT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v1@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V1"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v1@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V1"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v2@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V2"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v2@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V2"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v3@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V3"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_battleworn_dummy_v3@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BATTLE_FRIEND_V3"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bowlbugs_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18376,13 +18493,14 @@
       "BOWLBUG_ROCK",
       "BOWLBUG_SILK"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bowlbugs_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18390,137 +18508,148 @@
       "BOWLBUG_ROCK",
       "BOWLBUG_SILK"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bowlbugs_weak@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BOWLBUG_EGG",
       "BOWLBUG_NECTAR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bowlbugs_weak@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BOWLBUG_EGG",
       "BOWLBUG_NECTAR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bygone_effigy_elite@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BYGONE_EFFIGY"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_bygone_effigy_elite@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BYGONE_EFFIGY"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_byrdonis_elite@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BYRDONIS"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_byrdonis_elite@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BYRDONIS"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_ceremonial_beast_boss@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CEREMONIAL_BEAST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_ceremonial_beast_boss@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CEREMONIAL_BEAST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_chompers_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CHOMPER",
       "CHOMPER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_chompers_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CHOMPER",
       "CHOMPER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_construct_menagerie_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18528,13 +18657,14 @@
       "CUBEX_CONSTRUCT",
       "CUBEX_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_construct_menagerie_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18542,13 +18672,14 @@
       "CUBEX_CONSTRUCT",
       "CUBEX_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_corpse_slugs_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18556,13 +18687,14 @@
       "CORPSE_SLUG",
       "CORPSE_SLUG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_corpse_slugs_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18570,89 +18702,96 @@
       "CORPSE_SLUG",
       "CORPSE_SLUG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_corpse_slugs_weak@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CORPSE_SLUG",
       "CORPSE_SLUG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_corpse_slugs_weak@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CORPSE_SLUG",
       "CORPSE_SLUG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_cubex_construct_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CUBEX_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_cubex_construct_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CUBEX_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_cultists_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CALCIFIED_CULTIST",
       "DAMP_CULTIST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_cultists_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CALCIFIED_CULTIST",
       "DAMP_CULTIST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_decimillipede_elite@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18660,13 +18799,14 @@
       "DECIMILLIPEDE_SEGMENT",
       "DECIMILLIPEDE_SEGMENT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_decimillipede_elite@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18674,13 +18814,14 @@
       "DECIMILLIPEDE_SEGMENT",
       "DECIMILLIPEDE_SEGMENT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_dense_vegetation@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18689,13 +18830,14 @@
       "WRIGGLER",
       "WRIGGLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_dense_vegetation@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18704,85 +18846,92 @@
       "WRIGGLER",
       "WRIGGLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_devoted_sculptor_weak@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "DEVOTED_SCULPTOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_devoted_sculptor_weak@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "DEVOTED_SCULPTOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_doormaker_boss@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "DOOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_doormaker_boss@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "DOOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_entomancer_elite@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "ENTOMANCER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_entomancer_elite@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "ENTOMANCER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_exoskeletons_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18790,13 +18939,14 @@
       "EXOSKELETON",
       "EXOSKELETON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_exoskeletons_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -18804,247 +18954,266 @@
       "EXOSKELETON",
       "EXOSKELETON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_exoskeletons_weak@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "EXOSKELETON",
       "EXOSKELETON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_exoskeletons_weak@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "EXOSKELETON",
       "EXOSKELETON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fabricator_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FABRICATOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fabricator_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FABRICATOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fake_merchant@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FAKE_MERCHANT_MONSTER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fake_merchant@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FAKE_MERCHANT_MONSTER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_flyconid_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TWIG_SLIME_M",
       "FLYCONID"
      ],
-     3
+     257
     ],
     [
      [
       "LEAF_SLIME_M",
       "FLYCONID"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_flyconid_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TWIG_SLIME_M",
       "FLYCONID"
      ],
-     3
+     257
     ],
     [
      [
       "LEAF_SLIME_M",
       "FLYCONID"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_fogmog_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FOGMOG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fogmog_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FOGMOG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fossil_stalker_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FOSSIL_STALKER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fossil_stalker_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FOSSIL_STALKER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_frog_knight_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FROG_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_frog_knight_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FROG_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fuzzy_wurm_crawler_weak@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "FUZZY_WURM_CRAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_fuzzy_wurm_crawler_weak@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "FUZZY_WURM_CRAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_globe_head_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "GLOBE_HEAD"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_globe_head_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "GLOBE_HEAD"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_gremlin_merc_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19052,13 +19221,14 @@
       "SNEAKY_GREMLIN",
       "FAT_GREMLIN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_gremlin_merc_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19066,85 +19236,92 @@
       "SNEAKY_GREMLIN",
       "FAT_GREMLIN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_haunted_ship_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "HAUNTED_SHIP"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_haunted_ship_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "HAUNTED_SHIP"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_hunter_killer_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "HUNTER_KILLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_hunter_killer_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "HUNTER_KILLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_infested_prisms_elite@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "INFESTED_PRISM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_infested_prisms_elite@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "INFESTED_PRISM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_inklets_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19152,13 +19329,14 @@
       "INKLET",
       "INKLET"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_inklets_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19166,39 +19344,42 @@
       "INKLET",
       "INKLET"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_kaiser_crab_boss@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CRUSHER",
       "ROCKET"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_kaiser_crab_boss@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CRUSHER",
       "ROCKET"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_knights_elite@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19206,13 +19387,14 @@
       "SPECTRAL_KNIGHT",
       "MAGI_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_knights_elite@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19220,331 +19402,358 @@
       "SPECTRAL_KNIGHT",
       "MAGI_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_knowledge_demon_boss@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "KNOWLEDGE_DEMON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_knowledge_demon_boss@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "KNOWLEDGE_DEMON"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_lagavulin_matriarch_boss@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "LAGAVULIN_MATRIARCH"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_lagavulin_matriarch_boss@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "LAGAVULIN_MATRIARCH"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_living_fog_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "LIVING_FOG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_living_fog_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "LIVING_FOG"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_louse_progenitor_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "LOUSE_PROGENITOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_louse_progenitor_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "LOUSE_PROGENITOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mawler_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "MAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mawler_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "MAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mecha_knight_elite@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "MECHA_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mecha_knight_elite@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "MECHA_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mysterious_knight@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "MYSTERIOUS_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mysterious_knight@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "MYSTERIOUS_KNIGHT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mytes_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "MYTE",
       "MYTE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_mytes_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "MYTE",
       "MYTE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_nibbits_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "NIBBIT",
       "NIBBIT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_nibbits_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "NIBBIT",
       "NIBBIT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_nibbits_weak@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "NIBBIT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_nibbits_weak@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "NIBBIT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_overgrowth_crawlers@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SHRINKER_BEETLE",
       "FUZZY_WURM_CRAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_overgrowth_crawlers@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SHRINKER_BEETLE",
       "FUZZY_WURM_CRAWLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_ovicopter_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "OVICOPTER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_ovicopter_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "OVICOPTER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_owl_magistrate_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "OWL_MAGISTRATE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_owl_magistrate_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "OWL_MAGISTRATE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_phantasmal_gardeners_elite@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19553,13 +19762,14 @@
       "PHANTASMAL_GARDENER",
       "PHANTASMAL_GARDENER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_phantasmal_gardeners_elite@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19568,137 +19778,138 @@
       "PHANTASMAL_GARDENER",
       "PHANTASMAL_GARDENER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_phrog_parasite_elite@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "PHROG_PARASITE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_phrog_parasite_elite@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "PHROG_PARASITE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_punch_construct_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "PUNCH_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_punch_construct_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "PUNCH_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_punch_off@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "PUNCH_CONSTRUCT",
       "PUNCH_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_punch_off@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "PUNCH_CONSTRUCT",
       "PUNCH_CONSTRUCT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_queen_boss@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TORCH_HEAD_AMALGAM",
       "QUEEN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_queen_boss@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TORCH_HEAD_AMALGAM",
       "QUEEN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_ruby_raiders_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
-      "CROSSBOW_RUBY_RAIDER",
       "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
       "BRUTE_RUBY_RAIDER"
      ],
-     1
-    ],
-    [
-     [
-      "ASSASSIN_RUBY_RAIDER",
-      "AXE_RUBY_RAIDER",
-      "CROSSBOW_RUBY_RAIDER"
-     ],
-     1
+     11
     ],
     [
      [
       "CROSSBOW_RUBY_RAIDER",
-      "ASSASSIN_RUBY_RAIDER",
-      "AXE_RUBY_RAIDER"
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
      ],
-     1
+     11
     ],
     [
      [
@@ -19706,7 +19917,247 @@
       "CROSSBOW_RUBY_RAIDER",
       "TRACKER_RUBY_RAIDER"
      ],
-     1
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
     ],
     [
      [
@@ -19714,7 +20165,7 @@
       "CROSSBOW_RUBY_RAIDER",
       "ASSASSIN_RUBY_RAIDER"
      ],
-     1
+     8
     ],
     [
      [
@@ -19722,37 +20173,230 @@
       "BRUTE_RUBY_RAIDER",
       "AXE_RUBY_RAIDER"
      ],
-     1
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     6
     ]
    ]
   },
   "setup_ruby_raiders_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
-      "CROSSBOW_RUBY_RAIDER",
       "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
       "BRUTE_RUBY_RAIDER"
      ],
-     1
-    ],
-    [
-     [
-      "ASSASSIN_RUBY_RAIDER",
-      "AXE_RUBY_RAIDER",
-      "CROSSBOW_RUBY_RAIDER"
-     ],
-     1
+     11
     ],
     [
      [
       "CROSSBOW_RUBY_RAIDER",
-      "ASSASSIN_RUBY_RAIDER",
-      "AXE_RUBY_RAIDER"
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
      ],
-     1
+     11
     ],
     [
      [
@@ -19760,7 +20404,247 @@
       "CROSSBOW_RUBY_RAIDER",
       "TRACKER_RUBY_RAIDER"
      ],
-     1
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     10
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     9
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
     ],
     [
      [
@@ -19768,7 +20652,7 @@
       "CROSSBOW_RUBY_RAIDER",
       "ASSASSIN_RUBY_RAIDER"
      ],
-     1
+     8
     ],
     [
      [
@@ -19776,13 +20660,214 @@
       "BRUTE_RUBY_RAIDER",
       "AXE_RUBY_RAIDER"
      ],
-     1
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     8
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "BRUTE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "CROSSBOW_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "TRACKER_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER",
+      "AXE_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "AXE_RUBY_RAIDER",
+      "TRACKER_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     7
+    ],
+    [
+     [
+      "ASSASSIN_RUBY_RAIDER",
+      "BRUTE_RUBY_RAIDER",
+      "CROSSBOW_RUBY_RAIDER"
+     ],
+     6
     ]
    ]
   },
   "setup_scrolls_of_biting_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19791,13 +20876,14 @@
       "SCROLL_OF_BITING",
       "SCROLL_OF_BITING"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_scrolls_of_biting_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19806,13 +20892,14 @@
       "SCROLL_OF_BITING",
       "SCROLL_OF_BITING"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_scrolls_of_biting_weak@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19820,13 +20907,14 @@
       "SCROLL_OF_BITING",
       "SCROLL_OF_BITING"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_scrolls_of_biting_weak@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19834,133 +20922,144 @@
       "SCROLL_OF_BITING",
       "SCROLL_OF_BITING"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_seapunk_weak@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SEAPUNK"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_seapunk_weak@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SEAPUNK"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_sewer_clam_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SEWER_CLAM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_sewer_clam_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SEWER_CLAM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_shrinker_beetle_weak@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SHRINKER_BEETLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_shrinker_beetle_weak@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SHRINKER_BEETLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_skulking_colony_elite@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SKULKING_COLONY"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_skulking_colony_elite@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SKULKING_COLONY"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_slimed_berserker_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLIMED_BERSERKER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_slimed_berserker_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLIMED_BERSERKER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_slimes_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19969,7 +21068,7 @@
       "TWIG_SLIME_S",
       "LEAF_SLIME_S"
      ],
-     3
+     257
     ],
     [
      [
@@ -19978,13 +21077,14 @@
       "LEAF_SLIME_S",
       "TWIG_SLIME_S"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_slimes_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -19993,7 +21093,7 @@
       "TWIG_SLIME_S",
       "LEAF_SLIME_S"
      ],
-     3
+     257
     ],
     [
      [
@@ -20002,29 +21102,30 @@
       "LEAF_SLIME_S",
       "TWIG_SLIME_S"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_slimes_weak@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
-      "LEAF_SLIME_S",
       "TWIG_SLIME_S",
+      "LEAF_SLIME_S",
       "LEAF_SLIME_M"
      ],
-     2
+     130
     ],
     [
      [
-      "TWIG_SLIME_S",
       "LEAF_SLIME_S",
+      "TWIG_SLIME_S",
       "LEAF_SLIME_M"
      ],
-     2
+     129
     ],
     [
      [
@@ -20032,7 +21133,7 @@
       "LEAF_SLIME_S",
       "TWIG_SLIME_M"
      ],
-     1
+     127
     ],
     [
      [
@@ -20040,29 +21141,30 @@
       "TWIG_SLIME_S",
       "TWIG_SLIME_M"
      ],
-     1
+     126
     ]
    ]
   },
   "setup_slimes_weak@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
-      "LEAF_SLIME_S",
       "TWIG_SLIME_S",
+      "LEAF_SLIME_S",
       "LEAF_SLIME_M"
      ],
-     2
+     130
     ],
     [
      [
-      "TWIG_SLIME_S",
       "LEAF_SLIME_S",
+      "TWIG_SLIME_S",
       "LEAF_SLIME_M"
      ],
-     2
+     129
     ],
     [
      [
@@ -20070,7 +21172,7 @@
       "LEAF_SLIME_S",
       "TWIG_SLIME_M"
      ],
-     1
+     127
     ],
     [
      [
@@ -20078,327 +21180,396 @@
       "TWIG_SLIME_S",
       "TWIG_SLIME_M"
      ],
-     1
+     126
     ]
    ]
   },
   "setup_slithering_strangler_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
-    [
-     [
-      "TWIG_SLIME_S",
-      "TWIG_SLIME_S",
-      "SLITHERING_STRANGLER"
-     ],
-     2
-    ],
     [
      [
       "SNAPPING_JAXFRUIT",
       "SLITHERING_STRANGLER"
      ],
-     2
+     170
     ],
     [
      [
-      "LEAF_SLIME_S",
-      "LEAF_SLIME_S",
+      "TWIG_SLIME_M",
       "SLITHERING_STRANGLER"
      ],
-     1
+     86
     ],
     [
      [
       "LEAF_SLIME_M",
       "SLITHERING_STRANGLER"
      ],
-     1
+     84
+    ],
+    [
+     [
+      "TWIG_SLIME_S",
+      "TWIG_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     45
+    ],
+    [
+     [
+      "LEAF_SLIME_S",
+      "TWIG_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     43
+    ],
+    [
+     [
+      "LEAF_SLIME_S",
+      "LEAF_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     42
+    ],
+    [
+     [
+      "TWIG_SLIME_S",
+      "LEAF_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     42
     ]
    ]
   },
   "setup_slithering_strangler_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
-    [
-     [
-      "TWIG_SLIME_S",
-      "TWIG_SLIME_S",
-      "SLITHERING_STRANGLER"
-     ],
-     2
-    ],
     [
      [
       "SNAPPING_JAXFRUIT",
       "SLITHERING_STRANGLER"
      ],
-     2
+     170
     ],
     [
      [
-      "LEAF_SLIME_S",
-      "LEAF_SLIME_S",
+      "TWIG_SLIME_M",
       "SLITHERING_STRANGLER"
      ],
-     1
+     86
     ],
     [
      [
       "LEAF_SLIME_M",
       "SLITHERING_STRANGLER"
      ],
-     1
+     84
+    ],
+    [
+     [
+      "TWIG_SLIME_S",
+      "TWIG_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     45
+    ],
+    [
+     [
+      "LEAF_SLIME_S",
+      "TWIG_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     43
+    ],
+    [
+     [
+      "LEAF_SLIME_S",
+      "LEAF_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     42
+    ],
+    [
+     [
+      "TWIG_SLIME_S",
+      "LEAF_SLIME_S",
+      "SLITHERING_STRANGLER"
+     ],
+     42
     ]
    ]
   },
   "setup_sludge_spinner_weak@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLUDGE_SPINNER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_sludge_spinner_weak@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLUDGE_SPINNER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_slumbering_beetle_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLUMBERING_BEETLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_slumbering_beetle_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SLUMBERING_BEETLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_snapping_jaxfruit_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SNAPPING_JAXFRUIT",
       "FLYCONID"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_snapping_jaxfruit_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SNAPPING_JAXFRUIT",
       "FLYCONID"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_soul_fysh_boss@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SOUL_FYSH"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_soul_fysh_boss@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SOUL_FYSH"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_soul_nexus_elite@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SOUL_NEXUS"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_soul_nexus_elite@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SOUL_NEXUS"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_spiny_toad_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "SPINY_TOAD"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_spiny_toad_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "SPINY_TOAD"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_terror_eel_elite@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TERROR_EEL"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_terror_eel_elite@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TERROR_EEL"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_test_subject_boss@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TEST_SUBJECT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_test_subject_boss@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TEST_SUBJECT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_architect@A0": {
    "act": "act0",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "ARCHITECT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_architect@A8": {
    "act": "act0",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "ARCHITECT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_insatiable_boss@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_INSATIABLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_insatiable_boss@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_INSATIABLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_kin_boss@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -20406,13 +21577,14 @@
       "KIN_FOLLOWER",
       "KIN_PRIEST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_kin_boss@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -20420,229 +21592,246 @@
       "KIN_FOLLOWER",
       "KIN_PRIEST"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_lost_and_forgotten_normal@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_LOST",
       "THE_FORGOTTEN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_lost_and_forgotten_normal@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_LOST",
       "THE_FORGOTTEN"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_obscura_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_OBSCURA"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_the_obscura_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "THE_OBSCURA"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_thieving_hopper_weak@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "THIEVING_HOPPER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_thieving_hopper_weak@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "THIEVING_HOPPER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_toadpoles_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "CALCIFIED_CULTIST",
       "TOADPOLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_toadpoles_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "CALCIFIED_CULTIST",
       "TOADPOLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_toadpoles_weak@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TOADPOLE",
       "TOADPOLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_toadpoles_weak@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TOADPOLE",
       "TOADPOLE"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_tunneler_normal@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "BOWLBUG_SILK",
       "TUNNELER"
      ],
-     3
+     257
     ],
     [
      [
       "BOWLBUG_EGG",
       "TUNNELER"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_tunneler_normal@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "BOWLBUG_SILK",
       "TUNNELER"
      ],
-     3
+     257
     ],
     [
      [
       "BOWLBUG_EGG",
       "TUNNELER"
      ],
-     3
+     255
     ]
    ]
   },
   "setup_tunneler_weak@A0": {
    "act": "act2",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "TUNNELER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_tunneler_weak@A8": {
    "act": "act2",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "TUNNELER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_turret_operator_weak@A0": {
    "act": "act3",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "LIVING_SHIELD",
       "TURRET_OPERATOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_turret_operator_weak@A8": {
    "act": "act3",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "LIVING_SHIELD",
       "TURRET_OPERATOR"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_two_tailed_rats_normal@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -20650,13 +21839,14 @@
       "TWO_TAILED_RAT",
       "TWO_TAILED_RAT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_two_tailed_rats_normal@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
@@ -20664,79 +21854,85 @@
       "TWO_TAILED_RAT",
       "TWO_TAILED_RAT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_vantom_boss@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "VANTOM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_vantom_boss@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "VANTOM"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_vine_shambler_normal@A0": {
    "act": "act1",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "VINE_SHAMBLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_vine_shambler_normal@A8": {
    "act": "act1",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "VINE_SHAMBLER"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_waterfall_giant_boss@A0": {
    "act": "act4",
    "asc": 0,
+   "samples": 512,
    "rosters": [
     [
      [
       "WATERFALL_GIANT"
      ],
-     6
+     512
     ]
    ]
   },
   "setup_waterfall_giant_boss@A8": {
    "act": "act4",
    "asc": 8,
+   "samples": 512,
    "rosters": [
     [
      [
       "WATERFALL_GIANT"
      ],
-     6
+     512
     ]
    ]
   }

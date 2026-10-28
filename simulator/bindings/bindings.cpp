@@ -205,6 +205,23 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("MAX_DECK") = MAX_DECK;
     m.attr("MAP_MAX_POINTS") = MAP_MAX_POINTS;
 
+    m.def("monster_info", [](int id) {
+        const MonsterDef &d = monster_def(static_cast<MonsterId>(id));
+        return py::make_tuple(std::string(d.key ? d.key : ""),
+                              d.hpLo[0], d.hpHi[0], d.hpLo[1], d.hpHi[1],
+                              d.stateOff, d.stateCount, d.reviveState, d.multiClawState);
+    });
+    m.def("encounter_info", [](int id) {
+        const EncounterDef &d = encounter_def(id);
+        py::list pats;
+        for (int i = 0; i < d.patternCount; ++i) {
+            const EncounterPattern &p = encounter_pattern(d.patternOff + i);
+            py::list ids;
+            for (int k = 0; k < p.count; ++k) ids.append(static_cast<int>(p.ids[k]));
+            pats.append(py::make_tuple(ids, p.weight));
+        }
+        return py::make_tuple(std::string(d.key ? d.key : ""), d.act, pats);
+    });
     m.def("card_name", [](int id) { return std::string(card_name(static_cast<CardId>(id))); });
     m.def("card_count", []() { return static_cast<int>(CardId::COUNT); });
     m.def("card_features", [](int id, bool upgraded, int price) {

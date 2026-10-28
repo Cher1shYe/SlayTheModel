@@ -51,7 +51,7 @@ struct MonStateDef {
     std::uint8_t auxCode;
 };
 struct MonPowerDef { PowerId id; std::int16_t amount; };
-struct MonInitialDef { std::uint8_t state; std::uint8_t weight; };
+struct MonInitialDef { std::uint8_t state; std::uint16_t weight; };
 struct MonsterDef {
     const char *key;
     std::int16_t hpLo[2];
@@ -81,6 +81,7 @@ int random_encounter_for_act(int act, Rng &rng, int kind = 0);
 const MonsterDef &monster_def(MonsterId id);
 const char *monster_name(MonsterId id);
 const EncounterDef &encounter_def(int index);
+const EncounterPattern &encounter_pattern(int index);
 int encounter_count();
 
 }  // namespace sts2

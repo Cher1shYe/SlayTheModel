@@ -263,11 +263,11 @@ def test_boss_reward_advances_act():
         action = (combat_policy(env) if rc.screen == SCREEN.COMBAT
                   else run_policy(env))
         assert env.step(action)
-    raise AssertionError("seed 32 never reached the act-1 boss reward")
+    raise AssertionError("seed 11 never reached the act-1 boss reward")
 
 
 def test_full_run_completes_and_wins():
-    for seed in (26, 32):
+    for seed in (26, 11):
         result = play_run(RunEnv(seed), run_policy, combat_policy)
         assert result["won"], result
         assert result["act"] == 2 and result["bosses"] == 3

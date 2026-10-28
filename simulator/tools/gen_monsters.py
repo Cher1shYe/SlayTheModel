@@ -326,7 +326,7 @@ def main() -> None:
         mid, hp0, hp8, soff, scount, poff, pn, ioff, inum, revive, multi = d
         lines.append(
             "    {%s, {%d, %d}, {%d, %d}, {%d, %d}, {%d, %d}, %d, %d, %d, %d, %d, %d},"
-            % (cstr(mid), hp0[0], hp0[1], hp8[0], hp8[1],
+            % (cstr(mid), hp0[0], hp8[0], hp0[1], hp8[1],
                poff[0], poff[1], pn[0], pn[1], soff, scount, ioff, inum,
                revive if revive is not None else 255,
                multi if multi is not None else 255))
