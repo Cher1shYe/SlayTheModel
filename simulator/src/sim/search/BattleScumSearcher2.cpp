@@ -6,6 +6,7 @@
 #include "sim/search/ExpertKnowledge.h"
 
 #include <utility>
+#include <algorithm>
 #include <string>
 #include <memory>
 

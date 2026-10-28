@@ -11,7 +11,10 @@ set(CMAKE_CXX_STANDARD 17)
 if(MSVC)
     add_compile_options(/O2 /EHsc /bigobj)
 else()
-    set(CMAKE_CXX_FLAGS "-Wno-shift-count-overflow -O3")
+    # -include algorithm: the upstream sources rely on MSVC's transitive <algorithm> include
+    set(CMAKE_CXX_FLAGS "-Wno-shift-count-overflow -O3 -include algorithm")
+    # no MinGW runtime DLLs next to the .pyd
+    set(CMAKE_SHARED_LINKER_FLAGS "-static-libgcc -static-libstdc++")
 endif()
 
 add_subdirectory(json)
@@ -19,6 +22,9 @@ add_subdirectory(pybind11)
 
 pybind11_add_module(slaythespire bindings/slaythespire.cpp bindings/bindings-util.cpp ${sts_lightspeed_SOURCES})
 target_include_directories(slaythespire PUBLIC include)
+if(NOT MSVC)
+    target_link_options(slaythespire PRIVATE -static-libgcc -static-libstdc++)
+endif()
 target_include_directories(slaythespire PUBLIC json/single_include)
 target_include_directories(slaythespire PUBLIC bindings)
 

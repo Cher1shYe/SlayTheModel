@@ -1,0 +1,4 @@
+D:/sts2_datacollection/sts1/deployment/combat-tests-mingw/CMakeFiles/combat_rules.dir
+D:/sts2_datacollection/sts1/deployment/combat-tests-mingw/CMakeFiles/test.dir
+D:/sts2_datacollection/sts1/deployment/combat-tests-mingw/CMakeFiles/edit_cache.dir
+D:/sts2_datacollection/sts1/deployment/combat-tests-mingw/CMakeFiles/rebuild_cache.dir

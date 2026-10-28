@@ -5,6 +5,7 @@
 #include "sim/search/ScumSearchAgent2.h"
 
 #include <sim/search/ExpertKnowledge.h>
+#include <algorithm>
 #include <game/Game.h>
 #include "sim/PrintHelpers.h"
 #include "sim/search/BattleScumSearcher2.h"

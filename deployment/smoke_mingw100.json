@@ -1,0 +1,67 @@
+{
+  "python": "3.12.13 | packaged by Anaconda, Inc. | (main, Mar 19 2026, 20:16:45) [MSC v.1942 64 bit (AMD64)]",
+  "torch": "2.12.0+cpu",
+  "module": "D:\\sts2_datacollection\\sts1\\simulator\\build312\\Release\\slaythespire.cp312-win_amd64.pyd",
+  "weight": "D:\\sts2_datacollection\\sts1\\sts-rl-agent\\weights\\armG_model_G128x128_15k.pt",
+  "parameters": 116609,
+  "observation_dim": 412,
+  "candidate_dim": 368,
+  "note": "Integration smoke, not the published 50-seed benchmark; combat rules patched.",
+  "runs": [
+    {
+      "seed": 1,
+      "simulations": 100,
+      "floor": 50,
+      "win": false,
+      "outcome": "GameOutcome.PLAYER_LOSS",
+      "battles": 22,
+      "combat_actions": 406,
+      "noncombat_decisions": 103,
+      "seconds": 0.378
+    },
+    {
+      "seed": 2,
+      "simulations": 100,
+      "floor": 31,
+      "win": false,
+      "outcome": "GameOutcome.PLAYER_LOSS",
+      "battles": 17,
+      "combat_actions": 303,
+      "noncombat_decisions": 63,
+      "seconds": 0.18
+    },
+    {
+      "seed": 3,
+      "simulations": 100,
+      "floor": 33,
+      "win": false,
+      "outcome": "GameOutcome.PLAYER_LOSS",
+      "battles": 15,
+      "combat_actions": 261,
+      "noncombat_decisions": 66,
+      "seconds": 0.188
+    },
+    {
+      "seed": 4,
+      "simulations": 100,
+      "floor": 6,
+      "win": false,
+      "outcome": "GameOutcome.PLAYER_LOSS",
+      "battles": 4,
+      "combat_actions": 57,
+      "noncombat_decisions": 14,
+      "seconds": 0.027
+    },
+    {
+      "seed": 5,
+      "simulations": 100,
+      "floor": 33,
+      "win": false,
+      "outcome": "GameOutcome.PLAYER_LOSS",
+      "battles": 17,
+      "combat_actions": 364,
+      "noncombat_decisions": 65,
+      "seconds": 0.326
+    }
+  ]
+}

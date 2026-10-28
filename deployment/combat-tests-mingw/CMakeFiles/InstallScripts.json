@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"D:/sts2_datacollection/sts1/deployment/combat-tests-mingw/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

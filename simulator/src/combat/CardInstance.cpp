@@ -6,6 +6,8 @@
 
 #include "combat/BattleContext.h"
 
+#include <algorithm>
+
 using namespace sts;
 
 CardInstance::CardInstance(CardId id, bool upgraded) : id(id), upgraded(upgraded) {

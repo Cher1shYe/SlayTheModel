@@ -1,0 +1,18 @@
+blood_normal 1 0.445208
+blood_bark 1 0.116295
+blood_rounding 1 0.114208
+blood_cap 1 0.100454
+iron_wave_base 1 0.138794
+iron_wave_dex 1 0.154335
+iron_wave_frail 1 0.104235
+iron_wave_negative_dex 1 0.0828932
+cardless_poison 1 0.0572377
+cardless_fire 1 0.0856465
+cardless_death 1 0.0516329
+poison_with_cards 1 0.0667064
+poison_block 1 0.080824
+poison_intangible 1 0.0842743
+poison_expiration 1 0.0738141
+poison_artifact 1 0.0728193
+poison_targets 1 0.064662
+---
