@@ -16,14 +16,14 @@ import torch.nn.functional as F
 
 from .common import (
     ACTION_FEAT_DIM,
-    COMBAT_OBS_DIM,
     OUTCOME,
+    PUBLIC_COMBAT_OBS_DIM,
     RACT,
     SCREEN,
     combat_action_arrays,
-    combat_observation,
-    legal_run_actions,
     new_run,
+    public_combat_observation,
+    screen_action,
     sim,
 )
 from .nets import CombatNet, load_checkpoint, save_checkpoint
@@ -47,6 +47,7 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
     records: list[Episode] = []
     combat_start = 0
     steps = 0
+    status = "error"
     while rc.screen != SCREEN.RUN_OVER and steps < 5000:
         steps += 1
         if rc.screen == SCREEN.COMBAT:
@@ -55,7 +56,7 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
             if len(actions) == 1:
                 action = actions[0]
             else:
-                state = combat_observation(bc)
+                state = public_combat_observation(bc)
                 logits, _value = model.policy_value(
                     torch.from_numpy(state)[None], torch.from_numpy(feats)[None])
                 probs = torch.softmax(logits[0], dim=-1).numpy().astype(np.float64)
@@ -84,30 +85,20 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
                 combat_start = len(records)
             continue
 
-        if rc.screen == SCREEN.CARD_REWARD:
-            action = (int(RACT.TAKE_CARD), 0) if rc.deck_count < 24 else (int(RACT.SKIP_CARD), 0)
-        elif rc.screen == SCREEN.REST:
-            legal = legal_run_actions(rc)
-            action = (int(RACT.REST_HEAL), 0) if rc.hp * 10 < rc.max_hp * 6 else legal[-1]
-        elif rc.screen == SCREEN.SHOP:
-            action = (int(RACT.LEAVE_SHOP), 0)
-        elif rc.screen == SCREEN.EVENT:
-            action = (int(RACT.EVENT_CHOICE), 0)
-        elif rc.screen == SCREEN.TREASURE:
-            action = (int(RACT.COLLECT), 0)
-        elif rc.screen == SCREEN.MAP:
-            action = (int(RACT.MOVE), rc.available_map_nodes()[0])
-        else:
-            break
+        action = screen_action(rc)
         if not rc.step(*action):
             break
-    return {"records": records, "won": bool(rc.won), "floor": int(rc.floor), "hp": int(rc.hp)}
+    else:
+        status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+    return {"records": records if status == "terminated" else [],
+            "won": bool(rc.won) and status == "terminated",
+            "floor": int(rc.floor), "hp": int(rc.hp), "status": status}
 
 
 def pad_batch(records: list[Episode]):
     b = len(records)
     k = max(len(r.acts) for r in records)
-    states = np.zeros((b, COMBAT_OBS_DIM), dtype=np.float32)
+    states = np.zeros((b, PUBLIC_COMBAT_OBS_DIM), dtype=np.float32)
     acts = np.zeros((b, k, ACTION_FEAT_DIM), dtype=np.float32)
     mask = np.zeros((b, k), dtype=np.float32)
     target = np.zeros((b, k), dtype=np.float32)
@@ -147,10 +138,14 @@ def train_batch(model: CombatNet, opt, records: list[Episode], epochs: int = 2,
 def evaluate(model: CombatNet, simulations: int = 16, runs: int = 50, seed: int = 9999) -> dict:
     results = [play_episode(seed + i, model, simulations, sample=False)
                for i in range(runs)]
+    statuses = [r["status"] for r in results]
     return {
         "winrate": float(np.mean([r["won"] for r in results])),
         "avg_floor": float(np.mean([r["floor"] for r in results])),
         "records": int(sum(len(r["records"]) for r in results)),
+        "abnormal_rate": float(np.mean([s != "terminated" for s in statuses])),
+        "truncated": statuses.count("truncated"),
+        "errors": statuses.count("error"),
     }
 
 
@@ -170,11 +165,13 @@ def train(iterations: int = 20, episodes_per_iter: int = 16, simulations: int = 
         start = time.time()
         episodes = [play_episode(seed * 100000 + it * 1000 + i, model, simulations, sample=True)
                     for i in range(episodes_per_iter)]
-        records = [rec for ep in episodes for rec in ep["records"]]
+        valid = [e for e in episodes if e["status"] == "terminated"]
+        abnormal = len(episodes) - len(valid)
+        records = [rec for ep in valid for rec in ep["records"]]
         stats = train_batch(model, opt, records) if records else {"loss": 0.0}
-        winrate = float(np.mean([e["won"] for e in episodes]))
+        winrate = float(np.mean([e["won"] for e in valid])) if valid else 0.0
         avg_floor = float(np.mean([e["floor"] for e in episodes]))
-        print(f"iter {it:3d} eps {len(episodes):3d} records {len(records):6d} "
+        print(f"iter {it:3d} eps {len(episodes):3d} abnormal {abnormal:3d} records {len(records):6d} "
               f"win {winrate:.3f} floor {avg_floor:.1f} loss {stats['loss']:.4f} "
               f"{time.time() - start:.2f}s", flush=True)
         save_checkpoint(out / "combat.pt", model, {"iteration": it})

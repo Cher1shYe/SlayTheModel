@@ -11,6 +11,8 @@ from agent.common import (
     ACTION_FEAT_DIM,
     CARD_FEAT_DIM,
     COMBAT_OBS_DIM,
+    PUBLIC_COMBAT_OBS_DIM,
+    PUBLIC_OBS_DIM,
     RACT,
     RUN_OBS_DIM,
     SCREEN,
@@ -39,14 +41,22 @@ def test_observation_dims():
     rc = env.rc
     assert rc.screen == SCREEN.EVENT and rc.event_name == "NEOW"
     assert run_observation(rc).shape == (RUN_OBS_DIM,)
-    assert env.observe_public().shape == (RUN_OBS_DIM,)
+    assert env.observe_public().shape == (PUBLIC_OBS_DIM,)
     assert np.isfinite(env.observe_public()).all()
+    assert int(sim.PUBLIC_OBS_VERSION) >= 2 and int(sim.ACTION_SCHEMA_VERSION) >= 2
     assert rc.step(int(RACT.EVENT_CHOICE), 0)
     assert rc.screen == SCREEN.MAP
     _move_to_first_node(rc)
     assert rc.screen == SCREEN.COMBAT
     bc = rc.battle
     assert combat_observation(bc).shape == (COMBAT_OBS_DIM,)
+    assert env.observe_public_combat().shape == (PUBLIC_COMBAT_OBS_DIM,)
+    # The in-combat public observation must change when a card is played.
+    before = env.observe_public()
+    play = [a for a in bc.legal_actions() if a[0] == int(sim.ActionType.PLAY_CARD)]
+    if play:
+        assert rc.step_combat(*play[0])
+        assert not np.array_equal(before, env.observe_public())
     actions, feats = combat_action_arrays(bc)
     assert actions and feats.shape == (len(actions), ACTION_FEAT_DIM)
     cand = np.asarray([sim.card_features(1, False, -1)], dtype=np.float32)

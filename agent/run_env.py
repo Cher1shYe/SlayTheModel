@@ -49,6 +49,9 @@ class RunEnv:
     def observe_public(self) -> np.ndarray:
         return np.asarray(self.rc.observe_public(), dtype=np.float32)
 
+    def observe_public_combat(self) -> np.ndarray:
+        return np.asarray(self.rc.observe_public_combat(), dtype=np.float32)
+
     def legal_actions(self) -> list[tuple[int, int]]:
         if self.rc.screen == SCREEN.COMBAT:
             return self.rc.battle.legal_actions()
@@ -96,6 +99,7 @@ def play_run(
 ) -> dict:
     """Drive one run to termination (or the step cap) and return metrics."""
     steps = 0
+    status = "error"
     while not env.is_terminal() and steps < max_steps:
         steps += 1
         if env.screen == SCREEN.COMBAT:
@@ -104,10 +108,13 @@ def play_run(
             action = run_policy(env)
         if not env.step(action):
             break
+    else:
+        status = "terminated" if env.is_terminal() else "truncated"
     rc = env.rc
     return {
         "seed": env.seed,
-        "won": bool(rc.won),
+        "status": status,
+        "won": bool(rc.won) and status == "terminated",
         "act": int(rc.act),
         "floor": int(rc.floor),
         "hp": int(rc.hp),
@@ -129,6 +136,7 @@ def play_and_log(seed: int, run_policy, combat_policy, path: str | Path) -> dict
     env = RunEnv(seed)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    status = "error"
     with path.open("a", encoding="utf-8") as fh:
         steps = 0
         while not env.is_terminal() and steps < 20000:
@@ -138,15 +146,19 @@ def play_and_log(seed: int, run_policy, combat_policy, path: str | Path) -> dict
                 "seed": seed,
                 "step": steps,
                 "screen": env.screen.name,
+                "obs_version": int(sim.PUBLIC_OBS_VERSION),
                 "obs": [round(float(x), 4) for x in env.observe_public()],
                 "action": [int(a) for a in action],
             }
             fh.write(json.dumps(record) + "\n")
             if not env.step(action):
                 break
+        else:
+            status = "terminated" if env.is_terminal() else "truncated"
         result = {
             "seed": seed,
-            "won": bool(env.rc.won),
+            "status": status,
+            "won": bool(env.rc.won) and status == "terminated",
             "act": int(env.rc.act),
             "floor": int(env.rc.floor),
             "steps": steps,

@@ -201,6 +201,10 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("CARD_FEAT_DIM") = CARD_FEAT_DIM;
     m.attr("COMBAT_OBS_DIM") = COMBAT_OBS_DIM;
     m.attr("ACTION_FEAT_DIM") = ACTION_FEAT_DIM;
+    m.attr("PUBLIC_OBS_DIM") = PUBLIC_OBS_DIM;
+    m.attr("PUBLIC_COMBAT_OBS_DIM") = PUBLIC_COMBAT_OBS_DIM;
+    m.attr("PUBLIC_OBS_VERSION") = PUBLIC_OBS_VERSION;
+    m.attr("ACTION_SCHEMA_VERSION") = ACTION_SCHEMA_VERSION;
     m.attr("CARD_COUNT") = static_cast<int>(CardId::COUNT);
     m.attr("MAX_DECK") = MAX_DECK;
     m.attr("MAP_MAX_POINTS") = MAP_MAX_POINTS;
@@ -291,6 +295,9 @@ PYBIND11_MODULE(sts2_sim, m) {
             return combat_action_features(bc, make_action(type, hand, target, uid));
         })
         .def("observation", [](const BattleContext &bc) { return combat_observation(bc); })
+        .def("observation_public", [](const BattleContext &bc) {
+            return public_combat_observation(bc);
+        })
         .def_property_readonly("outcome", [](const BattleContext &bc) { return bc.outcome; })
         .def_property_readonly("turn", [](const BattleContext &bc) { return bc.turn; })
         .def_property_readonly("player_hp", [](const BattleContext &bc) { return bc.player.hp; })
@@ -398,10 +405,9 @@ PYBIND11_MODULE(sts2_sim, m) {
             return combat_action_features(rc.battle, make_action(type, hand, target, uid));
         })
         .def("observation", [](const RunContext &rc) { return run_observation(rc); })
-        .def("observe_public", [](const RunContext &rc) {
-            // Public information only: run summary + visible combat state.
-            if (rc.screen == RunScreen::COMBAT) return run_observation(rc);
-            return run_observation(rc);
+        .def("observe_public", [](const RunContext &rc) { return public_observation(rc); })
+        .def("observe_public_combat", [](const RunContext &rc) {
+            return public_combat_observation(rc.battle);
         })
         .def("state_hash", [](const RunContext &rc) { return rc.state_hash(); },
              py::call_guard<py::gil_scoped_release>())

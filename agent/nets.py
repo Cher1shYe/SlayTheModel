@@ -8,7 +8,14 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
-from .common import ACTION_FEAT_DIM, CARD_FEAT_DIM, COMBAT_OBS_DIM, RUN_OBS_DIM
+from .common import (
+    ACTION_FEAT_DIM,
+    ACTION_SCHEMA_VERSION,
+    CARD_FEAT_DIM,
+    PUBLIC_COMBAT_OBS_DIM,
+    PUBLIC_OBS_DIM,
+    PUBLIC_OBS_VERSION,
+)
 
 
 def _mlp(sizes, act=nn.ReLU):
@@ -25,7 +32,7 @@ class CardScorer(nn.Module):
 
     def __init__(self, hidden=(128, 128)):
         super().__init__()
-        self.net = _mlp([RUN_OBS_DIM + CARD_FEAT_DIM, *hidden, 1])
+        self.net = _mlp([PUBLIC_OBS_DIM + CARD_FEAT_DIM, *hidden, 1])
 
     def forward(self, run_obs: torch.Tensor, candidates: torch.Tensor) -> torch.Tensor:
         # run_obs [B, R]; candidates [B, K, C] -> [B, K]
@@ -51,7 +58,7 @@ class CombatNet(nn.Module):
 
     def __init__(self, hidden: int = 128):
         super().__init__()
-        self.state_enc = _mlp([COMBAT_OBS_DIM, hidden, hidden])
+        self.state_enc = _mlp([PUBLIC_COMBAT_OBS_DIM, hidden, hidden])
         self.action_enc = _mlp([ACTION_FEAT_DIM, hidden, hidden])
         self.score = _mlp([hidden * 2, hidden, 1])
         self.value = _mlp([hidden, hidden // 2, 1])
@@ -76,14 +83,47 @@ class CombatNet(nn.Module):
         return logits, value
 
 
+CHECKPOINT_FORMAT = 2
+
+
+def checkpoint_config(model) -> dict:
+    first = next(model.parameters())
+    return {
+        "format": CHECKPOINT_FORMAT,
+        "obs_version": int(PUBLIC_OBS_VERSION),
+        "action_schema_version": int(ACTION_SCHEMA_VERSION),
+        "param_shapes": [list(p.shape) for p in model.parameters()],
+        "in_features": int(first.shape[1]) if first.dim() == 2 else int(first.numel()),
+    }
+
+
 def save_checkpoint(path, model, extra=None):
-    payload = {"state_dict": model.state_dict()}
+    payload = {"state_dict": model.state_dict(), "config": checkpoint_config(model)}
     if extra:
         payload.update(extra)
     torch.save(payload, path)
 
 
 def load_checkpoint(path, model, map_location="cpu"):
+    """Load only a checkpoint matching the current observation/action schema.
+
+    Old files are left untouched; callers should retrain them instead of
+    silently loading weights whose input layout no longer matches.
+    """
     payload = torch.load(path, map_location=map_location, weights_only=False)
+    cfg = payload.get("config")
+    if not isinstance(cfg, dict):
+        raise ValueError(
+            f"{path}: legacy checkpoint without schema metadata; retrain for "
+            f"public observation v{PUBLIC_OBS_VERSION} / action schema v{ACTION_SCHEMA_VERSION}")
+    if cfg.get("obs_version") != PUBLIC_OBS_VERSION:
+        raise ValueError(
+            f"{path}: observation version {cfg.get('obs_version')} != {PUBLIC_OBS_VERSION}")
+    if cfg.get("action_schema_version") != ACTION_SCHEMA_VERSION:
+        raise ValueError(
+            f"{path}: action schema version {cfg.get('action_schema_version')} != {ACTION_SCHEMA_VERSION}")
+    current = [list(p.shape) for p in model.parameters()]
+    if cfg.get("param_shapes") != current:
+        raise ValueError(f"{path}: parameter shapes do not match the current network")
     model.load_state_dict(payload["state_dict"])
     return payload

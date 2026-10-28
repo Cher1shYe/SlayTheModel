@@ -166,6 +166,51 @@ def test_knowledge_demon_curse_counter_advances():
     assert moves[12] == slap_state  # fourth cycle no longer curses
 
 
+def test_public_observation_encodes_combat_visibility():
+    """Action schema v2: USE_POTION carries potion identity."""
+    import numpy as np
+
+    block = battle([73] * 8, "SETUP_SHRINKER_BEETLE_WEAK",
+                   potions=[int(sim.PotionId.BlockPotion)])
+    energy = battle([73] * 8, "SETUP_SHRINKER_BEETLE_WEAK",
+                    potions=[int(sim.PotionId.EnergyPotion)])
+    use = [a for a in block.legal_actions() if a[0] == int(sim.ActionType.USE_POTION)]
+    assert use
+    f1 = np.asarray(block.action_features(*use[0]))
+    f2 = np.asarray(energy.action_features(*use[0]))
+    assert f1.shape == (sim.ACTION_FEAT_DIM,)
+    assert not np.array_equal(f1, f2)
+
+
+def test_choose_encodes_candidates_outside_hand():
+    """Action schema v2: CHOOSE candidates are encoded from pending choices,
+    including cards offered from the draw pile (not just hand members)."""
+    import numpy as np
+
+    discovery = card_id("Discovery")
+    bc = battle([discovery] * 8, "SETUP_CEREMONIAL_BEAST_BOSS")
+    play_first_card(bc, target=None)
+    assert bc.pending_info[0] != 0
+    choices = [a for a in bc.legal_actions() if a[0] == int(sim.ActionType.CHOOSE)]
+    assert len(choices) >= 2
+    feats = np.asarray([bc.action_features(*a) for a in choices])
+    assert feats.shape == (len(choices), sim.ACTION_FEAT_DIM)
+    assert not np.array_equal(feats[0], feats[1])
+    # Each candidate is identified by its own card one-hot: the rows differ.
+    assert feats.sum(axis=1).min() > 0
+
+
+def test_observations_include_hand_and_piles():
+    import numpy as np
+
+    a = battle([73] * 8, "SETUP_SHRINKER_BEETLE_WEAK")
+    b = battle([25] * 8, "SETUP_SHRINKER_BEETLE_WEAK")
+    oa = np.asarray(a.observation_public(), dtype=np.float32)
+    ob = np.asarray(b.observation_public(), dtype=np.float32)
+    assert oa.shape == (sim.PUBLIC_COMBAT_OBS_DIM,)
+    assert not np.array_equal(oa, ob)  # hand identity / contents differ
+
+
 def test_unknown_monster_condition_codes_are_rejected_at_generation():
     """The generator must refuse conditions it cannot map instead of defaulting
     them to true (the Lagavulin ASLEEP bug)."""

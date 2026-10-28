@@ -16,9 +16,9 @@ from .common import (
     RACT,
     SCREEN,
     card_feature_array,
-    legal_run_actions,
     new_run,
-    run_observation,
+    public_observation,
+    screen_action,
     sim,
 )
 from .nets import CardScorer, load_checkpoint, save_checkpoint
@@ -35,11 +35,19 @@ def _run_return(rc) -> float:
     return (1.0 if rc.won else 0.0) + 0.3 * rc.floor / 15.0 + 0.2 * hp_frac
 
 
-def collect_episode(seed: int, model: CardScorer, deterministic: bool = False) -> dict:
+def collect_episode(seed: int, model: CardScorer, deterministic: bool = False,
+                    max_steps: int = 5000) -> dict:
+    """One climb. Samples are only emitted for a terminated episode.
+
+    ``status`` is one of ``terminated`` (reached RUN_OVER), ``truncated`` (step
+    cap) or ``error`` (an action was rejected / the engine refused a step).
+    Truncated and error episodes are reported but never trained on.
+    """
     rc = new_run(seed)
     records = []
     steps = 0
-    while rc.screen != SCREEN.RUN_OVER and steps < 5000:
+    status = "error"
+    while rc.screen != SCREEN.RUN_OVER and steps < max_steps:
         steps += 1
         if rc.screen == SCREEN.COMBAT:
             if not rc.step_combat(*rc.battle.greedy_action(0.05, seed & 0x7FFFFFFF)):
@@ -48,7 +56,7 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False) -
         if rc.screen == SCREEN.CARD_REWARD:
             offered = rc.offered
             cand = np.vstack([card_feature_array(offered), _skip_features()])
-            obs = run_observation(rc)
+            obs = public_observation(rc)
             logits = model.scores(torch.from_numpy(obs)[None], torch.from_numpy(cand)[None])[0]
             probs = torch.softmax(logits, dim=-1)
             if deterministic:
@@ -59,28 +67,19 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False) -
                 choice = int(dist.sample())
                 logp = float(dist.log_prob(torch.tensor(choice)))
             records.append({"obs": obs, "cand": cand, "choice": choice, "logp": logp})
-            if choice >= len(offered):
-                rc.step(int(RACT.SKIP_CARD), 0)
-            else:
-                rc.step(int(RACT.TAKE_CARD), choice)
+            ok = (rc.step(int(RACT.SKIP_CARD), 0) if choice >= len(offered)
+                  else rc.step(int(RACT.TAKE_CARD), choice))
+            if not ok:
+                break
             continue
-        if rc.screen == SCREEN.REST:
-            legal = legal_run_actions(rc)
-            action = (int(RACT.REST_HEAL), 0) if rc.hp * 10 < rc.max_hp * 6 else legal[-1]
-        elif rc.screen == SCREEN.SHOP:
-            action = (int(RACT.LEAVE_SHOP), 0)
-        elif rc.screen == SCREEN.EVENT:
-            action = (int(RACT.EVENT_CHOICE), 0)
-        elif rc.screen == SCREEN.TREASURE:
-            action = (int(RACT.COLLECT), 0)
-        elif rc.screen == SCREEN.MAP:
-            action = (int(RACT.MOVE), rc.available_map_nodes()[0])
-        else:
+        if not rc.step(*screen_action(rc)):
             break
-        if not rc.step(*action):
-            break
-    return {"records": records, "return": _run_return(rc), "won": bool(rc.won),
-            "floor": int(rc.floor), "hp": int(rc.hp)}
+    else:
+        status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+    return {"records": records if status == "terminated" else [],
+            "return": _run_return(rc) if status == "terminated" else 0.0,
+            "won": bool(rc.won) and status == "terminated",
+            "floor": int(rc.floor), "hp": int(rc.hp), "status": status}
 
 
 def train(iterations: int = 50, runs_per_iter: int = 32, seed: int = 1,
@@ -99,14 +98,18 @@ def train(iterations: int = 50, runs_per_iter: int = 32, seed: int = 1,
         start = time.time()
         episodes = [collect_episode(seed * 100000 + it * 1000 + i, model)
                     for i in range(runs_per_iter)]
-        returns = np.asarray([e["return"] for e in episodes], dtype=np.float32)
-        if returns.std() < 1e-6:
+        valid = [e for e in episodes if e["status"] == "terminated"]
+        abnormal = len(episodes) - len(valid)
+        returns = np.asarray([e["return"] for e in valid], dtype=np.float32)
+        if returns.size == 0:
+            adv = np.zeros(0, dtype=np.float32)
+        elif returns.std() < 1e-6:
             adv = returns - returns.mean()
         else:
             adv = (returns - returns.mean()) / (returns.std() + 1e-6)
 
         losses = []
-        for ep, a in zip(episodes, adv):
+        for ep, a in zip(valid, adv):
             for rec in ep["records"]:
                 obs = torch.from_numpy(rec["obs"])[None]
                 cand = torch.from_numpy(rec["cand"])[None]
@@ -120,9 +123,10 @@ def train(iterations: int = 50, runs_per_iter: int = 32, seed: int = 1,
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step()
 
-        winrate = float(np.mean([e["won"] for e in episodes]))
+        winrate = float(np.mean([e["won"] for e in valid])) if valid else 0.0
         avg_floor = float(np.mean([e["floor"] for e in episodes]))
-        print(f"iter {it:3d} runs {len(episodes):4d} win {winrate:.3f} floor {avg_floor:.1f} "
+        print(f"iter {it:3d} runs {len(episodes):4d} abnormal {abnormal:3d} "
+              f"win {winrate:.3f} floor {avg_floor:.1f} "
               f"return {returns.mean():.3f} loss {float(torch.stack(losses).mean().detach()) if losses else 0:.4f} "
               f"{time.time() - start:.2f}s", flush=True)
         save_checkpoint(out / "card.pt", model, {"iteration": it, "return": float(returns.mean())})
@@ -131,9 +135,13 @@ def train(iterations: int = 50, runs_per_iter: int = 32, seed: int = 1,
 
 def evaluate(model: CardScorer, runs: int = 200, seed: int = 999) -> dict:
     results = [collect_episode(seed + i, model, deterministic=True) for i in range(runs)]
+    statuses = [r["status"] for r in results]
     return {
         "winrate": float(np.mean([r["won"] for r in results])),
         "avg_floor": float(np.mean([r["floor"] for r in results])),
+        "abnormal_rate": float(np.mean([s != "terminated" for s in statuses])),
+        "truncated": statuses.count("truncated"),
+        "errors": statuses.count("error"),
     }
 
 

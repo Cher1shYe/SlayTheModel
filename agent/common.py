@@ -20,6 +20,10 @@ RUN_OBS_DIM = sim.RUN_OBS_DIM
 CARD_FEAT_DIM = sim.CARD_FEAT_DIM
 COMBAT_OBS_DIM = sim.COMBAT_OBS_DIM
 ACTION_FEAT_DIM = sim.ACTION_FEAT_DIM
+PUBLIC_OBS_DIM = sim.PUBLIC_OBS_DIM
+PUBLIC_COMBAT_OBS_DIM = sim.PUBLIC_COMBAT_OBS_DIM
+PUBLIC_OBS_VERSION = sim.PUBLIC_OBS_VERSION
+ACTION_SCHEMA_VERSION = sim.ACTION_SCHEMA_VERSION
 CARD_COUNT = sim.CARD_COUNT
 
 SCREEN = sim.RunScreen
@@ -52,7 +56,51 @@ def combat_observation(bc) -> np.ndarray:
 
 
 def run_observation(rc) -> np.ndarray:
+    """Legacy compact run observation (kept for old checkpoints)."""
     return np.asarray(rc.observation(), dtype=np.float32)
+
+
+def public_observation(rc) -> np.ndarray:
+    """Versioned public observation (schema PUBLIC_OBS_VERSION)."""
+    return np.asarray(rc.observe_public(), dtype=np.float32)
+
+
+def public_combat_observation(bc) -> np.ndarray:
+    """Versioned public in-combat observation."""
+    return np.asarray(bc.observation_public(), dtype=np.float32)
+
+
+def screen_action(rc):
+    """A legal action for any non-combat screen.
+
+    Trainers previously hard-coded event option 0 and broke out of the episode
+    when it was illegal (e.g. Stone of All Time without potions).  Every choice
+    here comes from ``rc.legal_actions()``.
+    """
+    legal = legal_run_actions(rc)
+    if not legal:
+        raise RuntimeError(f"no legal run action on screen {rc.screen.name}")
+    if rc.screen == SCREEN.CARD_REWARD:
+        take = [a for a in legal if a[0] == int(RACT.TAKE_CARD)]
+        return take[0] if take and rc.deck_count < 15 else (int(RACT.SKIP_CARD), 0)
+    if rc.screen == SCREEN.REST:
+        heal = [a for a in legal if a[0] == int(RACT.REST_HEAL)]
+        if heal and rc.hp * 10 < rc.max_hp * 6:
+            return heal[0]
+        upgrades = [a for a in legal if a[0] == int(RACT.REST_UPGRADE)]
+        return upgrades[0] if upgrades else legal[0]
+    if rc.screen == SCREEN.SHOP:
+        leave = [a for a in legal if a[0] == int(RACT.LEAVE_SHOP)]
+        return leave[0] if leave else legal[0]
+    if rc.screen == SCREEN.EVENT:
+        return legal[0]
+    if rc.screen == SCREEN.TREASURE:
+        collect = [a for a in legal if a[0] == int(RACT.COLLECT)]
+        return collect[0] if collect else legal[0]
+    if rc.screen == SCREEN.MAP:
+        nodes = rc.available_map_nodes()
+        return (int(RACT.MOVE), int(nodes[0])) if nodes else legal[0]
+    return legal[0]
 
 
 def card_feature_array(cards, prices=None) -> np.ndarray:
@@ -88,32 +136,20 @@ def play_run(rc, combat_fn, card_fn, seed: int = 0, max_steps: int = 5000) -> di
     """
     rng = np.random.default_rng(seed)
     steps = 0
-    while rc.screen != SCREEN.RUN_OVER and steps < max_steps:
-        steps += 1
-        if rc.screen == SCREEN.COMBAT:
-            action = combat_fn(rc.battle, rng)
-            if not rc.step_combat(*action):
+    status = "error"
+    try:
+        while rc.screen != SCREEN.RUN_OVER and steps < max_steps:
+            steps += 1
+            if rc.screen == SCREEN.COMBAT:
+                if not rc.step_combat(*combat_fn(rc.battle, rng)):
+                    break
+                continue
+            action = card_fn(rc) if rc.screen == SCREEN.CARD_REWARD else screen_action(rc)
+            if not rc.step(*action):
                 break
-            continue
-        if rc.screen == SCREEN.CARD_REWARD:
-            action = card_fn(rc)
-        elif rc.screen == SCREEN.REST:
-            legal = legal_run_actions(rc)
-            if rc.hp * 10 < rc.max_hp * 6:
-                action = (int(RACT.REST_HEAL), 0)
-            else:
-                action = legal[-1]
-        elif rc.screen == SCREEN.SHOP:
-            action = (int(RACT.LEAVE_SHOP), 0)
-        elif rc.screen == SCREEN.EVENT:
-            action = (int(RACT.EVENT_CHOICE), 0)
-        elif rc.screen == SCREEN.TREASURE:
-            action = (int(RACT.COLLECT), 0)
-        elif rc.screen == SCREEN.MAP:
-            nodes = rc.available_map_nodes()
-            action = (int(RACT.MOVE), nodes[0])
         else:
-            break
-        if not rc.step(*action):
-            break
-    return {"won": bool(rc.won), "floor": int(rc.floor), "hp": int(rc.hp), "steps": steps}
+            status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+    except RuntimeError:
+        status = "error"
+    return {"won": bool(rc.won), "floor": int(rc.floor), "hp": int(rc.hp),
+            "steps": steps, "status": status}
