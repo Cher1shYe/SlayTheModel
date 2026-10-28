@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+runs/
+.pytest_cache/
+simulator/build/
+simulator/*.pyd
+simulator/bench.exe
+simulator/bench
+
+build-mingw/
+.scratch/
