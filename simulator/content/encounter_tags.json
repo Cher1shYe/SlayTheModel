@@ -1,0 +1,74 @@
+{
+  "setup_bowlbugs_normal": [
+    "Workers"
+  ],
+  "setup_bowlbugs_weak": [
+    "Workers"
+  ],
+  "setup_chompers_normal": [
+    "Chomper"
+  ],
+  "setup_corpse_slugs_normal": [
+    "Slugs"
+  ],
+  "setup_corpse_slugs_weak": [
+    "Slugs"
+  ],
+  "setup_exoskeletons_normal": [
+    "Exoskeletons"
+  ],
+  "setup_exoskeletons_weak": [
+    "Exoskeletons"
+  ],
+  "setup_flyconid_normal": [
+    "Mushroom",
+    "Slimes"
+  ],
+  "setup_fuzzy_wurm_crawler_weak": [
+    "Crawler"
+  ],
+  "setup_knights_elite": [
+    "Knights"
+  ],
+  "setup_nibbits_weak": [
+    "Nibbit"
+  ],
+  "setup_overgrowth_crawlers": [
+    "Crawler",
+    "Shrinker"
+  ],
+  "setup_scrolls_of_biting_normal": [
+    "Scrolls"
+  ],
+  "setup_scrolls_of_biting_weak": [
+    "Scrolls"
+  ],
+  "setup_seapunk_weak": [
+    "Seapunk"
+  ],
+  "setup_shrinker_beetle_weak": [
+    "Shrinker"
+  ],
+  "setup_slimes_normal": [
+    "Slimes"
+  ],
+  "setup_slimes_weak": [
+    "Slimes"
+  ],
+  "setup_slumbering_beetle_normal": [
+    "Workers"
+  ],
+  "setup_snapping_jaxfruit_normal": [
+    "Mushroom"
+  ],
+  "setup_thieving_hopper_weak": [
+    "Thieves"
+  ],
+  "setup_tunneler_normal": [
+    "Burrower",
+    "Workers"
+  ],
+  "setup_tunneler_weak": [
+    "Burrower"
+  ]
+}

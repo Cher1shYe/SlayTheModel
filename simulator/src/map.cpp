@@ -584,6 +584,7 @@ void bake(Gen &g, ActMap &map) {
     map.pointCount = 0;
     map.startIdx = -1;
     map.bossIdx = -1;
+    map.secondBossIdx = -1;
 
     // Node identity is (col,row); removed nodes are dropped.
     int remap[MAP_MAX_POINTS];
@@ -623,7 +624,7 @@ void bake(Gen &g, ActMap &map) {
 
 }  // namespace
 
-void generate_act_map(ActMap &map, Rng &mapRng, int actIndex) {
+void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
     const int rooms = actIndex == 0 ? 15 : (actIndex == 1 ? 14 : 13);
     Gen g;
     g.mapLength = rooms + 1;
@@ -632,7 +633,7 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex) {
     }
 
     // Room type counts (per-act RNG consumption order from the reference).
-    int numElites = 5;
+    int numElites = ascension >= 1 ? 8 : 5;
     int numShops = 3;
     int numUnknowns = 0;
     int numRests = 0;
@@ -657,6 +658,7 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex) {
         (void)mapRng.next_gaussian_int(5, 1, 3, 6);
         numUnknowns = copyUnknown - 1;
     }
+    if (ascension >= 6) --numRests;
 
     GNode startNode;
     startNode.col = MAP_WIDTH / 2;
@@ -691,6 +693,19 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex) {
     spread_adjacent_map_points(g);
     straighten_paths(g);
     bake(g, map);
+    if (ascension >= 10 && actIndex == 2 && map.bossIdx >= 0 &&
+        map.mapLength + 1 < MAP_MAX_ROWS && map.pointCount < MAP_MAX_POINTS) {
+        const int second = map.pointCount++;
+        map.secondBossIdx = static_cast<std::int8_t>(second);
+        MapNode &node = map.nodes[second];
+        node = MapNode();
+        node.type = static_cast<std::int8_t>(MapPointType::BOSS);
+        node.parents[0] = static_cast<std::uint8_t>(map.bossIdx);
+        node.parentCount = 1;
+        MapNode &first = map.nodes[map.bossIdx];
+        first.children[first.childCount++] = static_cast<std::uint8_t>(second);
+        map.index[map.mapLength + 1][MAP_WIDTH / 2] = static_cast<std::int8_t>(second);
+    }
 }
 
 const char *map_point_name(MapPointType type) {

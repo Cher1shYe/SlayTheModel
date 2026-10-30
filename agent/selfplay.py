@@ -20,6 +20,7 @@ from .common import (
     PUBLIC_COMBAT_OBS_DIM,
     RACT,
     SCREEN,
+    completed_run_status,
     combat_action_arrays,
     new_run,
     public_combat_observation,
@@ -91,6 +92,8 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
             if not rc.step_combat(*action):
                 break
             if rc.screen != SCREEN.COMBAT:
+                if bc.outcome == OUTCOME.TRUNCATED:
+                    continue
                 won = bc.outcome == OUTCOME.PLAYER_VICTORY
                 hp_frac = bc.player_hp / max(1, bc.player_max_hp)
                 value = (1.0 + hp_frac) if won else 0.0
@@ -103,7 +106,7 @@ def play_episode(seed: int, model: CombatNet, simulations: int = 16,
         if not rc.step(*action):
             break
     else:
-        status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+        status = completed_run_status(rc)
     return {"records": records if status == "terminated" else [],
             "won": bool(rc.won) and status == "terminated",
             "floor": int(rc.floor), "hp": int(rc.hp), "status": status,

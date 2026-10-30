@@ -21,7 +21,11 @@ TARGETS = {"ANY_ENEMY": "ENEMY", "ALL_ENEMIES": "ALL_ENEMIES", "SELF": "SELF",
            "ALL_ALLIES": "ALL_ALLIES", "NONE": "NONE"}
 RARITIES = {"BASIC": "BASIC", "COMMON": "COMMON", "UNCOMMON": "UNCOMMON",
             "RARE": "RARE", "SPECIAL": "SPECIAL", "ANCIENT": "ANCIENT",
-            "STATUS": "SPECIAL", "CURSE": "SPECIAL", "TOKEN": "SPECIAL"}
+            "EVENT": "EVENT", "STATUS": "STATUS", "CURSE": "CURSE",
+            "TOKEN": "TOKEN"}
+POOLS = {"ironclad": "IRONCLAD", "colorless": "COLORLESS",
+         "event": "EVENT", "curse": "CURSE", "token": "TOKEN",
+         "status": "STATUS"}
 
 
 def cstr(s: str) -> str:
@@ -53,17 +57,19 @@ def main() -> None:
     lines.append("#else")
     lines.append("// clang-format off")
     lines.append("constexpr CardDef CARD_DEFS[] = {")
-    lines.append("    {CardId::INVALID, \"\", \"\", 0, 0, CardType::SKILL, TargetType::SELF,"
-                 " Rarity::SPECIAL, 0, 0, 0, 0, {}, {}, 0},")
+    lines.append("    {CardId::INVALID, \"\", \"\", CardPool::IRONCLAD, 0, 0,"
+                 " CardType::SKILL, TargetType::SELF, Rarity::SPECIAL,"
+                 " 0, 0, 0, 0, {}, {}, 0, 0},")
     for c in cards:
         up = c["variants"]["upgraded"]
         def flags(v):
             f = 0
-            fl = v["flags"] if "flags" in v else {"exhausts": "exhaust" in v["keywords"],
-                                                  "ethereal": "ethereal" in v["keywords"],
-                                                  "innate": "innate" in v["keywords"],
-                                                  "retain": "retain" in v["keywords"],
-                                                  "unplayable": "unplayable" in v["keywords"]}
+            kw = v.get("keywords", [])
+            fl = {"exhausts": v.get("exhausts", "exhaust" in kw),
+                  "ethereal": v.get("ethereal", "ethereal" in kw),
+                  "innate": v.get("innate", "innate" in kw),
+                  "retain": v.get("retain", "retain" in kw),
+                  "unplayable": v.get("unplayable", "unplayable" in kw)}
             if fl["ethereal"]: f |= 1
             if fl["exhausts"]: f |= 2
             if fl["innate"]: f |= 4
@@ -72,6 +78,7 @@ def main() -> None:
             if "STRIKE" in c.get("tags", []): f |= 32
             if "DEFEND" in c.get("tags", []): f |= 64
             if c.get("multiplayer_only"): f |= 128
+            if not c.get("can_be_generated_in_combat", True): f |= 256
             return f
         base_vars = [str(int(c["effect_vars"].get(k, 0))) for k in var_keys]
         up_vars = [str(int(up["effect_vars"].get(k, 0))) for k in var_keys]
@@ -79,14 +86,17 @@ def main() -> None:
         cost = -1 if c.get("x_cost") else c["cost"]
         cost_up = -1 if up.get("x_cost") else up["cost"]
         lines.append(
-            "    {CardId::%s, %s, %s, %d, %d, CardType::%s, TargetType::%s, Rarity::%s, "
-            "%d, %d, %d, %d, {%s}, {%s}, %d}," % (
-                c["id"], cstr(c["id"]), cstr(title), cost, cost_up,
+            "    {CardId::%s, %s, %s, CardPool::%s, %d, %d, CardType::%s,"
+            " TargetType::%s, Rarity::%s, "
+            "%d, %d, %d, %d, {%s}, {%s}, %d, %d}," % (
+                c["id"], cstr(c["id"]), cstr(title),
+                POOLS.get(c["pool"], "IRONCLAD"), cost, cost_up,
                 TYPES.get(c["type"], "SKILL"), TARGETS.get(c["target"], "SELF"),
                 RARITIES.get(c["rarity"], "SPECIAL"),
                 c["base_damage"] or 0, up["base_damage"] or 0,
                 c["base_block"] or 0, up["base_block"] or 0,
-                ", ".join(base_vars), ", ".join(up_vars), flags(c["variants"]["base"])))
+                ", ".join(base_vars), ", ".join(up_vars),
+                flags(c["variants"]["base"]), flags(up)))
     lines.append("};")
     lines.append("static_assert(sizeof(CARD_DEFS) / sizeof(CARD_DEFS[0]) =="
                  " static_cast<int>(CardId::COUNT), \"card table size\");")

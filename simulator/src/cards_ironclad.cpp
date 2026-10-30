@@ -11,31 +11,25 @@ static void block_card(BattleContext &bc, Card &card) {
     bc.gain_block(b, true);
 }
 
-static void hit(BattleContext &bc, Card &card, int target, int base, int hits = 1) {
-    bc.attack_from_card(card, target, base, hits);
+static bool hit(BattleContext &bc, Card &card, int target, int base, int hits = 1) {
+    return bc.attack_from_card(card, target, base, hits);
 }
 
 static void hit_all(BattleContext &bc, Card &card, int base, int hits = 1) {
-    int b = base;
-    if (bc.player_power(PowerId::VIGOR) > 0) {
-        b += bc.player_power(PowerId::VIGOR);
-        bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
-    }
-    bc.attack_all(b, hits);
+    bc.attack_all_from_card(card, base, hits);
 }
 
 static void exhaust_random_from_draw(BattleContext &bc) {
     if (bc.drawCount == 0) bc.shuffle_discard_into_draw();
     if (bc.drawCount == 0) return;
-    const int idx = bc.rng.next_int(0, bc.drawCount - 1);
+    const int idx = bc.cardSelectionRng.next_int(0, bc.drawCount - 1);
     Card c = bc.draw[idx];
-    for (int i = idx; i < bc.drawCount - 1; ++i) bc.draw[i] = bc.draw[i + 1];
-    --bc.drawCount;
+    bc.remove_draw_at(idx);
     bc.move_to_exhaust(c);
 }
 
 static void return_next_turn(BattleContext &bc, const Card &card) {
-    if (bc.returnNextTurnCount < MAX_HAND) bc.returnNextTurn[bc.returnNextTurnCount++] = card;
+    bc.queue_return_next_turn(card);
 }
 
 bool ironclad_effect(BattleContext &bc, Card &card, int target) {
@@ -49,6 +43,10 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         case CardId::DEFEND_IRONCLAD:
             block_card(bc, card);
             return true;
+        case CardId::ENTRENCH:
+            // Entrench.cs: GainBlock(owner.Block, Unpowered | Move).
+            bc.gain_block(bc.player.block, false, false);
+            return true;
         case CardId::BASH:
             hit(bc, card, target, dmg);
             bc.apply_vulnerable(target, card_var(card, VarId::VULNERABLE));
@@ -57,7 +55,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         // ---- common ----
         case CardId::ANGER: {
             hit(bc, card, target, dmg);
-            Card copy = make_card(CardId::ANGER, card.upgraded, bc.nextUid++);
+            Card copy = make_card(CardId::ANGER, card.upgraded, bc.require_card_uid());
             copy.bonusDamage = card.bonusDamage;
             bc.add_card_to_discard(copy);
             return true;
@@ -74,18 +72,18 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         case CardId::BLOOD_WALL:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             if (bc.outcome == Outcome::UNDECIDED) block_card(bc, card);
             return true;
         case CardId::BLOODLETTING:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             bc.player.energy += card_var(card, VarId::ENERGY);
             return true;
         case CardId::BODY_SLAM:
             hit(bc, card, target, bc.player.block);
             return true;
         case CardId::BREAKTHROUGH:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             if (bc.outcome == Outcome::UNDECIDED) hit_all(bc, card, dmg);
             return true;
         case CardId::CINDER:
@@ -93,10 +91,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             for (int i = 0; i < card_var(card, VarId::CARDS_TO_EXHAUST); ++i) exhaust_random_from_draw(bc);
             return true;
         case CardId::HAVOC:
-            if (bc.drawCount > 0) {
-                Card c = bc.draw[--bc.drawCount];
-                bc.auto_play_random(c, true);
-            }
+            bc.auto_play_from_draw(1, true);
             return true;
         case CardId::HEADBUTT:
             hit(bc, card, target, dmg);
@@ -135,7 +130,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::SETUP_STRIKE_CARD:
             hit(bc, card, target, dmg);
-            bc.player.tempStrength += card_var(card, VarId::STRENGTH);
+            bc.add_temp_strength(card_var(card, VarId::STRENGTH));
             return true;
         case CardId::SHRUG_IT_OFF:
             block_card(bc, card);
@@ -152,7 +147,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             for (int i = 0; i < card_var(card, VarId::REPEAT); ++i) {
                 const int t = bc.random_alive_monster();
                 if (t < 0) break;
-                bc.damage_monster(t, relics_modify_damage(bc, bc.calc_player_damage(b, t), t, &card));
+                bc.damage_monster(t, bc.calc_player_damage(b, t, true, &card), true, true);
             }
             return true;
         }
@@ -175,7 +170,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                 bc.start_choice(ChoiceOp::EXHAUST, ChoicePile::HAND, 1, false, card,
                                 bc.card_will_exhaust(card));
             } else {
-                const int idx = bc.rng.next_int(0, bc.handCount - 1);
+                const int idx = bc.cardSelectionRng.next_int(0, bc.handCount - 1);
                 Card c = bc.hand[idx];
                 for (int i = idx; i < bc.handCount - 1; ++i) bc.hand[i] = bc.hand[i + 1];
                 --bc.handCount;
@@ -265,7 +260,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         case CardId::HEMOKINESIS:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             if (bc.outcome == Outcome::UNDECIDED) hit(bc, card, target, dmg);
             return true;
         case CardId::HOWL_FROM_BEYOND:
@@ -310,7 +305,9 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                     for (int j = i; j < bc.handCount - 1; ++j) bc.hand[j] = bc.hand[j + 1];
                     --bc.handCount;
                     bc.move_to_exhaust(c);
-                    bc.gain_block(per, false);
+                    // SecondWind.cs: BlockVar with cardPlay ("Move"), i.e.
+                    // powered block from a card: NoBlock must stop it.
+                    bc.gain_block(per, true);
                 }
             }
             return true;
@@ -345,7 +342,9 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::VICIOUS, card_var(card, VarId::CARDS));
             return true;
         case CardId::WHIRLWIND:
-            for (int i = 0; i < bc.xCost; ++i) hit_all(bc, card, dmg);
+            // Whirlwind.cs builds one WithHitCount(X) AttackCommand, so Vigor
+            // applies once for the whole command, not once per hit.
+            if (bc.xCost > 0) hit_all(bc, card, dmg, bc.xCost);
             return true;
 
         // ---- rare ----
@@ -356,7 +355,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::BARRICADE, 1);
             return true;
         case CardId::BRAND:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             if (bc.outcome != Outcome::UNDECIDED) return true;
             if (bc.handCount == 0) {
                 bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::STRENGTH));
@@ -368,10 +367,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         case CardId::CASCADE: {
             int count = bc.xCost;
             if (card.upgraded) ++count;
-            for (int i = 0; i < count && bc.drawCount > 0; ++i) {
-                Card c = bc.draw[--bc.drawCount];
-                bc.auto_play_random(c, false);
-            }
+            bc.auto_play_from_draw(count, false);
             return true;
         }
         case CardId::COLOSSUS_CARD:
@@ -395,23 +391,35 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::DEMON_FORM, card_var(card, VarId::STRENGTH));
             return true;
         case CardId::FEED: {
-            const bool was_alive = target >= 0 && target < bc.monsterCount && bc.monsters[target].alive;
-            hit(bc, card, target, dmg);
-            if (was_alive && target >= 0 && target < bc.monsterCount && !bc.monsters[target].alive) {
+            const bool fatal_eligible = bc.can_trigger_fatal(target);
+            const bool killed = hit(bc, card, target, dmg);
+            if (fatal_eligible && killed) {
                 bc.player.maxHp += card_var(card, VarId::MAX_HP);
                 bc.player.hp += card_var(card, VarId::MAX_HP);
             }
             return true;
         }
         case CardId::FIEND_FIRE: {
-            int count = bc.handCount;
-            while (bc.handCount > 0) {
-                Card c = bc.hand[--bc.handCount];
-                bc.move_to_exhaust(c);
-            }
+            // FiendFire.cs: snapshot Hand.Cards.ToList() first, then exhaust
+            // exactly those cards.  Cards drawn by exhaust hooks (Dark Embrace)
+            // stay in hand and are never part of this snapshot.
+            Card snapshot[MAX_HAND];
+            int count = 0;
+            for (int i = 0; i < bc.handCount; ++i) snapshot[count++] = bc.hand[i];
             for (int i = 0; i < count; ++i) {
+                for (int j = 0; j < bc.handCount; ++j) {
+                    if (bc.hand[j].uid != snapshot[i].uid) continue;
+                    Card c = bc.hand[j];
+                    for (int k = j; k + 1 < bc.handCount; ++k) bc.hand[k] = bc.hand[k + 1];
+                    --bc.handCount;
+                    bc.move_to_exhaust(c);
+                    break;
+                }
                 if (bc.outcome != Outcome::UNDECIDED) break;
-                hit(bc, card, target, dmg);
+            }
+            // One AttackCommand with HitCount(cardCount): Vigor applies once.
+            if (count > 0 && bc.outcome == Outcome::UNDECIDED) {
+                hit(bc, card, target, dmg, count);
             }
             return true;
         }
@@ -429,13 +437,11 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             if (target >= 0 && target < bc.monsterCount && bc.monsters[target].alive) {
                 // ManglePower: temporary strength loss, restored at the end of
                 // the affected monster's turn.  Store the amount to give back.
-                const int loss = card_var(card, VarId::STRENGTH_LOSS);
-                bc.monsters[target].strength -= loss;
-                bc.monsters[target].tempStrengthLoss += loss;
+                bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS));
             }
             return true;
         case CardId::OFFERING:
-            bc.lose_hp(card_var(card, VarId::HP_LOSS));
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             bc.player.energy += card_var(card, VarId::ENERGY);
             bc.draw_cards(card_var(card, VarId::CARDS));
             return true;

@@ -10,6 +10,7 @@ import numpy as np
 import pytest
 
 from agent.common import SCREEN, new_run, sim
+from agent.heuristics import run_policy
 
 UNDECIDED = sim.Outcome.UNDECIDED
 END_TURN = int(sim.ActionType.END_TURN)
@@ -101,6 +102,12 @@ def test_ancient_choice_grants_the_offered_relic():
                 assert relic_id("BLACK_BLOOD") in rc.relics
                 assert relic_id("BURNING_BLOOD") not in rc.relics
             # Relics such as Calling Bell / Toy Box grant further relics.
+            # Resolve their selectors and reward screens before starting the next act.
+            for _ in range(100):
+                if rc.screen == SCREEN.MAP and not rc.card_grid_kind:
+                    break
+                assert rc.step(*run_policy(rc))
+            assert rc.screen == SCREEN.MAP and not rc.card_grid_kind
 
 
 def test_neow_offers_follow_the_relic_mirror_rules():

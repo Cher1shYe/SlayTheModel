@@ -5,9 +5,10 @@
         --card-checkpoint runs/v3/card/card.pt \
         --strategies heuristic,network,search,search_resampled
 
-Every strategy runs the same seed list. ``search`` is oracle root search over
-the true draw order; ``search_resampled`` re-draws hidden zones per simulation
-and is the only search variant that may be quoted as player-usable.
+Every strategy runs the same seed list. ``search`` and ``search_value`` are
+oracle root search over the true draw order; ``heuristic_oracle`` is the oracle
+one-ply heuristic.  ``search_resampled`` and the default ``heuristic`` re-draw
+hidden zones and are the only variants that may be quoted as player-usable.
 """
 from __future__ import annotations
 
@@ -22,6 +23,14 @@ import torch
 
 from agent.nets import CardScorer, CombatNet, load_checkpoint
 from agent.policy import Strategy, play_run_strategy, split_seeds, summarize
+
+
+ORACLE_STRATEGIES = ("search", "search_value", "heuristic_oracle")
+
+
+def strategy_player_usable(name: str) -> bool:
+    """Oracle strategies read the true hidden state and are not player-usable."""
+    return name not in ORACLE_STRATEGIES
 
 
 def build_models(combat_path: str | None, card_path: str | None):
@@ -41,6 +50,8 @@ def run_strategy(name: str, seeds: list[int], combat, card,
                  simulations: int, workers: int) -> dict:
     if name == "heuristic":
         strategy = Strategy(combat="heuristic", cards="heuristic")
+    elif name == "heuristic_oracle":
+        strategy = Strategy(combat="heuristic_oracle", cards="heuristic")
     elif name == "network":
         strategy = Strategy(combat="network", cards="network")
     elif name == "network_combat":
@@ -78,7 +89,7 @@ def run_strategy(name: str, seeds: list[int], combat, card,
     summary["strategy"] = name
     summary["seconds"] = round(seconds, 3)
     summary["runs_per_second"] = round(len(seeds) / seconds, 2)
-    summary["player_usable"] = name != "search"
+    summary["player_usable"] = strategy_player_usable(name)
     return summary
 
 

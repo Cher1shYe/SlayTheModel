@@ -23,7 +23,34 @@ Card make_card(CardId id, bool upgraded, std::uint16_t uid) {
     return c;
 }
 
-int card_cost(const Card &c) { return c.freeCombat ? 0 : c.costForTurn; }
+void card_apply_upgrade(Card &c) {
+    if (c.upgraded) return;
+    c.upgraded = true;
+    const CardDef &d = card_def(c.id);
+    c.storedCost = d.costUp;
+    if (!c.costThisTurn) c.costForTurn = d.costUp;
+}
+
+bool card_upgradable(const Card &c) {
+    if (c.upgraded) return false;
+    const CardDef &d = card_def(c.id);
+    if (d.damageUp != d.damage || d.blockUp != d.block ||
+        d.costUp != d.cost || d.flagsUp != d.flags) {
+        return true;
+    }
+    for (int i = 0; i < static_cast<int>(VarId::COUNT); ++i) {
+        if (d.varUp[i] != d.var[i]) return true;
+    }
+    return false;
+}
+
+int card_cost(const Card &c) {
+    if (c.freeCombat) return 0;
+    if (c.combatCostCap >= 0 && c.costForTurn >= 0) {
+        return std::min<int>(c.costForTurn, c.combatCostCap);
+    }
+    return c.costForTurn;
+}
 
 int card_damage(const Card &c) {
     const CardDef &d = card_def(c.id);
@@ -42,7 +69,10 @@ int card_var(const Card &c, VarId v) {
 }
 
 bool card_has(const Card &c, std::uint16_t flag) {
-    return (card_def(c.id).flags & flag) != 0;
+    if (flag == CF_RETAIN && c.retainThisCombat) return true;
+    const CardDef &d = card_def(c.id);
+    const std::uint16_t f = c.upgraded ? d.flagsUp : d.flags;
+    return (f & flag) != 0;
 }
 
 bool card_is_attack(const Card &c) { return card_def(c.id).type == CardType::ATTACK; }
@@ -50,8 +80,26 @@ bool card_is_skill(const Card &c) { return card_def(c.id).type == CardType::SKIL
 bool card_is_power(const Card &c) { return card_def(c.id).type == CardType::POWER; }
 
 bool card_is_playable(const Card &c) {
-    if (card_has(c, CF_UNPLAYABLE)) return false;
-    if (card_def(c.id).type == CardType::STATUS || card_def(c.id).type == CardType::CURSE) return false;
+    // Playability is data-driven: several status/curse cards (Slimed, Toxic,
+    // Magic Flower ...) are playable and only a flagged subset is not.
+    return !card_has(c, CF_UNPLAYABLE);
+}
+
+bool card_can_enchant(const Card &c, EnchantmentId enchantment) {
+    if (c.enchantment != EnchantmentId::NONE || c.id == CardId::INVALID ||
+        !card_is_playable(c)) return false;
+    const CardType type = card_def(c.id).type;
+    if (type == CardType::CURSE || type == CardType::STATUS) return false;
+    if (enchantment == EnchantmentId::SOWN || enchantment == EnchantmentId::SWIFT ||
+        enchantment == EnchantmentId::GLAM || enchantment == EnchantmentId::CLONE) return true;
+    return enchantment == EnchantmentId::VIGOROUS && type == CardType::ATTACK;
+}
+
+bool card_apply_enchantment(Card &c, EnchantmentId enchantment, int amount) {
+    if (amount <= 0 || amount > 32767 || !card_can_enchant(c, enchantment)) return false;
+    c.enchantment = enchantment;
+    c.enchantmentAmount = static_cast<std::int16_t>(amount);
+    c.enchantmentDisabled = false;
     return true;
 }
 

@@ -25,6 +25,8 @@ from agent.run_env import RunEnv
 def _drive_runs(runs: int) -> dict:
     wins = 0
     completed = 0
+    truncated = 0
+    errors = 0
     steps = 0
     combats = 0
     floors = 0
@@ -39,17 +41,23 @@ def _drive_runs(runs: int) -> dict:
             if not env.step(action):
                 break
         steps += local
-        if env.is_terminal():
+        if env.is_terminal() and not env.is_truncated():
             completed += 1
             combats += env.rc.combats_fought
             floors += env.rc.floor
             wins += int(env.rc.won)
+        elif env.is_truncated() or local >= 20000:
+            truncated += 1
+        else:
+            errors += 1
     dt = time.perf_counter() - start
     return {
         "requested_runs": runs,
         "completed_runs": completed,
+        "truncated_runs": truncated,
+        "error_runs": errors,
         "wins": wins,
-        "win_rate": wins / runs,
+        "win_rate": wins / completed if completed else None,
         "mean_floor": floors / max(1, completed),
         "env_steps": steps,
         "env_steps_s": steps / dt,
@@ -118,15 +126,21 @@ def _bench_selfplay(simulations: int, runs: int) -> dict:
     wins = 0
     steps = 0
     floors = 0
+    statuses: dict[str, int] = {}
     for seed in range(1, runs + 1):
         ep = play_episode(seed, model, simulations, sample=False)
+        statuses[ep["status"]] = statuses.get(ep["status"], 0) + 1
         records += len(ep["records"])
         sims += ep["simulations"]
         wins += int(ep["won"])
         steps += ep["steps"]
         floors += ep["floor"]
     dt = time.perf_counter() - start
-    return {"runs": runs, "completed_runs": runs, "win_rate": wins / runs,
+    completed = statuses.get("terminated", 0)
+    return {"runs": runs, "completed_runs": completed,
+            "truncated_runs": statuses.get("truncated", 0),
+            "error_runs": statuses.get("error", 0),
+            "win_rate": wins / completed if completed else None,
             "mean_floor": floors / runs, "decisions": records,
             "valid_samples_s": records / dt, "completed_simulations": sims,
             "simulations_s": sims / dt, "env_steps_s": steps / dt,

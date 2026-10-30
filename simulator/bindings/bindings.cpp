@@ -1,7 +1,12 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/numpy.h>
 
+#include <limits>
+#include <cmath>
+#include <stdexcept>
 #include <string>
+#include <tuple>
 
 #include "sts2/battle.h"
 #include "sts2/map.h"
@@ -20,6 +25,19 @@ static py::tuple action_tuple(const Action &a) {
 }
 
 static Action make_action(int type, int hand, int target, int uid) {
+    if (type < static_cast<int>(ActionType::PLAY_CARD) ||
+        type > static_cast<int>(ActionType::USE_POTION)) {
+        throw std::invalid_argument("type is not a valid combat action type");
+    }
+    if (hand < 0 || hand > std::numeric_limits<std::uint8_t>::max()) {
+        throw std::invalid_argument("hand is outside the uint8 range");
+    }
+    if (target < 0 || target > std::numeric_limits<std::uint8_t>::max()) {
+        throw std::invalid_argument("target is outside the uint8 range");
+    }
+    if (uid < 0 || uid > std::numeric_limits<std::uint16_t>::max()) {
+        throw std::invalid_argument("uid is outside the uint16 range");
+    }
     Action a;
     a.type = static_cast<ActionType>(type);
     a.hand = static_cast<std::uint8_t>(hand);
@@ -37,13 +55,22 @@ static py::list card_list(const Card *cards, int n) {
     return out;
 }
 
+static py::list card_enchantments(const Card *cards, int n) {
+    py::list out;
+    for (int i = 0; i < n; ++i)
+        out.append(py::make_tuple(static_cast<int>(cards[i].enchantment),
+                                  cards[i].enchantmentAmount, cards[i].enchantmentDisabled));
+    return out;
+}
+
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
 
     py::enum_<Outcome>(m, "Outcome")
         .value("UNDECIDED", Outcome::UNDECIDED)
         .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
-        .value("PLAYER_LOSS", Outcome::PLAYER_LOSS);
+        .value("PLAYER_LOSS", Outcome::PLAYER_LOSS)
+        .value("TRUNCATED", Outcome::TRUNCATED);
     py::enum_<ActionType>(m, "ActionType")
         .value("PLAY_CARD", ActionType::PLAY_CARD)
         .value("END_TURN", ActionType::END_TURN)
@@ -93,7 +120,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         .value("SHOP", RunScreen::SHOP)
         .value("EVENT", RunScreen::EVENT)
         .value("TREASURE", RunScreen::TREASURE)
-        .value("RUN_OVER", RunScreen::RUN_OVER);
+        .value("RUN_OVER", RunScreen::RUN_OVER)
+        .value("REWARDS", RunScreen::REWARDS);
     py::enum_<RunActionType>(m, "RunActionType")
         .value("MOVE", RunActionType::MOVE)
         .value("TAKE_CARD", RunActionType::TAKE_CARD)
@@ -109,7 +137,21 @@ PYBIND11_MODULE(sts2_sim, m) {
         .value("LEAVE_SHOP", RunActionType::LEAVE_SHOP)
         .value("EVENT_CHOICE", RunActionType::EVENT_CHOICE)
         .value("COLLECT", RunActionType::COLLECT)
-        .value("USE_POTION", RunActionType::USE_POTION);
+        .value("USE_POTION", RunActionType::USE_POTION)
+        .value("TAKE_GOLD_REWARD", RunActionType::TAKE_GOLD_REWARD)
+        .value("TAKE_POTION_REWARD", RunActionType::TAKE_POTION_REWARD)
+        .value("TAKE_RELIC_REWARD", RunActionType::TAKE_RELIC_REWARD)
+        .value("OPEN_CARD_REWARD", RunActionType::OPEN_CARD_REWARD)
+        .value("LEAVE_REWARDS", RunActionType::LEAVE_REWARDS)
+        .value("DISCARD_POTION", RunActionType::DISCARD_POTION)
+        .value("SACRIFICE_CARD_REWARD", RunActionType::SACRIFICE_CARD_REWARD)
+        .value("EVENT_SELECT_CARD", RunActionType::EVENT_SELECT_CARD)
+        .value("TAKE_STOLEN_CARD_REWARD", RunActionType::TAKE_STOLEN_CARD_REWARD)
+        .value("SKIP_STOLEN_CARD_REWARD", RunActionType::SKIP_STOLEN_CARD_REWARD)
+        .value("SELECT_GRID_CARD", RunActionType::SELECT_GRID_CARD)
+        .value("CONFIRM_GRID_CARDS", RunActionType::CONFIRM_GRID_CARDS)
+        .value("CANCEL_GRID_PREVIEW", RunActionType::CANCEL_GRID_PREVIEW)
+        .value("REST_CLONE", RunActionType::REST_CLONE);
     py::enum_<EventStatus>(m, "EventStatus")
         .value("IMPLEMENTED", EventStatus::IMPLEMENTED)
         .value("APPROXIMATE", EventStatus::APPROXIMATE)
@@ -152,19 +194,19 @@ PYBIND11_MODULE(sts2_sim, m) {
                               static_cast<int>(d.pool));
     });
 
-    // Event manifest (name/status/act) for coverage tooling.
-    m.def("generate_map", [](std::uint32_t seed, int act) {
+    // Standalone map generation takes the already-derived low-level RNG seed.
+    m.def("generate_map", [](std::uint32_t seed, int act, int ascension) {
         ActMap map;
         char name[32];
         std::snprintf(name, sizeof(name), "act_%d_map", act + 1);
         Rng rng(seed, name);
-        generate_act_map(map, rng, act);
+        generate_act_map(map, rng, act, ascension);
         py::list out;
         for (int i = 0; i < map.pointCount; ++i) {
             const MapNode &n = map.nodes[i];
             int row = -1;
             int col = -1;
-            for (int r = 0; r <= map.mapLength && row < 0; ++r) {
+            for (int r = 0; r < MAP_MAX_ROWS && row < 0; ++r) {
                 for (int c = 0; c < MAP_WIDTH; ++c) {
                     if (map.index[r][c] == i) {
                         row = r;
@@ -180,7 +222,8 @@ PYBIND11_MODULE(sts2_sim, m) {
             out.append(py::make_tuple(i, static_cast<int>(n.type), col, row, kids, pars));
         }
         return py::make_tuple(map.rooms, map.mapLength, out);
-    });
+    }, py::arg("seed"), py::arg("act"), py::arg("ascension") = 0,
+       "Generate a map from a raw RNG seed, not an unhashed RunContext seed.");
     m.def("event_count", []() { return event_count(); });
     m.def("event_pool", [](int act) {
         int ids[64];
@@ -287,6 +330,73 @@ PYBIND11_MODULE(sts2_sim, m) {
         }, py::arg("simulations") = 16, py::arg("c") = 1.5,
            py::arg("epsilon") = 0.05, py::arg("seed") = 0,
            py::arg("resample") = false)
+        .def("mcts", [](const BattleContext &bc, int simulations, double c,
+                         std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon) {
+            if (simulations < 0 || !std::isfinite(c) || c < 0 ||
+                !std::isfinite(epsilon) || epsilon < 0 || epsilon > 1)
+                throw std::invalid_argument("invalid MCTS budget, exploration or epsilon");
+            MctsResult r;
+            {
+                py::gil_scoped_release release;
+                r = mcts(bc, simulations, c, seed, resample, greedy_rollout, epsilon);
+            }
+            py::list actions;
+            for (const Action &a : r.actions) actions.append(action_tuple(a));
+            return py::make_tuple(actions, r.simulations, r.victory);
+        }, py::arg("simulations") = 2000, py::arg("c") = 4.242640687,
+           py::arg("seed") = 0, py::arg("resample") = false,
+           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05)
+        .def("mcts_priors", [](const BattleContext &bc, int simulations,
+                                const std::vector<std::tuple<int, int, int, int>> &actions_in,
+                                const std::vector<double> &priors, double c,
+                                std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon) {
+            std::vector<Action> expected;
+            expected.reserve(actions_in.size());
+            for (const auto &a : actions_in)
+                expected.push_back(make_action(std::get<0>(a), std::get<1>(a),
+                                               std::get<2>(a), std::get<3>(a)));
+            MctsResult r;
+            {
+                py::gil_scoped_release release;
+                r = mcts_priors(bc, simulations, expected, priors, c, seed,
+                                resample, greedy_rollout, epsilon);
+            }
+            py::list actions;
+            for (const Action &a : r.actions) actions.append(action_tuple(a));
+            return py::make_tuple(actions, r.simulations, r.victory);
+        }, py::arg("simulations"), py::arg("actions"), py::arg("priors"),
+           py::arg("c") = 3.0, py::arg("seed") = 0, py::arg("resample") = false,
+           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05)
+        .def("mcts_depth_priors", [](const BattleContext &bc, int simulations,
+                                      py::function prior_fn, int max_depth, double c,
+                                      std::uint32_t seed, bool greedy_rollout, double epsilon,
+                                      bool resample_hidden, py::object value_fn) {
+            MctsPriorFn callback = [&prior_fn](const BattleContext &state, const std::vector<Action> &) {
+                py::gil_scoped_acquire acquire;
+                // The wrapper is valid only for the duration of this callback.
+                return prior_fn(py::cast(&state, py::return_value_policy::reference)).cast<std::vector<double>>();
+            };
+            if (!value_fn.is_none() && !PyCallable_Check(value_fn.ptr()))
+                throw std::invalid_argument("value_fn must be callable or None");
+            const bool has_value_fn = !value_fn.is_none();
+            MctsValueFn value_callback = [&value_fn](const BattleContext &state) {
+                py::gil_scoped_acquire acquire;
+                return value_fn(py::cast(&state, py::return_value_policy::reference)).cast<double>();
+            };
+            MctsResult r;
+            {
+                py::gil_scoped_release release;
+                r = mcts_depth_priors(bc, simulations, callback, max_depth, c, seed,
+                                      greedy_rollout, epsilon, resample_hidden,
+                                      has_value_fn ? &value_callback : nullptr);
+            }
+            py::list actions;
+            for (const Action &a : r.actions) actions.append(action_tuple(a));
+            return py::make_tuple(actions, r.simulations, r.victory);
+        }, py::arg("simulations"), py::arg("prior_fn"), py::arg("max_depth"),
+           py::arg("c") = 3.0, py::arg("seed") = 0,
+           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05,
+           py::arg("resample_hidden") = false, py::arg("value_fn") = py::none())
         .def("search_priors", [](const BattleContext &bc, int simulations,
                                  const std::vector<double> &priors, double c, double epsilon,
                                  std::uint32_t seed, bool resample) {
@@ -311,6 +421,25 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def("observation_public", [](const BattleContext &bc) {
             return public_combat_observation(bc);
         })
+        .def("observation_public_array", [](const BattleContext &bc) {
+            const auto values = public_combat_observation(bc);
+            py::array_t<float> result(values.size());
+            std::copy(values.begin(), values.end(), result.mutable_data());
+            return result;
+        })
+        .def("legal_action_features_array", [](const BattleContext &bc) {
+            const auto actions = bc.legal_actions();
+            py::array_t<float> result({static_cast<py::ssize_t>(actions.size()),
+                                       static_cast<py::ssize_t>(ACTION_FEAT_DIM)});
+            float *out = result.mutable_data();
+            for (const auto &action : actions) {
+                const auto values = combat_action_features(bc, action);
+                if (values.size() != ACTION_FEAT_DIM)
+                    throw std::logic_error("invalid combat action feature length");
+                out = std::copy(values.begin(), values.end(), out);
+            }
+            return result;
+        })
         .def_property_readonly("outcome", [](const BattleContext &bc) { return bc.outcome; })
         .def_property_readonly("turn", [](const BattleContext &bc) { return bc.turn; })
         .def_property_readonly("player_hp", [](const BattleContext &bc) { return bc.player.hp; })
@@ -331,6 +460,9 @@ PYBIND11_MODULE(sts2_sim, m) {
                                           card_cost(bc.hand[i])));
             }
             return out;
+        })
+        .def_property_readonly("hand_enchantments", [](const BattleContext &bc) {
+            return card_enchantments(bc.hand, bc.handCount);
         })
         .def_property_readonly("draw", [](const BattleContext &bc) {
             py::list out;
@@ -419,6 +551,10 @@ PYBIND11_MODULE(sts2_sim, m) {
             return out;
         })
         .def("step", [](RunContext &rc, int type, int index) {
+            if (type < static_cast<int>(RunActionType::MOVE) ||
+                type > static_cast<int>(RunActionType::REST_CLONE)) {
+                throw std::invalid_argument("type is not a valid run action type");
+            }
             RunAction a;
             a.type = static_cast<RunActionType>(type);
             a.index = index;
@@ -445,6 +581,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def("terminal_reward", [](const RunContext &rc) { return rc.terminal_reward(); })
         .def_property_readonly("battle", [](RunContext &rc) -> BattleContext & { return rc.battle; },
                                py::return_value_policy::reference_internal)
+        .def_property_readonly("combat_is_boss", [](const RunContext &rc) { return rc.combatIsBoss; })
         .def_property_readonly("hp", [](const RunContext &rc) { return rc.hp; })
         .def_property_readonly("max_hp", [](const RunContext &rc) { return rc.maxHp; })
         .def_property_readonly("gold", [](const RunContext &rc) { return rc.gold; })
@@ -453,6 +590,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("act", [](const RunContext &rc) { return rc.act; })
         .def_property_readonly("screen", [](const RunContext &rc) { return rc.screen; })
         .def_property_readonly("won", [](const RunContext &rc) { return rc.won; })
+        .def_property_readonly("truncated", [](const RunContext &rc) { return rc.truncated; })
         .def_property_readonly("is_terminal", [](const RunContext &rc) { return rc.is_over(); })
         .def_property_readonly("current_row", [](const RunContext &rc) { return rc.curRow; })
         .def_property_readonly("current_col", [](const RunContext &rc) { return rc.curCol; })
@@ -466,7 +604,7 @@ PYBIND11_MODULE(sts2_sim, m) {
                 const MapNode &n = rc.map.nodes[i];
                 int row = -1;
                 int col = -1;
-                for (int r = 0; r <= rc.map.mapLength && row < 0; ++r) {
+                for (int r = 0; r < MAP_MAX_ROWS && row < 0; ++r) {
                     for (int c = 0; c < MAP_WIDTH; ++c) {
                         if (rc.map.index[r][c] == i) {
                             row = r;
@@ -485,6 +623,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def_property_readonly("map_rooms", [](const RunContext &rc) { return rc.map.rooms; })
         .def_property_readonly("map_length", [](const RunContext &rc) { return rc.map.mapLength; })
+        .def_property_readonly("boss_encounter", [](const RunContext &rc) { return rc.bossEncounter; })
+        .def_property_readonly("second_boss_encounter", [](const RunContext &rc) { return rc.secondBossEncounter; })
         .def_property_readonly("potions", [](const RunContext &rc) {
             py::list out;
             for (int i = 0; i < rc.potionCount; ++i) out.append(rc.potions[i]);
@@ -526,6 +666,18 @@ PYBIND11_MODULE(sts2_sim, m) {
             return std::string(info ? info->name : "");
         })
         .def_property_readonly("event_page", [](const RunContext &rc) { return rc.eventPage; })
+        .def_property_readonly("event_card_selection", [](const RunContext &rc) { return rc.eventCardSelection; })
+        .def_property_readonly("card_grid_kind", [](const RunContext &rc) { return rc.cardGrid.kind; })
+        .def_property_readonly("card_grid_preview", [](const RunContext &rc) { return rc.cardGrid.preview; })
+        .def_property_readonly("card_grid_cards", [](const RunContext &rc) {
+            return (rc.cardGrid.kind == 1 || rc.cardGrid.kind == 2 || rc.cardGrid.kind == 5)
+                ? card_list(rc.cardGrid.cards, rc.cardGrid.count) : py::list();
+        })
+        .def_property_readonly("card_grid_selected", [](const RunContext &rc) {
+            py::list out;
+            if (rc.cardGrid.kind) for (int i = 0; i < rc.cardGrid.count; ++i) out.append(rc.cardGrid.selected[i]);
+            return out;
+        })
         .def_property_readonly("event_choices", [](const RunContext &rc) {
             return static_cast<int>(rc.eventChoiceCount);
         })
@@ -536,8 +688,76 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def_property_readonly("deck_count", [](const RunContext &rc) { return rc.deckCount; })
         .def_property_readonly("deck", [](const RunContext &rc) { return card_list(rc.deck, rc.deckCount); })
-        .def_property_readonly("offered", [](const RunContext &rc) { return card_list(rc.offered, rc.offeredCount); })
+        .def_property_readonly("deck_enchantments", [](const RunContext &rc) {
+            return card_enchantments(rc.deck, rc.deckCount);
+        })
+        .def_property_readonly("offered", [](const RunContext &rc) {
+            return card_list(rc.offered, rc.screen == RunScreen::CARD_REWARD ? rc.offeredCount : 0);
+        })
         .def_property_readonly("reward_is_boss", [](const RunContext &rc) { return rc.rewardIsBoss; })
+        .def_property_readonly("reward_gold", [](const RunContext &rc) {
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            return visible ? rc.pendingGoldReward : 0;
+        })
+        .def_property_readonly("reward_recovered_gold", [](const RunContext &rc) {
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            return visible ? rc.pendingRecoveredGold : 0;
+        })
+        .def_property_readonly("reward_potion", [](const RunContext &rc) {
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            return visible ? rc.pendingPotionReward : 0;
+        })
+        .def_property_readonly("reward_potions", [](const RunContext &rc) {
+            py::list out;
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            if (visible) for (int i = 0; i < rc.pendingPotionCount; ++i) out.append(rc.pendingPotions[i]);
+            return out;
+        })
+        .def_property_readonly("reward_card_slots", [](const RunContext &rc) {
+            py::list out;
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            if (visible) for (int i = 0; i < MAX_CARD_REWARDS; ++i) out.append(rc.rewardCardPending[i]);
+            return out;
+        })
+        .def_property_readonly("reward_stolen_cards", [](const RunContext &rc) {
+            py::list out;
+            if (rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards)) {
+                for (int i = 0; i < rc.stolenSyncCount; ++i) {
+                    if (!rc.stolenRewardPending[i]) continue;
+                    const Card &c = rc.stolenOriginals[i];
+                    out.append(py::make_tuple(i, static_cast<int>(c.id), c.upgraded,
+                                              static_cast<int>(c.uid), static_cast<int>(c.enchantment),
+                                              c.enchantmentAmount));
+                }
+            }
+            return out;
+        })
+        .def_property_readonly("reward_card_pending", [](const RunContext &rc) {
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            return visible && rc.pendingCardReward;
+        })
+        .def_property_readonly("reward_returns_to_event", [](const RunContext &rc) {
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            return visible && rc.pendingReturnToEvent;
+        })
+        .def_property_readonly("reward_relics", [](const RunContext &rc) {
+            py::list out;
+            const bool visible = rc.screen == RunScreen::REWARDS ||
+                (rc.screen == RunScreen::CARD_REWARD && rc.rewardReturnToRewards);
+            if (visible) {
+                for (int i = 0; i < rc.pendingRelicCount; ++i)
+                    out.append(py::make_tuple(rc.pendingRelics[i], rc.pendingRelicClaimed[i]));
+            }
+            return out;
+        })
         .def_property_readonly("shop", [](const RunContext &rc) {
             py::list out;
             for (int i = 0; i < rc.shopCount; ++i) {

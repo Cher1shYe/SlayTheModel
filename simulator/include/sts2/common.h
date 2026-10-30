@@ -6,6 +6,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <stdexcept>
 #include <vector>
 
 namespace sts2 {
@@ -14,8 +15,13 @@ enum class CardType : std::uint8_t { ATTACK, SKILL, POWER, STATUS, CURSE };
 enum class TargetType : std::uint8_t {
     ENEMY, ALL_ENEMIES, SELF, RANDOM_ENEMY, ALLY, ALL_ALLIES, NONE
 };
-enum class Rarity : std::uint8_t { BASIC, COMMON, UNCOMMON, RARE, SPECIAL, ANCIENT };
-enum class Outcome : std::uint8_t { UNDECIDED, PLAYER_VICTORY, PLAYER_LOSS };
+enum class Rarity : std::uint8_t {
+    BASIC, COMMON, UNCOMMON, RARE, SPECIAL, ANCIENT, EVENT, TOKEN, STATUS, CURSE
+};
+enum class CardPool : std::uint8_t {
+    IRONCLAD, COLORLESS, EVENT, CURSE, TOKEN, STATUS
+};
+enum class Outcome : std::uint8_t { UNDECIDED, PLAYER_VICTORY, PLAYER_LOSS, TRUNCATED };
 enum class ActionType : std::uint8_t { PLAY_CARD, END_TURN, CHOOSE, CONFIRM, USE_POTION };
 enum class ChoiceKind : std::uint8_t { NONE, UPGRADE_HAND, EXHAUST_HAND, RETURN_DISCARD_TO_DRAW, PUT_HAND_ON_DRAW };
 
@@ -36,6 +42,7 @@ enum class PowerId : std::uint8_t {
     EQUILIBRIUM, THE_BOMB, THE_GAMBIT, NO_BLOCK, BLOCK_NEXT_TURN,
     RETAIN_HAND, SETUP_STRIKE, FREE_ATTACK, CALAMITY, COVERED, TANK,
     BEACON_OF_HOPE, COORDINATE, NO_DRAW, THE_BOMB_DAMAGE,
+    HELLO_WORLD, DEMISE,
     // monster-specific powers (content expanded from the reference engine)
     ADAPTABLE, ASLEEP, BACK_ATTACK_LEFT, BACK_ATTACK_RIGHT, BURROWED,
     CHAINS_OF_BINDING, CONSTRICT, CRAB_RAGE, DAMPEN, DOOR_REVIVAL,
@@ -43,9 +50,11 @@ enum class PowerId : std::uint8_t {
     IMBALANCED, INFESTED, MINION, PAINFUL_STABS, PAPER_CUTS, PERSONAL_HIVE,
     PLOW, POSSESS_SPEED, POSSESS_STRENGTH, RAMPART, RAVENOUS, REATTACH,
     RINGING, SHRIEK, SKITTISH, SLIPPERY, SLUMBER, SMOGGY, SOAR,
-    STEAM_ERUPTION, STOCK, SUCK, SURPRISE, TANGLED, TENDER, TERRITORIAL,
+    STEAM_ERUPTION, STOCK, SUCK, SURPRISE, SURROUNDED, SWIPE, SANDPIT,
+    TANGLED, TENDER, TERRITORIAL, TORIC_TOUGHNESS,
     THIEVERY, VITAL_SPARK, BATTLEWORN_DUMMY_TIME_LIMIT, HIGH_VOLTAGE,
     DUPLICATION, GIGANTIFICATION, DIAMOND_DIADEM, NEMESIS,
+    CLARITY, RADIANCE,
     COUNT
 };
 
@@ -111,6 +120,10 @@ public:
 
     // Mirrors C# Rng.FastForwardCounter (advances the raw .NET sequence).
     void fast_forward(int target) {
+        if (counter > target) {
+            throw std::invalid_argument(
+                "Cannot fast-forward an Rng counter to a lower number");
+        }
         while (counter < target) {
             ++counter;
             internal_sample();
@@ -173,14 +186,17 @@ public:
         return ret;
     }
 
-    float sample() { return static_cast<float>(internal_sample()) * (1.0f / static_cast<float>(INT_MAX_V)); }
+    double sample() {
+        return static_cast<double>(internal_sample()) /
+               static_cast<double>(INT_MAX_V);
+    }
 
     // Inclusive bounds, matching python Rng.next_int.
     int next_int(int low, int high) {
         if (low > high) std::swap(low, high);
         ++counter;
         const std::int64_t range = static_cast<std::int64_t>(high) - low + 1;
-        return static_cast<int>(sample() * static_cast<float>(range)) + low;
+        return static_cast<int>(sample() * static_cast<double>(range)) + low;
     }
 
     // C# Rng.NextInt(maxExclusive).
@@ -206,6 +222,12 @@ public:
 
     float next_float() { return next_float(0.0f, 1.0f); }
 
+    // Rng.NextDouble advances the same System.Random stream and counter.
+    double next_double() {
+        ++counter;
+        return sample();
+    }
+
     // C# Rng.NextGaussianInt. Note the reference does not bump Counter here.
     int next_gaussian_int(int mean, int stdDev, int lo, int hi) {
         for (int guard = 0; guard < 10000; ++guard) {
@@ -213,8 +235,8 @@ public:
             const double u2 = 1.0 - static_cast<double>(internal_sample()) / INT_MAX_V;
             const double z = std::sqrt(-2.0 * std::log(u1)) *
                              std::sin(6.28318530717958647692 * u2);
-            const int v = static_cast<int>(std::lround(static_cast<double>(mean) +
-                                                       static_cast<double>(stdDev) * z));
+            const int v = static_cast<int>(round_to_even(
+                static_cast<double>(mean) + static_cast<double>(stdDev) * z));
             if (v >= lo && v <= hi) return v;
         }
         return mean < lo ? lo : (mean > hi ? hi : mean);
@@ -224,6 +246,18 @@ public:
     int next_index(int count) { return count <= 0 ? -1 : next_int(0, count - 1); }
 
     bool next_bool() { return next_int(0, 1) == 0; }
+
+    // Snapshot input can contain arbitrary bytes. Validate indices before the
+    // generator is ever used, so internal_sample cannot index outside its
+    // fixed seed array.
+    [[nodiscard]] bool valid_snapshot_state() const {
+        if (inext < 0 || inext >= 56 || inextp < 0 || inextp >= 56 || counter < 0)
+            return false;
+        for (const auto value : seedArray) {
+            if (value < 0 || value > INT_MAX_V) return false;
+        }
+        return true;
+    }
 
     template <typename T>
     void shuffle(T *arr, int n) {
@@ -239,6 +273,14 @@ private:
         return static_cast<std::int32_t>(u);
     }
 
+    static double round_to_even(double value) {
+        const double lower = std::floor(value);
+        const double fraction = value - lower;
+        if (fraction < 0.5) return lower;
+        if (fraction > 0.5) return lower + 1.0;
+        return std::fmod(lower, 2.0) == 0.0 ? lower : lower + 1.0;
+    }
+
     std::int32_t seedArray[56]{};
     int inext = 0;
     int inextp = 21;
@@ -250,6 +292,7 @@ struct CardDef {
     CardId id;
     const char *key;     // reference engine CardId name
     const char *name;    // display name
+    CardPool pool;
     std::int8_t cost;
     std::int8_t costUp;
     CardType type;
@@ -262,6 +305,7 @@ struct CardDef {
     std::int16_t var[static_cast<int>(VarId::COUNT)];
     std::int16_t varUp[static_cast<int>(VarId::COUNT)];
     std::uint16_t flags;
+    std::uint16_t flagsUp;
 };
 
 enum CardFlags : std::uint16_t {
@@ -273,7 +317,10 @@ enum CardFlags : std::uint16_t {
     CF_STRIKE = 1u << 5,
     CF_DEFEND = 1u << 6,
     CF_MULTIPLAYER_ONLY = 1u << 7,
+    CF_CANNOT_GENERATE_IN_COMBAT = 1u << 8,
 };
+
+enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE };
 
 struct Card {
     CardId id = CardId::INVALID;
@@ -283,15 +330,41 @@ struct Card {
     std::int16_t bonusDamage = 0;   // Rampage / Thrash / Body Slam adjustments
     std::uint8_t replay = 0;        // extra plays from Hidden Gem
     std::uint8_t bonusReplay = 0;   // Soldiers Stew: permanent-for-combat replay
-    std::int8_t storedCost = 0;     // original cost when temporarily free
+    std::int8_t storedCost = 0;     // cost to restore after a temporary change
     bool freeCombat = false;        // Touch of Insanity: costs 0 for the combat
+    bool costThisTurn = false;      // temporary cost modifier, cleared at turn end
+    std::int8_t combatCostCap = -1; // Enlightenment+: reduce cost for the combat
     bool etherealThisCombat = false;  // Ghost Seed / Music Box clones
+    bool retainThisCombat = false;   // Choices Paradox temporary Retain
+    std::int16_t galvanized = 0;   // Galvanized affliction; damage on play
+    std::uint8_t guiltyCombatsSeen = 0;  // Guilty's per-card saved combat counter
+    EnchantmentId enchantment = EnchantmentId::NONE;
+    std::int16_t enchantmentAmount = 0;
+    bool enchantmentDisabled = false;  // reset for each combat
 
     bool operator==(const Card &o) const { return uid == o.uid; }
 };
 
+// Temporary cost changes survive in whichever pile the card sits in, but expire
+// at the end of the turn (C# CardEnergyCost).  storedCost keeps the real cost.
+inline void card_set_turn_cost(Card &c, int cost) {
+    if (!c.costThisTurn) c.storedCost = c.costForTurn;
+    c.costForTurn = static_cast<std::int8_t>(cost);
+    c.costThisTurn = true;
+}
+
+inline void card_restore_cost(Card &c) {
+    if (!c.costThisTurn) return;
+    c.costForTurn = c.storedCost;
+    c.costThisTurn = false;
+}
+
 const CardDef &card_def(CardId id);
 Card make_card(CardId id, bool upgraded, std::uint16_t uid);
+// Permanent upgrade (campfire, eggs, events, relics): the upgraded card's
+// energy cost must change with the flag (CardModel.OnUpgrade -> EnergyCost).
+void card_apply_upgrade(Card &c);
+bool card_upgradable(const Card &c);
 int card_cost(const Card &c);
 int card_damage(const Card &c);
 int card_block(const Card &c);
@@ -301,6 +374,8 @@ bool card_is_attack(const Card &c);
 bool card_is_skill(const Card &c);
 bool card_is_power(const Card &c);
 bool card_is_playable(const Card &c);
+bool card_can_enchant(const Card &c, EnchantmentId enchantment);
+bool card_apply_enchantment(Card &c, EnchantmentId enchantment, int amount);
 bool card_is_strike(const Card &c);
 bool card_is_defend(const Card &c);
 
@@ -309,5 +384,7 @@ const char *card_key(CardId id);
 
 const PotionDef &potion_def(PotionId id);
 const char *potion_name(PotionId id);
+PotionId random_potion_out_of_combat(Rng &rng);
+int random_potions_out_of_combat(Rng &rng, PotionId *out, int count);
 
 }  // namespace sts2

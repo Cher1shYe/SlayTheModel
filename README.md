@@ -77,6 +77,8 @@ so `agent/common.py` imports the simulator without extra `sys.path` setup.
 ```bash
 python -m deployment.train_local card     # card-selection REINFORCE
 python -m deployment.train_local selfplay # combat self-play
+python -m deployment.train_local armg     # unified non-combat REINFORCE
+python -m deployment.train_local combat-dagger --out-dir runs/combat-dagger
 python -m deployment.train_local benchmark
 pytest tests -q
 python -m deployment.evaluate --split test --seeds 1000 \
@@ -91,6 +93,74 @@ simulator/bench.exe 10000                # combat throughput (Shrinker Beetle)
 simulator/bench.exe 10000 72             # combat throughput (Cultists)
 python simulator/tools/gen_coverage.py   # regenerate docs/a0-ironclad-coverage.md
 ```
+
+The ArmG trainer scores each legal non-combat candidate with one shared MLP and
+uses final floor / 50 with an exponential moving baseline for REINFORCE. Its
+default fixed combat controller is native multi-level `mcts-oracle`: it uses the
+complete simulator battle state and future RNG, like the STS1 reference, so
+results are not directly player-usable. `mcts-resampled` resamples hidden state
+and uses only the first action of a searched path. The old root-only `search`
+controller remains available. Run `python -m deployment.train_local armg --help`
+for the training options. It saves resumable `latest.pt`, the best checkpoint
+on the validation seeds as `best.pt`, and `metrics.jsonl` in the output
+directory. Truncated and errored episodes are reported and excluded from
+updates. To compare the trained policy with the existing non-combat heuristic
+on independent, paired test seeds, use:
+
+```bash
+python -m deployment.evaluate_armg --checkpoint runs/armg/best.pt --split test \
+    --start 100 --seeds 100 --combat mcts-oracle --simulations 64 --out runs/armg/test.json
+```
+
+The ArmG policy uses only public run observations. To prevent a deterministic
+policy from cycling indefinitely on reversible choices, repeated public states
+can trigger a different legal action; these interventions are counted in the
+training and evaluation reports.
+
+Optional non-combat overlays can be enabled with `--need-rules` (deck-need
+scoring on normal card rewards) and `--relic-rules` (shop relic and Ancient
+energy-relic priorities). Both default to off, preserving the original model
+and old checkpoint behavior. They are STS2-specific hypotheses, not a copy of
+the STS1 card and relic pool. Compare the four combinations on the same seeds:
+
+```bash
+python -m deployment.evaluate_armg_rules --checkpoint runs/armg/best.pt \
+    --out-dir runs/armg/rule_ablation --split val --start 100 --seeds 100 \
+    --combat mcts-oracle --simulations 2000 --workers 8
+```
+
+The evaluator records per-run results, rule-source hashes, and the paired
+floor differences. `mcts-oracle` has access to future battle state; its results
+do not establish real-client performance.
+
+The combat DAgger trainer uses the frozen original ArmG for non-combat choices.
+It first bootstraps STS2-specific policy and value weights with MCTS-controlled
+episodes, then trains on student-visited states labelled by native MCTS. The
+default oracle teacher can see hidden future state; select
+`--teacher-mode resampled` to study a hidden-state-resampled teacher. Policy and value targets
+from completed battles are stored in disk shards, and aborted runs contribute
+no training samples. Checkpoints include optimizers, RNG state and the active
+replay manifest. Restart with the same settings and `--resume <output>/latest.pt`.
+Training stores historical shards even after they leave the replay window, so
+the output directory can grow. Each round chooses `best.pt` using separate
+validation seeds; test seeds should only be used for final evaluation:
+
+```bash
+python -m deployment.evaluate_combat_dagger \
+    --policy-checkpoint runs/combat-dagger/best.pt \
+    --armg-checkpoint runs/armg_a0_mcts_20261029/eval_mcts10000_20261029_215142/model.pt \
+    --out-dir runs/combat-dagger/test-eval --split test --seeds 100 \
+    --simulations 512 --workers 8
+```
+
+To change battle controllers, start a separate run with `--init-checkpoint`
+and a disjoint `--train-seed-offset`; only model weights are loaded and the
+optimizer, baseline, and RNG are reset. The source checkpoint hash and settings
+are recorded. `--resume` instead requires the same settings and restores the
+optimizer, baseline, and RNG. In the MCTS oracle mode the controller caches up
+to 15 actions from a victory path, or five from a non-victory path, checks each
+action against the current legal set, and searches again if it is invalid. Boss
+combats use three times the configured simulation budget.
 
 Full-run training API:
 
@@ -143,6 +213,10 @@ action. `network_combat` (network combat + heuristic cards) and `network_cards`
 - 12 run RNG streams plus 3 player streams, all named-seeded and independent;
   map generation uses a per-act seed; events derive their own seed from
   run seed + player id + event-name hash. No global RNG.
+
+  The standalone `sim.generate_map(seed, act, ascension=0)` accepts the raw RNG seed;
+  `RunContext.init(seed)` first hashes the decimal representation of the
+  user-facing run seed before deriving its per-act map stream.
 - Map generation is a port of `StandardActMap`: 7 columns, 15/14/13 rooms,
   seven starting paths, DAG edges, crossover prevention, redundant-path
   pruning, centering/spreading/straightening, forced monster/treasure/rest
@@ -150,7 +224,9 @@ action. `network_combat` (network combat + heuristic cards) and `network_cards`
 - Rooms: opening Ancient (Neow), Monster/Elite/Boss combats, Unknown resolution
   with growth/reset odds and shop blacklist, regular events, Rest
   (heal/smith/Dig/Lift), Shop (7 cards, 3 relics, 3 potions, one removal,
-  sale/price variance), Treasure, boss rewards and act transitions.
+  sale/price variance), Treasure, selectable combat rewards and act transitions.
+- A combat reaching the 200-turn safety limit ends the episode as truncated;
+  it is not recorded as a game loss or used as a terminal training label.
 - Events have their own engine, including event combats that return to the
   event page; the coverage manifest filters unsupported events out of the bag.
 
@@ -190,14 +266,17 @@ self-play/search threads scale; Python-side policy bookkeeping does not.
 | Constant | Size | Contents |
 | --- | --- | --- |
 | `RUN_OBS_DIM` | 237 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
-| `PUBLIC_OBS_DIM` | 13929 | schema v3 public run + combat observation, event-choice relic one-hots |
-| `CARD_FEAT_DIM` | 236 | card one-hot, cost, type, rarity, upgrade, price |
+| `PUBLIC_OBS_DIM` | 37305 | schema v10 public run + combat observation, rewards and selection grids |
+| `PUBLIC_COMBAT_OBS_DIM` | 21330 | visible combat state, piles, stolen cards, enchantments, power instances and choice candidates |
+| `CARD_FEAT_DIM` | 250 | card one-hot, cost, type, rarity, upgrade, price, enchantments, replay and combat state |
 | `COMBAT_OBS_DIM` | 61 | player status block + 4 monster slots |
-| `ACTION_FEAT_DIM` | 304 | action schema v2: type, card/potion one-hot, cost, target, damage/block |
+| `ACTION_FEAT_DIM` | 340 | action schema v9: card/potion identity, instance state, target and choice op/pile |
 
 `observe_public()` exposes only player-visible information (deck, resources,
-visible map, in-combat hand/piles/intents); draw order, future intents, RNG
-state and hidden event outcomes are not included.
+visible map, in-combat hand/piles/intents, combat relics/counters, potions and
+the full pending-choice candidate set); draw order, future intents, RNG state
+and hidden event outcomes are not included.  Observation schema v9 and action
+schema v8 invalidate older checkpoints; `load_checkpoint` rejects mismatches.
 
 ## Content
 
@@ -231,13 +310,13 @@ Generated from the reference engine by `simulator/tools/dump_*.py` and
 Known approximations (full list in the coverage manifest): event
 card/enchantment selection uses RNG substitutes, enchantments remain
 approximated by upgrades, some event relics needing enchantments/pets/map
-manipulation are no-ops or substitutes, potion rewards auto-add when slots are
-free, and the exact tagged GrabBag ordering is approximated. Act 4 is out of
+manipulation are no-ops or substitutes, and the exact tagged GrabBag ordering
+is approximated. Act 4 is out of
 scope. Card text is never parsed; semantics follow the reference effect code.
 
 ## Verification
 
-`pytest tests -q` (77 tests) checks observation/action dimensions, the full
+`pytest tests -q` (84 tests) checks observation/action dimensions, the full
 event manifest gating, every card/potion/implemented relic, map golden hashes
 and structural invariants, deterministic replay and snapshot/restore equality,
 room/economy transitions, boss reward/act changes, JSONL output, Ancient offer

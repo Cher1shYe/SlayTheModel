@@ -1,29 +1,33 @@
 #include "sts2/effects.h"
+#include "sts2/monsters.h"
 
 namespace sts2 {
 #include "sts2/cards_generated.inc"
 
 namespace {
 
-bool is_colorless_index(int i) {
-    return i > static_cast<int>(CardId::WHIRLWIND) && i < static_cast<int>(CardId::BECKON);
-}
-
 bool usable_generated(const CardDef &d) {
-    if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) return false;
-    return d.rarity != Rarity::SPECIAL && d.rarity != Rarity::BASIC;
+    if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
+                   CF_CANNOT_GENERATE_IN_COMBAT)) {
+        return false;
+    }
+    return d.rarity == Rarity::COMMON || d.rarity == Rarity::UNCOMMON ||
+           d.rarity == Rarity::RARE;
 }
 
 int ironclad_pool(CardId *out) {
     int n = 0;
-    for (int i = 1; i <= static_cast<int>(CardId::WHIRLWIND); ++i) {
-        if (usable_generated(CARD_DEFS[i])) out[n++] = static_cast<CardId>(i);
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+        if (CARD_DEFS[i].pool == CardPool::IRONCLAD &&
+            usable_generated(CARD_DEFS[i])) {
+            out[n++] = static_cast<CardId>(i);
+        }
     }
     return n;
 }
 
 void random_ironclad_cards(BattleContext &bc, int count, bool upgraded, Card *out, int &outN) {
-    CardId pool[256];
+    CardId pool[static_cast<int>(CardId::COUNT)];
     const int n = ironclad_pool(pool);
     outN = 0;
     for (int k = 0; k < count && n > 0; ++k) {
@@ -31,11 +35,11 @@ void random_ironclad_cards(BattleContext &bc, int count, bool upgraded, Card *ou
         bool duplicate = true;
         int attempts = 0;
         while (duplicate && attempts++ < 64) {
-            const CardId id = pool[bc.rng.next_int(0, n - 1)];
+            const CardId id = pool[bc.cardGenerationRng.next_int(0, n - 1)];
             duplicate = false;
             for (int j = 0; j < outN; ++j) if (out[j].id == id) duplicate = true;
             if (!duplicate) {
-                Card c = make_card(id, upgraded, bc.nextUid++);
+                Card c = make_card(id, upgraded, bc.require_card_uid());
                 if (upgraded) c.costForTurn = card_def(id).costUp;
                 out[outN++] = c;
             }
@@ -45,25 +49,24 @@ void random_ironclad_cards(BattleContext &bc, int count, bool upgraded, Card *ou
 
 void add_from_draw(BattleContext &bc, int idx) {
     Card c = bc.draw[idx];
-    for (int i = idx; i < bc.drawCount - 1; ++i) bc.draw[i] = bc.draw[i + 1];
-    --bc.drawCount;
+    bc.remove_draw_at(idx);
     bc.add_card_to_hand(c);
 }
 
 void random_draw_auto_play(BattleContext &bc, int count) {
     for (int k = 0; k < count && bc.drawCount > 0 && bc.outcome == Outcome::UNDECIDED; ++k) {
-        const int idx = bc.rng.next_int(0, bc.drawCount - 1);
+        const int idx = bc.cardSelectionRng.next_int(0, bc.drawCount - 1);
         Card c = bc.draw[idx];
-        for (int i = idx; i < bc.drawCount - 1; ++i) bc.draw[i] = bc.draw[i + 1];
-        --bc.drawCount;
+        bc.remove_draw_at(idx);
         bc.auto_play_random(c, false);
     }
 }
 
 int zero_cost_pool(CardId *out) {
     int n = 0;
-    for (int i = 1; i <= static_cast<int>(CardId::WHIRLWIND); ++i) {
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (d.pool != CardPool::IRONCLAD) continue;
         if (!usable_generated(d)) continue;
         if (d.cost == 0 && d.costUp == 0) out[n++] = static_cast<CardId>(i);
     }
@@ -106,9 +109,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             if (target < 0 || target >= bc.monsterCount) return true;
             // DarkShacklesPower: temporary strength loss, restored at the end of
             // the affected monster's turn (same timing as Mangle).
-            const int loss = card_var(card, VarId::STRENGTH_LOSS);
-            bc.monsters[target].strength -= loss;
-            bc.monsters[target].tempStrengthLoss += loss;
+            bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS));
             return true;
         }
         case CardId::DISCOVERY: {
@@ -132,14 +133,22 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.draw_cards(card_var(card, VarId::CARDS));
             return true;
         case CardId::FISTICUFFS: {
-            int dealt = bc.calc_player_damage(dmg, target);
-            bc.attack_monster(target, dmg);
-            if (bc.outcome != Outcome::UNDECIDED) return true;
-            if (dealt > 0) bc.gain_block(dealt, true);
+            // Fisticuffs.cs: GainBlock(sum of DamageResult.TotalDamage +
+            // OverkillDamage), i.e. the actual result, including Vigor and
+            // Intangible, not a precomputed estimate.
+            int b = dmg;
+            if (bc.player_power(PowerId::VIGOR) > 0) {
+                b += bc.player_power(PowerId::VIGOR);
+                bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
+            }
+            const int hitDmg = bc.calc_player_damage(b, target, true, &card);
+            const DamageDealt res = bc.damage_monster(target, hitDmg, true, true);
+            bc.trigger_skittish(target, res.unblocked > 0);
+            bc.gain_block(res.total + res.overkill, true);
             return true;
         }
         case CardId::FLASH_OF_STEEL:
-            bc.attack_monster(target, dmg);
+            bc.attack_from_card(card, target, dmg);
             bc.draw_cards(card_var(card, VarId::CARDS));
             return true;
         case CardId::GANG_UP:
@@ -158,23 +167,37 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::JACK_OF_ALL_TRADES: {
+            CardId picked[MAX_HAND]{};
+            picked[0] = CardId::JACK_OF_ALL_TRADES;
+            int n = 1;
             for (int k = 0; k < card_var(card, VarId::CARDS); ++k) {
-                Card c = bc.random_colorless_card();
+                Card c = bc.random_colorless_card_excluding(picked, n);
+                if (n < MAX_HAND) picked[n++] = c.id;
                 bc.add_card_to_hand(c);
             }
             return true;
         }
         case CardId::MIND_BLAST:
-            bc.attack_monster(target, card_var(card, VarId::CALC_BASE) +
-                                      card_var(card, VarId::EXTRA_DAMAGE) * bc.drawCount);
+            bc.attack_from_card(card, target,
+                                card_var(card, VarId::CALC_BASE) +
+                                    card_var(card, VarId::EXTRA_DAMAGE) * bc.drawCount);
             return true;
         case CardId::OMNISLICE: {
-            int dealt = bc.calc_player_damage(dmg, target);
-            bc.attack_monster(target, dmg);
-            if (bc.outcome != Outcome::UNDECIDED || dealt <= 0) return true;
+            // Omnislice.cs: the splash base is the first target's actual
+            // DamageResult.TotalDamage + OverkillDamage, dealt as Unpowered.
+            int b = dmg;
+            if (bc.player_power(PowerId::VIGOR) > 0) {
+                b += bc.player_power(PowerId::VIGOR);
+                bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
+            }
+            const int hitDmg = bc.calc_player_damage(b, target, true, &card);
+            const DamageDealt res = bc.damage_monster(target, hitDmg, true, true);
+            bc.trigger_skittish(target, res.unblocked > 0);
+            const int splash = res.total + res.overkill;
+            if (splash <= 0) return true;
             for (int i = 0; i < bc.monsterCount; ++i) {
                 if (i == target || !bc.monsters[i].alive) continue;
-                bc.damage_monster(i, dealt);
+                bc.damage_monster(i, splash, true, false);
             }
             return true;
         }
@@ -205,9 +228,10 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::BRIGHTEST_FLAME: {
             bc.player.energy += card_var(card, VarId::ENERGY);
             bc.draw_cards(card_var(card, VarId::CARDS));
-            const int loss = std::min(card_var(card, VarId::MAX_HP), std::max(0, bc.player.hp - 1));
-            bc.player.maxHp = std::max(1, bc.player.maxHp - loss);
-            bc.player.hp -= loss;
+            // CreatureCmd.LoseMaxHp: max HP drops by the full amount; current
+            // HP is only reduced when it would exceed the new maximum.
+            bc.player.maxHp = std::max(0, bc.player.maxHp - card_var(card, VarId::MAX_HP));
+            if (bc.player.hp > bc.player.maxHp) bc.player.hp = bc.player.maxHp;
             return true;
         }
         case CardId::PROWESS:
@@ -221,10 +245,12 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                             bc.card_will_exhaust(card));
             return true;
         case CardId::REND:
-            bc.attack_monster(target, card_var(card, VarId::CALC_BASE) +
-                                      card_var(card, VarId::EXTRA_DAMAGE) *
-                                          (target >= 0 && target < bc.monsterCount
-                                               ? rend_debuff_count(bc.monsters[target]) : 0));
+            bc.attack_from_card(
+                card, target,
+                card_var(card, VarId::CALC_BASE) +
+                    card_var(card, VarId::EXTRA_DAMAGE) *
+                        (target >= 0 && target < bc.monsterCount
+                             ? rend_debuff_count(bc.monsters[target]) : 0));
             return true;
         case CardId::RESTLESSNESS:
             if (bc.handCount == 0) {
@@ -242,7 +268,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.start_draw_choice(card, bc.card_will_exhaust(card), static_cast<int>(CardType::ATTACK), -1);
             return true;
         case CardId::SEEKER_STRIKE:
-            bc.attack_monster(target, dmg);
+            bc.attack_from_card(card, target, dmg);
             if (bc.outcome == Outcome::UNDECIDED && bc.drawCount > 0) {
                 bc.start_draw_choice(card, bc.card_will_exhaust(card), -1,
                                      -1, card_var(card, VarId::CARDS));
@@ -268,9 +294,13 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::STRATAGEM, 1);
             return true;
         case CardId::THE_BOMB_CARD:
-            bc.add_player_power(PowerId::THE_BOMB, card_var(card, VarId::TURNS));
-            bc.player.power[static_cast<int>(PowerId::THE_BOMB_DAMAGE)] =
-                static_cast<std::int16_t>(card_var(card, VarId::BOMB_DAMAGE));
+            // TheBombPower is instanced: every copy keeps its own countdown and
+            // damage instead of merging into one power stack.
+            if (bc.bombCount < BattleContext::MAX_BOMBS) {
+                bc.bombTurns[bc.bombCount] = card_var(card, VarId::TURNS);
+                bc.bombDamage[bc.bombCount] = card_var(card, VarId::BOMB_DAMAGE);
+                ++bc.bombCount;
+            }
             return true;
         case CardId::THINKING_AHEAD:
             bc.draw_cards(card_var(card, VarId::CARDS));
@@ -280,23 +310,36 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         case CardId::THRUMMING_HATCHET:
-            bc.attack_monster(target, dmg);
-            if (bc.outcome == Outcome::UNDECIDED) {
-                bc.returnToHand = true;
-                if (bc.returnNextTurnCount < MAX_HAND) bc.returnNextTurn[bc.returnNextTurnCount++] = card;
-            }
+            // ThrummingHatchet.OnPlay only attacks; the card follows the normal
+            // result pile (discard) and is recalled by BeforeHandDraw next round.
+            bc.attack_from_card(card, target, dmg);
             return true;
         case CardId::VOLLEY:
             for (int i = 0; i < bc.xCost; ++i) {
                 const int t = bc.random_alive_monster();
                 if (t < 0) break;
-                bc.attack_monster(t, dmg);
+                bc.attack_from_card(card, t, dmg);
             }
             return true;
 
         // ---- rare ----
         case CardId::ALCHEMIZE:
             bc.gain_random_combat_potion();
+            return true;
+        case CardId::APOTHEOSIS: {
+            Card *piles[] = {bc.hand, bc.draw, bc.discard, bc.exhaust, bc.playPile};
+            const int counts[] = {bc.handCount, bc.drawCount, bc.discardCount,
+                                  bc.exhaustCount, bc.playCount};
+            for (int p = 0; p < 5; ++p) {
+                for (int i = 0; i < counts[p]; ++i) {
+                    if (card_upgradable(piles[p][i])) bc.upgrade_card(piles[p][i]);
+                }
+            }
+            return true;
+        }
+        case CardId::APPARITION:
+            bc.add_player_power(PowerId::INTANGIBLE,
+                                card_var(card, VarId::INTANGIBLE_POWER));
             return true;
         case CardId::ANOINTED: {
             for (int i = bc.drawCount - 1; i >= 0; --i) {
@@ -305,38 +348,136 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         }
+        case CardId::CALTROPS:
+            bc.add_player_power(PowerId::THORNS, card_var(card, VarId::THORNS_POWER));
+            return true;
+        case CardId::DISTRACTION: {
+            Card c = bc.random_card_of_type(CardType::SKILL, false);
+            card_set_turn_cost(c, 0);
+            bc.add_card_to_hand(c);
+            return true;
+        }
+        case CardId::DUAL_WIELD:
+            bc.start_choice(ChoiceOp::DUPLICATE, ChoicePile::HAND, 1, false,
+                            card, bc.card_will_exhaust(card),
+                            card_var(card, VarId::CARDS));
+            return true;
+        case CardId::ENLIGHTENMENT:
+            for (int i = 0; i < bc.handCount; ++i) {
+                if (card.upgraded) {
+                    if (bc.hand[i].combatCostCap < 0 || bc.hand[i].combatCostCap > 1) {
+                        bc.hand[i].combatCostCap = 1;
+                    }
+                } else if (bc.hand[i].costForTurn > 1) {
+                    card_set_turn_cost(bc.hand[i], 1);
+                }
+            }
+            return true;
+        case CardId::EXTERMINATE:
+            bc.attack_all_from_card(card, dmg,
+                                    card_var(card, VarId::REPEAT));
+            return true;
+        case CardId::FEEDING_FRENZY_CARD:
+            bc.add_temp_strength(card_var(card, VarId::STRENGTH));
+            return true;
+        case CardId::HELLO_WORLD_CARD:
+            bc.add_player_power(PowerId::HELLO_WORLD, 1);
+            return true;
+        case CardId::MAUL: {
+            bc.attack_from_card(card, target, dmg, 2);
+            const int increase = card_var(card, VarId::INCREASE);
+            Card *piles[] = {bc.hand, bc.draw, bc.discard, bc.exhaust, bc.playPile};
+            const int counts[] = {bc.handCount, bc.drawCount, bc.discardCount,
+                                  bc.exhaustCount, bc.playCount};
+            for (int p = 0; p < 5; ++p) {
+                for (int i = 0; i < counts[p]; ++i) {
+                    if (piles[p][i].id != CardId::MAUL) continue;
+                    piles[p][i].bonusDamage = static_cast<std::int16_t>(
+                        piles[p][i].bonusDamage + increase);
+                }
+            }
+            return true;
+        }
+        case CardId::METAMORPHOSIS:
+            for (int i = 0; i < card_var(card, VarId::CARDS); ++i) {
+                Card c = bc.random_card_of_type(CardType::ATTACK, false);
+                c.freeCombat = true;
+                bc.add_card_to_draw_random(c);
+            }
+            return true;
+        case CardId::NEOWS_FURY: {
+            bc.attack_from_card(card, target, dmg);
+            int take = std::min(card_var(card, VarId::CARDS), bc.discardCount);
+            for (int i = 0; i < take; ++i) {
+                const int idx = bc.cardSelectionRng.next_int(0, bc.discardCount - 1);
+                Card c = bc.discard[idx];
+                for (int j = idx; j + 1 < bc.discardCount; ++j) {
+                    bc.discard[j] = bc.discard[j + 1];
+                }
+                --bc.discardCount;
+                bc.add_card_to_hand(c);
+            }
+            return true;
+        }
+        case CardId::PECK:
+            bc.attack_from_card(card, target, dmg, card_var(card, VarId::REPEAT));
+            return true;
+        case CardId::REBOUND:
+            bc.attack_from_card(card, target, dmg);
+            bc.reboundPending = true;
+            return true;
+        case CardId::RIP_AND_TEAR:
+            for (int i = 0; i < 2; ++i) {
+                const int t = bc.random_alive_monster();
+                if (t < 0) break;
+                bc.attack_from_card(card, t, dmg);
+            }
+            return true;
+        case CardId::SQUASH:
+            bc.attack_from_card(card, target, dmg);
+            bc.apply_vulnerable(target, card_var(card, VarId::VULNERABLE));
+            return true;
+        case CardId::STACK:
+            bc.gain_block(card_var(card, VarId::CALC_BASE) +
+                              card_var(card, VarId::CALC_EXTRA) * bc.discardCount,
+                          true);
+            return true;
         case CardId::BEACON_OF_HOPE:
             return true;
         case CardId::BEAT_DOWN: {
-            int picks[MAX_HAND];
+            // BeatDown.cs: snapshot the discard's playable attacks, stable
+            // shuffle, take Cards, then AutoPlay each captured card.  The card
+            // leaves the discard before it is played, so its entity exists in
+            // exactly one pile afterwards.
+            int idxs[MAX_PILE];
             int n = 0;
             for (int i = 0; i < bc.discardCount; ++i) {
-                if (card_is_attack(bc.discard[i]) && card_is_playable(bc.discard[i])) picks[n++] = i;
-            }
-            const int count = std::min<int>(card_var(card, VarId::CARDS), n);
-            for (int k = 0; k < count; ++k) {
-                const int j = bc.rng.next_int(0, n - 1);
-                Card c = bc.discard[picks[j]];
-                bc.auto_play_random(c, false);
-                // locate and remove the played card from discard
-                for (int i = bc.discardCount - 1; i >= 0; --i) {
-                    if (bc.discard[i].uid == c.uid) {
-                        for (int m = i; m < bc.discardCount - 1; ++m) bc.discard[m] = bc.discard[m + 1];
-                        --bc.discardCount;
-                        break;
-                    }
+                if (card_is_attack(bc.discard[i]) && card_is_playable(bc.discard[i])) {
+                    idxs[n++] = i;
                 }
-                for (int m = j; m < n - 1; ++m) picks[m] = picks[m + 1];
-                --n;
-                if (n == 0) break;
+            }
+            for (int i = n - 1; i > 0; --i) {
+                const int j = bc.cardSelectionRng.next_int(0, i);
+                std::swap(idxs[i], idxs[j]);
+            }
+            Card picks[MAX_PILE];
+            int picked = 0;
+            const int count = std::min<int>(card_var(card, VarId::CARDS), n);
+            for (int k = 0; k < count; ++k) picks[picked++] = bc.discard[idxs[k]];
+            for (int k = 0; k < picked && bc.outcome == Outcome::UNDECIDED; ++k) {
+                // An earlier auto-play (e.g. Headbutt) may have moved a later
+                // pick to another pile; detach the real entity wherever it is so
+                // the same UID never exists twice.
+                if (!bc.detach_card(picks[k].uid)) continue;
+                bc.auto_play_random(picks[k], false);
             }
             return true;
         }
         case CardId::BOLAS:
-            bc.attack_monster(target, dmg);
+            bc.attack_from_card(card, target, dmg);
             if (bc.outcome == Outcome::UNDECIDED) {
                 bc.returnToHand = true;
-                if (bc.returnNextTurnCount < MAX_HAND) bc.returnNextTurn[bc.returnNextTurnCount++] = card;
+                bc.queue_return_next_turn(card);
             }
             return true;
         case CardId::CALAMITY_CARD:
@@ -349,14 +490,18 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::PLATING, card_var(card, VarId::PLATING));
             return true;
         case CardId::GOLD_AXE:
-            bc.attack_monster(target, card_var(card, VarId::CALC_BASE) +
-                                      card_var(card, VarId::EXTRA_DAMAGE) * bc.cardsPlayedThisCombat);
+            bc.attack_from_card(
+                card, target,
+                card_var(card, VarId::CALC_BASE) +
+                    card_var(card, VarId::EXTRA_DAMAGE) * bc.cardsPlayedThisCombat);
             return true;
         case CardId::HAND_OF_GREED: {
-            const bool alive = target >= 0 && target < bc.monsterCount && bc.monsters[target].alive;
-            bc.attack_monster(target, dmg);
-            if (alive && target < bc.monsterCount && !bc.monsters[target].alive) {
-                bc.combatGold += card_var(card, VarId::GOLD);
+            const bool fatal_eligible = bc.can_trigger_fatal(target);
+            // HandOfGreed.cs attacks FromCard, so Pen Nib and other card-
+            // sourced damage modifiers must apply (attack_monster does not).
+            const bool killed = bc.attack_from_card(card, target, dmg);
+            if (fatal_eligible && killed) {
+                bc.gain_gold(card_var(card, VarId::GOLD));
             }
             return true;
         }
@@ -370,18 +515,19 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                 valid[n++] = i;
             }
             if (n > 0) {
-                const int idx = valid[bc.rng.next_int(0, n - 1)];
+                const int idx = valid[bc.cardSelectionRng.next_int(0, n - 1)];
                 bc.draw[idx].replay = static_cast<std::uint8_t>(
                     bc.draw[idx].replay + card_var(card, VarId::REPLAY));
             }
             return true;
         }
         case CardId::JACKPOT: {
-            bc.attack_monster(target, dmg);
-            CardId pool[128];
+            bc.attack_from_card(card, target, dmg);
+            CardId pool[static_cast<int>(CardId::COUNT)];
             const int n = zero_cost_pool(pool);
             for (int k = 0; k < card_var(card, VarId::CARDS) && n > 0; ++k) {
-                Card c = make_card(pool[bc.rng.next_int(0, n - 1)], false, bc.nextUid++);
+                Card c = make_card(pool[bc.cardGenerationRng.next_int(0, n - 1)],
+                                   false, bc.require_card_uid());
                 if (card.upgraded) bc.upgrade_card(c);
                 bc.add_card_to_hand(c);
             }
@@ -400,12 +546,39 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::ROLLING_BOULDER, card_var(card, VarId::ROLLING_BOULDER));
             return true;
         case CardId::SALVO:
-            bc.attack_monster(target, dmg);
+            bc.attack_from_card(card, target, dmg);
             bc.add_player_power(PowerId::RETAIN_HAND, 1);
             return true;
         case CardId::THE_GAMBIT:
             bc.gain_block(card_block(card), true);
             bc.add_player_power(PowerId::THE_GAMBIT, 1);
+            return true;
+        case CardId::TORIC_TOUGHNESS: {
+            const int before = bc.player.block;
+            bc.gain_block(card_block(card), true);
+            if (bc.toricCount < MAX_PILE) {
+                const int gained = bc.player.block - before;
+                const int turns = card_var(card, VarId::TURNS);
+                bc.toricBlock[bc.toricCount] = gained;
+                bc.toricTurns[bc.toricCount] = turns;
+                ++bc.toricCount;
+                bc.player.toricToughnessBlock += gained;
+                bc.add_player_power(PowerId::TORIC_TOUGHNESS, turns);
+            }
+            return true;
+        }
+        case CardId::WHISTLE:
+            bc.attack_from_card(card, target, dmg);
+            if (target >= 0 && target < bc.monsterCount &&
+                bc.monsters[target].alive) {
+                bc.monsters[target].stunned = true;
+                roll_intent(bc, bc.monsters[target]);
+            }
+            return true;
+        case CardId::WISH:
+            if (bc.drawCount > 0) {
+                bc.start_draw_choice(card, bc.card_will_exhaust(card), -1, -1);
+            }
             return true;
 
         default:

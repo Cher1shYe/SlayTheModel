@@ -20,6 +20,7 @@ from agent.common import (
     RUN_OBS_DIM,
     RACT,
     SCREEN,
+    completed_run_status,
     new_run,
     run_observation,
     sim,
@@ -66,7 +67,11 @@ class RunEnv:
         return bool(self.rc.step(int(action[0]), int(action[1])))
 
     def is_terminal(self) -> bool:
+        """Whether the episode ended, including a safety truncation."""
         return bool(self.rc.is_terminal)
+
+    def is_truncated(self) -> bool:
+        return bool(self.rc.truncated)
 
     def terminal_reward(self) -> float:
         return float(self.rc.terminal_reward())
@@ -109,7 +114,7 @@ def play_run(
         if not env.step(action):
             break
     else:
-        status = "terminated" if env.is_terminal() else "truncated"
+        status = completed_run_status(env.rc)
     rc = env.rc
     return {
         "seed": env.seed,
@@ -154,7 +159,7 @@ def play_and_log(seed: int, run_policy, combat_policy, path: str | Path) -> dict
             if not env.step(action):
                 break
         else:
-            status = "terminated" if env.is_terminal() else "truncated"
+            status = completed_run_status(env.rc)
         result = {
             "seed": seed,
             "status": status,

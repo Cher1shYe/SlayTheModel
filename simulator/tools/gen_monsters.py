@@ -83,6 +83,14 @@ def cstr(s: str) -> str:
 def main() -> None:
     data = json.loads(SRC.read_text(encoding="utf-8"))
     monsters = data["monsters"]
+    deadly_damage = json.loads((ROOT / "content" / "monsters_a9_damage.json").read_text(encoding="utf-8"))
+    deadly_hits = json.loads((ROOT / "content" / "monsters_a9_hits.json").read_text(encoding="utf-8"))
+    deadly_effects = json.loads((ROOT / "content" / "monsters_a9_effects.json").read_text(encoding="utf-8"))
+    encounter_tags = json.loads((ROOT / "content" / "encounter_tags.json").read_text(encoding="utf-8"))
+    tag_names = sorted({tag for tags in encounter_tags.values() for tag in tags})
+    if len(tag_names) > 16:
+        raise ValueError("encounter tag mask exceeds 16 bits")
+    tag_bits = {name: 1 << i for i, name in enumerate(tag_names)}
     ids = sorted(monsters)
     index = {name: i + 1 for i, name in enumerate(ids)}
 
@@ -116,9 +124,10 @@ def main() -> None:
         pow_off = [len(innate), len(innate)]
         pow_n = [0, 0]
         for ai, anc in enumerate(("A0", "A8")):
+            pow_off[ai] = len(innate)
             entries = m.get("powers", {}).get(anc) or m.get("powers", {}).get("A0") or []
             for pname, amount in entries:
-                innate.append((pname, int(amount)))
+                innate.append((pname, int(amount), deadly_effects["innate"].get(mid, {}).get(pname, -1)))
                 pow_n[ai] += 1
         init_off = len(initials)
         observed = [sidx.get(sname, 0) for sname, _w in m["initial"]]
@@ -154,23 +163,29 @@ def main() -> None:
                     aux_code = 4
                 intent_off = [0, 0]
                 intent_n = [0, 0]
+                a9 = deadly_damage.get(mid, {}).get(sname, -1)
+                hits9 = deadly_hits.get(mid, {}).get(sname, -1)
                 intent_off[0] = len(intents)
                 for it in st["intents"]:
                     intents.append((INTENT_CODES.get(it["type"], 2),
-                                    int(it["damage"]), int(it["hits"])))
+                                    int(it["damage"]), int(it["hits"]),
+                                    a9 if INTENT_CODES.get(it["type"], 2) == 0 else -1,
+                                    hits9 if INTENT_CODES.get(it["type"], 2) == 0 else -1))
                 intent_n[0] = len(intents) - intent_off[0]
                 st8 = (m.get("states8") or {}).get(sname)
                 src8 = st8["intents"] if st8 and st8.get("kind") == "move" else st["intents"]
                 intent_off[1] = len(intents)
                 for it in src8:
                     intents.append((INTENT_CODES.get(it["type"], 2),
-                                    int(it["damage"]), int(it["hits"])))
+                                    int(it["damage"]), int(it["hits"]),
+                                    a9 if INTENT_CODES.get(it["type"], 2) == 0 else -1,
+                                    hits9 if INTENT_CODES.get(it["type"], 2) == 0 else -1))
                 intent_n[1] = len(intents) - intent_off[1]
                 op_off = [len(ops), len(ops)]
                 op_n = [0, 0]
                 for ai, anc in enumerate(("A0", "A8")):
                     op_off[ai] = len(ops)
-                    for op in m["moves"].get(f"{sname}@{anc}") or []:
+                    for op_index, op in enumerate(m["moves"].get(f"{sname}@{anc}") or []):
                         if op[0] == "block":
                             ops.append((1, int(op[1]), 0))
                         elif op[0] == "power":
@@ -188,6 +203,8 @@ def main() -> None:
                             ops.append((10, int(op[1]), 0))
                         else:
                             continue
+                        value9 = deadly_effects["moves"].get(mid, {}).get(sname, {}).get(str(op_index), -1)
+                        ops[-1] = (*ops[-1], value9)
                         op_n[ai] += 1
                 states.append({
                     "kind": 0, "once": 1 if st.get("once") else 0,
@@ -255,10 +272,10 @@ def main() -> None:
     lines.append("// clang-format off")
 
     lines.append("constexpr MonIntentDef MON_INTENTS[] = {")
-    for t, d, h in intents:
-        lines.append(f"    {{{t}, {d}, {h}}},")
+    for t, d, h, a9, h9 in intents:
+        lines.append(f"    {{{t}, {d}, {h}, {a9}, {h9}}},")
     if not intents:
-        lines.append("    {0, 0, 0},")
+        lines.append("    {0, 0, 0, -1, -1},")
     lines.append("};")
 
     def op_expr(code, a):
@@ -272,17 +289,17 @@ def main() -> None:
         return str(a)
 
     lines.append("constexpr MonOpDef MON_OPS[] = {")
-    for op, a, b in ops:
-        lines.append(f"    {{{op}, {op_expr(op, a)}, {b}}},")
+    for op, a, b, a9 in ops:
+        lines.append(f"    {{{op}, {op_expr(op, a)}, {b}, {a9}}},")
     if not ops:
-        lines.append("    {0, 0, 0},")
+        lines.append("    {0, 0, 0, -1},")
     lines.append("};")
 
     lines.append("constexpr MonBranchDef MON_BRANCHES[] = {")
     for st, rep, mx, w, cd in branches:
-        lines.append(f"    {{{st}, {rep}, {mx}, {w}, {cd}}},")
+        lines.append(f"    {{{st}, {rep}, {mx}, {cd}, {w}}},")
     if not branches:
-        lines.append("    {0, 0, 1, 10, 0},")
+        lines.append("    {0, 0, 1, 0, 10},")
     lines.append("};")
 
     lines.append("constexpr MonCondDef MON_CONDS[] = {")
@@ -305,10 +322,10 @@ def main() -> None:
     lines.append("};")
 
     lines.append("constexpr MonPowerDef MON_INNATE[] = {")
-    for name, amount in innate:
-        lines.append(f"    {{PowerId::{name}, {amount}}},")
+    for name, amount, a9 in innate:
+        lines.append(f"    {{PowerId::{name}, {amount}, {a9}}},")
     if not innate:
-        lines.append("    {PowerId::COUNT, 0},")
+        lines.append("    {PowerId::COUNT, 0, -1},")
     lines.append("};")
 
     lines.append("constexpr MonInitialDef MON_INITIALS[] = {")
@@ -341,10 +358,10 @@ def main() -> None:
     lines.append("};")
 
     lines.append("constexpr EncounterDef ENCOUNTER_DEFS[] = {")
-    lines.append("    {nullptr, 0, 0, 0},")
+    lines.append("    {nullptr, 0, 0, 0, 0},")
     for _tag, ename, act, poff, pnum in [d for d in defs if d[0] == "__enc__"]:
-        ename = ename
-        lines.append("    {%s, %d, %d, %d}," % (cstr(ename.upper()), act, poff, pnum))
+        tags = sum(tag_bits[tag] for tag in encounter_tags.get(ename, []))
+        lines.append("    {%s, %d, %d, %d, %d}," % (cstr(ename.upper()), act, poff, pnum, tags))
     lines.append("};")
 
     lines.append("static_assert(sizeof(MONSTER_DEFS) / sizeof(MONSTER_DEFS[0]) =="

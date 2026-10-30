@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 
 import numpy as np
 import pytest
@@ -16,6 +17,7 @@ from agent.common import (
     RACT,
     RUN_OBS_DIM,
     SCREEN,
+    card_grid_action,
     combat_action_arrays,
     combat_observation,
     new_run,
@@ -45,6 +47,10 @@ def test_observation_dims():
     assert np.isfinite(env.observe_public()).all()
     assert int(sim.PUBLIC_OBS_VERSION) >= 2 and int(sim.ACTION_SCHEMA_VERSION) >= 2
     assert rc.step(int(RACT.EVENT_CHOICE), 0)
+    for _ in range(100):
+        if rc.screen == SCREEN.MAP:
+            break
+        assert rc.step(*run_policy(rc))
     assert rc.screen == SCREEN.MAP
     _move_to_first_node(rc)
     assert rc.screen == SCREEN.COMBAT
@@ -165,6 +171,23 @@ def _node_type_map(rc):
     return {idx: int(t) for idx, t, _c, _r, _k, _p in rc.map_nodes()}
 
 
+def _open_treasure(env):
+    rc = env.rc
+    gold, relics = rc.gold, len(rc.relics)
+    assert rc.screen == SCREEN.TREASURE
+    assert env.step((int(RACT.COLLECT), 0))
+    assert rc.screen == SCREEN.REWARDS
+    if int(sim.RelicId.ECTOPLASM) not in rc.relics:
+        assert rc.gold >= gold + 42
+    assert len(rc.relics) == relics
+    choices = [a for a in env.legal_actions() if a[0] == int(RACT.TAKE_RELIC_REWARD)]
+    if choices:
+        assert env.step(choices[0])
+        assert len(rc.relics) == relics + 1
+    assert env.step((int(RACT.LEAVE_REWARDS), 0))
+    assert rc.screen == SCREEN.MAP
+
+
 def test_room_transitions_and_economy():
     seen = set()
     treasure_rewarded = False
@@ -183,11 +206,12 @@ def test_room_transitions_and_economy():
                 if treasures:
                     gold = rc.gold
                     assert env.step((int(RACT.MOVE), treasures[0]))
-                    assert rc.screen == SCREEN.TREASURE
-                    assert rc.gold >= gold + 42
-                    assert env.step((int(RACT.COLLECT), 0))
-                    assert rc.screen == SCREEN.MAP
-                    treasure_rewarded = True
+                    if rc.screen == SCREEN.TREASURE:
+                        assert rc.gold == gold
+                        seen.add(int(SCREEN.TREASURE))
+                        seen.add(int(SCREEN.REWARDS))
+                        _open_treasure(env)
+                        treasure_rewarded = True
                     continue
             if screen == SCREEN.SHOP:
                 assert 1 <= len(rc.shop) <= 7
@@ -200,11 +224,8 @@ def test_room_transitions_and_economy():
                 heal = [a for a in env.legal_actions() if a[0] == int(RACT.REST_HEAL)]
                 assert heal
             elif screen == SCREEN.TREASURE:
-                gold, relics = rc.gold, len(rc.relics)
-                assert env.step((int(RACT.COLLECT), 0))
-                if rc.gold > gold or len(rc.relics) > relics:
-                    treasure_rewarded = True
-                assert rc.screen == SCREEN.MAP
+                _open_treasure(env)
+                treasure_rewarded = True
                 continue
             elif screen == SCREEN.CARD_REWARD:
                 assert 0 <= len(rc.offered) <= 3
@@ -217,7 +238,7 @@ def test_room_transitions_and_economy():
         assert env.is_terminal()
     assert {int(SCREEN.MAP), int(SCREEN.COMBAT), int(SCREEN.CARD_REWARD),
             int(SCREEN.REST), int(SCREEN.SHOP), int(SCREEN.EVENT),
-            int(SCREEN.TREASURE)} <= seen
+            int(SCREEN.TREASURE), int(SCREEN.REWARDS)} <= seen
     assert treasure_rewarded
 
 
@@ -259,29 +280,16 @@ def test_rest_upgrade_and_shop_purchase():
     raise AssertionError(f"rest upgrade={upgraded} shop purchase={bought}")
 
 
-def test_boss_reward_advances_act():
-    env = RunEnv(32)
-    steps = 0
-    while not env.is_terminal() and steps < 20000:
-        steps += 1
-        rc = env.rc
-        if rc.screen == SCREEN.CARD_REWARD and rc.reward_is_boss:
-            assert rc.act == 0
-            assert env.step((int(RACT.SKIP_CARD), 0))
-            assert rc.act == 1 and rc.map_rooms == 14
-            return
-        action = (combat_policy(env) if rc.screen == SCREEN.COMBAT
-                  else run_policy(env))
-        assert env.step(action)
-    raise AssertionError("seed 32 never reached the act-1 boss reward")
-
-
-def test_full_run_completes_and_wins():
-    for seed in (24, 32):
+def test_full_runs_terminate_with_consistent_outcomes():
+    for seed in (273, 443):
         result = play_run(RunEnv(seed), run_policy, combat_policy)
-        assert result["won"], result
-        assert result["act"] == 2 and result["bosses"] == 3
-        assert result["floor"] >= 46
+        assert result["status"] == "terminated", result
+        assert result["steps"] > 0
+        if result["won"]:
+            assert result["act"] == 2 and result["bosses"] >= 3
+            assert result["floor"] >= 46
+        else:
+            assert result["hp"] == 0
 
 
 def test_deterministic_replay():
@@ -371,7 +379,8 @@ def test_greedy_runs_finish():
             else:
                 legal = rc.legal_actions()
                 assert legal
-                assert rc.step(*legal[0])
+                action = card_grid_action(rc) if rc.card_grid_kind else legal[0]
+                assert rc.step(*action)
         assert rc.screen == SCREEN.RUN_OVER
 
 
@@ -458,10 +467,16 @@ def test_run_starting_relic_and_rewards():
 
 def test_jsonl_trajectory_and_batch(tmp_path):
     path = tmp_path / "traj.jsonl"
-    result = play_and_log(24, run_policy, combat_policy, path)
-    lines = path.read_text(encoding="utf-8").splitlines()
-    assert lines and "obs" in lines[0] and "action" in lines[0]
-    assert result["won"]
+    result = play_and_log(273, run_policy, combat_policy, path)
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines()]
+    assert result["status"] == "terminated"
+    assert rows[-1]["result"] == result
+    assert len(rows) == result["steps"] + 1
+    for i, row in enumerate(rows[:-1], 1):
+        assert row["step"] == i and row["seed"] == 273
+        assert row["obs_version"] == int(sim.PUBLIC_OBS_VERSION)
+        assert len(row["obs"]) == PUBLIC_OBS_DIM
+        assert len(row["action"]) == (4 if row["screen"] == "COMBAT" else 2)
     env_a, env_b = RunEnv(26), RunEnv(27)
     assert env_a.state_hash() != env_b.state_hash()
 

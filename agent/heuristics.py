@@ -5,7 +5,7 @@ deterministic A0 climb with the native environment, not to be a strong bot.
 """
 from __future__ import annotations
 
-from agent.common import CARD_COUNT, RACT, SCREEN, sim
+from agent.common import CARD_COUNT, RACT, SCREEN, card_grid_action, reward_action, sim, skip_card_action
 
 CARD_FEAT_OFFSET_TYPE = CARD_COUNT + 1  # after card one-hot + cost
 
@@ -66,8 +66,14 @@ def _event_choice(rc) -> int:
     return 0
 
 
-def combat_policy(env) -> tuple:
-    """1-ply lookahead: try each legal action, score with a greedy rollout."""
+def combat_policy(env, resample: bool = False, seed_override: int | None = None) -> tuple:
+    """1-ply lookahead: try each legal action, score with a greedy rollout.
+
+    ``resample=True`` redraws the hidden zones (draw/discard order and future
+    RNG) of each clone before the rollout, so the policy only uses information
+    the player has.  The default keeps the historical oracle behaviour and must
+    not be reported as a player-usable strategy.
+    """
     bc = env.battle
     legal = bc.legal_actions()
     if not legal:
@@ -80,9 +86,13 @@ def combat_policy(env) -> tuple:
             if int(a[0]) == int(sim.ActionType.USE_POTION):
                 return tuple(a)
     seed = (env.rc.floor * 131 + bc.turn) & 0xFFFFFFFF
+    if seed_override is not None:
+        seed = seed_override & 0xFFFFFFFF
     best, best_value = None, -1e9
     for i, a in enumerate(legal):
         clone = bc.clone()
+        if resample:
+            clone.resample_hidden((seed + i * 7919) & 0xFFFFFFFF)
         if not clone.step(*a):
             continue
         value = clone.rollout(0.1, seed + i * 7919)
@@ -106,6 +116,10 @@ def run_policy(env) -> tuple:
     rc = getattr(env, "rc", env)
     screen = rc.screen
     legal = [(int(t), int(i)) for t, i in rc.legal_actions()]
+    if rc.card_grid_kind:
+        return card_grid_action(rc)
+    if screen == SCREEN.REWARDS:
+        return reward_action(rc)
     if screen == SCREEN.MAP:
         nodes = rc.available_map_nodes()
         # Prefer rest when hurt, avoid elites when hurt, prefer unknown otherwise.
@@ -139,10 +153,13 @@ def run_policy(env) -> tuple:
                     best = (q, a)
         if best[1] is not None and (best[0] >= 1.5 or rc.deck_count < 15):
             return best[1]
-        return (int(RACT.SKIP_CARD), 0)
+        return skip_card_action(rc)
     if screen == SCREEN.REST:
         if rc.hp * 100 < rc.max_hp * 80:
             return (int(RACT.REST_HEAL), 0)
+        clones = [a for a in legal if a[0] == int(RACT.REST_CLONE)]
+        if clones:
+            return clones[0]
         upgrades = [a for a in legal if a[0] == int(RACT.REST_UPGRADE)]
         if upgrades:
             def up_value(a):
@@ -171,6 +188,9 @@ def run_policy(env) -> tuple:
                 return removals[0]
         return (int(RACT.LEAVE_SHOP), 0)
     if screen == SCREEN.EVENT:
+        selections = [a for a in legal if a[0] == int(RACT.EVENT_SELECT_CARD)]
+        if selections:
+            return selections[0]
         choice = _event_choice(rc)
         options = {a[1] for a in legal}
         if choice not in options:

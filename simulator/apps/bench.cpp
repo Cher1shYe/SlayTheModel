@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <chrono>
+#include <limits>
 
 #include "sts2/battle.h"
 #include "sts2/run.h"
@@ -22,6 +23,9 @@ static void bench_combat(int playouts, int enc, int sims) {
     const int deckN = make_deck(deck);
 
     int wins = 0;
+    int completed = 0;
+    int truncated = 0;
+    int errors = 0;
     long long turns = 0;
     const auto start = std::chrono::steady_clock::now();
     for (int i = 0; i < playouts; ++i) {
@@ -42,19 +46,30 @@ static void bench_combat(int playouts, int enc, int sims) {
                 if (!bc.step(a)) break;
             }
         }
-        if (bc.outcome == Outcome::PLAYER_VICTORY) ++wins;
+        if (bc.outcome == Outcome::PLAYER_VICTORY || bc.outcome == Outcome::PLAYER_LOSS) {
+            ++completed;
+            if (bc.outcome == Outcome::PLAYER_VICTORY) ++wins;
+        } else if (bc.outcome == Outcome::TRUNCATED) {
+            ++truncated;
+        } else {
+            ++errors;
+        }
         turns += bc.turn;
     }
     const auto end = std::chrono::steady_clock::now();
     const double seconds = std::chrono::duration<double>(end - start).count();
-    std::printf("combats=%d encounter=%d sims=%d seconds=%.3f combats_per_s=%.1f "
+    std::printf("combats=%d completed=%d truncated=%d errors=%d encounter=%d sims=%d seconds=%.3f combats_per_s=%.1f "
                 "avg_turns=%.2f win_rate=%.3f\n",
-                playouts, enc, sims, seconds, playouts / seconds,
-                static_cast<double>(turns) / playouts, static_cast<double>(wins) / playouts);
+                playouts, completed, truncated, errors, enc, sims, seconds, playouts / seconds,
+                static_cast<double>(turns) / playouts,
+                completed ? static_cast<double>(wins) / completed : std::numeric_limits<double>::quiet_NaN());
 }
 
 static void bench_runs(int runs) {
     int wins = 0;
+    int completed = 0;
+    int truncated = 0;
+    int errors = 0;
     long long floors = 0;
     long long combats = 0;
     const auto start = std::chrono::steady_clock::now();
@@ -82,6 +97,17 @@ static void bench_runs(int runs) {
             const std::vector<RunAction> legal = rc.legal_actions();
             if (legal.empty()) break;
             RunAction pick = legal[0];
+            if (rc.cardGrid.kind) {
+                if (pick.type != RunActionType::CONFIRM_GRID_CARDS) {
+                    for (const RunAction &a : legal)
+                        if (a.type == RunActionType::SELECT_GRID_CARD && !rc.cardGrid.selected[a.index]) {
+                            pick = a;
+                            break;
+                        }
+                }
+                if (!rc.step(pick)) break;
+                continue;
+            }
             switch (rc.screen) {
                 case RunScreen::CARD_REWARD:
                     pick = rc.deckCount < 25 ? legal[0] : legal.back();
@@ -99,14 +125,21 @@ static void bench_runs(int runs) {
             }
             if (!rc.step(pick)) break;
         }
-        if (rc.won) ++wins;
+        if (rc.is_over() && !rc.truncated) {
+            ++completed;
+            if (rc.won) ++wins;
+        } else if (rc.truncated || guard >= 10000) {
+            ++truncated;
+        } else {
+            ++errors;
+        }
         floors += rc.floor;
     }
     const auto end = std::chrono::steady_clock::now();
     const double seconds = std::chrono::duration<double>(end - start).count();
-    std::printf("runs=%d seconds=%.3f runs_per_s=%.1f avg_floor=%.1f win_rate=%.3f combats=%lld\n",
-                runs, seconds, runs / seconds, static_cast<double>(floors) / runs,
-                static_cast<double>(wins) / runs, combats);
+    std::printf("runs=%d completed=%d truncated=%d errors=%d seconds=%.3f runs_per_s=%.1f avg_floor=%.1f win_rate=%.3f combats=%lld\n",
+                runs, completed, truncated, errors, seconds, runs / seconds, static_cast<double>(floors) / runs,
+                completed ? static_cast<double>(wins) / completed : std::numeric_limits<double>::quiet_NaN(), combats);
     std::printf("init=%.2fms/run combat=%.3fs (%lld steps, %.1f us/step) other=%.2fms/run\n",
                 1000.0 * initSec / runs, combatSec, combatSteps,
                 1e6 * combatSec / (combatSteps > 0 ? combatSteps : 1),

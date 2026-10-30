@@ -1,0 +1,11 @@
+{
+  "ENTOMANCER": {
+    "BEES_MOVE": 8
+  },
+  "EXOSKELETON": {
+    "SKITTER_MOVE": 4
+  },
+  "TRACKER_RUBY_RAIDER": {
+    "HOUNDS_MOVE": 9
+  }
+}

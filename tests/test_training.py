@@ -54,6 +54,16 @@ def test_checkpoint_schema_validation(tmp_path):
     with pytest.raises(ValueError, match="legacy checkpoint"):
         load_checkpoint(legacy, CardScorer())
 
+    # An older public-observation layout must be rejected, never silently
+    # misaligned (the network input grew in v5).
+    stale = tmp_path / "stale.pt"
+    save_checkpoint(stale, CardScorer())
+    payload = torch.load(stale, map_location="cpu", weights_only=False)
+    payload["config"]["obs_version"] = int(sim.PUBLIC_OBS_VERSION) - 1
+    torch.save(payload, stale)
+    with pytest.raises(ValueError, match="observation version"):
+        load_checkpoint(stale, CardScorer())
+
 
 def test_selfplay_episode_records_match_public_schema():
     from agent.selfplay import play_episode
@@ -139,5 +149,8 @@ def test_policy_entry_points_are_legal_and_status_is_classified():
         assert 1 <= result["act"] <= 3
     summary = summarize([result])
     assert summary["runs"] == 1
-    assert 0.0 <= summary["win_rate"] <= 1.0
-    assert summary["win_ci95"][0] <= summary["win_rate"] <= summary["win_ci95"][1]
+    if result["status"] == "terminated":
+        assert 0.0 <= summary["win_rate"] <= 1.0
+        assert summary["win_ci95"][0] <= summary["win_rate"] <= summary["win_ci95"][1]
+    else:
+        assert summary["win_rate"] is None and summary["win_ci95"] is None

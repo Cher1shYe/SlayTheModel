@@ -13,7 +13,9 @@ out greedily; there is no tree below the root and the value head is not used
 inside the search. ``resample=True`` is the player-usable variant: hidden zones
 (draw/discard order and the future RNG stream) are re-drawn per simulation.
 ``resample=False`` is an oracle search over the true state and must not be
-reported as a player-usable result.
+reported as a player-usable result.  The ``heuristic`` combat strategy also
+resamples before its rollouts; ``heuristic_oracle`` keeps the old behaviour and
+is labelled non-player-usable.
 """
 from __future__ import annotations
 
@@ -25,11 +27,13 @@ import torch
 from .common import (
     RACT,
     SCREEN,
+    completed_run_status,
     card_feature_array,
     combat_action_arrays,
     public_combat_observation,
     public_observation,
     sim,
+    skip_card_action,
 )
 from .heuristics import combat_policy, run_policy
 from .nets import CardScorer, CombatNet
@@ -49,7 +53,7 @@ def split_seeds(split: str, count: int) -> list[int]:
 
 @dataclass(frozen=True)
 class Strategy:
-    combat: str = "greedy"      # greedy | heuristic | network | search
+    combat: str = "greedy"      # greedy | heuristic | heuristic_oracle | network | search
     cards: str = "heuristic"    # heuristic | network
     simulations: int = 16
     resample: bool = False
@@ -65,6 +69,9 @@ def combat_action(env: RunEnv, model: CombatNet | CardScorer | None,
                   strategy: Strategy, seed: int = 0):
     bc = env.battle
     if strategy.combat == "heuristic":
+        # Player-usable heuristic: hidden zones are resampled before rollout.
+        return combat_policy(env, resample=True, seed_override=seed)
+    if strategy.combat == "heuristic_oracle":
         return combat_policy(env)
     if strategy.combat == "greedy":
         return tuple(bc.greedy_action(0.05, seed & 0x7FFFFFFF))
@@ -96,6 +103,8 @@ def combat_action(env: RunEnv, model: CombatNet | CardScorer | None,
 def card_reward_action(env: RunEnv, model: CardScorer | None,
                        strategy: Strategy):
     rc = env.rc
+    if not any(int(t) == int(RACT.TAKE_CARD) for t, _ in rc.legal_actions()):
+        return skip_card_action(rc)
     if strategy.cards != "network" or model is None:
         return run_policy(env)
     offered = rc.offered
@@ -106,12 +115,12 @@ def card_reward_action(env: RunEnv, model: CardScorer | None,
                               torch.from_numpy(cand)[None])[0]
     choice = int(torch.argmax(logits))
     if choice >= len(offered):
-        return (int(RACT.SKIP_CARD), 0)
+        return skip_card_action(rc)
     return (int(RACT.TAKE_CARD), choice)
 
 
 def screen_action_for(env: RunEnv, model: CardScorer | None, strategy: Strategy):
-    if env.screen == SCREEN.CARD_REWARD:
+    if env.screen == SCREEN.CARD_REWARD and not env.rc.card_grid_kind:
         return card_reward_action(env, model, strategy)
     # Map, shop, event, rest and treasure use the deterministic heuristics.
     return run_policy(env)
@@ -133,7 +142,7 @@ def play_run_strategy(seed: int, model: CardScorer | CombatNet | None = None,
             status = "error"
             break
     else:
-        status = "terminated" if env.is_terminal() else "truncated"
+        status = completed_run_status(env.rc)
     rc = env.rc
     return {
         "seed": seed,
@@ -158,7 +167,8 @@ def summarize(results: list[dict]) -> dict:
     n = len(results)
     if n == 0:
         return {"runs": 0}
-    wins = np.asarray([r["won"] for r in results], dtype=np.float64)
+    completed = [r for r in results if r["status"] == "terminated"]
+    wins = np.asarray([r["won"] for r in completed], dtype=np.float64)
     abnormal = np.asarray([r["status"] != "terminated" for r in results],
                           dtype=np.float64)
     acts = np.asarray([r["act"] for r in results], dtype=np.int64)
@@ -172,11 +182,13 @@ def summarize(results: list[dict]) -> dict:
         half = z * np.sqrt(p * (1 - p) / total + z * z / (4 * total * total)) / denom
         return float(max(0.0, centre - half)), float(min(1.0, centre + half))
 
-    low, high = wilson(float(wins.mean()), n)
+    win_rate = float(wins.mean()) if completed else None
+    win_ci = list(wilson(win_rate, len(completed))) if completed else None
     return {
         "runs": n,
-        "win_rate": float(wins.mean()),
-        "win_ci95": [low, high],
+        "completed_runs": len(completed),
+        "win_rate": win_rate,
+        "win_ci95": win_ci,
         "act_reach": {str(a): int((acts >= a).sum()) for a in (1, 2, 3)},
         "act_mean": float(acts.mean()),
         "floor_mean": float(floors.mean()),

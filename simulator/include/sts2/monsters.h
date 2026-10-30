@@ -25,8 +25,14 @@ enum MonCondCode : std::uint8_t {
     COND_WRIGGLER_WRIGGLE = 20,  // slot in {1, 3}
 };
 
-struct MonIntentDef { std::uint8_t type; std::int16_t damage; std::uint8_t hits; };
-struct MonOpDef { std::uint8_t op; std::int16_t a; std::int16_t b; };
+struct MonIntentDef {
+    std::uint8_t type;
+    std::int16_t damage;
+    std::uint8_t hits;
+    std::int16_t deadlyDamage;  // A9 override, or -1 when no verified override
+    std::int16_t deadlyHits;    // A9 hit-count override, or -1
+};
+struct MonOpDef { std::uint8_t op; std::int16_t a; std::int16_t b; std::int16_t deadlyAmount; };
 struct MonBranchDef {
     std::uint8_t state;
     std::uint8_t repeat;
@@ -50,7 +56,7 @@ struct MonStateDef {
     // 3 extra multi-claw hits += 1, 4 respawn.
     std::uint8_t auxCode;
 };
-struct MonPowerDef { PowerId id; std::int16_t amount; };
+struct MonPowerDef { PowerId id; std::int16_t amount; std::int16_t deadlyAmount; };
 struct MonInitialDef { std::uint8_t state; std::uint16_t weight; };
 struct MonsterDef {
     const char *key;
@@ -71,6 +77,7 @@ struct EncounterDef {
     std::uint8_t act;
     std::uint16_t patternOff;
     std::uint8_t patternCount;
+    std::uint16_t tags;
 };
 
 void setup_encounter(BattleContext &bc, Encounter enc);
@@ -81,6 +88,8 @@ int random_encounter_for_act(int act, Rng &rng, int kind = 0);
 const MonsterDef &monster_def(MonsterId id);
 const char *monster_name(MonsterId id);
 const EncounterDef &encounter_def(int index);
+std::uint16_t encounter_tags(Encounter enc);
+bool encounters_share_tags(Encounter first, Encounter second);
 const EncounterPattern &encounter_pattern(int index);
 int encounter_count();
 

@@ -35,6 +35,7 @@ struct ActMap {
     std::int8_t mapLength = 0;  // rooms + 1; boss row == mapLength
     std::int8_t startIdx = -1;
     std::int8_t bossIdx = -1;
+    std::int8_t secondBossIdx = -1;  // A10 final act, one row above the first boss
     std::uint8_t pointCount = 0;
     std::int8_t index[MAP_MAX_ROWS][MAP_WIDTH];  // row/col -> node index or -1
     MapNode nodes[MAP_MAX_POINTS];
@@ -47,7 +48,7 @@ struct ActMap {
 
 // Generates the act map exactly as StandardActMap does (paths, type counts,
 // pruning, centering, spreading, straightening). mapRng is advanced.
-void generate_act_map(ActMap &map, Rng &mapRng, int actIndex);
+void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension = 0);
 
 const char *map_point_name(MapPointType type);
 

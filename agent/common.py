@@ -70,6 +70,46 @@ def public_combat_observation(bc) -> np.ndarray:
     return np.asarray(bc.observation_public(), dtype=np.float32)
 
 
+def reward_action(rc):
+    """Choose an available reward while keeping the card choice explicit."""
+    legal = legal_run_actions(rc)
+    for kind in (RACT.TAKE_GOLD_REWARD, RACT.TAKE_RELIC_REWARD,
+                 RACT.TAKE_POTION_REWARD, RACT.TAKE_STOLEN_CARD_REWARD, RACT.OPEN_CARD_REWARD,
+                 RACT.LEAVE_REWARDS):
+        for action in legal:
+            if action[0] == int(kind):
+                return action
+    raise RuntimeError("no legal reward action")
+
+
+def card_grid_action(rc):
+    """Complete mandatory grids without toggling an already selected card off."""
+    legal = legal_run_actions(rc)
+    for action in legal:
+        if action[0] == int(RACT.CONFIRM_GRID_CARDS):
+            return action
+    selected = rc.card_grid_selected
+    for action in legal:
+        if action[0] == int(RACT.SELECT_GRID_CARD) and not selected[action[1]]:
+            return action
+    raise RuntimeError("no progressing card-grid action")
+
+
+def completed_run_status(rc) -> str:
+    """Classify an ended run without treating the safety cutoff as a loss."""
+    return "terminated" if rc.screen == SCREEN.RUN_OVER and not rc.truncated else "truncated"
+
+
+def skip_card_action(rc):
+    """Prefer Pael's Wing sacrifice when it is an available alternative."""
+    legal = legal_run_actions(rc)
+    for kind in (RACT.SACRIFICE_CARD_REWARD, RACT.SKIP_CARD):
+        for action in legal:
+            if action[0] == int(kind):
+                return action
+    raise RuntimeError("no legal card reward skip action")
+
+
 def screen_action(rc):
     """A legal action for any non-combat screen.
 
@@ -80,13 +120,20 @@ def screen_action(rc):
     legal = legal_run_actions(rc)
     if not legal:
         raise RuntimeError(f"no legal run action on screen {rc.screen.name}")
+    if rc.card_grid_kind:
+        return card_grid_action(rc)
+    if rc.screen == SCREEN.REWARDS:
+        return reward_action(rc)
     if rc.screen == SCREEN.CARD_REWARD:
         take = [a for a in legal if a[0] == int(RACT.TAKE_CARD)]
-        return take[0] if take and rc.deck_count < 15 else (int(RACT.SKIP_CARD), 0)
+        return take[0] if take and rc.deck_count < 15 else skip_card_action(rc)
     if rc.screen == SCREEN.REST:
         heal = [a for a in legal if a[0] == int(RACT.REST_HEAL)]
         if heal and rc.hp * 10 < rc.max_hp * 6:
             return heal[0]
+        clones = [a for a in legal if a[0] == int(RACT.REST_CLONE)]
+        if clones:
+            return clones[0]
         upgrades = [a for a in legal if a[0] == int(RACT.REST_UPGRADE)]
         return upgrades[0] if upgrades else legal[0]
     if rc.screen == SCREEN.SHOP:
@@ -144,11 +191,11 @@ def play_run(rc, combat_fn, card_fn, seed: int = 0, max_steps: int = 5000) -> di
                 if not rc.step_combat(*combat_fn(rc.battle, rng)):
                     break
                 continue
-            action = card_fn(rc) if rc.screen == SCREEN.CARD_REWARD else screen_action(rc)
+            action = card_fn(rc) if rc.screen == SCREEN.CARD_REWARD and not rc.card_grid_kind else screen_action(rc)
             if not rc.step(*action):
                 break
         else:
-            status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+            status = completed_run_status(rc)
     except RuntimeError:
         status = "error"
     return {"won": bool(rc.won), "floor": int(rc.floor), "hp": int(rc.hp),

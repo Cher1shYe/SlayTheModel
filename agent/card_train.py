@@ -16,9 +16,11 @@ from .common import (
     RACT,
     SCREEN,
     card_feature_array,
+    completed_run_status,
     new_run,
     public_observation,
     sim,
+    skip_card_action,
 )
 from .heuristics import run_policy
 from .nets import CardScorer, load_checkpoint, save_checkpoint
@@ -29,7 +31,7 @@ def _skip_features() -> np.ndarray:
 
 
 def _run_return(rc) -> float:
-    if rc.screen != SCREEN.RUN_OVER:
+    if rc.screen != SCREEN.RUN_OVER or rc.truncated:
         return 0.0
     hp_frac = rc.hp / max(1, rc.max_hp)
     return (1.0 if rc.won else 0.0) + 0.3 * rc.floor / 15.0 + 0.2 * hp_frac
@@ -53,7 +55,11 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False,
             if not rc.step_combat(*rc.battle.greedy_action(0.05, seed & 0x7FFFFFFF)):
                 break
             continue
-        if rc.screen == SCREEN.CARD_REWARD:
+        if rc.screen == SCREEN.CARD_REWARD and not rc.card_grid_kind:
+            if not any(int(t) == int(RACT.TAKE_CARD) for t, _ in rc.legal_actions()):
+                if not rc.step(*skip_card_action(rc)):
+                    break
+                continue
             offered = rc.offered
             cand = np.vstack([card_feature_array(offered), _skip_features()])
             obs = public_observation(rc)
@@ -67,7 +73,7 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False,
                 choice = int(dist.sample())
                 logp = float(dist.log_prob(torch.tensor(choice)))
             records.append({"obs": obs, "cand": cand, "choice": choice, "logp": logp})
-            ok = (rc.step(int(RACT.SKIP_CARD), 0) if choice >= len(offered)
+            ok = (rc.step(*skip_card_action(rc)) if choice >= len(offered)
                   else rc.step(int(RACT.TAKE_CARD), choice))
             if not ok:
                 break
@@ -75,7 +81,7 @@ def collect_episode(seed: int, model: CardScorer, deterministic: bool = False,
         if not rc.step(*run_policy(rc)):
             break
     else:
-        status = "terminated" if rc.screen == SCREEN.RUN_OVER else "truncated"
+        status = completed_run_status(rc)
     return {"records": records if status == "terminated" else [],
             "return": _run_return(rc) if status == "terminated" else 0.0,
             "won": bool(rc.won) and status == "terminated",

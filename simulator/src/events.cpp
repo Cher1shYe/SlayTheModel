@@ -6,6 +6,7 @@
 #include <cstring>
 
 #include "sts2/monsters.h"
+#include "sts2/card_candidates.h"
 #include "sts2/relics.h"
 
 namespace sts2 {
@@ -148,13 +149,38 @@ bool event_applies_to_act(int id, int act) {
     return a == act;
 }
 
-// Event RNG: run seed + player id + deterministic hash(event name).
-Rng event_rng(const RunContext &rc, int id) {
-    return Rng(rc.seed + 1u, EVENTS[id].name);
+bool event_is_shared(int id) {
+    switch (id) {
+        case EV_DENSE_VEGETATION:
+        case EV_FAKE_MERCHANT:
+        case EV_JUNGLE_MAZE_ADVENTURE:
+        case EV_THE_LANTERN_KEY:
+        case EV_WAR_HISTORIAN_REPY:
+        case EV_BATTLEWORN_DUMMY:
+            return true;
+        default:
+            return false;
+    }
 }
 
 int random_deck_index(const RunContext &rc, Rng &rng) {
     return rc.deckCount > 0 ? rng.next_int(0, rc.deckCount - 1) : -1;
+}
+
+bool event_transformable(CardId id) {
+    switch (id) {
+        case CardId::INVALID: case CardId::ASCENDERS_BANE: case CardId::BAD_LUCK:
+        case CardId::CURSE_OF_THE_BELL: case CardId::ENTHRALLED:
+        case CardId::FOLLY: case CardId::GREED:
+            return false;
+        default: return true;
+    }
+}
+
+int transformable_deck_count(const RunContext &rc) {
+    int count = 0;
+    for (int i = 0; i < rc.deckCount; ++i) count += event_transformable(rc.deck[i].id);
+    return count;
 }
 
 int random_upgradable_index(const RunContext &rc, Rng &rng) {
@@ -179,6 +205,35 @@ void remove_deck_index(RunContext &rc, int idx) {
     if (idx < 0 || idx >= rc.deckCount) return;
     for (int i = idx; i + 1 < rc.deckCount; ++i) rc.deck[i] = rc.deck[i + 1];
     --rc.deckCount;
+}
+
+void transform_random_event_card(RunContext &rc, Rng &rng) {
+    int choices[MAX_DECK];
+    int count = 0;
+    for (int i = 0; i < rc.deckCount; ++i)
+        if (event_transformable(rc.deck[i].id)) choices[count++] = i;
+    if (!count) return;
+    const int idx = choices[rng.next_int(0, count - 1)];
+    const CardId originalId = rc.deck[idx].id;
+    const CardDef &original = card_def(originalId);
+    CardPool pool = original.pool;
+    if (original.rarity == Rarity::EVENT || original.rarity == Rarity::ANCIENT ||
+        original.rarity == Rarity::TOKEN) pool = CardPool::COLORLESS;
+    const bool unrestrictedRarity = original.rarity == Rarity::STATUS || original.rarity == Rarity::CURSE;
+    CardId candidates[static_cast<int>(CardId::COUNT)];
+    int n = 0;
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+        const CardId id = static_cast<CardId>(i);
+        const CardDef &def = card_def(id);
+        if (id == originalId || def.pool != pool || (def.flags & CF_MULTIPLAYER_ONLY)) continue;
+        if (!unrestrictedRarity && def.rarity != Rarity::COMMON &&
+            def.rarity != Rarity::UNCOMMON && def.rarity != Rarity::RARE) continue;
+        candidates[n++] = id;
+    }
+    if (!n) return;
+    const Card replacement = rc.make_run_card(candidates[rng.next_int(0, n - 1)], false);
+    remove_deck_index(rc, idx);
+    rc.add_card_to_deck(replacement);
 }
 
 void lose_hp(RunContext &rc, int amount) {
@@ -208,8 +263,9 @@ void gain_max_hp(RunContext &rc, int amount) {
     rc.hp += amount;
 }
 
-void add_random_deck_card(RunContext &rc, Rng &rng, bool colorless, bool upgrade) {
-    CardId pool[128];
+void add_random_deck_card(RunContext &rc, Rng &rng, bool colorless, bool upgrade,
+                          bool commonOnly = false) {
+    CardId pool[static_cast<int>(CardId::COUNT)];
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardId id = static_cast<CardId>(i);
@@ -219,19 +275,20 @@ void add_random_deck_card(RunContext &rc, Rng &rng, bool colorless, bool upgrade
             d.rarity != Rarity::RARE) {
             continue;
         }
-        const bool isColorless =
-            static_cast<int>(id) > static_cast<int>(CardId::WHIRLWIND) &&
-            static_cast<int>(id) < static_cast<int>(CardId::BECKON);
+        if (commonOnly && d.rarity != Rarity::COMMON) continue;
+        const bool isColorless = d.pool == CardPool::COLORLESS;
         if (colorless != isColorless) continue;
         pool[n++] = id;
     }
     if (n == 0) return;
     Card c = rc.make_run_card(pool[rng.next_int(0, n - 1)], false);
-    if (upgrade && card_upgradable(c)) c.upgraded = true;
+    if (upgrade && card_upgradable(c)) card_apply_upgrade(c);
     rc.add_card_to_deck(c);
 }
 
-void add_random_common_card(RunContext &rc, Rng &rng) { add_random_deck_card(rc, rng, false, false); }
+void add_random_common_card(RunContext &rc, Rng &rng) {
+    add_random_deck_card(rc, rng, false, false, true);
+}
 
 void add_random_potion_event(RunContext &rc, Rng &rng, bool uncommonOnly) {
     for (int guard = 0; guard < 100; ++guard) {
@@ -246,26 +303,23 @@ void add_random_potion_event(RunContext &rc, Rng &rng, bool uncommonOnly) {
 
 void add_relic(RunContext &rc, RelicId id) { rc.add_relic(id); }
 
-bool add_random_shared_relic(RunContext &rc, Rng &rng, bool rareOnly) {
-    int pool[256];
-    int n = 0;
-    for (int i = 1; i < static_cast<int>(RelicId::COUNT); ++i) {
-        const RelicId id = static_cast<RelicId>(i);
-        const RelicDef &d = relic_def(id);
-        if (d.pool != RelicPool::SHARED && d.pool != RelicPool::IRONCLAD) continue;
-        if (!relic_implemented(id)) continue;
-        if (rareOnly && d.rarity != Rarity::RARE) continue;
-        if (run_has_relic(rc, id)) continue;
-        pool[n++] = static_cast<int>(id);
+bool add_random_shared_relic(RunContext &rc, Rng &rng, bool rareOnly,
+                             bool commonOnly = false) {
+    (void)rng;
+    Rarity rarity = Rarity::COMMON;
+    if (rareOnly) rarity = Rarity::RARE;
+    else if (!commonOnly) {
+        const float roll = rc.playerRng[PRNG_REWARDS].next_float();
+        rarity = roll < 0.5f ? Rarity::COMMON : (roll < 0.83f ? Rarity::UNCOMMON : Rarity::RARE);
     }
-    if (n == 0) return false;
-    return rc.add_relic(static_cast<RelicId>(pool[rng.next_int(0, n - 1)]));
+    return rc.add_relic(rc.pull_relic(rarity));
 }
 
 void finish_event(RunContext &rc) {
     rc.eventId = -1;
     rc.eventPage = 0;
     rc.eventChoiceCount = 0;
+    rc.eventCardSelection = 0;
     rc.finish_room();
 }
 
@@ -347,7 +401,7 @@ bool can_generate_bundles() {
 // GenerateInitialOptions. The chosen relic id is stored per option so the
 // public observation exposes the actual choice.
 void generate_ancient_options(RunContext &rc, int id) {
-    Rng rng = event_rng(rc, id);
+    Rng &rng = rc.eventRng;
     int opts[3] = {0, 0, 0};
     switch (id) {
         case EV_NEOW: {
@@ -599,6 +653,10 @@ const EventInfo *event_info(int id) {
 
 int event_count() { return EV_COUNT; }
 
+bool event_is_allowed(const RunContext &rc, int id) {
+    return id >= 0 && id < EV_COUNT && event_allowed_now(rc, id);
+}
+
 int event_pool_for_act(int act, int *out, int maxOut) {
     int n = 0;
     for (int id = 0; id < EV_COUNT; ++id) {
@@ -655,13 +713,22 @@ void event_begin(RunContext &rc, int eventId, bool ancient) {
     rc.eventId = static_cast<std::int8_t>(eventId);
     rc.eventPage = 0;
     rc.eventChoiceCount = 0;
+    rc.eventCardSelection = 0;
     rc.eventCombat = false;
     rc.eventReturnPage = 0;
     for (int &v : rc.eventData) v = 0;
     for (int &v : rc.eventRelics) v = 0;
-    if (eventId < 0) {
+    if (eventId < 0 || eventId >= EV_COUNT) {
         finish_event(rc);
         return;
+    }
+    rc.eventRng = Rng(rc.seed + (event_is_shared(eventId) ? 0u : 1u),
+                      EVENTS[eventId].name);
+    if (ancient) {
+        // Neow starts by setting HP to zero before the Ancient heal.
+        if (eventId == EV_NEOW) rc.hp = 0;
+        const int missing = std::max(0, rc.maxHp - rc.hp);
+        heal(rc, rc.ascension >= 2 ? missing * 4 / 5 : missing);
     }
     switch (eventId) {
         case EV_NEOW:
@@ -691,6 +758,8 @@ void event_begin(RunContext &rc, int eventId, bool ancient) {
         case EV_SPIRIT_GRAFTER:
         case EV_LOST_WISP:
             set_page(rc, 0, 2);
+            if (eventId == EV_STONE_OF_ALL_TIME)
+                rc.eventData[0] = rc.potionCount ? rc.eventRng.next_int(0, rc.potionCount - 1) : -1;
             break;
         case EV_WELCOME_TO_WONGOS:
             rc.eventData[0] = static_cast<int>(RelicId::INVALID);
@@ -718,26 +787,126 @@ void event_begin(RunContext &rc, int eventId, bool ancient) {
 }
 
 int event_option_count(const RunContext &rc) {
-    if (rc.screen != RunScreen::EVENT || rc.eventId < 0) return 0;
+    if (rc.screen != RunScreen::EVENT || rc.eventId < 0 || rc.eventCardSelection) return 0;
     return option_count_for(rc);
 }
 
 bool event_option_available(const RunContext &rc, int option) {
     if (option < 0 || option >= event_option_count(rc)) return false;
+    int additions = 0;
+    int removals = 0;
+    bool grantsRelic = false;
+    switch (rc.eventId) {
+        case EV_AROMA_OF_CHAOS:
+            if (option == 0 && transformable_deck_count(rc) > 0) {
+                additions = 1;
+                removals = 1;
+            }
+            break;
+        case EV_WELLSPRING:
+            if (option == 1) { additions = 1; removals = rc.deckCount > 0 ? 1 : 0; }
+            break;
+        case EV_UNREST_SITE:
+            additions = option == 0 ? 1 : 0;
+            grantsRelic = option == 1;
+            break;
+        case EV_THIS_OR_THAT:
+            if (option == 1) { additions = 1; grantsRelic = true; }
+            break;
+        case EV_ROOM_FULL_OF_CHEESE:
+            additions = option == 0 ? 2 : 0;
+            grantsRelic = option == 1;
+            break;
+        case EV_BRAIN_LEECH: additions = 1; break;
+        case EV_REFLECTIONS: additions = option == 1 ? rc.deckCount + 1 : 0; break;
+        case EV_SPIRIT_GRAFTER: additions = option == 0 ? 1 : 0; break;
+        case EV_LOST_WISP:
+            if (option == 0) { additions = 1; grantsRelic = true; }
+            break;
+        case EV_SUNKEN_STATUE: grantsRelic = option == 0; break;
+        case EV_WELCOME_TO_WONGOS: grantsRelic = option <= 2; break;
+        case EV_HUNGRY_FOR_MUSHROOMS: grantsRelic = true; break;
+        case EV_NEOW: case EV_DARV: case EV_OROBAS: case EV_PAEL:
+        case EV_TEZCATARA: case EV_NONUPEIPE: case EV_TANX: case EV_VAKUU:
+            grantsRelic = rc.eventRelics[option] != static_cast<int>(RelicId::INVALID);
+            break;
+        default: break;
+    }
+    const int copies = run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1;
+    if (additions * copies > MAX_DECK - rc.deckCount + removals) return false;
+    if (grantsRelic && rc.relicCount >= MAX_RELICS) return false;
+    if (grantsRelic && rc.eventRelics[option] == static_cast<int>(RelicId::SCROLL_BOXES) &&
+        !can_generate_scroll_boxes(rc)) return false;
     if (rc.eventId == EV_WELCOME_TO_WONGOS && option <= 2) {
         return rc.gold >= 100 * (option + 1);
     }
     if (rc.eventId == EV_STONE_OF_ALL_TIME && option == 0) {
-        return rc.potionCount > 0;
+        return rc.eventData[0] >= 0 && rc.eventData[0] < rc.potionCount;
+    }
+    if (rc.eventId == EV_STONE_OF_ALL_TIME && option == 1) {
+        for (int i = 0; i < rc.deckCount; ++i)
+            if (card_can_enchant(rc.deck[i], EnchantmentId::VIGOROUS)) return true;
+        return false;
     }
     return true;
+}
+
+bool event_card_selectable(const RunContext &rc, int index) {
+    const bool eventActive = rc.screen == RunScreen::EVENT ||
+        (rc.screen == RunScreen::REWARDS && rc.rewardResumeScreen == RunScreen::EVENT);
+    if (!eventActive || index < 0 || index >= rc.deckCount) return false;
+    if (rc.eventCardSelection == 1) return card_upgradable(rc.deck[index]);
+    if (rc.eventCardSelection == 2) return card_can_enchant(rc.deck[index], EnchantmentId::SOWN);
+    if (rc.eventCardSelection == 3) return card_can_enchant(rc.deck[index], EnchantmentId::VIGOROUS);
+    return false;
+}
+
+bool event_card_selection_valid(const RunContext &rc) {
+    if (!rc.eventCardSelection) return true;
+    if ((rc.screen != RunScreen::EVENT &&
+         !(rc.screen == RunScreen::REWARDS && rc.rewardResumeScreen == RunScreen::EVENT)) ||
+        (rc.eventCardSelection <= 2 && rc.eventId != EV_SAPPHIRE_SEED) ||
+        (rc.eventCardSelection == 3 && rc.eventId != EV_STONE_OF_ALL_TIME) ||
+        rc.eventCardSelection > 3) return false;
+    int count = 0;
+    for (int i = 0; i < rc.deckCount; ++i) count += event_card_selectable(rc, i) ? 1 : 0;
+    return count > 1;
+}
+
+void event_finish_card_grid(RunContext &rc) { finish_event(rc); }
+
+bool event_can_remove_potions(const RunContext &rc) {
+    return rc.screen != RunScreen::EVENT || rc.eventId != EV_STONE_OF_ALL_TIME;
+}
+
+bool event_select_card(RunContext &rc, int index) {
+    if (rc.screen != RunScreen::EVENT || !event_card_selectable(rc, index)) return false;
+    if (rc.eventCardSelection == 1) card_apply_upgrade(rc.deck[index]);
+    else if (rc.eventCardSelection == 2) card_apply_enchantment(rc.deck[index], EnchantmentId::SOWN, 1);
+    else card_apply_enchantment(rc.deck[index], EnchantmentId::VIGOROUS, 8);
+    if (rc.eventId == EV_STONE_OF_ALL_TIME) rc.eventRng.next_int(0, 99);
+    finish_event(rc);
+    return true;
+}
+
+static void begin_event_card_selection(RunContext &rc, int kind) {
+    rc.eventCardSelection = static_cast<std::uint8_t>(kind);
+    int count = 0, only = -1;
+    for (int i = 0; i < rc.deckCount; ++i) {
+        if (event_card_selectable(rc, i)) { ++count; only = i; }
+    }
+    if (count == 1) event_select_card(rc, only);
+    else if (count == 0) {
+        if (rc.eventId == EV_STONE_OF_ALL_TIME) rc.eventRng.next_int(0, 99);
+        finish_event(rc);
+    }
 }
 
 bool event_choose(RunContext &rc, int option) {
     if (rc.screen != RunScreen::EVENT || rc.eventId < 0) return false;
     if (!event_option_available(rc, option)) return false;
     const int id = rc.eventId;
-    Rng rng = event_rng(rc, id);
+    Rng &rng = rc.eventRng;
     switch (id) {
         case EV_NEOW:
         case EV_DARV:
@@ -754,15 +923,10 @@ bool event_choose(RunContext &rc, int option) {
         }
         case EV_AROMA_OF_CHAOS: {
             if (option == 0) {
-                const int idx = random_deck_index(rc, rng);
-                if (idx >= 0) {
-                    const CardId newId = static_cast<CardId>(
-                        rng.next_int(1, static_cast<int>(CardId::COUNT) - 1));
-                    rc.deck[idx] = rc.make_run_card(newId, false);
-                }
+                transform_random_event_card(rc, rng);
             } else {
                 const int idx = random_upgradable_index(rc, rng);
-                if (idx >= 0) rc.deck[idx].upgraded = true;
+                if (idx >= 0) card_apply_upgrade(rc.deck[idx]);
             }
             finish_event(rc);
             return true;
@@ -776,7 +940,16 @@ bool event_choose(RunContext &rc, int option) {
                 return true;
             }
             if (rc.eventPage == 0 && option == 1) {
-                heal(rc, rc.maxHp - rc.hp);
+                int amount = std::max(1, rc.maxHp * 3 / 10);
+                if (run_has_relic(rc, RelicId::REGAL_PILLOW)) amount += 15;
+                if (run_has_relic(rc, RelicId::ETERNAL_FEATHER)) {
+                    amount += 3 * (rc.deckCount / 5);
+                }
+                heal(rc, amount);
+                if (run_has_relic(rc, RelicId::STONE_HUMIDIFIER)) {
+                    rc.maxHp += 5;
+                    rc.hp += 5;
+                }
                 set_page(rc, 1, 1);
                 return true;
             }
@@ -801,7 +974,7 @@ bool event_choose(RunContext &rc, int option) {
         }
         case EV_WELLSPRING: {
             if (option == 0) {
-                add_random_potion_event(rc, rng, false);
+                add_random_potion_event(rc, rc.playerRng[PRNG_REWARDS], false);
             } else {
                 remove_deck_index(rc, random_deck_index(rc, rng));
                 add_deck_card(rc, CardId::GUILTY);
@@ -826,11 +999,11 @@ bool event_choose(RunContext &rc, int option) {
             ++rc.eventData[0];
             if (count + 1 == 4) {
                 for (int i = 0; i < rc.deckCount; ++i) {
-                    if (card_upgradable(rc.deck[i])) rc.deck[i].upgraded = true;
+                    if (card_upgradable(rc.deck[i])) card_apply_upgrade(rc.deck[i]);
                 }
             } else {
                 const int idx = random_upgradable_index(rc, rng);
-                if (idx >= 0) rc.deck[idx].upgraded = true;
+                if (idx >= 0) card_apply_upgrade(rc.deck[idx]);
             }
             if (count + 1 >= 5) {
                 finish_event(rc);
@@ -854,13 +1027,10 @@ bool event_choose(RunContext &rc, int option) {
         case EV_SAPPHIRE_SEED: {
             if (option == 0) {
                 heal(rc, 9);
-                const int idx = random_upgradable_index(rc, rng);
-                if (idx >= 0) rc.deck[idx].upgraded = true;
+                begin_event_card_selection(rc, 1);
             } else {
-                const int idx = random_upgradable_index(rc, rng);
-                if (idx >= 0) rc.deck[idx].upgraded = true;  // Sown enchantment substitute
+                begin_event_card_selection(rc, 2);
             }
-            finish_event(rc);
             return true;
         }
         case EV_THIS_OR_THAT: {
@@ -877,8 +1047,7 @@ bool event_choose(RunContext &rc, int option) {
         }
         case EV_ROOM_FULL_OF_CHEESE: {
             if (option == 0) {
-                add_random_common_card(rc, rng);
-                add_random_common_card(rc, rng);
+                return begin_card_grid(rc, 2);
             } else {
                 lose_hp(rc, 14);
                 if (rc.screen == RunScreen::RUN_OVER) return true;
@@ -891,18 +1060,18 @@ bool event_choose(RunContext &rc, int option) {
             if (option == 0) {
                 for (int i = 0; i < 3; ++i) rc.add_potion(PotionId::FOUL_POTION);
             } else {
-                add_random_potion_event(rc, rng, true);
+                add_random_potion_event(rc, rc.playerRng[PRNG_REWARDS], true);
             }
             finish_event(rc);
             return true;
         }
         case EV_BRAIN_LEECH: {
             if (option == 0) {
-                add_random_deck_card(rc, rng, false, false);
+                return begin_card_grid(rc, 1);
             } else {
                 lose_hp(rc, 5);
                 if (rc.screen == RunScreen::RUN_OVER) return true;
-                add_random_deck_card(rc, rng, true, false);
+                rc.queue_card_reward(Rarity::COMMON, true, CardPool::COLORLESS);
             }
             finish_event(rc);
             return true;
@@ -910,24 +1079,24 @@ bool event_choose(RunContext &rc, int option) {
         case EV_STONE_OF_ALL_TIME: {
             if (option == 0) {
                 if (rc.potionCount > 0) {
-                    const int idx = rng.next_int(0, rc.potionCount - 1);
+                    const int idx = rc.eventData[0];
                     for (int i = idx; i + 1 < rc.potionCount; ++i) rc.potions[i] = rc.potions[i + 1];
                     --rc.potionCount;
                     gain_max_hp(rc, 10);
                 }
+                rng.next_int(0, 99);
+                finish_event(rc);
             } else {
                 lose_hp(rc, 6);
                 if (rc.screen == RunScreen::RUN_OVER) return true;
-                const int idx = random_upgradable_index(rc, rng);
-                if (idx >= 0) rc.deck[idx].upgraded = true;  // Vigorous enchantment substitute
+                begin_event_card_selection(rc, 3);
             }
-            finish_event(rc);
             return true;
         }
         case EV_WELCOME_TO_WONGOS: {
             if (option == 0 && rc.gold >= 100) {
                 rc.gold -= 100;
-                add_random_shared_relic(rc, rng, false);
+                add_random_shared_relic(rc, rng, false, true);
             } else if (option == 1 && rc.gold >= 200) {
                 rc.gold -= 200;
                 if (rc.eventData[0] > 0) {
@@ -965,13 +1134,13 @@ bool event_choose(RunContext &rc, int option) {
                 }
                 for (int i = 0; i < 4; ++i) {
                     const int idx = random_upgradable_index(rc, rng);
-                    if (idx >= 0) rc.deck[idx].upgraded = true;
+                    if (idx >= 0) card_apply_upgrade(rc.deck[idx]);
                 }
             } else {
                 const int original = rc.deckCount;
                 for (int i = 0; i < original && rc.deckCount < MAX_DECK; ++i) {
                     Card copy = rc.deck[i];
-                    copy.uid = rc.nextUid++;
+                    copy.uid = rc.allocate_card_uid();
                     rc.add_card_to_deck(copy);
                 }
                 add_deck_card(rc, CardId::BAD_LUCK);
@@ -982,7 +1151,7 @@ bool event_choose(RunContext &rc, int option) {
         case EV_SPIRIT_GRAFTER: {
             if (option == 0) {
                 heal(rc, 25);
-                add_random_deck_card(rc, rng, true, false);
+                add_deck_card(rc, CardId::METAMORPHOSIS);
             } else {
                 remove_deck_index(rc, random_deck_index(rc, rng));
                 lose_hp(rc, 9);
