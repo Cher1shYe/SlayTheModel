@@ -25,7 +25,7 @@ import torch
 
 from .armg import (ARMG_ACTION_DIM, ARMG_FEATURE_VERSION, ARMG_OBS_DIM,
                    ArmGScorer, build_candidates)
-from .common import SCREEN, completed_run_status, new_run
+from .common import PUBLIC_OBS_VERSION, SCREEN, completed_run_status, new_run
 from .heuristics import run_policy
 from .nets import checkpoint_config
 from .policy import TRAIN_SEED_BASE, VAL_SEED_BASE
@@ -92,7 +92,9 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                     combat: str = "mcts-oracle", simulations: int = 64,
                     epsilon: float = 0.05, max_steps: int = 5000,
                     ascension: int = 0, need_rules: bool = False,
-                    relic_rules: bool = False) -> dict:
+                    relic_rules: bool = False, combat_budget_by_floor=None,
+                    combat_budget_by_context=None, before_combat=None,
+                    mcts_plan=None) -> dict:
     """Play one run; only completed runs produce REINFORCE records.
 
     ``model=None`` uses the existing heuristic for non-combat decisions.
@@ -115,12 +117,29 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
         while rc.screen != SCREEN.RUN_OVER and steps < max_steps:
             steps += 1
             if rc.screen == SCREEN.COMBAT:
+                if before_combat is not None:
+                    before_combat(rc, steps)
                 if combat in ("mcts-oracle", "mcts-resampled"):
                     legal = [tuple(action) for action in rc.battle.legal_actions()]
                     if not combat_plan or combat_plan[0] not in legal:
-                        combat_plan, done = _mcts_plan(
+                        if combat_budget_by_context is not None:
+                            # Public observation v10 exposes the actual combat
+                            # flags, including elite encounters in unknown rooms.
+                            if PUBLIC_OBS_VERSION != 10:
+                                raise RuntimeError('unsupported combat classification observation version')
+                            public = rc.observe_public()
+                            if public[8] != 1 or public[9] not in (0, 1) or public[10] != int(rc.combat_is_boss):
+                                raise RuntimeError('invalid public combat classification')
+                            budget = combat_budget_by_context(int(rc.floor), bool(public[9]),
+                                                              bool(rc.combat_is_boss))
+                        else:
+                            budget = (simulations if combat_budget_by_floor is None else
+                                      combat_budget_by_floor(int(rc.floor)))
+                        if int(budget) != budget or budget < 1:
+                            raise ValueError("invalid floor-dependent combat budget")
+                        combat_plan, done = (mcts_plan or _mcts_plan)(
                             rc.battle, seed + 7919 * steps, combat,
-                            simulations, epsilon, rc.combat_is_boss)
+                            int(budget), epsilon, rc.combat_is_boss)
                         if done:
                             mcts_searches += 1
                             mcts_simulations += done
