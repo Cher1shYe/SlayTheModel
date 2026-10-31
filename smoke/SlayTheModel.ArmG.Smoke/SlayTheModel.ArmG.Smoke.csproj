@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/SlayTheModel.Sts2.Protocol/SlayTheModel.Sts2.Protocol.csproj" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/ArmGOutsidePolicy.cs" Link="ArmGOutsidePolicy.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/ArmGFallbackPolicy.cs" Link="ArmGFallbackPolicy.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs" Link="RuntimeConfiguration.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/NativeWorkerLaunch.cs" Link="NativeWorkerLaunch.cs" />
+  </ItemGroup>
+</Project>

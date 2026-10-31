@@ -1,5 +1,23 @@
 # SlayTheModel
 
+## 单人卡池与升级牌回归（2026-10-19）
+
+通用采集按原生 MultiplayerConstraint 排除 17 张多人专用卡，保留 138 张战士／无色卡及一级升级。修复分支实际费用序列化、召唤实体排序、外部 MCTS 无 Beam 父链时的失败诊断，并明确选牌边界与完整后继的对账范围。固定 7 场、升级 7 场、新种子 8 场累计 424 个决策通过；137 项 Python 回归及 C# CollectionContracts smoke 通过。未启动正式训练，未声称全组合覆盖。详见 [单人回归报告](../../sts2-rl-agent/docs/NATIVE_SCOPE_REPAIR_20261019.md)。
+
+## C# MCTS 价值叶子（2026-10-19）
+
+通用采集路径支持 heuristic／learned／mixed。ReplayMcts 对完整非终局预测叶子调用驻留 Transformer 价值头，终局始终由原生奖励优先；挂起选择先解决，超时回复不回传。NativeMctsValueObservation 只读当前模拟分支，并与真实根的编码对账。模式、混合权重、有效回传与价值调用统计写入轨迹，保持上层学习者／冠军和恢复机制。默认仍为 heuristic，未启动正式训练。配置、验证和当前边界见 [价值叶子说明](../../sts2-rl-agent/docs/NATIVE_VALUE_MCTS_20261019.md)。
+
+## 通用原生状态与合法动作协议（2026-10-19）
+
+`collection-pilot` 新增显式 `native-generic-collection-v1` 作业：直接复用 `CombatCaptureService`，导出动态卡牌属性、选牌候选和原生合法动作；复用 ReplayMcts 与模拟器，提供根访问次数和终局奖励。卡名不再经过 Python 白名单；内容清单只决定课程抽样。上层独立 Transformer 编码保留学习者／冠军、逐场缓存及更新恢复。旧 v1/v2 路径保留；没有启动正式训练或部署 Mod。
+
+初版采用真实根网络先验、树内均匀先验和原生 rollout；价值叶子接入见上方更新。少量原生内容通过不代表全卡、全遭遇支持，未知语义仍严格失败。协议、验收及限制见 [通用原生协议](../../sts2-rl-agent/docs/NATIVE_GENERIC_PROTOCOL_20261019.md)。
+
+## 原生采集后端接线（2026-10-19）
+
+`collection-pilot` 的显式 v2 作业支持六种无修改卡牌与 BYRDONIS_ELITE／NIBBITS_WEAK，导出费用及卡牌基础变量，与 `sts2-rl-agent` 已有编码对账。已接入其 ALL runner 的最新学习者采集、独立冠军、逐场缓存和更新恢复，未使用独立 `NativeEvolution` 训练流程。4 场采集和冻结的 24 场验证通过 265 次状态／动作检查；上层 88 项测试与 ReplaySearch smoke 通过。未启动正式训练或部署 Mod，范围和限制见 [后端 v2 验收报告](../../sts2-rl-agent/docs/NATIVE_BACKEND_V2_20261019.md)。
+
 面向《杀戮尖塔 2》（*Slay the Spire 2*）的全知状态、无头战斗模拟与 MCTS 基线工程。
 
 项目短期目标是实现一个可复现的全局 MCTS：游戏适配器负责读取并复制完整状态，局内搜索负责出牌、选目标和结束回合，局外搜索负责地图、奖励、商店、休息点与事件，最终由分层控制器完成整局决策。

@@ -27,7 +27,7 @@ using CombatSolver.Api;
 
 // One engine process owns exactly one native session. Cloning is deterministic
 // reconstruction plus input replay, never a shallow copy of game singletons.
-public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment<SearchAction>
+public sealed partial class NativeSession(Node host) : ICardSelector, IReplayEnvironment<SearchAction>
 {
     private static readonly string AssemblyHash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(RunManager).Assembly.Location)));
     public NativeCombatCheckpoint? Checkpoint { get; set; }
@@ -36,6 +36,7 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
     public string[] ChoiceFixtureCards { get; set; } =
         ["PURITY", "ARMAMENTS", "HEADBUTT", "STRIKE_IRONCLAD", "DEFEND_IRONCLAD"];
     public HashSet<string> ChoiceFixtureUpgradedCards { get; set; } = [];
+    public int[]? ChoiceFixtureUpgradeLevels { get; set; }
     public string Seed { get; set; } = "SLAYMODEL1";
     public string EncounterId { get; set; } = "CULTISTS_NORMAL";
     internal Func<RunState, EncounterModel, Task>? EnterRoomForVerification { get; set; }
@@ -169,11 +170,12 @@ public sealed class NativeSession(Node host) : ICardSelector, IReplayEnvironment
                 if (ChoiceFixture)
                 {
                     _player.Deck.Clear();
-                    foreach (string entry in ChoiceFixtureCards)
+                    for (int fixtureIndex = 0; fixtureIndex < ChoiceFixtureCards.Length; fixtureIndex++)
                     {
+                        string entry = ChoiceFixtureCards[fixtureIndex];
                         var canonical = ModelDb.AllCards.Single(card => card.Id.Entry == entry);
                         var card = canonical.ToMutable();
-                        if (ChoiceFixtureUpgradedCards.Contains(entry))
+                        if (ChoiceFixtureUpgradeLevels is { } levels ? levels[fixtureIndex] == 1 : ChoiceFixtureUpgradedCards.Contains(entry))
                         {
                             HarmonyLib.AccessTools.Method(card.GetType(), "UpgradeInternal").Invoke(card, null);
                             HarmonyLib.AccessTools.Method(card.GetType(), "FinalizeUpgradeInternal").Invoke(card, null);

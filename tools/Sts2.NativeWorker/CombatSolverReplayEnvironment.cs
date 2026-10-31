@@ -33,16 +33,19 @@ public sealed class CombatSolverReplayEnvironment : IReplayEnvironment<CombatSol
     }
 
     public string RootKey => rootKey;
+    public NativeMctsState CurrentState => state;
     public bool Terminal => state.Terminal;
     public bool CanEvaluate => !state.PendingChoice;
     public void SetRootPlayerHp(int hp) => rootPlayerHp = hp;
     public void BeginRollout() => rolloutStartHp = state.PendingChoice ? rootPlayerHp : state.PlayerHp;
     public string RewardContextKey => rolloutStartHp.ToString(System.Globalization.CultureInfo.InvariantCulture);
     public long Transitions => transitions;
-    public object ExportStarterPriorObservation(int initialHp)
-        => (session ?? throw new InvalidOperationException("Missing prediction root")).ExportStarterPriorObservation(initialHp);
+    public object ExportStarterPriorObservation(int initialHp, bool collectionV2 = false)
+        => (session ?? throw new InvalidOperationException("Missing prediction root")).ExportStarterPriorObservation(initialHp, collectionV2);
     public string CurrentContinuationKey
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationKey;
+    public object ExportGenericValueObservation(int initialHp, int decisions)
+        => (session ?? throw new InvalidOperationException("Missing value branch")).ExportGenericValueObservation(initialHp, decisions);
     public string CurrentContinuationStateText
         => (session ?? throw new InvalidOperationException("Combat Solver root has not been captured.")).ContinuationStateText;
     public string ChoiceSignature => PendingChoiceSignature();

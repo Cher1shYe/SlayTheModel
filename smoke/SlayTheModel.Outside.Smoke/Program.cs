@@ -66,6 +66,20 @@ var legalActions = new OutsideCombatActionDescriptor[]
     new("cancel_selection:3:-", OutsideCombatActionKind.CancelSelection, 3),
 };
 var fingerprint = ProtocolJson.ComputeOutsideStateFingerprint(build, observation, legalActions);
+var upgradedReward = new OutsideCombatActionDescriptor(
+    "choose_card:0:ANGER", OutsideCombatActionKind.ChooseCard, 0, "ANGER")
+{
+    TargetUpgradeLevel = 1,
+};
+upgradedReward.Validate();
+if (!ProtocolJson.Serialize(upgradedReward).Contains("\"target_upgrade_level\":1"))
+    throw new Exception("An offered card's upgrade level must survive protocol serialization.");
+try
+{
+    (upgradedReward with { TargetUpgradeLevel = -1 }).Validate();
+    throw new Exception("Negative offered card upgrade levels must be rejected.");
+}
+catch (InvalidDataException) { }
 // Current observations expose visible display data, never native relic state.
 foreach (var nativeRelic in new[]
 {

@@ -13,6 +13,9 @@ var configured = AdapterConfiguration.Load(name => settings.GetValueOrDefault(na
 if (configured.RunMode != AdapterRunMode.Train || configured.CombatPolicy != CombatPolicyKind.Mcts
     || configured.OutsideCombatPolicy != OutsideCombatPolicyKind.FirstLegal)
     throw new Exception("Explicit launch settings were not parsed correctly.");
+var armg = AdapterConfiguration.Load(name => name == AdapterConfiguration.OutsideCombatPolicyVariable ? "armg" : null);
+if (armg.OutsideCombatPolicy != OutsideCombatPolicyKind.ArmG)
+    throw new Exception("The ArmG outside policy was not parsed correctly.");
 var legacy = AdapterConfiguration.Load(name => name == AdapterConfiguration.LegacyCombatPolicyVariable ? "first-legal" : null);
 if (!legacy.UsedLegacyCombatPolicy || legacy.CombatPolicy != CombatPolicyKind.FirstLegal)
     throw new Exception("The deprecated combat policy variable must remain compatible.");

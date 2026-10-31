@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/ArmGSwitch.cs" Link="ArmGSwitch.cs" />
+    <Compile Include="../../src/SlayTheModel.Sts2.ModAdapter/RuntimeConfiguration.cs" Link="RuntimeConfiguration.cs" />
+  </ItemGroup>
+</Project>

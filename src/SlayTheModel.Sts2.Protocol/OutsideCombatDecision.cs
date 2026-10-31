@@ -37,6 +37,9 @@ public sealed record OutsideCombatObservation(
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<OutsideSelectedCardReference>? CardSelectionOptions { get; init; }
 
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public OutsideShopObservation? Shop { get; init; }
+
     public void Validate()
     {
         if (SchemaVersion is < 1 or > CurrentSchemaVersion)
@@ -54,6 +57,12 @@ public sealed record OutsideCombatObservation(
         ArgumentNullException.ThrowIfNull(Players);
         ArgumentNullException.ThrowIfNull(MapPoints);
         ArgumentNullException.ThrowIfNull(ChoiceContext);
+        if (Shop is not null)
+        {
+            if (Surface != OutsideCombatSurfaceKind.Merchant)
+                throw new InvalidDataException("Shop inventory requires a merchant surface.");
+            Shop.Validate();
+        }
         if (CrystalSphere is not null)
         {
             if (SchemaVersion < 3 || Surface != OutsideCombatSurfaceKind.CrystalSphere)
@@ -165,6 +174,30 @@ public sealed record OutsideCombatObservation(
                 throw new InvalidDataException($"Duplicate {label}: {value}.");
             }
         }
+    }
+}
+
+public sealed record OutsideShopItem(int SlotIndex, string? ModelId, int Cost, bool Sold,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? UpgradeLevel = null);
+public sealed record OutsideShopObservation(
+    IReadOnlyList<OutsideShopItem> Cards,
+    IReadOnlyList<OutsideShopItem> Relics,
+    IReadOnlyList<OutsideShopItem> Potions,
+    int RemovalCost,
+    bool RemovalAvailable)
+{
+    public void Validate()
+    {
+        if (RemovalCost < 0) throw new InvalidDataException("Invalid card removal price.");
+        Check(Cards, 7); Check(Relics, 3); Check(Potions, 3);
+    }
+
+    private static void Check(IReadOnlyList<OutsideShopItem> items, int limit)
+    {
+        if (items is null || items.Count > limit
+            || items.Where((item, i) => item is null || item.SlotIndex != i || item.Cost < 0
+                || (!item.Sold && string.IsNullOrWhiteSpace(item.ModelId))).Any())
+            throw new InvalidDataException("Invalid visible shop inventory.");
     }
 }
 
@@ -437,6 +470,13 @@ public sealed record OutsideCombatActionDescriptor(
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? PotionSlotIndex { get; init; }
 
+    /// <summary>Visible upgrade level for a single offered card, when available.</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? TargetUpgradeLevel { get; init; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public int? TargetShopIndex { get; init; }
+
     /// <summary>
     /// One legal card-set action can stand for any set satisfying the observed
     /// candidate list and bounds. The actual set is recorded at submission.
@@ -468,11 +508,23 @@ public sealed record OutsideCombatActionDescriptor(
                 "Outside-combat target deck index cannot be negative.");
         }
 
+        if (TargetUpgradeLevel is < 0 || (TargetUpgradeLevel is not null
+            && Kind is not (OutsideCombatActionKind.ChooseCard or OutsideCombatActionKind.RemoveCard
+                or OutsideCombatActionKind.BuyCard or OutsideCombatActionKind.OpenCardRemoval)))
+        {
+            throw new InvalidDataException("Invalid target card upgrade level.");
+        }
+
         if (PotionSlotIndex is < 0)
         {
             throw new InvalidDataException(
                 "Outside-combat potion slot index cannot be negative.");
         }
+
+        if (TargetShopIndex is < 0 || (TargetShopIndex is not null
+            && Kind is not (OutsideCombatActionKind.BuyCard or OutsideCombatActionKind.BuyRelic
+                or OutsideCombatActionKind.BuyPotion)))
+            throw new InvalidDataException("Invalid shop item slot index.");
 
         if (Kind is OutsideCombatActionKind.UsePotion
             or OutsideCombatActionKind.DiscardPotion)

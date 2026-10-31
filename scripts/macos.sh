@@ -51,7 +51,7 @@ done
 case "$action" in check|build|install|launch|probe|test) ;; *) echo "Invalid --action: $action" >&2; exit 2 ;; esac
 case "$run_mode" in play|train) ;; *) echo "Invalid --run-mode: $run_mode" >&2; exit 2 ;; esac
 case "$combat_policy" in manual|first-legal|mcts) ;; *) echo "Invalid --combat-policy: $combat_policy" >&2; exit 2 ;; esac
-case "$outside_combat_policy" in manual|first-legal) ;; *) echo "Invalid --outside-combat-policy: $outside_combat_policy" >&2; exit 2 ;; esac
+case "$outside_combat_policy" in manual|first-legal|armg) ;; *) echo "Invalid --outside-combat-policy: $outside_combat_policy" >&2; exit 2 ;; esac
 
 cd "$repo_dir"
 

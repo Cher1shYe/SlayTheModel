@@ -9,20 +9,29 @@ internal static class AiStatusOverlay
 {
     public static void Initialize()
     {
-        Callable.From(() => Attach((SceneTree)Engine.GetMainLoop(), MctsCombatController.GetStatus,
-            MctsCombatController.TogglePause)).CallDeferred();
+        Callable.From(() =>
+        {
+            var tree = (SceneTree)Engine.GetMainLoop();
+            Attach(tree, MctsCombatController.GetStatus, MctsCombatController.TogglePause);
+            AttachCore(tree, ArmGSwitch.GetStatus, ArmGSwitch.Toggle,
+                "SlayTheModelOutsideStatus", "ArmGStatusButton", 150);
+        }).CallDeferred();
     }
 
-    internal static Button Attach(SceneTree tree, Func<AiControlStatus> getStatus, Action toggle)
+    internal static Button Attach(SceneTree tree, Func<AiControlStatus> getStatus, Action toggle) =>
+        AttachCore(tree, getStatus, toggle, "SlayTheModelStatus", "MctsStatusButton", 100);
+
+    private static Button AttachCore(SceneTree tree, Func<AiControlStatus> getStatus, Action toggle,
+        string layerName, string buttonName, int top)
     {
-        var layer = new CanvasLayer { Name = "SlayTheModelStatus", Layer = 120 };
+        var layer = new CanvasLayer { Name = layerName, Layer = 120 };
         var root = new Control { MouseFilter = Control.MouseFilterEnum.Ignore };
         layer.AddChild(root);
         tree.Root.AddChild(layer);
         root.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
         var button = new Button
         {
-            Name = "MctsStatusButton",
+            Name = buttonName,
             FocusMode = Control.FocusModeEnum.None,
             MouseDefaultCursorShape = Control.CursorShape.PointingHand,
         };
@@ -30,8 +39,8 @@ internal static class AiStatusOverlay
         button.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.TopRight);
         button.OffsetLeft = -252;
         button.OffsetRight = -20;
-        button.OffsetTop = 100;
-        button.OffsetBottom = 142;
+        button.OffsetTop = top;
+        button.OffsetBottom = top + 42;
         var statusFont = LoadStatusFont();
         if (statusFont is not null)
             button.AddThemeFontOverride("font", statusFont);

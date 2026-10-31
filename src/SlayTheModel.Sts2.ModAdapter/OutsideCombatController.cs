@@ -6,6 +6,7 @@ using System.Text;
 using MegaCrit.Sts2.Core.AutoSlay.Helpers;
 using MegaCrit.Sts2.Core.CardSelection;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Entities.CardRewardAlternatives;
 using MegaCrit.Sts2.Core.Entities.Merchant;
 using MegaCrit.Sts2.Core.Models;
 using MegaCrit.Sts2.Core.Nodes.Cards;
@@ -53,6 +54,8 @@ internal static class OutsideCombatController
         typeof(NCrystalSphereScreen).GetField(
             "_entity",
             BindingFlags.Instance | BindingFlags.NonPublic);
+    private static readonly FieldInfo? CardRewardExtraOptionsField =
+        typeof(NCardRewardSelectionScreen).GetField("_extraOptions", BindingFlags.Instance | BindingFlags.NonPublic);
     private static bool _enabled;
     private static ulong _surfaceId;
     private static ulong _completedSingleChoiceSurfaceId;
@@ -65,13 +68,34 @@ internal static class OutsideCombatController
     private static long _surfaceReadyAt;
     private static long _mapReadyAt;
     private static long _nextMapWaitLogAt;
+    private static long _nextDiagnosticAt;
     private static bool _faulted;
     private static bool _clicking;
     private static IOutsideCombatPolicy? _policy;
+    private static ArmGOutsidePolicy? _armg;
+    private static Task<ArmGResponse>? _armgRequest;
+    private static string? _armgRequestFingerprint;
+    private static long _armgRequestGeneration;
+    private static string? _armgManualFingerprint;
+    private static long _armgManualGeneration;
+    private static readonly FirstLegalOutsideCombatPolicy FallbackPolicy = new();
     private static Task<bool>? _merchantCardRemovalTask;
     private static OutsideCombatDecisionSample? _merchantCardRemovalSample;
     private static RunState? _merchantCardRemovalRun;
     private static PendingOutsideAction? _pendingOutsideAction;
+    private static readonly Dictionary<ulong, OutsideShopItem> MerchantItemCache = [];
+    private static ulong _merchantCacheRoom;
+    private static CardModel? _plannedMerchantRemoval;
+    private static Task<bool>? _merchantPurchaseTask;
+    private static long _merchantPurchaseStartedAt;
+    private static RunState? _merchantPurchaseRun;
+    private static ulong _completedRewardsProceedSurfaceId;
+    private static RunState? _completedRewardsProceedRun;
+    private static int _completedRewardsProceedFloor;
+    private static ulong _openCardRewardButtonId;
+    private static readonly HashSet<ulong> SkippedCardRewardButtons = [];
+    private static RunState? _cardRewardRun;
+    private static int _cardRewardFloor;
 
     private const int ActionCooldownMilliseconds = 350;
     private const int SurfaceSettleMilliseconds = 450;
@@ -81,18 +105,31 @@ internal static class OutsideCombatController
 
     internal static void Initialize(AdapterConfiguration configuration)
     {
+        ArmGSwitch.Configure(configuration.RunMode == AdapterRunMode.Play
+            && configuration.OutsideCombatPolicy == OutsideCombatPolicyKind.ArmG);
         if (configuration.RunMode == AdapterRunMode.Train)
         {
             Console.WriteLine("[SlayTheModel] train mode is declared but no trainer is connected yet; live policies are disabled");
             return;
         }
 
-        if (configuration.OutsideCombatPolicy != OutsideCombatPolicyKind.FirstLegal)
+        if (configuration.OutsideCombatPolicy == OutsideCombatPolicyKind.Manual)
         {
             return;
         }
 
-        _policy = new FirstLegalOutsideCombatPolicy();
+        if (configuration.OutsideCombatPolicy == OutsideCombatPolicyKind.ArmG)
+        {
+            try { _armg = new ArmGOutsidePolicy(); }
+            catch (Exception exception) when (exception is not OutOfMemoryException)
+            {
+                Console.Error.WriteLine($"[SlayTheModel] ArmG configuration invalid; using first-legal: {exception.Message}");
+                _policy = FallbackPolicy;
+                ArmGSwitch.Configure(false);
+            }
+            if (_armg is not null) _policy = _armg;
+        }
+        else _policy = new FirstLegalOutsideCombatPolicy();
         _enabled = true;
         Callable.From(() =>
         {
@@ -101,16 +138,24 @@ internal static class OutsideCombatController
             tree.Root.TreeExiting += Stop;
         }).CallDeferred();
         Console.WriteLine(
-            "[SlayTheModel] OUTSIDE CONTROL ENABLED policy=first-legal; "
-            + "the adapter will choose the first enabled option on supported run screens");
+            $"[SlayTheModel] OUTSIDE CONTROL ENABLED policy={_policy!.PolicyId}; "
+            + (_armg is null ? "first legal" : _armg.AutoMode ? "model auto mode" : "shadow mode; player retains control"));
     }
 
     private static void Stop()
     {
+        ArmGSwitch.Configure(false);
         _enabled = false;
         AttemptedOnSurface.Clear();
         _surfaceId = 0;
         _completedSingleChoiceSurfaceId = 0;
+        MerchantItemCache.Clear();
+        _merchantCacheRoom = 0;
+        _plannedMerchantRemoval = null;
+        _merchantPurchaseTask = null;
+        _merchantPurchaseRun = null;
+        ClearCompletedRewardsProceed();
+        ClearSkippedCardRewards();
         _merchantOpenedInRoom = 0;
         _merchantCardRemovalAttemptedInRoom = 0;
         lock (MerchantGate)
@@ -126,6 +171,10 @@ internal static class OutsideCombatController
         {
             _pendingOutsideAction = null;
         }
+        _armg?.Dispose();
+        _armg = null;
+        DiscardArmGRequest();
+        _armgManualFingerprint = null;
         _policy = null;
         OutsideCombatCaptureService.Reset();
     }
@@ -136,6 +185,32 @@ internal static class OutsideCombatController
         var state = runManager.IsInProgress
             ? runManager.DebugOnlyGetState()
             : null;
+        if (_merchantPurchaseTask is not null && !ReferenceEquals(_merchantPurchaseRun, state))
+        {
+            _merchantPurchaseTask = null;
+            _merchantPurchaseRun = null;
+        }
+        if (_merchantPurchaseTask is not null && !_faulted
+            && System.Environment.TickCount64 - _merchantPurchaseStartedAt >= 30_000)
+        {
+            _faulted = true;
+            GD.PushError("[SlayTheModel] merchant purchase exceeded 30 seconds; outside policy disabled.");
+            return;
+        }
+        if (_cardRewardRun is not null
+            && (!ReferenceEquals(_cardRewardRun, state) || state is null
+                || state.TotalFloor != _cardRewardFloor || CombatManager.Instance.IsInProgress))
+        {
+            ClearSkippedCardRewards();
+        }
+        if (_completedRewardsProceedRun is not null
+            && (!ReferenceEquals(_completedRewardsProceedRun, state)
+                || state is null
+                || state.TotalFloor != _completedRewardsProceedFloor
+                || CombatManager.Instance.IsInProgress))
+        {
+            ClearCompletedRewardsProceed();
+        }
         if (_enabled
             && !_faulted
             && _awaitingMerchantCardRemoval
@@ -202,6 +277,12 @@ internal static class OutsideCombatController
         if (!_enabled || _faulted || _clicking || CombatManager.Instance.IsInProgress
             || System.Environment.TickCount64 < _nextActionAt)
         {
+            if (state is not null)
+            {
+                TraceWait($"tick blocked: enabled={_enabled} faulted={_faulted} "
+                    + $"clicking={_clicking} combat={CombatManager.Instance.IsInProgress} "
+                    + $"cooldown={System.Environment.TickCount64 < _nextActionAt}");
+            }
             return;
         }
 
@@ -210,6 +291,7 @@ internal static class OutsideCombatController
         // frame so capture and native bindings refer to the same run.
         if (state is null || state.Players.Count != 1)
         {
+            if (state is not null) TraceWait($"unexpected player count: {state.Players.Count}");
             return;
         }
 
@@ -257,13 +339,36 @@ internal static class OutsideCombatController
                 state,
                 candidates[0].SurfaceKind,
                 choiceContext,
-                actions);
+                actions,
+                surface is NMerchantRoom merchant && merchant.Inventory is { IsOpen: true } inventory
+                    ? CaptureShop(merchant, inventory) : null);
             if (WaitForPendingOutsideAction(decisionPoint.StateFingerprint))
             {
                 return;
             }
 
-            var selectedAction = _policy.SelectAction(decisionPoint);
+            var usedFallback = false;
+            OutsideCombatActionDescriptor? selectedAction;
+            if (_armg is null)
+                selectedAction = _policy.SelectAction(decisionPoint);
+            else if (!ArmGSwitch.Enabled)
+            {
+                // A response started under a previous switch generation may
+                // never be applied after the user disables the network.
+                DiscardArmGRequest();
+                _armgManualFingerprint = null;
+                _armgManualGeneration = 0;
+                selectedAction = FallbackPolicy.SelectAction(decisionPoint);
+                usedFallback = true;
+            }
+            else
+                selectedAction = PollArmG(decisionPoint, out usedFallback);
+            if (selectedAction is null)
+            {
+                TraceWait($"policy returned no action: surface={surface.GetType().Name} "
+                    + $"armgPending={_armgRequest is not null} armgEnabled={ArmGSwitch.Enabled}");
+                return;
+            }
             if (selectedAction.Ordinal < 0
                 || selectedAction.Ordinal >= candidates.Count
                 || !string.Equals(
@@ -286,13 +391,14 @@ internal static class OutsideCombatController
                 selectedAction.ActionId);
             _ = OutsideCombatStepGuard.RequireCurrentAction(step, decisionPoint);
             var sample = OutsideCombatCaptureService.RecordSelection(
-                _policy,
+                usedFallback ? FallbackPolicy : _policy,
                 decisionPoint,
                 step);
 
             _nextActionAt = System.Environment.TickCount64 + ActionCooldownMilliseconds;
             if (decision.StartsMerchantCardRemoval)
             {
+                _plannedMerchantRemoval = decision.NativeCard;
                 // Keep this room-scoped marker separate from the generic
                 // surface attempt set. Opening the deck overlay changes the
                 // active surface and clears that generic set; a cancelled or
@@ -319,8 +425,139 @@ internal static class OutsideCombatController
         catch (Exception exception)
         {
             _faulted = true;
-            Console.Error.WriteLine($"[SlayTheModel] outside first-legal failed: {exception}");
-            Console.Error.WriteLine("[SlayTheModel] outside policy disabled after failure; restart to retry.");
+            GD.PushError($"[SlayTheModel] outside policy failed: {exception}");
+            GD.PushError("[SlayTheModel] outside policy disabled after failure; restart to retry.");
+        }
+    }
+
+    private static void TraceWait(string reason)
+    {
+        var now = System.Environment.TickCount64;
+        if (now < _nextDiagnosticAt) return;
+        _nextDiagnosticAt = now + 5000;
+        GD.Print($"[SlayTheModel] outside diagnostic: {reason}");
+    }
+
+    private static void DiscardArmGRequest()
+    {
+        var old = _armgRequest;
+        _armgRequest = null;
+        _armgRequestFingerprint = null;
+        _armgRequestGeneration = 0;
+        if (old is not null)
+            _ = old.ContinueWith(t => { _ = t.Exception; },
+                CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted,
+                TaskScheduler.Default);
+    }
+
+    private static OutsideCombatActionDescriptor? PollArmG(
+        OutsideCombatDecisionPoint decision, out bool usedFallback)
+    {
+        usedFallback = false;
+        var policy = _armg ?? throw new InvalidOperationException("ArmG policy is unavailable.");
+        if (_armgManualFingerprint == decision.StateFingerprint
+            && _armgManualGeneration == ArmGSwitch.Generation) return null;
+        _armgManualFingerprint = null;
+        if (_armgRequest is not null && _armgRequestGeneration != ArmGSwitch.Generation)
+            DiscardArmGRequest();
+        if (_armgRequest is null)
+        {
+            _armgRequestFingerprint = decision.StateFingerprint;
+            _armgRequestGeneration = ArmGSwitch.Generation;
+            _armgRequest = Task.Run(() => policy.SelectAsync(decision));
+            return null;
+        }
+        if (!_armgRequest.IsCompleted) return null;
+
+        var request = _armgRequest;
+        var requestedFingerprint = _armgRequestFingerprint;
+        _armgRequest = null;
+        _armgRequestFingerprint = null;
+        _armgRequestGeneration = 0;
+        // A human may have changed the screen while inference was in flight.
+        if (requestedFingerprint != decision.StateFingerprint)
+        {
+            _ = request.ContinueWith(t => { _ = t.Exception; }, CancellationToken.None,
+                TaskContinuationOptions.OnlyOnFaulted, TaskScheduler.Default);
+            return null;
+        }
+        ArmGResponse response;
+        try { response = request.GetAwaiter().GetResult(); }
+        catch (Exception exception) when (policy.AutoMode && exception is not OutOfMemoryException)
+        {
+            // Select from the *current* legal set; never use the failed reply.
+            Console.Error.WriteLine($"[SlayTheModel] ArmG failed, using first-legal: {exception.Message}");
+            GD.PushWarning($"[SlayTheModel] ArmG failed, using first-legal: {exception.Message}");
+            usedFallback = true;
+            return FallbackPolicy.SelectAction(decision);
+        }
+        PublishArmGSuggestion(decision, response);
+        OutsideCombatActionDescriptor? selected;
+        try
+        {
+            selected = ArmGFallbackPolicy.Select(decision, response, policy.AutoMode,
+                policy.AllowApproximate, out usedFallback);
+        }
+        catch (InvalidDataException exception) when (policy.AutoMode)
+        {
+            // Ignore an invalid/stale response and choose only from the
+            // current captured legal set; never execute the worker's action.
+            Console.Error.WriteLine($"[SlayTheModel] ArmG response rejected, using first-legal: {exception.Message}");
+            usedFallback = true;
+            selected = FallbackPolicy.SelectAction(decision);
+        }
+        if (usedFallback)
+        {
+            Console.WriteLine($"[SlayTheModel] ArmG fallback to first-legal: {response.Status}: {response.Reason}");
+            GD.Print($"[SlayTheModel] ArmG fallback to first-legal: {response.Status}: {response.Reason}");
+        }
+        if (selected is null)
+        {
+            _armgManualFingerprint = decision.StateFingerprint;
+            _armgManualGeneration = ArmGSwitch.Generation;
+            Console.WriteLine($"[SlayTheModel] ArmG shadow suggestion: {response.ActionId}; "
+                + $"approximate={response.Approximate}; missing={string.Join(',', response.MissingFeatures ?? [])}; "
+                + "handle this screen manually.");
+            return null;
+        }
+        return selected;
+    }
+
+    private static void PublishArmGSuggestion(OutsideCombatDecisionPoint decision, ArmGResponse response)
+    {
+        try
+        {
+            var directory = CombatCaptureService.GetOutputDirectory();
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, "latest-armg-suggestion.json");
+            var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
+            try
+            {
+                File.WriteAllText(temporary, ProtocolJson.Serialize(new
+                {
+                    decision.StateFingerprint,
+                    decision.DecisionIndex,
+                    response.Status,
+                    response.ActionId,
+                    response.Reason,
+                    response.Approximate,
+                    response.MissingFeatures,
+                    Candidates = decision.LegalActions.Select((action, index) => new
+                    {
+                        action.ActionId,
+                        action.Kind,
+                        action.TargetId,
+                        action.TargetUpgradeLevel,
+                        Logit = response.Scores is { } scores && index < scores.Count ? scores[index] : (float?)null,
+                    }).ToArray(),
+                }));
+                File.Move(temporary, path, overwrite: true);
+            }
+            finally { if (File.Exists(temporary)) File.Delete(temporary); }
+        }
+        catch (Exception exception) when (exception is not OutOfMemoryException)
+        {
+            Console.Error.WriteLine($"[SlayTheModel] ArmG suggestion capture failed: {exception.Message}");
         }
     }
 
@@ -333,8 +570,19 @@ internal static class OutsideCombatController
     {
         try
         {
+            // These specific native actions open the existing map. Capture its
+            // closed state before sending the signal so an already-open map
+            // cannot be mistaken for a transition caused by the action.
+            var opensMap = (decision.ActionKind == OutsideCombatActionKind.Proceed
+                    && decision.Surface is NRestSiteRoom or NMerchantRoom or NTreasureRoom)
+                || (decision.ActionKind == OutsideCombatActionKind.ChooseEventOption
+                    && decision.Target is NEventOptionButton { Option.IsProceed: true });
+            var mapBefore = NMapScreen.Instance;
+            var closedMapId = opensMap && mapBefore is not null
+                && GodotObject.IsInstanceValid(mapBefore) && !mapBefore.IsOpen
+                ? mapBefore.GetInstanceId() : 0;
             GD.Print(
-                $"[SlayTheModel] outside first-legal: {decision.Description} "
+                $"[SlayTheModel] outside action: {decision.Description} "
                 + $"node={decision.Target.GetPath()}");
             if (decision.MerchantCardRemoval is not null
                 && decision.MerchantInventory is not null)
@@ -390,6 +638,28 @@ internal static class OutsideCombatController
                     merchantGeneration);
                 await Task.Delay(100);
             }
+            else if (decision.MerchantItem is not null && decision.MerchantInventory is not null)
+            {
+                var entry = decision.MerchantItem.Entry;
+                var currentId = entry switch
+                {
+                    MerchantCardEntry c => c.CreationResult?.Card.Id.ToString(),
+                    MerchantRelicEntry r => r.Model?.Id.ToString(),
+                    MerchantPotionEntry p => p.Model?.Id.ToString(),
+                    _ => null,
+                };
+                if (!entry.IsStocked || !entry.EnoughGold || entry.Cost != decision.Cost
+                    || !string.Equals(currentId, decision.TargetId, StringComparison.Ordinal)
+                    || (entry is MerchantCardEntry cardEntry
+                        && !ReferenceEquals(cardEntry.CreationResult?.Card, decision.NativeCard)))
+                    throw new InvalidOperationException("Merchant item changed before purchase.");
+                var operation = entry.OnTryPurchaseWrapper(decision.MerchantInventory.Inventory);
+                _merchantPurchaseTask = operation;
+                _merchantPurchaseRun = RunManager.Instance.DebugOnlyGetState();
+                _merchantPurchaseStartedAt = System.Environment.TickCount64;
+                _ = ObserveMerchantPurchaseAsync(operation, sample, targetId);
+                await Task.Delay(100);
+            }
             else if (decision.CardHolder is not null)
             {
                 // NCardHolder listens for its own Pressed signal. ForceClick on
@@ -409,7 +679,7 @@ internal static class OutsideCombatController
                 await UiHelper.Click(decision.Control!, 100);
             }
 
-            if (decision.MerchantCardRemoval is null)
+            if (decision.MerchantCardRemoval is null && decision.MerchantItem is null)
             {
                 // Most Godot controls have no success result. Delay the one
                 // terminal result until a different observed state proves that
@@ -421,7 +691,13 @@ internal static class OutsideCombatController
                     targetId,
                     decision.ResetsSelectionAttempts,
                     decision.CompletesSingleChoice,
-                    decision.MarksMerchantOpened);
+                    decision.MarksMerchantOpened,
+                    decision.Target is NRewardButton rewardButton && rewardButton.Reward is CardReward,
+                    decision.SurfaceKind == OutsideCombatSurfaceKind.CardReward
+                        && decision.ActionKind == OutsideCombatActionKind.Skip,
+                    decision.Surface is NRewardsScreen
+                        && decision.ActionKind == OutsideCombatActionKind.Proceed,
+                    closedMapId);
             }
         }
         catch (Exception exception)
@@ -441,6 +717,37 @@ internal static class OutsideCombatController
             // while the map can already be visible underneath it. Require one
             // quiet second after every outside action before selecting a route.
             _mapReadyAt = System.Environment.TickCount64 + MapSettleMilliseconds;
+        }
+    }
+
+    private static async Task ObserveMerchantPurchaseAsync(
+        Task<bool> operation, OutsideCombatDecisionSample sample, ulong targetId)
+    {
+        try
+        {
+            var success = await operation;
+            if (!ReferenceEquals(_merchantPurchaseTask, operation)) return;
+            if (!success) AttemptedOnSurface.Add(targetId);
+            OutsideCombatCaptureService.RecordExecution(sample,
+                success ? OutsideCombatExecutionStatus.ObservedTransition : OutsideCombatExecutionStatus.Failed,
+                success ? "native merchant purchase completed" : "native merchant purchase rejected");
+        }
+        catch (Exception exception)
+        {
+            if (!ReferenceEquals(_merchantPurchaseTask, operation)) return;
+            _faulted = true;
+            OutsideCombatCaptureService.RecordExecution(sample, OutsideCombatExecutionStatus.Failed,
+                $"native purchase failed: {exception.Message}");
+            GD.PushError($"[SlayTheModel] merchant purchase failed: {exception}");
+        }
+        finally
+        {
+            if (ReferenceEquals(_merchantPurchaseTask, operation))
+            {
+                _merchantPurchaseTask = null;
+                _merchantPurchaseRun = null;
+            }
+            _nextActionAt = System.Environment.TickCount64 + ActionCooldownMilliseconds;
         }
     }
 
@@ -525,6 +832,7 @@ internal static class OutsideCombatController
             _merchantCardRemovalSample = null;
             _merchantCardRemovalRun = null;
             _awaitingMerchantCardRemoval = false;
+            _plannedMerchantRemoval = null;
             _merchantCardRemovalStartedAt = 0;
             _nextActionAt = System.Environment.TickCount64 + ActionCooldownMilliseconds;
             _merchantCardRemovalGeneration++;
@@ -539,7 +847,11 @@ internal static class OutsideCombatController
         ulong targetId,
         bool resetsSelectionAttempts,
         bool completesSingleChoice,
-        bool marksMerchantOpened)
+        bool marksMerchantOpened,
+        bool opensCardReward,
+        bool skipsCardReward,
+        bool isRewardsProceed,
+        ulong closedMapId)
     {
         lock (PendingActionGate)
         {
@@ -558,6 +870,10 @@ internal static class OutsideCombatController
                 resetsSelectionAttempts,
                 completesSingleChoice,
                 marksMerchantOpened,
+                opensCardReward,
+                skipsCardReward,
+                isRewardsProceed,
+                closedMapId,
                 System.Environment.TickCount64);
         }
     }
@@ -587,6 +903,30 @@ internal static class OutsideCombatController
                     pending.Sample,
                     OutsideCombatExecutionStatus.Cancelled,
                     "run ended before the adapter could attribute a native transition");
+            }
+            return false;
+        }
+
+        // Native room proceeds can open the map while leaving their button
+        // active. Only attribute the transition if this exact map was closed
+        // before input; nested treasure rooms may instead resume an event.
+        if (pending.ClosedMapId != 0
+            && NMapScreen.Instance is { } map
+            && IsActive(map)
+            && map.GetInstanceId() == pending.ClosedMapId
+            && map.IsOpen
+            && map.IsTravelEnabled
+            && !map.IsTraveling
+            && FindActiveChoiceScreen() is null
+            && (GetTopOverlay(out var hasOverlay) is NMapScreen || !hasOverlay))
+        {
+            if (TryClaimPendingOutsideAction(pending))
+            {
+                CommitPendingOutsideAction(pending);
+                OutsideCombatCaptureService.RecordExecution(
+                    pending.Sample,
+                    OutsideCombatExecutionStatus.ObservedTransition,
+                    "room action opened the travel-enabled map");
             }
             return false;
         }
@@ -687,6 +1027,28 @@ internal static class OutsideCombatController
     /// </summary>
     private static void CommitPendingOutsideAction(PendingOutsideAction pending)
     {
+        if (pending.OpensCardReward && RunManager.Instance.IsInProgress
+            && RunManager.Instance.DebugOnlyGetState() is { } cardRewardRun)
+        {
+            _openCardRewardButtonId = pending.TargetId;
+            _cardRewardRun = cardRewardRun;
+            _cardRewardFloor = cardRewardRun.TotalFloor;
+        }
+        if (pending.SkipsCardReward && _openCardRewardButtonId != 0)
+        {
+            SkippedCardRewardButtons.Add(_openCardRewardButtonId);
+            _openCardRewardButtonId = 0;
+        }
+        if (pending.IsRewardsProceed
+            && !CombatManager.Instance.IsInProgress
+            && RunManager.Instance.IsInProgress
+            && RunManager.Instance.DebugOnlyGetState() is { } run)
+        {
+            _completedRewardsProceedSurfaceId = pending.SurfaceId;
+            _completedRewardsProceedRun = run;
+            _completedRewardsProceedFloor = run.TotalFloor;
+        }
+
         if (_surfaceId != pending.SurfaceId)
         {
             return;
@@ -712,6 +1074,21 @@ internal static class OutsideCombatController
         {
             _merchantOpenedInRoom = pending.SurfaceId;
         }
+    }
+
+    private static void ClearCompletedRewardsProceed()
+    {
+        _completedRewardsProceedSurfaceId = 0;
+        _completedRewardsProceedRun = null;
+        _completedRewardsProceedFloor = 0;
+    }
+
+    private static void ClearSkippedCardRewards()
+    {
+        _openCardRewardButtonId = 0;
+        SkippedCardRewardButtons.Clear();
+        _cardRewardRun = null;
+        _cardRewardFloor = 0;
     }
 
     private static bool TryClaimPendingOutsideAction(PendingOutsideAction expected)
@@ -882,6 +1259,26 @@ internal static class OutsideCombatController
                 return overlayDecisions;
             }
 
+            // The reward screen can remain visible in the overlay stack after
+            // its proceed button has transitioned and the map is already open.
+            // Only bypass that particular screen after our proceed was observed;
+            // a new combat, run, or floor invalidates this permission.
+            if (overlay is NRewardsScreen
+                && overlay.GetInstanceId() == _completedRewardsProceedSurfaceId
+                && _completedRewardsProceedRun is not null)
+            {
+                var activeChoice = FindActiveChoiceScreen();
+                var openMap = NMapScreen.Instance;
+                if ((activeChoice is null || ReferenceEquals(activeChoice, overlay))
+                    && IsActive(openMap)
+                    && openMap.IsOpen
+                    && openMap.IsTravelEnabled
+                    && !openMap.IsTraveling)
+                {
+                    return FindMapDecisions(openMap);
+                }
+            }
+
             // A completed reward/card overlay can remain visible during its
             // outro while the map is already open. Fall through only after a
             // known overlay is no longer visible; a visible known overlay with
@@ -890,6 +1287,8 @@ internal static class OutsideCombatController
             // block, visible or not.
             if (IsActive(overlay) || !IsKnownDecisionOverlay(overlay))
             {
+                TraceWait($"overlay blocks map: {overlay.GetType().Name} "
+                    + $"active={IsActive(overlay)} known={IsKnownDecisionOverlay(overlay)}");
                 return [];
             }
         }
@@ -898,6 +1297,7 @@ internal static class OutsideCombatController
         // that transition window, waiting is safer than clicking the room below.
         if (hasStackedScreen && overlay is null)
         {
+            TraceWait("overlay stack nonempty but top is null");
             return [];
         }
 
@@ -914,9 +1314,24 @@ internal static class OutsideCombatController
                 return detachedDecisions;
             }
 
+            if (detachedChoice is NRewardsScreen
+                && detachedChoice.GetInstanceId() == _completedRewardsProceedSurfaceId
+                && _completedRewardsProceedRun is not null
+                && NMapScreen.Instance is { } openMap
+                && IsActive(openMap)
+                && openMap.IsOpen
+                && openMap.IsTravelEnabled
+                && !openMap.IsTraveling)
+            {
+                // FindActiveChoiceScreen searches all other selector types
+                // before rewards, so an active picker still takes precedence.
+                return FindMapDecisions(openMap);
+            }
+
             // FindActiveChoiceScreen only returns a visible live selector. No
             // actions here means it is still opening or between phases, not
             // that clicks may safely pass through to the room or map below.
+            TraceWait($"detached choice blocks map: {detachedChoice.GetType().Name}");
             return [];
         }
 
@@ -926,6 +1341,7 @@ internal static class OutsideCombatController
         // underneath during that window.
         if (_awaitingMerchantCardRemoval)
         {
+            TraceWait("merchant card removal pending");
             return [];
         }
 
@@ -975,7 +1391,10 @@ internal static class OutsideCombatController
         // Room and overlay decisions always take priority. Only choose a route
         // after every currently actionable outside-combat decision is drained.
         var map = NMapScreen.Instance;
-        return IsActive(map) && map.IsOpen ? FindMapDecisions(map) : [];
+        if (IsActive(map) && map.IsOpen) return FindMapDecisions(map);
+        TraceWait($"map unavailable: exists={map is not null} active={IsActive(map)} "
+            + $"open={(IsActive(map) ? map.IsOpen : false)}");
+        return [];
     }
 
     private static Node? FindActiveChoiceScreen()
@@ -1041,7 +1460,8 @@ internal static class OutsideCombatController
         var rewards = FromControls(
             screen,
             Descendants<NRewardButton>(screen)
-                .Where(button => button.Reward is not null && CanClaimReward(button)),
+                .Where(button => button.Reward is not null && CanClaimReward(button)
+                    && !SkippedCardRewardButtons.Contains(button.GetInstanceId())),
             OutsideCombatSurfaceKind.Rewards,
             OutsideCombatActionKind.ClaimReward,
             "reward",
@@ -1164,9 +1584,19 @@ internal static class OutsideCombatController
                 OutsideCombatActionKind.ChooseCard,
                 "card reward")
             .Select(decision => decision with { CompletesSingleChoice = true });
+        // Native card reward buttons are generated in the order of _extraOptions.
+        // Skip shares this button type with rerolls and relic alternatives.
+        var nativeButtons = Descendants<NCardRewardAlternativeButton>(screen)
+            .Where(button => !button.IsQueuedForDeletion()).ToArray();
+        var nativeOptions = CardRewardExtraOptionsField?.GetValue(screen)
+            as IReadOnlyList<CardRewardAlternative>;
+        var skipButton = nativeOptions is not null && nativeOptions.Count == nativeButtons.Length
+            ? nativeButtons.Zip(nativeOptions)
+                .FirstOrDefault(pair => string.Equals(pair.Second.OptionId, "Skip", StringComparison.OrdinalIgnoreCase)).First
+            : null;
         var alternatives = FromControls(
                 screen,
-                Descendants<NCardRewardAlternativeButton>(screen),
+                nativeButtons.Where(button => !ReferenceEquals(button, skipButton)),
                 OutsideCombatSurfaceKind.CardReward,
                 OutsideCombatActionKind.ChooseRewardAlternative,
                 "card reward alternative",
@@ -1174,10 +1604,17 @@ internal static class OutsideCombatController
             .Select(decision => decision with { CompletesSingleChoice = true });
         var skips = FromControls(
                 screen,
+                Enumerate(skipButton),
+                OutsideCombatSurfaceKind.CardReward,
+                OutsideCombatActionKind.Skip,
+                "card reward skip",
+                requireUnattempted: true)
+            .Concat(FromControls(
+                screen,
                 Descendants<NChoiceSelectionSkipButton>(screen),
                 OutsideCombatSurfaceKind.CardReward,
                 OutsideCombatActionKind.Skip,
-                "card reward skip")
+                "card reward skip"))
             .Select(decision => decision with { CompletesSingleChoice = true });
         return cards.Concat(alternatives).Concat(skips).ToArray();
     }
@@ -1332,6 +1769,8 @@ internal static class OutsideCombatController
                 .Where(candidate => IsActive(candidate.Holder)
                     && IsUsable(candidate.Holder.Hitbox)
                     && candidate.Card is not null
+                    && (_plannedMerchantRemoval is null
+                        || ReferenceEquals(candidate.Card, _plannedMerchantRemoval))
                     && !AttemptedOnSurface.Contains(candidate.Holder.GetInstanceId()))
                 .OrderBy(candidate => candidate.Index)
                 .Select(candidate => new OutsideDecision(
@@ -1487,52 +1926,37 @@ internal static class OutsideCombatController
         if (IsActive(inventory) && inventory.IsOpen)
         {
             _merchantOpenedInRoom = _surfaceId;
-            var removal = inventory.GetAllSlots().OfType<NMerchantCardRemoval>().FirstOrDefault();
-            if (removal is not null && removal.Entry.IsStocked && removal.Entry.EnoughGold)
+            if (_merchantPurchaseTask is not null || _awaitingMerchantCardRemoval)
+                return [];
+            var actions = new List<OutsideDecision>();
+            var slots = inventory.GetAllSlots().ToArray();
+            AddMerchantItems<NMerchantCard>(actions, room, inventory, slots, OutsideCombatActionKind.BuyCard);
+            AddMerchantItems<NMerchantRelic>(actions, room, inventory, slots, OutsideCombatActionKind.BuyRelic);
+            AddMerchantItems<NMerchantPotion>(actions, room, inventory, slots, OutsideCombatActionKind.BuyPotion);
+            var removal = slots.OfType<NMerchantCardRemoval>().FirstOrDefault();
+            if (removal is not null && removal.Entry.IsStocked && removal.Entry.EnoughGold
+                && _merchantCardRemovalAttemptedInRoom != _surfaceId && IsUsable(removal.Hitbox))
             {
-                if (_awaitingMerchantCardRemoval)
-                {
-                    return [];
-                }
-
-                if (_merchantCardRemovalAttemptedInRoom != _surfaceId
-                    && IsUsable(removal.Hitbox))
-                {
-                    return
-                    [
-                        new OutsideDecision(
-                        room,
-                        removal.Hitbox,
-                        OutsideCombatSurfaceKind.Merchant,
-                        OutsideCombatActionKind.OpenCardRemoval,
-                        "open merchant card removal",
-                        Cost: removal.Entry.Cost,
-                        StartsMerchantCardRemoval: true,
-                        MerchantCardRemoval: removal,
-                        MerchantInventory: inventory),
-                    ];
-                }
+                var state = RunManager.Instance.DebugOnlyGetState();
+                if (state?.Players.Count == 1)
+                    foreach (var card in state.Players[0].Deck.Cards.Where(card => card.IsRemovable))
+                        actions.Add(new OutsideDecision(room, removal.Hitbox,
+                            OutsideCombatSurfaceKind.Merchant, OutsideCombatActionKind.OpenCardRemoval,
+                            $"remove merchant card {card.Id.Entry}", TargetId: card.Id.ToString(),
+                            Cost: removal.Entry.Cost, NativeCard: card, StartsMerchantCardRemoval: true,
+                            MerchantCardRemoval: removal, MerchantInventory: inventory));
             }
-
-            // Do not buy arbitrary inventory items. If removal is absent, used,
-            // or unaffordable, first-legal deliberately leaves the shop.
             var back = inventory.GetNodeOrNull<NClickableControl>("%BackButton");
-            var leave = FromControls(
-                    room,
-                    Enumerate(back),
-                    OutsideCombatSurfaceKind.Merchant,
-                    OutsideCombatActionKind.LeaveMerchant,
-                    "leave merchant (card removal unavailable or unaffordable)",
-                    requireUnattempted: true);
-            return leave.Count > 0
-                ? leave
-                : FromControls(
-                    room,
-                    Descendants<NBackButton>(inventory),
-                    OutsideCombatSurfaceKind.Merchant,
-                    OutsideCombatActionKind.LeaveMerchant,
-                    "close merchant inventory",
-                    requireUnattempted: true);
+            var leave = FromControls(room, Enumerate(back), OutsideCombatSurfaceKind.Merchant,
+                OutsideCombatActionKind.LeaveMerchant, "leave merchant", requireUnattempted: true);
+            if (leave.Count == 0)
+                leave = FromControls(room, Descendants<NBackButton>(inventory), OutsideCombatSurfaceKind.Merchant,
+                    OutsideCombatActionKind.LeaveMerchant, "close merchant inventory", requireUnattempted: true);
+            // If model inference cannot represent the shop, first-legal must
+            // leave rather than spend gold on an arbitrary inventory item.
+            actions.InsertRange(0, leave);
+            return actions;
+
         }
 
         if (_merchantOpenedInRoom != _surfaceId)
@@ -1554,6 +1978,71 @@ internal static class OutsideCombatController
             OutsideCombatActionKind.Proceed,
             "merchant-room proceed",
             requireUnattempted: true);
+    }
+
+    private static void AddMerchantItems<T>(List<OutsideDecision> actions, NMerchantRoom room,
+        NMerchantInventory inventory, NMerchantSlot[] slots, OutsideCombatActionKind kind)
+        where T : NMerchantSlot
+    {
+        var typed = slots.OfType<T>().ToArray();
+        for (var index = 0; index < typed.Length; index++)
+        {
+            var slot = typed[index];
+            var entry = slot.Entry;
+            if (!entry.IsStocked || !entry.EnoughGold || !IsUsable(slot.Hitbox)
+                || AttemptedOnSurface.Contains(slot.Hitbox.GetInstanceId())) continue;
+            if (kind == OutsideCombatActionKind.BuyPotion
+                && (inventory.Inventory is null
+                    || !inventory.Inventory.Player.PotionSlots.Any(p => p is null))) continue;
+            var card = (entry as MerchantCardEntry)?.CreationResult?.Card;
+            var id = entry switch
+            {
+                MerchantCardEntry c => c.CreationResult?.Card.Id.ToString(),
+                MerchantRelicEntry r => r.Model?.Id.ToString(),
+                MerchantPotionEntry p => p.Model?.Id.ToString(),
+                _ => null,
+            };
+            if (id is null) continue;
+            actions.Add(new OutsideDecision(room, slot.Hitbox, OutsideCombatSurfaceKind.Merchant,
+                kind, $"buy merchant item {id}", TargetId: id, Cost: entry.Cost,
+                NativeCard: card, MerchantInventory: inventory, MerchantItem: slot, ShopIndex: index));
+        }
+    }
+
+    private static OutsideShopObservation CaptureShop(NMerchantRoom room, NMerchantInventory inventory)
+    {
+        var roomId = room.GetInstanceId();
+        if (_merchantCacheRoom != roomId)
+        {
+            MerchantItemCache.Clear();
+            _merchantCacheRoom = roomId;
+        }
+        var slots = inventory.GetAllSlots().ToArray();
+        OutsideShopItem[] Items<T>() where T : NMerchantSlot => slots.OfType<T>().Select((slot, index) =>
+        {
+            var entry = slot.Entry;
+            var card = (entry as MerchantCardEntry)?.CreationResult?.Card;
+            var id = entry switch
+            {
+                MerchantCardEntry c => c.CreationResult?.Card.Id.ToString(),
+                MerchantRelicEntry r => r.Model?.Id.ToString(),
+                MerchantPotionEntry p => p.Model?.Id.ToString(),
+                _ => null,
+            };
+            var key = slot.GetInstanceId();
+            if (id is not null)
+            {
+                var item = new OutsideShopItem(index, id, entry.Cost, !entry.IsStocked, card?.CurrentUpgradeLevel);
+                MerchantItemCache[key] = item;
+                return item;
+            }
+            return MerchantItemCache.TryGetValue(key, out var previous)
+                ? previous with { Sold = true }
+                : new OutsideShopItem(index, null, Math.Max(0, entry.Cost), true);
+        }).ToArray();
+        var removal = slots.OfType<NMerchantCardRemoval>().FirstOrDefault();
+        return new OutsideShopObservation(Items<NMerchantCard>(), Items<NMerchantRelic>(),
+            Items<NMerchantPotion>(), removal?.Entry.Cost ?? 0, removal?.Entry.IsStocked ?? false);
     }
 
     private static IReadOnlyList<OutsideDecision> FindTreasureDecisions(NTreasureRoom room)
@@ -1755,7 +2244,9 @@ internal static class OutsideCombatController
         bool ResetsSelectionAttempts = false,
         bool StartsMerchantCardRemoval = false,
         NMerchantCardRemoval? MerchantCardRemoval = null,
-        NMerchantInventory? MerchantInventory = null)
+        NMerchantInventory? MerchantInventory = null,
+        NMerchantSlot? MerchantItem = null,
+        int? ShopIndex = null)
     {
         internal NClickableControl? Control => Target as NClickableControl;
 
@@ -1779,7 +2270,14 @@ internal static class OutsideCombatController
                 TargetId,
                 MapCoordinate,
                 Cost,
-                targetDeckIndex);
+                targetDeckIndex)
+            {
+                TargetUpgradeLevel = ActionKind is OutsideCombatActionKind.ChooseCard
+                    or OutsideCombatActionKind.RemoveCard or OutsideCombatActionKind.BuyCard
+                    or OutsideCombatActionKind.OpenCardRemoval
+                        ? NativeCard?.CurrentUpgradeLevel : null,
+                TargetShopIndex = ShopIndex,
+            };
         }
 
         private static int? FindDeckIndex(RunState state, CardModel target)
@@ -1813,5 +2311,9 @@ internal static class OutsideCombatController
         bool ResetsSelectionAttempts,
         bool CompletesSingleChoice,
         bool MarksMerchantOpened,
+        bool OpensCardReward,
+        bool SkipsCardReward,
+        bool IsRewardsProceed,
+        ulong ClosedMapId,
         long StartedAt);
 }

@@ -32,6 +32,20 @@ internal sealed class StarterPriorClient : IDisposable
         }
     }
     public Task<IReadOnlyList<double>> PredictAsync(object observation, CancellationToken cancellation)
+        => Task.FromResult<IReadOnlyList<double>>(Request(observation, cancellation)
+            .GetProperty("priors").EnumerateArray().Select(p => p.GetDouble()).ToArray());
+
+    public Task<double> ValueAsync(object observation, CancellationToken cancellation, object? expected = null)
+    {
+        object request = expected == null ? (object)new { operation = "value", observation }
+            : new { operation = "value", observation, expected };
+        double value = Request(request, cancellation).GetProperty("value").GetDouble();
+        if (!double.IsFinite(value) || value < -1 || value > 1)
+            throw new InvalidDataException("Native value must be finite in [-1,1]");
+        return Task.FromResult(value);
+    }
+
+    private JsonElement Request(object observation, CancellationToken cancellation)
     {
         cancellation.ThrowIfCancellationRequested();
         var watch = Stopwatch.StartNew();
@@ -46,7 +60,7 @@ internal sealed class StarterPriorClient : IDisposable
         EncodeMs += response.RootElement.GetProperty("encodeMs").GetDouble();
         InferMs += response.RootElement.GetProperty("inferMs").GetDouble();
         WallMs += watch.Elapsed.TotalMilliseconds;
-        return Task.FromResult<IReadOnlyList<double>>(response.RootElement.GetProperty("priors").EnumerateArray().Select(p => p.GetDouble()).ToArray());
+        return response.RootElement.Clone();
     }
     public void Dispose()
     {

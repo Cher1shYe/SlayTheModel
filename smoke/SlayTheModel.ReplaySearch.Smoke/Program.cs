@@ -91,6 +91,57 @@ foreach (var invalid in new[] { new double[] { double.NaN, 1 }, new double[] { -
     catch (InvalidDataException) { }
 }
 Console.WriteLine("PUCT: keyed legal-order normalization, influence, per-node caching and malformed prior rejection passed");
+foreach (var (mode,mix,expected) in new[] { ("heuristic",.5,0),("learned",.5,1),("mixed",.75,1),("mixed",0.0,0),("mixed",1.0,1) })
+{
+    var leafEnv=new LeafToy(); var policy=new LeafValuePolicy(mode,mix); int calls=0;
+    Func<int,CancellationToken,Task<double>>? evaluator=mode=="heuristic" ? null : (depth,ct) => {
+        if(depth!=1 || !leafEnv.CanEvaluate) throw new Exception("Wrong leaf boundary");
+        calls++; return Task.FromResult(policy.Combine(leafEnv.EvaluateCutoff(),leafEnv.Action==1 ? .8 : -.8));
+    };
+    var result=await new ReplayMcts<int>(leafEnv,leafValue:evaluator).SearchAsync([],"root",budget,budget,maxDepth:1);
+    if(result.Action!=expected || (calls==0)!=(mode=="heuristic") || result.Statistics.Sum(s=>s.Visits)!=result.CompletedSimulations)
+        throw new Exception("Leaf mode not reflected in search/visits");
+    foreach(var stat in result.Statistics)
+        if(Math.Abs(stat.MeanValue-policy.Combine(stat.Action==0 ? .8 : -.8,stat.Action==1 ? .8 : -.8))>1e-9)
+            throw new Exception("Leaf backup differs from configured mixture");
+}
+var terminalEnv=new PriorToy();
+await new ReplayMcts<int>(terminalEnv,leafValue:(_,_)=>throw new Exception("Terminal must bypass network"))
+    .SearchAsync([],"root",budget,budget);
+var pendingEnv=new LeafToy(pending:true); int pendingCalls=0;
+await new ReplayMcts<int>(pendingEnv,leafValue:(depth,ct)=>{
+    if(!pendingEnv.CanEvaluate || depth!=2) throw new Exception("Pending selector was evaluated");
+    pendingCalls++; return Task.FromResult(.2);
+}).SearchAsync([],"root",budget,budget,maxDepth:2);
+if(pendingCalls==0) throw new Exception("No completed choice leaf");
+try {
+    await new ReplayMcts<int>(new LeafToy(),leafValue:(_,_)=>Task.FromResult(double.NaN))
+        .SearchAsync([],"root",budget,budget,maxDepth:1);
+    throw new Exception("Nonfinite leaf accepted");
+} catch(InvalidDataException) { }
+try {
+    await new ReplayMcts<int>(new LeafToy(),leafValue:async (_,_)=>{ await Task.Delay(100); return .9; })
+        .SearchAsync([],"root",TimeSpan.FromMilliseconds(20),TimeSpan.FromMilliseconds(20),maxDepth:1);
+    throw new Exception("Expired leaf reply backed up");
+} catch(TimeoutException) { }
+foreach(var bad in new[]{double.NaN,-.1,1.1}) {
+    try { _=new LeafValuePolicy("mixed",bad); throw new Exception("Invalid mix accepted"); } catch(ArgumentException) { }
+}
+Console.WriteLine("Leaf values: mode influence, exact mixture, terminal precedence, pending choice, NaN and expired-reply rejection passed");
+
+sealed class LeafToy(bool pending=false) : IReplayEnvironment<int>
+{
+    public int Action=-1; private int depth;
+    public bool Terminal=>false;
+    public bool CanEvaluate=>!pending || depth!=1;
+    public Task RestoreAsync(IReadOnlyList<int> prefix,CancellationToken ct) { Action=-1; depth=0; return Task.CompletedTask; }
+    public Task ApplyAsync(int a,CancellationToken ct) { Action=a; depth++; return Task.CompletedTask; }
+    public IReadOnlyList<int> LegalActions()=>[0,1];
+    public string StateKey()=>depth==0 ? "root" : $"{depth}:{Action}";
+    public double EvaluateTerminal()=>throw new Exception("Not terminal");
+    public double EvaluateCutoff()=>Action==0 ? .8 : -.8;
+    public int RolloutAction(IReadOnlyList<int> actions,Random random)=>0;
+}
 sealed class HealthTradeoffToy : IReplayEnvironment<int>
 {
     private int action = -1;

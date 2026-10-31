@@ -20,11 +20,17 @@ public interface IReplayEnvironment<TAction> where TAction : notnull
 
 public sealed record TimedSearchResult<TAction>(TAction Action, int CompletedSimulations,
     int RetainedVisits, double ElapsedMilliseconds, bool Rebuilt, IReadOnlyList<RootActionStatistics<TAction>> Statistics,
-    IReadOnlyDictionary<TAction, double>? RootPriors = null) where TAction : notnull;
+    IReadOnlyDictionary<TAction, double>? RootPriors = null) where TAction : notnull
+{
+    public int LeafBackups { get; init; }
+    public int TerminalBackups { get; init; }
+    public double MeanBackupDepth { get; init; }
+}
 
 public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment, int seed = 1,
     Func<IReadOnlyList<TAction>, CancellationToken, Task<IReadOnlyList<double>>>? policyPrior = null,
-    double cPuct = 1.5)
+    double cPuct = 1.5,
+    Func<int, CancellationToken, Task<double>>? leafValue = null)
     where TAction : notnull
 {
     private sealed class Node(string key, IReadOnlyList<TAction> actions)
@@ -78,6 +84,7 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
         deadline.CancelAfter(budget);
         var completed = 0;
+        int leafBackups=0, terminalBackups=0; long totalDepth=0;
         var retained = _root?.Visits ?? 0;
         try
         {
@@ -150,7 +157,10 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     path.Add(node);
                     depth++;
                 }
-                while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested)
+                // Learned/mixed search evaluates the first completed expanded leaf.
+                // Pending selectors are resolved by rollout before any value query.
+                while (!environment.Terminal && depth < maxDepth && !deadline.IsCancellationRequested
+                    && (leafValue == null || !environment.CanEvaluate))
                 {
                     var actions = environment.LegalActions();
                     if (actions.Count == 0) throw new InvalidDataException("Rollout has no legal action.");
@@ -161,7 +171,12 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                 // Score completed decision boundaries on time/depth cutoff. A cancelled
                 // transition or suspended selection has no complete endpoint to score.
                 if (depth == 0 || !environment.CanEvaluate) continue;
-                var value = environment.Terminal ? environment.EvaluateTerminal() : environment.EvaluateCutoff();
+                var value = environment.Terminal ? environment.EvaluateTerminal()
+                    : leafValue == null ? environment.EvaluateCutoff()
+                    : await leafValue(depth, deadline.Token);
+                // Inference replies must be drained by the client, but an expired
+                // request cannot contribute a partial simulation to visit targets.
+                if (leafValue != null) deadline.Token.ThrowIfCancellationRequested();
                 if (!double.IsFinite(value) || value < -1 || value > 1)
                     throw new InvalidDataException("Expected a finite utility in [-1, 1].");
                 foreach (var visited in path)
@@ -171,6 +186,8 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
                     visited.Best = Math.Max(visited.Best, value);
                 }
                 completed++;
+                if(environment.Terminal) terminalBackups++; else leafBackups++;
+                totalDepth+=depth;
             }
         }
         catch (OperationCanceledException) when (!cancellation.IsCancellationRequested && deadline.IsCancellationRequested) { }
@@ -179,6 +196,7 @@ public sealed class ReplayMcts<TAction>(IReplayEnvironment<TAction> environment,
             .OrderByDescending(pair => pair.Value.Visits).ThenByDescending(pair => pair.Value.Mean)
             .Select(pair => new RootActionStatistics<TAction>(pair.Key, pair.Value.Visits, pair.Value.Mean, pair.Value.Best)).ToArray() ?? [];
         if (stats.Length == 0) throw new TimeoutException("No completed valid rollout within the search budget.");
-        return new TimedSearchResult<TAction>(stats[0].Action, completed, retained, watch.Elapsed.TotalMilliseconds, rebuilt, stats, _root!.Priors);
+        return new TimedSearchResult<TAction>(stats[0].Action, completed, retained, watch.Elapsed.TotalMilliseconds, rebuilt, stats, _root!.Priors)
+        { LeafBackups=leafBackups, TerminalBackups=terminalBackups, MeanBackupDepth=(double)totalDepth/completed };
     }
 }

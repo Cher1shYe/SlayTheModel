@@ -17,6 +17,7 @@ internal enum OutsideCombatPolicyKind
 {
     Manual,
     FirstLegal,
+    ArmG,
 }
 
 /// <summary>
@@ -85,7 +86,8 @@ internal sealed record AdapterConfiguration(
     {
         "" or "manual" => OutsideCombatPolicyKind.Manual,
         "first-legal" => OutsideCombatPolicyKind.FirstLegal,
-        var unknown => throw Invalid(OutsideCombatPolicyVariable, unknown, "manual, first-legal"),
+        "armg" => OutsideCombatPolicyKind.ArmG,
+        var unknown => throw Invalid(OutsideCombatPolicyVariable, unknown, "manual, first-legal, armg"),
     };
 
     private static string Normalize(string? value) =>
@@ -113,6 +115,7 @@ internal sealed record AdapterConfiguration(
     {
         OutsideCombatPolicyKind.Manual => "manual",
         OutsideCombatPolicyKind.FirstLegal => "first-legal",
+        OutsideCombatPolicyKind.ArmG => "armg",
         _ => throw new ArgumentOutOfRangeException(nameof(value)),
     };
 }

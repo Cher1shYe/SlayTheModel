@@ -5,3 +5,6 @@ obj/
 artifacts/
 *.user
 *.suo
+
+__pycache__/
+*.pyc

@@ -21,7 +21,8 @@ internal static class OutsideCombatCaptureService
         RunState state,
         OutsideCombatSurfaceKind surface,
         OutsideCombatChoiceContext choiceContext,
-        IReadOnlyList<OutsideCombatActionDescriptor> legalActions)
+        IReadOnlyList<OutsideCombatActionDescriptor> legalActions,
+        OutsideShopObservation? shop = null)
     {
         ArgumentNullException.ThrowIfNull(state);
         ArgumentNullException.ThrowIfNull(choiceContext);
@@ -29,7 +30,7 @@ internal static class OutsideCombatCaptureService
         lock (Gate)
         {
             EnsureEpisode(state);
-            var observation = BuildObservation(state, surface, choiceContext);
+            var observation = BuildObservation(state, surface, choiceContext) with { Shop = shop };
             var fingerprint = ProtocolJson.ComputeOutsideStateFingerprint(
                 CombatCaptureService.CurrentBuild,
                 observation,
@@ -84,12 +85,10 @@ internal static class OutsideCombatCaptureService
                         card.Affliction?.Id.ToString()))
                     .ToArray(),
                 player.Relics
-                    .Select(relic => new OutsideRunRelicObservation(
-                        relic.Id.ToString(),
-                        relic.StackCount,
-                        relic.IsUsedUp,
-                        relic.Status.ToString(),
-                        relic.DisplayAmount))
+                    .Select(relic => new OutsideRunRelicObservation(relic.Id.ToString())
+                    {
+                        Display = RelicDisplayProjector.Capture(relic),
+                    })
                     .ToArray(),
                 player.PotionSlots
                     .Select((potion, index) => new { Potion = potion, Index = index })

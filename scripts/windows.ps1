@@ -7,7 +7,13 @@ param(
     [string]$ManagedDir = $env:Sts2ManagedDir,
     [ValidateSet('play', 'train')][string]$RunMode = 'play',
     [ValidateSet('manual', 'first-legal', 'mcts')][string]$CombatPolicy = 'manual',
-    [ValidateSet('manual', 'first-legal')][string]$OutsideCombatPolicy = 'manual',
+    [ValidateSet('manual', 'first-legal', 'armg')][string]$OutsideCombatPolicy = 'manual',
+    [ValidateSet('shadow', 'auto')][string]$ArmGMode = 'shadow',
+    [switch]$ArmGAllowApproximate,
+    [string]$ArmGSts2Root = 'D:\sts2_datacollection\sts2',
+    [string]$ArmGPython,
+    [string]$ArmGCheckpoint,
+    [string]$ArmGSimulator,
     [ValidateSet('capture', 'first-legal', 'mcts')][string]$Policy,
     [string]$ExportDir,
     [switch]$CaptureHistory
@@ -15,6 +21,15 @@ param(
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $repo = Split-Path $PSScriptRoot -Parent
+if (-not $ArmGPython) { $ArmGPython = Join-Path $ArmGSts2Root '.venv/Scripts/python.exe' }
+if (-not $ArmGCheckpoint) { $ArmGCheckpoint = Join-Path $ArmGSts2Root 'runs/armg_puct_3000_500_prior005_1024_20261030/latest.pt' }
+if (-not $ArmGSimulator) { $ArmGSimulator = Join-Path $ArmGSts2Root '.scratch/potion-module/sts2_sim.cp312-win_amd64.pyd' }
+if ($OutsideCombatPolicy -eq 'armg' -and $Action -in @('Install', 'Launch')) {
+    foreach ($path in @($ArmGPython, $ArmGCheckpoint, $ArmGSimulator, (Join-Path $repo 'scripts/armg_live_worker.py'))) {
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "ArmG dependency not found: $path" }
+    }
+    if (-not (Test-Path -LiteralPath $ArmGSts2Root -PathType Container)) { throw "ArmG STS2 root not found: $ArmGSts2Root" }
+}
 
 if ($PSBoundParameters.ContainsKey('Policy')) {
     if ($PSBoundParameters.ContainsKey('CombatPolicy')) {
@@ -100,6 +115,13 @@ try {
             SLAY_THE_MODEL_RUN_MODE = $RunMode
             SLAY_THE_MODEL_COMBAT_POLICY = $CombatPolicy
             SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY = $OutsideCombatPolicy
+            SLAY_THE_MODEL_ARMG_MODE = $ArmGMode
+            SLAY_THE_MODEL_ARMG_ALLOW_APPROXIMATE = $(if ($ArmGAllowApproximate) { '1' } else { '0' })
+            SLAY_THE_MODEL_ARMG_PYTHON = $ArmGPython
+            SLAY_THE_MODEL_ARMG_SERVER = (Join-Path $repo 'scripts/armg_live_worker.py')
+            SLAY_THE_MODEL_ARMG_CHECKPOINT = $ArmGCheckpoint
+            SLAY_THE_MODEL_ARMG_STS2_ROOT = $ArmGSts2Root
+            SLAY_THE_MODEL_ARMG_SIMULATOR = $ArmGSimulator
             SLAY_THE_MODEL_LIVE_POLICY = $null
             SLAY_THE_MODEL_WORKER_EXE = (Join-Path $repo 'artifacts/native-host/NativeWorker.exe')
             SLAY_THE_MODEL_WORKER_PROJECT = (Join-Path $repo 'tools/Sts2.NativeWorker')
@@ -136,7 +158,7 @@ try {
     Invoke-Dotnet @('--version')
     if ($Action -eq 'Check') { return }
     if ($Action -eq 'Test') {
-        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Outside.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
+        foreach ($project in @('SlayTheModel.Search.Smoke', 'SlayTheModel.Protocol.Smoke', 'SlayTheModel.Outside.Smoke', 'SlayTheModel.Action.Smoke', 'SlayTheModel.ArmG.Smoke', 'SlayTheModel.ReplaySearch.Smoke')) {
             Invoke-Dotnet @('run', '--project', "smoke/$project/$project.csproj", '-c', 'Release')
         }
         return
@@ -161,6 +183,13 @@ try {
             SLAY_THE_MODEL_RUN_MODE = $RunMode
             SLAY_THE_MODEL_COMBAT_POLICY = $CombatPolicy
             SLAY_THE_MODEL_OUTSIDE_COMBAT_POLICY = $OutsideCombatPolicy
+            SLAY_THE_MODEL_ARMG_MODE = $ArmGMode
+            SLAY_THE_MODEL_ARMG_ALLOW_APPROXIMATE = $(if ($ArmGAllowApproximate) { '1' } else { '0' })
+            SLAY_THE_MODEL_ARMG_PYTHON = $ArmGPython
+            SLAY_THE_MODEL_ARMG_SERVER = (Join-Path $repo 'scripts/armg_live_worker.py')
+            SLAY_THE_MODEL_ARMG_CHECKPOINT = $ArmGCheckpoint
+            SLAY_THE_MODEL_ARMG_STS2_ROOT = $ArmGSts2Root
+            SLAY_THE_MODEL_ARMG_SIMULATOR = $ArmGSimulator
             SLAY_THE_MODEL_LIVE_POLICY = $null
             SLAY_THE_MODEL_WORKER_EXE = Join-Path $repo 'artifacts/native-host/NativeWorker.exe'
             SLAY_THE_MODEL_WORKER_PROJECT = Join-Path $repo 'tools/Sts2.NativeWorker'
