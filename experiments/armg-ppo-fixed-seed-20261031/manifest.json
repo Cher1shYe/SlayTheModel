@@ -1,0 +1,15 @@
+{
+  "base_commit": "be401e8ba09ac58c9f3b01cf77e195f7122c8d0c",
+  "sha256": {
+    "agent/armg_train.py": "4b89682b78835f046efa3029ef11dae7c95a0c2a16907fa3966449b9593af3c7",
+    "deployment/armg_floor_progress_watch.py": "a7785538682407daf3dba24c18b2b3a433120ec8969978b94efd39202ba24e9f",
+    "agent/armg_deck_elo.py": "d8ee2315945afdf40fee890641c0786d07a39edf03eb4f358cc04353f5964a93",
+    "agent/armg_ppo.py": "2024529fa3ad930207188598e0fda070ca45301d11bc3f28f62fb708846694a4",
+    "deployment/evaluate_ppo_behavior.py": "e25522a6996fe0627228b2d4f4350b1e16da818835f78f2ab9d9131b7d32c1c3",
+    "deployment/train_armg_a10_boss_rl.py": "f569ee616117701489e94f76bef98530bfdad205cb4a55707a31759ae8ad87f5",
+    "deployment/train_armg_a10_ppo.py": "d3950c5ba1d5efa1b3cc71e4ae7098dbda99f1c97d068692c992b94bc9372359",
+    "docs/armg-a10-ppo.md": "46889fc9c30bebae207a8ee569f28f75f9388b74c01d5b8e72ac4d2631ab8ce2",
+    "tests/test_armg_a10_boss_rl.py": "a0acf221f345511f3bdbdee466a1d35b6e121bfcfe9c670aff04c04eabf391b6",
+    "tests/test_armg_ppo.py": "ce9de6efe7d053fe7a34318e635a44ffcc041dbfc34802fdb463f04a8572b410"
+  }
+}
