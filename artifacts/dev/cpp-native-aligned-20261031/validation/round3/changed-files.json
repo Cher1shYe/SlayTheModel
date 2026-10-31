@@ -1,0 +1,998 @@
+{
+  "base_commit": "be401e8ba09ac58c9f3b01cf77e195f7122c8d0c",
+  "files": [
+    {
+      "path": "PORT_SOURCE.json",
+      "status": "added",
+      "sha256": "e5affb4402fc4aba41187364435d897cec23613d36e5002db3879f0912b34732"
+    },
+    {
+      "path": "PORT_STATUS.md",
+      "status": "added",
+      "sha256": "dbc64fd8c15123ccb38b9a0f31e6fbca8a70dac42a5b2d6d9833115b8e27610a"
+    },
+    {
+      "path": "agent/armg.py",
+      "status": "modified",
+      "sha256": "75bd943f228a0eb5ee734b75a205071d7838e575bc90b87755526ca7c46720dd"
+    },
+    {
+      "path": "agent/armg_train.py",
+      "status": "modified",
+      "sha256": "0eb511562380098a64e90b15ffba5ce3df6ed19651e799472793dad41c01d6ab"
+    },
+    {
+      "path": "agent/combat_dagger.py",
+      "status": "modified",
+      "sha256": "504055c9a2de069c2ffa8e0de6a9fa8007283aa468baa7dd3fbab22a589c4807"
+    },
+    {
+      "path": "agent/common.py",
+      "status": "modified",
+      "sha256": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    },
+    {
+      "path": "agent/engine_identity.py",
+      "status": "added",
+      "sha256": "0dc0d2d287b758dc6ed7ccde1af9b3fe3ab3e91bfc7888eafd7a989608f4f22e"
+    },
+    {
+      "path": "agent/nets.py",
+      "status": "modified",
+      "sha256": "6d6cfd26a1cc1b492bda9ea21c7509581bf9b70ac8f858f7b3ec48ce1bad03aa"
+    },
+    {
+      "path": "bridge/NativeArmGBridge.Check.csproj",
+      "status": "added",
+      "sha256": "baeebbcfd1cf791443fe212bd3b87ac54a00b1cd22d28a8b243cb2d5f44ae24f"
+    },
+    {
+      "path": "bridge/README.md",
+      "status": "added",
+      "sha256": "a2b40daeab3221995b9233614162ec0e53bf996d45d90bc5ef125ea5818b3173"
+    },
+    {
+      "path": "bridge/src/SlayTheModel.Sts2.ModAdapter/ArmGNativeContextProjector.cs",
+      "status": "added",
+      "sha256": "f5d33dae210226c0bb55c11d265ba7169ec32e1c18baf42d0fe270f6cd3facc1"
+    },
+    {
+      "path": "bridge/src/SlayTheModel.Sts2.ModAdapter/ArmGOutsidePolicy.cs",
+      "status": "added",
+      "sha256": "e563e36d3c2241a96989cb22d154965e7b9a2fc150651ff44c046c22fc82beb2"
+    },
+    {
+      "path": "bridge/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatCaptureService.cs",
+      "status": "added",
+      "sha256": "eb4aaed13ee343c382206e68f26899cd7e00b8ad46b02bd7b43c760cd920000f"
+    },
+    {
+      "path": "bridge/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatController.cs",
+      "status": "added",
+      "sha256": "a9d7df074b444fdfe05be68c6d97c5290780cb3bf15f3f9b450b04e3a3090e7d"
+    },
+    {
+      "path": "bridge/src/SlayTheModel.Sts2.Protocol/OutsideCombatDecision.cs",
+      "status": "added",
+      "sha256": "2482c38a37b557a86d512aae125fb01da4cf806d1e9a3c2352c82091a99463c4"
+    },
+    {
+      "path": "deployment/evaluate_armg.py",
+      "status": "modified",
+      "sha256": "b9ef18bcf32dd6ab0cf030aff8d4be6bf47b6550f68af5a4153ba7ddd85d32cd"
+    },
+    {
+      "path": "deployment/migrate_armg_weights.py",
+      "status": "added",
+      "sha256": "f760679e8b398c2daae273e416b82d7ab1056676eb25316d95bc7b0164897f78"
+    },
+    {
+      "path": "deployment/train_armg_puct_prior_rl.py",
+      "status": "modified",
+      "sha256": "7feaf60ab66fe5fefe222ff6172924cd1813d609021687aefa1736b901e152ba"
+    },
+    {
+      "path": "docs/native-act-alignment-20261031.md",
+      "status": "added",
+      "sha256": "cb986aa2e3967dea93a02a4db5031191d46aeed2cb618d6206ae2c1317809a37"
+    },
+    {
+      "path": "docs/native-engine-checkpoints.md",
+      "status": "added",
+      "sha256": "919b641516cc3b39681b70106d806a7fdf6cccbed8fb3bfe7c9c3f9dd2b2129f"
+    },
+    {
+      "path": "docs/native-rng-alignment-20261031.md",
+      "status": "added",
+      "sha256": "aaf8ccf95830e95ddc3649ba57597fc67f9e27fea394ece452427e65aa887682"
+    },
+    {
+      "path": "native-boundary-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "f89b0c4682dfedb391943b9443f0c246816165355a0a44200c2a484a0dcc75b2"
+    },
+    {
+      "path": "native-boundary-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-boundary-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-boundary-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-boundary-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "9576ace12f531e886b04cbfd0d51a2b2a87c28728bafa43e178fca086c1d113d"
+    },
+    {
+      "path": "native-boundary-fixtures/project.godot",
+      "status": "added",
+      "sha256": "879694f27768e05991793eaeecb612cfde42429103629c1dbd17162033437ff5"
+    },
+    {
+      "path": "native-boundary-fixtures/results.json",
+      "status": "added",
+      "sha256": "437df0054ec8c4800d0d1bca3c189b427edba8c3a71bf6d3d9be553f744e8207"
+    },
+    {
+      "path": "native-boundary-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-boundary-fixtures/validation.json",
+      "status": "added",
+      "sha256": "a8aa55b5d4519c09925fcae2ee25191878202a428b6905d94c28542dd5d92d04"
+    },
+    {
+      "path": "native-card-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "b516123fc59c95679c6a532692a3d72c17a4f7ff7f51453b69d6be917508ad09"
+    },
+    {
+      "path": "native-card-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-card-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-card-fixtures/project.godot",
+      "status": "added",
+      "sha256": "f0182cefa53b45eecf46f22b2e817dd7c47d093869b3d6c978e1e6f5125dc85f"
+    },
+    {
+      "path": "native-card-fixtures/results.json",
+      "status": "added",
+      "sha256": "bd8689d539720420f20bae1e0441ef686d7fbfed15133b30250d1af0de98a45d"
+    },
+    {
+      "path": "native-card-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-card-fixtures/validation.json",
+      "status": "added",
+      "sha256": "ea1032f77d25137203525bf978cde3cf5e68e38f4b544e675a31dc488d5592d1"
+    },
+    {
+      "path": "native-event-round2-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "3ba8c4dc5352c12eb27193a13fd26eff85963a56bc785015789d4302575641b0"
+    },
+    {
+      "path": "native-event-round2-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-event-round2-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-event-round2-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-event-round2-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "d123a487034f8510ee7eacf0c57f5340385dd4e6f70c8f9e6e6c8168e3541cf4"
+    },
+    {
+      "path": "native-event-round2-fixtures/project.godot",
+      "status": "added",
+      "sha256": "7fec7c5687085abe9f5d27cfdb1ff71a01656d7a05e458aae46ddba7abe37b0d"
+    },
+    {
+      "path": "native-event-round2-fixtures/results.json",
+      "status": "added",
+      "sha256": "17b7fdd6c471f9d819f97833213fdf9e4052c9c7b1f3f8966015ca921aa1f547"
+    },
+    {
+      "path": "native-event-round2-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-event-round2-fixtures/validation.json",
+      "status": "added",
+      "sha256": "cd1d5f659a127706c33e69ee30d0ed789a047024e101a3b3d43588440d2f057c"
+    },
+    {
+      "path": "native-relic-round2-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "c848b9e0deff4f54c200028a36426811bd648b0a5adff196fe9fcabf1f582971"
+    },
+    {
+      "path": "native-relic-round2-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-relic-round2-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-relic-round2-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-relic-round2-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "6c4a4a9bbfb716de77bd8a4cd6edb400b5055406159aeb264ace82b61158709d"
+    },
+    {
+      "path": "native-relic-round2-fixtures/project.godot",
+      "status": "added",
+      "sha256": "482cd60c03d3df1883d50f424fcd6862d5f46c439a4aa774c9e9e0f1013b8c6a"
+    },
+    {
+      "path": "native-relic-round2-fixtures/results.json",
+      "status": "added",
+      "sha256": "c68ff3e677dd46bd18cbf101a1f035e4d203e41930231590e1642044f9fadc37"
+    },
+    {
+      "path": "native-relic-round2-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-relic-round2-fixtures/validation.json",
+      "status": "added",
+      "sha256": "2daf92cff71eab26b589b94e8c8b1ddfecbe7f167b07571ca098129ed68eee7a"
+    },
+    {
+      "path": "native-round3-card-fixtures/AuditWorker-metadata.cs.txt",
+      "status": "added",
+      "sha256": "f1a620aba28236edc6b45b3fda56dfa778bd95bafa2bb9c07bdc14506982f45f"
+    },
+    {
+      "path": "native-round3-card-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "91a7d7b53d04ebe6542c996d285334ccdb20808cdcfa24c2c06cdf4a4e12b461"
+    },
+    {
+      "path": "native-round3-card-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round3-card-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round3-card-fixtures/effects-64-invocation.json",
+      "status": "added",
+      "sha256": "6933c5b0215de717a460cebf9467e78382e6ce6801fb7930fd155f9261fec5fd"
+    },
+    {
+      "path": "native-round3-card-fixtures/effects-64-results.json",
+      "status": "added",
+      "sha256": "5f0b8a053d96edc0b6055a35e7b846484ae884134bd0ff0c73f6316f049fde9a"
+    },
+    {
+      "path": "native-round3-card-fixtures/effects-first-invocation.json",
+      "status": "added",
+      "sha256": "0b1727f43745455df3e7705000c16eab71174b84c5609514e0998ae815515ecd"
+    },
+    {
+      "path": "native-round3-card-fixtures/effects-first-results.json",
+      "status": "added",
+      "sha256": "432cc53abcdef1069f016b589fd7ab143aba0c70a2c4d0f416635ff51d238ab8"
+    },
+    {
+      "path": "native-round3-card-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round3-card-fixtures/failed-dampen-setup-invocation.json",
+      "status": "added",
+      "sha256": "1a689d58b031af69d05f0371ef515fd6644f010a911997328db1f64c7ed9a5e5"
+    },
+    {
+      "path": "native-round3-card-fixtures/failed-dampen-setup-results.json",
+      "status": "added",
+      "sha256": "3b5e05c8a90f55c4e09907811c5e239a4137cfaec557c3a97e29023d176be41c"
+    },
+    {
+      "path": "native-round3-card-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "bfcd298f01c62dffc8c6e330d65d2e60935d0aac83c8d4f80eface5bfadc9f07"
+    },
+    {
+      "path": "native-round3-card-fixtures/metadata-invocation.json",
+      "status": "added",
+      "sha256": "1a40a7bfd796de76cc44fb9fff1da2bcc52fe18a6596a4b1df84474c5b60ef3f"
+    },
+    {
+      "path": "native-round3-card-fixtures/metadata-results.json",
+      "status": "added",
+      "sha256": "de8437e25835dd3bcc67697e2e11b6c57ae9c6988a37a8e68208cf526b0eb03f"
+    },
+    {
+      "path": "native-round3-card-fixtures/project.godot",
+      "status": "added",
+      "sha256": "bbc93f86415a525f29cebc3b4d3c1ea0bec590b90e52dfb1ad74cd9e5a441928"
+    },
+    {
+      "path": "native-round3-card-fixtures/results.json",
+      "status": "added",
+      "sha256": "05f2583d1c6a955829dbd772af33ec3c09c144885f6f0250435d85c7eba53769"
+    },
+    {
+      "path": "native-round3-card-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round3-card-fixtures/stale-build-invocation.json",
+      "status": "added",
+      "sha256": "f4d87f419e747eef3734b18bca945f9ed9f06cb13619b74d23b0f6183dded92e"
+    },
+    {
+      "path": "native-round3-card-fixtures/validation.json",
+      "status": "added",
+      "sha256": "5b639b9df1f5acbb533133e83feed30f445f9a6e4e7bffee86ecf27b3a0f3cf4"
+    },
+    {
+      "path": "native-round3-event-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "28d3b2a91191beaa23a35274cffa23ae00e9e6bd619cbbbcfb42782be1402a87"
+    },
+    {
+      "path": "native-round3-event-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round3-event-fixtures/README.md",
+      "status": "added",
+      "sha256": "c27efb8d16bf23401d7216eb0d05289452fe5586516c51d944d1c0fc8ed8313e"
+    },
+    {
+      "path": "native-round3-event-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round3-event-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round3-event-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "6dd609a60301af1a58bb4aac7f9bffb4603d0c550b50a62e832b07c33f4780f4"
+    },
+    {
+      "path": "native-round3-event-fixtures/project.godot",
+      "status": "added",
+      "sha256": "3dde217d831aa65576e71f260c3c4fec7471290c18aceae9f891160b491bc02a"
+    },
+    {
+      "path": "native-round3-event-fixtures/results.json",
+      "status": "added",
+      "sha256": "b8d971ee14533ce1dcf0e2efa18c60ce4503dcf84fe80bbfdc8a14826d11ed93"
+    },
+    {
+      "path": "native-round3-event-fixtures/run-output.txt",
+      "status": "added",
+      "sha256": "ba57c9df44d3aec4e833f15079a5ceb3540f0107d05cf2e634121928710614e2"
+    },
+    {
+      "path": "native-round3-event-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round3-event-fixtures/validation.json",
+      "status": "added",
+      "sha256": "63de48aceb878d7c165c57fa47127ab9cc568c55ba6c662206a0fb681cfc8f65"
+    },
+    {
+      "path": "native-round3-relic-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "9756be25899559e750d22af0af564923da5e9dbe32033461705a8840d66a526b"
+    },
+    {
+      "path": "native-round3-relic-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round3-relic-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round3-relic-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round3-relic-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "ac09b9c61c37a4204587e6c9720dcc3033b7a23df14c610e99b7639d1524867a"
+    },
+    {
+      "path": "native-round3-relic-fixtures/project.godot",
+      "status": "added",
+      "sha256": "7fd911beaba8ec33abfec03e5455ce8ff0908d9397493fa90e43e5df10808177"
+    },
+    {
+      "path": "native-round3-relic-fixtures/results.json",
+      "status": "added",
+      "sha256": "2005c8a5eb099ca0d4dd74437a37b84b142e3ba15dca169615bbc9a5203e72ce"
+    },
+    {
+      "path": "native-round3-relic-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round3-relic-fixtures/transformation_pool.inc",
+      "status": "added",
+      "sha256": "8866e48503cd78bf351ecd09fee994d92416f8a4e74693446cf006dca9019fde"
+    },
+    {
+      "path": "native-round3-relic-fixtures/validate.py",
+      "status": "added",
+      "sha256": "a82bd82ea7cfbf0545dcb59e86587c5e3b73c0a8d78341dd3a59ac3ab738fa11"
+    },
+    {
+      "path": "native-round3-relic-fixtures/validation.json",
+      "status": "added",
+      "sha256": "0d59acf785c3b1fa2f35825c6a602bd9fe80f667eb1a17293b668c875d35257d"
+    },
+    {
+      "path": "native-run-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "3279c54de5c1312dd5928dcece730a3ed8ff605905308670f483f4b5d83ef87f"
+    },
+    {
+      "path": "native-run-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-run-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-run-fixtures/project.godot",
+      "status": "added",
+      "sha256": "8eb340579362fb4b204fccafce8b83e5f7271c06a8837433ce5baa3ea9ebf3a0"
+    },
+    {
+      "path": "native-run-fixtures/results.json",
+      "status": "added",
+      "sha256": "cca882062cac1c23f14a28745824531632089addb20d1dafa0c14001fe3e32d2"
+    },
+    {
+      "path": "native-run-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-run-fixtures/validation.json",
+      "status": "added",
+      "sha256": "ca64500286d583484d588052b5357ce6b9e46215deba6f6ccc1ccf798844078b"
+    },
+    {
+      "path": "scripts/armg_live_events.py",
+      "status": "added",
+      "sha256": "a294b9ec53d746e88b03c7536a156a6f57da97c4d2737e03f48eb9a5b7b5567c"
+    },
+    {
+      "path": "scripts/armg_live_worker.py",
+      "status": "added",
+      "sha256": "42e1f365dc7d2d0007db28ef054f135e2dfebee88c25439583b44e7e01ebea4e"
+    },
+    {
+      "path": "simulator/CMakeLists.txt",
+      "status": "modified",
+      "sha256": "2c7cc725c126d8a7259491840c5c581578162fa75e2ca5bb5c9b7d9f4d264349"
+    },
+    {
+      "path": "simulator/bindings/bindings.cpp",
+      "status": "modified",
+      "sha256": "5e81de2cd9dd0a64135c8bc88ce6a61a3573a1bcdb90e4feca7e3f81033b0d02"
+    },
+    {
+      "path": "simulator/content/cards.json",
+      "status": "modified",
+      "sha256": "5e96df8f61dbdd3e5e3f822f383a41cd549b8392f07ab8036fb7b09af33fa4b1"
+    },
+    {
+      "path": "simulator/include/sts2/battle.h",
+      "status": "modified",
+      "sha256": "6453bdb1e0b532ff8e0e8077e2f51ded0e4f970b4b7437e839377fed4bfcb156"
+    },
+    {
+      "path": "simulator/include/sts2/card_candidates.h",
+      "status": "modified",
+      "sha256": "02f22ab407c32709ca3ac82508eb5675bf0e53cb00a5b225fb029b48cac70099"
+    },
+    {
+      "path": "simulator/include/sts2/cards_generated.inc",
+      "status": "modified",
+      "sha256": "8fe7f1ff1d4408e59666fd4eb5cae82ca0ee800419233847fbd2abe4feefb90e"
+    },
+    {
+      "path": "simulator/include/sts2/common.h",
+      "status": "modified",
+      "sha256": "a148920f571ecff70a1ec872355b68a5f3911b16ec13d4e405e544722e9fe656"
+    },
+    {
+      "path": "simulator/include/sts2/map.h",
+      "status": "modified",
+      "sha256": "1d9bc6f608bacb6590b7789e9a43317871985c8efab48b8bf11b52568f3f72de"
+    },
+    {
+      "path": "simulator/include/sts2/monsters_generated.inc",
+      "status": "modified",
+      "sha256": "13802e05c5b2b5e4c0d94e6a7eefc07a295e1b1908ee01d8f6ac6f552c59d543"
+    },
+    {
+      "path": "simulator/include/sts2/native_block_cards.inc",
+      "status": "added",
+      "sha256": "6bfdbd8963e56a50e3d62791ea80ad7e69b31f8accd125fc17fa76a0fd36f4de"
+    },
+    {
+      "path": "simulator/include/sts2/native_potion_pool.inc",
+      "status": "added",
+      "sha256": "1101b8a4876dcbe9d3ac6c2d9ef76e739a99809072e1d7374ff0846fe4aa8fbd"
+    },
+    {
+      "path": "simulator/include/sts2/observe.h",
+      "status": "modified",
+      "sha256": "e9d8d39e641efba65b46290b3ca50ab5ef54647cf05db46878a456a844fb68e8"
+    },
+    {
+      "path": "simulator/include/sts2/relics.h",
+      "status": "modified",
+      "sha256": "5d9d9dd33a2e84dbfea1be9574f90cea94a832ece4b0495cf88af40690b43d5c"
+    },
+    {
+      "path": "simulator/include/sts2/run.h",
+      "status": "modified",
+      "sha256": "dbe98049daa975ae54c115ada9040e84b09276b6d4ed7fa2ebce2faccf8c6460"
+    },
+    {
+      "path": "simulator/src/battle.cpp",
+      "status": "modified",
+      "sha256": "954e7fe2e3fe927593741cf8cc89372c32b8907bd82ab30ab40788da81b501fe"
+    },
+    {
+      "path": "simulator/src/card_candidates.cpp",
+      "status": "modified",
+      "sha256": "1a4c8d3d147af8d42993d17ee3ba93779c12622f414ae834f5e23b0feb3dfce5"
+    },
+    {
+      "path": "simulator/src/cards.cpp",
+      "status": "modified",
+      "sha256": "dd28941e0b9f89f4ca7e5a273f9d0852115118f851ff14a837b9d11b35f941c4"
+    },
+    {
+      "path": "simulator/src/cards_colorless.cpp",
+      "status": "modified",
+      "sha256": "87f52a6e897e6583d4d5cd12fc81f6889e0397f13fe293dffba31ce7ae14f780"
+    },
+    {
+      "path": "simulator/src/cards_ironclad.cpp",
+      "status": "modified",
+      "sha256": "3e6064586b9b470bae735f6f477c724907179b903d2538706da650959bb79ecc"
+    },
+    {
+      "path": "simulator/src/events.cpp",
+      "status": "modified",
+      "sha256": "e2a1ba0d34e713274d617411a1ea1a15e2665db3b33d31c5f5c2777c4308b357"
+    },
+    {
+      "path": "simulator/src/map.cpp",
+      "status": "modified",
+      "sha256": "7ca0081dfe40855353db2a66b32b85fa9d967d38ff5c4434c5e9eeb0bd1cf4c7"
+    },
+    {
+      "path": "simulator/src/mcts.cpp",
+      "status": "modified",
+      "sha256": "da33c2eaeea323d89d76c688a35a8ac31d886e691f3879f21e378338bc357b5e"
+    },
+    {
+      "path": "simulator/src/observe.cpp",
+      "status": "modified",
+      "sha256": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac"
+    },
+    {
+      "path": "simulator/src/potions.cpp",
+      "status": "modified",
+      "sha256": "53cae73b34f835139f242a788d1a3cada4734d9b6d49aa86b2a631039e3a79ce"
+    },
+    {
+      "path": "simulator/src/relics.cpp",
+      "status": "modified",
+      "sha256": "5e2be2d016e09ed05d5af312d14ebcfb7d24a986666f3d30117b0044c3e468ba"
+    },
+    {
+      "path": "simulator/src/run.cpp",
+      "status": "modified",
+      "sha256": "e63a8ac230fe2a3dceecfa39ee1fb201887a511037a03ceb34fecddc2b56baac"
+    },
+    {
+      "path": "simulator/src/search.cpp",
+      "status": "modified",
+      "sha256": "cbb170500f75d84655b98e949bc1d936fd0f251f5b9aee21d1a2323f26d29a53"
+    },
+    {
+      "path": "simulator/tests/fixtures/native_act_41cef1ea.json",
+      "status": "added",
+      "sha256": "131099dda829899e33a540c766d3bf738e2ce8de4ac59e72ca49d7f6de719515"
+    },
+    {
+      "path": "simulator/tests/fixtures/native_rng_41cef1ea.json",
+      "status": "added",
+      "sha256": "98ab2cd3884da876654a9989ae10b785dcc5cda688ac7c3f231d8c88f5500c88"
+    },
+    {
+      "path": "simulator/tests/map_event_audit_regression.cpp",
+      "status": "modified",
+      "sha256": "54edcd1b4ca4ff76637e646752b13a2f05263a99d3a53d9ce224ba5784a5d665"
+    },
+    {
+      "path": "simulator/tests/native_act_alignment.cpp",
+      "status": "added",
+      "sha256": "6004038dac36f6b8e70a20e8632e6218778b8f56182c5b4909ed2476b6b4ac02"
+    },
+    {
+      "path": "simulator/tests/native_card_alignment.cpp",
+      "status": "added",
+      "sha256": "ebd6b6694840d3519322d8e9a60e43dd9bb9ea640a741a90d669a9bcb5aef3b2"
+    },
+    {
+      "path": "simulator/tests/native_card_round3_alignment.cpp",
+      "status": "added",
+      "sha256": "14e8d53702ddeb585b810f18aff05d15362a1172f620c1ef45c6b5e257b01a82"
+    },
+    {
+      "path": "simulator/tests/native_card_round3_vars.inc",
+      "status": "added",
+      "sha256": "b22bf7b0337eed6077d6fff8b1f6b4ae328a1c6d27529e53a8ce5bf30719f8bf"
+    },
+    {
+      "path": "simulator/tests/native_event_oracle_alignment.cpp",
+      "status": "added",
+      "sha256": "07633831c0f59cc483fd17c7132c2237d118238d1f6f3680fd3b543d5b0ed57a"
+    },
+    {
+      "path": "simulator/tests/native_event_round3_alignment.cpp",
+      "status": "added",
+      "sha256": "03663775f3c9e5e58237af1a403fb472131b48c00f990020a896acb4d621668a"
+    },
+    {
+      "path": "simulator/tests/native_relic_round2_alignment.cpp",
+      "status": "added",
+      "sha256": "dcdc4e574af2acab2d6af9fc3654207481601915386a38d6ebdc60b6a3f13d8d"
+    },
+    {
+      "path": "simulator/tests/native_relic_round3_alignment.cpp",
+      "status": "added",
+      "sha256": "3f9a8f79a9a2aa1a5ce11b608399f5e6a8476c726a900bdc1e8b17e8fce454bb"
+    },
+    {
+      "path": "simulator/tests/native_rng_contract.cpp",
+      "status": "added",
+      "sha256": "e5c8438e0ac930755f0cf4502c3f0030ae7eb7b7fa1775b35f723b6c2019fa0b"
+    },
+    {
+      "path": "simulator/tests/native_round3_shared_alignment.cpp",
+      "status": "added",
+      "sha256": "f5f5081298e34ba57db66601336bcc9ab9c01251c8f10c4e5b29adb79ded1770"
+    },
+    {
+      "path": "simulator/tests/native_run_alignment.cpp",
+      "status": "added",
+      "sha256": "c357b7cde45aa2689172cc28d80a647358cf4ad986c2cf764bdcc6ac00fd95ab"
+    },
+    {
+      "path": "simulator/tests/native_seed_integration.cpp",
+      "status": "added",
+      "sha256": "b8fe86ac3d01a76e93ceb4525c2ad06e7754d32c543ede9f095d3e425a3a2f22"
+    },
+    {
+      "path": "simulator/tests/native_underdocks_events.cpp",
+      "status": "added",
+      "sha256": "a79c1fc1a02a8dc2142b71bbc8075a3041a73cad1c1bacff6cb5686eeb1e90d9"
+    },
+    {
+      "path": "simulator/tests/observation_contract.cpp",
+      "status": "modified",
+      "sha256": "8747d3400b4fd25c93c64c0ed0a8c54a772db99e88f99c435f52b1c15e987ccb"
+    },
+    {
+      "path": "simulator/tests/relic_contract.cpp",
+      "status": "modified",
+      "sha256": "53f7d8686a770704f1ba05040ffcbdd18e2c91548397cfdf97cd4d51510ae92f"
+    },
+    {
+      "path": "simulator/tests/rules_regression.cpp",
+      "status": "modified",
+      "sha256": "b11f581c4f644b1f1e706bcd25d2aad2b4dff98e21807943cbb70d2855d5da77"
+    },
+    {
+      "path": "simulator/tests/snapshot_validation.cpp",
+      "status": "modified",
+      "sha256": "bc9181bb983b8aac7e6d4617a91374444cf0971ec772ab479c0d563ae5316283"
+    },
+    {
+      "path": "simulator/tools/gen_cards.py",
+      "status": "modified",
+      "sha256": "d4d3930e0b958277d1458d39e9fb0d023a05f21df84236b0e0523df54a2a62c2"
+    },
+    {
+      "path": "simulator/tools/gen_monsters.py",
+      "status": "modified",
+      "sha256": "eb001e5959334c91d8f283e0b9fe4f8053961ccb84c5615e0e398036d2c8c488"
+    },
+    {
+      "path": "tests/test_armg_floor_schedule.py",
+      "status": "modified",
+      "sha256": "b2119cb9fb881c343f00f3865ee81aca88f0393e131b37f5778752e1d633aad0"
+    },
+    {
+      "path": "tests/test_armg_native_bridge.py",
+      "status": "added",
+      "sha256": "45d6760dc8a2dab4be05b5a084a831f3a4de24a4a742d0ef5e6a77eba294bd67"
+    },
+    {
+      "path": "tests/test_audit_regressions.py",
+      "status": "modified",
+      "sha256": "f93036532341de3bdf652201d8af8cd4685fa0c90290a96fa8d422ae19b4c25d"
+    },
+    {
+      "path": "tests/test_binding_schema_contract.py",
+      "status": "modified",
+      "sha256": "2f9bc763bfda60b74a7c96917cae4617446bf81209575ba57af0986a5bb451fb"
+    },
+    {
+      "path": "tests/test_content.py",
+      "status": "modified",
+      "sha256": "8cf64f9627ace0904b740d693772411d5260b500a78e0ade3e337595ce352a28"
+    },
+    {
+      "path": "tests/test_engine_checkpoint_identity.py",
+      "status": "added",
+      "sha256": "fab2c91913df8a52d19176c957086696d61c0981e40c530853b1f1044bb7fda9"
+    },
+    {
+      "path": "tests/test_native_act_context.py",
+      "status": "added",
+      "sha256": "0b2f7f85f44d71a371da0c0b5937bc5d4e426c4ad07fc6635e8eec545881aecf"
+    },
+    {
+      "path": "tests/test_native_seed_identity.py",
+      "status": "added",
+      "sha256": "5c010f28e3bb86383b26d28c06ec8c2d91f3020f907f502c2dfb875a6cf413f0"
+    },
+    {
+      "path": "tests/test_puct_fresh_init.py",
+      "status": "added",
+      "sha256": "145e6b8c403d9f1d6a96cc9c7c3241a3242420d7903e90ebb5b6465578ddb7f6"
+    },
+    {
+      "path": "tools/generate_native_act_fixtures.py",
+      "status": "added",
+      "sha256": "6dbaf893dd17d6db762a93261d8b37eba4248d0b3a6950951c9299bc179a3f04"
+    },
+    {
+      "path": "tools/native-rng-vectors/NativeRngVectors.csproj",
+      "status": "added",
+      "sha256": "69191799a32483364fac1205060bc00cc792ca478c35a2ff8c627eabd2e24e5c"
+    },
+    {
+      "path": "tools/native-rng-vectors/NuGet.Config",
+      "status": "added",
+      "sha256": "9508cae5f76364f56e80eb97cb16493977243cf38e5cca6284e3d74f83b20a2c"
+    },
+    {
+      "path": "tools/native-rng-vectors/Program.cs",
+      "status": "added",
+      "sha256": "d7ff60d37f70126f9ca0ecb2db141a08fdbea0689f39dfff49c9bf3174e3299c"
+    },
+    {
+      "path": "validation/build_local.py",
+      "status": "added",
+      "sha256": "fd669c67dc4759b6b3b215542ddb197817918df63f658fd4c1d1b43eb30f2ee4"
+    },
+    {
+      "path": "validation/export_port.py",
+      "status": "added",
+      "sha256": "8743fa55b1e09213b3df5840c84cad5fed991c5f0520336c3d79eac4b60072f8"
+    },
+    {
+      "path": "validation/export_round3.py",
+      "status": "added",
+      "sha256": "66c7c3c742dc6ed494a45056360230f7d081900291b73aff8f7facf95cdee827"
+    },
+    {
+      "path": "validation/round2/benchmark-1000.txt",
+      "status": "added",
+      "sha256": "4929889de0b6d45a02531680c2efc24074546eca545d327eff261094c3bd9df8"
+    },
+    {
+      "path": "validation/round2/bridge-build.txt",
+      "status": "added",
+      "sha256": "37d7e5891ef3a487c56e5106f36bfc42facbcdbd6d6f1ff7d6c521a8acde1cc1"
+    },
+    {
+      "path": "validation/round2/cpp-tests.json",
+      "status": "added",
+      "sha256": "d3aed70dfb341dce6761a06abbe11b93f2c4a877ef5a68190322fc3d7468b1a2"
+    },
+    {
+      "path": "validation/round2/engine-contract.json",
+      "status": "added",
+      "sha256": "34d1d26fe991f7a15b72d6483a794ca98b99e2101d71992cc10049f330189564"
+    },
+    {
+      "path": "validation/round2/puct-classification-tests.txt",
+      "status": "added",
+      "sha256": "a83715307e5b6a9d8c45dbd758441c569e1acdbec6b343dfbdc65414d2738b63"
+    },
+    {
+      "path": "validation/round2/puct-training-smoke-audit.json",
+      "status": "added",
+      "sha256": "19d189e98238f3c6aa0698ae937574712af5abfb4a8e7859b96ff4194cd12f61"
+    },
+    {
+      "path": "validation/round2/puct-training-smoke-summary.md",
+      "status": "added",
+      "sha256": "da2d7049909c3458dc72b1a18b371b7e9194f81b39192ecf475b9bb6b974d9bc"
+    },
+    {
+      "path": "validation/round2/python-identity-results-final.txt",
+      "status": "added",
+      "sha256": "bd32128723a5cf244c52b5e6d4582e0bfee6089e35e9dbadad559d833a4157ae"
+    },
+    {
+      "path": "validation/round2/python-identity-results.txt",
+      "status": "added",
+      "sha256": "15b54626abe32e03ba6f8c2bde9fd111a1cd23ed2846071784c68d285efcaaf3"
+    },
+    {
+      "path": "validation/round2/python-integration.txt",
+      "status": "added",
+      "sha256": "212ff90aa5f442271037187a2c5025bf2f88f3786226bfcddffd366b7c7b23f5"
+    },
+    {
+      "path": "validation/round2/round1-status.md",
+      "status": "added",
+      "sha256": "55fa3f2549e738bf9b6c80bf868e866b6e97b91727110b057f5a9a2b9f89ed9a"
+    },
+    {
+      "path": "validation/round2/summary.json",
+      "status": "added",
+      "sha256": "a2204603049e5b0c0e6e61c19ff753a37f620101123e128ce3c838aba0423aa4"
+    },
+    {
+      "path": "validation/round3/benchmark-1000.txt",
+      "status": "added",
+      "sha256": "42b017b04e9838dab48126ffc2481b56b9d0c941546194d5b860ea4493d1766b"
+    },
+    {
+      "path": "validation/round3/build.json",
+      "status": "added",
+      "sha256": "9453bacc226fd1de5f8b4e1af59e3afd4bbb3452b931ef8308260dd8577b16d2"
+    },
+    {
+      "path": "validation/round3/cards-audit.json",
+      "status": "added",
+      "sha256": "549e824311ae0c0db8c1c622294b409fad8c2a607fa1420924dc33af6d5c3a77"
+    },
+    {
+      "path": "validation/round3/cards-metadata-differences.json",
+      "status": "added",
+      "sha256": "eaed2fd9eb337352e36e03b45d88aeeca709b57cd76622a0aeef187e3ac72539"
+    },
+    {
+      "path": "validation/round3/cpp-initial-run.txt",
+      "status": "added",
+      "sha256": "0bb8fa252f64affebbec273f6a4c06b204ed343508e712407c49ace88483f54d"
+    },
+    {
+      "path": "validation/round3/cpp-run.txt",
+      "status": "added",
+      "sha256": "2f45360ce42faa81e1dbe0b3843ebb938a5826f06e04faa7a5609c661e58300e"
+    },
+    {
+      "path": "validation/round3/cpp-tests.json",
+      "status": "added",
+      "sha256": "527e9b4db06861271461380dd8cde63cc6268c45af5a6daea2dc6728fdd52386"
+    },
+    {
+      "path": "validation/round3/engine-contract.json",
+      "status": "added",
+      "sha256": "4ce400e2a6aefc86890a7a6e0acb06d528c9d46ddedf3f41aa8c551da9c07896"
+    },
+    {
+      "path": "validation/round3/events-audit.json",
+      "status": "added",
+      "sha256": "c9cafb8da0e6ed569c825a8054a8d4b31883c41aab2ba3f25f3392d93c3dbb24"
+    },
+    {
+      "path": "validation/round3/events-cpp.txt",
+      "status": "added",
+      "sha256": "f701aa88170a6938bd660ca6da5d178547e9d191ccbeb86fc9f1f981b69c4c88"
+    },
+    {
+      "path": "validation/round3/native-transformation-pool.json",
+      "status": "added",
+      "sha256": "8e825dda6d335541a8cb4ca2b325339213ed9b5b328efdd48a3ef8b4d6c38b64"
+    },
+    {
+      "path": "validation/round3/python-tests.txt",
+      "status": "added",
+      "sha256": "c58cd1fdf89eda0f194c6fe3326291ce773bb086bdf4f7172add6bde54483e28"
+    },
+    {
+      "path": "validation/round3/relics-audit.json",
+      "status": "added",
+      "sha256": "c4ad4cb84e30166eaf809422700ee4cb9cae1bb01bbbba8eb5d21712ad751ea5"
+    },
+    {
+      "path": "validation/round3/run_cpp_tests.py",
+      "status": "added",
+      "sha256": "0d80f51d3c97b85bcb5928ffeec8a2296b43d5c9137e13fbc6856ded39039013"
+    },
+    {
+      "path": "validation/round3/summary.json",
+      "status": "added",
+      "sha256": "7930cd79b7c4dbb9aa5a3a24a61ff3977438e5e2fed2771317be9de6d2dbef16"
+    },
+    {
+      "path": "validation/summary.json",
+      "status": "added",
+      "sha256": "7930cd79b7c4dbb9aa5a3a24a61ff3977438e5e2fed2771317be9de6d2dbef16"
+    }
+  ],
+  "patch_sha256": "dc60f29f61154308c5e2442eac40df379417b74d8ae59728168922b6e63d1cea",
+  "source_patch_applies_to_base": true,
+  "patch_bytes": 2386332
+}

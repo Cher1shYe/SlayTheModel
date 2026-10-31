@@ -1,0 +1,221 @@
+{
+  "output": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/weights/armg-native-port-v2-init.pt",
+  "sha256": "bc6af615c4612bf5eb9414e5c1e5884e484c499230b0e8ac47976b8d8412aff9",
+  "migration": {
+    "mode": "explicit_weights_only",
+    "created_utc": "2026-10-31T09:57:41.937076+00:00",
+    "source_checkpoint": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/weights/armg-native-port-init.pt",
+    "source_checkpoint_sha256": "63c487f5bdef291cf11f06c93dd7b3f8497c1e712da2c71dbc95e944c7bd8f95",
+    "old_engine_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a",
+    "new_engine_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+    "old_engine_hash_evidence": "checkpoint settings; original training binary not executed",
+    "source_tree": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round2/source-before",
+    "source_content_sha256": "2d16b21ef9ff473b63b961ca6ae7d2fe1070214c78ad276edba02e8e13d5c7a5",
+    "source_engine_contract": {
+      "version": 1,
+      "ruleset_id": "native-41cef1ea-port-v1",
+      "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+      "native_parity_complete": false,
+      "simulator_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a",
+      "source_content_sha256": "2d16b21ef9ff473b63b961ca6ae7d2fe1070214c78ad276edba02e8e13d5c7a5",
+      "id_layout_sha256": "6a0aee3066db87b41b2dc7c3c696a1056f8a07013fbd0607b0927870f1c3ff7f",
+      "schema_layout_sha256": "4cc00ee083f3d1181afc43ab7d33ad768575d94275ed6f51f12d72f3f97e1485",
+      "dimensions": {
+        "RUN_OBS_DIM": 237,
+        "CARD_FEAT_DIM": 250,
+        "COMBAT_OBS_DIM": 61,
+        "ACTION_FEAT_DIM": 340,
+        "PUBLIC_OBS_DIM": 37305,
+        "PUBLIC_COMBAT_OBS_DIM": 21330,
+        "PUBLIC_OBS_VERSION": 10,
+        "ACTION_SCHEMA_VERSION": 9,
+        "MAX_DECK": 128,
+        "MAP_MAX_POINTS": 119,
+        "CARD_COUNT": 222
+      },
+      "feature_sources": {
+        "simulator/src/observe.cpp": "d50f5a62330fe2d59e63471aacf352ad9a2d7de87c01d7d3fab3b850484ec2fa",
+        "agent/armg.py": "674e817e0a699dc2ba5e63e4e9fec589848607b0deeac6f7929d9ffaba452362",
+        "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+      }
+    },
+    "target_engine_contract": {
+      "version": 2,
+      "ruleset_id": "native-41cef1ea-port-v2",
+      "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+      "native_parity_complete": false,
+      "simulator_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+      "source_content_sha256": "3d7f31cf52bbd9f94246a0d95ff616ef48f7d498bf39d69282c399a2cd84d25c",
+      "id_layout_sha256": "fd0bacc6f8d55ba605dd91e23950d6c282fe6641be9d0757c09800504762233a",
+      "schema_layout_sha256": "25c9c9606cc0d53f51cb6c0cd1fab5c24f34da5e33f11a8951963338f44f3ebc",
+      "dimensions": {
+        "RUN_OBS_DIM": 237,
+        "CARD_FEAT_DIM": 250,
+        "COMBAT_OBS_DIM": 61,
+        "ACTION_FEAT_DIM": 342,
+        "PUBLIC_OBS_DIM": 46023,
+        "PUBLIC_COMBAT_OBS_DIM": 29651,
+        "PUBLIC_OBS_VERSION": 11,
+        "ACTION_SCHEMA_VERSION": 10,
+        "MAX_DECK": 128,
+        "MAP_MAX_POINTS": 119,
+        "CARD_COUNT": 222
+      },
+      "boundaries": {
+        "PUBLIC_RUN_DIM": 16372,
+        "PUB_RUN_BOSS_OFFSET": 3846,
+        "PUB_RUN_EXTENSION": 395
+      },
+      "feature_sources": {
+        "simulator/src/observe.cpp": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac",
+        "agent/armg.py": "edb75c6d69b3a07d6d8b39e6aa6735350988716e2055d9dc6bad24df59dd4f4f",
+        "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+      }
+    },
+    "source_settings": {
+      "simulator_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a"
+    },
+    "source_progress": null,
+    "previous_migration": {
+      "mode": "explicit_weights_only",
+      "created_utc": "2026-10-31T05:20:49.546266+00:00",
+      "source_checkpoint": "/Users/yebohou/SlayTheModel/artifacts/reference/armg-live-20261031/latest.pt",
+      "source_checkpoint_sha256": "cfcb115024b0b0a222b88bf0033ef55e1e7b3cf667194c9dbba36b923180b91c",
+      "old_engine_sha256": "8f7fe6addc6ad455bf14c2c2d2059c40cf0b222ad1b7e7ceb60b25f0be5ffb34",
+      "new_engine_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a",
+      "old_engine_hash_evidence": "checkpoint settings; original training binary not executed",
+      "source_tree": "/Users/yebohou/SlayTheModel/artifacts/reference/alphazero-be401e8",
+      "source_content_sha256": "3b27384f75e2212fdc45318ed526fba2ac3f5196e7031101a07a21e248adbbb8",
+      "source_engine_contract": null,
+      "target_engine_contract": {
+        "version": 1,
+        "ruleset_id": "native-41cef1ea-port-v1",
+        "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+        "native_parity_complete": false,
+        "simulator_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a",
+        "source_content_sha256": "2d16b21ef9ff473b63b961ca6ae7d2fe1070214c78ad276edba02e8e13d5c7a5",
+        "id_layout_sha256": "6a0aee3066db87b41b2dc7c3c696a1056f8a07013fbd0607b0927870f1c3ff7f",
+        "schema_layout_sha256": "4cc00ee083f3d1181afc43ab7d33ad768575d94275ed6f51f12d72f3f97e1485",
+        "dimensions": {
+          "RUN_OBS_DIM": 237,
+          "CARD_FEAT_DIM": 250,
+          "COMBAT_OBS_DIM": 61,
+          "ACTION_FEAT_DIM": 340,
+          "PUBLIC_OBS_DIM": 37305,
+          "PUBLIC_COMBAT_OBS_DIM": 21330,
+          "PUBLIC_OBS_VERSION": 10,
+          "ACTION_SCHEMA_VERSION": 9,
+          "MAX_DECK": 128,
+          "MAP_MAX_POINTS": 119,
+          "CARD_COUNT": 222
+        },
+        "feature_sources": {
+          "simulator/src/observe.cpp": "d50f5a62330fe2d59e63471aacf352ad9a2d7de87c01d7d3fab3b850484ec2fa",
+          "agent/armg.py": "674e817e0a699dc2ba5e63e4e9fec589848607b0deeac6f7929d9ffaba452362",
+          "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+        }
+      },
+      "source_settings": {
+        "combat": "puct-root-oracle",
+        "combat_prior_checkpoint": "D:\\sts2_datacollection\\sts2\\runs\\combat_dagger_a0_20261029\\round5.pt",
+        "combat_prior_snapshot": "D:\\sts2_datacollection\\sts2\\runs\\armg_puct_3000_500_prior005_1024_20261030\\combat_policy.pt",
+        "combat_prior_sha256": "a61452adc345d7407ed551d0e8f20590daecf3bfe89958614e1d5dc587ea4792",
+        "combat_prior_depth": 1,
+        "combat_prior_c": 3.0,
+        "reward_formula": "1.0 if won else floor / 50.0",
+        "information": "oracle",
+        "simulations": 3000,
+        "epsilon": 0.05,
+        "max_steps": 5000,
+        "ascension": 0,
+        "seed": 20261030,
+        "batch_size": 32,
+        "eval_every": 640,
+        "eval_runs": 50,
+        "lr": 0.0003,
+        "train_seed_offset": 330000,
+        "need_rules": false,
+        "relic_rules": false,
+        "workers": 8,
+        "combat_budget_start": 3000,
+        "combat_budget_per_floor": 500,
+        "combat_budget_elite_bonus": 0,
+        "combat_budget_boss_bonus": 0,
+        "combat_budget_formula": "start + increment * (max(floor, 1) - 1) + room bonus",
+        "final_boss_potion_weight": 0.0,
+        "other_battle_potion_weight": 4.0,
+        "root_action": "best winning rollout else most visited",
+        "path_cache": "none",
+        "search_rng": "independent per-episode RNG, not derived from game seed",
+        "simulator_sha256": "8f7fe6addc6ad455bf14c2c2d2059c40cf0b222ad1b7e7ceb60b25f0be5ffb34",
+        "init_sha256": "f933e2c8976a5540451ff0811bc55cbfd50bf5268c3838fe8e651376817de63a",
+        "validation_seed_base": 20300000,
+        "website_manifest_sha256": "e667b082ed6d9c9543163faee32c861ac36c92ef3333431326f16c0fbc9ab14a",
+        "website_data_dir": "D:\\sts2_datacollection\\sts2\\runs\\armg_spire_wr50_prior_20261030\\data",
+        "website_snapshot_dir": "D:\\sts2_datacollection\\sts2\\runs\\armg_puct_3000_500_prior005_1024_20261030\\data_snapshot",
+        "prior_weight": 0.05,
+        "skip_elo_start": 1350,
+        "skip_elo_per_floor": 10,
+        "skip_elo_formula": "1350 + 10 * (max(floor, 1) - 1)",
+        "prior_temperature": 2.0,
+        "prior_scope": "ordinary skip and website-covered Ironclad reward cards; colorless/other actions remain in RL",
+        "training_seed_base": 10330000,
+        "target_games": 1024
+      },
+      "source_progress": {
+        "games": 896,
+        "baseline": 0.8032119398867448,
+        "best_floor": 42.4,
+        "floor_sum": 35728,
+        "completed": 896,
+        "truncated": 0,
+        "errors": 0,
+        "source_games": 960,
+        "initialization": {
+          "mode": "full_rl_continuation",
+          "source": "D:\\sts2_datacollection\\sts2\\runs\\armg_floor2000_elite1000_boss2000_rl_20261030\\latest.pt",
+          "sha256": "f933e2c8976a5540451ff0811bc55cbfd50bf5268c3838fe8e651376817de63a"
+        },
+        "simulator_changes": [
+          {
+            "from": "aaaf71028de6fde31432cd67b2d7d3872df5cebea663ceb5775d9e781ca15155",
+            "to": "8f7fe6addc6ad455bf14c2c2d2059c40cf0b222ad1b7e7ceb60b25f0be5ffb34",
+            "at_games": 0,
+            "source_checkpoint": "D:\\sts2_datacollection\\sts2\\runs\\armg_floor2000_elite1000_boss2000_rl_20261030\\latest.pt",
+            "source_sha256": "f933e2c8976a5540451ff0811bc55cbfd50bf5268c3838fe8e651376817de63a",
+            "new_simulator_path": "D:\\sts2_datacollection\\sts2\\.scratch\\potion-module\\sts2_sim.cp312-win_amd64.pyd",
+            "recorded_utc": "2026-10-30T10:22:59.670051+00:00"
+          }
+        ]
+      },
+      "previous_migration": null,
+      "feature_changes": [
+        "ArmG v1 -> v2: grid kinds 6/7/8 encode selected deck card and enchantment; same IDs/dimensions and existing grid_kind/5 scale; new choices are untrained",
+        "public run state for grid kinds >=6 uses the previously empty first grid-card row's first two features for pending damage/16 and curse ID/CardId::COUNT"
+      ],
+      "compatibility_evidence": "matching source ID maps, dimension formulas and binding counts; explicit feature adapter only; not a complete feature/native parity audit",
+      "training_games_in_target_environment": 0,
+      "reset_fields": [
+        "optimizer_state_dict",
+        "progress",
+        "torch_rng_state",
+        "python_rng_state",
+        "numpy_rng_state"
+      ]
+    },
+    "feature_changes": [
+      "ArmG v10 -> v11: preserve run prefix, separately append each boss identity column, shift remaining old run fields by two, append native run context, move unchanged action block",
+      "new input columns initialize to zero; old logits are preserved on corresponding old features, not a claim of trained behavior on new rules or new features",
+      "ArmG feature v3 adds deck/enchantment rows for grid kinds 9/10/11/12 (and v1: 6/7/8); existing grid_kind/5 scale retained"
+    ],
+    "compatibility_evidence": "verified retained source IDs, explicitly appended IDs and named feature-segment mapping; explicit feature adapter only; not a complete feature/native parity audit",
+    "training_games_in_target_environment": 0,
+    "reset_fields": [
+      "optimizer_state_dict",
+      "progress",
+      "torch_rng_state",
+      "python_rng_state",
+      "numpy_rng_state"
+    ]
+  }
+}

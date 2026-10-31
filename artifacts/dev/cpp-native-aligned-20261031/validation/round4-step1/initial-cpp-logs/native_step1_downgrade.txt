@@ -1,0 +1,1 @@
+Assertion failed: (card_cost(c)==v["cost"]), function check_card, file native_step1_downgrade.cpp, line 24.

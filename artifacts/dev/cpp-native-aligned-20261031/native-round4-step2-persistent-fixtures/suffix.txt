@@ -1,0 +1,6 @@
+            File.WriteAllText(output, JsonSerializer.Serialize(new {status="completed",gameAssemblySha256=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(typeof(ModelDb).Assembly.Location))).ToLowerInvariant(),gameSceneLoaded=MegaCrit.Sts2.Core.Nodes.NGame.Instance!=null,userDirectory=OS.GetUserDataDir(),scope="Controlled persistent relic hooks, Byrdpip transforms/pet/ByrdSwoop. Not full runs or general hook order parity.",results},new JsonSerializerOptions{WriteIndented=true}));
+            GD.Print("SIM_AUDIT_COMPLETED "+output);GetTree().Quit();
+        }
+        catch(Exception e) { File.WriteAllText(output,JsonSerializer.Serialize(new{status="error",error=e.ToString(),results},new JsonSerializerOptions{WriteIndented=true}));GD.PrintErr(e);GetTree().Quit(1); }
+    }
+}

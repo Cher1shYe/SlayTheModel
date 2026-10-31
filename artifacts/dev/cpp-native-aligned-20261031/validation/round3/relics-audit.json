@@ -1,0 +1,255 @@
+{
+  "round": 3,
+  "target": "v0.111.0 / 41cef1ea",
+  "game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "coverage": {
+    "reviewed_relic_classes": 30,
+    "fixed_or_integrated": 8,
+    "new_native_fixtures": 26,
+    "cpp_checks": 58,
+    "all_event_pool_relics": 132,
+    "event_ids_without_explicit_cpp_reference_after_fixes": [
+      "RING_OF_THE_DRAKE",
+      "INFUSED_CORE",
+      "PHYLACTERY_UNBOUND",
+      "DIVINE_DESTINY",
+      "BONE_TEA",
+      "BYRDPIP",
+      "DREAM_CATCHER",
+      "FAKE_MERCHANTS_RUG",
+      "FAKE_VENERABLE_TEA_SET",
+      "WONGO_CUSTOMER_APPRECIATION_BADGE"
+    ],
+    "no_reference_interpretation": "Text scan is triage only, not proof of absence. Four other-character upgraded starter relics are outside Ironclad scope. FakeMerchantsRug and Wongo badge intentionally have no native gameplay hooks.",
+    "native_ironclad_transformation_candidates_exactly_compared": 80
+  },
+  "evidence": {
+    "native": "native-round3-relic-fixtures/results.json",
+    "native_validation": "native-round3-relic-fixtures/validation.json",
+    "cpp_test": "simulator/tests/native_relic_round3_alignment.cpp",
+    "cpp_log": "validation/round3/native_relic_round3_alignment.log",
+    "complete_transformation_pool": "validation/round3/native-transformation-pool.json"
+  },
+  "scope": "Targeted controlled relic fixtures and source audit. No whole-run parity claim; remaining entries are confirmed gaps, not implementation-complete. EVENT blanket remains a coarse availability gate, not proof of parity.",
+  "reviewed": [
+    {
+      "native_class": "DistinguishedCape",
+      "status": "fixed_or_integrated",
+      "finding": "Replace incorrect max-HP loss with two distinct generatable curses, then three Apparition; Niche RNG and add hooks.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/DistinguishedCape.cs",
+      "source_sha256": "0513ba2907671770a7eb6405752535e651db6300a1a426a5fabb914a0c223b00"
+    },
+    {
+      "native_class": "SereTalon",
+      "status": "fixed_or_integrated",
+      "finding": "Lose nine max HP through damage/death prevention, then add three Wish; no curse RNG.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/SereTalon.cs",
+      "source_sha256": "26d2b7ceddd5b245661dd01b118a14a09d66110072ceaa00c5cc7dd22691093b"
+    },
+    {
+      "native_class": "LeafyPoultice",
+      "status": "fixed_or_integrated",
+      "finding": "Lose twelve max HP, transform first basic Strike and first basic Defend using player Transformations RNG; preserve native order and add hooks.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/LeafyPoultice.cs",
+      "source_sha256": "c57b9ef7112f3c6b7c316ef54a607fd8afa2b5f7ea18f93a6ae85ddb2a2243c4"
+    },
+    {
+      "native_class": "NeowsTorment",
+      "status": "fixed_or_integrated",
+      "finding": "Add NeowsFury, without random Attack selection.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/NeowsTorment.cs",
+      "source_sha256": "ab4f7b9dbf1a3f2cb659935ac31a72716c3c62a84b31abe4133a5381815cf30a"
+    },
+    {
+      "native_class": "StoneCracker",
+      "status": "fixed_or_integrated",
+      "finding": "Every combat upgrades two eligible draw cards after native stable sort/shuffle using CombatCardSelection RNG.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/StoneCracker.cs",
+      "source_sha256": "db55f01feb6e71321b027eb0a3446fac1c1c00fb375b9c7084f3ea85dd673752"
+    },
+    {
+      "native_class": "SealOfGold",
+      "status": "fixed_or_integrated",
+      "finding": "Spend three gold for one energy at the turn boundary.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/SealOfGold.cs",
+      "source_sha256": "86d900d9284bbb555fd8264679274246d25f43a42a4a0f0c9f30c7aee4cc7a06"
+    },
+    {
+      "native_class": "FakeStrikeDummy",
+      "status": "fixed_or_integrated",
+      "finding": "Add one damage to Strike-tagged attacks, stacking with the normal relic.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/FakeStrikeDummy.cs",
+      "source_sha256": "1d0008cece4bb4c00ea33890ec1d9605deda8928db85016e29f1561a6d292b9a"
+    },
+    {
+      "native_class": "RedSkull",
+      "status": "fixed_or_integrated",
+      "finding": "Root integrates immediate current-HP change hooks; native healing/damage threshold fixtures supplied here.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/RedSkull.cs",
+      "source_sha256": "cf57eb10a81ced7a20a845c53b1f58253fbf980f1b72f76243d57f1cbe165382"
+    },
+    {
+      "native_class": "ToyBox",
+      "status": "confirmed_remaining",
+      "finding": "Native gives five wax relic rewards and melts first unmelted wax relic after every third combat, stopping after fifteen. Current engine gives four ordinary random relics and removes a random unrelated relic indefinitely; wax state unsupported.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/ToyBox.cs",
+      "source_sha256": "bda7689393bf69cea11f328ffc222af9156c73bd604bd452fb704e98c62695f1"
+    },
+    {
+      "native_class": "DustyTome",
+      "status": "confirmed_remaining",
+      "finding": "Native selects an Ancient character card during setup (excluding Transcendence cards), stores its identity, and adds it upgraded. Engine adds random rare via Niche.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/DustyTome.cs",
+      "source_sha256": "077a4d84772a1c4f6a98bd3e43112a69d2caa7cbc48e8e28dc1b45aab53bf4b5"
+    },
+    {
+      "native_class": "SeaGlass",
+      "status": "confirmed_remaining",
+      "finding": "Native presents fifteen cards (five per rarity) from selected character and lets player choose 0..15. Engine automatically adds three random uncommon Ironclad cards.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/SeaGlass.cs",
+      "source_sha256": "6833f9402cf40a44b2844589ef2b8391519c8181ad557ac8af2d9a1ebaa32665"
+    },
+    {
+      "native_class": "LeadPaperweight",
+      "status": "confirmed_remaining",
+      "finding": "Native offers two colorless cards and permits skipping. Engine auto-adds one random uncommon.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/LeadPaperweight.cs",
+      "source_sha256": "3631dcf67276d245a1613031a97b95be33c3c0fdf83b2cf17fac22f10744f8b4"
+    },
+    {
+      "native_class": "MassiveScroll",
+      "status": "confirmed_remaining",
+      "finding": "Native is multiplayer-only, offering three multiplayer cards with player selection. Engine treats it as one random colorless uncommon; single-player exclusion unimplemented.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/MassiveScroll.cs",
+      "source_sha256": "c826e069cb32a7552f88661161467b5c18a9a0b0f27dd228a91b3ca9e0debffb"
+    },
+    {
+      "native_class": "ArcaneScroll",
+      "status": "confirmed_remaining",
+      "finding": "Native uses CardFactory/CreateForReward player reward RNG and modification hooks. Engine samples direct Niche rare pool.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/ArcaneScroll.cs",
+      "source_sha256": "2c4ed3e98daa57d0d689bd0f4af253f2c5c09697190b9f0d6f2d1f3e946c19ba"
+    },
+    {
+      "native_class": "DelicateFrond",
+      "status": "confirmed_remaining",
+      "finding": "Native uses PotionFactory/CreateRandomPotionOutOfCombat on CombatPotionGeneration; current flat-ID loop has different distributions and breaks on a rejected class potion.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/DelicateFrond.cs",
+      "source_sha256": "df8797785c515b3392392623a941ecc2cf1e223a4759cc4b870ba96db1da58e5"
+    },
+    {
+      "native_class": "AlchemicalCoffer",
+      "status": "confirmed_remaining",
+      "finding": "Native generates four potions from CombatPotionGeneration and procures into four newly added slots. Engine uses Niche flat-ID selection and fills the first open slots.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/AlchemicalCoffer.cs",
+      "source_sha256": "f9e446f1c6dd40ba86490cb56127ad4ad0244fb3831cc26d98588be9089e6dca"
+    },
+    {
+      "native_class": "SmallCapsule",
+      "status": "confirmed_remaining",
+      "finding": "Native offers a relic reward; current direct random obtain does not preserve reward skip and acquisition timing.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/SmallCapsule.cs",
+      "source_sha256": "ae052e2dbcfc30eed878ec64a6132f7d130273603379c818b547605f0ef6634c"
+    },
+    {
+      "native_class": "LargeCapsule",
+      "status": "confirmed_remaining",
+      "finding": "Native draws from ordered relic bag via PullNextRelicFromFront. Current wrapper additionally rolls rarity using Niche; selection suspension sequencing still limited.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/LargeCapsule.cs",
+      "source_sha256": "64b9a6ff561efb66fd9aff37c63f67ee3869aa6fbcb8ffe9cc7bf41a049e82f7"
+    },
+    {
+      "native_class": "LostCoffer",
+      "status": "confirmed_remaining",
+      "finding": "Native offers a character-card reward with regular encounter rarity odds plus a potion. Current card reward is forced common colorless.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/LostCoffer.cs",
+      "source_sha256": "96579eaef2fdec892f201d1e643f0659d589a6521025339b06e762a5be85b79e"
+    },
+    {
+      "native_class": "BoneTea",
+      "status": "confirmed_remaining",
+      "finding": "Native upgrades initial hand for its one remaining combat; current EVENT blanket advertises implementation with no hook.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/BoneTea.cs",
+      "source_sha256": "e7aa581caffc77b37ad2a6f0a98c2785c6c811cb5efd977282aa511ce3df8c5a"
+    },
+    {
+      "native_class": "Byrdpip",
+      "status": "confirmed_remaining",
+      "finding": "Native transforms ByrdonisEgg to ByrdSwoop and summons pet; unsupported pet/egg subsystem.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/Byrdpip.cs",
+      "source_sha256": "af27959ddfe234c0aa644c9859e992451b6d64a672a084f6acd1db4e4a0acefa"
+    },
+    {
+      "native_class": "DreamCatcher",
+      "status": "confirmed_remaining",
+      "finding": "Native adds a three-card regular encounter reward after rest healing; missing hook.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/DreamCatcher.cs",
+      "source_sha256": "8b0d1e60c9d2b41151cd2e523df3dccd7af610f56b15cac30bdc286aee645af9"
+    },
+    {
+      "native_class": "FakeVenerableTeaSet",
+      "status": "confirmed_remaining",
+      "finding": "Native rest-site entry grants one energy after next combat energy reset; missing saved counter/hook.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/FakeVenerableTeaSet.cs",
+      "source_sha256": "3c03881fcf41948d82c3f0038814fcfed114b3cf23ff76cb9c73399b958d03a7"
+    },
+    {
+      "native_class": "TouchOfOrobas",
+      "status": "confirmed_remaining",
+      "finding": "Native replaces the starter relic in place; engine remove/append can change relic order and currently shifts only relic IDs, not auxiliary state.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/TouchOfOrobas.cs",
+      "source_sha256": "383244ea3be8742267dbe023d6cbc59f19fcc2cbd062bec34acd04d9a965bc7c"
+    },
+    {
+      "native_class": "BeautifulBracelet",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Inspected TakeRandom and four Swift2 eligible-card enchantments; current candidate shuffle structure agrees. No new native fixture; unlock eligibility remains broader caveat.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/BeautifulBracelet.cs",
+      "source_sha256": "c989e2f986d29578d18368ff3c0c137dcab89faabf6c44d278d4958ec08b7b44"
+    },
+    {
+      "native_class": "FakeLeesWaffle",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Native heals ten percent max HP; current integer amount matches nonfractional examples. Decimal rounding boundary not newly checked.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/FakeLeesWaffle.cs",
+      "source_sha256": "d5125732afa217b03144c673831c2937bc9005708c32b75966e7fe68748e96a6"
+    },
+    {
+      "native_class": "GlassEye",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Native reward rarities Common/Common/Uncommon/Uncommon/Rare match current queue. Full CardFactory/pool modifiers not newly checked.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/GlassEye.cs",
+      "source_sha256": "1cf2c74cfc8852970e07f40e2815f605806ba8f5a0d999cbaf4f49d99fe1f011"
+    },
+    {
+      "native_class": "ChosenCheese",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Native grants one max HP after combat end; scalar agrees. Victory-only wrapper lifecycle not newly verified.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/ChosenCheese.cs",
+      "source_sha256": "cbf74c424e68ccc4178e0379dd2ab26b22e3e289ac6f60eeffc7093c0eb3aa9a"
+    },
+    {
+      "native_class": "FakeMerchantsRug",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Native has no gameplay override; no-op is correct.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/FakeMerchantsRug.cs",
+      "source_sha256": "6e89bde811bdea1c7ff4c751e952b82fa99b92bc0e5d2e7eb1229d8dcb609037"
+    },
+    {
+      "native_class": "WongoCustomerAppreciationBadge",
+      "status": "source_checked_partial_or_noop",
+      "finding": "Native has no gameplay override; no-op is correct.",
+      "source": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/WongoCustomerAppreciationBadge.cs",
+      "source_sha256": "65ae690a4d9a5f92bf315b86d90e2c4d61c7eb315717a56c6820bc852ce62cad"
+    }
+  ],
+  "integration_note": "After card audit removed legacy Grapple, exact native transform regressions exposed missing NotYet. Card agent appended NotYet; shared native_sort_card_ids restores its original native position before Offering. Native fixture expected outcomes were preserved. Full 80-card single-player all-unlocks transform pool now matches exactly. Reward availability for other characters and epoch filtering remains partial.",
+  "validation": {
+    "native_fixtures": 26,
+    "native_status": "passed",
+    "cpp_checks": 58,
+    "cpp_failures": 0,
+    "cpp_compile": "clang++ -std=c++17 -O1 -UNDEBUG -I simulator/include -I simulator/json/include simulator/tests/native_relic_round3_alignment.cpp simulator/src/*.cpp -o validation/native_relic_round3_alignment",
+    "compiler_warning": "Existing run action switch omits enum cases handled before switch; root full build owns final diagnostics."
+  }
+}

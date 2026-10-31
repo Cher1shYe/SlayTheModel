@@ -1,0 +1,1 @@
+native act source fixtures: GoldenCompass/Underdocks/progress/snapshot v6 passed

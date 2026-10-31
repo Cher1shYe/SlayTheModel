@@ -1,0 +1,94 @@
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BurningBlood HP PASS
+MeatOnTheBone checks pre-BlackBlood HP PASS
+Victory heal cannot revive dead owner PASS
+Defeat does not trigger victory healing PASS
+Pomander opens upgrade choice PASS
+Pomander upgrades requested Bash PASS
+Pomander consumes no RNG PASS
+YummyCookie opens four-card choice PASS
+YummyCookie upgrades chosen identities PASS
+YummyCookie consumes no RNG PASS
+Upgrade choice auto-takes sole eligible card PASS
+Empty upgrade choice consumes no RNG PASS
+Spiral grid filters nonbasic Bash PASS
+Spiral choice keeps deck and applies amount1 PASS
+Steady grid opens exact two choices PASS
+Steady choices can wait for confirmation PASS
+Steady selected snapshot PASS
+Steady choice applies both PASS
+PaelTooth opens eligible choice PASS
+PaelTooth removes exactly selected five PASS
+PaelTooth saves ordinal ID order PASS
+PaelTooth stored cards survive snapshot PASS
+Reject oversized PaelTooth queue PASS
+Reject duplicate PaelTooth/deck UID PASS
+UID allocator reserves stored cards PASS
+PaelTooth selection uses no RNG PASS
+PaelTooth returns one upgraded card PASS
+PaelTooth uses reward RNG only PASS
+PaelTooth exact native return identity PASS
+PaelTooth returns a newly reconstructed entity PASS
+PaelTooth returns one upgraded card PASS
+PaelTooth uses reward RNG only PASS
+PaelTooth exact native return identity PASS
+PaelTooth returns a newly reconstructed entity PASS
+PaelTooth returns one upgraded card PASS
+PaelTooth uses reward RNG only PASS
+PaelTooth exact native return identity PASS
+PaelTooth returns a newly reconstructed entity PASS
+PaelTooth returns one upgraded card PASS
+PaelTooth uses reward RNG only PASS
+PaelTooth exact native return identity PASS
+PaelTooth returns a newly reconstructed entity PASS
+PaelTooth returns one upgraded card PASS
+PaelTooth uses reward RNG only PASS
+PaelTooth exact native return identity PASS
+PaelTooth returns a newly reconstructed entity PASS
+PaelTooth return runs add hooks PASS
+PaelTooth empty queue consumes no RNG PASS
+PaelTooth auto-removes only eligible cards PASS
+PaelTooth does not return to dead owner PASS
+First queued selection opens PASS
+Subsequent obtains suspend without ownership PASS
+Duplicate queued relic rejected PASS
+Pending obtains snapshot PASS
+Duplicate pending snapshot rejected PASS
+Finish first resumes second selector PASS
+Finish second resumes third selector PASS
+Finish third completes acquisition sequence PASS
+Pandora obtains PASS
+Pandora retains Bash entity PASS
+Pandora transforms nine basic Strike/Defend only PASS
+Pandora exact native card sequence PASS
+Pandora replacement UIDs unique PASS
+Pandora obtains PASS
+Pandora retains Bash entity PASS
+Pandora transforms nine basic Strike/Defend only PASS
+Pandora exact native card sequence PASS
+Pandora replacement UIDs unique PASS
+Pandora applies Egg/BingBong/Fysh/Book hooks PASS
+Whetstone exact native identities PASS
+SandCastle duplicate identity matches native List.Sort PASS
+SandCastle duplicate RNG counter PASS
+Whetstone exact native identities PASS
+SandCastle duplicate identity matches native List.Sort PASS
+SandCastle duplicate RNG counter PASS
+Random upgrade relic obtains PASS
+Random upgrade RNG consumes filtered-count minus one PASS
+Random upgrade selected count PASS
+Empty random upgrade filter consumes zero RNG PASS
+Random upgrade relic obtains PASS
+Random upgrade RNG consumes filtered-count minus one PASS
+Random upgrade selected count PASS
+Empty random upgrade filter consumes zero RNG PASS
+Random upgrade relic obtains PASS
+Random upgrade RNG consumes filtered-count minus one PASS
+Random upgrade selected count PASS
+Empty random upgrade filter consumes zero RNG PASS
+native relic round2: 93 checks, 0 failures

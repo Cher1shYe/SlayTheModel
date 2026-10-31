@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "training_games": 2,
+  "validation_games_not_training": 1,
+  "strict_model_reload": true,
+  "optimizer_steps": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "max_abs_parameter_change": {
+    "net.0.weight": 0.0003000013530254364,
+    "net.0.bias": 0.00029999949038028717,
+    "net.2.weight": 0.00030000507831573486,
+    "net.2.bias": 0.0003000013530254364,
+    "net.4.weight": 0.00030000507831573486,
+    "net.4.bias": 4.009157419204712e-05
+  }
+}

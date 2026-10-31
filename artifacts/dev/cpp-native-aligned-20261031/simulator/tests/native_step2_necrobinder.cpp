@@ -1,0 +1,333 @@
+#include "sts2/necrobinder.h"
+#include "sts2/relics.h"
+#include <nlohmann/json.hpp>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+#include <map>
+using namespace sts2;using json=nlohmann::json;
+namespace {
+std::uint64_t fixtureSeed=0;int checks=0,failures=0;std::string label;
+void check(const std::string &what,const json &got,const json &want){++checks;if(got!=want){++failures;std::cout<<label<<" "<<what<<" got="<<got<<" native="<<want<<" FAIL\n";}}
+const std::pair<PowerId,const char*> powers[]={
+{PowerId::ACCELERANT,"ACCELERANT_POWER"},
+{PowerId::ACCURACY,"ACCURACY_POWER"},
+{PowerId::ADAPTABLE,"ADAPTABLE_POWER"},
+{PowerId::AFTERIMAGE,"AFTERIMAGE_POWER"},
+{PowerId::AGGRESSION,"AGGRESSION_POWER"},
+{PowerId::AMBERGRIS,"AMBERGRIS_POWER"},
+{PowerId::ANTICIPATE,"ANTICIPATE_POWER"},
+{PowerId::ARSENAL,"ARSENAL_POWER"},
+{PowerId::ARTIFACT,"ARTIFACT_POWER"},
+{PowerId::ASLEEP,"ASLEEP_POWER"},
+{PowerId::AUTOMATION,"AUTOMATION_POWER"},
+{PowerId::BACK_ATTACK_LEFT,"BACK_ATTACK_LEFT_POWER"},
+{PowerId::BACK_ATTACK_RIGHT,"BACK_ATTACK_RIGHT_POWER"},
+{PowerId::BARRICADE,"BARRICADE_POWER"},
+{PowerId::BATTLEWORN_DUMMY_TIME_LIMIT,"BATTLEWORN_DUMMY_TIME_LIMIT_POWER"},
+{PowerId::BEACON_OF_HOPE,"BEACON_OF_HOPE_POWER"},
+{PowerId::BIASED_COGNITION,"BIASED_COGNITION_POWER"},
+{PowerId::BLACK_HOLE,"BLACK_HOLE_POWER"},
+{PowerId::BLOCK_NEXT_TURN,"BLOCK_NEXT_TURN_POWER"},
+{PowerId::BLUR,"BLUR_POWER"},
+{PowerId::BORROWED_TIME,"BORROWED_TIME_POWER"},
+{PowerId::BUFFER,"BUFFER_POWER"},
+{PowerId::BURROWED,"BURROWED_POWER"},
+{PowerId::BURST,"BURST_POWER"},
+{PowerId::CACOPHONY,"CACOPHONY_POWER"},
+{PowerId::CALAMITY,"CALAMITY_POWER"},
+{PowerId::CALCIFY,"CALCIFY_POWER"},
+{PowerId::CALL_OF_THE_VOID,"CALL_OF_THE_VOID_POWER"},
+{PowerId::CHAINS_OF_BINDING,"CHAINS_OF_BINDING_POWER"},
+{PowerId::CHILD_OF_THE_STARS,"CHILD_OF_THE_STARS_POWER"},
+{PowerId::CLARITY,"CLARITY_POWER"},
+{PowerId::COLOSSUS,"COLOSSUS_POWER"},
+{PowerId::CONCOCT,"CONCOCT_POWER"},
+{PowerId::CONFUSED,"CONFUSED_POWER"},
+{PowerId::CONQUEROR,"CONQUEROR_POWER"},
+{PowerId::CONSTRICT,"CONSTRICT_POWER"},
+{PowerId::CONSUMING_SHADOW,"CONSUMING_SHADOW_POWER"},
+{PowerId::COOLANT,"COOLANT_POWER"},
+{PowerId::COORDINATE,"COORDINATE_POWER"},
+{PowerId::CORROSIVE_WAVE,"CORROSIVE_WAVE_POWER"},
+{PowerId::CORRUPTION,"CORRUPTION_POWER"},
+{PowerId::COUNTDOWN,"COUNTDOWN_POWER"},
+{PowerId::COVERED,"COVERED_POWER"},
+{PowerId::CRAB_RAGE,"CRAB_RAGE_POWER"},
+{PowerId::CREATIVE_AI,"CREATIVE_AI_POWER"},
+{PowerId::CRIMSON_MANTLE,"CRIMSON_MANTLE_POWER"},
+{PowerId::CRUELTY,"CRUELTY_POWER"},
+{PowerId::CRUSH_UNDER,"CRUSH_UNDER_POWER"},
+{PowerId::CURIOUS,"CURIOUS_POWER"},
+{PowerId::CURL_UP,"CURL_UP_POWER"},
+{PowerId::DAMPEN,"DAMPEN_POWER"},
+{PowerId::DANSE_MACABRE,"DANSE_MACABRE_POWER"},
+{PowerId::DARK_EMBRACE,"DARK_EMBRACE_POWER"},
+{PowerId::DARK_SHACKLES,"DARK_SHACKLES_POWER"},
+{PowerId::DEBILITATE,"DEBILITATE_POWER"},
+{PowerId::DEMESNE,"DEMESNE_POWER"},
+{PowerId::DEMISE,"DEMISE_POWER"},
+{PowerId::DEMON_FORM,"DEMON_FORM_POWER"},
+{PowerId::DEVOUR_LIFE,"DEVOUR_LIFE_POWER"},
+{PowerId::DEXTERITY,"DEXTERITY_POWER"},
+{PowerId::DIE_FOR_YOU,"DIE_FOR_YOU_POWER"},
+{PowerId::DISINTEGRATION,"DISINTEGRATION_POWER"},
+{PowerId::DOOM,"DOOM_POWER"},
+{PowerId::DOUBLE_DAMAGE,"DOUBLE_DAMAGE_POWER"},
+{PowerId::DRAW_CARDS_NEXT_TURN,"DRAW_CARDS_NEXT_TURN_POWER"},
+{PowerId::DUPLICATION,"DUPLICATION_POWER"},
+{PowerId::DYING_STAR,"DYING_STAR_POWER"},
+{PowerId::ECHO_FORM,"ECHO_FORM_POWER"},
+{PowerId::ENERGY_NEXT_TURN,"ENERGY_NEXT_TURN_POWER"},
+{PowerId::ENFEEBLING_TOUCH,"ENFEEBLING_TOUCH_POWER"},
+{PowerId::ENRAGE,"ENRAGE_POWER"},
+{PowerId::ENTROPY,"ENTROPY_POWER"},
+{PowerId::ENVENOM,"ENVENOM_POWER"},
+{PowerId::ESCAPE_ARTIST,"ESCAPE_ARTIST_POWER"},
+{PowerId::FADE,"FADE_POWER"},
+{PowerId::FAN_OF_KNIVES,"FAN_OF_KNIVES_POWER"},
+{PowerId::FASTEN,"FASTEN_POWER"},
+{PowerId::FEEDING_FRENZY,"FEEDING_FRENZY_POWER"},
+{PowerId::FEEL_NO_PAIN,"FEEL_NO_PAIN_POWER"},
+{PowerId::FERAL,"FERAL_POWER"},
+{PowerId::FLAME_BARRIER,"FLAME_BARRIER_POWER"},
+{PowerId::FLANKING,"FLANKING_POWER"},
+{PowerId::FLEX_POTION,"FLEX_POTION_POWER"},
+{PowerId::FLUTTER,"FLUTTER_POWER"},
+{PowerId::FOCUS,"FOCUS_POWER"},
+{PowerId::FOCUSED_STRIKE,"FOCUSED_STRIKE_POWER"},
+{PowerId::FORBIDDEN_GRIMOIRE,"FORBIDDEN_GRIMOIRE_POWER"},
+{PowerId::FOREGONE_CONCLUSION,"FOREGONE_CONCLUSION_POWER"},
+{PowerId::FRAIL,"FRAIL_POWER"},
+{PowerId::FREE_ATTACK,"FREE_ATTACK_POWER"},
+{PowerId::FREE_POWER,"FREE_POWER_POWER"},
+{PowerId::FREE_SKILL,"FREE_SKILL_POWER"},
+{PowerId::FRIENDSHIP,"FRIENDSHIP_POWER"},
+{PowerId::FURNACE,"FURNACE_POWER"},
+{PowerId::GALVANIC,"GALVANIC_POWER"},
+{PowerId::GENESIS,"GENESIS_POWER"},
+{PowerId::GIGANTIFICATION,"GIGANTIFICATION_POWER"},
+{PowerId::GRAVITY,"GRAVITY_POWER"},
+{PowerId::GUARDED,"GUARDED_POWER"},
+{PowerId::HAILSTORM,"HAILSTORM_POWER"},
+{PowerId::HAMMER_TIME,"HAMMER_TIME_POWER"},
+{PowerId::HANG,"HANG_POWER"},
+{PowerId::HARD_TO_KILL,"HARD_TO_KILL_POWER"},
+{PowerId::HARDENED_SHELL,"HARDENED_SHELL_POWER"},
+{PowerId::HATCH,"HATCH_POWER"},
+{PowerId::HAUNT,"HAUNT_POWER"},
+{PowerId::HEIST,"HEIST_POWER"},
+{PowerId::HELICAL_DART,"HELICAL_DART_POWER"},
+{PowerId::HELLO_WORLD,"HELLO_WORLD_POWER"},
+{PowerId::HELLRAISER,"HELLRAISER_POWER"},
+{PowerId::HEX,"HEX_POWER"},
+{PowerId::HIBERNATE,"HIBERNATE_POWER"},
+{PowerId::HIGH_VOLTAGE,"HIGH_VOLTAGE_POWER"},
+{PowerId::HOTFIX,"HOTFIX_POWER"},
+{PowerId::HYPERBEAM_FOCUS_DOWN,"HYPERBEAM_FOCUS_DOWN_POWER"},
+{PowerId::ILLUSION,"ILLUSION_POWER"},
+{PowerId::IMBALANCED,"IMBALANCED_POWER"},
+{PowerId::IMITATION_LEARNING,"IMITATION_LEARNING_POWER"},
+{PowerId::IMPROVEMENT,"IMPROVEMENT_POWER"},
+{PowerId::INFERNO,"INFERNO_POWER"},
+{PowerId::INFESTED,"INFESTED_POWER"},
+{PowerId::INFINITE_BLADES,"INFINITE_BLADES_POWER"},
+{PowerId::INTANGIBLE,"INTANGIBLE_POWER"},
+{PowerId::INTERCEPT,"INTERCEPT_POWER"},
+{PowerId::ITERATION,"ITERATION_POWER"},
+{PowerId::JUGGERNAUT,"JUGGERNAUT_POWER"},
+{PowerId::JUGGLING,"JUGGLING_POWER"},
+{PowerId::KNOCKDOWN,"KNOCKDOWN_POWER"},
+{PowerId::LEADERSHIP,"LEADERSHIP_POWER"},
+{PowerId::LETHALITY,"LETHALITY_POWER"},
+{PowerId::LIGHTNING_ROD,"LIGHTNING_ROD_POWER"},
+{PowerId::LOOP,"LOOP_POWER"},
+{PowerId::MACHINE_LEARNING,"MACHINE_LEARNING_POWER"},
+{PowerId::MAGIC_BOMB,"MAGIC_BOMB_POWER"},
+{PowerId::MANGLE_POW,"MANGLE_POWER"},
+{PowerId::MASTER_PLANNER,"MASTER_PLANNER_POWER"},
+{PowerId::MAYHEM,"MAYHEM_POWER"},
+{PowerId::MIND_ROT,"MIND_ROT_POWER"},
+{PowerId::MINION,"MINION_POWER"},
+{PowerId::MONARCHS_GAZE,"MONARCHS_GAZE_POWER"},
+{PowerId::MONARCHS_GAZE_STRENGTH_DOWN,"MONARCHS_GAZE_STRENGTH_DOWN_POWER"},
+{PowerId::MONOLOGUE,"MONOLOGUE_POWER"},
+{PowerId::NECRO_MASTERY,"NECRO_MASTERY_POWER"},
+{PowerId::NEMESIS,"NEMESIS_POWER"},
+{PowerId::NEUROSURGE,"NEUROSURGE_POWER"},
+{PowerId::NIGHTMARE,"NIGHTMARE_POWER"},
+{PowerId::NO_BLOCK,"NO_BLOCK_POWER"},
+{PowerId::NO_DRAW,"NO_DRAW_POWER"},
+{PowerId::NO_ENERGY_GAIN,"NO_ENERGY_GAIN_POWER"},
+{PowerId::NOSTALGIA,"NOSTALGIA_POWER"},
+{PowerId::NOXIOUS_FUMES,"NOXIOUS_FUMES_POWER"},
+{PowerId::OBLIVION,"OBLIVION_POWER"},
+{PowerId::ONE_FOR_ALL,"ONE_FOR_ALL_POWER"},
+{PowerId::ONE_TWO_PUNCH,"ONE_TWO_PUNCH_POWER"},
+{PowerId::ORBIT,"ORBIT_POWER"},
+{PowerId::PAGESTORM,"PAGESTORM_POWER"},
+{PowerId::PAINFUL_STABS,"PAINFUL_STABS_POWER"},
+{PowerId::PALE_BLUE_DOT,"PALE_BLUE_DOT_POWER"},
+{PowerId::PANACHE,"PANACHE_POWER"},
+{PowerId::PAPER_CUTS,"PAPER_CUTS_POWER"},
+{PowerId::PARRY,"PARRY_POWER"},
+{PowerId::PERSONAL_HIVE,"PERSONAL_HIVE_POWER"},
+{PowerId::PHANTOM_BLADES,"PHANTOM_BLADES_POWER"},
+{PowerId::PIERCING_WAIL,"PIERCING_WAIL_POWER"},
+{PowerId::PILLAR_OF_CREATION,"PILLAR_OF_CREATION_POWER"},
+{PowerId::PLATING,"PLATING_POWER"},
+{PowerId::PLOW,"PLOW_POWER"},
+{PowerId::POISON,"POISON_POWER"},
+{PowerId::POSSESS_SPEED,"POSSESS_SPEED_POWER"},
+{PowerId::POSSESS_STRENGTH,"POSSESS_STRENGTH_POWER"},
+{PowerId::PREP_TIME,"PREP_TIME_POWER"},
+{PowerId::PYRE,"PYRE_POWER"},
+{PowerId::RADIANCE,"RADIANCE_POWER"},
+{PowerId::RAGE,"RAGE_POWER"},
+{PowerId::RAMPART,"RAMPART_POWER"},
+{PowerId::RAVENOUS,"RAVENOUS_POWER"},
+{PowerId::REAPER_FORM,"REAPER_FORM_POWER"},
+{PowerId::REATTACH,"REATTACH_POWER"},
+{PowerId::REBOUND,"REBOUND_POWER"},
+{PowerId::REFLECT,"REFLECT_POWER"},
+{PowerId::REGEN,"REGEN_POWER"},
+{PowerId::REPTILE_TRINKET,"REPTILE_TRINKET_POWER"},
+{PowerId::RETAIN_HAND,"RETAIN_HAND_POWER"},
+{PowerId::RINGING,"RINGING_POWER"},
+{PowerId::RITUAL,"RITUAL_POWER"},
+{PowerId::ROLLING_BOULDER,"ROLLING_BOULDER_POWER"},
+{PowerId::ROYALTIES,"ROYALTIES_POWER"},
+{PowerId::RUPTURE,"RUPTURE_POWER"},
+{PowerId::SANDPIT,"SANDPIT_POWER"},
+{PowerId::SEEKING_EDGE,"SEEKING_EDGE_POWER"},
+{PowerId::SELF_FORMING_CLAY,"SELF_FORMING_CLAY_POWER"},
+{PowerId::SENTRY_MODE,"SENTRY_MODE_POWER"},
+{PowerId::SERPENT_FORM,"SERPENT_FORM_POWER"},
+{PowerId::SETUP_STRIKE,"SETUP_STRIKE_POWER"},
+{PowerId::SHACKLING_POTION,"SHACKLING_POTION_POWER"},
+{PowerId::SHADOW_STEP,"SHADOW_STEP_POWER"},
+{PowerId::SHADOWMELD,"SHADOWMELD_POWER"},
+{PowerId::SHRIEK,"SHRIEK_POWER"},
+{PowerId::SHRINK,"SHRINK_POWER"},
+{PowerId::SHROUD,"SHROUD_POWER"},
+{PowerId::SIC_EM,"SIC_EM_POWER"},
+{PowerId::SIGNAL_BOOST,"SIGNAL_BOOST_POWER"},
+{PowerId::SKITTISH,"SKITTISH_POWER"},
+{PowerId::SLEIGHT_OF_FLESH,"SLEIGHT_OF_FLESH_POWER"},
+{PowerId::SLIPPERY,"SLIPPERY_POWER"},
+{PowerId::SLOTH,"SLOTH_POWER"},
+{PowerId::SLOW,"SLOW_POWER"},
+{PowerId::SLUMBER,"SLUMBER_POWER"},
+{PowerId::SMOGGY,"SMOGGY_POWER"},
+{PowerId::SMOKESTACK,"SMOKESTACK_POWER"},
+{PowerId::SNEAKY,"SNEAKY_POWER"},
+{PowerId::SOAR,"SOAR_POWER"},
+{PowerId::SOULBOUND,"SOULBOUND_POWER"},
+{PowerId::SPECTRUM_SHIFT,"SPECTRUM_SHIFT_POWER"},
+{PowerId::SPEED_POTION,"SPEED_POTION_POWER"},
+{PowerId::SPEEDSTER,"SPEEDSTER_POWER"},
+{PowerId::SPINNER,"SPINNER_POWER"},
+{PowerId::SPIRIT_OF_ASH,"SPIRIT_OF_ASH_POWER"},
+{PowerId::STAMPEDE,"STAMPEDE_POWER"},
+{PowerId::STAR_NEXT_TURN,"STAR_NEXT_TURN_POWER"},
+{PowerId::STEAM_ERUPTION,"STEAM_ERUPTION_POWER"},
+{PowerId::STOCK,"STOCK_POWER"},
+{PowerId::STORM,"STORM_POWER"},
+{PowerId::STRANGLE,"STRANGLE_POWER"},
+{PowerId::STRATAGEM,"STRATAGEM_POWER"},
+{PowerId::STRENGTH,"STRENGTH_POWER"},
+{PowerId::SUBROUTINE,"SUBROUTINE_POWER"},
+{PowerId::SUCK,"SUCK_POWER"},
+{PowerId::SUMMON_NEXT_TURN,"SUMMON_NEXT_TURN_POWER"},
+{PowerId::SURPRISE,"SURPRISE_POWER"},
+{PowerId::SURROUNDED,"SURROUNDED_POWER"},
+{PowerId::SWIPE,"SWIPE_POWER"},
+{PowerId::SWORD_SAGE,"SWORD_SAGE_POWER"},
+{PowerId::SYNCHRONIZE,"SYNCHRONIZE_POWER"},
+{PowerId::TAG_TEAM,"TAG_TEAM_POWER"},
+{PowerId::TAINTED,"TAINTED_POWER"},
+{PowerId::TANGLED,"TANGLED_POWER"},
+{PowerId::TANK,"TANK_POWER"},
+{PowerId::TEMPORARY_DEXTERITY,"TEMPORARY_DEXTERITY_POWER"},
+{PowerId::TEMPORARY_FOCUS,"TEMPORARY_FOCUS_POWER"},
+{PowerId::TEMPORARY_STRENGTH,"TEMPORARY_STRENGTH_POWER"},
+{PowerId::TENDER,"TENDER_POWER"},
+{PowerId::TERRITORIAL,"TERRITORIAL_POWER"},
+{PowerId::THE_BOMB,"THE_BOMB_POWER"},
+{PowerId::THE_GAMBIT,"THE_GAMBIT_POWER"},
+{PowerId::THE_HUNT,"THE_HUNT_POWER"},
+{PowerId::THE_SEALED_THRONE,"THE_SEALED_THRONE_POWER"},
+{PowerId::THIEVERY,"THIEVERY_POWER"},
+{PowerId::THORNS,"THORNS_POWER"},
+{PowerId::THUNDER,"THUNDER_POWER"},
+{PowerId::TOOLS_OF_THE_TRADE,"TOOLS_OF_THE_TRADE_POWER"},
+{PowerId::TORIC_TOUGHNESS,"TORIC_TOUGHNESS_POWER"},
+{PowerId::TRACKING,"TRACKING_POWER"},
+{PowerId::TRASH_TO_TREASURE,"TRASH_TO_TREASURE_POWER"},
+{PowerId::TYRANNY,"TYRANNY_POWER"},
+{PowerId::UNDERWORLD,"UNDERWORLD_POWER"},
+{PowerId::UNMOVABLE,"UNMOVABLE_POWER"},
+{PowerId::VEILPIERCER,"VEILPIERCER_POWER"},
+{PowerId::VICIOUS,"VICIOUS_POWER"},
+{PowerId::VIGOR,"VIGOR_POWER"},
+{PowerId::VITAL_SPARK,"VITAL_SPARK_POWER"},
+{PowerId::VOID_FORM,"VOID_FORM_POWER"},
+{PowerId::VULNERABLE,"VULNERABLE_POWER"},
+{PowerId::WASTE_AWAY,"WASTE_AWAY_POWER"},
+{PowerId::WEAK,"WEAK_POWER"},
+{PowerId::WELL_LAID_PLANS,"WELL_LAID_PLANS_POWER"},
+{PowerId::WITHERING_PRESENCE,"WITHERING_PRESENCE_POWER"},
+{PowerId::WRAITH_FORM,"WRAITH_FORM_POWER"},
+};
+CardId card_id(const std::string &s){for(int i=1;i<int(CardId::COUNT);++i)if(s==card_key(CardId(i)))return CardId(i);throw std::runtime_error("Unknown "+s);}
+void read_powers(const json &j,Player &p){for(auto [id,name]:powers)if(j.contains(name))power_ref(p,id)=j[name];}
+void read_powers(const json &j,Monster &m){for(auto [id,name]:powers)if(j.contains(name))power_ref(m,id)=j[name];}
+json dump_powers(BattleContext &b,int target=-1){json result=json::object();for(auto [id,name]:powers){int amount=target<0?b.player_power(id):b.monster_power(target,id);if(amount)result[name]=amount;}return result;}
+void read_cards(BattleContext &b,Card *pile,int &n,const json &j,bool reverse=false){n=0;for(const auto &c:j){Card card=make_card(card_id(c["id"]),c["upgraded"],b.require_card_uid());card.costForTurn=card.storedCost=int(c["cost"]);card.etherealThisCombat=c["ethereal"];card.retainThisCombat=c["retain"];card.bonusReplay=c["replay"];pile[n++]=card;}if(reverse)std::reverse(pile,pile+n);}
+json dump_cards(Card *pile,int n,bool reverse=false){json out=json::array();for(int j=0;j<n;++j){const Card &c=pile[reverse?n-1-j:j];out.push_back({{"id",card_key(c.id)},{"upgraded",c.upgraded},{"cost",card_cost(c)},{"ethereal",card_has(c,CF_ETHEREAL)},{"retain",card_has(c,CF_RETAIN)},{"replay",c.bonusReplay}});}return out;}
+BattleContext base(const json &f){BattleContext b;b.characterPool=CardPool::NECROBINDER;b.turn=1;b.player.hp=b.player.maxHp=f["hp"];b.player.block=f["block"];b.player.energy=f["energy"];b.necro.ostyPresent=true;b.necro.ostyHp=f["ostyHp"];b.necro.ostyMaxHp=f["ostyMaxHp"];b.relics[b.relicCount++]=int(RelicId::BOUND_PHYLACTERY);read_powers(f["playerPowers"],b.player);
+ b.monsterCount=f["enemies"].size();for(int i=0;i<b.monsterCount;++i){auto &m=b.monsters[i];m.id=MonsterId::CALCIFIED_CULTIST;m.hp=f["enemies"][i]["hp"];m.maxHp=1000;m.block=f["enemies"][i]["block"];read_powers(f["enemies"][i]["powers"],m);if(b.monster_power(i,PowerId::DOOM)>0)b.necro.doomAppliedThisTurn=true;}
+ read_cards(b,b.hand,b.handCount,f["hand"]);read_cards(b,b.draw,b.drawCount,f["draw"],true);read_cards(b,b.discard,b.discardCount,f["discard"]);read_cards(b,b.exhaust,b.exhaustCount,f["exhaust"]);
+ const auto seed=fixtureSeed;b.shuffleRng=Rng(seed,"shuffle");b.cardGenerationRng=Rng(seed,"combat_card_generation");b.cardSelectionRng=Rng(seed,"combat_card_selection");b.targetRng=Rng(seed,"combat_targets");
+ b.shuffleRng.fast_forward(f["rng"]["shuffle"]);b.cardGenerationRng.fast_forward(f["rng"]["generate"]);b.cardSelectionRng.fast_forward(f["rng"]["selection"]);b.targetRng.fast_forward(f["rng"]["targets"]);return b;}
+void compare(BattleContext &b,const json &f,bool piles=true){
+ check("hp",b.player.hp,f["hp"]);check("block",b.player.block,f["block"]);check("energy",b.player.energy,f["energy"]);check("Osty hp",b.necro.ostyHp,f["ostyHp"]);check("Osty maxHp",b.necro.ostyMaxHp,f["ostyMaxHp"]);check("player powers",dump_powers(b),f["playerPowers"]);
+ json enemies=json::array();for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)enemies.push_back({{"hp",b.monsters[i].hp},{"block",b.monsters[i].block},{"powers",dump_powers(b,i)}});check("enemies",enemies,f["enemies"]);
+ if(piles){check("hand",dump_cards(b.hand,b.handCount),f["hand"]);check("draw",dump_cards(b.draw,b.drawCount,true),f["draw"]);check("discard",dump_cards(b.discard,b.discardCount),f["discard"]);check("exhaust",dump_cards(b.exhaust,b.exhaustCount),f["exhaust"]);}
+ check("shuffle rng",b.shuffleRng.counter,f["rng"]["shuffle"]);check("generation rng",b.cardGenerationRng.counter,f["rng"]["generate"]);check("selection rng",b.cardSelectionRng.counter,f["rng"]["selection"]);check("target rng",b.targetRng.counter,f["rng"]["targets"]);
+}
+void add(BattleContext &b,CardId id,ChoicePile pile=ChoicePile::HAND){Card c=make_card(id,false,b.require_card_uid());if(pile==ChoicePile::HAND)b.add_card_to_hand(c);else if(pile==ChoicePile::DISCARD)b.add_card_to_discard(c);b.notify_card_generated(c);}
+void play(BattleContext &b,CardId id){int index=-1;for(int i=0;i<b.handCount;++i)if(b.hand[i].id==id){index=i;break;}check("play",index>=0&&b.play_card(index,0),true);}
+}
+int main(){const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixtures;std::ifstream(root/"native-round4-step2-necrobinder-fixtures/results.json")>>fixtures;
+ fixtureSeed=fixtures["numericSeed"];check("completed",fixtures["status"],"completed");check("DLL",fixtures["gameAssemblySha256"],"9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");
+ for(const auto &f:fixtures["results"]){const std::string type=f["test"];label=type=="mechanism"?std::string(f["scenario"]):std::string(f["id"])+(bool(f["upgraded"])?"+":"");auto b=base(f["before"]);
+  if(type=="no_single_player_target"){check("single-player excluded",card_def(card_id(f["id"])).target==TargetType::ALLY,true);continue;}
+  if(type=="card"){
+   play(b,card_id(f["id"]));
+   for(const auto &s:f["selections"]){
+    check("choice paused",b.pending.op!=ChoiceOp::NONE,true);std::vector<std::string> got,want=s["options"].get<std::vector<std::string>>();for(int i=0;i<b.pending.count;++i)got.push_back(card_key(b.pending.cards[i].id));
+    // Identity multiset is checked even if the engine's UI ordering differs;
+    // selected identity is then driven by the native recorded player choice.
+    std::sort(got.begin(),got.end());auto sorted=want;std::sort(sorted.begin(),sorted.end());check("choice identities",got,sorted);
+    for(int nativeIndex:s["selected"]){std::string selected=want[nativeIndex];std::uint16_t uid=0;for(int i=0;i<b.pending.count;++i)if(selected==card_key(b.pending.cards[i].id)){uid=b.pending.cards[i].uid;break;}check("choice selected present",uid!=0,true);if(uid)b.resolve_choice(uid);}
+    if(s["selected"].empty())b.finish_pending();
+   }
+   check("choice resolved",b.pending.op==ChoiceOp::NONE,true);compare(b,f["after"]);
+  }else if(type=="mechanism"){
+   const std::string scenario=f["scenario"];
+   if(scenario=="redirect_tungsten")b.relics[b.relicCount++]=int(RelicId::TUNGSTEN_ROD);
+   if(scenario=="redirect_buffer")b.add_player_power(PowerId::BUFFER,1);
+   if(scenario.rfind("redirect",0)==0)b.damage_player(scenario=="redirect_overkill"?14:7,false,true);
+   if(scenario=="osty_thorns"){b.add_monster_power(0,PowerId::THORNS,3);add(b,CardId::POKE);play(b,CardId::POKE);}
+   if(scenario=="sacrifice_mastery"){b.add_player_power(PowerId::NECRO_MASTERY,2);add(b,CardId::SACRIFICE);play(b,CardId::SACRIFICE);}
+   if(scenario=="doom_end"){b.monsters[0].hp=8;b.add_monster_power(0,PowerId::DOOM,10);necrobinder_doom_kill(b);}
+   if(scenario=="soul_powers"){b.add_player_power(PowerId::DEVOUR_LIFE,2);b.add_player_power(PowerId::HAUNT,7);add(b,CardId::SOUL);play(b,CardId::SOUL);}
+   if(scenario=="ethereal_history"){add(b,CardId::BANSHEES_CRY);add(b,CardId::DEFILE);play(b,CardId::DEFILE);add(b,CardId::BANSHEES_CRY,ChoicePile::DISCARD);add(b,CardId::PULL_FROM_BELOW);play(b,CardId::PULL_FROM_BELOW);}
+   if(scenario=="osty_multihit"){add(b,CardId::SIC_EM);play(b,CardId::SIC_EM);add(b,CardId::RATTLE);play(b,CardId::RATTLE);}
+   if(scenario=="debilitate"){add(b,CardId::DEBILITATE);play(b,CardId::DEBILITATE);b.apply_vulnerable(0,1);add(b,CardId::STRIKE_NECROBINDER);play(b,CardId::STRIKE_NECROBINDER);}
+   compare(b,f["after"]);
+  }
+ }
+ std::cout<<"Necrobinder native fixtures="<<fixtures["results"].size()<<" checks="<<checks<<" failures="<<failures<<"\n";return failures?1:0;
+}

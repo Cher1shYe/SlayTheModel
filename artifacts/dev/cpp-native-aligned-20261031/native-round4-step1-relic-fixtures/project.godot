@@ -1,0 +1,12 @@
+config_version=5
+_custom_features="dotnet"
+[application]
+config/name="Simulator comparison audit"
+config/features=PackedStringArray("4.5", "C#")
+run/main_scene="res://AuditWorker.tscn"
+config/use_custom_user_dir=true
+config/custom_user_dir_name="SlayTheModelNativeRound4Step1RelicAudit20261031"
+[dotnet]
+project/assembly_name="SimulatorAudit"
+[rendering]
+renderer/rendering_method="gl_compatibility"

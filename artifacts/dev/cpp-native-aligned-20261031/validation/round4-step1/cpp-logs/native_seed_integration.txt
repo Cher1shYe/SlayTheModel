@@ -1,0 +1,1 @@
+native seed integration: raw/string/high bits/streams/snapshot passed

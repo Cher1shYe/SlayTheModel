@@ -1,0 +1,173 @@
+{
+  "programs": 27,
+  "failures": 0,
+  "assertions_enabled": true,
+  "results": [
+    {
+      "name": "enchantment_contract",
+      "returncode": 0,
+      "seconds": 0.4231333749994519,
+      "log": "validation/round4-step1/cpp-logs/enchantment_contract.txt"
+    },
+    {
+      "name": "hidden_resampling",
+      "returncode": 0,
+      "seconds": 0.8885766249986773,
+      "log": "validation/round4-step1/cpp-logs/hidden_resampling.txt"
+    },
+    {
+      "name": "map_event_audit_regression",
+      "returncode": 0,
+      "seconds": 8.101593791998312,
+      "log": "validation/round4-step1/cpp-logs/map_event_audit_regression.txt"
+    },
+    {
+      "name": "mcts_regression",
+      "returncode": 0,
+      "seconds": 0.33987379199970746,
+      "log": "validation/round4-step1/cpp-logs/mcts_regression.txt"
+    },
+    {
+      "name": "monster_audit_regression",
+      "returncode": 0,
+      "seconds": 0.29341679099889006,
+      "log": "validation/round4-step1/cpp-logs/monster_audit_regression.txt"
+    },
+    {
+      "name": "native_act_alignment",
+      "returncode": 0,
+      "seconds": 0.9111918749986216,
+      "log": "validation/round4-step1/cpp-logs/native_act_alignment.txt"
+    },
+    {
+      "name": "native_card_alignment",
+      "returncode": 0,
+      "seconds": 0.2945290419993398,
+      "log": "validation/round4-step1/cpp-logs/native_card_alignment.txt"
+    },
+    {
+      "name": "native_card_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.2976249170023948,
+      "log": "validation/round4-step1/cpp-logs/native_card_round3_alignment.txt"
+    },
+    {
+      "name": "native_event_oracle_alignment",
+      "returncode": 0,
+      "seconds": 0.6268807500018738,
+      "log": "validation/round4-step1/cpp-logs/native_event_oracle_alignment.txt"
+    },
+    {
+      "name": "native_event_round3_alignment",
+      "returncode": 0,
+      "seconds": 1.6182557079991966,
+      "log": "validation/round4-step1/cpp-logs/native_event_round3_alignment.txt"
+    },
+    {
+      "name": "native_relic_round2_alignment",
+      "returncode": 0,
+      "seconds": 0.5834037090025959,
+      "log": "validation/round4-step1/cpp-logs/native_relic_round2_alignment.txt"
+    },
+    {
+      "name": "native_relic_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.42426133299886715,
+      "log": "validation/round4-step1/cpp-logs/native_relic_round3_alignment.txt"
+    },
+    {
+      "name": "native_rng_contract",
+      "returncode": 0,
+      "seconds": 0.2934655839999323,
+      "log": "validation/round4-step1/cpp-logs/native_rng_contract.txt"
+    },
+    {
+      "name": "native_round3_shared_alignment",
+      "returncode": 0,
+      "seconds": 0.37241625000024214,
+      "log": "validation/round4-step1/cpp-logs/native_round3_shared_alignment.txt"
+    },
+    {
+      "name": "native_run_alignment",
+      "returncode": 0,
+      "seconds": 0.5118873749997874,
+      "log": "validation/round4-step1/cpp-logs/native_run_alignment.txt"
+    },
+    {
+      "name": "native_seed_integration",
+      "returncode": 0,
+      "seconds": 0.32035083299706457,
+      "log": "validation/round4-step1/cpp-logs/native_seed_integration.txt"
+    },
+    {
+      "name": "native_step1_downgrade",
+      "returncode": 0,
+      "seconds": 0.21121183400100563,
+      "log": "validation/round4-step1/cpp-logs/native_step1_downgrade.txt"
+    },
+    {
+      "name": "native_step1_relic_replace",
+      "returncode": 0,
+      "seconds": 0.4780149159996654,
+      "log": "validation/round4-step1/cpp-logs/native_step1_relic_replace.txt"
+    },
+    {
+      "name": "native_step1_self_damage",
+      "returncode": 0,
+      "seconds": 0.3067510000000766,
+      "log": "validation/round4-step1/cpp-logs/native_step1_self_damage.txt"
+    },
+    {
+      "name": "native_step1_state_contract",
+      "returncode": 0,
+      "seconds": 0.5946598750015255,
+      "log": "validation/round4-step1/cpp-logs/native_step1_state_contract.txt"
+    },
+    {
+      "name": "native_underdocks_events",
+      "returncode": 0,
+      "seconds": 0.8925583329983056,
+      "log": "validation/round4-step1/cpp-logs/native_underdocks_events.txt"
+    },
+    {
+      "name": "observation_contract",
+      "returncode": 0,
+      "seconds": 0.959169457997632,
+      "log": "validation/round4-step1/cpp-logs/observation_contract.txt"
+    },
+    {
+      "name": "relic_contract",
+      "returncode": 0,
+      "seconds": 0.42187941600059276,
+      "log": "validation/round4-step1/cpp-logs/relic_contract.txt"
+    },
+    {
+      "name": "relic_raw_rarity",
+      "returncode": 0,
+      "seconds": 0.3014619159985159,
+      "log": "validation/round4-step1/cpp-logs/relic_raw_rarity.txt"
+    },
+    {
+      "name": "rules_regression",
+      "returncode": 0,
+      "seconds": 2.4413817079985165,
+      "log": "validation/round4-step1/cpp-logs/rules_regression.txt"
+    },
+    {
+      "name": "scroll_boxes_regression",
+      "returncode": 0,
+      "seconds": 0.6181456660015101,
+      "log": "validation/round4-step1/cpp-logs/scroll_boxes_regression.txt"
+    },
+    {
+      "name": "snapshot_validation",
+      "returncode": 0,
+      "seconds": 9.727686707999965,
+      "log": "validation/round4-step1/cpp-logs/snapshot_validation.txt"
+    }
+  ],
+  "retested_after_fixture_representation_fix": [
+    "native_step1_downgrade"
+  ],
+  "initial_report": "validation/round4-step1/initial-cpp-tests.json"
+}

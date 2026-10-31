@@ -1,0 +1,1371 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRelicRound2Audit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "pomander",
+      "chosen": [
+        2
+      ],
+      "calls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "nicheCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "stored": null
+    },
+    {
+      "test": "yummy_cookie",
+      "chosen": [
+        5,
+        2,
+        3,
+        0
+      ],
+      "calls": 1,
+      "candidates": {
+        "minSelect": 4,
+        "maxSelect": 4,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "nicheCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "stored": null
+    },
+    {
+      "test": "paels_tooth",
+      "chosen": [
+        5,
+        4,
+        0,
+        2,
+        3
+      ],
+      "calls": 1,
+      "candidates": {
+        "minSelect": 5,
+        "maxSelect": 5,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "nicheCounter": 0,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "stored": [
+        "ANGER",
+        "BASH",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 0,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 114,
+      "rewardCounter": 1,
+      "stored": [
+        "BASH",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 1,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 129,
+      "rewardCounter": 2,
+      "stored": [
+        "BASH",
+        "POMMEL_STRIKE",
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 2,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 144,
+      "rewardCounter": 3,
+      "stored": [
+        "BASH",
+        "POMMEL_STRIKE"
+      ]
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 3,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 159,
+      "rewardCounter": 4,
+      "stored": [
+        "BASH"
+      ]
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 4,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 174,
+      "rewardCounter": 5,
+      "stored": []
+    },
+    {
+      "test": "paels_tooth_return",
+      "index": 5,
+      "deck": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "hp": 50,
+      "gold": 174,
+      "rewardCounter": 5,
+      "stored": []
+    },
+    {
+      "test": "war_paint",
+      "seed": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 0
+    },
+    {
+      "test": "war_paint",
+      "seed": 42,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 0
+    },
+    {
+      "test": "whetstone",
+      "seed": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 4
+    },
+    {
+      "test": "whetstone",
+      "seed": 42,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 4
+    },
+    {
+      "test": "sand_castle",
+      "seed": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 5
+    },
+    {
+      "test": "sand_castle",
+      "seed": 42,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 5
+    },
+    {
+      "test": "war_paint_empty",
+      "seed": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 0
+    },
+    {
+      "test": "war_paint_empty",
+      "seed": 42,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 0
+    },
+    {
+      "test": "sand_castle_duplicates",
+      "seed": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 6,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 7,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 8,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 9,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 10,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 11,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 12,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 13,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 14,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 15,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 16,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 17,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 18,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 19,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 19
+    },
+    {
+      "test": "sand_castle_duplicates",
+      "seed": 42,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 6,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 7,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 8,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 9,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 10,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 11,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 12,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 13,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 14,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 15,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 16,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 17,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 18,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 19,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "nicheCounter": 19
+    },
+    {
+      "test": "pandora",
+      "hooks": false,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 9,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "PRIMAL_FORCE",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TRUE_GRIT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "WHIRLWIND",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "RAMPAGE",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TAUNT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "goldBefore": 99,
+      "goldAfter": 99,
+      "hp": 30,
+      "bookCount": null,
+      "nicheCounter": 9
+    },
+    {
+      "test": "pandora",
+      "hooks": true,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 9,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "PRIMAL_FORCE",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "PRIMAL_FORCE",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TRUE_GRIT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TRUE_GRIT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "WHIRLWIND",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "WHIRLWIND",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "RAMPAGE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "RAMPAGE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TAUNT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "TAUNT",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "originalIndex": -1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "goldBefore": 99,
+      "goldAfter": 369,
+      "hp": 80,
+      "bookCount": 22,
+      "nicheCounter": 9
+    },
+    {
+      "test": "spiral_strike",
+      "first": 12,
+      "second": 12
+    },
+    {
+      "test": "nimble_upgraded_defend_frail",
+      "block": 7
+    },
+    {
+      "test": "steady_retain",
+      "handCount": 6,
+      "retainedDefend": true,
+      "hand": [
+        "DEFEND_IRONCLAD",
+        "ANGER",
+        "BASH",
+        "IRON_WAVE",
+        "POMMEL_STRIKE",
+        "BODY_SLAM"
+      ]
+    }
+  ]
+}

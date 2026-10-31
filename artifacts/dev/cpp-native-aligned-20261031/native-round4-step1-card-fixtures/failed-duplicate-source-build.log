@@ -1,0 +1,11 @@
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/first-AuditWorker.cs(20,27): error CS0102: The type 'AuditWorker' already contains a definition for 'results' [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/first-AuditWorker.cs(21,32): error CS0111: Type 'AuditWorker' already defines a member called '_Ready' with the same parameter types [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+
+Build FAILED.
+
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/first-AuditWorker.cs(20,27): error CS0102: The type 'AuditWorker' already contains a definition for 'results' [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/first-AuditWorker.cs(21,32): error CS0111: Type 'AuditWorker' already defines a member called '_Ready' with the same parameter types [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+    0 Warning(s)
+    2 Error(s)
+
+Time Elapsed 00:00:21.48

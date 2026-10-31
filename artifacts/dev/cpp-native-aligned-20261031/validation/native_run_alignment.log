@@ -1,0 +1,62 @@
+Mushroom obtain PASS
+Mushroom damage15 PASS
+Mushroom native exact upgraded identities PASS
+Mushroom native RNG counter PASS
+Bracelet obtain PASS
+Bracelet native exact enchanted identities and amount PASS
+Bracelet native RNG counter PASS
+Mushroom obtain PASS
+Mushroom damage15 PASS
+Mushroom native exact upgraded identities PASS
+Mushroom native RNG counter PASS
+Bracelet obtain PASS
+Bracelet native exact enchanted identities and amount PASS
+Bracelet native RNG counter PASS
+Mushroom obtain PASS
+Mushroom damage15 PASS
+Mushroom native exact upgraded identities PASS
+Mushroom native RNG counter PASS
+Bracelet obtain PASS
+Bracelet native exact enchanted identities and amount PASS
+Bracelet native RNG counter PASS
+PreciseScissors obtains pending choice PASS
+Choice leaves deck untouched PASS
+Premature confirm rejected PASS
+Selection preview PASS
+Selection snapshot restore PASS
+Cancel leaves deck and resets selection PASS
+Scissors chosen deletion PASS
+Scissors no randomness PASS
+EmptyCage chosen reverse-index deletion PASS
+PreservedFog selected deletion then curse PASS
+PreservedFog no randomness PASS
+Astrolabe obtains pending choice PASS
+Astrolabe chosen transform exact native order PASS
+Astrolabe upgrades only replacements PASS
+Astrolabe native RNG counter PASS
+Book obtain PASS
+Astrolabe obtains pending choice PASS
+Astrolabe chosen transform exact native order PASS
+Astrolabe upgrades only replacements PASS
+Astrolabe native RNG counter PASS
+Book native heal20 and per-card count PASS
+Lethal Mushroom obtains PASS
+Lethal Mushroom terminal PASS
+Lethal Mushroom native suppresses upgrades PASS
+Lethal Mushroom still consumes RNG PASS
+finish_room cannot revive dead run PASS
+Shears damage deferred until confirmation PASS
+Shears removes first then dies PASS
+Shears death persists through room finish PASS
+Shears respects Tungsten PASS
+Shears fairy revives first PASS
+Fairy leaves LizardTail unused PASS
+LizardTail revives next PASS
+LizardTail cannot revive twice PASS
+No eligible removal still applies Shears damage PASS
+No eligible transform skips grid PASS
+Astrolabe capacity rejected before deadlocked grid PASS
+PreservedFog capacity rejected before curse overflow PASS
+Impossible pending selection rejected on restore PASS
+Pending transform capacity revalidated on restore PASS
+native run alignment: 61 checks, 0 failures

@@ -1,0 +1,107 @@
+// Controlled differential checks against v0.111.0 / 41cef1ea's real DLL.
+#include "sts2/run.h"
+#include <nlohmann/json.hpp>
+#include <cassert>
+#include <cmath>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
+using namespace sts2;
+using nlohmann::json;
+
+CardId fixture_card(const std::string &name) {
+    if(name=="BARRICADE")return CardId::BARRICADE_CARD;
+    if(name=="CORRUPTION")return CardId::CORRUPTION_CARD;
+    if(name=="DARK_EMBRACE")return CardId::DARK_EMBRACE_CARD;
+    for(int i=1;i<static_cast<int>(CardId::COUNT);++i)
+        if(name==card_key(static_cast<CardId>(i)))return static_cast<CardId>(i);
+    assert(false);return CardId::INVALID;
+}
+void check_card(const Card &c,const json &v) {
+    assert(c.id==fixture_card(v["card"].get<std::string>()));
+    assert(c.upgraded==v["upgraded"]);
+    assert(card_cost(c)==v["cost"]);
+    assert(std::abs(card_base_damage(c)-v["damage"].get<double>())<1e-9);
+    assert(card_has(c,CF_RETAIN)==v["retain"]);
+    assert((card_has(c,CF_ETHEREAL)||c.etherealThisCombat)==v["ethereal"]);
+    assert(card_has(c,CF_EXHAUST)==v["exhaust"]);
+    assert(card_has(c,CF_UNPLAYABLE)==v["unplayable"]);
+    assert(c.replay+c.bonusReplay==v["replay"]);
+    if(v["enchantment"].is_null())assert(c.enchantment==EnchantmentId::NONE);
+    else {
+        const std::string enchant=v["enchantment"];
+        assert(c.enchantment==(enchant=="STEADY"?EnchantmentId::STEADY:EnchantmentId::VIGOROUS));
+        assert(c.enchantmentAmount==v["enchantmentAmount"]);
+        assert(c.enchantmentDisabled==(v["enchantmentStatus"]=="Disabled"));
+    }
+}
+int event_id(const char *name) {
+    for(int i=0;i<event_count();++i)if(!std::strcmp(event_info(i)->name,name))return i;
+    assert(false);return -1;
+}
+int main() {
+    const auto path=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
+        /"native-round4-step1-downgrade-fixtures/results.json";
+    std::ifstream input(path);json fixture;input>>fixture;
+    assert(fixture["status"]=="completed");
+    assert(fixture["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");
+    assert(fixture["gameSceneLoaded"]==false);
+    int cases=0;
+    for(const auto &row:fixture["results"]) {
+        const std::string test=row["test"];
+        if(test=="direct") {
+            Card c=make_card(fixture_card(row["card"]),false,123);
+            if(card_upgradable(c))card_apply_upgrade(c);
+            const std::string modifier=row["modifier"];
+            if(modifier=="turn0")card_set_turn_cost(c,0);
+            if(modifier=="turn1")card_set_turn_cost(c,1);
+            if(modifier=="cap1")c.combatCostCap=1;
+            if(modifier=="free0")c.freeCombat=true;
+            if(modifier=="keywords"){c.retainThisCombat=true;c.etherealThisCombat=true;}
+            if(modifier=="steady")assert(card_apply_enchantment(c,EnchantmentId::STEADY,1));
+            if(modifier=="vigorous")assert(card_apply_enchantment(c,EnchantmentId::VIGOROUS,3));
+            if(modifier=="replay")c.replay=2;
+            if(modifier=="growth")c.bonusDamage=c.id==CardId::THRASH?4.5:5;
+            check_card(c,row["before"]);
+            card_apply_downgrade(c);
+            assert(c.uid==123&&row["sameInstance"]==true);
+            assert(c.storedCost==row["after"]["baseCost"]);
+            check_card(c,row["after"]);
+            card_restore_cost(c);check_card(c,row["afterTurn"]);
+        } else {
+            RunContext r;r.init(42,0);r.deckCount=0;
+            for(const auto &entry:row["before"]) {
+                Card c=r.make_run_card(fixture_card(entry["card"]),entry["upgraded"]);
+                if(!entry["enchantment"].is_null())assert(card_apply_enchantment(c,EnchantmentId::STEADY,entry["enchantmentAmount"]));
+                c.replay=entry["replay"];r.deck[r.deckCount++]=c;
+            }
+            const bool reflections=test=="reflections";
+            event_begin(r,event_id(reflections?"REFLECTIONS":"WELCOME_TO_WONGOS"),false);
+            // Oracle likewise seeds after BeginEvent: leave/touch branch RNG only.
+            r.eventRng=Rng(row["seed"].get<std::uint64_t>());
+            std::uint16_t uids[MAX_DECK];for(int i=0;i<r.deckCount;++i)uids[i]=r.deck[i].uid;
+            assert(r.step({RunActionType::EVENT_CHOICE,reflections?0:3}));
+            assert(r.screen==RunScreen::MAP&&r.eventId==-1&&row["finished"]==true);
+            assert(r.eventRng.counter==row["rngCounter"]);
+            assert(row["sameInstances"]==true&&r.deckCount==static_cast<int>(row["after"].size()));
+            for(int i=0;i<r.deckCount;++i) {
+                assert(r.deck[i].uid==uids[i]);check_card(r.deck[i],row["after"][i]);
+                assert(r.deck[i].storedCost==row["after"][i]["baseCost"]);
+            }
+            RunContext restored;assert(RunContext::restore(r.serialize(),restored));
+            for(int i=0;i<restored.deckCount;++i)check_card(restored.deck[i],row["after"][i]);
+        }
+        ++cases;
+    }
+    assert(cases==28);
+    // Saved per-instance fields survive a downgrade even if they do not alter
+    // base card text; they must not be erased by replacing the Card wholesale.
+    Card c=make_card(CardId::STRIKE_IRONCLAD,true,999);
+    c.galvanized=4;c.guiltyCombatsSeen=3;c.bonusReplay=2;
+    assert(card_apply_enchantment(c,EnchantmentId::VIGOROUS,2));c.enchantmentDisabled=true;
+    card_apply_downgrade(c);
+    assert(c.uid==999&&c.galvanized==4&&c.guiltyCombatsSeen==3&&c.bonusReplay==2);
+    assert(c.enchantment==EnchantmentId::VIGOROUS&&c.enchantmentAmount==2&&c.enchantmentDisabled);
+    std::cout<<"native step1 downgrade: "<<cases<<" DLL cases plus state/snapshot checks passed\n";
+}

@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "ruleset_id": "native-41cef1ea-port-v2",
+  "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "native_parity_complete": false,
+  "simulator_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+  "source_content_sha256": "3d7f31cf52bbd9f94246a0d95ff616ef48f7d498bf39d69282c399a2cd84d25c",
+  "id_layout_sha256": "fd0bacc6f8d55ba605dd91e23950d6c282fe6641be9d0757c09800504762233a",
+  "schema_layout_sha256": "25c9c9606cc0d53f51cb6c0cd1fab5c24f34da5e33f11a8951963338f44f3ebc",
+  "dimensions": {
+    "RUN_OBS_DIM": 237,
+    "CARD_FEAT_DIM": 250,
+    "COMBAT_OBS_DIM": 61,
+    "ACTION_FEAT_DIM": 342,
+    "PUBLIC_OBS_DIM": 46023,
+    "PUBLIC_COMBAT_OBS_DIM": 29651,
+    "PUBLIC_OBS_VERSION": 11,
+    "ACTION_SCHEMA_VERSION": 10,
+    "MAX_DECK": 128,
+    "MAP_MAX_POINTS": 119,
+    "CARD_COUNT": 222
+  },
+  "boundaries": {
+    "PUBLIC_RUN_DIM": 16372,
+    "PUB_RUN_BOSS_OFFSET": 3846,
+    "PUB_RUN_EXTENSION": 395
+  },
+  "feature_sources": {
+    "simulator/src/observe.cpp": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac",
+    "agent/armg.py": "edb75c6d69b3a07d6d8b39e6aa6735350988716e2055d9dc6bad24df59dd4f4f",
+    "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+  }
+}

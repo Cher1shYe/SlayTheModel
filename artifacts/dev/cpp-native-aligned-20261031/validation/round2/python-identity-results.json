@@ -1,0 +1,21 @@
+{
+  "status": "passed",
+  "tests": 32,
+  "seconds": 3.29,
+  "report": "validation/round2/python-identity-results-final.txt",
+  "includes": [
+    "strict engine identity",
+    "named v10-to-v11 migration and exact old-feature logits",
+    "fresh PUCT zero-game preparation",
+    "grid 6-12 candidate encoding",
+    "native bridge fields and unsupported cases"
+  ],
+  "native_bridge_build": {
+    "warnings": 0,
+    "errors": 0,
+    "ui_execution_tested": false
+  },
+  "note": "Final engine identity verified. Additional real 2-train + 1-eval PUCT run passed; see puct-training-smoke-audit.json.",
+  "engine_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+  "classification_followup_tests": 7
+}

@@ -1,0 +1,1 @@
+step1 state contract: public counters/order, 32 resamplings, clone/restore continuation, old version and malformed state rejection, new-combat reset passed

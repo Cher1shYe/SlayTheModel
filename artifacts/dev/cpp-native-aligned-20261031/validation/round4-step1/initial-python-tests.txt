@@ -1,0 +1,42 @@
+........................................................................ [ 53%]
+....................................................s....sF.ss.          [100%]
+=================================== FAILURES ===================================
+_ test_simulator_migration_requires_matching_explicit_hashes_and_strict_settings _
+
+tmp_path = PosixPath('/private/var/folders/y3/zqk9t9_n46bgnfsfqr6db1mh0000gn/T/pytest-of-yebohou/pytest-11/test_simulator_migration_requi0')
+
+    def test_simulator_migration_requires_matching_explicit_hashes_and_strict_settings(tmp_path):
+        import torch
+        from agent.armg import ArmGScorer
+        from agent.armg_train import _save, _restore
+        from deployment.train_armg_floor_prior_rl import _simulator_resume_settings
+    
+        old, new = 'a' * 64, 'b' * 64
+        old_settings = {'simulator_sha256': old, 'workers': 8, 'train_seed_offset': 0,
+                        'need_rules': False, 'relic_rules': False}
+        new_settings = {**old_settings, 'simulator_sha256': new}
+        previous = {'settings': {'simulator_sha256': old}}
+        model = ArmGScorer()
+        optimizer = torch.optim.Adam(model.parameters())
+        path = tmp_path / 'latest.pt'
+>       _save(path, model, optimizer, {'games': 608}, old_settings)
+
+tests/test_armg_floor_schedule.py:173: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+agent/armg_train.py:321: in _save
+    settings = bind_settings(settings)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+settings = {'need_rules': False, 'relic_rules': False, 'simulator_sha256': 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'train_seed_offset': 0, ...}
+
+    def bind_settings(settings: dict) -> dict:
+        current = current_engine_contract()["simulator_sha256"]
+        if settings.get("simulator_sha256", current) != current:
+>           raise ValueError("training settings simulator_sha256 does not match the loaded engine")
+E           ValueError: training settings simulator_sha256 does not match the loaded engine
+
+agent/engine_identity.py:176: ValueError
+=========================== short test summary info ============================
+FAILED tests/test_armg_floor_schedule.py::test_simulator_migration_requires_matching_explicit_hashes_and_strict_settings
+1 failed, 130 passed, 4 skipped in 8.84s

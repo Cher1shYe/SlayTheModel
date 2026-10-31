@@ -1,0 +1,1777 @@
+{
+  "nativeAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "compiledCards": 222,
+  "nativeModels": 596,
+  "matched": 221,
+  "unmatched": [
+    "GRAPPLE"
+  ],
+  "exceptions": [
+    {
+      "id": "MAD_SCIENCE",
+      "reason": "Native card type and effects are event-configured, so canonical None metadata cannot replace current attack approximation. Requires full MadScience state."
+    }
+  ],
+  "changes": [
+    {
+      "id": "BLOODLETTING",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "COMMON",
+          "after": "UNCOMMON"
+        }
+      ]
+    },
+    {
+      "id": "BREAK",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 2,
+          "after": 1
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 2,
+          "after": 1
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 25,
+          "after": 30
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 2,
+          "after": 1
+        }
+      ]
+    },
+    {
+      "id": "COLOSSUS_CARD",
+      "changes": [
+        {
+          "field": "base_block",
+          "before": 5,
+          "after": 4
+        },
+        {
+          "field": "rarity",
+          "before": "RARE",
+          "after": "UNCOMMON"
+        },
+        {
+          "field": "variants.base.base_block",
+          "before": 5,
+          "after": 4
+        },
+        {
+          "field": "variants.upgraded.base_block",
+          "before": 8,
+          "after": 7
+        }
+      ]
+    },
+    {
+      "id": "CONFLAGRATION",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 8,
+          "after": 2
+        },
+        {
+          "field": "description",
+          "before": "Deal {Damage:diff()} damage to ALL enemies {Repeat:diff()} {Repeat:plural:time|times}.",
+          "after": "Deal {Damage:diff()} damage to ALL enemies {Repeat:diff()} times."
+        },
+        {
+          "field": "effect_vars.calc_base",
+          "before": 8,
+          "after": null
+        },
+        {
+          "field": "effect_vars.extra_damage",
+          "before": 2,
+          "after": null
+        },
+        {
+          "field": "effect_vars.repeat",
+          "before": null,
+          "after": 4
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 8,
+          "after": 2
+        },
+        {
+          "field": "variants.base.effect_vars.calc_base",
+          "before": 8,
+          "after": null
+        },
+        {
+          "field": "variants.base.effect_vars.extra_damage",
+          "before": 2,
+          "after": null
+        },
+        {
+          "field": "variants.base.effect_vars.repeat",
+          "before": null,
+          "after": 4
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 8,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.effect_vars.calc_base",
+          "before": 9,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.extra_damage",
+          "before": 3,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.repeat",
+          "before": null,
+          "after": 5
+        }
+      ]
+    },
+    {
+      "id": "CRIMSON_MANTLE",
+      "changes": [
+        {
+          "field": "effect_vars.crimson_mantle_power",
+          "before": 8,
+          "after": 7
+        },
+        {
+          "field": "variants.base.effect_vars.crimson_mantle_power",
+          "before": 8,
+          "after": 7
+        }
+      ]
+    },
+    {
+      "id": "CRUELTY_CARD",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "RARE",
+          "after": "UNCOMMON"
+        }
+      ]
+    },
+    {
+      "id": "DEMON_FORM_CARD",
+      "changes": [
+        {
+          "field": "effect_vars.strength",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.base.effect_vars.strength",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.upgraded.effect_vars.strength",
+          "before": 3,
+          "after": 4
+        }
+      ]
+    },
+    {
+      "id": "DOMINATE",
+      "changes": [
+        {
+          "field": "description",
+          "before": "Apply {VulnerablePower:diff()} [gold]Vulnerable[/gold].\nGain {StrengthPerVulnerable:diff()} [gold]Strength[/gold] for each [gold]Vulnerable[/gold] on the enemy.",
+          "after": "Apply {VulnerablePower:diff()} Vulnerable. Gain Strength equal to the enemy's Vulnerable. Exhaust."
+        },
+        {
+          "field": "effect_vars.vulnerable",
+          "before": null,
+          "after": 1
+        },
+        {
+          "field": "rarity",
+          "before": "UNCOMMON",
+          "after": "RARE"
+        },
+        {
+          "field": "variants.base.effect_vars.vulnerable",
+          "before": null,
+          "after": 1
+        },
+        {
+          "field": "variants.upgraded.effect_vars.vulnerable",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DRUM_OF_BATTLE_CARD",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 0,
+          "after": 1
+        },
+        {
+          "field": "description",
+          "before": "Draw {Cards:diff()} {Cards:plural:card|cards}.\nWhen this card is [gold]Exhausted[/gold], gain {Energy:energyIcons()}.",
+          "after": "Draw {Cards:diff()} cards. When this card is Exhausted, gain {Energy:diff()} Energy."
+        },
+        {
+          "field": "effect_vars.drum_of_battle_power",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "effect_vars.energy",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "type",
+          "before": "POWER",
+          "after": "SKILL"
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 0,
+          "after": 1
+        },
+        {
+          "field": "variants.base.effect_vars.drum_of_battle_power",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "variants.base.effect_vars.energy",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 0,
+          "after": 1
+        },
+        {
+          "field": "variants.upgraded.effect_vars.cards",
+          "before": 3,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.effect_vars.drum_of_battle_power",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.energy",
+          "before": null,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "id": "FIGHT_ME",
+      "changes": [
+        {
+          "field": "effect_vars.strength",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.base.effect_vars.strength",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.upgraded.effect_vars.strength",
+          "before": 3,
+          "after": 4
+        }
+      ]
+    },
+    {
+      "id": "FORGOTTEN_RITUAL",
+      "changes": [
+        {
+          "field": "description",
+          "before": "Gain {Energy:energyIcons()}.",
+          "after": "Gain {Energy:diff()} Energy. Exhaust."
+        },
+        {
+          "field": "flags.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.base.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "HEMOKINESIS",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 14,
+          "after": 15
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 14,
+          "after": 15
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 19,
+          "after": 20
+        }
+      ]
+    },
+    {
+      "id": "HOWL_FROM_BEYOND",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 16,
+          "after": 18
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 16,
+          "after": 18
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 21,
+          "after": 24
+        }
+      ]
+    },
+    {
+      "id": "JUGGERNAUT_CARD",
+      "changes": [
+        {
+          "field": "effect_vars.juggernaut_power",
+          "before": 5,
+          "after": 6
+        },
+        {
+          "field": "variants.base.effect_vars.juggernaut_power",
+          "before": 5,
+          "after": 6
+        },
+        {
+          "field": "variants.upgraded.effect_vars.juggernaut_power",
+          "before": 7,
+          "after": 8
+        }
+      ]
+    },
+    {
+      "id": "MANGLE",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 15,
+          "after": 20
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 15,
+          "after": 20
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 20,
+          "after": 26
+        }
+      ]
+    },
+    {
+      "id": "PACTS_END",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 17,
+          "after": 18
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 17,
+          "after": 18
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 23,
+          "after": 24
+        }
+      ]
+    },
+    {
+      "id": "RAMPAGE",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 9,
+          "after": 10
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 9,
+          "after": 10
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 9,
+          "after": 10
+        },
+        {
+          "field": "variants.upgraded.effect_vars.increase",
+          "before": 9,
+          "after": 10
+        }
+      ]
+    },
+    {
+      "id": "SECOND_WIND",
+      "changes": [
+        {
+          "field": "base_block",
+          "before": null,
+          "after": 5
+        },
+        {
+          "field": "variants.base.base_block",
+          "before": null,
+          "after": 5
+        },
+        {
+          "field": "variants.upgraded.base_block",
+          "before": null,
+          "after": 7
+        }
+      ]
+    },
+    {
+      "id": "SPITE",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 6,
+          "after": 5
+        },
+        {
+          "field": "description",
+          "before": "Deal {Damage:diff()} damage.\nIf you lost HP this turn,\nhits {Repeat:diff()} times.",
+          "after": "Deal {Damage:diff()} damage. If you lost HP this turn, deal damage {Repeat:diff()} times instead."
+        },
+        {
+          "field": "effect_vars.cards",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "effect_vars.repeat",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 6,
+          "after": 5
+        },
+        {
+          "field": "variants.base.effect_vars.cards",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "variants.base.effect_vars.repeat",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 9,
+          "after": 5
+        },
+        {
+          "field": "variants.upgraded.effect_vars.cards",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.repeat",
+          "before": null,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "id": "STOKE",
+      "changes": [
+        {
+          "field": "description",
+          "before": "[gold]Exhaust[/gold] your [gold]Hand[/gold].\nAdd 1 random {IfUpgraded:show:[gold]Upgraded[/gold] |}card into your [gold]Hand[/gold] for each card [gold]Exhausted[/gold].",
+          "after": "Exhaust your hand. Add that many random cards from your character's card pool to your hand."
+        },
+        {
+          "field": "flags.exhausts",
+          "before": true,
+          "after": false
+        },
+        {
+          "field": "keywords",
+          "before": [
+            "exhaust"
+          ],
+          "after": []
+        },
+        {
+          "field": "variants.base.exhausts",
+          "before": true,
+          "after": false
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "exhaust"
+          ],
+          "after": []
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 0,
+          "after": 1
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": true,
+          "after": false
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "exhaust"
+          ],
+          "after": []
+        }
+      ]
+    },
+    {
+      "id": "TAUNT",
+      "changes": [
+        {
+          "field": "base_block",
+          "before": 7,
+          "after": 6
+        },
+        {
+          "field": "rarity",
+          "before": "UNCOMMON",
+          "after": "COMMON"
+        },
+        {
+          "field": "variants.base.base_block",
+          "before": 7,
+          "after": 6
+        },
+        {
+          "field": "variants.upgraded.base_block",
+          "before": 8,
+          "after": 7
+        }
+      ]
+    },
+    {
+      "id": "TREMBLE",
+      "changes": [
+        {
+          "field": "effect_vars.vulnerable",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "flags.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.base.effect_vars.vulnerable",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.base.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.upgraded.effect_vars.vulnerable",
+          "before": 3,
+          "after": 4
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "UNRELENTING",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 12,
+          "after": 14
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 12,
+          "after": 14
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 18,
+          "after": 20
+        }
+      ]
+    },
+    {
+      "id": "WHIRLWIND",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 0,
+          "after": -1
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 0,
+          "after": -1
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 0,
+          "after": -1
+        }
+      ]
+    },
+    {
+      "id": "BEACON_OF_HOPE",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 1,
+          "after": 2
+        }
+      ]
+    },
+    {
+      "id": "BELIEVE_IN_YOU",
+      "changes": [
+        {
+          "field": "effect_vars.energy",
+          "before": 3,
+          "after": 2
+        },
+        {
+          "field": "variants.base.effect_vars.energy",
+          "before": 3,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.effect_vars.energy",
+          "before": 4,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "id": "ETERNAL_ARMOR",
+      "changes": [
+        {
+          "field": "effect_vars.plating",
+          "before": 7,
+          "after": 9
+        },
+        {
+          "field": "variants.base.effect_vars.plating",
+          "before": 7,
+          "after": 9
+        },
+        {
+          "field": "variants.upgraded.effect_vars.plating",
+          "before": 9,
+          "after": 12
+        }
+      ]
+    },
+    {
+      "id": "FASTEN",
+      "changes": [
+        {
+          "field": "effect_vars.extra_block",
+          "before": 5,
+          "after": 4
+        },
+        {
+          "field": "variants.base.effect_vars.extra_block",
+          "before": 5,
+          "after": 4
+        },
+        {
+          "field": "variants.upgraded.effect_vars.extra_block",
+          "before": 7,
+          "after": 6
+        }
+      ]
+    },
+    {
+      "id": "HIDDEN_GEM",
+      "changes": [
+        {
+          "field": "can_be_generated_in_combat",
+          "before": null,
+          "after": false
+        }
+      ]
+    },
+    {
+      "id": "HUDDLE_UP",
+      "changes": [
+        {
+          "field": "flags.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.base.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PRODUCTION",
+      "changes": [
+        {
+          "field": "variants.upgraded.effect_vars.energy",
+          "before": 2,
+          "after": 3
+        },
+        {
+          "field": "variants.upgraded.exhausts",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PURITY",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [
+            "exhaust",
+            "retain"
+          ],
+          "after": [
+            "retain",
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "exhaust",
+            "retain"
+          ],
+          "after": [
+            "retain",
+            "exhaust"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "exhaust",
+            "retain"
+          ],
+          "after": [
+            "retain",
+            "exhaust"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "REND",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 2,
+          "after": 1
+        },
+        {
+          "field": "effect_vars.calc_base",
+          "before": 15,
+          "after": 10
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 2,
+          "after": 1
+        },
+        {
+          "field": "variants.base.effect_vars.calc_base",
+          "before": 15,
+          "after": 10
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 2,
+          "after": 1
+        },
+        {
+          "field": "variants.upgraded.effect_vars.calc_base",
+          "before": 18,
+          "after": 12
+        }
+      ]
+    },
+    {
+      "id": "SALVO",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "RARE",
+          "after": "UNCOMMON"
+        }
+      ]
+    },
+    {
+      "id": "SEEKER_STRIKE",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 6,
+          "after": 9
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 6,
+          "after": 9
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 9,
+          "after": 12
+        }
+      ]
+    },
+    {
+      "id": "SPLASH",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "UNCOMMON",
+          "after": "RARE"
+        }
+      ]
+    },
+    {
+      "id": "VOLLEY",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 0,
+          "after": -1
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 0,
+          "after": -1
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 0,
+          "after": -1
+        }
+      ]
+    },
+    {
+      "id": "VOID",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ASCENDERS_BANE",
+      "changes": [
+        {
+          "field": "can_be_generated_in_combat",
+          "before": null,
+          "after": false
+        },
+        {
+          "field": "keywords",
+          "before": [
+            "eternal",
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "eternal",
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "eternal",
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "eternal",
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "eternal",
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "eternal",
+            "unplayable",
+            "ethereal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CLUMSY",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "ethereal",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "ethereal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FOLLY",
+      "changes": [
+        {
+          "field": "flags.ethereal",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "keywords",
+          "before": [
+            "eternal",
+            "innate",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "eternal",
+            "innate",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.base.ethereal",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "eternal",
+            "innate",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "eternal",
+            "innate",
+            "ethereal"
+          ]
+        },
+        {
+          "field": "variants.upgraded.ethereal",
+          "before": false,
+          "after": true
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "eternal",
+            "innate",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "eternal",
+            "innate",
+            "ethereal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "POOR_SLEEP",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [
+            "retain",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "retain"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [
+            "retain",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "retain"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [
+            "retain",
+            "unplayable"
+          ],
+          "after": [
+            "unplayable",
+            "retain"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "BRIGHTEST_FLAME",
+      "changes": [
+        {
+          "field": "effect_vars.max_hp",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.base.effect_vars.max_hp",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.effect_vars.max_hp",
+          "before": 1,
+          "after": 2
+        }
+      ]
+    },
+    {
+      "id": "MAUL",
+      "changes": [
+        {
+          "field": "effect_vars.increase",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.base.effect_vars.increase",
+          "before": 1,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.effect_vars.increase",
+          "before": 2,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "id": "NEOWS_FURY",
+      "changes": [
+        {
+          "field": "can_be_generated_in_combat",
+          "before": null,
+          "after": false
+        },
+        {
+          "field": "variants.upgraded.effect_vars.cards",
+          "before": 2,
+          "after": 3
+        }
+      ]
+    },
+    {
+      "id": "RELAX",
+      "changes": [
+        {
+          "field": "base_block",
+          "before": 15,
+          "after": 16
+        },
+        {
+          "field": "variants.base.base_block",
+          "before": 15,
+          "after": 16
+        },
+        {
+          "field": "variants.upgraded.base_block",
+          "before": 17,
+          "after": 18
+        }
+      ]
+    },
+    {
+      "id": "RIP_AND_TEAR",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "UNCOMMON",
+          "after": "EVENT"
+        }
+      ]
+    },
+    {
+      "id": "WHISTLE",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 3,
+          "after": 2
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 3,
+          "after": 2
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 3,
+          "after": 2
+        }
+      ]
+    },
+    {
+      "id": "DISINTEGRATION",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "FUEL",
+      "changes": [
+        {
+          "field": "description",
+          "before": "Gain {Energy:energyIcons()}.",
+          "after": "Gain {Energy:diff()} Energy. Exhaust."
+        },
+        {
+          "field": "effect_vars.cards",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        },
+        {
+          "field": "variants.base.effect_vars.cards",
+          "before": 1,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.cards",
+          "before": 2,
+          "after": null
+        },
+        {
+          "field": "variants.upgraded.effect_vars.energy",
+          "before": 1,
+          "after": 2
+        }
+      ]
+    },
+    {
+      "id": "GIANT_ROCK",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 16,
+          "after": 20
+        },
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 16,
+          "after": 20
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 20,
+          "after": 24
+        }
+      ]
+    },
+    {
+      "id": "LUMINESCE",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        }
+      ]
+    },
+    {
+      "id": "MIND_ROT",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "MINION_DIVE_BOMB",
+      "changes": [
+        {
+          "field": "cost",
+          "before": 1,
+          "after": 0
+        },
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        },
+        {
+          "field": "variants.base.cost",
+          "before": 1,
+          "after": 0
+        },
+        {
+          "field": "variants.upgraded.cost",
+          "before": 1,
+          "after": 0
+        }
+      ]
+    },
+    {
+      "id": "MINION_SACRIFICE",
+      "changes": [
+        {
+          "field": "base_block",
+          "before": 9,
+          "after": 7
+        },
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        },
+        {
+          "field": "variants.base.base_block",
+          "before": 9,
+          "after": 7
+        },
+        {
+          "field": "variants.upgraded.base_block",
+          "before": 12,
+          "after": 10
+        }
+      ]
+    },
+    {
+      "id": "MINION_STRIKE",
+      "changes": [
+        {
+          "field": "base_damage",
+          "before": 7,
+          "after": 6
+        },
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        },
+        {
+          "field": "variants.base.base_damage",
+          "before": 7,
+          "after": 6
+        },
+        {
+          "field": "variants.upgraded.base_damage",
+          "before": 10,
+          "after": 9
+        }
+      ]
+    },
+    {
+      "id": "SHIV",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        }
+      ]
+    },
+    {
+      "id": "SLOTH_STATUS",
+      "changes": [
+        {
+          "field": "can_be_generated_in_combat",
+          "before": null,
+          "after": false
+        },
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SOUL",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        }
+      ]
+    },
+    {
+      "id": "SOVEREIGN_BLADE",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        }
+      ]
+    },
+    {
+      "id": "SWEEPING_GAZE",
+      "changes": [
+        {
+          "field": "rarity",
+          "before": "STATUS",
+          "after": "TOKEN"
+        }
+      ]
+    },
+    {
+      "id": "WASTE_AWAY",
+      "changes": [
+        {
+          "field": "keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.base.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        },
+        {
+          "field": "variants.upgraded.keywords",
+          "before": [],
+          "after": [
+            "unplayable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "NOT_YET",
+      "changes": [
+        {
+          "field": "can_be_generated_in_combat",
+          "before": null,
+          "after": false
+        },
+        {
+          "field": "cost",
+          "before": null,
+          "after": 2
+        },
+        {
+          "field": "description",
+          "before": null,
+          "after": "Heal {Heal:diff()} HP. Exhaust."
+        },
+        {
+          "field": "effect_vars",
+          "before": null,
+          "after": {
+            "heal": 10
+          }
+        },
+        {
+          "field": "flags",
+          "before": null,
+          "after": {
+            "exhausts": true,
+            "ethereal": false,
+            "innate": false,
+            "retain": false,
+            "unplayable": false
+          }
+        },
+        {
+          "field": "id",
+          "before": null,
+          "after": "NOT_YET"
+        },
+        {
+          "field": "keywords",
+          "before": null,
+          "after": [
+            "exhaust"
+          ]
+        },
+        {
+          "field": "multiplayer_only",
+          "before": null,
+          "after": false
+        },
+        {
+          "field": "pool",
+          "before": null,
+          "after": "ironclad"
+        },
+        {
+          "field": "rarity",
+          "before": null,
+          "after": "RARE"
+        },
+        {
+          "field": "tags",
+          "before": null,
+          "after": []
+        },
+        {
+          "field": "target",
+          "before": null,
+          "after": "SELF"
+        },
+        {
+          "field": "title",
+          "before": null,
+          "after": "Not Yet"
+        },
+        {
+          "field": "type",
+          "before": null,
+          "after": "SKILL"
+        },
+        {
+          "field": "variants",
+          "before": null,
+          "after": {
+            "base": {
+              "cost": 2,
+              "x_cost": false,
+              "base_damage": null,
+              "base_block": null,
+              "effect_vars": {
+                "heal": 10
+              },
+              "keywords": [
+                "exhaust"
+              ],
+              "exhausts": true,
+              "ethereal": false,
+              "innate": false,
+              "retain": false,
+              "unplayable": false
+            },
+            "upgraded": {
+              "cost": 2,
+              "x_cost": false,
+              "base_damage": null,
+              "base_block": null,
+              "effect_vars": {
+                "heal": 13
+              },
+              "keywords": [
+                "exhaust"
+              ],
+              "exhausts": true,
+              "ethereal": false,
+              "innate": false,
+              "retain": false,
+              "unplayable": false
+            }
+          }
+        },
+        {
+          "field": "x_cost",
+          "before": null,
+          "after": false
+        }
+      ]
+    }
+  ]
+}

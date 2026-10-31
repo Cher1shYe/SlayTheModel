@@ -1,0 +1,19 @@
+wip: checkpoint native C++ alignment step 2 and cross-character ports
+
+Preserve the validated step-1 baseline and checkpoint unfinished step-2 work
+against native v0.111.0 / 41cef1ea in the editable C++ port directory.
+
+- Add native card vocabulary and ordered character pools without reusing IDs.
+- Implement relic reward generation, optional selections, wax lifecycle and
+  persistent tea/Byrdpip state; begin potion-slot integration.
+- Add Silent, Defect and Necrobinder card/mechanic implementations and native
+  fixture evidence; add initial Regent card branches and state interfaces.
+- Begin shared cost modifiers, nested autoplay frames and battle hook wiring.
+- Preserve source-before backups, native fixtures and the initial failed and
+  passed C++ subset results for follow-up integration.
+
+WIP: integration is incomplete. The final source has not passed a full build,
+schema/identity upgrades or regression suite, and Regent mechanics remain
+unfinished. Early subset checks do not validate this entire checkpoint.
+No training or full-run native parity claim. Excludes game binaries, weights
+and generated build products. See docs/native-port-step2-wip-20261031.md.

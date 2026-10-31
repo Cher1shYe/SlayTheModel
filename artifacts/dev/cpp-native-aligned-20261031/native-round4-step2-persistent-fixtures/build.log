@@ -1,0 +1,14 @@
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(59,180): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(74,165): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(83,69): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+  SimulatorAudit -> /Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/.godot/mono/temp/bin/ExportRelease/SimulatorAudit.dll
+
+Build succeeded.
+
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(59,180): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(74,165): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/AuditWorker.cs(83,69): warning CS8602: Dereference of a possibly null reference. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.csproj]
+    3 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:21.84

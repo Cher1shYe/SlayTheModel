@@ -1,0 +1,9 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "fixture_count": 15,
+  "results_sha256": "cca882062cac1c23f14a28745824531632089addb20d1dafa0c14001fe3e32d2",
+  "source_sha256": "3279c54de5c1312dd5928dcece730a3ed8ff605905308670f483f4b5d83ef87f",
+  "scope": "Native execution oracle for simulator/tests/native_run_alignment.cpp; controlled direct relic obtain in isolated NativeSession, not full-run replay."
+}

@@ -1,0 +1,163 @@
+{
+  "target": {
+    "release": "v0.111.0",
+    "commit": "41cef1ea",
+    "dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+  },
+  "scope": "Bounded re-audit of currently implemented/approximate ordinary events and requested related REST hooks. Actual DLL controlled fixtures, not natural full-run parity.",
+  "native_fixtures": {
+    "directory": "native-round3-event-fixtures",
+    "count": 57,
+    "events": 42,
+    "rest": 6,
+    "potion_events_with_full_belt": 9,
+    "game_scene_loaded": false,
+    "results_sha256": "b8d971ee14533ce1dcf0e2efa18c60ce4503dcf84fe80bbfdc8a14826d11ed93"
+  },
+  "cpp_regression": "simulator/tests/native_event_round3_alignment.cpp",
+  "checks": [
+    "Player choice pauses before mutation; snapshot restores and continues chosen index",
+    "Native target DLL HP/maxHP/gold/deck/upgrades/event RNG counters",
+    "Dense Tungsten/Fairy/Lizard damage prevention",
+    "Five consecutive Tablet decipher results and give-up",
+    "REST entry vs heal vs upgrade: Feather/Tea/Pillow/Humidifier",
+    "Mailbox two rewards with full belt; no Mailbox on upgrade",
+    "Wellspring/Courier reward IDs and player reward RNG; full belt discard then take",
+    "Eternal exclusions and single-eligible auto-selection"
+  ],
+  "reviewed_events": [
+    {
+      "event": "AROMA_OF_CHAOS",
+      "status": "fixed",
+      "notes": "Both branches now pause for a player-selected card; selected transformation consumes event RNG once, respects transformability, applies transform obtain hooks and native card-pool ordering."
+    },
+    {
+      "event": "DENSE_VEGETATION",
+      "status": "fixed_with_remaining_gap",
+      "notes": "Trudge costs 8 damage, grants pre-rolled 61..99 gold, never removes a card. Mimicked rest excludes room-entry Feather, applies Pillow/Humidifier and queues two Mailbox potions. DreamCatcher remains unsupported; status changed to APPROXIMATE."
+    },
+    {
+      "event": "SUNKEN_STATUE",
+      "status": "fixed",
+      "notes": "Gold variance rolls at event entry for either option; damage passes through Tungsten/Fairy/Tail handling."
+    },
+    {
+      "event": "WELLSPRING",
+      "status": "fixed",
+      "notes": "Bathe chooses a removable card then adds Guilty. Bottle offers a persistent potion reward, using one uniform RNG draw over native ordered full unlocked pool."
+    },
+    {
+      "event": "TABLET_OF_TRUTH",
+      "status": "fixed",
+      "notes": "First four decipher actions each upgrade one random eligible card; fifth upgrades all. Give-up after decipher no longer heals20. Source-defined lethal cost path reduces maxHP to1 then kills through current death-prevention handling."
+    },
+    {
+      "event": "UNREST_SITE",
+      "status": "source_reviewed",
+      "notes": "Base values/option flow align with target source; general relic-pool and reward hooks remain wider coverage concerns."
+    },
+    {
+      "event": "SAPPHIRE_SEED",
+      "status": "source_reviewed",
+      "notes": "Both branches already preserve chosen upgrade/enchantment and 9 healing."
+    },
+    {
+      "event": "THIS_OR_THAT",
+      "status": "fixed",
+      "notes": "Gold rolls at event entry, damage uses common noncombat handler."
+    },
+    {
+      "event": "ROOM_FULL_OF_CHEESE",
+      "status": "source_reviewed_and_damage_fixed",
+      "notes": "8-card common grid/choose2 and 14 damage reviewed. Damage now uses common handler; full reward-generation hooks are outside these fixtures."
+    },
+    {
+      "event": "POTION_COURIER",
+      "status": "fixed",
+      "notes": "Three Foul potions or one uniformly sampled native uncommon potion remain offered with a full belt; no silent loss or special-potion leakage."
+    },
+    {
+      "event": "BRAIN_LEECH",
+      "status": "source_reviewed_and_damage_fixed",
+      "notes": "Choice grid and 5 damage reviewed; damage uses common handler. Exact noncombat card reward flags, upgrade odds and unlock filters remain unverified."
+    },
+    {
+      "event": "STONE_OF_ALL_TIME",
+      "status": "source_reviewed_and_damage_fixed",
+      "notes": "Selected potion and Vigorous choice retained; damage uses common handler; extra event RNG draw retained."
+    },
+    {
+      "event": "WELCOME_TO_WONGOS",
+      "status": "known_mismatches_not_fixed",
+      "notes": "Featured item currently first implemented rare instead of front-of-bag shop-eligible relic. Shop filters, Wongo progress/badge state, spending hooks and downgrade cost reset remain incomplete."
+    },
+    {
+      "event": "HUNGRY_FOR_MUSHROOMS",
+      "status": "source_reviewed",
+      "notes": "Event obtains the two native relics; their side effects are owned by the relic audit."
+    },
+    {
+      "event": "REFLECTIONS",
+      "status": "known_mismatch_not_fixed",
+      "notes": "Random downgrade/upgrade and full-deck duplication reviewed. Downgrade currently flips upgraded only and can retain upgraded stored cost; full native downgrade reset requires shared card helper."
+    },
+    {
+      "event": "SPIRIT_GRAFTER",
+      "status": "fixed",
+      "notes": "Rejection chooses one card to upgrade then deals10 damage; no random removal. Empty eligible set still applies subsequent damage."
+    },
+    {
+      "event": "LOST_WISP",
+      "status": "fixed",
+      "notes": "Gold rolls at entry for either option; Claim adds Decay before obtaining relic as native does."
+    },
+    {
+      "event": "ABYSSAL_BATHS",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found; prior round2 direct DLL fixtures retained."
+    },
+    {
+      "event": "DROWNING_BEACON",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found; maxHP loss and reward path retained."
+    },
+    {
+      "event": "SPIRALING_WHIRLPOOL",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found in currently implemented option flow."
+    },
+    {
+      "event": "SUNKEN_TREASURY",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found; prior round2 direct DLL fixtures retained."
+    },
+    {
+      "event": "DOORS_OF_LIGHT_AND_DARK",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found; prior round2 direct DLL fixtures retained."
+    },
+    {
+      "event": "WATERLOGGED_SCRIPTORIUM",
+      "status": "source_reviewed_prior_native_fixture",
+      "notes": "No new bounded mismatch found in costs/selection flow."
+    }
+  ],
+  "additional_fixed": [
+    "Noncombat potion generation now follows native Ironclad then shared declaration order for single and batch draws. A target DLL sample caught old FruitJuice versus Fairy mismatch.",
+    "Feather and VenerableTeaSet activate on actual RestSite entry; Mailbox only after heal; remove invented Mailbox triggers from upgrade/clone."
+  ],
+  "remaining_known_mismatches": [
+    "DreamCatcher normal-room card reward queue is absent; current custom queue cannot express all count/rarity-pity hooks.",
+    "Wongos featured selection/filter/spending/progress and downgrade semantics as detailed above.",
+    "Reflections/Wongos downgrade does not reset stored cost through native CardModel.DowngradeInternal.",
+    "Partial epoch unlock filtering for card/relic/potion pools is not modeled; new potion pool assumes full unlocks.",
+    "Noncombat reward-card upgrade/rarity hook parity was not established by these fixtures.",
+    "Capacity limits and generic card/relic add/remove hooks are not comprehensive."
+  ],
+  "not_reaudited": [
+    "Ancient option generation and full account progress; relic audit handles related obtain effects.",
+    "Unsupported EndlessConveyor, PunchOff, TrashHeap and other unsupported/shared suites; filtering them changes encounter pools."
+  ],
+  "parity_complete": false,
+  "validation_status": "57 native fixtures and matching assertion-enabled C++ differential test passed before final integrated rebuild; root owns full suite."
+}

@@ -1,0 +1,413 @@
+"""Generate docs/a0-ironclad-coverage.md from the content JSON and engine status.
+
+Evidence levels are reported separately instead of collapsing to a single
+IMPLEMENTED label:
+
+  * data        – content row exists in the generated tables;
+  * executable  – the engine can play/drive it;
+  * effect-tested – a semantic test asserts its behaviour;
+  * reference-validated – a differential trace against the reference exists
+    (none in this environment: no headless client trace is available);
+  * approximate / unsupported – reachable but substituted, or rejected.
+
+Per-item test references are listed where they exist; everything else is marked
+"unverified effect" rather than claimed correct.
+"""
+from __future__ import annotations
+
+import json
+import sys
+from collections import Counter, defaultdict
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+SIM = ROOT / "simulator"
+sys.path.insert(0, str(SIM))
+import sts2_sim as sim  # noqa: E402
+
+IMPLEMENTED = "EXECUTABLE"
+EFFECT_TESTED = "EFFECT_TESTED"
+APPROXIMATE = "APPROXIMATE"
+UNSUPPORTED = "UNSUPPORTED"
+
+# Direct semantic-test references (tests/test_rules.py unless noted).
+CARD_EFFECT_TESTS = {
+    "SWORD_BOOMERANG": "test_sword_boomerang_applies_modifiers_once",
+    "MANGLE": "test_mangle_temporary_strength_is_restored",
+    "DARK_SHACKLES": "test_dark_shackles_temporary_strength_is_restored",
+    "ALCHEMIZE": "test_alchemize_creates_a_combat_potion",
+    "STRIKE_IRONCLAD": "test_strength_and_vulnerable_modify_damage / test_relic_damage_combination",
+    "BASH": "test_strength_and_vulnerable_modify_damage / test_upgraded_card_damage",
+    "DEFEND_IRONCLAD": "test_block_and_dexterity",
+    "POMMEL_STRIKE": "test_draw_discard_and_exhaust_piles",
+    "TRUE_GRIT": "test_draw_discard_and_exhaust_piles",
+    "BLUDGEON": "test_monster_death_and_victory",
+    # tests/test_content.py
+    "CLUMSY": "test_clumsy_is_unplayable_and_ethereal",
+    "DECAY": "test_decay_deals_two_damage_at_turn_end",
+    "BAD_LUCK": "test_bad_luck_deals_thirteen_unblockable",
+    "REGRET": "test_regret_hits_for_cards_in_hand",
+    "DOUBT": "test_doubt_and_shame_apply_status_that_does_not_tick_immediately",
+    "SHAME": "test_doubt_and_shame_apply_status_that_does_not_tick_immediately",
+    "DEBT": "test_debt_drains_at_most_the_gold_you_have",
+    "NORMALITY": "test_normality_blocks_a_fourth_card",
+    "RELAX": "test_relax_gains_block_and_delays_energy_and_draw",
+    "BRIGHTEST_FLAME": "test_brightest_flame_trades_max_hp_for_energy_and_cards",
+}
+RELIC_EFFECT_TESTS = {
+    "BURNING_BLOOD": "test_run_starting_relic_and_rewards (test_smoke)",
+    "STRAWBERRY": "test_run_starting_relic_and_rewards (test_smoke)",
+    "VAJRA": "test_sword_boomerang_applies_modifiers_once / test_relic_damage_combination",
+    "STRIKE_DUMMY": "test_relic_damage_combination",
+    "ODDLY_SMOOTH_STONE": "test_block_and_dexterity",
+    # tests/test_content.py
+    "ARCHAIC_TOOTH": "test_archaic_tooth_transforms_bash_into_break",
+    "ALCHEMICAL_COFFER": "test_alchemical_coffer_adds_four_slots_and_four_potions",
+    "SAND_CASTLE": "test_sand_castle_upgrades_six_cards",
+    "PAELS_FLESH": "test_paels_flesh_grants_energy_from_round_three",
+    "PAELS_BLOOD": "test_paels_blood_draws_an_extra_card",
+    "CURSED_PEARL": "test_cursed_pearl_adds_greed",
+    "WHISPERING_EARRING": "test_whispering_earring_can_end_the_combat_on_turn_one",
+}
+# Ancient relic choices are tested end-to-end (offer -> grant); individual
+# secondary effects are not all asserted.
+ANCIENT_EVENT_TESTS = {
+    "NEOW": "test_neow_offers_follow_the_relic_mirror_rules",
+    "DARV": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "OROBAS": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "PAEL": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "TEZCATARA": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "NONUPEIPE": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "TANX": "test_act_ancients_are_reachable_from_the_correct_pools",
+    "VAKUU": "test_act_ancients_are_reachable_from_the_correct_pools",
+}
+# Event-pool playable cards that the contract can never produce; they exist for
+# completeness of the data table only.
+UNREACHABLE_EVENT_CARDS = {
+    "APOTHEOSIS", "APPARITION", "BYRD_SWOOP", "CALTROPS", "CLASH", "DISTRACTION",
+    "DUAL_WIELD", "ENLIGHTENMENT", "ENTRENCH", "EXTERMINATE",
+    "FEEDING_FRENZY_CARD", "HELLO_WORLD_CARD", "MAD_SCIENCE", "MAUL",
+    "METAMORPHOSIS", "NEOWS_FURY", "PECK", "REBOUND",
+    "RIP_AND_TEAR", "SPORE_MIND", "SQUASH", "STACK", "TORIC_TOUGHNESS",
+    "WHISTLE", "WISH",
+}
+MONSTER_EFFECT_TESTS = {
+    "LAGAVULIN_MATRIARCH": "test_lagavulin_wakes_on_unblocked_damage / test_plating_decrements_each_monster_turn",
+    "TEST_SUBJECT": "test_test_subject_revives_twice_then_phase_three",
+    "KNOWLEDGE_DEMON": "test_knowledge_demon_curse_counter_advances",
+    "SHRINKER_BEETLE": "test_monster_death_and_victory",
+}
+POTION_EFFECT_TESTS = {
+    "BlockPotion": "test_public_observation_encodes_combat_visibility (identity only)",
+}
+
+
+def load(name):
+    with (SIM / "content" / f"{name}.json").open(encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def table(header, rows):
+    out = ["| " + " | ".join(header) + " |",
+           "| " + " | ".join("---" for _ in header) + " |"]
+    out += ["| " + " | ".join(str(c) for c in row) + " |" for row in rows]
+    return out
+
+
+def main():
+    cards = load("cards")
+    potions = load("potions")
+    relics = load("relics")
+    monsters_doc = load("monsters")
+    monsters = monsters_doc["monsters"]
+    encounters = monsters_doc["encounters"]
+
+    # --- cards -------------------------------------------------------------
+    card_rows = []
+    card_status = Counter()
+    for c in sorted(cards, key=lambda x: x["title"].lower()):
+        tested = CARD_EFFECT_TESTS.get(c["id"])
+        if c["multiplayer_only"]:
+            status, test = UNSUPPORTED, ""
+            note = "multiplayer-only, present but inert in single player"
+        elif c["id"] in UNREACHABLE_EVENT_CARDS:
+            status, test = UNSUPPORTED, ""
+            note = "event-pool card with no reachable source in the supported contract"
+        elif tested:
+            status, test = EFFECT_TESTED, tested
+            note = ""
+        else:
+            status, test = IMPLEMENTED, ""
+            note = {"token": "token; generated by card/relic effects",
+                    "status": "status card; generated by enemies/relics",
+                    "curse": "curse; added by events/relics"}.get(c["pool"], "")
+            note = (note + "; " if note else "") + "no per-card effect test"
+        card_status[status] += 1
+        card_rows.append((c["title"] or c["id"], c["id"], c["pool"], c["type"], c["rarity"],
+                          "yes", "yes" if not c["multiplayer_only"] else "no",
+                          status, test, note))
+
+    # --- relics ------------------------------------------------------------
+    relic_rows = []
+    relic_status = Counter()
+    pool_names = {0: "SHARED", 1: "IRONCLAD", 2: "EVENT", 3: "OTHER_CHARACTER"}
+    for r in sorted(relics, key=lambda x: x["name"].lower()):
+        rid = int(getattr(sim.RelicId, r["id"])) if r["id"] in sim.RelicId.__members__ else -1
+        info = sim.relic_info(rid) if rid >= 0 else ("", "", 0, -1)
+        implemented = rid >= 0 and sim.relic_implemented(rid)
+        tested = RELIC_EFFECT_TESTS.get(r["id"], "")
+        is_event = rid >= 0 and info[3] == 2
+        if not implemented:
+            status = UNSUPPORTED
+        elif tested:
+            status = EFFECT_TESTED
+        elif is_event:
+            status = APPROXIMATE
+        else:
+            status = IMPLEMENTED
+        pool = pool_names.get(info[3], "EVENT" if rid >= 0 else "UNKNOWN")
+        if status == UNSUPPORTED and pool == "OTHER_CHARACTER":
+            note = "other-character pool, never drops for Ironclad"
+        elif status == UNSUPPORTED:
+            note = "engine effects not implemented; excluded from drop pools"
+        elif status == IMPLEMENTED:
+            note = "engine-handled; combat smoke only (no effect assertion)"
+        elif status == APPROXIMATE:
+            note = ("ancient/event relic: grant path is implemented; some secondary "
+                    "effects are partial or substituted")
+        else:
+            note = ""
+        relic_status[status] += 1
+        relic_rows.append((r["name"], r["id"], pool, "yes", "yes" if implemented else "no",
+                           status, tested, note))
+
+    # --- potions -----------------------------------------------------------
+    potion_rows = []
+    potion_status = Counter()
+    for p in sorted(potions, key=lambda x: x["id"].lower()):
+        tested = POTION_EFFECT_TESTS.get(p["id"], "")
+        if not p["ironclad"]:
+            status, note = UNSUPPORTED, f"{p['char']} pool, never drops for Ironclad"
+        elif tested:
+            status, note = EFFECT_TESTED, ""
+        else:
+            status, note = IMPLEMENTED, "usable; no per-potion effect assertion"
+        potion_status[status] += 1
+        potion_rows.append((p["id"], p["rarity"], p["usage"], "yes",
+                            "yes" if p["ironclad"] else "no", status, tested, note))
+
+    # --- events ------------------------------------------------------------
+    event_rows = []
+    event_status = Counter()
+    act_names = {-1: "shared", 0: "act 1", 1: "act 2", 2: "act 3", 3: "ancient"}
+    for eid in range(sim.event_count()):
+        name, status_code, act = sim.event_info(eid)
+        status = (IMPLEMENTED, APPROXIMATE, UNSUPPORTED)[status_code]
+        event_status[status] += 1
+        tested = ANCIENT_EVENT_TESTS.get(name, "")
+        if name == "DENSE_VEGETATION":
+            tested = "test_event_manifest_gating"
+        note = ("effect not individually asserted; manifest gating only"
+                if status == IMPLEMENTED and not tested else "")
+        if name in ANCIENT_EVENT_TESTS:
+            note = ("offer generation + relic grant tested; individual relic "
+                    "secondary effects are listed in the relic table")
+        event_rows.append((name, act_names.get(act, act), "yes",
+                           "no" if status == UNSUPPORTED else "yes", status, tested, note))
+
+    # --- monsters ----------------------------------------------------------
+    monster_acts = defaultdict(set)
+    for key, enc in encounters.items():
+        if not key.endswith("@A0"):
+            continue
+        for roster, _weight in enc["rosters"]:
+            for monster in roster:
+                monster_acts[monster].add(enc["act"])
+    monster_rows = []
+    monster_status = Counter()
+    for name in sorted(monsters):
+        acts = sorted(monster_acts[name])
+        reachable = [a for a in acts if a in ("act1", "act2", "act3")]
+        tested = MONSTER_EFFECT_TESTS.get(name, "")
+        status = EFFECT_TESTED if tested else IMPLEMENTED
+        monster_status[status] += 1
+        hp_source = monsters[name].get("hp_source", "sampled")
+        note = ("" if reachable else "summon/event/out-of-scope encounter only")
+        if status == IMPLEMENTED:
+            note = (note + "; " if note else "") + "AI runs; effects not individually asserted"
+        monster_rows.append((name, ", ".join(a.replace("act", "act ") for a in acts) or "-",
+                             hp_source, "explicit", status, tested, note))
+
+    # --- encounters --------------------------------------------------------
+    encounter_rows = []
+    encounter_status = Counter()
+    for enum_name in sim.Encounter.__members__:
+        if enum_name == "INVALID":
+            continue
+        key = enum_name.lower() + "@A0"
+        enc = encounters[key]
+        act = enc["act"]
+        if act in ("act1", "act2", "act3"):
+            status = IMPLEMENTED
+            note = "act room pool"
+        elif act == "act0":
+            status = (IMPLEMENTED if enum_name == "SETUP_DENSE_VEGETATION"
+                      else UNSUPPORTED)
+            note = ("event combat (Dense Vegetation)" if status == IMPLEMENTED
+                    else "event setup for an unsupported event")
+        else:
+            status = UNSUPPORTED
+            note = "act 4 content, outside the A0 acts 1-3 climb"
+        encounter_status[status] += 1
+        encounter_rows.append((enum_name, act, "yes",
+                               "no" if status == UNSUPPORTED else "yes", status, note))
+
+    # --- document ----------------------------------------------------------
+    lines = [
+        "# A0 Ironclad coverage manifest",
+        "",
+        "Contract: STS2 v0.111.0, standard single player, all content unlocked, "
+        "Ironclad, Ascension 0, single run from the opening Ancient to the act-3 "
+        "boss.",
+        "",
+        "Status vocabulary: **EXECUTABLE** (data + engine can drive it; effect not "
+        "individually asserted), **EFFECT_TESTED** (a semantic test asserts its "
+        "behaviour), **APPROXIMATE** (reachable but a UI/choice or secondary "
+        "effect is substituted), **UNSUPPORTED** (not reachable or deliberately "
+        "excluded; the engine refuses to draw it). **Reference-validated** "
+        "(step-by-step differential against a client trace) is not claimed for "
+        "any item: no headless client trace is available in this environment.",
+        "",
+        "Generated by `simulator/tools/gen_coverage.py`; do not hand-edit the "
+        "tables. Rule sources are the decompiled C# (`MegaCrit.Sts2.Core.Models.*`) "
+        "and the local data dumps `docs/*_REFERENCE.md`; tests are "
+        "`tests/test_rules.py`, `tests/test_effects.py`, `tests/test_content.py`, "
+        "`tests/test_training.py` and `tests/test_smoke.py`.",
+        "",
+        "## Summary",
+        "",
+    ]
+    lines += table(
+        ["Category", "Total", "Data", "Executable", "Effect-tested",
+         "Reference-validated", "Approximate", "Unsupported"],
+        [("Cards", len(cards), len(cards),
+          len(cards) - card_status[UNSUPPORTED], card_status[EFFECT_TESTED], 0, 0,
+          card_status[UNSUPPORTED]),
+         ("Relics", len(relics), len(relics),
+          relic_status[IMPLEMENTED] + relic_status[EFFECT_TESTED] +
+          relic_status[APPROXIMATE],
+          relic_status[EFFECT_TESTED], 0, relic_status[APPROXIMATE],
+          relic_status[UNSUPPORTED]),
+         ("Potions", len(potions), len(potions),
+          potion_status[IMPLEMENTED] + potion_status[EFFECT_TESTED],
+          potion_status[EFFECT_TESTED], 0, 0, potion_status[UNSUPPORTED]),
+         ("Events", sim.event_count(), sim.event_count(),
+          event_status[IMPLEMENTED] + event_status[APPROXIMATE],
+          event_status[EFFECT_TESTED], 0, event_status[APPROXIMATE],
+          event_status[UNSUPPORTED]),
+         ("Monsters", len(monsters), len(monsters), len(monsters),
+          monster_status[EFFECT_TESTED], 0, 0, 0),
+         ("Encounters", len(encounter_rows), len(encounter_rows),
+          encounter_status[IMPLEMENTED], 0, 0, 0, encounter_status[UNSUPPORTED])])
+    lines += ["", "## Map and rooms", ""]
+    lines += table(["Element", "Status", "Evidence / Source", "Notes"], [
+        ("StandardActMap (7 columns, 15/14/13 rooms for acts 1/2/3)", IMPLEMENTED,
+         "golden hashes test_map_golden_hashes; C# StandardActMap",
+         "7 starting paths, DAG with crossover repair, redundant-path pruning, "
+         "centering/spreading/straightening, forced first-row monsters, treasure "
+         "row, final-row rest sites, 5 elites / 3 shops / gaussian rests+unknowns"),
+        ("Unknown room resolution", IMPLEMENTED,
+         "test_map_generation_properties; C# Unknown room code",
+         "per-point odds with growth/reset and Event remainder; shop blacklist "
+         "after a shop and when all children are shops"),
+        ("Ancient room (opening)", IMPLEMENTED,
+         "test_neow_offers_follow_the_relic_mirror_rules; C# Neow",
+         "3 relic offers from the C# pools, including the mutual-exclusion rules "
+         "for Golden Pearl / Precise Scissors / New Leaf; curse relics add their "
+         "curse (Greed)"),
+        ("Ancient rooms in acts 2/3", IMPLEMENTED,
+         "test_act_ancients_are_reachable_from_the_correct_pools / "
+         "test_ancient_choice_grants_the_offered_relic; C# ActModel.GenerateRooms",
+         "each act starts at its Ancient node; act 2 rolls Orobas/Pael/Tezcatara, "
+         "act 3 rolls Nonupeipe/Tanx/Vakuu, and shared Darv is assigned to at most "
+         "one of acts 2/3 (RunManager.GenerateRooms)"),
+        ("Monster / Elite / Boss combats", IMPLEMENTED,
+         "test_full_run_completes_and_wins; C# encounter pools",
+         "encounter bags per act with weak-first ordering and boss reward flow"),
+        ("Event rooms", IMPLEMENTED,
+         "test_event_manifest_gating; C# events",
+         "implemented/approximate events only; unsupported events are filtered from the bag"),
+        ("Rest site", IMPLEMENTED, "test_rest_upgrade_and_shop_purchase; C# rest site",
+         "heal 30%, smith, Shovel Dig, Girya Lift"),
+        ("Shop", IMPLEMENTED, "test_rest_upgrade_and_shop_purchase; C# merchant",
+         "5 character cards + 2 colorless, 3 relics, 3 potions, one removal, sale and price variance"),
+        ("Treasure", IMPLEMENTED, "test_room_transitions_and_economy; C# treasure room",
+         "42-52 gold + relic rarity roll; Silver Crucible skip"),
+        ("Act transition", IMPLEMENTED, "test_boss_reward_advances_act; C# run flow",
+         "boss card reward -> next act map; act-3 boss ends the run in victory"),
+        ("Act 4 / final act", UNSUPPORTED, "contract", "outside the fixed A0 acts 1-3 contract"),
+    ])
+    lines += ["", "## Cards", "",
+              "`Effect-tested` names the test that asserts the card's semantics; "
+              "other executable cards run through the switch-table engine but "
+              "have no per-card assertion, so they are not claimed exact.", ""]
+    lines += table(["Card", "ID", "Pool", "Type", "Rarity", "Data", "Executable",
+                    "Status", "Test", "Note"], card_rows)
+    lines += ["", "## Relics", ""]
+    lines += table(["Relic", "ID", "Pool", "Data", "Executable", "Status", "Test", "Note"],
+                   relic_rows)
+    lines += ["", "## Potions", ""]
+    lines += table(["Potion", "Rarity", "Usage", "Data", "Executable", "Status", "Test", "Note"],
+                   potion_rows)
+    lines += ["", "## Events", ""]
+    lines += table(["Event", "Act", "Data", "Executable", "Status", "Test", "Note"], event_rows)
+    lines += ["", "## Monsters", "",
+              "`HP source` is `static` when the range was parsed from the reference "
+              "creator source (exact endpoints) and `sampled_only` when only "
+              "encounter sampling was available. `Conditions` is `explicit`: the "
+              "generator refuses to emit an unmapped branch condition instead of "
+              "defaulting it to true. Roster weights are sampled over 512 seeds and "
+              "are marked as sampled, not exact.", ""]
+    lines += table(["Monster", "Acts", "HP source", "Conditions", "Status", "Test", "Note"],
+                   monster_rows)
+    lines += ["", "## Encounters", ""]
+    lines += table(["Encounter", "Act", "Data", "Executable", "Status", "Note"],
+                   encounter_rows)
+    lines += ["", "## Cross-cutting approximations", "",
+              "- Event card/discovery choices use deterministic RNG picks instead "
+              "of a card-selection UI; enchantments `Sown`/`Vigorous` are "
+              "substituted by random upgrades and `Metamorphosis` by a random "
+              "colorless card.",
+              "- Curses exist as cards and their in-combat effects are modelled "
+              "(Decay/Regret/Bad Luck/Doubt/Shame/Debt/Normality). Enchantments are "
+              "still substituted, so relics that enchant cards use random upgrades.",
+              "- Some event relics needing enchantments, pets, or map manipulation "
+              "are no-ops or substitutes; the originating events are marked "
+              "APPROXIMATE.",
+              "- Potion rewards are auto-added when a slot is free; boss relic and "
+              "non-card rewards are auto-collected.",
+              "- Combat rewards use independent simplified draw bags; the exact "
+              "tagged GrabBag ordering is approximated by act-filtered lists.",
+              "- Multiplayer/ally-targeted effects are no-ops or applied to the "
+              "player; card text is never parsed, semantics follow the reference "
+              "effect code.",
+              "- Encounter roster weights are empirical frequencies over 512 seeds, "
+              "not symbolic probabilities; rare variants could still be missing.",
+              "- Monster move effects are recorded from one execution at the "
+              "initial state. Moves whose values change while the fight progresses "
+              "(Test Subject multi-claw, Knowledge Demon curse counter, Frog Knight "
+              "charge) are special-cased and tested; other dynamic effects may "
+              "remain at their first recorded value.",
+              "", "## Differential status", "",
+              "Golden tests cover map topology hashes, run determinism, snapshot/"
+              "restore, room/economy structure and full A0 wins. A byte-for-byte "
+              "headless-client differential trace is not available in this "
+              "environment. No item is therefore marked reference-validated; items "
+              "without a semantic test are EXECUTABLE only.", ""]
+    out = ROOT / "docs" / "a0-ironclad-coverage.md"
+    out.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"wrote {out} ({len(lines)} lines)")
+
+
+if __name__ == "__main__":
+    main()

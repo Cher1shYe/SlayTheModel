@@ -1,0 +1,145 @@
+{
+  "programs": 23,
+  "failures": 0,
+  "assertions_enabled": true,
+  "results": [
+    {
+      "name": "enchantment_contract",
+      "returncode": 0,
+      "seconds": 0.7160110840013658,
+      "log": "validation/round3/cpp-logs/enchantment_contract.txt"
+    },
+    {
+      "name": "hidden_resampling",
+      "returncode": 0,
+      "seconds": 0.6265337090007961,
+      "log": "validation/round3/cpp-logs/hidden_resampling.txt"
+    },
+    {
+      "name": "map_event_audit_regression",
+      "returncode": 0,
+      "seconds": 7.984509624999191,
+      "log": "validation/round3/cpp-logs/map_event_audit_regression.txt"
+    },
+    {
+      "name": "mcts_regression",
+      "returncode": 0,
+      "seconds": 0.5336062079986732,
+      "log": "validation/round3/cpp-logs/mcts_regression.txt"
+    },
+    {
+      "name": "monster_audit_regression",
+      "returncode": 0,
+      "seconds": 0.37000870799965924,
+      "log": "validation/round3/cpp-logs/monster_audit_regression.txt"
+    },
+    {
+      "name": "native_act_alignment",
+      "returncode": 0,
+      "seconds": 0.9058803329990042,
+      "log": "validation/round3/cpp-logs/native_act_alignment.txt"
+    },
+    {
+      "name": "native_card_alignment",
+      "returncode": 0,
+      "seconds": 0.383077417000095,
+      "log": "validation/round3/cpp-logs/native_card_alignment.txt"
+    },
+    {
+      "name": "native_card_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.31300575000022945,
+      "log": "validation/round3/cpp-logs/native_card_round3_alignment.txt"
+    },
+    {
+      "name": "native_event_oracle_alignment",
+      "returncode": 0,
+      "seconds": 0.6475073330002488,
+      "log": "validation/round3/cpp-logs/native_event_oracle_alignment.txt"
+    },
+    {
+      "name": "native_event_round3_alignment",
+      "returncode": 0,
+      "seconds": 1.6823143749988958,
+      "log": "validation/round3/cpp-logs/native_event_round3_alignment.txt"
+    },
+    {
+      "name": "native_relic_round2_alignment",
+      "returncode": 0,
+      "seconds": 0.5957632080007897,
+      "log": "validation/round3/cpp-logs/native_relic_round2_alignment.txt"
+    },
+    {
+      "name": "native_relic_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.4367651249995106,
+      "log": "validation/round3/cpp-logs/native_relic_round3_alignment.txt"
+    },
+    {
+      "name": "native_rng_contract",
+      "returncode": 0,
+      "seconds": 0.30284520799978054,
+      "log": "validation/round3/cpp-logs/native_rng_contract.txt"
+    },
+    {
+      "name": "native_round3_shared_alignment",
+      "returncode": 0,
+      "seconds": 0.378894790999766,
+      "log": "validation/round3/cpp-logs/native_round3_shared_alignment.txt"
+    },
+    {
+      "name": "native_run_alignment",
+      "returncode": 0,
+      "seconds": 0.5946762909989047,
+      "log": "validation/round3/cpp-logs/native_run_alignment.txt"
+    },
+    {
+      "name": "native_seed_integration",
+      "returncode": 0,
+      "seconds": 0.3191104580000683,
+      "log": "validation/round3/cpp-logs/native_seed_integration.txt"
+    },
+    {
+      "name": "native_underdocks_events",
+      "returncode": 0,
+      "seconds": 0.588480915999753,
+      "log": "validation/round3/cpp-logs/native_underdocks_events.txt"
+    },
+    {
+      "name": "observation_contract",
+      "returncode": 0,
+      "seconds": 0.8097502079999686,
+      "log": "validation/round3/cpp-logs/observation_contract.txt"
+    },
+    {
+      "name": "relic_contract",
+      "returncode": 0,
+      "seconds": 0.5918141250003828,
+      "log": "validation/round3/cpp-logs/relic_contract.txt"
+    },
+    {
+      "name": "relic_raw_rarity",
+      "returncode": 0,
+      "seconds": 0.37443333299961523,
+      "log": "validation/round3/cpp-logs/relic_raw_rarity.txt"
+    },
+    {
+      "name": "rules_regression",
+      "returncode": 0,
+      "seconds": 2.4675668330000917,
+      "log": "validation/round3/cpp-logs/rules_regression.txt"
+    },
+    {
+      "name": "scroll_boxes_regression",
+      "returncode": 0,
+      "seconds": 0.6123872919997666,
+      "log": "validation/round3/cpp-logs/scroll_boxes_regression.txt"
+    },
+    {
+      "name": "snapshot_validation",
+      "returncode": 0,
+      "seconds": 9.665218625001216,
+      "log": "validation/round3/cpp-logs/snapshot_validation.txt"
+    }
+  ]
+}

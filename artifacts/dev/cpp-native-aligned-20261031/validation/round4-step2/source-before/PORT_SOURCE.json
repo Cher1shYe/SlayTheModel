@@ -1,0 +1,13 @@
+{
+  "base_commit": "be401e8ba09ac58c9f3b01cf77e195f7122c8d0c",
+  "target_release": "v0.111.0",
+  "target_commit": "41cef1ea",
+  "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "engine_ruleset": "native-41cef1ea-port-v4",
+  "native_parity_complete": false,
+  "purpose": "Retain C++ execution speed while porting actual native rules and checking against the native worker.",
+  "public_observation_version": 13,
+  "action_schema_version": 12,
+  "armg_feature_version": 4,
+  "snapshot_version": 8
+}

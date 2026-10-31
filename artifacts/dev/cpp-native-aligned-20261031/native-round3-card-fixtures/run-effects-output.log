@@ -1,0 +1,1060 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/godot.log"
+  ],
+  "seconds": 4.0948665,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/results.json"
+  },
+  "harness_sha256": "91a7d7b53d04ebe6542c996d285334ccdb20808cdcfa24c2c06cdf4a4e12b461"
+}
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound3CardAudit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "card_effect",
+      "id": "CONFLAGRATION",
+      "upgraded": false,
+      "powered": false,
+      "damage": 8,
+      "totalDamage": 16,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "CONFLAGRATION",
+      "upgraded": false,
+      "powered": true,
+      "damage": 36,
+      "totalDamage": 72,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SPITE",
+      "upgraded": false,
+      "powered": false,
+      "damage": 5,
+      "totalDamage": 5,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SPITE",
+      "upgraded": false,
+      "powered": true,
+      "damage": 10,
+      "totalDamage": 10,
+      "enemyCount": 2,
+      "hp": 79,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "DOMINATE",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 1,
+      "vulnerable": 1,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "DOMINATE"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "DOMINATE",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 3,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "DOMINATE"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FORGOTTEN_RITUAL",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 5,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FORGOTTEN_RITUAL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FORGOTTEN_RITUAL",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 5,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FORGOTTEN_RITUAL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "PACTS_END",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "PACTS_END",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "VOLLEY",
+      "upgraded": false,
+      "powered": false,
+      "damage": 30,
+      "totalDamage": 30,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 0,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "VOLLEY",
+      "upgraded": false,
+      "powered": true,
+      "damage": 51,
+      "totalDamage": 51,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 0,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "RIP_AND_TEAR",
+      "upgraded": false,
+      "powered": false,
+      "damage": 14,
+      "totalDamage": 14,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "RIP_AND_TEAR",
+      "upgraded": false,
+      "powered": true,
+      "damage": 28,
+      "totalDamage": 28,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SWORD_BOOMERANG",
+      "upgraded": false,
+      "powered": false,
+      "damage": 9,
+      "totalDamage": 9,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SWORD_BOOMERANG",
+      "upgraded": false,
+      "powered": true,
+      "damage": 30,
+      "totalDamage": 30,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "FUEL",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 4,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FUEL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FUEL",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 4,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FUEL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "SOUL",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "exhaust": [
+        "SOUL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "SOUL",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "exhaust": [
+        "SOUL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "NOT_YET",
+      "upgraded": false,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 50,
+      "energy": 1,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "NOT_YET"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "NOT_YET",
+      "upgraded": false,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 50,
+      "energy": 1,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "NOT_YET"
+      ]
+    },
+    {
+      "test": "drum_exhaust",
+      "upgraded": false,
+      "duplicate": false,
+      "energy": 5,
+      "duplication": 0
+    },
+    {
+      "test": "drum_exhaust",
+      "upgraded": false,
+      "duplicate": true,
+      "energy": 7,
+      "duplication": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "none",
+      "hp": 78,
+      "max": 78,
+      "energy": 5,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "rupture",
+      "hp": 78,
+      "max": 78,
+      "energy": 5,
+      "strength": 2,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "tungsten",
+      "hp": 78,
+      "max": 78,
+      "energy": 5,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "buffer",
+      "hp": 78,
+      "max": 78,
+      "energy": 5,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "injured",
+      "hp": 40,
+      "max": 78,
+      "energy": 5,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": false,
+      "modifier": "small_max",
+      "hp": 0,
+      "max": 1,
+      "energy": 5,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "card_effect",
+      "id": "CONFLAGRATION",
+      "upgraded": true,
+      "powered": false,
+      "damage": 10,
+      "totalDamage": 20,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "CONFLAGRATION",
+      "upgraded": true,
+      "powered": true,
+      "damage": 45,
+      "totalDamage": 90,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SPITE",
+      "upgraded": true,
+      "powered": false,
+      "damage": 5,
+      "totalDamage": 5,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SPITE",
+      "upgraded": true,
+      "powered": true,
+      "damage": 15,
+      "totalDamage": 15,
+      "enemyCount": 2,
+      "hp": 79,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "DOMINATE",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 2,
+      "vulnerable": 2,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "DOMINATE"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "DOMINATE",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 4,
+      "vulnerable": 4,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "DOMINATE"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FORGOTTEN_RITUAL",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 6,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FORGOTTEN_RITUAL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FORGOTTEN_RITUAL",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 6,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FORGOTTEN_RITUAL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "PACTS_END",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "PACTS_END",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "VOLLEY",
+      "upgraded": true,
+      "powered": false,
+      "damage": 42,
+      "totalDamage": 42,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 0,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "VOLLEY",
+      "upgraded": true,
+      "powered": true,
+      "damage": 63,
+      "totalDamage": 63,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 0,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "RIP_AND_TEAR",
+      "upgraded": true,
+      "powered": false,
+      "damage": 18,
+      "totalDamage": 18,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "RIP_AND_TEAR",
+      "upgraded": true,
+      "powered": true,
+      "damage": 32,
+      "totalDamage": 32,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SWORD_BOOMERANG",
+      "upgraded": true,
+      "powered": false,
+      "damage": 12,
+      "totalDamage": 12,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "SWORD_BOOMERANG",
+      "upgraded": true,
+      "powered": true,
+      "damage": 40,
+      "totalDamage": 40,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 2,
+      "strength": 3,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": []
+    },
+    {
+      "test": "card_effect",
+      "id": "FUEL",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 5,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FUEL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "FUEL",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 5,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "FUEL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "SOUL",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "exhaust": [
+        "SOUL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "SOUL",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 80,
+      "energy": 3,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD",
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "exhaust": [
+        "SOUL"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "NOT_YET",
+      "upgraded": true,
+      "powered": false,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 53,
+      "energy": 1,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "NOT_YET"
+      ]
+    },
+    {
+      "test": "card_effect",
+      "id": "NOT_YET",
+      "upgraded": true,
+      "powered": true,
+      "damage": 0,
+      "totalDamage": 0,
+      "enemyCount": 2,
+      "hp": 53,
+      "energy": 1,
+      "strength": 0,
+      "vulnerable": 0,
+      "hand": [
+        "DEFEND_IRONCLAD"
+      ],
+      "exhaust": [
+        "NOT_YET"
+      ]
+    },
+    {
+      "test": "drum_exhaust",
+      "upgraded": true,
+      "duplicate": false,
+      "energy": 6,
+      "duplication": 0
+    },
+    {
+      "test": "drum_exhaust",
+      "upgraded": true,
+      "duplicate": true,
+      "energy": 9,
+      "duplication": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "none",
+      "hp": 78,
+      "max": 78,
+      "energy": 6,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "rupture",
+      "hp": 78,
+      "max": 78,
+      "energy": 6,
+      "strength": 2,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "tungsten",
+      "hp": 78,
+      "max": 78,
+      "energy": 6,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "buffer",
+      "hp": 78,
+      "max": 78,
+      "energy": 6,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "injured",
+      "hp": 40,
+      "max": 78,
+      "energy": 6,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "brightest_max_hp",
+      "upgraded": true,
+      "modifier": "small_max",
+      "hp": 0,
+      "max": 1,
+      "energy": 6,
+      "strength": 0,
+      "buffer": 0
+    },
+    {
+      "test": "second_wind_snapshot",
+      "handBefore": [
+        "SHRUG_IT_OFF",
+        "SECOND_WIND",
+        "DEFEND_IRONCLAD"
+      ],
+      "block": 10,
+      "hand": [
+        "STRIKE_IRONCLAD",
+        "BASH"
+      ],
+      "exhaust": [
+        "SHRUG_IT_OFF",
+        "DEFEND_IRONCLAD"
+      ]
+    },
+    {
+      "test": "catastrophe_playable_priority",
+      "damage": 6,
+      "totalDamage": 14,
+      "draw": [
+        "WOUND"
+      ],
+      "discard": [
+        "BASH",
+        "STRIKE_IRONCLAD",
+        "CATASTROPHE"
+      ]
+    },
+    {
+      "test": "anointed_free_slots",
+      "handCount": 10,
+      "draw": [
+        "IMPERVIOUS"
+      ],
+      "discard": []
+    },
+    {
+      "test": "hidden_gem_candidates",
+      "draw": [
+        {
+          "id": "SLIMED",
+          "replay": 0
+        },
+        {
+          "id": "BASH",
+          "replay": 2
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "replay": 1
+        }
+      ]
+    },
+    {
+      "test": "maul_self_growth_replay",
+      "upgraded": false,
+      "damage": 24,
+      "selfDamage": 9,
+      "otherDamage": 9
+    },
+    {
+      "test": "maul_self_growth_replay",
+      "upgraded": true,
+      "damage": 30,
+      "selfDamage": 12,
+      "otherDamage": 11
+    },
+    {
+      "test": "rend_debuff",
+      "modifier": "negative_strength",
+      "damage": 15
+    },
+    {
+      "test": "rend_debuff",
+      "modifier": "mangle",
+      "damage": 15
+    },
+    {
+      "test": "rend_debuff",
+      "modifier": "plow",
+      "damage": 15
+    },
+    {
+      "test": "rend_debuff",
+      "modifier": "imbalanced",
+      "damage": 15
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeCardAudit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "thrash_weak",
+      "damage": 6,
+      "baseBefore": 4,
+      "baseAfter": 8.50,
+      "growth": 4.50,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_weak_strength5",
+      "damage": 12,
+      "baseBefore": 4,
+      "baseAfter": 12.25,
+      "growth": 8.25,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_pen_nib_before8",
+      "damage": 8,
+      "baseBefore": 4,
+      "baseAfter": 16,
+      "growth": 12,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_pen_nib_before9",
+      "damage": 16,
+      "baseBefore": 4,
+      "baseAfter": 10,
+      "growth": 6,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_gigantification1",
+      "damage": 24,
+      "baseBefore": 4,
+      "baseAfter": 10,
+      "growth": 6,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_gigantification2",
+      "damage": 24,
+      "baseBefore": 4,
+      "baseAfter": 22,
+      "growth": 18,
+      "giantAfter": 1,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_enemy_vulnerable3",
+      "damage": 12,
+      "baseBefore": 4,
+      "baseAfter": 10,
+      "growth": 6,
+      "giantAfter": 0,
+      "exhausted": [
+        "STRIKE_IRONCLAD"
+      ]
+    },
+    {
+      "test": "thrash_bully_enemy_vulnerable5",
+      "damage": 12,
+      "baseBefore": 4,
+      "baseAfter": 8,
+      "growth": 4,
+      "giantAfter": 0,
+      "exhausted": [
+        "BULLY"
+      ]
+    },
+    {
+      "test": "thrash_ashen_exhaust1",
+      "damage": 8,
+      "baseBefore": 4,
+      "baseAfter": 13,
+      "growth": 9,
+      "giantAfter": 0,
+      "exhausted": [
+        "DEFEND_IRONCLAD",
+        "ASHEN_STRIKE"
+      ]
+    },
+    {
+      "test": "thrash_perfected_includes_self",
+      "damage": 8,
+      "baseBefore": 4,
+      "baseAfter": 12,
+      "growth": 8,
+      "giantAfter": 0,
+      "exhausted": [
+        "PERFECTED_STRIKE"
+      ]
+    },
+    {
+      "test": "cinder_dark_embrace",
+      "hand": [
+        "STRIKE_IRONCLAD"
+      ],
+      "draw": [],
+      "exhausted": [
+        "DEFEND_IRONCLAD"
+      ]
+    },
+    {
+      "test": "anger_sown_clone_status",
+      "energyBefore": 3,
+      "energyAfter": 11,
+      "discarded": [
+        {
+          "card": "ANGER",
+          "original": false,
+          "enchantment": "SOWN",
+          "amount": 8,
+          "status": "Normal"
+        },
+        {
+          "card": "ANGER",
+          "original": true,
+          "enchantment": "SOWN",
+          "amount": 8,
+          "status": "Disabled"
+        }
+      ]
+    }
+  ]
+}

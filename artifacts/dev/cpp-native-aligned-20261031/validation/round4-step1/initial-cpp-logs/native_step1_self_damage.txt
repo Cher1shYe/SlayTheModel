@@ -1,0 +1,1 @@
+Native step1 self damage: 56 fixtures, 1379 checks, 0 failures

@@ -1,0 +1,50 @@
+{
+  "status": "wip-source-and-text-evidence-only",
+  "branch": "workspace_YE",
+  "files": 1612,
+  "bytes_excluding_this_summary": 37004591,
+  "symlinks_excluded": [],
+  "largest_files": [
+    {
+      "bytes": 2501452,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-silent-fixtures/run-output.txt"
+    },
+    {
+      "bytes": 2500494,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-silent-fixtures/results.json"
+    },
+    {
+      "bytes": 2386332,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/validation/round3/native-rules-port-v3.patch"
+    },
+    {
+      "bytes": 1507402,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-necrobinder-fixtures/run-output.txt"
+    },
+    {
+      "bytes": 1506417,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-necrobinder-fixtures/results.json"
+    },
+    {
+      "bytes": 998764,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-defect-fixtures/results.json"
+    },
+    {
+      "bytes": 973277,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/simulator/content/cards.json"
+    },
+    {
+      "bytes": 930720,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/validation/round2/native-rules-port-v2.patch"
+    },
+    {
+      "bytes": 716784,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/validation/round4-step1/native-rules-port-v4-step1.patch"
+    },
+    {
+      "bytes": 670704,
+      "path": "artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/cards_generated.inc"
+    }
+  ],
+  "staged_committed_or_pushed": false
+}

@@ -1,0 +1,71 @@
+{
+  "nativeAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "fixtures": 12,
+  "nativeGrowthChecks": [
+    {
+      "test": "thrash_weak",
+      "native_growth": 4.5,
+      "expected_growth": 4.5,
+      "matches": true
+    },
+    {
+      "test": "thrash_weak_strength5",
+      "native_growth": 8.25,
+      "expected_growth": 8.25,
+      "matches": true
+    },
+    {
+      "test": "thrash_pen_nib_before8",
+      "native_growth": 12,
+      "expected_growth": 12,
+      "matches": true
+    },
+    {
+      "test": "thrash_pen_nib_before9",
+      "native_growth": 6,
+      "expected_growth": 6,
+      "matches": true
+    },
+    {
+      "test": "thrash_gigantification1",
+      "native_growth": 6,
+      "expected_growth": 6,
+      "matches": true
+    },
+    {
+      "test": "thrash_gigantification2",
+      "native_growth": 18,
+      "expected_growth": 18,
+      "matches": true
+    },
+    {
+      "test": "thrash_enemy_vulnerable3",
+      "native_growth": 6,
+      "expected_growth": 6,
+      "matches": true
+    },
+    {
+      "test": "thrash_bully_enemy_vulnerable5",
+      "native_growth": 4,
+      "expected_growth": 4,
+      "matches": true
+    },
+    {
+      "test": "thrash_ashen_exhaust1",
+      "native_growth": 9,
+      "expected_growth": 9,
+      "matches": true
+    },
+    {
+      "test": "thrash_perfected_includes_self",
+      "native_growth": 8,
+      "expected_growth": 8,
+      "matches": true
+    }
+  ],
+  "allGrowthChecksMatch": true,
+  "source_sha256": "b516123fc59c95679c6a532692a3d72c17a4f7ff7f51453b69d6be917508ad09",
+  "result_sha256": "bd8689d539720420f20bae1e0441ef686d7fbfed15133b30250d1af0de98a45d",
+  "notes": "Independent fixture copy; baseline native-differential directory unchanged. Build0errors; NuGet advisory feed unavailable produced2warnings. Original game rules unchanged."
+}

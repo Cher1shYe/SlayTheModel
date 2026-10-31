@@ -1,0 +1,10 @@
+Working directory: artifacts/dev/cpp-native-aligned-20261031
+/opt/anaconda3/bin/python validation/build_local.py
+/opt/anaconda3/bin/python validation/round4-step1/run_cpp_tests.py
+/opt/anaconda3/bin/python -m pytest -q tests/test_content.py tests/test_binding_schema_contract.py tests/test_native_act_context.py tests/test_native_seed_identity.py tests/test_engine_checkpoint_identity.py tests/test_armg_native_bridge.py tests/test_armg_features.py tests/test_armg_floor_final_boss.py tests/test_native_step1_state.py tests/test_armg_floor_schedule.py tests/test_audit_regressions.py::test_observation_schema_versions_are_bumped
+/opt/anaconda3/bin/python validation/round4-step1/bridge_startup_check.py
+validation/bench run 1000
+/opt/anaconda3/bin/python validation/round4-step1/export_patch.py
+
+The initial C++ suite passed 26/27; only native_step1_downgrade was rerun after fixing its fixture sentinel conversion. Final cpp-tests.json preserves the other 26 results and records the targeted rerun. Initial logs are preserved separately. No production code changed after the integrated core build.
+The self-damage C++ test was relinked once to explicitly read a JSON boolean before the initial suite. The downgrade test was relinked after its fixture conversion fix; its cpp-validation.json records the command.

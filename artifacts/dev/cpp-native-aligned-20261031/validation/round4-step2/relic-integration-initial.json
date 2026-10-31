@@ -1,0 +1,20 @@
+[
+  {
+    "name": "native_step2_card_rewards",
+    "returncode": 0,
+    "stdout": "native step2 card rewards: 82 DLL cases, 5932 checks, 0 failures\n",
+    "stderr": ""
+  },
+  {
+    "name": "native_step2_relic_lifecycle",
+    "returncode": -6,
+    "stdout": "",
+    "stderr": "Assertion failed: (r.deck[i].upgraded==expected[i][\"upgraded\"]), function check_deck, file native_step2_relic_lifecycle.cpp, line 58.\n"
+  },
+  {
+    "name": "native_step2_persistent",
+    "returncode": 0,
+    "stdout": "Native step2 persistent: 18 fixtures, 415 checks, 0 failures\n",
+    "stderr": ""
+  }
+]

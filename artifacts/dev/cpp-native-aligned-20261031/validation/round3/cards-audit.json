@@ -1,0 +1,1648 @@
+{
+  "target": "v0.111.0 / 41cef1ea",
+  "nativeAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "nativeModelsDumped": 596,
+  "compiledCards": 222,
+  "matchedNativeModels": 221,
+  "existingIdsRetained": true,
+  "addedCardIds": [
+    "NOT_YET"
+  ],
+  "cardIdAppendOnly": true,
+  "varIdAppendOnly": [
+    "HEAL"
+  ],
+  "metadataRecordChanges": 63,
+  "metadataSemanticExceptions": [
+    "MAD_SCIENCE configured state",
+    "DISINTEGRATION/MIND_ROT/SLOTH/WASTE_AWAY are monster-choice pseudo-cards; semantic unplayable flag retained although native has no Unplayable keyword"
+  ],
+  "fixes": [
+    "Conflagration multi-hit AoE",
+    "Spite conditional multi-hit, no draw",
+    "Dominate applies Vulnerable before Strength",
+    "ForgottenRitual unconditional Energy",
+    "PactsEnd legal zero-damage play below threshold",
+    "DrumOfBattle draw skill with exhaust Energy hook",
+    "SecondWind hand-order snapshot",
+    "SwordBoomerang/Volley/RipAndTear command-scoped Vigor and Skittish",
+    "BrightestFlame LoseMaxHp through shared native damage hooks",
+    "Catastrophe playable preference and Shuffle RNG",
+    "Anointed free-slot cap and TakeRandom",
+    "HiddenGem excludes existing replay and prefers attack/skill/power",
+    "Maul self growth persists across replay",
+    "Rend non-temporary debuff classification",
+    "Fuel/Soul immediate effects",
+    "NotYet native heal10/13, Exhaust, non-generatable",
+    "behavior-only upgrades for six cards",
+    "Discovery distinct sampling full shuffle"
+  ],
+  "remaining": [
+    {
+      "id": "SPLASH",
+      "issue": "Requires unlocked other-character Attack pools, currently offers from implemented Ironclad pool; full other-character content missing."
+    },
+    {
+      "id": "MAD_SCIENCE",
+      "issue": "Native event-configured type and rider state absent; canonical None metadata intentionally not mapped to current approximate attack."
+    },
+    {
+      "id": "CRIMSON_MANTLE",
+      "issue": "Native IncrementSelfDamage per application needs distinct state; current self-damage still fixed1. Numeric block updated only."
+    },
+    {
+      "id": "INFERNO_CARD",
+      "issue": "Native IncrementSelfDamage per application needs distinct state; current self-damage still fixed1."
+    },
+    {
+      "id": "PRIMAL_FORCE",
+      "issue": "Transformability filtering/entity replacement/generated-card hooks not exhaustively compared."
+    },
+    {
+      "id": "all_generated_card_pools",
+      "issue": "Account epoch filtering and cross-character pools remain partial; targeted sampling corrections do not establish same-seed full-run parity."
+    },
+    {
+      "id": "token/multiplayer/monster-choice cards",
+      "issue": "Metadata checked where matched; minion, player-ally, monster-choice and some special token effects still lack full state/mechanics."
+    },
+    {
+      "id": "GRAPPLE",
+      "issue": "No target-native model. Reserved old enum slot now rejected by native availability checks."
+    }
+  ],
+  "cards": [
+    {
+      "id": "AGGRESSION_CARD",
+      "nativeId": "AGGRESSION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Aggression.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ANGER",
+      "nativeId": "ANGER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Anger.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ARMAMENTS",
+      "nativeId": "ARMAMENTS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Armaments.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ASHEN_STRIKE",
+      "nativeId": "ASHEN_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/AshenStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BARRICADE_CARD",
+      "nativeId": "BARRICADE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Barricade.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BASH",
+      "nativeId": "BASH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Bash.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BATTLE_TRANCE",
+      "nativeId": "BATTLE_TRANCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BattleTrance.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BLOOD_WALL",
+      "nativeId": "BLOOD_WALL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BloodWall.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BLOODLETTING",
+      "nativeId": "BLOODLETTING",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Bloodletting.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BLUDGEON",
+      "nativeId": "BLUDGEON",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Bludgeon.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BODY_SLAM",
+      "nativeId": "BODY_SLAM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BodySlam.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BRAND",
+      "nativeId": "BRAND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Brand.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BREAK",
+      "nativeId": "BREAK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Break.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BREAKTHROUGH",
+      "nativeId": "BREAKTHROUGH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Breakthrough.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BULLY",
+      "nativeId": "BULLY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Bully.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BURNING_PACT",
+      "nativeId": "BURNING_PACT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BurningPact.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CASCADE",
+      "nativeId": "CASCADE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Cascade.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CINDER",
+      "nativeId": "CINDER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Cinder.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "COLOSSUS_CARD",
+      "nativeId": "COLOSSUS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Colossus.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CONFLAGRATION",
+      "nativeId": "CONFLAGRATION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Conflagration.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CORRUPTION_CARD",
+      "nativeId": "CORRUPTION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Corruption.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CRIMSON_MANTLE",
+      "nativeId": "CRIMSON_MANTLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/CrimsonMantle.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CRUELTY_CARD",
+      "nativeId": "CRUELTY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Cruelty.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DARK_EMBRACE_CARD",
+      "nativeId": "DARK_EMBRACE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DarkEmbrace.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DEFEND_IRONCLAD",
+      "nativeId": "DEFEND_IRONCLAD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DefendIronclad.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DEMON_FORM_CARD",
+      "nativeId": "DEMON_FORM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DemonForm.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DEMONIC_SHIELD",
+      "nativeId": "DEMONIC_SHIELD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DemonicShield.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DISMANTLE",
+      "nativeId": "DISMANTLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Dismantle.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DOMINATE",
+      "nativeId": "DOMINATE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Dominate.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DRUM_OF_BATTLE_CARD",
+      "nativeId": "DRUM_OF_BATTLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DrumOfBattle.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "EVIL_EYE",
+      "nativeId": "EVIL_EYE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/EvilEye.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "EXPECT_A_FIGHT",
+      "nativeId": "EXPECT_A_FIGHT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ExpectAFight.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FEED",
+      "nativeId": "FEED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Feed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FEEL_NO_PAIN_CARD",
+      "nativeId": "FEEL_NO_PAIN",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FeelNoPain.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FIEND_FIRE",
+      "nativeId": "FIEND_FIRE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FiendFire.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FIGHT_ME",
+      "nativeId": "FIGHT_ME",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FightMe.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FLAME_BARRIER_CARD",
+      "nativeId": "FLAME_BARRIER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FlameBarrier.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FORGOTTEN_RITUAL",
+      "nativeId": "FORGOTTEN_RITUAL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ForgottenRitual.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "GRAPPLE",
+      "nativeId": null,
+      "nativeSource": null,
+      "metadata": "absent-rejected",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HAVOC",
+      "nativeId": "HAVOC",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Havoc.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HEADBUTT",
+      "nativeId": "HEADBUTT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Headbutt.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HELLRAISER_CARD",
+      "nativeId": "HELLRAISER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Hellraiser.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HEMOKINESIS",
+      "nativeId": "HEMOKINESIS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Hemokinesis.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HOWL_FROM_BEYOND",
+      "nativeId": "HOWL_FROM_BEYOND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/HowlFromBeyond.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "IMPERVIOUS",
+      "nativeId": "IMPERVIOUS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Impervious.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "INFERNAL_BLADE",
+      "nativeId": "INFERNAL_BLADE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/InfernalBlade.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "INFERNO_CARD",
+      "nativeId": "INFERNO",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Inferno.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "INFLAME",
+      "nativeId": "INFLAME",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Inflame.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "IRON_WAVE",
+      "nativeId": "IRON_WAVE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/IronWave.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "JUGGERNAUT_CARD",
+      "nativeId": "JUGGERNAUT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Juggernaut.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "JUGGLING_CARD",
+      "nativeId": "JUGGLING",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Juggling.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MANGLE",
+      "nativeId": "MANGLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Mangle.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MOLTEN_FIST",
+      "nativeId": "MOLTEN_FIST",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MoltenFist.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "OFFERING",
+      "nativeId": "OFFERING",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Offering.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ONE_TWO_PUNCH_CARD",
+      "nativeId": "ONE_TWO_PUNCH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/OneTwoPunch.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PACTS_END",
+      "nativeId": "PACTS_END",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PactsEnd.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PERFECTED_STRIKE",
+      "nativeId": "PERFECTED_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PerfectedStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PILLAGE",
+      "nativeId": "PILLAGE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Pillage.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "POMMEL_STRIKE",
+      "nativeId": "POMMEL_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PommelStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PRIMAL_FORCE",
+      "nativeId": "PRIMAL_FORCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PrimalForce.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PYRE",
+      "nativeId": "PYRE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Pyre.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RAGE_CARD",
+      "nativeId": "RAGE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rage.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RAMPAGE",
+      "nativeId": "RAMPAGE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rampage.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RUPTURE_CARD",
+      "nativeId": "RUPTURE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rupture.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SECOND_WIND",
+      "nativeId": "SECOND_WIND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SecondWind.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SETUP_STRIKE_CARD",
+      "nativeId": "SETUP_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SetupStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SHRUG_IT_OFF",
+      "nativeId": "SHRUG_IT_OFF",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ShrugItOff.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SPITE",
+      "nativeId": "SPITE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Spite.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STAMPEDE_CARD",
+      "nativeId": "STAMPEDE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Stampede.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STOKE",
+      "nativeId": "STOKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Stoke.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STOMP",
+      "nativeId": "STOMP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Stomp.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STONE_ARMOR",
+      "nativeId": "STONE_ARMOR",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/StoneArmor.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STRIKE_IRONCLAD",
+      "nativeId": "STRIKE_IRONCLAD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/StrikeIronclad.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SWORD_BOOMERANG",
+      "nativeId": "SWORD_BOOMERANG",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SwordBoomerang.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TANK_CARD",
+      "nativeId": "TANK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Tank.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TAUNT",
+      "nativeId": "TAUNT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Taunt.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TEAR_ASUNDER",
+      "nativeId": "TEAR_ASUNDER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TearAsunder.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THRASH",
+      "nativeId": "THRASH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Thrash.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THUNDERCLAP",
+      "nativeId": "THUNDERCLAP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Thunderclap.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TREMBLE",
+      "nativeId": "TREMBLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Tremble.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TRUE_GRIT",
+      "nativeId": "TRUE_GRIT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TrueGrit.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TWIN_STRIKE",
+      "nativeId": "TWIN_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TwinStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "UNMOVABLE",
+      "nativeId": "UNMOVABLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Unmovable.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "UNRELENTING",
+      "nativeId": "UNRELENTING",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Unrelenting.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "UPPERCUT",
+      "nativeId": "UPPERCUT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Uppercut.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "VICIOUS_CARD",
+      "nativeId": "VICIOUS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Vicious.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "WHIRLWIND",
+      "nativeId": "WHIRLWIND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Whirlwind.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ALCHEMIZE",
+      "nativeId": "ALCHEMIZE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Alchemize.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ANOINTED",
+      "nativeId": "ANOINTED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Anointed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "AUTOMATION",
+      "nativeId": "AUTOMATION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Automation.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BEACON_OF_HOPE",
+      "nativeId": "BEACON_OF_HOPE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BeaconOfHope.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BEAT_DOWN",
+      "nativeId": "BEAT_DOWN",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BeatDown.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BELIEVE_IN_YOU",
+      "nativeId": "BELIEVE_IN_YOU",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BelieveInYou.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BOLAS",
+      "nativeId": "BOLAS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Bolas.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CALAMITY_CARD",
+      "nativeId": "CALAMITY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Calamity.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CATASTROPHE",
+      "nativeId": "CATASTROPHE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Catastrophe.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "COORDINATE_CARD",
+      "nativeId": "COORDINATE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Coordinate.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DARK_SHACKLES",
+      "nativeId": "DARK_SHACKLES",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DarkShackles.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DISCOVERY",
+      "nativeId": "DISCOVERY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Discovery.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DRAMATIC_ENTRANCE",
+      "nativeId": "DRAMATIC_ENTRANCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DramaticEntrance.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ENTROPY",
+      "nativeId": "ENTROPY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Entropy.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "EQUILIBRIUM",
+      "nativeId": "EQUILIBRIUM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Equilibrium.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ETERNAL_ARMOR",
+      "nativeId": "ETERNAL_ARMOR",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/EternalArmor.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FASTEN",
+      "nativeId": "FASTEN",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Fasten.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FINESSE",
+      "nativeId": "FINESSE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Finesse.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FISTICUFFS",
+      "nativeId": "FISTICUFFS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Fisticuffs.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FLASH_OF_STEEL",
+      "nativeId": "FLASH_OF_STEEL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FlashOfSteel.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "GANG_UP",
+      "nativeId": "GANG_UP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/GangUp.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "GOLD_AXE",
+      "nativeId": "GOLD_AXE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/GoldAxe.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HAND_OF_GREED",
+      "nativeId": "HAND_OF_GREED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/HandOfGreed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HIDDEN_GEM",
+      "nativeId": "HIDDEN_GEM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/HiddenGem.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HUDDLE_UP",
+      "nativeId": "HUDDLE_UP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/HuddleUp.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "IMPATIENCE",
+      "nativeId": "IMPATIENCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Impatience.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "INTERCEPT_CARD",
+      "nativeId": "INTERCEPT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Intercept.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "JACK_OF_ALL_TRADES",
+      "nativeId": "JACK_OF_ALL_TRADES",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/JackOfAllTrades.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "JACKPOT",
+      "nativeId": "JACKPOT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Jackpot.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "KNOCKDOWN",
+      "nativeId": "KNOCKDOWN",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Knockdown.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "LIFT",
+      "nativeId": "LIFT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Lift.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MASTER_OF_STRATEGY",
+      "nativeId": "MASTER_OF_STRATEGY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MasterOfStrategy.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MAYHEM_CARD",
+      "nativeId": "MAYHEM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Mayhem.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MIMIC",
+      "nativeId": "MIMIC",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Mimic.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MIND_BLAST",
+      "nativeId": "MIND_BLAST",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MindBlast.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "NOSTALGIA_CARD",
+      "nativeId": "NOSTALGIA",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Nostalgia.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "OMNISLICE",
+      "nativeId": "OMNISLICE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Omnislice.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PANACHE_CARD",
+      "nativeId": "PANACHE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Panache.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PANIC_BUTTON",
+      "nativeId": "PANIC_BUTTON",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PanicButton.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PREP_TIME",
+      "nativeId": "PREP_TIME",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PrepTime.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PRODUCTION",
+      "nativeId": "PRODUCTION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Production.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PROLONG",
+      "nativeId": "PROLONG",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Prolong.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PROWESS",
+      "nativeId": "PROWESS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Prowess.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PURITY",
+      "nativeId": "PURITY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Purity.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RALLY",
+      "nativeId": "RALLY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rally.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "REND",
+      "nativeId": "REND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rend.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RESTLESSNESS",
+      "nativeId": "RESTLESSNESS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Restlessness.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ROLLING_BOULDER",
+      "nativeId": "ROLLING_BOULDER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/RollingBoulder.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SALVO",
+      "nativeId": "SALVO",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Salvo.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SCRAWL",
+      "nativeId": "SCRAWL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Scrawl.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SECRET_TECHNIQUE",
+      "nativeId": "SECRET_TECHNIQUE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SecretTechnique.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SECRET_WEAPON",
+      "nativeId": "SECRET_WEAPON",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SecretWeapon.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SEEKER_STRIKE",
+      "nativeId": "SEEKER_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SeekerStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SHOCKWAVE",
+      "nativeId": "SHOCKWAVE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Shockwave.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SPLASH",
+      "nativeId": "SPLASH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Splash.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STRATAGEM",
+      "nativeId": "STRATAGEM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Stratagem.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TAG_TEAM",
+      "nativeId": "TAG_TEAM",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TagTeam.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THE_BOMB_CARD",
+      "nativeId": "THE_BOMB",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TheBomb.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THE_GAMBIT",
+      "nativeId": "THE_GAMBIT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/TheGambit.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THINKING_AHEAD",
+      "nativeId": "THINKING_AHEAD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ThinkingAhead.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "THRUMMING_HATCHET",
+      "nativeId": "THRUMMING_HATCHET",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ThrummingHatchet.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ULTIMATE_DEFEND",
+      "nativeId": "ULTIMATE_DEFEND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/UltimateDefend.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ULTIMATE_STRIKE",
+      "nativeId": "ULTIMATE_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/UltimateStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "VOLLEY",
+      "nativeId": "VOLLEY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Volley.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BECKON",
+      "nativeId": "BECKON",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Beckon.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "BURN",
+      "nativeId": "BURN",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Burn.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "DAZED",
+      "nativeId": "DAZED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Dazed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "DEBRIS",
+      "nativeId": "DEBRIS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Debris.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "FRANTIC_ESCAPE",
+      "nativeId": "FRANTIC_ESCAPE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FranticEscape.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "INFECTION",
+      "nativeId": "INFECTION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Infection.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SLIMED",
+      "nativeId": "SLIMED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Slimed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SOOT",
+      "nativeId": "SOOT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Soot.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "TOXIC",
+      "nativeId": "TOXIC",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Toxic.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "VOID",
+      "nativeId": "VOID",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Void.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "WOUND",
+      "nativeId": "WOUND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Wound.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "ASCENDERS_BANE",
+      "nativeId": "ASCENDERS_BANE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/AscendersBane.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "BAD_LUCK",
+      "nativeId": "BAD_LUCK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BadLuck.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "CLUMSY",
+      "nativeId": "CLUMSY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Clumsy.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "CURSE_OF_THE_BELL",
+      "nativeId": "CURSE_OF_THE_BELL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/CurseOfTheBell.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "DEBT",
+      "nativeId": "DEBT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Debt.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "DECAY",
+      "nativeId": "DECAY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Decay.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "DOUBT",
+      "nativeId": "DOUBT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Doubt.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "ENTHRALLED",
+      "nativeId": "ENTHRALLED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Enthralled.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "FOLLY",
+      "nativeId": "FOLLY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Folly.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "GREED",
+      "nativeId": "GREED",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Greed.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "GUILTY",
+      "nativeId": "GUILTY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Guilty.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "INJURY",
+      "nativeId": "INJURY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Injury.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "NORMALITY",
+      "nativeId": "NORMALITY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Normality.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "POOR_SLEEP",
+      "nativeId": "POOR_SLEEP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/PoorSleep.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "REGRET",
+      "nativeId": "REGRET",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Regret.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SHAME",
+      "nativeId": "SHAME",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Shame.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SPORE_MIND",
+      "nativeId": "SPORE_MIND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SporeMind.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "WRITHE",
+      "nativeId": "WRITHE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Writhe.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "APOTHEOSIS",
+      "nativeId": "APOTHEOSIS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Apotheosis.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "APPARITION",
+      "nativeId": "APPARITION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Apparition.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BRIGHTEST_FLAME",
+      "nativeId": "BRIGHTEST_FLAME",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/BrightestFlame.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "BYRD_SWOOP",
+      "nativeId": "BYRD_SWOOP",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ByrdSwoop.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CALTROPS",
+      "nativeId": "CALTROPS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Caltrops.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "CLASH",
+      "nativeId": "CLASH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Clash.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DISTRACTION",
+      "nativeId": "DISTRACTION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Distraction.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DUAL_WIELD",
+      "nativeId": "DUAL_WIELD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/DualWield.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ENLIGHTENMENT",
+      "nativeId": "ENLIGHTENMENT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Enlightenment.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "ENTRENCH",
+      "nativeId": "ENTRENCH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Entrench.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "EXTERMINATE",
+      "nativeId": "EXTERMINATE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Exterminate.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "FEEDING_FRENZY_CARD",
+      "nativeId": "FEEDING_FRENZY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/FeedingFrenzy.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "HELLO_WORLD_CARD",
+      "nativeId": "HELLO_WORLD",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/HelloWorld.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MAD_SCIENCE",
+      "nativeId": "MAD_SCIENCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MadScience.cs",
+      "metadata": "native-dynamic-exception",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "MAUL",
+      "nativeId": "MAUL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Maul.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "METAMORPHOSIS",
+      "nativeId": "METAMORPHOSIS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Metamorphosis.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "NEOWS_FURY",
+      "nativeId": "NEOWS_FURY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/NeowsFury.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "OUTMANEUVER",
+      "nativeId": "OUTMANEUVER",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Outmaneuver.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "PECK",
+      "nativeId": "PECK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Peck.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "REBOUND",
+      "nativeId": "REBOUND",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Rebound.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RELAX",
+      "nativeId": "RELAX",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Relax.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "RIP_AND_TEAR",
+      "nativeId": "RIP_AND_TEAR",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/RipAndTear.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "SQUASH",
+      "nativeId": "SQUASH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Squash.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "STACK",
+      "nativeId": "STACK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Stack.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "TORIC_TOUGHNESS",
+      "nativeId": "TORIC_TOUGHNESS",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/ToricToughness.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "WISH",
+      "nativeId": "WISH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Wish.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "WHISTLE",
+      "nativeId": "WHISTLE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Whistle.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    },
+    {
+      "id": "DISINTEGRATION",
+      "nativeId": "DISINTEGRATION",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Disintegration.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "FUEL",
+      "nativeId": "FUEL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Fuel.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "GIANT_ROCK",
+      "nativeId": "GIANT_ROCK",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/GiantRock.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "LUMINESCE",
+      "nativeId": "LUMINESCE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Luminesce.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "MIND_ROT",
+      "nativeId": "MIND_ROT",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MindRot.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "MINION_DIVE_BOMB",
+      "nativeId": "MINION_DIVE_BOMB",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MinionDiveBomb.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "MINION_SACRIFICE",
+      "nativeId": "MINION_SACRIFICE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MinionSacrifice.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "MINION_STRIKE",
+      "nativeId": "MINION_STRIKE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/MinionStrike.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SHIV",
+      "nativeId": "SHIV",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Shiv.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SLOTH_STATUS",
+      "nativeId": "SLOTH",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Sloth.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SOUL",
+      "nativeId": "SOUL",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/Soul.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SOVEREIGN_BLADE",
+      "nativeId": "SOVEREIGN_BLADE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SovereignBlade.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "SWEEPING_GAZE",
+      "nativeId": "SWEEPING_GAZE",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/SweepingGaze.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "WASTE_AWAY",
+      "nativeId": "WASTE_AWAY",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/WasteAway.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "metadata plus existing tests; special effects partial"
+    },
+    {
+      "id": "NOT_YET",
+      "nativeId": "NOT_YET",
+      "nativeSource": "/Users/yebohou/SlayTheModel/artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Cards/NotYet.cs",
+      "metadata": "verified-common-fields",
+      "effectCoverage": "targeted-native-fixtures-or-source-review; not complete combinatorial parity"
+    }
+  ],
+  "scope": "Per-card metadata coverage is broad; targeted effects source audit and controlled native fixtures do not mean complete card, combination, or same-seed full-run parity.",
+  "native_effect_evidence": "native-round3-card-fixtures/results.json",
+  "native_metadata_evidence": "native-round3-card-fixtures/metadata-results.json",
+  "fixtureLimitations": [
+    "First final-effect fixture attempt incorrectly applied DampenPower to an enemy; native correctly raised because Dampen requires a player owner. Failed setup evidence retained; final suite omits this impossible scenario.",
+    "A stale build was accidentally executed once during native harness iteration; stale-build-invocation.json retained, and no results from that run are used as effect evidence.",
+    "Native host initialized matching game assembly without scene/UI; no deployment and no replacement of simulator rules in native assembly."
+  ],
+  "sharedIntegration": [
+    "Random multi-hit attack helper",
+    "Drum exhaust GeneratePlayCount",
+    "PactsEnd legal action checks",
+    "LoseMaxHp and healing/RedSkull helpers",
+    "Grapple absence rejection across pools and inputs"
+  ],
+  "nativeEffectFixtures": 70,
+  "cppChecks": 3996,
+  "cppFailures": 0
+}

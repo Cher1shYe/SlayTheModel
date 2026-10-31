@@ -1,0 +1,19 @@
+MegaDot v4.5.1.m.14.mono.custom_build - https://godotengine.org
+
+ERROR: Could not load global script cache.
+   at: get_global_class_list (core/config/project_settings.cpp:1341)
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:998)
+[INFO] Registered 22 migrations
+[INFO] Current save versions: PrefsSave v2; ProfileSave v2; SerializableProgress v24; RunHistory v10; SerializableRun v20; SettingsSave v8
+[INFO] Found release_info.json at: /Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-downgrade-fixtures/SimulatorAudit.app/Contents/MacOS/../Resources/release_info.json
+[INFO] Profile-scoped data path initialized: user://default/1/profile1
+[INFO] AtlasManager: Loaded ui_atlas with 102 sprites
+[INFO] AtlasManager: Loaded compressed with 45 sprites
+[INFO] Initializing language for the first time from platform locale: en-US -> eng
+[INFO] Loading locale path=res://localization/eng
+[INFO] ModelIdSerializationCache initialized. Categories: 20 Entries: 1658 Epochs: 57 Properties: 47 Hash: 1568834832
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] Applying 28 patches...
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] Patch application complete: 28 applied, 0 ignored, 0 failed, 28 total
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] All patches applied successfully
+SIM_AUDIT_COMPLETED /Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-downgrade-fixtures/results.json

@@ -1,0 +1,69 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeBoundaryAudit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "meat_before_burning_blood",
+      "before": 34,
+      "max": 80,
+      "after": 52
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 35,
+      "max": 80,
+      "after": 53
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 40,
+      "max": 80,
+      "after": 58
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 41,
+      "max": 80,
+      "after": 47
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 79,
+      "max": 80,
+      "after": 80
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 40,
+      "max": 81,
+      "after": 58
+    },
+    {
+      "test": "meat_before_burning_blood",
+      "before": 41,
+      "max": 81,
+      "after": 47
+    },
+    {
+      "test": "setup_strike",
+      "upgraded": false,
+      "damage": 7,
+      "strength": 3,
+      "temporary": 3,
+      "followingStrikeDamage": 9,
+      "strengthNextTurn": 0
+    },
+    {
+      "test": "setup_strike",
+      "upgraded": true,
+      "damage": 9,
+      "strength": 4,
+      "temporary": 4,
+      "followingStrikeDamage": 10,
+      "strengthNextTurn": 0
+    }
+  ]
+}

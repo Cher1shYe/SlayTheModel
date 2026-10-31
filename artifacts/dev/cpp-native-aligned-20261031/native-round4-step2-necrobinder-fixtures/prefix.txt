@@ -1,0 +1,36 @@
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text.Json;
+using Godot;
+using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Commands;
+using MegaCrit.Sts2.Core.Entities.Cards;
+using MegaCrit.Sts2.Core.Entities.Creatures;
+using MegaCrit.Sts2.Core.GameActions.Multiplayer;
+using MegaCrit.Sts2.Core.Helpers;
+using MegaCrit.Sts2.Core.Hooks;
+using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Powers;
+using MegaCrit.Sts2.Core.Models.Relics;
+using MegaCrit.Sts2.Core.TestSupport;
+using MegaCrit.Sts2.Core.ValueProps;
+
+public partial class AuditWorker : Node
+{
+    readonly List<object> results = [];
+    public override async void _Ready()
+    {
+        string output = System.Environment.GetEnvironmentVariable("STS2_AUDIT_OUT")!;
+        try
+        {
+            TestMode.IsOn = true;
+            NonInteractiveMode.AutoSlayerCheck = () => true;
+            MegaCrit.Sts2.Core.Context.LocalContext.NetId = 1;
+            if (!ProjectSettings.LoadResourcePack(System.Environment.GetEnvironmentVariable("STS2_GAME_PACK")!, false)) throw new IOException("Game pack failed to load");
+            await OneTimeInitialization.ExecuteVeryEarly();
+            var saves = MegaCrit.Sts2.Core.Saves.SaveManager.Instance;
+            saves.InitPrefsDataForTest(); saves.InitProfileId();
+            OneTimeInitialization.ExecuteEssential(); saves.InitProgressData();
+            typeof(NativeSession).Assembly.GetType("NativeReplayCompatibilityPatches")!.GetMethod("Install", BindingFlags.Static | BindingFlags.Public)!.Invoke(null, null);
+            CombatSolver.Api.NativeMctsSimulationApi.Initialize();
+            SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;

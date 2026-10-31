@@ -1,0 +1,100 @@
+{
+  "tests": [
+    {
+      "test": "enchantment_contract",
+      "exit_code": 0,
+      "tail": "dimensions=46023,29651,250,342\n"
+    },
+    {
+      "test": "hidden_resampling",
+      "exit_code": 0,
+      "tail": "public state and known top preserved across 6000 resamplings; hidden next-card distributions in bounds\n"
+    },
+    {
+      "test": "map_event_audit_regression",
+      "exit_code": 0,
+      "tail": ""
+    },
+    {
+      "test": "mcts_regression",
+      "exit_code": 0,
+      "tail": "mcts regression passed\n"
+    },
+    {
+      "test": "monster_audit_regression",
+      "exit_code": 0,
+      "tail": ""
+    },
+    {
+      "test": "native_act_alignment",
+      "exit_code": 0,
+      "tail": "native act source fixtures: GoldenCompass/Underdocks/progress/snapshot v6 passed\n"
+    },
+    {
+      "test": "native_card_alignment",
+      "exit_code": 0,
+      "tail": "ttacks consumes no RNG actual=0 expected=0 PASS\nThrash no attacks grows zero actual=0 expected=0 PASS\nThrash consumes one native selection draw actual=1 expected=1 PASS\nThrash picks randomized candidate actual=6 expected=6 PASS\n52 checks, 0 failures\n"
+    },
+    {
+      "test": "native_event_oracle_alignment",
+      "exit_code": 0,
+      "tail": "actual native event oracle: 15 Baths/Treasury/Doors cases passed\n"
+    },
+    {
+      "test": "native_relic_round2_alignment",
+      "exit_code": 0,
+      "tail": "ilter consumes zero RNG PASS\nRandom upgrade relic obtains PASS\nRandom upgrade RNG consumes filtered-count minus one PASS\nRandom upgrade selected count PASS\nEmpty random upgrade filter consumes zero RNG PASS\nnative relic round2: 93 checks, 0 failures\n"
+    },
+    {
+      "test": "native_rng_contract",
+      "exit_code": 0,
+      "tail": "native RNG contract: 424 mixed operations, hashes, states and edge cases passed\n"
+    },
+    {
+      "test": "native_run_alignment",
+      "exit_code": 0,
+      "tail": "acity rejected before curse overflow PASS\nImpossible pending selection rejected on restore PASS\nQueued duplication waits for transform completion PASS\nPending transform capacity revalidated on restore PASS\nnative run alignment: 62 checks, 0 failures\n"
+    },
+    {
+      "test": "native_seed_integration",
+      "exit_code": 0,
+      "tail": "native seed integration: raw/string/high bits/streams/snapshot passed\n"
+    },
+    {
+      "test": "native_underdocks_events",
+      "exit_code": 0,
+      "tail": "Underdocks events, choices, rewards, persistent enchantments passed\n"
+    },
+    {
+      "test": "observation_contract",
+      "exit_code": 0,
+      "tail": "checks=104 failures=0\n"
+    },
+    {
+      "test": "relic_contract",
+      "exit_code": 0,
+      "tail": "checks=82 failures=0\n"
+    },
+    {
+      "test": "relic_raw_rarity",
+      "exit_code": 0,
+      "tail": ""
+    },
+    {
+      "test": "rules_regression",
+      "exit_code": 0,
+      "tail": "actual=1 PASS\nwish_includes_wound expected=1 actual=1 PASS\nseeker_offers_three_cards expected=3 actual=3 PASS\nseeker_shuffles_entire_pile expected=4 actual=4 PASS\ndroplet_offers_entire_draw_pile expected=5 actual=5 PASS\nSUMMARY checks=447 failures=0\n"
+    },
+    {
+      "test": "scroll_boxes_regression",
+      "exit_code": 0,
+      "tail": ""
+    },
+    {
+      "test": "snapshot_validation",
+      "exit_code": 0,
+      "tail": "validated 6811 live snapshots and rejected malformed inputs\n"
+    }
+  ],
+  "wall_seconds": 19.312655875
+}

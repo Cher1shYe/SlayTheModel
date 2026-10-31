@@ -1,0 +1,34 @@
+concurrent.futures.process._RemoteTraceback: 
+"""
+Traceback (most recent call last):
+  File "/opt/anaconda3/lib/python3.11/concurrent/futures/process.py", line 261, in _process_worker
+    r = call_item.fn(*call_item.args, **call_item.kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/deployment/train_armg_puct_prior_rl.py", line 213, in _play
+    raise RuntimeError(f"episode {game_seed} {episode['status']}: {episode.get('error')}")
+RuntimeError: episode 10330000 error: RuntimeError: unsupported combat classification observation version
+"""
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/deployment/train_armg_puct_prior_rl.py", line 587, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/deployment/train_armg_puct_prior_rl.py", line 583, in main
+    return train(**vars(p.parse_args(argv)))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/deployment/train_armg_puct_prior_rl.py", line 497, in train
+    eps = collect(pool, weights, version, seeds, False)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/deployment/train_armg_puct_prior_rl.py", line 477, in collect
+    episodes.append(future.result())
+                    ^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.11/concurrent/futures/_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/anaconda3/lib/python3.11/concurrent/futures/_base.py", line 401, in __get_result
+    raise self._exception
+RuntimeError: episode 10330000 error: RuntimeError: unsupported combat classification observation version

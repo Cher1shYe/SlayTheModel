@@ -1,0 +1,54 @@
+{
+  "status": "first_rules_port_passed_targeted_validation",
+  "native_parity_complete": false,
+  "engine": {
+    "version": 1,
+    "ruleset_id": "native-41cef1ea-port-v1",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "be7dd1e174ede6644c4af520ca86f4b6a639539f3fadb3c68fe65119694b545a",
+    "source_content_sha256": "2d16b21ef9ff473b63b961ca6ae7d2fe1070214c78ad276edba02e8e13d5c7a5",
+    "id_layout_sha256": "6a0aee3066db87b41b2dc7c3c696a1056f8a07013fbd0607b0927870f1c3ff7f",
+    "schema_layout_sha256": "4cc00ee083f3d1181afc43ab7d33ad768575d94275ed6f51f12d72f3f97e1485",
+    "dimensions": {
+      "RUN_OBS_DIM": 237,
+      "CARD_FEAT_DIM": 250,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 340,
+      "PUBLIC_OBS_DIM": 37305,
+      "PUBLIC_COMBAT_OBS_DIM": 21330,
+      "PUBLIC_OBS_VERSION": 10,
+      "ACTION_SCHEMA_VERSION": 9,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 222
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "d50f5a62330fe2d59e63471aacf352ad9a2d7de87c01d7d3fab3b850484ec2fa",
+      "agent/armg.py": "674e817e0a699dc2ba5e63e4e9fec589848607b0deeac6f7929d9ffaba452362",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "native_dynamic_fixtures": {
+    "cards": 12,
+    "run": 15
+  },
+  "native_rng_mixed_operations": 424,
+  "cpp_regression_programs": 15,
+  "cpp_regression_failures": 0,
+  "python_selected_tests": 69,
+  "benchmark": "runs=1000 completed=1000 truncated=0 errors=0 seconds=8.812 runs_per_s=113.5 avg_floor=9.6 win_rate=0.000 combats=5572\ninit=8.62ms/run combat=0.086s (85370 steps, 1.0 us/step) other=0.10ms/run\n",
+  "weight_training_games_in_target_environment": 0,
+  "original_weight_sha256": "cfcb115024b0b0a222b88bf0033ef55e1e7b3cf667194c9dbba36b923180b91c",
+  "patch_sha256": "62584a43555bdbf315134b25932d1f2ce9129960aca8c7d46b40a75b509a473d",
+  "patch_files": 64,
+  "source_patch_applies_to_base": true,
+  "remaining": [
+    "GoldenCompass",
+    "PrismaticGem cross-character card pools",
+    "Underdocks alternate act",
+    "unlock/history context",
+    "full-run native differential replay",
+    "remaining content and combinations"
+  ]
+}
