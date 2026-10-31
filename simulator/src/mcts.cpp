@@ -71,12 +71,14 @@ struct Node {
     double valueSum = 0;
 };
 
+}  // namespace
+
 // STS1 prioritizes a winning rollout and its absolute remaining HP, potions,
 // and turn count. STS2 does not track STS1's total energy wasted/cards drawn,
 // so the losing-state heuristic necessarily differs.
-double terminal_score(const BattleContext &bc) {
+double detail::mcts_terminal_score(const BattleContext &bc, double potion_weight) {
     if (bc.outcome == Outcome::PLAYER_VICTORY)
-        return 100.0 * (35.0 + bc.player.hp + 4.0 * bc.potionCount - bc.turn * 0.01);
+        return 100.0 * (35.0 + bc.player.hp + potion_weight * bc.potionCount - bc.turn * 0.01);
     double hp = 0.0, maxHp = 0.0;
     int alive = 0;
     for (int i = 0; i < bc.monsterCount; ++i) {
@@ -88,17 +90,16 @@ double terminal_score(const BattleContext &bc) {
         if (m.alive) ++alive;
     }
     const double damage = maxHp > 0 ? 10.0 * (1.0 - hp / maxHp) : 0.0;
-    return damage - alive + 2.0 * bc.potionCount + bc.turn * 0.2;
+    return damage - alive + 0.5 * potion_weight * bc.potionCount + bc.turn * 0.2;
 }
-
-}  // namespace
 
 static MctsResult mcts_impl(const BattleContext &root, int simulations, double c,
                             std::uint32_t seed, bool resample_hidden, bool greedy_rollout,
                             double epsilon, const std::vector<double> *root_priors,
                             double c_puct, const MctsPriorFn *prior_fn = nullptr,
                             int max_prior_depth = 0,
-                            const MctsValueFn *value_fn = nullptr) {
+                            const MctsValueFn *value_fn = nullptr,
+                            double potion_weight = 4.0) {
     MctsResult result;
     const auto rootActions = root.legal_actions();
     if (rootActions.empty()) return result;
@@ -258,7 +259,7 @@ static MctsResult mcts_impl(const BattleContext &root, int simulations, double c
         if (invalid) continue;
         double score;
         if (!value_fn) {
-            score = terminal_score(bc);
+            score = detail::mcts_terminal_score(bc, potion_weight);
         } else if (bc.outcome == Outcome::UNDECIDED) {
             score = (*value_fn)(bc);
             if (!std::isfinite(score))
@@ -318,21 +319,24 @@ static MctsResult mcts_impl(const BattleContext &root, int simulations, double c
 
 MctsResult mcts(const BattleContext &root, int simulations, double c,
                 std::uint32_t seed, bool resample_hidden, bool greedy_rollout,
-                double epsilon) {
+                double epsilon, double potion_weight) {
+    if (!std::isfinite(potion_weight) || potion_weight < 0.0)
+        throw std::invalid_argument("potion_weight must be finite and nonnegative");
     return mcts_impl(root, simulations, c, seed, resample_hidden, greedy_rollout,
-                     epsilon, nullptr, 0.0);
+                     epsilon, nullptr, 0.0, nullptr, 0, nullptr, potion_weight);
 }
 
 MctsResult mcts_priors(const BattleContext &root, int simulations,
                        const std::vector<Action> &expected_actions,
                        const std::vector<double> &priors, double c_puct,
                        std::uint32_t seed, bool resample_hidden, bool greedy_rollout,
-                       double epsilon) {
+                       double epsilon, double potion_weight) {
     const auto actual = root.legal_actions();
     if (actual != expected_actions || priors.size() != actual.size())
         throw std::invalid_argument("priors and actions must match current legal actions in order");
     if (simulations < 0 || !std::isfinite(c_puct) || c_puct < 0.0 ||
-        !std::isfinite(epsilon) || epsilon < 0.0 || epsilon > 1.0)
+        !std::isfinite(epsilon) || epsilon < 0.0 || epsilon > 1.0 ||
+        !std::isfinite(potion_weight) || potion_weight < 0.0)
         throw std::invalid_argument("invalid MCTS budget, exploration or epsilon");
     std::vector<double> normalized = priors;
     double sum = 0.0;
@@ -345,7 +349,7 @@ MctsResult mcts_priors(const BattleContext &root, int simulations,
         throw std::invalid_argument("priors must have a positive finite sum");
     for (double &p : normalized) p /= sum;
     return mcts_impl(root, simulations, 4.242640687119285, seed, resample_hidden,
-                     greedy_rollout, epsilon, &normalized, c_puct);
+                     greedy_rollout, epsilon, &normalized, c_puct, nullptr, 0, nullptr, potion_weight);
 }
 
 MctsResult mcts_depth_priors(const BattleContext &root, int simulations,

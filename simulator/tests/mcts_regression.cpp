@@ -27,6 +27,16 @@ static bool legal(const BattleContext &b, const Action &a) {
 }
 
 int main() {
+    // Last-boss potion weights change both win and non-win evaluations, and
+    // the default remains exactly the old weight of four.
+    BattleContext scored = setup();
+    scored.potionCount = 1;
+    scored.outcome = Outcome::PLAYER_VICTORY;
+    assert(detail::mcts_terminal_score(scored, 4.0) -
+           detail::mcts_terminal_score(scored, 0.0) == 400.0);
+    scored.outcome = Outcome::PLAYER_LOSS;
+    assert(std::abs(detail::mcts_terminal_score(scored, 4.0) -
+                    detail::mcts_terminal_score(scored, 0.0) - 2.0) < 1e-9);
     // Identical results must leave action selection to the exploration term;
     // a tiny divisor previously locked the tree to the first positive edge.
     assert(detail::mcts_quality(500.0, 1, 500.0, 500.0) == 0.0);
@@ -52,6 +62,16 @@ int main() {
     const auto prior_a = mcts_priors(original, 64, root_actions, uniform, 3.0, 123);
     const auto prior_b = mcts_priors(original, 64, root_actions, scaled, 3.0, 123);
     assert(prior_a.actions == prior_b.actions && prior_a.simulations == prior_b.simulations);
+    const auto prior_default_explicit = mcts_priors(original, 64, root_actions, uniform,
+                                                     3.0, 123, false, false, 0.05, 4.0);
+    assert(prior_a.actions == prior_default_explicit.actions);
+    const auto prior_last_boss = mcts_priors(original, 64, root_actions, uniform,
+                                              3.0, 123, false, false, 0.05, 0.0);
+    assert(prior_last_boss.simulations == 64 && !prior_last_boss.actions.empty());
+    bool rejects_weight = false;
+    try { mcts_priors(original, 8, root_actions, uniform, 3.0, 123, false, false, 0.05, -1.0); }
+    catch (const std::invalid_argument &) { rejects_weight = true; }
+    assert(rejects_weight);
     auto rejects = [&](const std::vector<Action> &actions, const std::vector<double> &p) {
         try { mcts_priors(original, 8, actions, p); }
         catch (const std::invalid_argument &) { return true; }

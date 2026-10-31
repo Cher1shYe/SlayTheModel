@@ -29,7 +29,8 @@ SearchResult search_priors(const BattleContext &root, int simulations,
                            bool resample_hidden = false);
 MctsResult mcts(const BattleContext &root, int simulations, double c = 4.242640687,
                 std::uint32_t seed = 0, bool resample_hidden = false,
-                bool greedy_rollout = false, double epsilon = 0.05);
+                bool greedy_rollout = false, double epsilon = 0.05,
+                double potion_weight = 4.0);
 
 // Root-only PUCT: expected_actions and priors are paired with the current
 // legal actions. The remaining tree uses the same UCB rule as mcts().
@@ -37,7 +38,8 @@ MctsResult mcts_priors(const BattleContext &root, int simulations,
                        const std::vector<Action> &expected_actions,
                        const std::vector<double> &priors, double c_puct = 3.0,
                        std::uint32_t seed = 0, bool resample_hidden = false,
-                       bool greedy_rollout = false, double epsilon = 0.05);
+                       bool greedy_rollout = false, double epsilon = 0.05,
+                       double potion_weight = 4.0);
 
 // Fresh priors for each newly expanded node in the first max_depth levels.
 // The callback sees the current battle and its legal actions in order.

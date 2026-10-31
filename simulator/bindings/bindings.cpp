@@ -331,25 +331,28 @@ PYBIND11_MODULE(sts2_sim, m) {
            py::arg("epsilon") = 0.05, py::arg("seed") = 0,
            py::arg("resample") = false)
         .def("mcts", [](const BattleContext &bc, int simulations, double c,
-                         std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon) {
+                         std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon,
+                         double potion_weight) {
             if (simulations < 0 || !std::isfinite(c) || c < 0 ||
                 !std::isfinite(epsilon) || epsilon < 0 || epsilon > 1)
                 throw std::invalid_argument("invalid MCTS budget, exploration or epsilon");
             MctsResult r;
             {
                 py::gil_scoped_release release;
-                r = mcts(bc, simulations, c, seed, resample, greedy_rollout, epsilon);
+                r = mcts(bc, simulations, c, seed, resample, greedy_rollout, epsilon, potion_weight);
             }
             py::list actions;
             for (const Action &a : r.actions) actions.append(action_tuple(a));
             return py::make_tuple(actions, r.simulations, r.victory);
         }, py::arg("simulations") = 2000, py::arg("c") = 4.242640687,
            py::arg("seed") = 0, py::arg("resample") = false,
-           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05)
+           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05,
+           py::arg("potion_weight") = 4.0)
         .def("mcts_priors", [](const BattleContext &bc, int simulations,
                                 const std::vector<std::tuple<int, int, int, int>> &actions_in,
                                 const std::vector<double> &priors, double c,
-                                std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon) {
+                                std::uint32_t seed, bool resample, bool greedy_rollout, double epsilon,
+                                double potion_weight) {
             std::vector<Action> expected;
             expected.reserve(actions_in.size());
             for (const auto &a : actions_in)
@@ -359,14 +362,15 @@ PYBIND11_MODULE(sts2_sim, m) {
             {
                 py::gil_scoped_release release;
                 r = mcts_priors(bc, simulations, expected, priors, c, seed,
-                                resample, greedy_rollout, epsilon);
+                                resample, greedy_rollout, epsilon, potion_weight);
             }
             py::list actions;
             for (const Action &a : r.actions) actions.append(action_tuple(a));
             return py::make_tuple(actions, r.simulations, r.victory);
         }, py::arg("simulations"), py::arg("actions"), py::arg("priors"),
            py::arg("c") = 3.0, py::arg("seed") = 0, py::arg("resample") = false,
-           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05)
+           py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05,
+           py::arg("potion_weight") = 4.0)
         .def("mcts_depth_priors", [](const BattleContext &bc, int simulations,
                                       py::function prior_fn, int max_depth, double c,
                                       std::uint32_t seed, bool greedy_rollout, double epsilon,

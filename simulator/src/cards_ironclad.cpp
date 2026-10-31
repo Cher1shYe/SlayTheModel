@@ -465,11 +465,28 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::STOKE: {
             const int count = bc.handCount;
-            while (bc.handCount > 0) {
-                Card c = bc.hand[--bc.handCount];
-                bc.move_to_exhaust(c);
+            // Exhaust the hand that existed at play time. Exhaust hooks can
+            // draw or generate new cards, which must not join this effect.
+            std::uint16_t initial[MAX_HAND];
+            for (int i = 0; i < count; ++i) initial[i] = bc.hand[i].uid;
+            for (int i = 0; i < count && bc.outcome == Outcome::UNDECIDED; ++i) {
+                for (int j = 0; j < bc.handCount; ++j) {
+                    if (bc.hand[j].uid != initial[i]) continue;
+                    Card c = bc.hand[j];
+                    for (int k = j; k + 1 < bc.handCount; ++k) bc.hand[k] = bc.hand[k + 1];
+                    --bc.handCount;
+                    bc.move_to_exhaust(c);
+                    break;
+                }
             }
-            bc.draw_cards(count);
+            if (bc.outcome == Outcome::UNDECIDED) {
+                Card generated[MAX_HAND];
+                for (int i = 0; i < count; ++i) {
+                    generated[i] = bc.random_character_card_excluding(nullptr, 0);
+                    if (card.upgraded) bc.upgrade_card(generated[i]);
+                }
+                for (int i = 0; i < count; ++i) bc.add_card_to_hand(generated[i]);
+            }
             return true;
         }
         case CardId::TANK_CARD:

@@ -2,7 +2,11 @@
 
 #include <cmath>
 
+namespace sts2 { struct BattleContext; }
 namespace sts2::detail {
+
+// Per-search reward for remaining potions, exposed internally for regression tests.
+double mcts_terminal_score(const BattleContext &bc, double potion_weight);
 
 // STS1 normalizes the accumulated edge value by the global score range.
 // Equal scores have no useful exploitation signal: use zero instead of

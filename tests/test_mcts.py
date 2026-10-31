@@ -56,3 +56,22 @@ def test_root_prior_binding_alignment_validation_and_determinism():
     for actions, probabilities in invalid_inputs:
         with pytest.raises(ValueError):
             rc.battle.mcts_priors(8, actions, probabilities)
+
+
+def test_potion_weight_is_per_search_and_defaults_to_legacy():
+    rc = _combat()
+    battle = rc.battle
+    actions = battle.legal_actions()
+    priors = [1.0] * len(actions)
+    default = battle.mcts_priors(64, actions, priors, 3.0, 42)
+    assert default == battle.mcts_priors(64, actions, priors, 3.0, 42, potion_weight=4.0)
+    assert battle.mcts(64, seed=42) == battle.mcts(64, seed=42, potion_weight=4.0)
+    zero = battle.mcts_priors(64, actions, priors, 3.0, 42, potion_weight=0.0)
+    assert zero[1] == 64 and zero[0][0] in actions
+    assert battle.mcts(64, seed=42, potion_weight=0.0)[1] == 64
+    assert battle.mcts_priors(64, actions, priors, 3.0, 42) == default
+    for bad in (-1.0, float('nan'), float('inf')):
+        with pytest.raises(ValueError):
+            battle.mcts_priors(8, actions, priors, potion_weight=bad)
+        with pytest.raises(ValueError):
+            battle.mcts(8, potion_weight=bad)

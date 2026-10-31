@@ -1150,6 +1150,31 @@ int main() {
     }
     // DarkEmbracePower.cs / JossPaper.cs treat ethereal exhausts separately:
     // they are counted during the hand flush and settled at AfterTurnEnd.
+    // Stoke snapshots its hand, then generates one Ironclad card per original
+    // card. Dark Embrace draws must remain in hand, not be recursively exhausted.
+    {
+        auto b = base();
+        b.add_player_power(PowerId::DARK_EMBRACE, 1);
+        for (int i = 0; i < 8; ++i)
+            b.draw[b.drawCount++] = make_card(CardId::DEFEND_IRONCLAD, false, 90 + i);
+        hand(b, CardId::STOKE, true);
+        hand(b, CardId::BASH);
+        hand(b, CardId::ANGER);
+        play(b);
+        check("stoke_exhausts_only_original_hand_and_source", b.exhaustCount, 3);
+        check("stoke_preserves_exhaust_draws_and_generates_two", b.handCount, 5);
+        check("stoke_does_not_draw_for_generation", b.drawCount, 5);
+        int generated = 0, upgraded = 0, ironclad = 0;
+        for (int i = 0; i < b.handCount; ++i) {
+            if (b.hand[i].uid >= 90 && b.hand[i].uid < 98) continue;
+            ++generated;
+            upgraded += b.hand[i].upgraded;
+            ironclad += card_def(b.hand[i].id).pool == CardPool::IRONCLAD;
+        }
+        check("stoke_generates_two_cards", generated, 2);
+        check("stoke_upgraded_generates_upgraded_cards", upgraded, 2);
+        check("stoke_generates_character_cards", ironclad, 2);
+    }
     {
         auto b = base();
         b.add_player_power(PowerId::DARK_EMBRACE, 1);
