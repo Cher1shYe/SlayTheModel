@@ -67,7 +67,9 @@ internal sealed partial class CombatBeamSolver
                 CardStateKey: requested.CardStateKey,
                 CardStateOccurrence: requested.CardStateOccurrence,
                 CardUpgradeLevel: requested.CardUpgradeLevel,
-                CardEnchantmentId: requested.CardEnchantmentId);
+                CardEnchantmentId: requested.CardEnchantmentId,
+                PotionSlot: requested.PotionSlot,
+                PotionId: requested.PotionId);
             if (action.Kind == PlanActionKind.EndTurn)
             {
                 var endTurnResolved = BuildEndTurnBranches(node, []).ToArray();
@@ -76,6 +78,47 @@ internal sealed partial class CombatBeamSolver
 
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
             SimPlayerCombatState playerState = simulator.State.GetPlayerCombatState(_player);
+            if (action.Kind == PlanActionKind.UsePotion)
+            {
+                SimulatedCombatState simulatedCombat = (SimulatedCombatState)simulator.State.CombatState;
+                var potion = simulatedCombat.GetPotionAtSlot(_player, action.PotionSlot)
+                    ?? throw new InvalidOperationException(
+                        $"Prediction potion slot {action.PotionSlot} is now empty.");
+                if (!string.Equals(potion.Id.Entry, action.PotionId, StringComparison.Ordinal))
+                {
+                    throw new InvalidOperationException(
+                        $"Prediction potion identity changed at slot {action.PotionSlot}: " +
+                        $"expected {action.PotionId}, actual {potion.Id.Entry}.");
+                }
+
+                SimulationSnapshot? potionProbe = null;
+                try
+                {
+                    using PotionChoiceReplayCheckpoint? checkpoint = PreparePotionChoiceOptions(
+                        node, action, potion, out potionProbe,
+                        out IReadOnlyList<PlanCardChoice?> potionChoices,
+                        out CardChoiceSpec? potionChoiceSpec);
+                    IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> potionBranches =
+                        ResolveExplicitCardChoiceBranches(
+                            node, action, potionProbe, potionChoices, potionChoiceSpec);
+                    potionProbe = null;
+                    (PlanAction Action, SimulationSnapshot Snapshot)[] potionResolved =
+                        WithPotionChoiceCheckpoint(checkpoint, potionBranches).ToArray();
+                    RecordNativeMctsResolvedChoiceBranches(potionResolved);
+                    bool potionAutoResolve = potionResolved.Length == 1
+                        && potionChoiceSpec is { MinCount: 1, MaxCount: 1 }
+                        && potionChoiceSpec.Options.Count == 1
+                        && NativeMctsSimulation.ExecutionChoices(
+                            potionResolved[0].Action).Count == 1;
+                    return new NativeMctsExpansion(
+                        action, potionResolved, diagnostics.ToArray(), potionAutoResolve);
+                }
+                finally
+                {
+                    potionProbe?.ReleaseSimulator();
+                }
+            }
+
             PredictedCard card = FindCardForReplay(playerState.Hand.Cards, action)
                 ?? throw new InvalidOperationException($"Prediction card {requested.Key} is no longer in hand. Available: {string.Join(";", playerState.Hand.Cards.Select(c=>CardChoiceSupport.ChoiceCardKey(c)))}");
             PreparedCardAction prepared = new(
@@ -102,7 +145,12 @@ internal sealed partial class CombatBeamSolver
             (PlanAction Action, SimulationSnapshot Snapshot)[] resolved =
                 WithCardChoiceCheckpoint(capture?.Take(), branches).ToArray();
             RecordNativeMctsResolvedChoiceBranches(resolved);
-            return new NativeMctsExpansion(action, resolved, diagnostics.ToArray());
+            bool cardAutoResolve = resolved.Length == 1
+                && primaryChoiceSpec is { MinCount: 1, MaxCount: 1 }
+                && primaryChoiceSpec.Options.Count == 1
+                && NativeMctsSimulation.ExecutionChoices(resolved[0].Action).Count == 1;
+            return new NativeMctsExpansion(
+                action, resolved, diagnostics.ToArray(), cardAutoResolve);
         }
         finally
         {
@@ -205,6 +253,7 @@ internal sealed partial class CombatBeamSolver
     {
         SearchNode node = NativeMctsNode(snapshot, actionCount);
         var actions = PrepareCardActions(node).Select(prepared => prepared.Action).ToList();
+        actions.AddRange(PreparePotionActions(node).Select(prepared => prepared.Action));
         actions.Add(new PlanAction(PlanActionKind.EndTurn, snapshot.Turn));
         return actions;
     }
@@ -235,6 +284,10 @@ internal sealed partial class CombatBeamSolver
                     damage: damage,
                     targetHp: target == null ? null : simulator.State.GetCreature(target).CurrentHp));
             }
+            foreach (PreparedPotionAction prepared in PreparePotionActions(node))
+            {
+                result.Add(NativeMctsSimulation.ToPublicAction(prepared.Action));
+            }
             SimCreatureState player = simulator.State.GetCreature(_player.Creature);
             incomingDamage = Math.Max(0, player.CurrentHp - ProjectHpAfterThreat(simulator, player).Hp);
             PlanAction endTurn = new(PlanActionKind.EndTurn, snapshot.Turn);
@@ -248,7 +301,8 @@ internal sealed partial class CombatBeamSolver
 internal sealed record NativeMctsExpansion(
     PlanAction BaseAction,
     IReadOnlyList<(PlanAction Action, SimulationSnapshot Snapshot)> Resolved,
-    IReadOnlyList<string> ChoiceDiagnostics);
+    IReadOnlyList<string> ChoiceDiagnostics,
+    bool AutoResolveSingleBranch = false);
 
 internal static class NativeMctsSimulation
 {
@@ -264,8 +318,8 @@ internal static class NativeMctsSimulation
             SoftTimeBudgetMilliseconds = int.MaxValue,
         };
         var policy = new SearchPolicySnapshot(
-            profile, SolverPotionPolicy.Disabled,
-            new PotionStrategySnapshot(SolverPotionPolicy.Disabled, []),
+            profile, SolverPotionPolicy.Smart,
+            new PotionStrategySnapshot(SolverPotionPolicy.Smart, []),
             false, false, true, false, 1, null, includeTurnSetup, null,
             BossHpStrategy.ProgressionFirst, BossHpStrategy.ProgressionFirst, 0,
             new SearchDiagnosticsSink(static _ => { }, static _ => { }),
@@ -289,7 +343,8 @@ internal static class NativeMctsSimulation
         int? targetHp = null, string? choiceKey = null, int choiceIndex = 0) => new(
         key ?? ActionKey(action), action.Kind.ToString(), action.CardId, action.CardOccurrence,
         action.CardStateKey, action.CardStateOccurrence, action.CardUpgradeLevel,
-        action.CardEnchantmentId, action.TargetCombatId, cardType, gainsBlock, damage, targetHp, choiceKey,
+        action.CardEnchantmentId, action.TargetCombatId, action.PotionSlot, action.PotionId,
+        cardType, gainsBlock, damage, targetHp, choiceKey,
         ExecutionChoices(action).ElementAtOrDefault(choiceIndex)?.Cards.Select(card => new NativeMctsSelectedCard(
             card.CardId, card.UpgradeLevel, card.StateKey, card.OptionOccurrence)).ToArray(),
         KnowledgeCurseCounter(ExecutionChoices(action).ElementAtOrDefault(choiceIndex)));
@@ -297,7 +352,7 @@ internal static class NativeMctsSimulation
     internal static string ActionKey(PlanAction action) => string.Join(':',
         action.Kind, action.CardId, action.CardOccurrence, action.CardStateKey,
         action.CardStateOccurrence, action.CardUpgradeLevel, action.CardEnchantmentId,
-        action.TargetCombatId?.ToString() ?? "-");
+        action.TargetCombatId?.ToString() ?? "-", action.PotionSlot, action.PotionId);
 
     internal static string ChoiceKey(PlanAction baseAction, PlanAction resolved, int choiceIndex = -1)
     {

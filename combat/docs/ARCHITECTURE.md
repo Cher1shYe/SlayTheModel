@@ -1,4 +1,4 @@
-# CombatSolver 架构与职责地图
+﻿# CombatSolver 架构与职责地图
 
 根快照的 `TurnSetupChoicesPauseSideStart` 冻结原生 Selector 是否为空，Fork 按值继承且进入指纹；普通 UI 的选择暂停与注入式选择器等待整个 SetupPlayerTurn 的时序由同一续执行状态机区分。后台不得读取 Selector。
 
@@ -20,7 +20,7 @@
 
 `NativeMctsPriorObservation` 是 Native MCTS session 的只读试验导出端；卡牌、HP、牌堆、Power、意图和合法动作来自当前预测分支。它不加载网络、不训练、不执行 Python 模拟。上层 worker 持有驻留推理进程，ReplayMcts 持有节点先验缓存及 PUCT 选择；默认不注入先验。当前特征合同仅支持明确校验的初始牌组与单一怪物试验，未知机制显式失败，不能解释为通用观察协议。
 
-SlayTheModel Native MCTS 的开场选择由上层 worker 在 `SetupPlayerTurn` 前调用 API 冻结稳定根，API 复用已有回合准备分支生成；不能捕获原生待选项中间态。开场分支快照属于 NativeMctsSimulationSession，跨 rollout 保留并在 session 释放时统一销毁；上层 worker 只持有冻结根的 session 工厂与原生重放输入。
+SlayTheModel Native MCTS 的开场选择由上层 worker 在 `SetupPlayerTurn` 前调用 API 冻结稳定根，API 复用已有回合准备分支生成；不能捕获原生待选项中间态。开场分支快照属于 NativeMctsSimulationSession，跨 rollout 保留并在 session 释放时统一销毁；上层 worker 只持有冻结根的 session 工厂与原生重放输入。普通决策动作面由 `CombatBeamSolver.NativeMcts` 从同一快照生成卡牌、`PotionOnUseSupport.CanSearch` 允许的药水和结束回合；v0.111.0 的 63 种正式手动药水全部属于该集合，仙女瓶由自动死亡钩子管理。药水展开必须复用 `PreparePotionActions`、`PotionExecutionSupport` 与选择 continuation，不在 API 另写效果。公开药水身份包含物理槽位、模型和目标；只有一个实际候选的必选单选自动完成，语义去重后只有一个分支不足以跳过选择。未登记药水不向 MCTS 暴露，上层原生动作枚举仍负责验证返回动作可执行。
 
 普通 Power 的 Target 保留原生 null；显式定向入口继续保存传入目标。临时力量复用上游施加入口，首次回调仍先于计数加入，封顶后按修正请求量触发数量回调。Weak/Vulnerable/Frail 的跳过首次持续时间扣减只由各自 Power 保存，影响状态指纹与 ContinuationStamp；其他能力的无效 Skip 元数据不参与该等价性判断。未新增战斗后端或状态存储副本。
 

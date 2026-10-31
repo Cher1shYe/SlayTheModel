@@ -135,12 +135,23 @@ internal sealed class MctsCombatController : ICardSelector
         CombatActionDescriptor? descriptor = action switch
         {
             PlayCardAction play => new(CombatActionKind.PlayCard, play.OwnerId, play.NetCombatCard.CombatCardIndex, TargetCreatureId: play.TargetId),
+            UsePotionAction potion => new(CombatActionKind.UsePotion, potion.OwnerId,
+                PotionIndex: potion.PotionIndex, TargetCreatureId: potion.TargetId),
             EndPlayerTurnAction end => new(CombatActionKind.EndTurn, end.OwnerId),
             _ => null,
         };
         if (descriptor != null)
-            AppendPrefix(new SearchAction($"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.TargetCreatureId}", descriptor));
-        else if (action is UsePotionAction) Pause("Manual potion use is outside the v1 replay action set.");
+        {
+            var recorded = new SearchAction(
+                $"{descriptor.Kind}:{descriptor.CombatCardIndex}:{descriptor.PotionIndex}:{descriptor.TargetCreatureId}",
+                descriptor);
+            AppendPrefix(recorded);
+            // Policy actions publish their immutable worker identity before enqueue.
+            // A manual card or potion can arrive while a search is running and may
+            // synchronously open a selector, so make that actual input the choice trigger.
+            if (_choiceTriggerAction?.Combat != descriptor)
+                _choiceTriggerAction = recorded;
+        }
     }
 
     private void AppendPrefix(SearchAction action)
@@ -161,8 +172,9 @@ internal sealed class MctsCombatController : ICardSelector
         // dropping the second EndTurn made replay attempt the following Tremble one
         // round too early. Card actions retain duplicate suppression because native
         // effects can enqueue an automatic second PlayCardAction for the same card.
-        if (left.Combat?.Kind == CombatActionKind.EndTurn
-            || right.Combat?.Kind == CombatActionKind.EndTurn) return false;
+        if (left.Combat?.Kind is CombatActionKind.EndTurn or CombatActionKind.UsePotion
+            || right.Combat?.Kind is CombatActionKind.EndTurn or CombatActionKind.UsePotion)
+            return false;
         return left.Combat == right.Combat;
     }
 
@@ -246,7 +258,9 @@ internal sealed class MctsCombatController : ICardSelector
             }
             StopPondering();
             var action = result.Action?.Combat ?? throw new InvalidDataException("Worker returned no combat action.");
-            if (!CombatCaptureService.GetLegalActions(_state).Contains(action)) throw new InvalidDataException("Worker action is no longer legal.");
+            if (!CombatCaptureService.GetLegalActions(_state)
+                    .Concat(CombatCaptureService.GetPotionActions(_state)).Contains(action))
+                throw new InvalidDataException("Worker action is no longer legal.");
             var predictedPrefix = _prefix.ToList();
             predictedPrefix.Add(result.Action!);
             if (result.NextStateKey != null)

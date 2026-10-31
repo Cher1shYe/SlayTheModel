@@ -46,7 +46,7 @@
 - 第一版局内与局外 `first-legal` 自动操作，用于验证整局控制闭环并运行自动化基线；
 - [SpireFormer](model/spireformer/README.md) 离线模型与训练栈，以及先 live、后 headless 的[训练数据 v1 规划](docs/spireformer-training-data-v1-plan.md)。
 
-目前游戏内合法动作枚举以“出牌、选目标、结束回合”为主。药水与完整的分支决策协议尚未接入。单人 first-legal 已通过原生选牌接口自动处理动作内的手牌/网格选择，其他特殊交互仍需验证。另有显式启用的实验性 `mcts` 模式，使用独立原生 worker 和 Combat Solver 模拟后端；`first-legal` 仍是独立联调策略。SpireFormer 当前能够离线训练，但尚未接入游戏实时策略参数；`RunMode=train` 仍只是 Mod 侧的预留入口。
+基础战斗协议保留“出牌、选目标、结束回合”动作；采集器和实验性 `mcts` 模式另外接入真实药水槽、药水目标及动作内选牌。单人卡牌、开局遗物、跨回合能力与已登记药水的卡牌选择统一走原生 `ICardSelector` 和 Combat Solver 的确定性分支；未知效果会显式停止自动控制。`first-legal` 仍是独立联调策略。SpireFormer 当前能够离线训练，但尚未接入游戏实时策略参数；`RunMode=train` 仍只是 Mod 侧的预留入口。
 
 ## SpireFormer 运行规则
 
@@ -309,7 +309,7 @@ Windows ABI 契约位于 `contracts/sts2-v0.111.0-windows.json`，来源为本�
 
 ## 实验性 MCTS（Windows / macOS ARM64，v0.3.0）
 
-已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒搜索、动作与动画期间以 500 毫秒时间片持续思考、搜索树复用，以及 F8 暂停／恢复。决策点只采用与实际完整状态指纹匹配的最新结果。首版仅面向单人铁甲战士且不使用药水；局外既可以保持 `manual`，也可以独立启用 `first-legal`。
+已接入独立原生战斗 worker、入口重建与动作重放、首步 5 秒搜索、动作与动画期间以 500 毫秒时间片持续思考、搜索树复用，以及 F8 暂停／恢复。决策点只采用与实际完整状态指纹匹配的最新结果。当前实时控制仍只面向单人铁甲战士；搜索会枚举 Combat Solver 已登记的药水及其目标和选牌分支，手动用药也会进入重放前缀。局外既可以保持 `manual`，也可以独立启用 `first-legal`。
 
 游戏右上角显示 MCTS 状态按钮：绿色开启、蓝色思考中、黄色暂停、灰色未开启或不支持。战斗中可点击暂停／恢复，悬停查看说明。
 
@@ -449,7 +449,7 @@ Godot 路径、运行时实例 ID 和原生存档不会进入策略接口。
 - `tools/Sts2.NativeWorker/CombatSolverReplayEnvironment.cs` 将 Combat Solver 的 root snapshot、fork 和动作展开适配为 MCTS 模拟环境；
 - 游戏适配器负责捕获战斗 checkpoint、执行真实动作，并校验预测 continuation；
 - 当前固定使用 Combat Solver commit `8826a333a6d48e05f0e368ee2db5d4a15092382e`；
-- 只保证原版卡牌/敌人以及 Combat Solver 已登记适配的内容；药水不进入搜索；
+- 只保证原版卡牌/敌人以及 Combat Solver 已登记适配的内容；v0.111.0 目录中的 63 种正式手动药水都已进入搜索并逐瓶完成原生 continuation 对账，九种选牌药水走同一选择 continuation；仙女瓶保留为自动死亡保护，不生成手动动作；
 - 不支持的动态选择或效果会显式报告错误，不会静默使用不一致的状态。
 
 Combat Solver 的桥接源码位于 `combat/src/Api/NativeMctsSimulationApi.cs` 和 `combat/src/Search/CombatBeamSolver.NativeMcts.cs`。该目录保留独立仓库的原始未提交桥接修改，但主仓库提交会把源码作为普通文件纳入，而不是 Git submodule。

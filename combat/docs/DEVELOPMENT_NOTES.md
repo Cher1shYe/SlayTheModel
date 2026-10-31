@@ -1,4 +1,4 @@
-# CombatSolver 开发笔记与未来构想
+﻿# CombatSolver 开发笔记与未来构想
 
 ## 被包围重放读取冻结背击能力（2026-10-19）
 
@@ -96,6 +96,12 @@ CreateDriver 虽创建专用 profile，却未传入 CombatBeamSolver 的 searchP
 
 - 上层 MCTS 按用户公式改为胜利 `0.9+0.1h`、死亡 `-1`、截断 `clip(-0.1+0.9d-0.55l-0.25max(0,l)^2-0.25q^2,-0.8,0.8)`。h 使用末尾最大 HP；l 以本条模拟恢复后的搜索根 HP 为基准并允许净回血；q 使用现有实际掉血投影。Native API 新增只读最大 HP 输出，未改原 Beam 评分。
 - 已完成动作后的时间耗尽现在可回传截断奖励；中途取消/待选项不计分。H0 改变会淘汰不同基准的旧树统计。公式 smoke、原生当前 HP/最大 HP/格挡风险对账、三场搜索与召唤复活回归及赌博筹码 IPC 通过；未做整场胜率提升结论。详见上层 `docs/mcts-progress-reward-20261015.md`。
+## SlayTheModel MCTS 战斗选择面与药水（2026-10-19）
+
+- 新增目录驱动的 `combat-potion-verify`：遍历 v0.111.0 `ModelDb.AllPotions` 的 66 项，63 种正式手动药水逐瓶核对 Native MCTS 动作与原生完整 continuation；仙女瓶保留自动死亡保护并从上层手动输入枚举移除，废弃占位和游戏测试模型不进入搜索。最终 ReplayMcts 固定夹具完成 350 次模拟，格挡药根分支取得 117 visits。
+- Native MCTS 的普通动作面新增 Combat Solver 已登记药水，公开身份保存物理槽位、模型和目标；展开直接复用现有 `PreparePotionActions`、`PotionExecutionSupport` 和 `PotionChoiceContinuation`，未复制药水效果。九种原版选牌药水因此与 41 种单人选牌卡、开局遗物及跨回合选择共用 PlanCardChoice 与 Fork/continuation 合同。
+- 只有一个实际候选的必选单选不再暴露伪选择节点。原生会自动完成唯一候选，例如只有一张弃牌时的液态记忆；预测现在同步到动作完成后的状态。多候选即使语义去重后只剩一个分支，也仍保留选择节点；赌博药水已验证冷 worker 从挂起多选恢复。
+- 上层 worker 将自用药水的模拟 null 目标映射为原生玩家 combat ID，并仅在预测为不可跳过 `1..1`、候选集合完全相同时接受原生 ChooseACard 接口报告的 `0..1`。该兼容不改变可跳过选择。详细原生验证见测试清单；未验证第三方药水或可见游戏整局。
 
 ## SlayTheModel 赌博筹码开场选择（2026-10-16）
 

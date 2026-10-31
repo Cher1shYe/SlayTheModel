@@ -1,4 +1,4 @@
-using Godot;
+﻿using Godot;
 using MegaCrit.Sts2.Core.TestSupport;
 using MegaCrit.Sts2.Core.Helpers;
 using MegaCrit.Sts2.Core.Models;
@@ -36,6 +36,18 @@ public partial class Worker : Node
             using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
             var session = new NativeSession(this);
             string? workerMode = System.Environment.GetEnvironmentVariable("STS2_WORKER_MODE");
+            if (workerMode == "combat-potion-verify")
+            {
+                await CombatPotionCatalogVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
+            if (workerMode == "combat-choice-verify")
+            {
+                await CombatChoiceSurfaceVerification.RunAsync(session, timeout.Token);
+                GetTree().Quit();
+                return;
+            }
             if (workerMode == "collection-pilot")
             {
                 SlayTheModel.Sts2.ModAdapter.NativeCombatCheckpoint.CaptureEnabled = false;

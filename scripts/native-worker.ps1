@@ -1,10 +1,10 @@
-#requires -Version 5.1
+﻿#requires -Version 5.1
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$true)][string]$GameDir,
     [string]$RitsuLibRoot = $env:STS2_RITSULIB_DIR,
     [int]$TimeoutSeconds = 120,
-    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'event-checkpoint-verify', 'knowledge-demon-verify', 'gambling-chip-verify', 'prior-benchmark', 'evolution', 'collection-pilot', 'benchmark', 'solver-mcts-benchmark')][string]$Mode = 'verify',
+    [ValidateSet('verify', 'reward-verify', 'summon-reward-verify', 'collector-policy-verify', 'event-checkpoint-verify', 'knowledge-demon-verify', 'gambling-chip-verify', 'prior-benchmark', 'evolution', 'collection-pilot', 'benchmark', 'solver-mcts-benchmark', 'combat-choice-verify', 'combat-potion-verify')][string]$Mode = 'verify',
     [switch]$SkipBuild
 )
 $ErrorActionPreference = 'Stop'

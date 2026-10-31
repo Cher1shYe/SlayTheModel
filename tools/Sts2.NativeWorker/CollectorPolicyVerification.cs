@@ -4,6 +4,8 @@ using System.Text.Json;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.GameActions;
 using MegaCrit.Sts2.Core.Models;
+using MegaCrit.Sts2.Core.Models.Potions;
+using MegaCrit.Sts2.Core.Rooms;
 using MegaCrit.Sts2.Core.Runs;
 
 /// <summary>
@@ -87,7 +89,18 @@ internal static class CollectorPolicyVerification
             session.ChoiceFixture = true;
             session.ChoiceFixtureCards =
                 ["HEADBUTT", "DEFEND_IRONCLAD", "DEFEND_IRONCLAD", "BASH", "STRIKE_IRONCLAD"];
+            session.EnterRoomForVerification = async (run, encounter) =>
+            {
+                var player = run.Players.Single();
+                int slot = Enumerable.Range(0, player.PotionSlots.Count)
+                    .First(index => player.GetPotionAtSlotIndex(index) == null);
+                if (!player.AddPotionInternal(
+                        ModelDb.Potion<GamblersBrew>().ToMutable(), slot, silent: false).success)
+                    throw new InvalidDataException("Could not inject collector policy potion.");
+                await RunManager.Instance.EnterRoomDebug(RoomType.Monster, model: encounter);
+            };
             await session.ResetAsync("COLLECTOR-POLICY-CHOICE", cancellation);
+            session.EnterRoomForVerification = null;
 
             // Native test setup intentionally bypasses the ordinary run-start
             // events. Supply those exact semantic boundaries to the collector.
@@ -103,6 +116,13 @@ internal static class CollectorPolicyVerification
             await session.StepAsync(
                 session.Actions().First(action => action.Selection is [1]),
                 cancellation);
+            await session.StepAsync(
+                session.Actions().Single(action =>
+                    action.Combat?.Kind == SlayTheModel.Sts2.Protocol.CombatActionKind.UsePotion),
+                cancellation);
+            await session.StepAsync(
+                session.Actions().First(action => action.Selection is [0]),
+                cancellation);
 
             Call(runtime, "OnTreeExiting");
             VerifyJournal(datasetRoot);
@@ -113,6 +133,7 @@ internal static class CollectorPolicyVerification
             session.ChoiceRequestedForVerification = null;
             session.ChoiceCompletedForVerification = null;
             session.ChoiceFixture = false;
+            session.EnterRoomForVerification = null;
         }
     }
 
@@ -200,10 +221,10 @@ internal static class CollectorPolicyVerification
 
         foreach (var (eventType, expected) in new[]
                  {
-                     ("decision", 4),
-                     ("action_submitted", 4),
-                     ("execution_result", 4),
-                     ("reward", 4),
+                     ("decision", 6),
+                     ("action_submitted", 6),
+                     ("execution_result", 6),
+                     ("reward", 6),
                  })
         {
             int actual = Events(events, eventType).Count();
@@ -226,9 +247,29 @@ internal static class CollectorPolicyVerification
             }
         }
 
+        Dictionary<Guid, JsonElement> decisions = Events(events, "decision")
+            .ToDictionary(
+                decision => decision.GetProperty("payload").GetProperty("decision_id").GetGuid(),
+                decision => decision.GetProperty("payload"));
+        string[] submittedKinds = submissions.Select(submission =>
+        {
+            JsonElement payload = submission.GetProperty("payload");
+            JsonElement decision = decisions[payload.GetProperty("decision_id").GetGuid()];
+            int selectedIndex = payload.GetProperty("selected_action_index").GetInt32();
+            return decision.GetProperty("legal_actions")[selectedIndex]
+                .GetProperty("kind").GetString() ?? "";
+        }).ToArray();
+        if (!submittedKinds.Contains("use_potion", StringComparer.OrdinalIgnoreCase)
+            || !submittedKinds.Contains("resolve_choice", StringComparer.OrdinalIgnoreCase))
+        {
+            throw new InvalidDataException(
+                $"Policy collector did not preserve potion and child choice labels; inspect {journal}");
+        }
+
         Godot.GD.Print(
             "SLAY_WORKER_COLLECTOR_POLICY_MATCH "
-            + "four native decisions/actions/results/rewards, native-mcts provenance, zero gaps; "
+            + "six native decisions/actions/results/rewards including potion and child choice, "
+            + "native-mcts provenance, zero gaps; "
             + $"journal={journal}");
     }
 
