@@ -25,7 +25,7 @@ import torch
 
 from .armg import (ARMG_ACTION_DIM, ARMG_FEATURE_VERSION, ARMG_OBS_DIM,
                    ArmGScorer, build_candidates)
-from .common import PUBLIC_OBS_VERSION, SCREEN, completed_run_status, new_run
+from .common import PUBLIC_OBS_VERSION, RACT, SCREEN, completed_run_status, new_run
 from .heuristics import run_policy
 from .nets import checkpoint_config
 from .policy import TRAIN_SEED_BASE, VAL_SEED_BASE
@@ -94,7 +94,9 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                     ascension: int = 0, need_rules: bool = False,
                     relic_rules: bool = False, combat_budget_by_floor=None,
                     combat_budget_by_context=None, before_combat=None,
-                    mcts_plan=None) -> dict:
+                    mcts_plan=None, track_boss_wins=False, track_elite_wins=False,
+                    trajectory=None, campfire_upgrade_reward=0.0, shop_remove_reward=0.0,
+                    terminal_deck_elo=None) -> dict:
     """Play one run; only completed runs produce REINFORCE records.
 
     ``model=None`` uses the existing heuristic for non-combat decisions.
@@ -102,7 +104,21 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
     information. Evaluation is greedy and does not retain policy observations.
     """
     rc = new_run(seed, ascension)
+    if trajectory is not None and (model is None or need_rules or relic_rules or
+                                   not track_boss_wins or not track_elite_wins):
+        raise ValueError('trajectory collection requires a policy, victory tracking and no overlays')
     records = []
+    boss_wins = []
+    elite_wins = []
+    upgrade_events, shop_removal_events = [], []
+    if not np.isfinite([campfire_upgrade_reward, shop_remove_reward]).all() or min(campfire_upgrade_reward, shop_remove_reward) < 0:
+        raise ValueError('action rewards must be finite and nonnegative')
+
+    def cumulative_reward():
+        n_boss = len(boss_wins)
+        return (int(rc.floor) / 20.0 + n_boss * (n_boss + 1) / 2.0 + .1 * len(elite_wins)
+                + campfire_upgrade_reward * len(upgrade_events)
+                + shop_remove_reward * len(shop_removal_events))
     steps = 0
     status = "error"
     error = None
@@ -147,9 +163,31 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                 else:
                     action = _combat_action(rc.battle, seed + 7919 * steps,
                                             combat, simulations, epsilon)
+                elite_before = None
+                if track_elite_wins:
+                    if PUBLIC_OBS_VERSION != 10:
+                        raise RuntimeError('unsupported elite classification observation version')
+                    public = rc.observe_public()
+                    if public[8] != 1 or public[9] not in (0, 1):
+                        raise RuntimeError('invalid public elite classification')
+                    if bool(public[9]):
+                        elite_before = {'act': int(rc.act) + 1, 'floor': int(rc.floor)}
+                boss_before = None
+                if track_boss_wins and rc.combat_is_boss:
+                    from .armg_floor_schedule import is_final_boss
+                    boss_before = {'act': int(rc.act) + 1, 'floor': int(rc.floor),
+                                   'final_boss': is_final_boss(rc)}
                 if not rc.step_combat(*action):
                     raise RuntimeError(f"combat action rejected: {action}")
                 if rc.screen != SCREEN.COMBAT:
+                    if elite_before is not None:
+                        from .common import OUTCOME
+                        if rc.battle.outcome == OUTCOME.PLAYER_VICTORY:
+                            elite_wins.append(elite_before)
+                    if boss_before is not None:
+                        from .common import OUTCOME
+                        if rc.battle.outcome == OUTCOME.PLAYER_VICTORY:
+                            boss_wins.append(boss_before)
                     combat_plan.clear()
                 continue
             obs, actions, features = build_candidates(rc)
@@ -217,20 +255,40 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                 choice = order[1 + ((repeats - 3) % (len(order) - 1))]
                 action = actions[choice]
                 cycle_recoveries += 1
-            if model is not None and not deterministic and len(actions) > 1 and not forced and not rule_forced:
+            if trajectory is not None and not deterministic:
+                trajectory.record(obs, features, choice, forced or rule_forced, cumulative_reward())
+            if trajectory is None and model is not None and not deterministic and len(actions) > 1 and not forced and not rule_forced:
                 # A safety-forced action is not drawn from the policy; exclude
                 # its log probability from the policy-gradient trajectory.
                 records.append((obs, features, choice, bonus, mask) if need_active else
                                (obs, features, choice))
+            action_event = None
+            if ((rc.screen == SCREEN.REST and action[0] == int(RACT.REST_UPGRADE)) or
+                    (rc.screen == SCREEN.SHOP and action[0] == int(RACT.REMOVE_CARD))):
+                action_event = {'act': int(rc.act) + 1, 'floor': int(rc.floor),
+                                'card_id': int(rc.deck[action[1]][0]), 'action': int(action[0])}
             if not rc.step(*action):
                 raise RuntimeError(f"run action rejected on {rc.screen.name}: {action}")
+            if action_event is not None:
+                (upgrade_events if action_event['action'] == int(RACT.REST_UPGRADE)
+                 else shop_removal_events).append(action_event)
         status = completed_run_status(rc)
     except (RuntimeError, ValueError, OverflowError) as exc:
         error = f"{type(exc).__name__}: {exc}"
+    deck_stats = {}
+    if terminal_deck_elo is not None and status == 'terminated':
+        deck_stats = terminal_deck_elo(rc.deck)
+    ppo_records = []
+    if trajectory is not None and status == 'terminated' and not deterministic:
+        ppo_records = trajectory.finish(cumulative_reward() + deck_stats.get("deck_elo_bonus", 0.0))
     return {"seed": seed, "status": status,
             "won": bool(rc.won) and status == "terminated",
             "floor": int(rc.floor), "hp": int(rc.hp), "steps": steps,
             "records": records if status == "terminated" and not deterministic else [],
+            "ppo_records": ppo_records,
+            "boss_wins": boss_wins, "elite_wins": elite_wins, **deck_stats,
+            "campfire_upgrades": len(upgrade_events), "shop_removals": len(shop_removal_events),
+            "upgrade_events": upgrade_events, "shop_removal_events": shop_removal_events,
             "error": error, "cycle_recoveries": cycle_recoveries,
             "mcts_searches": mcts_searches, "mcts_simulations": mcts_simulations,
             "need_decisions": need_decisions, "relic_decisions": relic_decisions}
