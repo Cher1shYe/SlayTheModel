@@ -3,6 +3,7 @@
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 
 namespace sts2 {
 
@@ -15,7 +16,7 @@ void BattleContext::auto_play_cards(const Card *cards,int count,int fixedTarget,
         task.target=fixedTarget; task.forceExhaust=forceExhaust; task.dupe=nextPlayIsDupe;
     }
     nextPlayIsDupe=false;
-    if(!runningPlayLoop && !resolvingCard && pending.op==ChoiceOp::NONE)run_active_play();
+    if(!runningPlayLoop && !resolvingCard && pending.op==ChoiceOp::NONE)run_active_play(false);
 }
 
 bool BattleContext::start_queued_auto_play() {
@@ -35,14 +36,18 @@ bool BattleContext::start_queued_auto_play() {
     detach_card(task.card.uid);
     bool normality=false;
     for(int i=0;i<handCount;++i)normality|=hand[i].id==CardId::NORMALITY && cardsPlayedThisTurn>=3;
-    if(!card_is_playable(task.card) || normality ||
+    const int slothLimit=player.power[static_cast<int>(PowerId::SLOTH)];
+    const bool sloth=slothLimit>0 && cardsPlayedThisTurn>=slothLimit;
+    if(!card_is_playable(task.card) || normality || sloth ||
        (relic_has(*this,RelicId::VELVET_CHOKER)&&cardsPlayedThisTurn>=6)) {
         if(task.forceExhaust)move_to_exhaust(task.card);else move_to_discard(task.card);
         return true;
     }
     if(activePlay.active) {
         if(suspendedPlayCount==MAX_PLAY_DEPTH)throw std::overflow_error("Nested card play depth exhausted");
-        suspendedPlays[suspendedPlayCount++]={activePlay,xCost,pendingDrawRemainder,returnToHand};
+        SuspendedPlay &saved=suspendedPlays[suspendedPlayCount++];
+        saved.play=activePlay; saved.xCost=xCost;
+        saved.pendingDrawRemainder=pendingDrawRemainder; saved.returnToHand=returnToHand;
     }
     pendingDrawRemainder=0;
     returnToHand=false;
@@ -73,6 +78,7 @@ void BattleContext::discard_cards(const Card *cards,int count,int drawAfter) {
         detach_card(card.uid);
         move_to_discard(card);
         silent_card_discarded(*this,card);
+        relics_card_discarded(*this,card);
         if(card_has(card,CF_SLY)) {
             if(slyCount==MAX_HAND)throw std::overflow_error("Discard batch exceeds hand");
             sly[slyCount++]=card;
@@ -83,7 +89,19 @@ void BattleContext::discard_cards(const Card *cards,int count,int drawAfter) {
 }
 
 void BattleContext::notify_card_generated(const Card &card) {
+    relics_card_generated(*this,card);
     defect_after_card_generated(*this,card);
     necrobinder_card_generated(*this,card);
+    regent_card_generated(*this,card);
+    // CardEnteredCombat runs once for the generated entity. Find its live
+    // copy so per-card modifiers land on the card that stays in play.
+    Card *piles[]={hand,draw,discard,exhaust,playPile,returnNextTurn};
+    const int counts[]={handCount,drawCount,discardCount,exhaustCount,playCount,returnNextTurnCount};
+    for(int p=0;p<6;++p)for(int i=0;i<counts[p];++i)if(piles[p][i].uid==card.uid){
+        silent_card_entered_combat(*this,piles[p][i],false);
+        necrobinder_card_entered_combat(*this,piles[p][i],false);
+        regent_card_entered_combat(*this,piles[p][i],false);
+        return;
+    }
 }
 }

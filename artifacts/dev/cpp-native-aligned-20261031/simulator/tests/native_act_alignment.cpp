@@ -151,15 +151,20 @@ int main() {
     assert(first.roll_unknown_room_type() == static_cast<int>(RoomType::MONSTER));
     assert(first.runRng[RNG_UNKNOWN_MAP_POINT].counter == startCounter);
     first.roll_unknown_room_type(); assert(first.runRng[RNG_UNKNOWN_MAP_POINT].counter == startCounter + 1);
-    bool rejected = false;
-    try { RunContext invalid; invalid.init_with_context(17, 0, 0, progress); }
-    catch (const std::invalid_argument &) { rejected = true; }
-    assert(rejected); // Explicit boundary: mandatory ByrdonisNest is not ported.
+    // First-run Overgrowth now supports the mandatory ByrdonisNest event: the
+    // tutorial room set places it at event-bag slot 0 instead of rejecting.
+    RunContext tutorial;
+    tutorial.init_with_context(17, 0, 0, progress);
+    assert(tutorial.eventBagN >= 1 &&
+           std::strcmp(event_info(tutorial.eventBag[0])->name, "BYRDONIS_NEST") == 0);
     progress.numberOfRuns = 1; progress.aeonglassSeen = false;
+    for (auto &word : progress.seenEncounters) word = 0;
     mark_seen(progress, Encounter::SETUP_QUEEN_BOSS); mark_seen(progress, Encounter::SETUP_TEST_SUBJECT_BOSS);
-    rejected = false;
-    try { RunContext invalid; invalid.init_with_context(17, 0, 3, progress); }
-    catch (const std::invalid_argument &) { rejected = true; }
-    assert(rejected);
+    // Glory BossDiscoveryOrder is Queen -> TestSubject -> Aeonglass; the first
+    // unseen boss must now be the implemented Aeonglass encounter.
+    RunContext glory;
+    glory.init_with_context(17, 0, 0, progress);
+    glory.start_act(2);
+    assert(glory.bossEncounter == static_cast<int>(Encounter::SETUP_AEONGLASS_BOSS));
     std::cout << "native act source fixtures: GoldenCompass/Underdocks/progress/snapshot v6 passed\n";
 }

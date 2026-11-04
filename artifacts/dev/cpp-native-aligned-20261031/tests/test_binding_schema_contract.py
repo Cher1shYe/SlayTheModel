@@ -40,7 +40,7 @@ def test_combat_action_components_are_checked_before_narrowing(contexts, field, 
     assert run.snapshot() == before_run
 
 
-@pytest.mark.parametrize("action_type", [-1, int(sim.RunActionType.REST_CLONE) + 1, 256])
+@pytest.mark.parametrize("action_type", [-1, int(sim.RunActionType.REROLL_CARD_REWARD) + 1, 256])
 def test_run_action_type_is_checked_before_narrowing(contexts, action_type):
     _, run = contexts
     before = run.snapshot()
@@ -51,13 +51,13 @@ def test_run_action_type_is_checked_before_narrowing(contexts, action_type):
 
 def test_field_limits_and_public_schema(contexts):
     battle, run = contexts
-    assert len(battle.action_features(int(sim.ActionType.END_TURN), 255, 255, 65535)) == 343
-    assert int(sim.PUBLIC_OBS_VERSION) == 13
-    assert int(sim.ACTION_SCHEMA_VERSION) == 12
-    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 46082
-    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 29691
-    assert int(sim.CARD_FEAT_DIM) == 251
-    assert int(sim.ACTION_FEAT_DIM) == 343
+    assert len(battle.action_features(int(sim.ActionType.END_TURN), 255, 255, 65535)) == 729
+    assert int(sim.PUBLIC_OBS_VERSION) == 19
+    assert int(sim.ACTION_SCHEMA_VERSION) == 17
+    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 70651
+    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 44306
+    assert int(sim.CARD_FEAT_DIM) == 626
+    assert int(sim.ACTION_FEAT_DIM) == 729
 
 
 def test_generate_map_takes_raw_rng_seed():

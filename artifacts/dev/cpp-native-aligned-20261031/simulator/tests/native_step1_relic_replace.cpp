@@ -115,7 +115,7 @@ int main() {
         r.add_relic(RelicId::HAPPY_FLOWER); r.add_relic(RelicId::LIZARD_TAIL);
         r.relicAux[0] = 7; r.relicAux[2] = 1; r.relicAux[3] = 1;
         r.add_relic(RelicId::TOUCH_OF_OROBAS);
-        r.begin_combat(Encounter::INVALID);
+        r.begin_combat(Encounter::SETUP_AXEBOTS_NORMAL);
         check("Combat preserves PenNib association", r.battle.relics[0] == static_cast<int>(RelicId::PEN_NIB) && r.battle.relicAux[0] == 7);
         check("Combat advances the correct HappyFlower counter", r.battle.relics[2] == static_cast<int>(RelicId::HAPPY_FLOWER) && r.battle.relicAux[2] == 2);
         check("Combat preserves used LizardTail state", r.battle.relics[3] == static_cast<int>(RelicId::LIZARD_TAIL) && r.battle.relicAux[3] == 1);

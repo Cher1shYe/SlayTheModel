@@ -28,10 +28,10 @@ int reward_pool(const RunContext &rc,RelicId source,CardPool seaPool,CardId *out
     if(source==RelicId::SEA_GLASS)return append_pool(seaPool,out,0);
     if(source==RelicId::DREAM_CATCHER && run_has_relic(rc,RelicId::PRISMATIC_GEM)) {
         CardPool pools[5];const int n=native_unlocked_character_pools(rc,pools,5);
-        bool hasIronclad=false;
-        for(int i=0;i<n;++i){count=append_pool(pools[i],out,count);hasIronclad|=pools[i]==CardPool::IRONCLAD;}
-        if(!hasIronclad)count=append_pool(CardPool::IRONCLAD,out,count);
-    } else count=append_pool(CardPool::IRONCLAD,out,0);
+        bool hasOwner=false;
+        for(int i=0;i<n;++i){count=append_pool(pools[i],out,count);hasOwner|=pools[i]==rc.character;}
+        if(!hasOwner)count=append_pool(rc.character,out,count);
+    } else count=append_pool(rc.character,out,0);
     if(source==RelicId::DREAM_CATCHER && run_has_relic(rc,RelicId::DINGY_RUG))
         count=append_pool(CardPool::COLORLESS,out,count);
     return count;
@@ -105,6 +105,10 @@ int draw_group(RunContext &rc,const CardId *pool,int poolCount,Card *out,int cou
 }
 }
 
+void apply_card_reward_hooks(RunContext &rc,Card *cards,int count,bool isCardReward) {
+    reward_hooks(rc,cards,count,isCardReward);
+}
+
 int make_relic_card_reward_candidates(RunContext &rc,RelicId source,Card *out,int capacity,CardPool seaPool) {
     const int count=source==RelicId::LEAD_PAPERWEIGHT?2:source==RelicId::ARCANE_SCROLL?1:
         source==RelicId::DREAM_CATCHER?3:source==RelicId::SEA_GLASS?15:0;
@@ -135,14 +139,66 @@ int make_relic_card_reward_candidates(RunContext &rc,RelicId source,Card *out,in
     return count;
 }
 
+int make_hefty_tablet_candidates(RunContext &rc, Card *out, int capacity) {
+    // HeftyTablet: CardCreationOptions(character pool, Other, Uniform,
+    // Rare only).WithFlags(NoUpgradeRoll). CreateForReward blacklists each
+    // already-selected canonical card, so the three offers are distinct.
+    if (!out || capacity < 3) return -1;
+    CardId pool[static_cast<int>(CardId::COUNT)];
+    const int total = append_pool(rc.character, pool, 0);
+    return draw_group(rc, pool, total, out, 3, true, Rarity::RARE, false, false);
+}
+
+bool queue_kaleidoscope_rewards(RunContext &rc) {
+    CardPool unlocked[5];
+    if (native_unlocked_character_pools(rc, unlocked, 5) != 5) return false;
+    // StableShuffle first sorts by ModelId ordinal. Card pools share the
+    // "card_pools" category, so this is entry order, not unlock order.
+    static const CardPool sorted[] = {CardPool::DEFECT, CardPool::IRONCLAD,
+                                      CardPool::NECROBINDER, CardPool::REGENT,
+                                      CardPool::SILENT};
+    CardPool others[4];
+    int m = 0;
+    for (const CardPool pool : sorted)
+        if (pool != rc.character) others[m++] = pool;
+    for (int reward = 0; reward < 2; ++reward) {
+        int slot = -1;
+        for (int i = 0; i < MAX_CARD_REWARDS; ++i)
+            if (!rc.rewardCardPending[i] && i != rc.activeCardReward) { slot = i; break; }
+        if (slot < 0) return false;
+        CardPool order[4];
+        std::copy(others, others + m, order);
+        rc.runRng[RNG_NICHE].shuffle(order, m);
+        const int cards = std::min(3, m);
+        for (int i = 0; i < cards; ++i) {
+            CardId pool[static_cast<int>(CardId::COUNT)];
+            const int total = append_pool(order[i], pool, 0);
+            if (total <= 0 ||
+                draw_group(rc, pool, total, &rc.rewardCards[slot][i], 1, false,
+                           Rarity::COMMON, true, false) != 1)
+                return false;
+        }
+        rc.rewardCardCounts[slot] = cards;
+        rc.rewardCardPending[slot] = true;
+    }
+    rc.pendingCardReward = true;
+    rc.deferredCustomRewards = true;
+    return true;
+}
+
 CardId prepare_dusty_tome_card(RunContext &rc) {
     CardId candidates[static_cast<int>(CardId::COUNT)];int count=0;
     for(int i=1;i<static_cast<int>(CardId::COUNT);++i) {
         const CardId id=static_cast<CardId>(i);const auto &d=card_def(id);
-        // Ironclad is the player character in this run implementation. Break
-        // is its ArchaicTooth transcendence card and must not be a Tome offer.
-        if(card_native_available(id)&&d.pool==CardPool::IRONCLAD&&d.rarity==Rarity::ANCIENT&&
-           id!=CardId::BREAK&&!(d.flags&CF_MULTIPLAYER_ONLY))candidates[count++]=id;
+        // ArchaicTooth's transcendence card for the player's character is not
+        // a Tome offer.
+        const CardId transcendence =
+            rc.character==CardPool::SILENT?CardId::SUPPRESS:
+            rc.character==CardPool::NECROBINDER?CardId::PROTECTOR:
+            rc.character==CardPool::REGENT?CardId::METEOR_SHOWER:
+            rc.character==CardPool::DEFECT?CardId::QUADCAST:CardId::BREAK;
+        if(card_native_available(id)&&d.pool==rc.character&&d.rarity==Rarity::ANCIENT&&
+           id!=transcendence&&!(d.flags&CF_MULTIPLAYER_ONLY))candidates[count++]=id;
     }
     if(!count)return CardId::INVALID;
     native_sort_card_ids(candidates,count);
@@ -151,7 +207,12 @@ CardId prepare_dusty_tome_card(RunContext &rc) {
 
 bool obtain_dusty_tome_card(RunContext &rc,CardId prepared) {
     const auto &d=card_def(prepared);
-    if(!card_native_available(prepared)||d.pool!=CardPool::IRONCLAD||d.rarity!=Rarity::ANCIENT||prepared==CardId::BREAK)return false;
+    const CardId transcendence =
+        rc.character==CardPool::SILENT?CardId::SUPPRESS:
+        rc.character==CardPool::NECROBINDER?CardId::PROTECTOR:
+        rc.character==CardPool::REGENT?CardId::METEOR_SHOWER:
+        rc.character==CardPool::DEFECT?CardId::QUADCAST:CardId::BREAK;
+    if(!card_native_available(prepared)||d.pool!=rc.character||d.rarity!=Rarity::ANCIENT||prepared==transcendence)return false;
     const int copies=run_has_relic(rc,RelicId::BING_BONG)?2:1;
     if(rc.deckCount>MAX_DECK-copies)return false;
     Card card=rc.make_run_card(prepared,false);

@@ -1,0 +1,17 @@
+RANDOM setup_bowlbugs_normal: native_calls=1 candidates=['BOWLBUG_ROCK'] sampled=1
+RANDOM setup_bowlbugs_weak: native_calls=1 candidates=['BOWLBUG_ROCK'] sampled=1
+RANDOM setup_corpse_slugs_normal: native_calls=0 candidates=['CORPSE_SLUG', 'CORPSE_SLUG', 'CORPSE_SLUG'] sampled=1
+RANDOM setup_corpse_slugs_weak: native_calls=0 candidates=['CORPSE_SLUG', 'CORPSE_SLUG'] sampled=1
+RANDOM setup_decimillipede_elite: native_calls=1 candidates=['DECIMILLIPEDE_SEGMENT_FRONT', 'DECIMILLIPEDE_SEGMENT_MIDDLE', 'DECIMILLIPEDE_SEGMENT_BACK'] sampled=1
+MISMATCH setup_dense_vegetation: native=['WRIGGLER'] sampled=[['WRIGGLER', 'WRIGGLER', 'WRIGGLER', 'WRIGGLER']]
+setup_doormaker_boss: no native class
+RANDOM setup_flyconid_normal: native_calls=1 candidates=['FLYCONID'] sampled=2
+RANDOM setup_punch_off: native_calls=2 candidates=['PUNCH_CONSTRUCT', 'PUNCH_CONSTRUCT'] sampled=1
+RANDOM setup_ruby_raiders_normal: native_calls=1 candidates=[] sampled=60
+RANDOM setup_scrolls_of_biting_normal: native_calls=1 candidates=['SCROLL_OF_BITING', 'SCROLL_OF_BITING', 'SCROLL_OF_BITING', 'SCROLL_OF_BITING'] sampled=1
+RANDOM setup_scrolls_of_biting_weak: native_calls=1 candidates=['SCROLL_OF_BITING', 'SCROLL_OF_BITING', 'SCROLL_OF_BITING'] sampled=1
+RANDOM setup_slimes_normal: native_calls=1 candidates=['LEAF_SLIME_S', 'TWIG_SLIME_S', 'TWIG_SLIME_S', 'LEAF_SLIME_S', 'TWIG_SLIME_M', 'LEAF_SLIME_M'] sampled=2
+RANDOM setup_slimes_weak: native_calls=3 candidates=[] sampled=4
+RANDOM setup_slithering_strangler_normal: native_calls=4 candidates=['SNAPPING_JAXFRUIT', 'SLITHERING_STRANGLER'] sampled=7
+setup_toadpoles_normal: no native class
+RANDOM setup_two_tailed_rats_normal: native_calls=1 candidates=['TWO_TAILED_RAT', 'TWO_TAILED_RAT', 'TWO_TAILED_RAT'] sampled=1

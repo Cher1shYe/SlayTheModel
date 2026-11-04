@@ -10,6 +10,21 @@ const CardDef &card_def(CardId id) {
     return CARD_DEFS[i];
 }
 
+bool card_is_minion(const Card &card) {
+    return card.id == CardId::MINION_STRIKE || card.id == CardId::MINION_DIVE_BOMB ||
+           card.id == CardId::MINION_SACRIFICE;
+}
+
+CardId basic_strike_of(CardPool pool) {
+    switch (pool) {
+        case CardPool::SILENT: return CardId::STRIKE_SILENT;
+        case CardPool::DEFECT: return CardId::STRIKE_DEFECT;
+        case CardPool::REGENT: return CardId::STRIKE_REGENT;
+        case CardPool::NECROBINDER: return CardId::STRIKE_NECROBINDER;
+        default: return CardId::STRIKE_IRONCLAD;
+    }
+}
+
 Card make_card(CardId id, bool upgraded, std::uint16_t uid) {
     const CardDef &d = card_def(id);
     Card c;
@@ -77,15 +92,24 @@ void card_modify_cost(Card &c,int amount,bool absolute,std::uint8_t expiration,b
     if(absolute && amount==0 && card_def(c.id).cost<0) return;
     // Adjacent relative modifiers with identical expiry commute and can be
     // merged exactly; never clamp intermediate local costs to zero.
-    if(!absolute && c.costModifierCount>0) {
+    if(c.costModifierCount>0) {
         auto &last=c.costModifiers[c.costModifierCount-1];
-        if(!last.absolute && last.expiration==expiration && last.reduceOnly==reduceOnly) {
+        if(!absolute && !last.absolute && last.expiration==expiration && last.reduceOnly==reduceOnly) {
             last.amount+=reduceOnly?std::min(0,amount):amount; return;
         }
+        // Adjacent identical absolutes are idempotent; native keeps both list
+        // entries but the resolved cost is the same. Dropping the duplicate
+        // keeps the fixed-capacity list from overflowing on repeated effects
+        // (e.g. several Bullet Time plays in one turn).
+        if(absolute && last.absolute && last.expiration==expiration &&
+           last.reduceOnly==reduceOnly && last.amount==amount) return;
     }
     if(c.costModifierCount==MAX_CARD_COST_MODIFIERS)
         throw std::overflow_error("Card cost modifier capacity exhausted");
-    c.costModifiers[c.costModifierCount++]={reduceOnly && !absolute?std::min(0,amount):amount,
+    c.costModifiers[c.costModifierCount++]={static_cast<std::int16_t>(
+                                               reduceOnly && !absolute
+                                                   ? std::min(0, amount)
+                                                   : amount),
                                          expiration,absolute,reduceOnly};
 }
 
@@ -118,16 +142,47 @@ int card_var(const Card &c, VarId v) {
 }
 
 bool card_has(const Card &c, std::uint16_t flag) {
-    if (flag == CF_RETAIN && (c.retainThisTurn || c.retainThisCombat || c.enchantment == EnchantmentId::STEADY)) return true;
+    // RoyallyApproved.OnEnchant adds Innate + Retain permanently.
+    if (flag == CF_RETAIN && (c.retainThisTurn || c.retainThisCombat ||
+                              c.enchantment == EnchantmentId::STEADY ||
+                              c.enchantment == EnchantmentId::ROYALLY_APPROVED)) return true;
+    if (flag == CF_INNATE && c.enchantment == EnchantmentId::ROYALLY_APPROVED) return true;
+    // TezcatarasEmber.OnEnchant adds Eternal.
+    if (flag == CF_ETERNAL && c.enchantment == EnchantmentId::TEZCATARAS_EMBER) return true;
     if (flag == CF_SLY && (c.slyThisTurn || c.slyThisCombat)) return true;
+    // Ghost Seed / Sculpting Strike / Music Box set ethereal for the combat.
+    if (flag == CF_ETHEREAL && c.etherealThisCombat) return true;
+    // SoulsPower removes the Exhaust keyword from the enchanted card.
+    if (flag == CF_EXHAUST && c.enchantment == EnchantmentId::SOULS_POWER) return false;
+    // Goopy.OnEnchant adds Exhaust to the card.
+    if (flag == CF_EXHAUST && c.enchantment == EnchantmentId::GOOPY) return true;
+    // MadScience.OnUpgrade adds Innate.
+    if (flag == CF_INNATE && c.id == CardId::MAD_SCIENCE && c.upgraded) return true;
     const CardDef &d = card_def(c.id);
     const std::uint16_t f = c.upgraded ? d.flagsUp : d.flags;
     return (f & flag) != 0;
 }
 
-bool card_is_attack(const Card &c) { return card_def(c.id).type == CardType::ATTACK; }
-bool card_is_skill(const Card &c) { return card_def(c.id).type == CardType::SKILL; }
-bool card_is_power(const Card &c) { return card_def(c.id).type == CardType::POWER; }
+CardType card_type_of(const Card &c) {
+    if (c.id == CardId::MAD_SCIENCE) {
+        switch (c.tinkerType) {
+            case 1: return CardType::SKILL;
+            case 2: return CardType::POWER;
+            default: return CardType::ATTACK;
+        }
+    }
+    return card_def(c.id).type;
+}
+
+TargetType card_target_type_of(const Card &c) {
+    if (c.id == CardId::MAD_SCIENCE)
+        return c.tinkerType == 0 ? TargetType::ENEMY : TargetType::SELF;
+    return card_def(c.id).target;
+}
+
+bool card_is_attack(const Card &c) { return card_type_of(c) == CardType::ATTACK; }
+bool card_is_skill(const Card &c) { return card_type_of(c) == CardType::SKILL; }
+bool card_is_power(const Card &c) { return card_type_of(c) == CardType::POWER; }
 
 bool card_is_playable(const Card &c) {
     // Playability is data-driven: several status/curse cards (Slimed, Toxic,
@@ -144,14 +199,42 @@ bool card_native_available(CardId id) {
 bool card_can_enchant(const Card &c, EnchantmentId enchantment) {
     if (c.enchantment != EnchantmentId::NONE || c.id == CardId::INVALID ||
         !card_is_playable(c)) return false;
-    const CardType type = card_def(c.id).type;
-    if (type == CardType::CURSE || type == CardType::STATUS) return false;
+    const CardType type = card_type_of(c);
+    // EnchantmentModel.CanEnchant rejects Status/Curse/Quest types (4..6).
+    if (type == CardType::CURSE || type == CardType::STATUS ||
+        type == CardType::QUEST) return false;
     if (enchantment == EnchantmentId::SOWN || enchantment == EnchantmentId::SWIFT ||
         enchantment == EnchantmentId::INKY ||
         enchantment == EnchantmentId::GLAM || enchantment == EnchantmentId::CLONE ||
         enchantment == EnchantmentId::STEADY) return true;
     if (enchantment == EnchantmentId::SPIRAL)
         return card_def(c.id).rarity == Rarity::BASIC && (card_is_strike(c) || card_is_defend(c));
+    if (enchantment == EnchantmentId::SHARP) return type == CardType::ATTACK;
+    if (enchantment == EnchantmentId::CORRUPTED) return type == CardType::ATTACK;
+    if (enchantment == EnchantmentId::INSTINCT) return type == CardType::ATTACK;
+    // Imbued.CanEnchantCardType: Skills only.
+    if (enchantment == EnchantmentId::IMBUED) return type == CardType::SKILL;
+    // Goopy: any Defend-tagged card that passes the base checks.
+    if (enchantment == EnchantmentId::GOOPY) return card_has(c, CF_DEFEND) != 0;
+    if (enchantment == EnchantmentId::SLITHER) {
+        // Native CanEnchant: playable and EnergyCost.CostsX == false.
+        const CardDef &d = card_def(c.id);
+        return (c.upgraded ? d.costUp : d.cost) >= 0;
+    }
+    if (enchantment == EnchantmentId::SOULS_POWER) {
+        // Native requires the Exhaust keyword from local sources.
+        const CardDef &d = card_def(c.id);
+        return ((c.upgraded ? d.flagsUp : d.flags) & CF_EXHAUST) != 0;
+    }
+    if (enchantment == EnchantmentId::PERFECT_FIT) return true;
+    if (enchantment == EnchantmentId::ADROIT) return true;
+    if (enchantment == EnchantmentId::MOMENTUM) return type == CardType::ATTACK;
+    // RoyallyApproved.CanEnchantCardType: Attack or Skill.
+    if (enchantment == EnchantmentId::ROYALLY_APPROVED)
+        return type == CardType::ATTACK || type == CardType::SKILL;
+    // TezcatarasEmber has no type override; Nutritious Soup applies it only to
+    // Basic Strike cards.
+    if (enchantment == EnchantmentId::TEZCATARAS_EMBER) return true;
     if (enchantment == EnchantmentId::NIMBLE) {
         // Native CardModel.GainsBlock for the compiled card pool (not only a
         // positive static BlockVar: Stack and Fisticuffs compute block on play).
@@ -169,6 +252,11 @@ bool card_apply_enchantment(Card &c, EnchantmentId enchantment, int amount) {
     c.enchantment = enchantment;
     c.enchantmentAmount = static_cast<std::int16_t>(amount);
     c.enchantmentDisabled = false;
+    // TezcatarasEmber.OnEnchant: reduce the card's cost to 0 permanently.
+    if (enchantment == EnchantmentId::TEZCATARAS_EMBER) {
+        c.storedCost = 0;
+        if (!c.costThisTurn) c.costForTurn = 0;
+    }
     return true;
 }
 

@@ -7,6 +7,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC)
     add_compile_options(/O2 /EHsc /bigobj /W3)
+    # The regression executables declare hundreds of isolated BattleContext
+    # locals in one function; MSVC gives each call site its own stack slot
+    # instead of reusing sequential scopes. Reserve (not commit) enough space
+    # for the test binaries. The Python module and library callers keep the
+    # default stack and operate on heap-owned contexts.
+    add_link_options(/STACK:268435456)
 else()
     add_compile_options(-O3 -Wno-shift-count-overflow)
 endif()
@@ -55,6 +61,9 @@ if(BUILD_TESTING)
     add_test(NAME simulator_rules COMMAND sts2_rules_test)
     add_test(NAME simulator_observation COMMAND sts2_observation_test)
     add_test(NAME simulator_relics COMMAND sts2_relic_contract_test)
+    add_executable(sts2_regent_test tests/regent_mechanics.cpp ${STS2_SOURCES})
+    target_include_directories(sts2_regent_test PRIVATE include)
+    add_test(NAME regent_mechanics COMMAND sts2_regent_test)
 endif()
 
 if(BUILD_TESTING)
@@ -125,7 +134,7 @@ if(MINGW)
 endif()
 
 if(BUILD_TESTING)
-    foreach(fixture native_card_alignment native_rng_contract native_run_alignment native_seed_integration native_relic_round2_alignment native_act_alignment native_underdocks_events native_event_oracle_alignment native_relic_round3_alignment native_card_round3_alignment native_event_round3_alignment native_round3_shared_alignment native_step1_self_damage native_step1_downgrade native_step1_relic_replace native_step1_state_contract)
+    foreach(fixture native_card_alignment native_rng_contract native_run_alignment native_seed_integration native_relic_round2_alignment native_act_alignment native_underdocks_events native_event_oracle_alignment native_relic_round3_alignment native_card_round3_alignment native_event_round3_alignment native_round3_shared_alignment native_step1_self_damage native_step1_downgrade native_step1_relic_replace native_step1_state_contract native_step2_card_rewards native_step2_defect native_step2_necrobinder native_step2_persistent native_step2_relic_lifecycle native_step2_silent relic_shared_round5 knowledge_curse quest_cards multiplayer_cards character_potions relic_event_audit relic_coverage_round7 potion_coverage_round7)
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${fixture}.cpp")
             add_executable(sts2_${fixture}_test tests/${fixture}.cpp ${STS2_SOURCES})
             target_include_directories(sts2_${fixture}_test PRIVATE include json/include)

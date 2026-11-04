@@ -18,7 +18,7 @@ void check(bool condition, const std::string &label) {
 }
 CardId card_id(const std::string &key) {
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i)
-        if (key == card_key(static_cast<CardId>(i))) return static_cast<CardId>(i);
+        if (key == card_key(static_cast<CardId>(i)) || key + "_CARD" == card_key(static_cast<CardId>(i))) return static_cast<CardId>(i);
     throw std::runtime_error("Unknown fixture card " + key);
 }
 PowerId power_id(const std::string &key) {
@@ -47,16 +47,23 @@ std::unique_ptr<BattleContext> setup(const json &state) {
     auto ptr = std::make_unique<BattleContext>(); auto &b = *ptr;
     b.player.hp = state["hp"]; b.player.maxHp = 80; b.player.block = state["block"]; b.player.energy = state["energy"];
     b.turn = 1; b.characterPool = CardPool::IRONCLAD; b.nextUid = 1;
-    b.monsterCount = state["enemies"].size();
+    b.monsterCount = static_cast<int>(state["enemies"].size());
     for (int i = 0; i < b.monsterCount; ++i) {
         auto &m = b.monsters[i]; m.id = MonsterId::CALCIFIED_CULTIST; m.hp = state["enemies"][i]["hp"];
-        m.maxHp = 10000; m.block = state["enemies"][i]["block"]; m.alive = true; m.intentType = 0;
+        // The native audit's Calcified Cultists opened on Incantation (BUFF),
+        // not an attack intent. GO_FOR_THE_EYES keys off that intent type.
+        m.maxHp = 10000; m.block = state["enemies"][i]["block"]; m.alive = true; m.intentType = 2;
         for (const auto &p : state["enemies"][i]["powers"]) b.add_monster_power(i, power_id(p["id"]), p["amount"]);
     }
     load_pile(b, b.hand, b.handCount, state["hand"]);
     load_pile(b, b.draw, b.drawCount, state["draw"], true);
     load_pile(b, b.discard, b.discardCount, state["discard"]);
     load_pile(b, b.exhaust, b.exhaustCount, state["exhaust"]);
+    // The audit created the draw/discard fixture cards with
+    // AddGeneratedCardToCombat; replay those generation hooks (e.g.
+    // RocketPunch's cost reduction when the fixture Status is generated).
+    for (int i = 0; i < b.drawCount; ++i) b.notify_card_generated(b.draw[i]);
+    for (int i = 0; i < b.discardCount; ++i) b.notify_card_generated(b.discard[i]);
     for (const auto &p : state["powers"]) b.add_player_power(power_id(p["id"]), p["amount"]);
     b.defect.orbCapacity = state["capacity"];
     for (const auto &orb : state["orbs"]) {
@@ -78,6 +85,8 @@ void check_pile(const BattleContext &b, const Card *pile, int count, const json 
         check(c.id == card_id(row["id"]), label + " id expected=" + row["id"].get<std::string>() + " actual=" + card_key(c.id));
         check(c.upgraded == row["upgraded"], label + " upgraded");
         int cost = card_cost(c);
+        // Native shows playable X-cost cards as cost 0; unplayable keeps -1.
+        if (card_def(c.id).cost < 0 && !(card_def(c.id).flags & CF_UNPLAYABLE)) cost = 0;
         if (std::string(name) == "hand" && card_is_power(c) && b.player_power(PowerId::FREE_POWER) > 0) cost = 0;
         check(cost == row["cost"], label + " cost expected=" + row["cost"].dump() + " actual=" + std::to_string(cost));
         check(card_base_damage(c) == row["damage"], label + " damage");

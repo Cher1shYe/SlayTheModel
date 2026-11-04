@@ -4,8 +4,10 @@
 namespace sts2 {
 // Reference non-combat reward creation: distinct candidates, no upgrade roll,
 // base rarity odds without changing the run's combat-reward rarity offset.
+enum class NoncombatCardFilter { NONE, POWER, ZERO_COST };
 int make_noncombat_card_candidates(RunContext &rc, Card *out, int count,
-                                   CardPool pool, bool commonOnly);
+                                   CardPool pool, bool commonOnly,
+                                   NoncombatCardFilter filter = NoncombatCardFilter::NONE);
 bool card_can_transform_from_deck(const Card &card);
 bool card_eligible_for_deck_choice(const Card &card, int kind);
 void native_sort_card_indices(const RunContext &rc, int *indices, int count);
@@ -17,6 +19,9 @@ int native_unlocked_character_pools(const RunContext &rc, CardPool *out, int cap
 bool native_card_pool_unlocked(const RunContext &rc, CardPool pool);
 Card make_maul_transformation(RunContext &rc, const Card &original);
 bool begin_card_grid(RunContext &rc, int kind);
+// HeftyTablet choose-one screen (kind 16): three generated Rare cards, skip
+// allowed, then the chosen card and an Injury are added to the deck.
+bool begin_hefty_tablet_choice(RunContext &rc);
 bool begin_deck_relic_choice(RunContext &rc, int kind, int count,
                              int damageAfter = 0, CardId curseAfter = CardId::INVALID);
 bool can_begin_deck_relic_choice(const RunContext &rc, int kind, int count,

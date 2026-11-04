@@ -125,11 +125,11 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                     legal = [tuple(action) for action in rc.battle.legal_actions()]
                     if not combat_plan or combat_plan[0] not in legal:
                         if combat_budget_by_context is not None:
-                            # v13 observe.cpp still writes inBattle/elite/boss
-                            # directly from RunContext at slots 8/9/10. Elite
-                            # is not separately exported by this binding; use
-                            # the public native flag, never the map room type.
-                            if PUBLIC_OBS_VERSION != 13:
+                            # observe.cpp writes inBattle/elite/boss directly
+                            # from RunContext at slots 8/9/10. Elite is not
+                            # separately exported by this binding; use the
+                            # public native flag, never the map room type.
+                            if PUBLIC_OBS_VERSION != 19:
                                 raise RuntimeError('unsupported combat classification observation version')
                             public = rc.observe_public()
                             boss = bool(rc.combat_is_boss)
@@ -272,9 +272,13 @@ def backward_weighted(model: ArmGScorer, weighted: list, chunk_size: int = 16) -
         n = len(chunk)
         max_actions = max(len(record[0][1]) for record in chunk)
         obs = np.stack([record[0][0] for record in chunk])
-        candidates = np.zeros((n, max_actions, ARMG_ACTION_DIM), dtype=np.float32)
+        # Production records are float32; keeping the input dtype lets a test
+        # drive the same transform in float64 to separate arithmetic from
+        # float32 accumulation-order noise.
+        dtype = obs.dtype
+        candidates = np.zeros((n, max_actions, ARMG_ACTION_DIM), dtype=dtype)
         choices = np.empty(n, dtype=np.int64)
-        advantages = np.empty(n, dtype=np.float32)
+        advantages = np.empty(n, dtype=dtype)
         for i, (record, advantage) in enumerate(chunk):
             _, features, choice = record[:3]
             candidates[i, :len(features)] = features

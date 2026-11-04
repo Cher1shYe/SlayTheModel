@@ -17,7 +17,7 @@ namespace {
 int checks=0, failures=0;
 void check(const std::string &label,double got,double want) {
     ++checks;
-    if(std::abs(got-want)>1e-10) { ++failures;std::cout<<label<<" got="<<got<<" native="<<want<<" FAIL\n"; }
+    if(std::abs(got-want)>1e-10) { ++failures;std::cerr<<label<<" got="<<got<<" native="<<want<<" FAIL"<<std::endl; }
 }
 BattleContext base() {
     BattleContext b;Card deck[20];
@@ -56,8 +56,8 @@ int main() {
         check(key(id)+" native model exists",models.count(key(id)),1);
         if(!models.count(key(id))||id==CardId::MAD_SCIENCE)continue;
         const auto &n=models.at(key(id));const auto &d=card_def(id);const auto &local=content[i-1];
-        const std::map<std::string,CardType> types={{"Attack",CardType::ATTACK},{"Skill",CardType::SKILL},{"Power",CardType::POWER},{"Status",CardType::STATUS},{"Curse",CardType::CURSE}};
-        const std::map<std::string,Rarity> rarities={{"Basic",Rarity::BASIC},{"Common",Rarity::COMMON},{"Uncommon",Rarity::UNCOMMON},{"Rare",Rarity::RARE},{"Ancient",Rarity::ANCIENT},{"Event",Rarity::EVENT},{"Token",Rarity::TOKEN},{"Status",Rarity::STATUS},{"Curse",Rarity::CURSE}};
+        const std::map<std::string,CardType> types={{"Attack",CardType::ATTACK},{"Skill",CardType::SKILL},{"Power",CardType::POWER},{"Status",CardType::STATUS},{"Curse",CardType::CURSE},{"Quest",CardType::QUEST}};
+        const std::map<std::string,Rarity> rarities={{"Basic",Rarity::BASIC},{"Common",Rarity::COMMON},{"Uncommon",Rarity::UNCOMMON},{"Rare",Rarity::RARE},{"Ancient",Rarity::ANCIENT},{"Event",Rarity::EVENT},{"Token",Rarity::TOKEN},{"Status",Rarity::STATUS},{"Curse",Rarity::CURSE},{"Quest",Rarity::QUEST}};
         check(key(id)+" type",int(d.type),int(types.at(n["type"])));
         check(key(id)+" rarity",int(d.rarity),int(rarities.at(n["rarity"])));
         check(key(id)+" combat generation",!(d.flags&CF_CANNOT_GENERATE_IN_COMBAT),bool(n["generated"]));
@@ -76,7 +76,10 @@ int main() {
                 for(auto nativeVar=vars.begin();nativeVar!=vars.end();++nativeVar) {
                     auto nn=norm(nativeVar.key());
                     if(nn!=normalized&&nn!=normalized+"power"&&normalized!=nn+"power")continue;
-                    check(label+" "+it.key(),card_var(c,varIds.at(it.key())),nativeVar.value());break;
+                    // CardDef stores the native double; card_var() is the
+                    // integer gameplay accessor and truncates TANK's 0.5/1.5.
+                    const int vi=static_cast<int>(varIds.at(it.key()));
+                    check(label+" "+it.key(),up?d.varUp[vi]:d.var[vi],nativeVar.value());break;
                 }
             }
         }

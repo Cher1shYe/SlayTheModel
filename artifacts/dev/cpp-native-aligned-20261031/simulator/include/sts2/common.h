@@ -85,7 +85,9 @@ struct PotionDef {
     bool combatGen;
 };
 
-enum class RelicPool : std::uint8_t { SHARED, IRONCLAD, EVENT, OTHER };
+enum class RelicPool : std::uint8_t {
+    SHARED, IRONCLAD, SILENT, DEFECT, REGENT, NECROBINDER, EVENT, OTHER
+};
 
 #define STS2_RELIC_CONTENT_ENUMS 1
 #include "sts2/relics_generated.inc"
@@ -364,17 +366,26 @@ enum CardFlags : std::uint16_t {
     CF_ETERNAL = 1u << 10,
 };
 
-enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE, SPIRAL, STEADY, NIMBLE, INKY };
+enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE, SPIRAL, STEADY, NIMBLE, INKY, SHARP, SLITHER, PERFECT_FIT, SOULS_POWER, CORRUPTED, INSTINCT, GOOPY, ADROIT, MOMENTUM, ROYALLY_APPROVED, TEZCATARAS_EMBER, IMBUED, COUNT };
 
-constexpr int MAX_CARD_COST_MODIFIERS = 32;
+constexpr int MAX_CARD_COST_MODIFIERS = 16;
 struct CardCostModifier {
-    int amount = 0;
+    // Packed so Card stays small enough for the fixed combat piles: every
+    // BattleContext carries several full piles plus pending/selection grids.
+    std::int16_t amount = 0;
     std::uint8_t expiration = 0; // native: combat=0, end of turn=2, played=4
-    bool absolute = false;
-    bool reduceOnly = false;
+    bool absolute : 1;
+    bool reduceOnly : 1;
 };
 
 struct Card {
+    // Raw snapshots hash the object image, so the tail padding must be
+    // deterministic.  Zero the whole representation first, then apply the one
+    // non-zero default (combatCostCap = -1).
+    Card() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        combatCostCap = -1;
+    }
     CardId id = CardId::INVALID;
     std::uint16_t uid = 0;
     std::int8_t costForTurn = 0;
@@ -398,9 +409,16 @@ struct Card {
     bool retainThisCombat = false;   // Choices Paradox temporary Retain
     std::int16_t galvanized = 0;   // Galvanized affliction; damage on play
     std::uint8_t guiltyCombatsSeen = 0;  // Guilty's per-card saved combat counter
+    // Aeonglass's Wither stores its own fake upgrade level; this is separate
+    // from `upgraded` (Wither's native MaxUpgradeLevel is 0).
+    std::uint8_t fakeUpgradeLevel = 0;
     EnchantmentId enchantment = EnchantmentId::NONE;
     std::int16_t enchantmentAmount = 0;
     bool enchantmentDisabled = false;  // reset for each combat
+    // TinkerTime MadScience variant. Only MAD_SCIENCE reads these; the native
+    // card stores CardType and TinkerTime.RiderEffect as saved properties.
+    std::uint8_t tinkerType = 0;   // 0 Attack, 1 Skill, 2 Power
+    std::uint8_t tinkerRider = 0;  // TinkerTime.RiderEffect (0 None .. 9 Improvement)
 
     bool operator==(const Card &o) const { return uid == o.uid; }
 };
@@ -424,6 +442,11 @@ void card_modify_cost(Card &c, int amount, bool absolute, std::uint8_t expiratio
                       bool reduceOnly = false);
 void card_clear_cost_modifiers(Card &c, std::uint8_t expiration);
 Card make_card(CardId id, bool upgraded, std::uint16_t uid);
+// Basic Strike of a character pool; used only as a defensive fallback when a
+// generated pool is unexpectedly empty.
+CardId basic_strike_of(CardPool pool);
+// CardTag.Minion (Regent summon cards).
+bool card_is_minion(const Card &card);
 // Permanent upgrade (campfire, eggs, events, relics): the upgraded card's
 // energy cost must change with the flag (CardModel.OnUpgrade -> EnergyCost).
 void card_apply_upgrade(Card &c);
@@ -438,6 +461,10 @@ bool card_has(const Card &c, std::uint16_t flag);
 bool card_is_attack(const Card &c);
 bool card_is_skill(const Card &c);
 bool card_is_power(const Card &c);
+// CardModel.Type / TargetType. MadScience overrides both from its TinkerTime
+// variant; every other card reads the static CardDef.
+CardType card_type_of(const Card &c);
+TargetType card_target_type_of(const Card &c);
 bool card_is_playable(const Card &c);
 bool card_native_available(CardId id);
 bool card_can_enchant(const Card &c, EnchantmentId enchantment);
@@ -456,7 +483,8 @@ inline bool native_card_less(const Card &a, const Card &b) {
 
 const PotionDef &potion_def(PotionId id);
 const char *potion_name(PotionId id);
-PotionId random_potion_out_of_combat(Rng &rng);
-int random_potions_out_of_combat(Rng &rng, PotionId *out, int count);
+PotionId random_potion_out_of_combat(Rng &rng, CardPool character = CardPool::IRONCLAD);
+int random_potions_out_of_combat(Rng &rng, PotionId *out, int count,
+                                 CardPool character = CardPool::IRONCLAD);
 
 }  // namespace sts2

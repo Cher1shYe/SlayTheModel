@@ -33,6 +33,10 @@ enum class ChoiceOp : std::uint8_t {
     SILENT_DISCARD, SILENT_SLY, SILENT_NIGHTMARE,
     NECRO_SCULPT_ETHEREAL, NECRO_SNAP_RETAIN, NECRO_SEANCE, NECRO_TRANSFIGURE,
     REGENT_TRANSFORM, REGENT_CLONE, REGENT_AUTO_SKILL,
+    // Knowledge Demon: choose one of two offered status curses (Curse of
+    // Knowledge). The chosen card never enters a pile; its OnChosen applies a
+    // debuff power to the player.
+    KNOWLEDGE_CURSE,
 };
 enum class ChoicePile : std::uint8_t { NONE, HAND, DISCARD, DRAW, OFFER };
 
@@ -82,6 +86,9 @@ struct Monster {
     std::uint8_t stateLogN = 0;
     bool offBalance = false;
     bool combatEndBlocker = false;
+    // RitualPower.WasJustAppliedByEnemy: skip the first AfterTurnEnd after a
+    // move that applied Ritual during this enemy turn.
+    bool ritualJustApplied = false;
 
     int power[static_cast<int>(PowerId::COUNT)]{};
     int tempStrengthLoss = 0;
@@ -123,6 +130,14 @@ struct DamageDealt {
 // (replay / Duplication / One-Two Punch / Throwing Axe) has finished.  A
 // selector inside OnPlay suspends the frame; resolving it resumes the play.
 struct ActivePlay {
+    // Raw snapshots hash the object image and trivially-copyable assignment
+    // copies the whole object, so stack padding must be deterministic.
+    ActivePlay() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        card = Card{};
+        playCount = 1;
+        silent.firstDrawnType = -1;
+    }
     SilentPlayState silent;
     DefectPlayState defect;
     NecrobinderPlayState necro;
@@ -150,6 +165,11 @@ struct ActivePlay {
 };
 
 struct PendingChoice {
+    PendingChoice() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        sourceCard = Card{};
+        remaining = 1;
+    }
     ChoiceOp op = ChoiceOp::NONE;
     ChoicePile pile = ChoicePile::NONE;
     // A choice may enumerate an entire draw/discard pile (up to MAX_PILE
@@ -165,6 +185,11 @@ struct PendingChoice {
 };
 
 struct AutoPlayRequest {
+    AutoPlayRequest() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        card = Card{};
+        ownerDepth = target = -1;
+    }
     Card card;
     int ownerDepth = -1;
     int target = -1;
@@ -173,6 +198,10 @@ struct AutoPlayRequest {
     bool visible = false;
 };
 struct SuspendedPlay {
+    SuspendedPlay() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        play = ActivePlay{};
+    }
     ActivePlay play;
     int xCost = 0;
     int pendingDrawRemainder = 0;
@@ -252,6 +281,13 @@ struct BattleContext {
     void clear_card_uid_reservations();
 
     // per-turn / per-combat counters used by card triggers
+    // Goopy gains one point per play; the deck version keeps the growth, so
+    // the run layer copies these counts back to the persistent deck after a
+    // victorious combat. Goopy only enchants Defend-tagged cards.
+    struct GoopyGrowth { std::uint16_t uid; std::uint8_t plays; };
+    GoopyGrowth goopyGrowth[32]{};
+    int goopyGrowthCount = 0;
+
     int cardsPlayedThisTurn = 0;
     int attacksPlayedThisTurn = 0;
     int cardsPlayedThisCombat = 0;
@@ -296,10 +332,27 @@ struct BattleContext {
     bool reboundPending = false;
     bool skillsLocked = false;
     bool inMonsterTurn = false;
+    // Knowledge Demon's Curse of Knowledge pauses the end of the player turn
+    // for a two-card status choice; the curse index selects the offer set and
+    // the Disintegration damage (0..2 -> 6/7/8).
+    bool knowledgeCursePending = false;
+    std::int8_t knowledgeCurseIndex = 0;
+    // 1 = finish end_player_turn's tail (start the next player turn) once the
+    // curse choice resolves.
+    std::uint8_t knowledgeCurseResume = 0;
     int turn1Energy = 0;
     int gold = 0;
     int nextTurnEnergy = 0;
     int nextTurnDraw = 0;
+    // AmbergrisPower: hidden stack-count power that grants the owner an extra
+    // player turn (no enemy turn) and decrements once that turn is taken.
+    int ambergrisExtraTurns = 0;
+    // Pael's Eye: once per combat, a turn with no card plays grants an extra
+    // player turn after exhausting the remaining hand. Packed into one word so
+    // the raw snapshot layout keeps its deterministic padding.
+    static constexpr std::uint32_t PAELS_EYE_USED = 1u;
+    static constexpr std::uint32_t PAELS_EYE_EXTRA_TURN = 2u;
+    std::uint32_t paelsEyeState = 0;
     // Top-of-draw cards whose identity/order the player already knows
     // (Headbutt, Nostalgia, known status placements, ...).  Determinization
     // must preserve them exactly.
@@ -363,7 +416,8 @@ struct BattleContext {
               int energyPerTurn = 3, int runGold = 0,
               std::uint64_t potionSeed = 0, const int *relicAuxIn = nullptr,
               const Rng *runRngs = nullptr, const bool *relicWaxIn = nullptr,
-              const bool *relicMeltedIn = nullptr);
+              const bool *relicMeltedIn = nullptr, Rng *encounterRng = nullptr,
+              CardPool characterPool = CardPool::IRONCLAD);
 
     [[nodiscard]] std::vector<Action> legal_actions() const;
     bool step(const Action &action);
@@ -420,7 +474,7 @@ struct BattleContext {
     // Native Thrash evaluates the selected card before exhausting it, with no
     // target and no AttackCommand. This value is intentionally not rounded.
     double thrash_damage_growth(const Card &selected) const;
-    int calc_monster_damage(const Monster &m, int base) const;
+    int calc_monster_damage(const Monster &m, int base, int monsterIdx = -1) const;
     void face_surrounded_target(int target);
     void gain_gold(int amount);
     void trigger_skittish(int target, bool unblocked);
@@ -446,7 +500,7 @@ struct BattleContext {
     int gain_block_raw(int amount, bool powered = true);
     void apply_vulnerable(int idx, int amount);
     void apply_weak(int idx, int amount);
-    void apply_strength_loss(int idx, int amount);
+    void apply_strength_loss(int idx, int amount, int recordPower = -1);
     void add_temp_strength(int amount);
     void add_temp_dexterity(int amount);
     void lose_hp(int amount, bool fromCard = false);
@@ -491,8 +545,8 @@ struct BattleContext {
 
     // Unified play lifecycle (CardModel.OnPlayWrapper).
     void begin_play(const Card &card, int target, bool autoPlay, bool forceExhaust,
-                    int energySpent = 0);
-    void run_active_play();
+                    int energySpent = 0, int starsSpent = 0, bool starCostX = false);
+    void run_active_play(bool driveEntryFrame = true);
     void finish_active_play();
 
     void start_choice(ChoiceOp op, ChoicePile pile, int count, bool optional,

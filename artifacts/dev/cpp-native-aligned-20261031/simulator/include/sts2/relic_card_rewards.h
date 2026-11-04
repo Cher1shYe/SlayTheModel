@@ -17,4 +17,14 @@ int make_relic_card_reward_candidates(RunContext &rc, RelicId source,
 // this identity with the option/relic, then pass the same identity on obtain.
 CardId prepare_dusty_tome_card(RunContext &rc);
 bool obtain_dusty_tome_card(RunContext &rc, CardId prepared);
+// HeftyTablet.AfterObtained: three distinct Rare cards from the character
+// pool (Uniform odds, NoUpgradeRoll), then an optional choose-one screen.
+int make_hefty_tablet_candidates(RunContext &rc, Card *out, int capacity);
+// Kaleidoscope.AfterObtained: two CardRewards of three cards from distinct
+// non-character pools (StableShuffle by Rng.Niche, RegularEncounter odds).
+bool queue_kaleidoscope_rewards(RunContext &rc);
+// Hook.TryModifyCardRewardOptions relic pass (Eggs, Fresnel Lens, Glitter,
+// Silken Tress, Silver Crucible) for non-kaleidoscope reward generation.
+void apply_card_reward_hooks(RunContext &rc, Card *cards, int count,
+                             bool isCardReward);
 }

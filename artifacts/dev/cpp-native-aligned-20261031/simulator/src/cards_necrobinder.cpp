@@ -83,7 +83,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::DEFY:
         b.gain_block(card_block(c),true);b.apply_weak(target,v(c,VarId::WEAK_POWER));return true;
     case CardId::DELAY:
-        b.gain_block(card_block(c),true);b.nextTurnEnergy+=v(c,VarId::ENERGY);return true;
+        b.gain_block(card_block(c),true);b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(c,VarId::ENERGY));return true;
     case CardId::DEMESNE: b.add_player_power(PowerId::DEMESNE,1);return true;
     case CardId::DEVOUR_LIFE:b.add_player_power(PowerId::DEVOUR_LIFE,v(c,VarId::DEVOUR_LIFE_POWER));return true;
     case CardId::DIRGE:
@@ -97,8 +97,18 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
         for(int i=0;i<std::min(n,v(c,VarId::CARDS));++i)b.upgrade_card(b.discard[indices[i]]);
         return true;
     }
-    case CardId::DREDGE:
-        choose(b,c,ChoiceOp::DISCARD_TO_HAND,ChoicePile::DISCARD,std::min(v(c,VarId::CARDS),MAX_HAND-b.handCount)); return true;
+    case CardId::DREDGE: {
+        // v0.111.0 grid selection auto-completes when the discard holds no more
+        // cards than the requested count; the audit recorded no selector call.
+        const int take=std::min(v(c,VarId::CARDS),MAX_HAND-b.handCount);
+        if(take<=0) return true;
+        if(take>=b.discardCount){
+            for(int i=0;i<take;++i)b.add_card_to_hand(b.discard[i]);
+            for(int i=take;i<b.discardCount;++i)b.discard[i-take]=b.discard[i];
+            b.discardCount-=take;
+        }else choose(b,c,ChoiceOp::DISCARD_TO_HAND,ChoicePile::DISCARD,take);
+        return true;
+    }
     case CardId::EIDOLON: {
         Card cards[MAX_PILE];int n=0;
         for(int i=0;i<b.exhaustCount;++i)if(card_has(b.exhaust[i],CF_ETHEREAL)&&!card_has(b.exhaust[i],CF_UNPLAYABLE))cards[n++]=b.exhaust[i];
@@ -107,7 +117,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::END_OF_DAYS:
         doom_all(b,v(c,VarId::DOOM_POWER));necrobinder_doom_kill(b);return true;
     case CardId::ENFEEBLING_TOUCH:
-        b.apply_strength_loss(target,v(c,VarId::STRENGTH_LOSS));return true;
+        b.apply_strength_loss(target,v(c,VarId::STRENGTH_LOSS),static_cast<int>(PowerId::ENFEEBLING_TOUCH));return true;
     case CardId::ERADICATE:b.attack_from_card(c,target,damage,b.xCost);return true;
     case CardId::FEAR:
         b.attack_from_card(c,target,damage);b.apply_vulnerable(target,v(c,VarId::VULNERABLE_POWER));return true;
@@ -132,7 +142,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
         if(b.necro.ostyHp>0){necrobinder_attack_osty(b,c,target,v(c,VarId::OSTY_DAMAGE),1,true);
         for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.apply_vulnerable(i,v(c,VarId::VULNERABLE_POWER));}return true;
     case CardId::INVOKE:
-        b.add_player_power(PowerId::SUMMON_NEXT_TURN,v(c,VarId::SUMMON));b.nextTurnEnergy+=v(c,VarId::ENERGY);return true;
+        b.add_player_power(PowerId::SUMMON_NEXT_TURN,v(c,VarId::SUMMON));b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(c,VarId::ENERGY));return true;
     case CardId::LETHALITY:b.add_player_power(PowerId::LETHALITY,v(c,VarId::LETHALITY_POWER));return true;
     case CardId::MELANCHOLY:b.gain_block(card_block(c),true);return true;
     case CardId::MISERY:misery(b,c,target);return true;

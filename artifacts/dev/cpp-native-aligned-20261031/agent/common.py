@@ -38,9 +38,12 @@ OUTCOME = sim.Outcome
 CARD_NAMES = [sim.card_name(i) for i in range(CARD_COUNT)]
 
 
-def new_run(seed: int, ascension: int = 0) -> "sim.RunContext":
+def new_run(seed: int, ascension: int = 0, character=None) -> "sim.RunContext":
     rc = sim.RunContext()
-    rc.init(int(seed), int(ascension))
+    if character is None:
+        rc.init(int(seed), int(ascension))
+    else:
+        rc.init(int(seed), int(ascension), int(character))
     return rc
 
 

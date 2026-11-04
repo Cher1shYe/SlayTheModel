@@ -155,7 +155,9 @@ Card defect_random_power(BattleContext &bc) {
     CardId choices[static_cast<int>(CardId::COUNT)]; int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const auto &d = card_def(static_cast<CardId>(i));
+        // CardFactory.FilterForCombat also drops Basic/Ancient/Event rarity.
         if (d.pool == bc.characterPool && d.type == CardType::POWER && card_native_available(d.id) &&
+            d.rarity != Rarity::BASIC && d.rarity != Rarity::ANCIENT && d.rarity != Rarity::EVENT &&
             !(d.flags & (CF_MULTIPLAYER_ONLY | CF_CANNOT_GENERATE_IN_COMBAT))) choices[n++] = d.id;
     }
     std::stable_sort(choices, choices + n, [](CardId a, CardId b) {

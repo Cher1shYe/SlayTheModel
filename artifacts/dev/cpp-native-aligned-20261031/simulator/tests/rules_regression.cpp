@@ -7,11 +7,14 @@
 #include <cstring>
 #include <iostream>
 #include <set>
+#include <stdexcept>
 #include <type_traits>
 
 #include "sts2/battle.h"
+#include "sts2/card_candidates.h"
 #include "sts2/monsters.h"
 #include "sts2/observe.h"
+#include "sts2/relic_raw_rarity.h"
 #include "sts2/relics.h"
 #include "sts2/run.h"
 
@@ -1426,6 +1429,7 @@ int main() {
         Card head = make_card(CardId::HEADBUTT, false, b.nextUid++);
         b.discard[b.discardCount++] = make_card(CardId::STRIKE_IRONCLAD, false, 700);
         b.auto_play_random(head, false);
+        choose_all(b);   // Headbutt's selector stays open on auto-play
         check("r01_autoplay_choice_source_once", copies(b, head.uid), 1);
     }
     {
@@ -2483,6 +2487,53 @@ int main() {
         check("r7_wongo_bargain_relic_is_common", nonCommon, 0);
     }
     {
+        // WelcomeToWongos.GenerateInitialOptions pulls the FeaturedItem at
+        // event start: explicit Rare rarity (no Rewards roll) with the
+        // shop-only filter, from the front of the player's rare deque.
+        RunContext r;
+        r.init(930007, 0);
+        r.gold = 500;
+        const int rareFront = r.playerRelicBag.entries[2][0];
+        event_begin(r, event_id("WELCOME_TO_WONGOS"), false);
+        check("r7_wongo_featured_is_front_rare", r.eventData[0], rareFront);
+        int stillInBag = 0;
+        for (int i = 0; i < r.playerRelicBag.counts[2]; ++i)
+            stillInBag += r.playerRelicBag.entries[2][i] == rareFront ? 1 : 0;
+        check("r7_wongo_featured_leaves_bag", stillInBag, 0);
+        const int before = r.relicCount;
+        event_choose(r, 1);
+        check("r7_wongo_featured_obtained", r.relicCount, before + 1);
+        check("r7_wongo_featured_is_pulled_relic", r.relics[r.relicCount - 1], rareFront);
+    }
+    {
+        // BuyBargainBin pulls an explicit Common with IsAllowedInShops; the
+        // shop-forbidden relic at the front stays in the deque.
+        RunContext r;
+        r.init(930008, 0);
+        r.gold = 500;
+        r.playerRelicBag.counts[0] = 2;
+        r.playerRelicBag.entries[0][0] = static_cast<std::uint16_t>(RelicId::AMETHYST_AUBERGINE);
+        int allowedCommon = -1;
+        for (int i = 1; i < static_cast<int>(RelicId::COUNT); ++i) {
+            const RelicId id = static_cast<RelicId>(i);
+            const RelicDef &def = relic_def(id);
+            if (relic_raw_rarity(id) == 1 && relic_implemented(id) &&
+                relic_allowed_in_shops(id) &&
+                (def.pool == RelicPool::SHARED || def.pool == RelicPool::IRONCLAD)) {
+                allowedCommon = i;
+                break;
+            }
+        }
+        check("r7_wongo_bargain_fixture", allowedCommon > 0 ? 1 : 0, 1);
+        r.playerRelicBag.entries[0][1] = static_cast<std::uint16_t>(allowedCommon);
+        event_begin(r, event_id("WELCOME_TO_WONGOS"), false);
+        event_choose(r, 0);
+        check("r7_wongo_bargain_skips_shop_forbidden",
+              r.relics[r.relicCount - 1], allowedCommon);
+        check("r7_wongo_bargain_keeps_forbidden",
+              r.playerRelicBag.entries[0][0], static_cast<int>(RelicId::AMETHYST_AUBERGINE));
+    }
+    {
         RunContext r;
         r.init(930005, 0);
         r.potionCount = 0;
@@ -3309,6 +3360,2441 @@ int main() {
         b.potionCount = 1;
         b.use_potion(0, 0);
         check("droplet_offers_entire_draw_pile", b.pending.count, 5);
+    }
+
+    // ------------------------------------------------ TeaMaster (shared event)
+    // C# TeaMaster: IsAllowed act<2 and gold>=150; options BoneTea 50,
+    // EmberTea 150, TeaOfDiscourtesy free; each obtains its relic.
+    {
+        RunContext r;
+        r.init(930050, 0);
+        r.gold = 200;
+        event_begin(r, event_id("TEA_MASTER"), false);
+        check("tea_master_three_options", event_option_count(r), 3);
+        check("tea_master_bone_available", event_option_available(r, 0), 1);
+        check("tea_master_ember_available", event_option_available(r, 1), 1);
+        event_choose(r, 0);
+        check("tea_master_bone_cost", r.gold, 150);
+        check("tea_master_bone_relic", run_has_relic(r, RelicId::BONE_TEA), 1);
+    }
+    {
+        RunContext r;
+        r.init(930051, 0);
+        r.gold = 200;
+        event_begin(r, event_id("TEA_MASTER"), false);
+        event_choose(r, 1);
+        check("tea_master_ember_cost", r.gold, 50);
+        check("tea_master_ember_relic", run_has_relic(r, RelicId::EMBER_TEA), 1);
+    }
+    {
+        RunContext r;
+        r.init(930052, 0);
+        r.gold = 200;
+        event_begin(r, event_id("TEA_MASTER"), false);
+        event_choose(r, 2);
+        check("tea_master_discourtesy_cost", r.gold, 200);
+        check("tea_master_discourtesy_relic",
+              run_has_relic(r, RelicId::TEA_OF_DISCOURTESY), 1);
+    }
+    {
+        RunContext r;
+        r.init(930053, 0);
+        r.gold = 49;
+        check("tea_master_event_requires_150", event_is_allowed(r, event_id("TEA_MASTER")), 0);
+    }
+
+    // ------------------------------------------- RoundTeaParty / TrashHeap
+    // C# RoundTeaParty: EnjoyTea obtains RoyalPoison and heals to full;
+    // PickFight -> ContinueFight deals 11 unblockable/unpowered and pulls a
+    // front relic. C# TrashHeap: DiveIn loses 8 and pulls one of five relics;
+    // Grab gains 100 gold and adds one of ten cards.
+    {
+        RunContext r;
+        r.init(930060, 0);
+        r.hp = 20;
+        r.maxHp = 80;
+        event_begin(r, event_id("ROUND_TEA_PARTY"), false);
+        event_choose(r, 0);
+        check("round_tea_enjoy_heals_to_full", r.hp, 80);
+        check("round_tea_enjoy_relic", run_has_relic(r, RelicId::ROYAL_POISON), 1);
+    }
+    {
+        RunContext r;
+        r.init(930061, 0);
+        r.hp = 50;
+        r.maxHp = 80;
+        const int relicsBefore = r.relicCount;
+        event_begin(r, event_id("ROUND_TEA_PARTY"), false);
+        event_choose(r, 1);
+        check("round_tea_fight_page", r.eventPage, 1);
+        event_choose(r, 0);
+        check("round_tea_fight_damage", r.hp, 39);
+        check("round_tea_fight_relic", r.relicCount, relicsBefore + 1);
+    }
+    {
+        RunContext r;
+        r.init(930062, 0);
+        r.hp = 50;
+        const int relicsBefore = r.relicCount;
+        event_begin(r, event_id("TRASH_HEAP"), false);
+        event_choose(r, 0);
+        check("trash_heap_dive_damage", r.hp, 42);
+        check("trash_heap_dive_relic", r.relicCount, relicsBefore + 1);
+        const RelicId got = static_cast<RelicId>(r.relics[r.relicCount - 1]);
+        const bool fixedList = got == RelicId::DARKSTONE_PERIAPT ||
+            got == RelicId::DREAM_CATCHER || got == RelicId::HAND_DRILL ||
+            got == RelicId::MAW_BANK || got == RelicId::THE_BOOT;
+        check("trash_heap_dive_fixed_relic", fixedList, 1);
+    }
+    {
+        RunContext r;
+        r.init(930063, 0);
+        r.hp = 50;
+        const int goldBefore = r.gold;
+        const int deckBefore = r.deckCount;
+        event_begin(r, event_id("TRASH_HEAP"), false);
+        event_choose(r, 1);
+        check("trash_heap_grab_gold", r.gold, goldBefore + 100);
+        check("trash_heap_grab_card", r.deckCount, deckBefore + 1);
+        const CardId got = r.deck[r.deckCount - 1].id;
+        const bool fixedList = got == CardId::CALTROPS || got == CardId::CLASH ||
+            got == CardId::DISTRACTION || got == CardId::DUAL_WIELD ||
+            got == CardId::ENTRENCH || got == CardId::HELLO_WORLD_CARD ||
+            got == CardId::OUTMANEUVER || got == CardId::REBOUND ||
+            got == CardId::RIP_AND_TEAR || got == CardId::STACK;
+        check("trash_heap_grab_fixed_card", fixedList, 1);
+    }
+
+    // ------------------------------------------------------ ColossalFlower
+    // C# ColossalFlower: depth 0/1/2 prizes 35/75/135 gold; Reach Deeper
+    // deals 5/6/7 unblockable/unpowered, and at depth 2 the second option
+    // obtains Pollinous Core instead of a prize.
+    {
+        RunContext r;
+        r.init(930070, 0);
+        r.hp = 50;
+        const int gold = r.gold;
+        event_begin(r, event_id("COLOSSAL_FLOWER"), false);
+        event_choose(r, 0);
+        check("colossal_prize_1", r.gold - gold, 35);
+    }
+    {
+        RunContext r;
+        r.init(930071, 0);
+        r.hp = 50;
+        const int gold = r.gold;
+        event_begin(r, event_id("COLOSSAL_FLOWER"), false);
+        event_choose(r, 1);
+        check("colossal_deeper_1_damage", r.hp, 45);
+        event_choose(r, 0);
+        check("colossal_prize_2", r.gold - gold, 75);
+    }
+    {
+        RunContext r;
+        r.init(930072, 0);
+        r.hp = 50;
+        const int relics = r.relicCount;
+        event_begin(r, event_id("COLOSSAL_FLOWER"), false);
+        event_choose(r, 1);
+        event_choose(r, 1);
+        check("colossal_deeper_2_damage", r.hp, 39);
+        event_choose(r, 1);
+        check("colossal_deeper_3_damage", r.hp, 32);
+        check("colossal_core_relic", r.relicCount, relics + 1);
+        check("colossal_core_id", run_has_relic(r, RelicId::POLLINOUS_CORE), 1);
+    }
+    {
+        RunContext r;
+        r.init(930073, 0);
+        r.hp = 18;
+        check("colossal_requires_19_hp",
+              event_is_allowed(r, event_id("COLOSSAL_FLOWER")), 0);
+    }
+
+    // ------------------------------ WhisperingHollow / TheLegendsWereTrue
+    // C# WhisperingHollow: gold option spends 35 +/- 9 (event RNG) and offers
+    // two potion rewards; Hug transforms one card then deals 9 unblockable/
+    // unpowered. C# TheLegendsWereTrue (act 0): SpoilsMap, or 8 damage plus
+    // one random potion reward from the rewards RNG.
+    {
+        RunContext r;
+        r.init(930080, 0);
+        r.gold = 100;
+        event_begin(r, event_id("WHISPERING_HOLLOW"), false);
+        const int cost = r.eventData[0];
+        // C# NextInt(-9, 10) is upper-exclusive: 26..44.
+        check("whispering_gold_cost_range", cost >= 26 && cost <= 44, 1);
+        event_choose(r, 0);
+        check("whispering_gold_cost", r.gold, 100 - cost);
+        check("whispering_gold_two_potions", r.pendingPotionCount, 2);
+    }
+    {
+        RunContext r;
+        r.init(930081, 0);
+        r.hp = 50;
+        event_begin(r, event_id("WHISPERING_HOLLOW"), false);
+        event_choose(r, 1);
+        check("whispering_hug_starts_selection", r.eventCardSelection, 4);
+        int choice = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { choice = i; break; }
+        check("whispering_hug_has_target", choice >= 0, 1);
+        event_select_card(r, choice);
+        check("whispering_hug_damage", r.hp, 41);
+    }
+    {
+        RunContext r;
+        r.init(930082, 0);
+        event_begin(r, event_id("THE_LEGENDS_WERE_TRUE"), false);
+        event_choose(r, 0);
+        check("legends_spoils_map", r.deck[r.deckCount - 1].id == CardId::SPOILS_MAP, 1);
+    }
+    {
+        RunContext r;
+        r.init(930083, 0);
+        r.hp = 50;
+        event_begin(r, event_id("THE_LEGENDS_WERE_TRUE"), false);
+        event_choose(r, 1);
+        check("legends_exit_damage", r.hp, 42);
+        check("legends_exit_potion", r.pendingPotionCount, 1);
+    }
+
+    // ------------------------------ JungleMazeAdventure / InfestedAutomaton
+    // C# JungleMazeAdventure.CalculateVars rolls SoloGold 150 +/- 15 and
+    // JoinForcesGold 50 +/- 15 from the event RNG; GainGold truncates the
+    // decimal total. Solo deals 18 unblockable/unpowered before the gold.
+    // C# InfestedAutomaton: STUDY creates one Power from the owner's pool with
+    // noncombat default odds; TOUCH_CORE creates one canonical 0-cost non-X
+    // card. Both add the card directly to the deck.
+    {
+        RunContext r;
+        r.init(930090, 0);
+        r.hp = 60;
+        event_begin(r, event_id("JUNGLE_MAZE_ADVENTURE"), false);
+        const int solo = r.eventData[0];
+        const int join = r.eventData[1];
+        check("jungle_solo_gold_range", solo >= 135 && solo <= 164, 1);
+        check("jungle_join_gold_range", join >= 35 && join <= 64, 1);
+        const int gold = r.gold;
+        event_choose(r, 0);
+        check("jungle_solo_damage", r.hp, 42);
+        check("jungle_solo_gold", r.gold, gold + solo);
+    }
+    {
+        RunContext r;
+        r.init(930091, 0);
+        r.hp = 60;
+        event_begin(r, event_id("JUNGLE_MAZE_ADVENTURE"), false);
+        const int join = r.eventData[1];
+        const int gold = r.gold;
+        event_choose(r, 1);
+        check("jungle_join_no_damage", r.hp, 60);
+        check("jungle_join_gold", r.gold, gold + join);
+    }
+    {
+        RunContext r;
+        r.init(930092, 0);
+        r.hp = 1;
+        check("jungle_allowed_at_low_hp_single_player",
+              event_is_allowed(r, event_id("JUNGLE_MAZE_ADVENTURE")), 1);
+    }
+    {
+        RunContext r;
+        r.init(930093, 0);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("INFESTED_AUTOMATON"), false);
+        event_choose(r, 0);
+        check("infested_study_adds_card", r.deckCount, deck + 1);
+        check("infested_study_power",
+              card_def(r.deck[r.deckCount - 1].id).type == CardType::POWER, 1);
+    }
+    {
+        RunContext r;
+        r.init(930094, 0);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("INFESTED_AUTOMATON"), false);
+        event_choose(r, 1);
+        check("infested_core_adds_card", r.deckCount, deck + 1);
+        check("infested_core_zero_cost",
+              card_def(r.deck[r.deckCount - 1].id).cost == 0, 1);
+    }
+
+    // ------------------------------ DollRoom / SlipperyBridge /
+    // TheFutureOfPotions
+    // C# DollRoom (act 1): RANDOM picks one of three declaration-order dolls
+    // with one event-RNG call; the other options deal 5/15 unblockable damage
+    // and StableShuffle (ModelId sort, then UnstableShuffle) to show 2 or 3.
+    // SlipperyBridge: floor > 6 and a removable card; first pick prefers
+    // non-Basic removable cards. HOLD_ON deals 3 + holds damage, marks the
+    // shown card skipped and offers a new one.
+    // C# TheFutureOfPotions: options are the first three occupied potion
+    // slots; the lazily built type map rolls once per occupied potion; a trade
+    // discards the potion and offers three upgraded cards of the potion's
+    // mapped rarity and that random type.
+    {
+        const int daughter = static_cast<int>(RelicId::DAUGHTER_OF_THE_WIND);
+        const int struggles = static_cast<int>(RelicId::MR_STRUGGLES);
+        const int bing = static_cast<int>(RelicId::BING_BONG);
+        RunContext r;
+        r.init(930100, 0);
+        r.act = 1;
+        const int relics = r.relicCount;
+        event_begin(r, event_id("DOLL_ROOM"), false);
+        check("doll_room_three_options", event_option_count(r), 3);
+        event_choose(r, 0);
+        check("doll_room_random_relic", r.relicCount, relics + 1);
+        const int got = r.relics[r.relicCount - 1];
+        check("doll_room_relic_is_doll", got == daughter || got == struggles || got == bing, 1);
+    }
+    {
+        RunContext r;
+        r.init(930101, 0);
+        r.act = 1;
+        r.hp = 60;
+        const int relics = r.relicCount;
+        event_begin(r, event_id("DOLL_ROOM"), false);
+        event_choose(r, 1);
+        check("doll_room_take_time_damage", r.hp, 55);
+        check("doll_room_take_time_options", event_option_count(r), 2);
+        const int first = r.eventData[0];
+        const int second = r.eventData[1];
+        check("doll_room_take_time_distinct", first != second, 1);
+        event_choose(r, 0);
+        check("doll_room_take_time_relic", r.relicCount, relics + 1);
+        check("doll_room_take_time_relic_id", r.relics[r.relicCount - 1], first);
+    }
+    {
+        RunContext r;
+        r.init(930102, 0);
+        r.act = 1;
+        r.hp = 60;
+        event_begin(r, event_id("DOLL_ROOM"), false);
+        event_choose(r, 2);
+        check("doll_room_examine_damage", r.hp, 45);
+        check("doll_room_examine_options", event_option_count(r), 3);
+    }
+    {
+        RunContext r;
+        r.init(930110, 0);
+        r.floor = 7;
+        const int deck = r.deckCount;
+        event_begin(r, event_id("SLIPPERY_BRIDGE"), false);
+        const int uid = r.eventData[0];
+        int idx = -1;
+        for (int i = 0; i < r.deckCount; ++i) if (r.deck[i].uid == uid) idx = i;
+        check("slippery_offers_deck_card", idx >= 0, 1);
+        event_choose(r, 1);
+        check("slippery_hold_damage", r.hp, 77);
+        check("slippery_hold_count", r.eventData[1], 1);
+        check("slippery_hold_new_card", r.eventData[0] != 0, 1);
+        event_choose(r, 0);
+        check("slippery_overcome_removes", r.deckCount, deck - 1);
+    }
+    {
+        RunContext r;
+        r.init(930111, 0);
+        r.floor = 6;
+        check("slippery_floor_gate", event_is_allowed(r, event_id("SLIPPERY_BRIDGE")), 0);
+    }
+    {
+        RunContext r;
+        r.init(930120, 0);
+        r.add_potion(PotionId::FIRE_POTION);
+        r.add_potion(PotionId::BLOCK_POTION);
+        const int before = r.potionCount;
+        event_begin(r, event_id("THE_FUTURE_OF_POTIONS"), false);
+        check("future_options_match_potions", event_option_count(r), 2);
+        check("future_potion_slot_recorded", r.eventData[0], 0);
+        const int slot = r.eventData[0];
+        const int potion = r.potions[slot];
+        event_choose(r, 0);
+        check("future_potion_discarded", r.potionCount, before - 1);
+        check("future_potion_slot_cleared", r.potions[slot], 0);
+        check("future_reward_pending", r.rewardCardPending[0], 1);
+        check("future_reward_three", r.rewardCardCounts[0], 3);
+        bool upgraded = true;
+        for (int i = 0; i < r.rewardCardCounts[0]; ++i)
+            upgraded &= r.rewardCards[0][i].upgraded;
+        check("future_reward_upgraded", upgraded, 1);
+        const Rarity want = potion_def(static_cast<PotionId>(potion)).rarity == Rarity::COMMON
+            ? Rarity::COMMON : Rarity::UNCOMMON;
+        bool rarityOk = true;
+        for (int i = 0; i < r.rewardCardCounts[0]; ++i)
+            rarityOk &= card_def(r.rewardCards[0][i].id).rarity == want;
+        check("future_reward_rarity", rarityOk, 1);
+    }
+    {
+        RunContext r;
+        r.init(930121, 0);
+        r.add_potion(PotionId::FIRE_POTION);
+        check("future_requires_two_potions",
+              event_is_allowed(r, event_id("THE_FUTURE_OF_POTIONS")), 0);
+    }
+
+    // ------------------------------ ZenWeaver
+    // C# ZenWeaver: allowed at gold >= 125; option 1/2 are locked below
+    // 125/250. Breathing Techniques spends 50 and adds two Enlightenment;
+    // the others remove one/two cards (IsRemovable = non-Eternal) and then
+    // spend 125/250.
+    {
+        RunContext r;
+        r.init(930130, 0);
+        r.gold = 124;
+        check("zen_requires_125", event_is_allowed(r, event_id("ZEN_WEAVER")), 0);
+        r.gold = 200;
+        check("zen_allowed_200", event_is_allowed(r, event_id("ZEN_WEAVER")), 1);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("ZEN_WEAVER"), false);
+        check("zen_three_options", event_option_count(r), 3);
+        check("zen_option2_locked_below_250", event_option_available(r, 2), 0);
+        check("zen_option1_available", event_option_available(r, 1), 1);
+        event_choose(r, 0);
+        check("zen_breathing_gold", r.gold, 150);
+        check("zen_breathing_two_cards", r.deckCount, deck + 2);
+        check("zen_breathing_enlightenment",
+              r.deck[r.deckCount - 1].id == CardId::ENLIGHTENMENT, 1);
+    }
+    {
+        RunContext r;
+        r.init(930131, 0);
+        r.gold = 200;
+        const int deck = r.deckCount;
+        event_begin(r, event_id("ZEN_WEAVER"), false);
+        event_choose(r, 1);
+        check("zen_emotional_starts_selection", r.eventCardSelection, 6);
+        int choice = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { choice = i; break; }
+        check("zen_emotional_has_target", choice >= 0, 1);
+        event_select_card(r, choice);
+        check("zen_emotional_gold", r.gold, 75);
+        check("zen_emotional_removed", r.deckCount, deck - 1);
+    }
+    {
+        RunContext r;
+        r.init(930132, 0);
+        r.gold = 300;
+        const int deck = r.deckCount;
+        event_begin(r, event_id("ZEN_WEAVER"), false);
+        check("zen_option2_available_at_300", event_option_available(r, 2), 1);
+        event_choose(r, 2);
+        check("zen_arachnid_starts_selection", r.eventCardSelection, 6);
+        int first = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { first = i; break; }
+        event_select_card(r, first);
+        check("zen_arachnid_still_selecting", r.eventCardSelection, 6);
+        int second = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { second = i; break; }
+        event_select_card(r, second);
+        check("zen_arachnid_gold", r.gold, 50);
+        check("zen_arachnid_removed_two", r.deckCount, deck - 2);
+        check("zen_arachnid_finished", r.screen != RunScreen::EVENT, 1);
+    }
+
+    // ------------------------------ Amalgamator
+    // C# Amalgamator: allowed when the deck has >= 2 removable Basic
+    // Strike-tagged and >= 2 removable Basic Defend-tagged cards. Combining
+    // removes exactly two matching cards and adds UltimateStrike/Defend.
+    {
+        RunContext r;
+        r.init(930140, 0);
+        check("amalgamator_allowed_on_starting_deck",
+              event_is_allowed(r, event_id("AMALGAMATOR")), 1);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("AMALGAMATOR"), false);
+        event_choose(r, 0);
+        check("amalgamator_starts_selection", r.eventCardSelection, 6);
+        int first = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { first = i; break; }
+        check("amalgamator_strike_selectable", first >= 0, 1);
+        event_select_card(r, first);
+        check("amalgamator_still_selecting", r.eventCardSelection, 6);
+        int second = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { second = i; break; }
+        event_select_card(r, second);
+        check("amalgamator_net_deck", r.deckCount, deck - 1);
+        check("amalgamator_ultimate_strike",
+              r.deck[r.deckCount - 1].id == CardId::ULTIMATE_STRIKE, 1);
+        check("amalgamator_finished", r.screen != RunScreen::EVENT, 1);
+    }
+    {
+        RunContext r;
+        r.init(930141, 0);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("AMALGAMATOR"), false);
+        event_choose(r, 1);
+        int first = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { first = i; break; }
+        event_select_card(r, first);
+        int second = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { second = i; break; }
+        event_select_card(r, second);
+        check("amalgamator_defend_net_deck", r.deckCount, deck - 1);
+        check("amalgamator_ultimate_defend",
+              r.deck[r.deckCount - 1].id == CardId::ULTIMATE_DEFEND, 1);
+    }
+    {
+        RunContext r;
+        r.init(930142, 0);
+        // Strip all Defends so the Defend count fails.
+        for (int i = 0; i < r.deckCount;) {
+            if (card_def(r.deck[i].id).flags & CF_DEFEND) {
+                for (int j = i + 1; j < r.deckCount; ++j) r.deck[j - 1] = r.deck[j];
+                --r.deckCount;
+            } else {
+                ++i;
+            }
+        }
+        check("amalgamator_needs_two_defends",
+              event_is_allowed(r, event_id("AMALGAMATOR")), 0);
+    }
+
+    // ------------------------------ ColorfulPhilosophers
+    // C#: allowed with more than one unlocked character pool. Options follow
+    // CardPoolColorOrder (Necrobinder, Ironclad, Regent, Silent, Defect),
+    // skip the owner's pool and locked pools, then remove random entries until
+    // three remain. The choice offers Common/Uncommon/Rare card rewards of
+    // three uniform cards each from that pool.
+    {
+        RunContext r;
+        r.init(930150, 0);
+        r.act = 1;
+        check("colorful_allowed_with_all_pools",
+              event_is_allowed(r, event_id("COLORFUL_PHILOSOPHERS")), 1);
+        event_begin(r, event_id("COLORFUL_PHILOSOPHERS"), false);
+        check("colorful_three_options", event_option_count(r), 3);
+        for (int i = 0; i < 3; ++i) {
+            const CardPool pool = static_cast<CardPool>(r.eventData[i]);
+            check("colorful_option_excludes_ironclad", pool != CardPool::IRONCLAD, 1);
+            check("colorful_option_is_unlocked",
+                  native_card_pool_unlocked(r, pool), 1);
+        }
+        const CardPool chosen = static_cast<CardPool>(r.eventData[0]);
+        event_choose(r, 0);
+        check("colorful_three_rewards", r.rewardCardPending[0] +
+              r.rewardCardPending[1] + r.rewardCardPending[2], 3);
+        bool poolOk = true, rarityOk = true, countOk = true;
+        const Rarity want[3] = {Rarity::COMMON, Rarity::UNCOMMON, Rarity::RARE};
+        for (int slot = 0; slot < 3; ++slot) {
+            countOk &= r.rewardCardCounts[slot] == 3;
+            for (int i = 0; i < r.rewardCardCounts[slot]; ++i) {
+                const CardDef &d = card_def(r.rewardCards[slot][i].id);
+                poolOk &= d.pool == chosen;
+                rarityOk &= d.rarity == want[slot];
+            }
+        }
+        check("colorful_reward_pool", poolOk, 1);
+        check("colorful_reward_rarity", rarityOk, 1);
+        check("colorful_reward_counts", countOk, 1);
+    }
+    {
+        RunContext r;
+        r.init(930151, 0);
+        r.act = 1;
+        r.nativeProgress.unlockedCharacterMask = 1;  // Ironclad only
+        check("colorful_needs_second_pool",
+              event_is_allowed(r, event_id("COLORFUL_PHILOSOPHERS")), 0);
+    }
+    {
+        RunContext r;
+        r.init(930152, 0);
+        r.act = 1;
+        r.nativeProgress.unlockedCharacterMask = 3;  // Ironclad + Silent
+        event_begin(r, event_id("COLORFUL_PHILOSOPHERS"), false);
+        check("colorful_single_eligible_option", event_option_count(r), 1);
+        check("colorful_silent_pool",
+              r.eventData[0] == static_cast<int>(CardPool::SILENT), 1);
+    }
+
+    // ------------------------------ LuminousChoir
+    // C#: allowed at gold >= 149 with a non-empty relic grab bag. CalculateVars
+    // rolls the tribute cost as 149 - NextInt(0, 50). Reach Into The Flesh
+    // removes two cards then adds SporeMind; Offer Tribute spends the rolled
+    // cost and pulls the next relic from the front of the player's bag.
+    {
+        RunContext r;
+        r.init(930160, 0);
+        r.gold = 149;
+        check("choir_allowed_at_149",
+              event_is_allowed(r, event_id("LUMINOUS_CHOIR")), 1);
+        event_begin(r, event_id("LUMINOUS_CHOIR"), false);
+        const int cost = r.eventData[0];
+        // C#: 149 - NextInt(0, 50), upper-exclusive -> 100..149.
+        check("choir_cost_range", cost >= 100 && cost <= 149, 1);
+        r.gold = 0;
+        check("choir_tribute_locked_without_gold", event_option_available(r, 1), 0);
+        const int deck = r.deckCount;
+        event_choose(r, 0);
+        check("choir_reach_starts_selection", r.eventCardSelection, 6);
+        int first = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { first = i; break; }
+        event_select_card(r, first);
+        check("choir_reach_still_selecting", r.eventCardSelection, 6);
+        int second = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { second = i; break; }
+        event_select_card(r, second);
+        check("choir_reach_net_deck", r.deckCount, deck - 1);
+        check("choir_reach_spore_mind",
+              r.deck[r.deckCount - 1].id == CardId::SPORE_MIND, 1);
+    }
+    {
+        RunContext r;
+        r.init(930161, 0);
+        r.gold = 200;
+        const int relics = r.relicCount;
+        event_begin(r, event_id("LUMINOUS_CHOIR"), false);
+        const int cost = r.eventData[0];
+        check("choir_tribute_available", event_option_available(r, 1), 1);
+        event_choose(r, 1);
+        check("choir_tribute_gold", r.gold, 200 - cost);
+        check("choir_tribute_relic", r.relicCount, relics + 1);
+    }
+    {
+        RunContext r;
+        r.init(930162, 0);
+        r.gold = 148;
+        check("choir_requires_149",
+              event_is_allowed(r, event_id("LUMINOUS_CHOIR")), 0);
+    }
+
+    // ------------------------------ MorphicGrove
+    // C#: allowed at gold >= 100 with >= 2 transformable cards. Group spends
+    // all gold and transforms two selected cards; Loner gains 5 max HP.
+    {
+        RunContext r;
+        r.init(930170, 0);
+        r.gold = 99;
+        check("grove_requires_100",
+              event_is_allowed(r, event_id("MORPHIC_GROVE")), 0);
+        r.gold = 100;
+        check("grove_allowed_at_100",
+              event_is_allowed(r, event_id("MORPHIC_GROVE")), 1);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("MORPHIC_GROVE"), false);
+        event_choose(r, 0);
+        check("grove_group_spends_all_gold", r.gold, 0);
+        check("grove_group_starts_selection", r.eventCardSelection, 4);
+        int first = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { first = i; break; }
+        event_select_card(r, first);
+        check("grove_group_still_selecting", r.eventCardSelection, 4);
+        int second = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { second = i; break; }
+        event_select_card(r, second);
+        check("grove_group_keeps_deck_size", r.deckCount, deck);
+        check("grove_group_finished", r.screen != RunScreen::EVENT, 1);
+    }
+    {
+        RunContext r;
+        r.init(930171, 0);
+        const int maxHp = r.maxHp;
+        const int hp = r.hp;
+        event_begin(r, event_id("MORPHIC_GROVE"), false);
+        event_choose(r, 1);
+        check("grove_loner_max_hp", r.maxHp, maxHp + 5);
+        check("grove_loner_hp", r.hp, hp + 5);
+    }
+
+    // ------------------------------ Bugslayer
+    {
+        RunContext r;
+        r.init(930180, 0);
+        const int deck = r.deckCount;
+        event_begin(r, event_id("BUGSLAYER"), false);
+        event_choose(r, 0);
+        check("bugslayer_exterminate_added", r.deckCount, deck + 1);
+        check("bugslayer_exterminate_id", static_cast<int>(r.deck[deck].id),
+              static_cast<int>(CardId::EXTERMINATE));
+        check("bugslayer_finished", r.screen != RunScreen::EVENT, 1);
+        event_begin(r, event_id("BUGSLAYER"), false);
+        event_choose(r, 1);
+        check("bugslayer_squash_id", static_cast<int>(r.deck[deck + 1].id),
+              static_cast<int>(CardId::SQUASH));
+    }
+
+    // ------------------------------ EndlessConveyor
+    // C#: allowed at gold >= 120; every grab costs 40 gold (even the free
+    // Golden Fysh dish still locks its option below 40). Dish enum in
+    // events.cpp: 1 caviar, 5 suspicious condiment, 7 golden fysh,
+    // 8 seapunk salad (every 5th roll).
+    {
+        RunContext r;
+        r.init(930190, 0);
+        r.gold = 119;
+        check("conveyor_requires_120",
+              event_is_allowed(r, event_id("ENDLESS_CONVEYOR")), 0);
+        r.gold = 120;
+        check("conveyor_allowed_at_120",
+              event_is_allowed(r, event_id("ENDLESS_CONVEYOR")), 1);
+        event_begin(r, event_id("ENDLESS_CONVEYOR"), false);
+        check("conveyor_page0", r.eventPage, 0);
+        check("conveyor_initial_options", event_option_count(r), 2);
+        check("conveyor_initial_no_gold_spent", r.gold, 120);
+
+        // Caviar: pay 40, gain 4 max HP, advance to the grab page.
+        r.gold = 1000;
+        r.maxHp = 80;
+        r.hp = 80;
+        r.eventData[3] = 1;
+        event_choose(r, 0);
+        check("conveyor_caviar_gold", r.gold, 960);
+        check("conveyor_caviar_max_hp", r.maxHp, 84);
+        check("conveyor_grab_page", r.eventPage, 1);
+        check("conveyor_grab_page_options", event_option_count(r), 2);
+        check("conveyor_grab_page_still_open", r.screen == RunScreen::EVENT, 1);
+
+        // Golden Fysh is free but still requires the 40-gold unlock.
+        r.eventData[3] = 7;
+        event_choose(r, 0);
+        check("conveyor_golden_fysh_gold", r.gold, 1035);
+        r.gold = 39;
+        check("conveyor_grab_locked",
+              event_option_available(r, 0), 0);
+        r.gold = 1000;
+
+        // Seapunk Salad adds Feeding Frenzy; the fifth roll also forces the
+        // next dish to Seapunk Salad (no RNG consumed).
+        const int deck = r.deckCount;
+        r.eventData[1] = 4;
+        r.eventData[3] = 8;
+        event_choose(r, 0);
+        check("conveyor_seapunk_deck", r.deckCount, deck + 1);
+        check("conveyor_seapunk_id",
+              static_cast<int>(r.deck[deck].id),
+              static_cast<int>(CardId::FEEDING_FRENZY_CARD));
+        check("conveyor_seapunk_current", r.eventData[3], 8);
+    }
+    {
+        RunContext r;
+        r.init(930191, 0);
+        r.gold = 120;
+        int upgradable = 0;
+        for (int i = 0; i < r.deckCount; ++i) upgradable += card_upgradable(r.deck[i]);
+        event_begin(r, event_id("ENDLESS_CONVEYOR"), false);
+        event_choose(r, 1);  // ObserveChef upgrades one random card.
+        int upgraded = 0;
+        for (int i = 0; i < r.deckCount; ++i) upgraded += r.deck[i].upgraded;
+        check("conveyor_observe_upgrades_one", upgraded, upgradable > 0 ? 1 : 0);
+        check("conveyor_observe_finished", r.screen != RunScreen::EVENT, 1);
+    }
+
+    // ------------------------------ Trial
+    // C#: Accept rolls NextInt(3) for merchant/noble/nondescript; Reject opens
+    // a page with Accept or an abandon-run DoubleDown. eventData[0] stores the
+    // trial kind and eventData[1] the remaining multi-card selections.
+    {
+        RunContext r;
+        r.init(930200, 0);
+        event_begin(r, event_id("TRIAL"), false);
+        check("trial_page0", r.eventPage, 0);
+        check("trial_options", event_option_count(r), 2);
+        event_choose(r, 0);
+        check("trial_accept_page", r.eventPage, 1);
+        check("trial_kind_range", r.eventData[0] >= 0 && r.eventData[0] <= 2, 1);
+
+        // Merchant guilty: Regret plus two front relics.
+        r.eventPage = 1;
+        r.eventData[0] = 0;
+        const int deck = r.deckCount;
+        const int relics = r.relicCount;
+        event_choose(r, 0);
+        check("trial_merchant_guilty_curse", r.deckCount, deck + 1);
+        check("trial_merchant_guilty_curse_id",
+              static_cast<int>(r.deck[deck].id),
+              static_cast<int>(CardId::REGRET));
+        check("trial_merchant_guilty_relics", r.relicCount, relics + 2);
+
+        // Merchant innocent: Shame plus two selected upgrades.
+        RunContext m;
+        m.init(930203, 0);
+        event_begin(m, event_id("TRIAL"), false);
+        m.eventPage = 1;
+        m.eventData[0] = 0;
+        event_choose(m, 1);
+        check("trial_merchant_innocent_curse",
+              static_cast<int>(m.deck[m.deckCount - 1].id),
+              static_cast<int>(CardId::SHAME));
+        check("trial_merchant_innocent_selection", m.eventCardSelection, 1);
+        int first = -1, second = -1;
+        for (int i = 0; i < m.deckCount; ++i)
+            if (event_card_selectable(m, i)) {
+                if (first < 0) first = i; else if (second < 0) second = i;
+            }
+        event_select_card(m, first);
+        check("trial_two_selections_remaining", m.eventData[1], 1);
+        if (second >= 0) event_select_card(m, second);
+        check("trial_two_upgrades_finished", m.screen != RunScreen::EVENT, 1);
+
+        // Noble: guilty heals 10, innocent gives Regret + 300 gold.
+        RunContext n;
+        n.init(930204, 0);
+        event_begin(n, event_id("TRIAL"), false);
+        n.eventPage = 1;
+        n.eventData[0] = 1;
+        n.hp = 30;
+        n.maxHp = 80;
+        event_choose(n, 0);
+        check("trial_noble_guilty_heal", n.hp, 40);
+        RunContext ni;
+        ni.init(930206, 0);
+        event_begin(ni, event_id("TRIAL"), false);
+        ni.eventPage = 1;
+        ni.eventData[0] = 1;
+        const int gold = ni.gold;
+        event_choose(ni, 1);
+        check("trial_noble_innocent_gold", ni.gold, gold + 300);
+        check("trial_noble_innocent_curse",
+              static_cast<int>(ni.deck[ni.deckCount - 1].id),
+              static_cast<int>(CardId::REGRET));
+
+        // Nondescript guilty: Doubt plus two 3-card custom rewards.
+        RunContext d;
+        d.init(930205, 0);
+        event_begin(d, event_id("TRIAL"), false);
+        d.eventPage = 1;
+        d.eventData[0] = 2;
+        event_choose(d, 0);
+        int pending = 0;
+        for (int i = 0; i < MAX_CARD_REWARDS; ++i) pending += d.rewardCardPending[i];
+        check("trial_nondescript_guilty_rewards", pending, 2);
+        check("trial_nondescript_guilty_curse",
+              static_cast<int>(d.deck[d.deckCount - 1].id),
+              static_cast<int>(CardId::DOUBT));
+
+        // Nondescript innocent: Doubt plus two selected transformations.
+        RunContext t;
+        t.init(930201, 0);
+        event_begin(t, event_id("TRIAL"), false);
+        t.eventPage = 1;
+        t.eventData[0] = 2;
+        t.eventData[1] = 0;
+        event_choose(t, 1);
+        check("trial_nondescript_innocent_selection",
+              t.eventCardSelection, 4);
+        check("trial_nondescript_innocent_curse",
+              static_cast<int>(t.deck[t.deckCount - 1].id),
+              static_cast<int>(CardId::DOUBT));
+        int x = -1, y = -1;
+        for (int i = 0; i < t.deckCount; ++i)
+            if (event_card_selectable(t, i)) {
+                if (x < 0) x = i; else if (y < 0) y = i;
+            }
+        event_select_card(t, x);
+        if (y >= 0) event_select_card(t, y);
+        check("trial_nondescript_innocent_finished",
+              t.screen != RunScreen::EVENT, 1);
+
+        // Reject -> Accept re-rolls; Reject -> DoubleDown abandons the run.
+        RunContext u;
+        u.init(930202, 0);
+        event_begin(u, event_id("TRIAL"), false);
+        event_choose(u, 1);
+        check("trial_reject_page", u.eventPage, 2);
+        event_choose(u, 0);
+        check("trial_reject_accept_page", u.eventPage, 1);
+        event_begin(u, event_id("TRIAL"), false);
+        event_choose(u, 1);
+        event_choose(u, 1);
+        check("trial_double_down_abandons", u.screen == RunScreen::RUN_OVER, 1);
+        check("trial_double_down_not_won", u.won, 0);
+    }
+
+    // ------------------------------ PunchOff
+    // C#: allowed at total floor >= 6; CalculateVars rolls 91..99; Nab adds
+    // Injury + relic reward; Fight enters the PunchOff encounter and defers a
+    // relic and potion reward to the post-combat reward screen.
+    {
+        RunContext r;
+        r.init(930210, 0);
+        r.floor = 5;
+        check("punchoff_requires_floor6",
+              event_is_allowed(r, event_id("PUNCH_OFF")), 0);
+        r.floor = 6;
+        check("punchoff_allowed_floor6",
+              event_is_allowed(r, event_id("PUNCH_OFF")), 1);
+        event_begin(r, event_id("PUNCH_OFF"), false);
+        // C#: NextInt(91, 99), upper-exclusive -> 91..98.
+        check("punchoff_flavour_gold_range",
+              r.eventData[0] >= 91 && r.eventData[0] <= 98, 1);
+        check("punchoff_options", event_option_count(r), 2);
+        const int deck = r.deckCount;
+        event_choose(r, 0);
+        check("punchoff_nab_injury", r.deckCount, deck + 1);
+        check("punchoff_nab_injury_id", static_cast<int>(r.deck[deck].id),
+              static_cast<int>(CardId::INJURY));
+        check("punchoff_nab_relic_reward", r.pendingRelicCount > 0, 1);
+
+        RunContext f;
+        f.init(930211, 0);
+        f.floor = 10;
+        event_begin(f, event_id("PUNCH_OFF"), false);
+        event_choose(f, 1);
+        check("punchoff_take_them_page", f.eventPage, 1);
+        check("punchoff_take_them_options", event_option_count(f), 1);
+        event_choose(f, 0);
+        check("punchoff_fight_combat", f.screen == RunScreen::COMBAT, 1);
+        check("punchoff_fight_relic_flag", f.eventData[1], 1);
+        check("punchoff_fight_potion_flag", f.eventData[2], 1);
+        check("punchoff_fight_encounter",
+              static_cast<int>(f.battle.encounter),
+              static_cast<int>(Encounter::SETUP_PUNCH_OFF));
+        for (int i = 0; i < f.battle.monsterCount; ++i) {
+            const int reduction =
+                f.battle.monsters[i].maxHp - f.battle.monsters[i].hp;
+            // C#: StartingHpReduction = Rng.NextInt(2, 10) -> 2..9.
+            check("punchoff_construct_hp_reduction",
+                  reduction >= 2 && reduction <= 9, 1);
+        }
+        // PunchOffEventEncounter keeps the default ShouldGiveRewards=true:
+        // normal monster rewards (gold, potion roll, 3-card reward) come first,
+        // then the event's RelicReward and PotionReward extras.
+        for (int i = 0; i < f.battle.monsterCount; ++i) {
+            f.battle.monsters[i].hp = 0;
+            f.battle.monsters[i].alive = false;
+        }
+        f.battle.outcome = Outcome::PLAYER_VICTORY;
+        f.finish_combat();
+        check("punchoff_standard_gold",
+              f.pendingGoldReward >= 10 && f.pendingGoldReward <= 20, 1);
+        check("punchoff_standard_cards", f.rewardCardCounts[0], 3);
+        check("punchoff_standard_card_pending", f.rewardCardPending[0], 1);
+        check("punchoff_extra_relic", f.pendingRelicCount, 1);
+        check("punchoff_extra_potion", f.pendingPotionCount >= 1, 1);
+        check("punchoff_extras_cleared", f.eventData[1] + f.eventData[2], 0);
+        check("punchoff_fight_done", f.eventId, -1);
+        check("punchoff_fight_reward_screen", f.screen == RunScreen::REWARDS, 1);
+    }
+
+    // DenseVegetationEventEncounter also keeps standard monster rewards; the
+    // event passes shouldResumeAfterCombat=false, so the room ends on leave.
+    {
+        RunContext d;
+        d.init(930212, 0);
+        event_begin(d, event_id("DENSE_VEGETATION"), false);
+        event_choose(d, 1);  // page 1: fight
+        check("dense_vegetation_fight_page", d.screen == RunScreen::EVENT, 1);
+        event_choose(d, 0);
+        check("dense_vegetation_fight_combat",
+              d.screen == RunScreen::COMBAT, 1);
+        check("dense_vegetation_fight_encounter",
+              static_cast<int>(d.battle.encounter),
+              static_cast<int>(Encounter::SETUP_DENSE_VEGETATION));
+        for (int i = 0; i < d.battle.monsterCount; ++i) {
+            d.battle.monsters[i].hp = 0;
+            d.battle.monsters[i].alive = false;
+        }
+        d.battle.outcome = Outcome::PLAYER_VICTORY;
+        d.finish_combat();
+        check("dense_vegetation_standard_gold",
+              d.pendingGoldReward >= 10 && d.pendingGoldReward <= 20, 1);
+        check("dense_vegetation_standard_cards", d.rewardCardCounts[0], 3);
+        check("dense_vegetation_no_extra_relic", d.pendingRelicCount, 0);
+        check("dense_vegetation_event_done", d.eventId, -1);
+        check("dense_vegetation_reward_screen",
+              d.screen == RunScreen::REWARDS, 1);
+    }
+
+    // ------------------------------ BattlewornDummy
+    // C#: three settings enter BattleFriendV1/V2/V3 with no standard rewards,
+    // BattlewornDummyTimeLimitPower 3 escapes the dummy after the third enemy
+    // turn end (RanOutOfTime -> DEFEAT page). Victory grants one uniform
+    // character+shared potion (V1), two StableShuffle upgrades (V2), or the
+    // front relic (V3).
+    {
+        RunContext r;
+        r.init(930230, 0);
+        event_begin(r, event_id("BATTLEWORN_DUMMY"), false);
+        check("battleworn_options", event_option_count(r), 3);
+
+        RunContext f;
+        f.init(930231, 0);
+        event_begin(f, event_id("BATTLEWORN_DUMMY"), false);
+        f.eventData[3] = 77;  // begin clears event state
+        event_begin(f, event_id("BATTLEWORN_DUMMY"), false);
+        check("battleworn_begin_clears_data", f.eventData[3], 0);
+        event_choose(f, 0);
+        check("battleworn_v1_combat", f.screen == RunScreen::COMBAT, 1);
+        check("battleworn_v1_encounter", static_cast<int>(f.battle.encounter),
+              static_cast<int>(Encounter::SETUP_BATTLEWORN_DUMMY_V1));
+        check("battleworn_v1_monster", static_cast<int>(f.battle.monsters[0].id),
+              static_cast<int>(MonsterId::BATTLE_FRIEND_V1));
+        check("battleworn_v1_hp", f.battle.monsters[0].maxHp, 75);
+        const int limitIdx = static_cast<int>(PowerId::BATTLEWORN_DUMMY_TIME_LIMIT);
+        check("battleworn_v1_time_limit", f.battle.monsters[0].power[limitIdx], 3);
+        f.battle.end_player_turn();
+        check("battleworn_v1_time_limit_after_turn1",
+              f.battle.monsters[0].power[limitIdx], 2);
+        f.battle.end_player_turn();
+        check("battleworn_v1_time_limit_after_turn2",
+              f.battle.monsters[0].power[limitIdx], 1);
+        f.battle.end_player_turn();
+        check("battleworn_v1_escaped", f.battle.monsters[0].alive, 0);
+        check("battleworn_v1_escaped_with_hp",
+              f.battle.monsters[0].hp > 0, 1);
+        check("battleworn_v1_victory_after_escape",
+              f.battle.outcome == Outcome::PLAYER_VICTORY, 1);
+        f.finish_combat();
+        check("battleworn_v1_ran_out_finished", f.eventId, -1);
+        check("battleworn_v1_ran_out_no_rewards",
+              f.screen == RunScreen::MAP, 1);
+        check("battleworn_v1_ran_out_no_potion",
+              f.pendingPotionCount, 0);
+
+        // Defeat-by-time is distinct from a kill: the kill path offers a potion.
+        RunContext k;
+        k.init(930232, 0);
+        event_begin(k, event_id("BATTLEWORN_DUMMY"), false);
+        event_choose(k, 0);
+        k.battle.monsters[0].hp = 0;
+        k.battle.monsters[0].alive = false;
+        k.battle.outcome = Outcome::PLAYER_VICTORY;
+        k.finish_combat();
+        check("battleworn_v1_kill_reward_screen",
+              k.screen == RunScreen::REWARDS, 1);
+        check("battleworn_v1_kill_potion", k.pendingPotionCount, 1);
+        check("battleworn_v1_kill_event_done", k.eventId, -1);
+
+        // V2 upgrades two random upgradable deck cards.
+        RunContext v2;
+        v2.init(930233, 0);
+        int upgradedBefore = 0;
+        for (int i = 0; i < v2.deckCount; ++i) upgradedBefore += v2.deck[i].upgraded;
+        event_begin(v2, event_id("BATTLEWORN_DUMMY"), false);
+        event_choose(v2, 1);
+        check("battleworn_v2_monster", static_cast<int>(v2.battle.monsters[0].id),
+              static_cast<int>(MonsterId::BATTLE_FRIEND_V2));
+        check("battleworn_v2_hp", v2.battle.monsters[0].maxHp, 150);
+        v2.battle.monsters[0].hp = 0;
+        v2.battle.monsters[0].alive = false;
+        v2.battle.outcome = Outcome::PLAYER_VICTORY;
+        v2.finish_combat();
+        int upgradedAfter = 0;
+        for (int i = 0; i < v2.deckCount; ++i) upgradedAfter += v2.deck[i].upgraded;
+        check("battleworn_v2_two_upgrades", upgradedAfter - upgradedBefore, 2);
+        check("battleworn_v2_no_reward_screen",
+              v2.screen == RunScreen::MAP, 1);
+
+        // V3 offers the front relic through the reward screen.
+        RunContext v3;
+        v3.init(930234, 0);
+        event_begin(v3, event_id("BATTLEWORN_DUMMY"), false);
+        event_choose(v3, 2);
+        check("battleworn_v3_monster", static_cast<int>(v3.battle.monsters[0].id),
+              static_cast<int>(MonsterId::BATTLE_FRIEND_V3));
+        check("battleworn_v3_hp", v3.battle.monsters[0].maxHp, 300);
+        v3.battle.monsters[0].hp = 0;
+        v3.battle.monsters[0].alive = false;
+        v3.battle.outcome = Outcome::PLAYER_VICTORY;
+        v3.finish_combat();
+        check("battleworn_v3_relic_reward", v3.pendingRelicCount, 1);
+        check("battleworn_v3_reward_screen",
+              v3.screen == RunScreen::REWARDS, 1);
+    }
+
+    // ------------------------------ ThisOrThat
+    // C#: CalculateVars rolls gold 41..68 before options. PLAIN loses 6 HP then
+    // gains that gold; ORNATE pulls the front relic and adds a Clumsy curse.
+    {
+        RunContext p;
+        p.init(930250, 0);
+        const int hp = p.hp, gold = p.gold;
+        event_begin(p, event_id("THIS_OR_THAT"), false);
+        check("thisorthat_options", event_option_count(p), 2);
+        check("thisorthat_gold_range",
+              p.eventData[0] >= 41 && p.eventData[0] <= 68, 1);
+        const int rolled = p.eventData[0];
+        event_choose(p, 0);
+        check("thisorthat_plain_hp", p.hp, hp - 6);
+        check("thisorthat_plain_gold", p.gold, gold + rolled);
+        check("thisorthat_plain_done", p.eventId, -1);
+
+        RunContext o;
+        o.init(930251, 0);
+        const int deck = o.deckCount, relics = o.relicCount;
+        event_begin(o, event_id("THIS_OR_THAT"), false);
+        event_choose(o, 1);
+        check("thisorthat_ornate_curse", o.deckCount, deck + 1);
+        check("thisorthat_ornate_curse_id",
+              static_cast<int>(o.deck[deck].id), static_cast<int>(CardId::CLUMSY));
+        check("thisorthat_ornate_relic", o.relicCount, relics + 1);
+        check("thisorthat_ornate_done", o.eventId, -1);
+    }
+
+    // ------------------------------ TheLanternKey
+    // C#: RETURN_THE_KEY gains 100 gold; KEEP_THE_KEY offers FIGHT, which
+    // enters MysteriousKnightEventEncounter (FlailKnight 101 HP, Strength 6,
+    // Plating 6) and offers the fixed LanternKey special card after victory.
+    {
+        RunContext r;
+        r.init(930240, 0);
+        const int gold = r.gold;
+        event_begin(r, event_id("THE_LANTERN_KEY"), false);
+        check("lanternkey_options", event_option_count(r), 2);
+        event_choose(r, 0);
+        check("lanternkey_return_gold", r.gold, gold + 100);
+        check("lanternkey_return_finished", r.eventId, -1);
+
+        RunContext k;
+        k.init(930241, 0);
+        event_begin(k, event_id("THE_LANTERN_KEY"), false);
+        event_choose(k, 1);
+        check("lanternkey_keep_page", k.eventPage, 1);
+        check("lanternkey_keep_options", event_option_count(k), 1);
+        event_choose(k, 0);
+        check("lanternkey_fight_combat", k.screen == RunScreen::COMBAT, 1);
+        check("lanternkey_encounter", static_cast<int>(k.battle.encounter),
+              static_cast<int>(Encounter::SETUP_MYSTERIOUS_KNIGHT));
+        const Monster &mk = k.battle.monsters[0];
+        check("lanternkey_knight_id", static_cast<int>(mk.id),
+              static_cast<int>(MonsterId::MYSTERIOUS_KNIGHT));
+        check("lanternkey_knight_hp", mk.maxHp, 101);
+        check("lanternkey_knight_strength", mk.strength, 6);
+        check("lanternkey_knight_plating",
+              mk.power[static_cast<int>(PowerId::PLATING)], 6);
+        const int initial = mk.move;  // FlailKnight starts on RAM.
+        check("lanternkey_knight_initial_ram", initial, 3);
+        k.battle.monsters[0].hp = 0;
+        k.battle.monsters[0].alive = false;
+        k.battle.outcome = Outcome::PLAYER_VICTORY;
+        k.finish_combat();
+        check("lanternkey_reward_screen", k.screen == RunScreen::REWARDS, 1);
+        check("lanternkey_standard_gold",
+              k.pendingGoldReward >= 10 && k.pendingGoldReward <= 20, 1);
+        check("lanternkey_standard_cards", k.rewardCardCounts[0], 3);
+        check("lanternkey_standard_card_pending", k.rewardCardPending[0], 1);
+        check("lanternkey_special_card_pending", k.pendingCardReward, 1);
+        check("lanternkey_special_card_count", k.rewardCardCounts[1], 1);
+        check("lanternkey_special_card_pending_slot", k.rewardCardPending[1], 1);
+        check("lanternkey_special_card_id",
+              static_cast<int>(k.rewardCards[1][0].id),
+              static_cast<int>(CardId::LANTERN_KEY));
+        check("lanternkey_event_done", k.eventId, -1);
+
+        // A8+ scales the inherited FlailKnight initial HP to 108.
+        RunContext a;
+        a.init(930242, 0);
+        a.ascension = 8;
+        event_begin(a, event_id("THE_LANTERN_KEY"), false);
+        event_choose(a, 1);
+        event_choose(a, 0);
+        check("lanternkey_a8_knight_hp", a.battle.monsters[0].maxHp, 108);
+    }
+
+    // ------------------------------ StoneOfAllTime
+    // C#: NextItem(Player.Potions) picks among non-null physical slots; Lift
+    // discards that potion (leaving the slot empty) and gains 10 max HP.
+    {
+        RunContext r;
+        r.init(930260, 0);
+        r.act = 1;
+        r.potionSlots = 3;
+        r.potions[0] = 0;
+        r.potions[1] = static_cast<int>(PotionId::FOUL_POTION);
+        r.potions[2] = 0;
+        r.potionCount = 1;
+        event_begin(r, event_id("STONE_OF_ALL_TIME"), false);
+        check("stone_potion_index_nonnull", r.eventData[0], 0);
+        event_choose(r, 0);
+        check("stone_lift_slot_cleared", r.potions[1], 0);
+        check("stone_lift_empty_slot_kept", r.potions[0], 0);
+        check("stone_lift_potion_count", r.potionCount, 0);
+        check("stone_lift_max_hp", r.maxHp, 90);
+        check("stone_lift_finished", r.eventId, -1);
+    }
+
+    // ------------------------------ DenseVegetation / BrainLeech
+    // DenseVegetation: gold 61..99, TRUDGE_ON loses 8 and gains it; Rest heals
+    // 30% max HP before offering the fight. BrainLeech: ShareKnowledge picks 1
+    // of 5 noncombat Ironclad cards; Rip loses 5 HP and offers 3 colorless.
+    {
+        RunContext d;
+        d.init(930270, 0);
+        event_begin(d, event_id("DENSE_VEGETATION"), false);
+        const int rolled = d.eventData[0];
+        check("dense_vegetation_gold_range", rolled >= 61 && rolled <= 99, 1);
+        const int hp = d.hp, gold = d.gold;
+        event_choose(d, 0);
+        check("dense_vegetation_trudge_hp", d.hp, hp - 8);
+        check("dense_vegetation_trudge_gold", d.gold, gold + rolled);
+        check("dense_vegetation_trudge_done", d.eventId, -1);
+
+        RunContext b;
+        b.init(930271, 0);
+        event_begin(b, event_id("BRAIN_LEECH"), false);
+        event_choose(b, 0);
+        check("brain_leech_grid_kind", b.cardGrid.kind, 1);
+        check("brain_leech_grid_candidates", b.cardGrid.count, 5);
+        check("brain_leech_grid_select_one", b.cardGrid.minSelect, 1);
+        check("brain_leech_grid_max_one", b.cardGrid.maxSelect, 1);
+
+        RunContext c;
+        c.init(930272, 0);
+        const int ripHp = c.hp;
+        event_begin(c, event_id("BRAIN_LEECH"), false);
+        event_choose(c, 1);
+        check("brain_leech_rip_hp", c.hp, ripHp - 5);
+        check("brain_leech_rip_card_reward", c.pendingCardReward, 1);
+        check("brain_leech_rip_cards", c.rewardCardCounts[0], 3);
+        check("brain_leech_rip_done", c.eventId, -1);
+    }
+
+    // ------------------------------ PotionCourier / SpiritGrafter
+    // PotionCourier: GrabPotions offers three fixed FoulPotions; Ransack picks
+    // one random uncommon character/shared potion via the rewards RNG.
+    // SpiritGrafter: LetItIn heals 25 and adds Metamorphosis; Rejection upgrades
+    // one card then takes 10 unblockable/unpowered damage.
+    {
+        RunContext p;
+        p.init(930273, 0);
+        p.act = 1;
+        event_begin(p, event_id("POTION_COURIER"), false);
+        event_choose(p, 0);
+        check("potion_courier_foul_count", p.pendingPotionCount, 3);
+        check("potion_courier_foul_ids",
+              p.pendingPotions[0] == static_cast<int>(PotionId::FOUL_POTION) &&
+              p.pendingPotions[1] == static_cast<int>(PotionId::FOUL_POTION) &&
+              p.pendingPotions[2] == static_cast<int>(PotionId::FOUL_POTION), 1);
+
+        RunContext q;
+        q.init(930274, 0);
+        q.act = 1;
+        event_begin(q, event_id("POTION_COURIER"), false);
+        const std::int64_t counter = q.playerRng[PRNG_REWARDS].counter;
+        event_choose(q, 1);
+        check("potion_courier_ransack_rng",
+              q.playerRng[PRNG_REWARDS].counter > counter, 1);
+        check("potion_courier_ransack_reward", q.pendingPotionCount, 1);
+        check("potion_courier_ransack_uncommon",
+              potion_def(static_cast<PotionId>(q.pendingPotions[0])).rarity ==
+                  Rarity::UNCOMMON, 1);
+
+        RunContext s;
+        s.init(930275, 0);
+        s.hp = 50;
+        const int deck = s.deckCount;
+        event_begin(s, event_id("SPIRIT_GRAFTER"), false);
+        event_choose(s, 0);
+        check("spirit_grafter_letit_hp", s.hp, 75);
+        check("spirit_grafter_letit_card", s.deckCount, deck + 1);
+        check("spirit_grafter_letit_id",
+              static_cast<int>(s.deck[deck].id),
+              static_cast<int>(CardId::METAMORPHOSIS));
+
+        RunContext t;
+        t.init(930276, 0);
+        t.hp = 60;
+        event_begin(t, event_id("SPIRIT_GRAFTER"), false);
+        event_choose(t, 1);
+        check("spirit_grafter_rejection_selection", t.eventCardSelection, 5);
+        int target = -1;
+        for (int i = 0; i < t.deckCount; ++i)
+            if (event_card_selectable(t, i)) { target = i; break; }
+        check("spirit_grafter_rejection_target", target >= 0, 1);
+        event_select_card(t, target);
+        check("spirit_grafter_rejection_upgraded", t.deck[target].upgraded, 1);
+        check("spirit_grafter_rejection_hp", t.hp, 50);
+        check("spirit_grafter_rejection_done", t.eventId, -1);
+    }
+
+    // ------------------------------ Orobas
+    // C#: OptionPool3 offers TouchOfOrobas only with a Starter-rarity relic
+    // and ArchaicTooth only with Bash/Neutralize/Unleash/FallingStar/Dualcast
+    // in the deck; with neither, the third entry is a locked/disabled option.
+    {
+        RunContext o;
+        o.init(930280, 0);
+        event_begin(o, event_id("OROBAS"), false);
+        check("orobas_options", event_option_count(o), 3);
+        check("orobas_third_available_with_starter",
+              event_option_available(o, 2), 1);
+
+        RunContext l;
+        l.init(930281, 0);
+        l.relicCount = 0;
+        int write = 0;
+        for (int i = 0; i < l.deckCount; ++i) {
+            if (l.deck[i].id == CardId::BASH) continue;
+            l.deck[write++] = l.deck[i];
+        }
+        l.deckCount = write;
+        event_begin(l, event_id("OROBAS"), false);
+        check("orobas_third_locked", event_option_available(l, 2), 0);
+        check("orobas_locked_not_selectable", event_choose(l, 2), 0);
+    }
+
+    // ------------------------------ RanwidTheElder / RelicTrader
+    // C#: Ranwid needs act > 0, gold >= 100, a potion and a tradable relic;
+    // options trade the chosen potion / 100 gold / chosen relic. RelicTrader
+    // needs act > 0 and >= 5 tradable relics, offers three StableShuffle-picked
+    // trades and pulls the replacement relics up front.
+    {
+        RunContext r;
+        r.init(930220, 0);
+        r.act = 0;
+        r.gold = 150;
+        r.add_potion(PotionId::BLOCK_POTION);
+        r.add_relic(RelicId::ANCHOR);
+        check("ranwid_needs_act2",
+              event_is_allowed(r, event_id("RANWID_THE_ELDER")), 0);
+        r.act = 1;
+        check("ranwid_allowed", event_is_allowed(r, event_id("RANWID_THE_ELDER")), 1);
+        check("ranwid_starter_not_tradable",
+              relic_is_tradable(r, 0), 0);  // Burning Blood
+        event_begin(r, event_id("RANWID_THE_ELDER"), false);
+        check("ranwid_options", event_option_count(r), 3);
+        check("ranwid_potion_choice_slot", r.eventData[0] >= 0, 1);
+        check("ranwid_relic_choice_slot", r.eventData[1] >= 0, 1);
+        check("ranwid_relic_choice_tradable",
+              relic_is_tradable(r, r.eventData[1]), 1);
+
+        const int potions = r.potionCount;
+        const int relics = r.relicCount;
+        event_choose(r, 0);
+        check("ranwid_trade_potion_removed", r.potionCount, potions - 1);
+        check("ranwid_trade_potion_relic", r.relicCount, relics + 1);
+        check("ranwid_trade_finished", r.screen != RunScreen::EVENT, 1);
+
+        RunContext g;
+        g.init(930221, 0);
+        g.act = 1;
+        g.gold = 150;
+        g.add_potion(PotionId::BLOCK_POTION);
+        g.add_relic(RelicId::ANCHOR);
+        event_begin(g, event_id("RANWID_THE_ELDER"), false);
+        event_choose(g, 1);
+        check("ranwid_trade_gold", g.gold, 50);
+        check("ranwid_trade_gold_relic", g.relicCount, relics + 1);
+
+        RunContext x;
+        x.init(930222, 0);
+        x.act = 1;
+        x.gold = 150;
+        x.add_potion(PotionId::BLOCK_POTION);
+        x.add_relic(RelicId::ANCHOR);
+        event_begin(x, event_id("RANWID_THE_ELDER"), false);
+        const int tradedSlot = x.eventData[1];
+        const int tradedId = x.relics[tradedSlot];
+        const int relicCount = x.relicCount;
+        event_choose(x, 2);
+        check("ranwid_trade_relic_net", x.relicCount, relicCount + 1);
+        int tradedLeft = 0;
+        for (int i = 0; i < x.relicCount; ++i)
+            tradedLeft += x.relics[i] == tradedId ? 1 : 0;
+        check("ranwid_trade_relic_removed", tradedLeft, 0);
+    }
+    {
+        RunContext r;
+        r.init(930223, 0);
+        r.act = 1;
+        r.add_relic(RelicId::ANCHOR);
+        r.add_relic(RelicId::BLOOD_VIAL);
+        r.add_relic(RelicId::BAG_OF_PREPARATION);
+        r.add_relic(RelicId::LANTERN);
+        check("relic_trader_needs_five",
+              event_is_allowed(r, event_id("RELIC_TRADER")), 0);
+        r.add_relic(RelicId::MEAL_TICKET);
+        check("relic_trader_allowed",
+              event_is_allowed(r, event_id("RELIC_TRADER")), 1);
+        event_begin(r, event_id("RELIC_TRADER"), false);
+        check("relic_trader_options", event_option_count(r), 3);
+        check("relic_trader_choice_count", r.eventData[3], 3);
+        check("relic_trader_new_relics", r.eventRelics[0] != 0 &&
+              r.eventRelics[1] != 0 && r.eventRelics[2] != 0, 1);
+        const int ownedSlot = r.eventData[1];
+        const int oldId = r.relics[ownedSlot];
+        const RelicId newId = static_cast<RelicId>(r.eventRelics[1]);
+        const int count = r.relicCount;
+        event_choose(r, 1);
+        check("relic_trader_net_relics", r.relicCount, count);
+        bool found = false;
+        for (int i = 0; i < r.relicCount; ++i)
+            found |= static_cast<RelicId>(r.relics[i]) == newId;
+        check("relic_trader_obtained_new", found, 1);
+        bool oldFound = false;
+        for (int i = 0; i < r.relicCount; ++i)
+            oldFound |= r.relics[i] == oldId;
+        check("relic_trader_removed_old", oldFound, 0);
+    }
+
+    // ------------------------------ SelfHelpBook / WoodCarvings
+    // Sharp: +2 damage on Attack cards. Slither: playable non-X cards,
+    // random cost 0..3 each time drawn. SelfHelpBook offers the three
+    // enchantments that have targets; WoodCarvings transforms a Basic card to
+    // Peck/ToricToughness or enchants one card with Slither.
+    {
+        Card strike = Card{};
+        strike.id = CardId::STRIKE_IRONCLAD;
+        strike.uid = 1;
+        Card defend = Card{};
+        defend.id = CardId::DEFEND_IRONCLAD;
+        defend.uid = 2;
+        check("sharp_attack_allowed", card_can_enchant(strike, EnchantmentId::SHARP), 1);
+        check("sharp_skill_rejected", card_can_enchant(defend, EnchantmentId::SHARP), 0);
+        check("slither_strike_allowed", card_can_enchant(strike, EnchantmentId::SLITHER), 1);
+        Card whirlwind = Card{};
+        whirlwind.id = CardId::WHIRLWIND;
+        whirlwind.uid = 3;
+        check("slither_x_cost_rejected",
+              card_can_enchant(whirlwind, EnchantmentId::SLITHER), 0);
+
+        RunContext r;
+        r.init(930230, 0);
+        event_begin(r, event_id("SELF_HELP_BOOK"), false);
+        check("selfhelp_options", event_option_count(r), 3);
+        check("selfhelp_sharp_available", event_option_available(r, 0), 1);
+        check("selfhelp_swift_locked", event_option_available(r, 2), 0);
+        event_choose(r, 0);
+        check("selfhelp_sharp_selection", r.eventCardSelection, 7);
+        int attack = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { attack = i; break; }
+        event_select_card(r, attack);
+        check("selfhelp_sharp_applied",
+              static_cast<int>(r.deck[attack].enchantment),
+              static_cast<int>(EnchantmentId::SHARP));
+        check("selfhelp_sharp_amount", r.deck[attack].enchantmentAmount, 2);
+        check("selfhelp_finished", r.screen != RunScreen::EVENT, 1);
+
+        RunContext e;
+        e.init(930231, 0);
+        e.deckCount = 0;
+        event_begin(e, event_id("SELF_HELP_BOOK"), false);
+        check("selfhelp_no_targets_single_option", event_option_count(e), 1);
+        event_choose(e, 0);
+        check("selfhelp_skip_finished", e.screen != RunScreen::EVENT, 1);
+    }
+    {
+        RunContext r;
+        r.init(930232, 0);
+        check("woodcarvings_allowed",
+              event_is_allowed(r, event_id("WOOD_CARVINGS")), 1);
+        event_begin(r, event_id("WOOD_CARVINGS"), false);
+        check("woodcarvings_options", event_option_count(r), 3);
+        check("woodcarvings_snake_available", event_option_available(r, 1), 1);
+        const int deck = r.deckCount;
+        event_choose(r, 0);
+        check("woodcarvings_bird_selection", r.eventCardSelection, 4);
+        int basic = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { basic = i; break; }
+        event_select_card(r, basic);
+        check("woodcarvings_bird_deck_size", r.deckCount, deck);
+        check("woodcarvings_bird_card", static_cast<int>(r.deck[deck - 1].id),
+              static_cast<int>(CardId::PECK));
+
+        RunContext t;
+        t.init(930233, 0);
+        event_begin(t, event_id("WOOD_CARVINGS"), false);
+        event_choose(t, 2);
+        const int tdeck = t.deckCount;
+        int tbasic = -1;
+        for (int i = 0; i < t.deckCount; ++i)
+            if (event_card_selectable(t, i)) { tbasic = i; break; }
+        event_select_card(t, tbasic);
+        check("woodcarvings_torus_card",
+              static_cast<int>(t.deck[tdeck - 1].id),
+              static_cast<int>(CardId::TORIC_TOUGHNESS));
+
+        RunContext s;
+        s.init(930234, 0);
+        event_begin(s, event_id("WOOD_CARVINGS"), false);
+        event_choose(s, 1);
+        check("woodcarvings_snake_selection", s.eventCardSelection, 10);
+        int target = -1;
+        for (int i = 0; i < s.deckCount; ++i)
+            if (event_card_selectable(s, i)) { target = i; break; }
+        event_select_card(s, target);
+        check("woodcarvings_snake_applied",
+              static_cast<int>(s.deck[target].enchantment),
+              static_cast<int>(EnchantmentId::SLITHER));
+        check("woodcarvings_snake_finished", s.screen != RunScreen::EVENT, 1);
+    }
+
+    // ------------------------------ PerfectFit / SoulsPower / Corrupted
+    {
+        Card strike = Card{};
+        strike.id = CardId::STRIKE_IRONCLAD;
+        strike.uid = 1;
+        Card skill = Card{};
+        skill.id = CardId::DEFEND_IRONCLAD;
+        skill.uid = 2;
+        check("perfectfit_attack_allowed",
+              card_can_enchant(strike, EnchantmentId::PERFECT_FIT), 1);
+        check("corrupted_attack_allowed",
+              card_can_enchant(strike, EnchantmentId::CORRUPTED), 1);
+        check("corrupted_skill_rejected",
+              card_can_enchant(skill, EnchantmentId::CORRUPTED), 0);
+
+        // Find an exhaustible playable card for SoulsPower.
+        Card exhaustCard{};
+        bool foundExhaust = false;
+        for (int id = 1; id < static_cast<int>(CardId::COUNT) && !foundExhaust; ++id) {
+            Card c{};
+            c.id = static_cast<CardId>(id);
+            if (card_has(c, CF_EXHAUST) && card_is_playable(c) &&
+                card_def(c.id).type != CardType::CURSE &&
+                card_def(c.id).type != CardType::STATUS) {
+                exhaustCard = c;
+                foundExhaust = true;
+            }
+        }
+        check("soulspower_exhaust_target_found", foundExhaust, 1);
+        check("soulspower_exhaust_allowed",
+              card_can_enchant(exhaustCard, EnchantmentId::SOULS_POWER), 1);
+        check("soulspower_strike_rejected",
+              card_can_enchant(strike, EnchantmentId::SOULS_POWER), 0);
+        check("soulspower_removes_keyword",
+              card_has(exhaustCard, CF_EXHAUST), 1);
+        card_apply_enchantment(exhaustCard, EnchantmentId::SOULS_POWER, 1);
+        check("soulspower_keyword_gone", card_has(exhaustCard, CF_EXHAUST), 0);
+    }
+    {
+        RunContext r;
+        r.init(930240, 0);
+        check("fieldholes_allowed",
+              event_is_allowed(r, event_id("FIELD_OF_MAN_SIZED_HOLES")), 1);
+        event_begin(r, event_id("FIELD_OF_MAN_SIZED_HOLES"), false);
+        check("fieldholes_options", event_option_count(r), 2);
+        event_choose(r, 1);
+        check("fieldholes_perfectfit_selection", r.eventCardSelection, 11);
+        int idx = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { idx = i; break; }
+        event_select_card(r, idx);
+        check("fieldholes_perfectfit_applied",
+              static_cast<int>(r.deck[idx].enchantment),
+              static_cast<int>(EnchantmentId::PERFECT_FIT));
+
+        RunContext k;
+        k.init(930241, 0);
+        event_begin(k, event_id("FIELD_OF_MAN_SIZED_HOLES"), false);
+        const int deck = k.deckCount;
+        event_choose(k, 0);
+        check("fieldholes_resist_selection", k.eventCardSelection, 6);
+        check("fieldholes_resist_count", k.eventData[1], 2);
+        int a = -1;
+        for (int i = 0; i < k.deckCount; ++i)
+            if (event_card_selectable(k, i)) { a = i; break; }
+        event_select_card(k, a);
+        check("fieldholes_resist_still_open", k.eventCardSelection, 6);
+        int b = -1;
+        for (int i = 0; i < k.deckCount; ++i)
+            if (event_card_selectable(k, i)) { b = i; break; }
+        event_select_card(k, b);
+        check("fieldholes_resist_deck_net", k.deckCount, deck - 1);
+        check("fieldholes_normality",
+              static_cast<int>(k.deck[k.deckCount - 1].id),
+              static_cast<int>(CardId::NORMALITY));
+        check("fieldholes_finished", k.screen != RunScreen::EVENT, 1);
+    }
+    {
+        RunContext r;
+        r.init(930242, 0);
+        r.add_card_to_deck(r.make_run_card(CardId::OFFERING, false));
+        r.add_card_to_deck(r.make_run_card(CardId::OFFERING, false));
+        check("grave_allowed_with_exhaust",
+              event_is_allowed(r, event_id("GRAVE_OF_THE_FORGOTTEN")), 1);
+        event_begin(r, event_id("GRAVE_OF_THE_FORGOTTEN"), false);
+        check("grave_confront_available", event_option_available(r, 0), 1);
+        event_choose(r, 0);
+        check("grave_decay_added",
+              static_cast<int>(r.deck[r.deckCount - 1].id),
+              static_cast<int>(CardId::DECAY));
+        check("grave_souls_selection", r.eventCardSelection, 11);
+        int idx = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { idx = i; break; }
+        event_select_card(r, idx);
+        int chosen = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (r.deck[i].enchantment == EnchantmentId::SOULS_POWER) chosen = i;
+        check("grave_souls_applied", chosen >= 0, 1);
+        check("grave_souls_card",
+              static_cast<int>(r.deck[chosen].id),
+              static_cast<int>(CardId::OFFERING));
+        check("grave_souls_no_exhaust", card_has(r.deck[chosen], CF_EXHAUST), 0);
+
+        RunContext a;
+        a.init(930243, 0);
+        a.add_card_to_deck(a.make_run_card(CardId::OFFERING, false));
+        event_begin(a, event_id("GRAVE_OF_THE_FORGOTTEN"), false);
+        event_choose(a, 1);
+        bool hasSoul = false;
+        for (int i = 0; i < a.relicCount; ++i)
+            hasSoul |= static_cast<RelicId>(a.relics[i]) == RelicId::FORGOTTEN_SOUL;
+        check("grave_accept_relic", hasSoul, 1);
+    }
+    {
+        RunContext r;
+        r.init(930244, 0);
+        r.act = 0;
+        check("symbiote_requires_act2",
+              event_is_allowed(r, event_id("SYMBIOTE")), 0);
+        r.act = 1;
+        check("symbiote_allowed_act2",
+              event_is_allowed(r, event_id("SYMBIOTE")), 1);
+        event_begin(r, event_id("SYMBIOTE"), false);
+        check("symbiote_options", event_option_count(r), 2);
+        check("symbiote_approach_available", event_option_available(r, 0), 1);
+        event_choose(r, 0);
+        check("symbiote_corrupted_selection", r.eventCardSelection, 11);
+        int idx = -1;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (event_card_selectable(r, i)) { idx = i; break; }
+        event_select_card(r, idx);
+        check("symbiote_corrupted_applied",
+              static_cast<int>(r.deck[idx].enchantment),
+              static_cast<int>(EnchantmentId::CORRUPTED));
+
+        RunContext k;
+        k.init(930245, 0);
+        k.act = 1;
+        event_begin(k, event_id("SYMBIOTE"), false);
+        const int deck = k.deckCount;
+        event_choose(k, 1);
+        check("symbiote_transform_selection", k.eventCardSelection, 4);
+        check("symbiote_transform_count", k.eventData[1], 2);
+        int x = -1;
+        for (int i = 0; i < k.deckCount; ++i)
+            if (event_card_selectable(k, i)) { x = i; break; }
+        event_select_card(k, x);
+        int y = -1;
+        for (int i = 0; i < k.deckCount; ++i)
+            if (event_card_selectable(k, i)) { y = i; break; }
+        event_select_card(k, y);
+        check("symbiote_transform_deck_size", k.deckCount, deck);
+        check("symbiote_transform_finished", k.screen != RunScreen::EVENT, 1);
+    }
+
+    // ------------------------------------------------- batch 11: Pael/Tanx
+    // Goopy (:132364): base CanEnchant plus the Defend tag; OnEnchant adds
+    // Exhaust; EnchantBlockAdditive is Amount - 1; AfterCardPlayed grows the
+    // play copy and its deck version.
+    {
+        check("goopy_accepts_defend",
+              card_can_enchant(make_card(CardId::DEFEND_IRONCLAD, false, 1), EnchantmentId::GOOPY), 1);
+        check("goopy_rejects_attack",
+              card_can_enchant(make_card(CardId::STRIKE_IRONCLAD, false, 1), EnchantmentId::GOOPY), 0);
+        Card goopy = make_card(CardId::DEFEND_IRONCLAD, false, 1);
+        goopy.enchantment = EnchantmentId::GOOPY;
+        check("goopy_adds_exhaust", card_has(goopy, CF_EXHAUST), 1);
+        check("plain_defend_has_no_exhaust",
+              card_has(make_card(CardId::DEFEND_IRONCLAD, false, 1), CF_EXHAUST), 0);
+    }
+    {
+        RunContext r;
+        r.init(940100, 0);
+        r.deckCount = 2;
+        r.deck[0] = r.make_run_card(CardId::DEFEND_IRONCLAD, false);
+        r.deck[1] = r.make_run_card(CardId::DEFEND_IRONCLAD, false);
+        card_apply_enchantment(r.deck[0], EnchantmentId::GOOPY, 1);
+        const std::uint16_t uid = r.deck[0].uid;
+        r.begin_combat(Encounter::SETUP_CEREMONIAL_BEAST_BOSS);
+        r.battle.handCount = r.battle.drawCount = r.battle.discardCount = r.battle.exhaustCount = 0;
+        r.battle.hand[r.battle.handCount++] = r.deck[0];
+        r.battle.player.energy = 10;
+        Action play_defend;
+        play_defend.type = ActionType::PLAY_CARD;
+        play_defend.hand = 0;
+        play_defend.target = 0;
+        check("goopy_play_block",
+              r.step_combat(play_defend) && r.battle.player.block == 5, 1);
+        check("goopy_play_exhausts", r.battle.exhaustCount, 1);
+        r.battle.outcome = Outcome::PLAYER_VICTORY;
+        r.finish_combat();
+        int deckAmount = 0;
+        for (int i = 0; i < r.deckCount; ++i)
+            if (r.deck[i].uid == uid) deckAmount = r.deck[i].enchantmentAmount;
+        check("goopy_deck_growth", deckAmount, 2);
+    }
+    {
+        // Instinct: powered attacks deal double damage.
+        BattleContext b = audit_base();
+        Card strike = make_card(CardId::STRIKE_IRONCLAD, false, b.nextUid++);
+        strike.enchantment = EnchantmentId::INSTINCT;
+        strike.enchantmentAmount = 1;
+        b.hand[b.handCount++] = strike;
+        const int hp = b.monsters[0].hp;
+        play(b, 0);
+        check("instinct_damage_doubled", hp - b.monsters[0].hp, 12);
+    }
+    {
+        // TriBoomerang.AfterObtained: enchant three Instinct-eligible deck
+        // cards (none other than Attacks).
+        RunContext r;
+        r.init(940101, 0);
+        check("tri_boomerang_obtain", r.add_relic(RelicId::TRI_BOOMERANG), 1);
+        check("tri_boomerang_selector", r.cardGrid.kind, 15);
+        int picked = 0;
+        for (int i = 0; i < r.deckCount && picked < 3; ++i) {
+            if (card_def(r.deck[i].id).type != CardType::ATTACK) continue;
+            picked += r.step({RunActionType::SELECT_GRID_CARD, i}) ? 1 : 0;
+        }
+        check("tri_boomerang_picks_three", picked, 3);
+        check("tri_boomerang_confirm",
+              r.step({RunActionType::CONFIRM_GRID_CARDS, 0}), 1);
+        int instinct = 0;
+        for (int i = 0; i < r.deckCount; ++i)
+            instinct += r.deck[i].enchantment == EnchantmentId::INSTINCT &&
+                        r.deck[i].enchantmentAmount == 1;
+        check("tri_boomerang_enchantments", instinct, 3);
+    }
+    {
+        // PaelsClaw.AfterObtained: every Goopy-enchantable deck card gains
+        // Goopy 1. Pael only offers it with at least three such cards.
+        RunContext r;
+        r.init(940102, 0);
+        r.deckCount = 3;
+        r.deck[0] = r.make_run_card(CardId::DEFEND_IRONCLAD, false);
+        r.deck[1] = r.make_run_card(CardId::DEFEND_IRONCLAD, false);
+        r.deck[2] = r.make_run_card(CardId::STRIKE_IRONCLAD, false);
+        check("paels_claw_obtain", r.add_relic(RelicId::PAELS_CLAW), 1);
+        check("paels_claw_defends",
+              r.deck[0].enchantment == EnchantmentId::GOOPY &&
+              r.deck[0].enchantmentAmount == 1 &&
+              r.deck[1].enchantment == EnchantmentId::GOOPY &&
+              r.deck[1].enchantmentAmount == 1, 1);
+        check("paels_claw_skips_attack", r.deck[2].enchantment == EnchantmentId::NONE, 1);
+    }
+
+    {
+        // WarHammer.AfterCombatVictory: only Elites trigger it; it upgrades
+        // exactly four upgradable cards using the Niche stream.
+        RunContext r;
+        r.init(940103, 0);
+        check("war_hammer_obtain", r.add_relic(RelicId::WAR_HAMMER), 1);
+        r.begin_combat(Encounter::SETUP_CEREMONIAL_BEAST_BOSS);
+        r.combatIsElite = true;
+        r.battle.outcome = Outcome::PLAYER_VICTORY;
+        r.finish_combat();
+        int upgraded = 0;
+        for (int i = 0; i < r.deckCount; ++i) upgraded += r.deck[i].upgraded ? 1 : 0;
+        check("war_hammer_upgrades_four", upgraded, 4);
+        RunContext normal;
+        normal.init(940104, 0);
+        check("war_hammer_normal_obtain", normal.add_relic(RelicId::WAR_HAMMER), 1);
+        normal.begin_combat(Encounter::SETUP_CEREMONIAL_BEAST_BOSS);
+        normal.battle.outcome = Outcome::PLAYER_VICTORY;
+        normal.finish_combat();
+        upgraded = 0;
+        for (int i = 0; i < normal.deckCount; ++i) upgraded += normal.deck[i].upgraded ? 1 : 0;
+        check("war_hammer_ignores_normal_combat", upgraded, 0);
+    }
+
+    // ------------------------------------------------- batch 12: Neow
+    // Neow.GenerateInitialOptions (:125527): curse NextItem over the ten
+    // IsAllowedAtNeow options, conflict removals, three ordered NextBool pairs,
+    // the IsAllowedAtNeow filter, then UnstableShuffle/take 2/append curse.
+    {
+        static const RelicId curseOptions[] = {
+            RelicId::CURSED_PEARL, RelicId::DOWSING_ROD, RelicId::HEFTY_TABLET,
+            RelicId::LARGE_CAPSULE, RelicId::LEAFY_POULTICE, RelicId::NEOWS_BONES,
+            RelicId::NEOWS_SACRIFICE, RelicId::PRECARIOUS_SHEARS,
+            RelicId::SILKEN_TRESS, RelicId::SILVER_CRUCIBLE};
+        static const RelicId positives[] = {
+            RelicId::ARCANE_SCROLL, RelicId::BOOMING_CONCH, RelicId::FISHING_ROD,
+            RelicId::GOLDEN_PEARL, RelicId::KALEIDOSCOPE, RelicId::LEAD_PAPERWEIGHT,
+            RelicId::LOST_COFFER, RelicId::MASSIVE_SCROLL, RelicId::NEOWS_TORMENT,
+            RelicId::NEW_LEAF, RelicId::PHIAL_HOLSTER, RelicId::PRECISE_SCISSORS,
+            RelicId::SCROLL_BOXES, RelicId::WINGED_BOOTS};
+        for (const std::uint64_t seed : {std::uint64_t{1}, std::uint64_t{7},
+                                          std::uint64_t{424242}}) {
+            RunContext r;
+            r.init(seed, 0);
+            event_begin(r, event_id("NEOW"), true);
+            Rng expect(r.seed, "NEOW");
+            RelicId curses[10];
+            int cn = 0;
+            for (const RelicId id : curseOptions)
+                if (neow_relic_allowed(r, id)) curses[cn++] = id;
+            const RelicId curse = curses[expect.next_int(0, cn - 1)];
+            RelicId list[20];
+            int n = 0;
+            for (const RelicId id : positives) {
+                if (curse == RelicId::CURSED_PEARL && id == RelicId::GOLDEN_PEARL) continue;
+                if (curse == RelicId::HEFTY_TABLET && id == RelicId::ARCANE_SCROLL) continue;
+                if (curse == RelicId::LEAFY_POULTICE && id == RelicId::NEW_LEAF) continue;
+                if (curse == RelicId::PRECARIOUS_SHEARS && id == RelicId::PRECISE_SCISSORS) continue;
+                if (curse == RelicId::NEOWS_SACRIFICE &&
+                    (id == RelicId::PHIAL_HOLSTER || id == RelicId::LOST_COFFER)) continue;
+                list[n++] = id;
+            }
+            if (curse != RelicId::LARGE_CAPSULE)
+                list[n++] = expect.next_bool() ? RelicId::LAVA_ROCK : RelicId::SMALL_CAPSULE;
+            list[n++] = expect.next_bool() ? RelicId::NUTRITIOUS_OYSTER
+                                           : RelicId::STONE_HUMIDIFIER;
+            list[n++] = expect.next_bool() ? RelicId::NEOWS_TALISMAN : RelicId::POMANDER;
+            int m = 0;
+            for (int i = 0; i < n; ++i)
+                if (neow_relic_allowed(r, list[i])) list[m++] = list[i];
+            for (int i = m - 1; i > 0; --i) {
+                const int j = expect.next_int(0, i);
+                const RelicId t = list[i]; list[i] = list[j]; list[j] = t;
+            }
+            check("neow_option_a", r.eventRelics[0], static_cast<int>(list[0]));
+            check("neow_option_b", r.eventRelics[1], static_cast<int>(list[1]));
+            check("neow_option_curse", r.eventRelics[2], static_cast<int>(curse));
+        }
+    }
+    {
+        // neow_relic_options order and filtering (AllPossibleOptions order).
+        RunContext r;
+        r.init(1, 0);
+        RelicId options[32];
+        const int n = neow_relic_options(r, options, 32, true);
+        check("neow_options_include_dowsing",
+              options[1] == RelicId::DOWSING_ROD, 1);
+        check("neow_options_exclude_bones",
+              options[5] == RelicId::NEOWS_SACRIFICE, 1);
+        int massive = 0;
+        for (int i = 0; i < n; ++i) massive += options[i] == RelicId::MASSIVE_SCROLL;
+        check("neow_options_exclude_multiplayer", massive, 0);
+    }
+    {
+        RunContext r;
+        r.init(940200, 0);
+        const int before = r.deckCount;
+        check("dowsing_rod_obtain", r.add_relic(RelicId::DOWSING_ROD), 1);
+        int dowsing = 0;
+        for (int i = 0; i < r.deckCount; ++i) dowsing += r.deck[i].id == CardId::DOWSING;
+        check("dowsing_rod_adds_card", dowsing, 1);
+        check("dowsing_rod_deck_count", r.deckCount, before + 1);
+    }
+    {
+        RunContext r;
+        r.init(940201, 0);
+        check("neows_talisman_obtain", r.add_relic(RelicId::NEOWS_TALISMAN), 1);
+        int upgradedStrike = 0, upgradedDefend = 0, other = 0;
+        for (int i = 0; i < r.deckCount; ++i) {
+            if (!r.deck[i].upgraded) continue;
+            if (card_def(r.deck[i].id).rarity != Rarity::BASIC) { ++other; continue; }
+            if (card_is_strike(r.deck[i])) ++upgradedStrike;
+            else if (card_is_defend(r.deck[i])) ++upgradedDefend;
+            else ++other;
+        }
+        check("neows_talisman_strike", upgradedStrike, 1);
+        check("neows_talisman_defend", upgradedDefend, 1);
+        check("neows_talisman_only_basics", other, 0);
+    }
+    {
+        RunContext r;
+        r.init(940202, 0);
+        check("neows_sacrifice_obtain", r.add_relic(RelicId::NEOWS_SACRIFICE), 1);
+        check("neows_sacrifice_potion", r.potionCount, 1);
+        check("neows_sacrifice_ambergris",
+              r.potionCount == 1 && r.potions[0] == static_cast<int>(PotionId::AMBERGRIS), 1);
+        int guilty = 0;
+        for (int i = 0; i < r.deckCount; ++i) guilty += r.deck[i].id == CardId::GUILTY;
+        check("neows_sacrifice_guilty", guilty, 1);
+    }
+    {
+        RunContext r;
+        r.init(940203, 0);
+        const int slots = r.potionSlots;
+        check("phial_holster_obtain", r.add_relic(RelicId::PHIAL_HOLSTER), 1);
+        check("phial_holster_slot", r.potionSlots, slots + 1);
+        check("phial_holster_potions", r.potionCount, 2);
+    }
+    {
+        // HeftyTablet: three Rare candidates, optional choose-one, chosen card
+        // plus Injury. CardFactory.CreateForReward uses Uniform odds and
+        // NoUpgradeRoll; CordSelectCmd allows skipping.
+        RunContext r;
+        r.init(940204, 0);
+        const int before = r.deckCount;
+        check("hefty_tablet_obtain", r.add_relic(RelicId::HEFTY_TABLET), 1);
+        check("hefty_tablet_selector", r.cardGrid.kind, 16);
+        check("hefty_tablet_candidates", r.cardGrid.count, 3);
+        int rare = 0;
+        for (int i = 0; i < r.cardGrid.count; ++i)
+            rare += card_def(r.cardGrid.cards[i].id).rarity == Rarity::RARE;
+        check("hefty_tablet_all_rare", rare, 3);
+        const std::uint16_t chosenUid = r.cardGrid.cards[0].uid;
+        check("hefty_tablet_select", r.step({RunActionType::SELECT_GRID_CARD, 0}), 1);
+        int injury = 0, chosen = 0;
+        for (int i = 0; i < r.deckCount; ++i) {
+            injury += r.deck[i].id == CardId::INJURY;
+            chosen += r.deck[i].uid == chosenUid;
+        }
+        check("hefty_tablet_adds_two", r.deckCount, before + 2);
+        check("hefty_tablet_injury", injury, 1);
+        check("hefty_tablet_chosen", chosen, 1);
+
+        RunContext skip;
+        skip.init(940205, 0);
+        const int skipBefore = skip.deckCount;
+        check("hefty_tablet_skip_obtain", skip.add_relic(RelicId::HEFTY_TABLET), 1);
+        check("hefty_tablet_skip_confirm",
+              skip.step({RunActionType::CONFIRM_GRID_CARDS, 0}), 1);
+        injury = 0;
+        for (int i = 0; i < skip.deckCount; ++i) injury += skip.deck[i].id == CardId::INJURY;
+        check("hefty_tablet_skip_only_injury", skip.deckCount, skipBefore + 1);
+        check("hefty_tablet_skip_injury", injury, 1);
+    }
+    {
+        // NeowsBones: two required relic rewards from the Neow option pool and
+        // one generatable curse drawn from Rng.Niche.
+        RunContext r;
+        r.init(940206, 0);
+        const int before = r.deckCount;
+        check("neows_bones_obtain", r.add_relic(RelicId::NEOWS_BONES), 1);
+        check("neows_bones_rewards", r.pendingRelicCount, 2);
+        check("neows_bones_required",
+              r.pendingRelicRequired[0] && r.pendingRelicRequired[1], 1);
+        RelicId options[32];
+        const int n = neow_relic_options(r, options, 32, true);
+        int valid = 0;
+        for (int i = 0; i < r.pendingRelicCount; ++i) {
+            const auto id = static_cast<RelicId>(r.pendingRelics[i]);
+            for (int j = 0; j < n; ++j) valid += options[j] == id;
+        }
+        check("neows_bones_options_from_neow", valid, 2);
+        int curses = 0;
+        for (int i = 0; i < r.deckCount; ++i) {
+            const CardId id = r.deck[i].id;
+            curses += id == CardId::CLUMSY || id == CardId::DEBT || id == CardId::DECAY ||
+                      id == CardId::DOUBT || id == CardId::GUILTY || id == CardId::INJURY ||
+                      id == CardId::NORMALITY || id == CardId::REGRET || id == CardId::SHAME ||
+                      id == CardId::WRITHE;
+        }
+        check("neows_bones_curse", r.deckCount, before + 1);
+        check("neows_bones_generatable_curse", curses >= 1, 1);
+    }
+    {
+        // Kaleidoscope: two CardRewards of three cards, each from a distinct
+        // non-Ironclad character pool (Rng.Niche pool shuffle).
+        RunContext r;
+        r.init(940207, 0);
+        check("kaleidoscope_obtain", r.add_relic(RelicId::KALEIDOSCOPE), 1);
+        int pending = 0;
+        for (int i = 0; i < MAX_CARD_REWARDS; ++i) pending += r.rewardCardPending[i];
+        check("kaleidoscope_rewards", pending, 2);
+        int sets = 0, distinct = 0, nonIronclad = 0;
+        for (int i = 0; i < MAX_CARD_REWARDS; ++i) {
+            if (!r.rewardCardPending[i]) continue;
+            ++sets;
+            bool used[16]{};
+            bool ok = r.rewardCardCounts[i] == 3;
+            for (int j = 0; j < r.rewardCardCounts[i]; ++j) {
+                const CardPool pool = card_def(r.rewardCards[i][j].id).pool;
+                ok = ok && pool != CardPool::IRONCLAD && !used[static_cast<int>(pool)];
+                used[static_cast<int>(pool)] = true;
+            }
+            distinct += ok;
+            for (int j = 0; j < r.rewardCardCounts[i]; ++j)
+                nonIronclad += card_def(r.rewardCards[i][j].id).pool != CardPool::IRONCLAD;
+        }
+        check("kaleidoscope_two_sets", sets, 2);
+        check("kaleidoscope_distinct_pools", distinct, 2);
+        check("kaleidoscope_cross_character", nonIronclad, 6);
+    }
+    {
+        // FishingRod: count Monster-room victories; every third upgrades one
+        // Niche-selected upgradable card.
+        RunContext r;
+        r.init(940208, 0);
+        check("fishing_rod_obtain", r.add_relic(RelicId::FISHING_ROD), 1);
+        int upgrades = 0;
+        for (int i = 0; i < r.deckCount; ++i) upgrades += r.deck[i].upgraded ? 1 : 0;
+        relics_combat_end(r, true, false);
+        relics_combat_end(r, true, false);
+        int afterTwo = 0;
+        for (int i = 0; i < r.deckCount; ++i) afterTwo += r.deck[i].upgraded ? 1 : 0;
+        check("fishing_rod_two_combats", afterTwo, upgrades);
+        relics_combat_end(r, true, false);
+        int afterThree = 0;
+        for (int i = 0; i < r.deckCount; ++i) afterThree += r.deck[i].upgraded ? 1 : 0;
+        check("fishing_rod_third_combat", afterThree, upgrades + 1);
+        // Native counts every room whose Encounter.RoomType is Monster; all
+        // event encounters (DenseVegetation, MysteriousKnight, BattlewornDummy,
+        // PunchOff) report Monster, while Elite/Boss rooms do not count.
+        int rodSlot = -1;
+        for (int i = 0; i < r.relicCount; ++i)
+            if (r.relics[i] == static_cast<int>(RelicId::FISHING_ROD)) rodSlot = i;
+        check("fishing_rod_slot", rodSlot >= 0, 1);
+        relics_combat_end(r, true, true);  // boss room
+        check("fishing_rod_boss_ignored", r.relicAux[rodSlot], 3);
+        r.combatIsElite = true;
+        relics_combat_end(r, true, false);  // elite room
+        r.combatIsElite = false;
+        check("fishing_rod_elite_ignored", r.relicAux[rodSlot], 3);
+        RunContext ev;
+        ev.init(940210, 0);
+        check("fishing_rod_event_obtain", ev.add_relic(RelicId::FISHING_ROD), 1);
+        ev.eventCombat = true;
+        int evUpgrades = 0;
+        for (int i = 0; i < ev.deckCount; ++i) evUpgrades += ev.deck[i].upgraded ? 1 : 0;
+        for (int i = 0; i < 3; ++i) relics_combat_end(ev, true, false);
+        int evAfter = 0;
+        for (int i = 0; i < ev.deckCount; ++i) evAfter += ev.deck[i].upgraded ? 1 : 0;
+        check("fishing_rod_event_monster_counts", evAfter, evUpgrades + 1);
+    }
+    {
+        // WingedBoots: the next row is fully travelable and a non-child edge
+        // consumes one of the three uses.
+        RunContext r;
+        r.init(940209, 0);
+        check("winged_boots_obtain", r.add_relic(RelicId::WINGED_BOOTS), 1);
+        int freeRowNodes = 0;
+        for (int c = 0; c < MAP_WIDTH; ++c) freeRowNodes += r.map.at(r.curRow + 1, c) >= 0;
+        int listed = 0;
+        const auto moves = r.available_map_nodes();
+        for (const int node : moves) {
+            for (int c = 0; c < MAP_WIDTH; ++c)
+                listed += r.map.at(r.curRow + 1, c) == node;
+        }
+        check("winged_boots_next_row", listed, freeRowNodes);
+        // Find any node whose next row contains a point that is not one of its
+        // ordinary children, then take that free edge from that node.
+        int fromNode = -1, freeNode = -1;
+        for (int node = 0; node < r.map.pointCount && freeNode < 0; ++node) {
+            int row = -1, col = -1;
+            for (int rr = 0; rr < MAP_MAX_ROWS && row < 0; ++rr)
+                for (int cc = 0; cc < MAP_WIDTH; ++cc)
+                    if (r.map.at(rr, cc) == node) { row = rr; col = cc; break; }
+            if (row < 0) continue;
+            for (int c = 0; c < MAP_WIDTH && freeNode < 0; ++c) {
+                const int next = r.map.at(row + 1, c);
+                if (next < 0) continue;
+                bool child = false;
+                for (int i = 0; i < r.map.nodes[node].childCount; ++i)
+                    child = child || r.map.nodes[node].children[i] == next;
+                if (!child) { fromNode = node; freeNode = next; }
+            }
+        }
+        check("winged_boots_free_edge_exists", freeNode >= 0, 1);
+        if (fromNode >= 0 && freeNode >= 0) {
+            for (int rr = 0; rr < MAP_MAX_ROWS; ++rr)
+                for (int cc = 0; cc < MAP_WIDTH; ++cc)
+                    if (r.map.at(rr, cc) == fromNode) { r.curRow = rr; r.curCol = cc; }
+            // The run opens on the Act Ancient event; travel happens from the
+            // map screen after it resolves.
+            r.screen = RunScreen::MAP;
+            r.eventId = -1;
+            check("winged_boots_free_move", r.step({RunActionType::MOVE, freeNode}), 1);
+            int uses = 0;
+            for (int i = 0; i < r.relicCount; ++i)
+                if (r.relics[i] == static_cast<int>(RelicId::WINGED_BOOTS)) uses = r.relicAux[i];
+            check("winged_boots_use_counted", uses, 1);
+        }
+    }
+    {
+        // Ambergris: heal 50% MaxHp and grant one extra player turn.
+        BattleContext b = base();
+        b.player.hp = 40;
+        b.apply_potion(PotionId::AMBERGRIS, 0);
+        check("ambergris_heal", b.player.hp, 40 + b.player.maxHp * 50 / 100);
+        check("ambergris_extra_turn", b.ambergrisExtraTurns, 1);
+        const int turn = b.turn;
+        b.end_player_turn();
+        check("ambergris_turn_taken", b.turn, turn + 1);
+        check("ambergris_consumed", b.ambergrisExtraTurns, 0);
+    }
+
+    // ------------------------------------------------- batch 13: MeatCleaver
+    // MeatCleaver.TryModifyRestSiteOptions adds CookRestSiteOption: enabled
+    // with >= 2 removable cards; remove exactly 2, then GainMaxHp 5.
+    {
+        RunContext r;
+        r.init(940300, 0);
+        check("meat_cleaver_obtain", r.add_relic(RelicId::MEAT_CLEAVER), 1);
+        r.screen = RunScreen::REST;
+        int cook = 0;
+        for (const auto &a : r.legal_actions())
+            cook += static_cast<int>(a.type) == static_cast<int>(RunActionType::REST_COOK);
+        check("cook_rest_option", cook, 1);
+        const int before = r.deckCount;
+        const int maxHp = r.maxHp;
+        check("cook_begin", r.step({RunActionType::REST_COOK, 0}), 1);
+        check("cook_selector", r.cardGrid.kind, 17);
+        check("cook_select_first", r.step({RunActionType::SELECT_GRID_CARD, 0}), 1);
+        check("cook_select_second", r.step({RunActionType::SELECT_GRID_CARD, 1}), 1);
+        check("cook_removes_two", r.deckCount, before - 2);
+        check("cook_max_hp", r.maxHp, maxHp + 5);
+        check("cook_ends_rest", r.screen == RunScreen::MAP, 1);
+
+        RunContext cancel;
+        cancel.init(940301, 0);
+        check("cook_cancel_obtain", cancel.add_relic(RelicId::MEAT_CLEAVER), 1);
+        cancel.screen = RunScreen::REST;
+        check("cook_cancel_begin", cancel.step({RunActionType::REST_COOK, 0}), 1);
+        check("cook_cancel", cancel.step({RunActionType::CANCEL_GRID_PREVIEW, 0}), 1);
+        check("cook_cancel_grid", cancel.cardGrid.kind, 0);
+        check("cook_cancel_deck", cancel.deckCount, before);
+
+        RunContext none;
+        none.init(940302, 0);
+        none.screen = RunScreen::REST;
+        cook = 0;
+        for (const auto &a : none.legal_actions())
+            cook += static_cast<int>(a.type) == static_cast<int>(RunActionType::REST_COOK);
+        check("cook_requires_relic", cook, 0);
+    }
+
+    // ------------------------------------------------- batch 14: TinkerTime
+    // TinkerTime.GenerateInitialOptions has one option; ChooseCardType and
+    // ChooseRiderEffect each offer TakeRandom(2, base.Rng) (UnstableShuffle,
+    // then Take). RiderChosen adds a MadScience with the chosen variant.
+    {
+        RunContext r;
+        r.init(940400, 0);
+        const int tinker = event_id("TINKER_TIME");
+        check("tinker_time_found", tinker >= 0, 1);
+        event_begin(r, tinker, false);
+        check("tinker_time_begin", r.screen == RunScreen::EVENT && r.eventId == tinker, 1);
+        check("tinker_time_page0_options", event_option_count(r), 1);
+        check("tinker_time_choose_type", r.step({RunActionType::EVENT_CHOICE, 0}), 1);
+        check("tinker_time_page1_options", event_option_count(r), 2);
+        const int firstType = r.eventData[0], secondType = r.eventData[1];
+        check("tinker_time_types_distinct", firstType != secondType, 1);
+        check("tinker_time_types_in_range", firstType >= 0 && firstType <= 2 &&
+                                             secondType >= 0 && secondType <= 2, 1);
+        check("tinker_time_choose_specific_type", r.step({RunActionType::EVENT_CHOICE, 0}), 1);
+        check("tinker_time_page2_options", event_option_count(r), 2);
+        const int rider0 = r.eventData[0], rider1 = r.eventData[1];
+        const int lo = firstType == 0 ? 1 : firstType == 1 ? 4 : 7;
+        check("tinker_time_riders_distinct", rider0 != rider1, 1);
+        check("tinker_time_riders_for_type",
+              rider0 >= lo && rider0 <= lo + 2 && rider1 >= lo && rider1 <= lo + 2, 1);
+        const int deckBefore = r.deckCount;
+        check("tinker_time_choose_rider", r.step({RunActionType::EVENT_CHOICE, 0}), 1);
+        check("tinker_time_adds_card", r.deckCount, deckBefore + 1);
+        const Card &added = r.deck[r.deckCount - 1];
+        check("tinker_time_card_id", static_cast<int>(added.id),
+              static_cast<int>(CardId::MAD_SCIENCE));
+        check("tinker_time_card_type", added.tinkerType, firstType);
+        check("tinker_time_card_rider", added.tinkerRider, rider0);
+    }
+    {
+        // MadScience base effects and riders (CardModel.Type/TargetType and
+        // OnPlay in the decompile).
+        auto mad = [](BattleContext &b, int type, int rider) {
+            Card c = make_card(CardId::MAD_SCIENCE, false, b.nextUid++);
+            c.tinkerType = static_cast<std::uint8_t>(type);
+            c.tinkerRider = static_cast<std::uint8_t>(rider);
+            b.hand[b.handCount++] = c;
+        };
+        {   // Attack + Violence: 12 damage three times, no extra rider.
+            BattleContext b = base();
+            const int hp0 = b.monsters[0].hp;
+            mad(b, 0, 2);
+            play(b);
+            check("mad_science_violence_damage", hp0 - b.monsters[0].hp, 36);
+        }
+        {   // Attack + Sapping: 12 damage then 2 Weak / 2 Vulnerable.
+            BattleContext b = base();
+            const int hp0 = b.monsters[0].hp;
+            mad(b, 0, 1);
+            play(b);
+            check("mad_science_sapping_damage", hp0 - b.monsters[0].hp, 12);
+            check("mad_science_sapping_weak", b.monsters[0].weak, 2);
+            check("mad_science_sapping_vulnerable", b.monsters[0].vulnerable, 2);
+        }
+        {   // Attack + Choking: StranglePower 6.
+            BattleContext b = base();
+            mad(b, 0, 3);
+            play(b);
+            check("mad_science_choking", b.monster_power(0, PowerId::STRANGLE), 6);
+        }
+        {   // Skill + Energized: 8 block and +2 energy (net +1 after cost).
+            BattleContext b = base();
+            mad(b, 1, 4);
+            play(b);
+            check("mad_science_skill_block", b.player.block, 8);
+            check("mad_science_energized_energy", b.player.energy, 21);
+        }
+        {   // Skill + Wisdom: draw 3.
+            BattleContext b = base();
+            for (int i = 0; i < 3; ++i)
+                b.draw[b.drawCount++] = make_card(CardId::DEFEND_IRONCLAD, false, b.nextUid++);
+            mad(b, 1, 5);
+            play(b);
+            check("mad_science_wisdom_draw", b.handCount, 3);
+        }
+        {   // Skill + Chaos: one free card from the character pool in hand.
+            BattleContext b = base();
+            mad(b, 1, 6);
+            play(b);
+            check("mad_science_chaos_hand", b.handCount, 1);
+            check("mad_science_chaos_free", b.handCount > 0 ? card_cost(b.hand[0]) : -1, 0);
+        }
+        {   // Power + Expertise: +2 Strength and +2 Dexterity.
+            BattleContext b = base();
+            mad(b, 2, 7);
+            play(b);
+            check("mad_science_expertise_strength", b.player_power(PowerId::STRENGTH), 2);
+            check("mad_science_expertise_dexterity", b.player_power(PowerId::DEXTERITY), 2);
+        }
+        {   // Power + Curious: Power cards cost 1 less.
+            BattleContext b = base();
+            mad(b, 2, 8);
+            play(b);
+            check("mad_science_curious_power", b.player_power(PowerId::CURIOUS), 1);
+            hand(b, CardId::INFLAME);
+            b.player.energy = 0;
+            int inflame = 0;
+            for (const Action &a : b.legal_actions())
+                if (a.type == ActionType::PLAY_CARD && b.hand[a.hand].id == CardId::INFLAME)
+                    ++inflame;
+            check("mad_science_curious_cost", inflame, 1);
+        }
+        {   // Power + Improvement: gains ImprovementPower for combat end.
+            BattleContext b = base();
+            mad(b, 2, 9);
+            play(b);
+            check("mad_science_improvement_power", b.player_power(PowerId::IMPROVEMENT), 1);
+        }
+        {   // ImprovementPower.AfterCombatEnd upgrades one random upgradable
+            // deck card per stack with the CombatCardSelection stream.
+            RunContext r;
+            r.init(940401, 0);
+            int before = 0;
+            for (int i = 0; i < r.deckCount; ++i) before += r.deck[i].upgraded ? 1 : 0;
+            r.begin_combat(Encounter::SETUP_CEREMONIAL_BEAST_BOSS);
+            r.battle.add_player_power(PowerId::IMPROVEMENT, 2);
+            r.battle.outcome = Outcome::PLAYER_VICTORY;
+            r.finish_combat();
+            int after = 0;
+            for (int i = 0; i < r.deckCount; ++i) after += r.deck[i].upgraded ? 1 : 0;
+            check("mad_science_improvement_upgrades", after, before + 2);
+        }
+    }
+
+    // ------------------------------------------------- batch 15: FakeMerchant
+    // BeforeEventStarted: UnstableShuffle the nine fake relics with the event
+    // Rng, take six, price at round(50 * PlayerRng.Shops.NextFloat(.85, 1.15)).
+    {
+        const int fake = event_id("FAKE_MERCHANT");
+        check("fake_merchant_found", fake >= 0, 1);
+        RunContext r;
+        r.init(940500, 1);  // act 2
+        event_begin(r, fake, false);
+        check("fake_merchant_screen", r.screen == RunScreen::EVENT, 1);
+        check("fake_merchant_leave_option", event_option_count(r), 1);
+        bool distinct = true;
+        for (int i = 0; i < RunContext::FAKE_MERCHANT_RELICS; ++i) {
+            const int id = r.fakeMerchantRelics[i];
+            check("fake_merchant_relic_inventory", id > 0 && id < static_cast<int>(RelicId::COUNT), 1);
+            check("fake_merchant_price_range",
+                  r.fakeMerchantPrices[i] >= 43 && r.fakeMerchantPrices[i] <= 58, 1);
+            for (int j = 0; j < i; ++j) distinct &= id != r.fakeMerchantRelics[j];
+        }
+        check("fake_merchant_distinct", distinct, 1);
+        // Buy one entry: gold drops by its price and the relic is obtained.
+        const int buy = 0;
+        r.gold = 1000;
+        const int relics0 = r.relicCount;
+        const int price = r.fakeMerchantPrices[buy];
+        const int baseGold = r.gold;
+        int listed = 0;
+        for (const auto &a : r.legal_actions())
+            listed += a.type == RunActionType::BUY_RELIC ? 1 : 0;
+        check("fake_merchant_buy_listed", listed, 6);
+        check("fake_merchant_buy", r.step({RunActionType::BUY_RELIC, buy}), 1);
+        check("fake_merchant_gold_spent", r.gold, baseGold - price);
+        check("fake_merchant_relic_gained", r.relicCount, relics0 + 1);
+        check("fake_merchant_sold", r.fakeMerchantSold[buy], 1);
+        listed = 0;
+        bool soldListed = false;
+        for (const auto &a : r.legal_actions()) {
+            if (a.type != RunActionType::BUY_RELIC) continue;
+            ++listed;
+            soldListed |= a.index == buy;
+        }
+        check("fake_merchant_sold_hidden", listed, 5);
+        check("fake_merchant_sold_not_buyable", soldListed ? 1 : 0, 0);
+        check("fake_merchant_leave", r.step({RunActionType::EVENT_CHOICE, 0}), 1);
+        check("fake_merchant_ends_room", r.eventId, -1);
+    }
+    {
+        // FoulPotionThrown: reward list is FakeMerchantsRug then every stocked
+        // entry; the encounter keeps normal monster rewards with 300 gold.
+        const int fake = event_id("FAKE_MERCHANT");
+        RunContext r;
+        r.init(940501, 2);
+        r.gold = 500;
+        r.add_potion(PotionId::FOUL_POTION);
+        event_begin(r, fake, false);
+        const int bought = 2;
+        check("fake_merchant_prebuy", r.step({RunActionType::BUY_RELIC, bought}), 1);
+        int slot = -1;
+        for (int i = 0; i < r.potionSlots; ++i)
+            if (r.potions[i] == static_cast<int>(PotionId::FOUL_POTION)) slot = i;
+        check("fake_merchant_foul_potion", slot >= 0, 1);
+        check("fake_merchant_throw", r.use_potion_out_of_combat(slot), 1);
+        check("fake_merchant_combat_screen", r.screen == RunScreen::COMBAT, 1);
+        check("fake_merchant_combat_encounter",
+              static_cast<int>(r.battle.encounter),
+              static_cast<int>(Encounter::SETUP_FAKE_MERCHANT));
+        r.battle.outcome = Outcome::PLAYER_VICTORY;
+        r.finish_combat();
+        check("fake_merchant_gold_reward", r.pendingGoldReward, 300);
+        check("fake_merchant_extra_relics", r.pendingRelicCount, 6);
+        check("fake_merchant_rug_reward",
+              r.pendingRelics[0], static_cast<int>(RelicId::FAKE_MERCHANTS_RUG));
+        bool includesBought = false;
+        for (int i = 0; i < r.pendingRelicCount; ++i)
+            includesBought |= r.pendingRelics[i] == r.fakeMerchantRelics[bought];
+        check("fake_merchant_bought_not_reward", includesBought ? 1 : 0, 0);
+        check("fake_merchant_event_ended", r.eventId, -1);
+    }
+
+    // ------------------------------------------------- batch 16: CrystalSphere
+    {
+        const int crystal = event_id("CRYSTAL_SPHERE");
+        check("crystal_sphere_found", crystal >= 0, 1);
+        RunContext r;
+        r.init(940600, 1);
+        r.gold = 200;
+        event_begin(r, crystal, false);
+        check("crystal_sphere_options", event_option_count(r), 2);
+        check("crystal_sphere_cost_range",
+              r.eventData[0] >= 51 && r.eventData[0] <= 99, 1);
+        const int deck0 = r.deckCount;
+        check("crystal_payment_plan", r.step({RunActionType::EVENT_CHOICE, 1}), 1);
+        check("crystal_payment_curse", r.deckCount, deck0 + 1);
+        check("crystal_payment_curse_id",
+              static_cast<int>(r.deck[r.deckCount - 1].id),
+              static_cast<int>(CardId::DEBT));
+        check("crystal_divinations", r.crystalDivinations, 6);
+        check("crystal_minigame_options", event_option_count(r), 0);
+        check("crystal_active", event_crystal_active(r) ? 1 : 0, 1);
+        // Initial fog: each corner plus its rook-neighbours two steps out.
+        int hidden = 0;
+        for (int i = 0; i < RunContext::CRYSTAL_GRID_W * RunContext::CRYSTAL_GRID_H; ++i)
+            hidden += r.crystalHidden[i] ? 1 : 0;
+        check("crystal_initial_hidden", hidden, 97);
+        check("crystal_items", r.crystalItemCount, 15);
+        int placed = 0, smallGold = -1, relicItem = -1;
+        for (int i = 0; i < r.crystalItemCount; ++i) {
+            placed += r.crystalItems[i].placed ? 1 : 0;
+            if (r.crystalItems[i].type == 7 && smallGold < 0) smallGold = i;
+            if (r.crystalItems[i].type == 0) relicItem = i;
+        }
+        check("crystal_all_placed", placed, 15);
+        check("crystal_small_gold_present", smallGold >= 0, 1);
+        check("crystal_relic_present", relicItem >= 0, 1);
+        // One small divination reveals a 1x1 gold item.
+        const int cell = r.crystalItems[smallGold].y * RunContext::CRYSTAL_GRID_W +
+                         r.crystalItems[smallGold].x;
+        check("crystal_small_divine", r.step({RunActionType::CRYSTAL_DIVINE, cell * 2}), 1);
+        check("crystal_gold_revealed", r.crystalItems[smallGold].revealed ? 1 : 0, 1);
+        check("crystal_divinations_left", r.crystalDivinations, 5);
+        // A Big divination clears the 3x3 around the cell.
+        int hidden0 = 0;
+        for (int i = 0; i < RunContext::CRYSTAL_GRID_W * RunContext::CRYSTAL_GRID_H; ++i)
+            hidden0 += r.crystalHidden[i] ? 1 : 0;
+        const int bx = 5, by = 5;
+        int expectedCleared = 0;
+        for (int dy = -1; dy <= 1; ++dy)
+            for (int dx = -1; dx <= 1; ++dx)
+                expectedCleared += r.crystalHidden[(by + dy) * RunContext::CRYSTAL_GRID_W + bx + dx];
+        check("crystal_big_divine",
+              r.step({RunActionType::CRYSTAL_DIVINE, (by * RunContext::CRYSTAL_GRID_W + bx) * 2 + 1}), 1);
+        int hidden1 = 0;
+        for (int i = 0; i < RunContext::CRYSTAL_GRID_W * RunContext::CRYSTAL_GRID_H; ++i)
+            hidden1 += r.crystalHidden[i] ? 1 : 0;
+        check("crystal_big_clears_nine", hidden0 - hidden1, expectedCleared);
+        // Spend the remaining divinations; the event hands out its rewards.
+        while (r.crystalDivinations > 0) {
+            const int target = (r.crystalDivinations % 2) ? cell * 2 + 1 : 0;
+            check("crystal_spend_divination", r.step({RunActionType::CRYSTAL_DIVINE, target}), 1);
+        }
+        check("crystal_event_ended", r.eventId, -1);
+        check("crystal_gold_reward", r.pendingGoldReward >= 10, 1);
+        check("crystal_rewards_screen", r.screen == RunScreen::REWARDS, 1);
+    }
+    {
+        // Reward construction order: relic rarity roll, then potion/card with
+        // the event Rng; gold amounts merge into the pending gold reward.
+        const int crystal = event_id("CRYSTAL_SPHERE");
+        RunContext r;
+        r.init(940601, 1);
+        r.gold = 200;
+        event_begin(r, crystal, false);
+        check("crystal_reward_start", r.step({RunActionType::EVENT_CHOICE, 1}), 1);
+        int relicItem = -1, cardItem = -1, potionItem = -1, goldItem = -1;
+        for (int i = 0; i < r.crystalItemCount; ++i) {
+            const int t = r.crystalItems[i].type;
+            if (t == 0) relicItem = i;
+            else if (t == 3) cardItem = i;
+            else if (t == 1) potionItem = i;
+            else if (t == 7) goldItem = i;
+        }
+        check("crystal_reward_items",
+              relicItem >= 0 && cardItem >= 0 && potionItem >= 0 && goldItem >= 0, 1);
+        r.crystalRevealed[0] = static_cast<std::uint8_t>(relicItem);
+        r.crystalRevealed[1] = static_cast<std::uint8_t>(cardItem);
+        r.crystalRevealed[2] = static_cast<std::uint8_t>(potionItem);
+        r.crystalRevealed[3] = static_cast<std::uint8_t>(goldItem);
+        r.crystalRevealedCount = 4;
+        r.crystalDivinations = 1;
+        check("crystal_reward_finish",
+              r.step({RunActionType::CRYSTAL_DIVINE, 0}), 1);
+        check("crystal_relic_reward", r.pendingRelicCount, 1);
+        check("crystal_relic_identity",
+              r.pendingRelics[0] > 0 &&
+              r.pendingRelics[0] < static_cast<int>(RelicId::COUNT), 1);
+        check("crystal_card_reward", r.pendingCardReward ? 1 : 0, 1);
+        check("crystal_card_reward_size", r.rewardCardCounts[0], 3);
+        check("crystal_potion_reward", r.pendingPotionCount, 1);
+        check("crystal_gold_amount", r.pendingGoldReward, 10);
+        check("crystal_reward_screen", r.screen == RunScreen::REWARDS, 1);
+    }
+    {
+        // UncoverFuture charges 50 + 1..49 gold and grants three divinations.
+        const int crystal = event_id("CRYSTAL_SPHERE");
+        RunContext r;
+        r.init(940602, 2);
+        r.gold = 200;
+        event_begin(r, crystal, false);
+        const int cost = r.eventData[0];
+        check("crystal_uncover", r.step({RunActionType::EVENT_CHOICE, 0}), 1);
+        check("crystal_uncover_gold", r.gold, 200 - cost);
+        check("crystal_uncover_divinations", r.crystalDivinations, 3);
+    }
+
+    // ------------------------------------------------- batch 17: encounter plan
+    {
+        // ActModel.GenerateRooms runs on Rng.UpFront: events are shuffled
+        // first, then the weak/regular/elite encounter bags, then Boss =
+        // rng.NextItem(AllBossEncounters) and the Ancient. MonsterAi is only
+        // the native monster-intent stream and must not select encounters.
+        RunContext r;
+        r.init(20261104, 0);
+        const int upBefore = static_cast<int>(r.runRng[RNG_UP_FRONT].counter);
+        const int aiBefore = static_cast<int>(r.runRng[RNG_MONSTER_AI].counter);
+        r.roll_act_rooms();
+        check("encounter_plan_uses_upfront",
+              static_cast<int>(r.runRng[RNG_UP_FRONT].counter) > upBefore, 1);
+        check("encounter_plan_ignores_monster_ai",
+              static_cast<int>(r.runRng[RNG_MONSTER_AI].counter), aiBefore);
+        // NumberOfWeakEncounters(Overgrowth)=3 and BaseNumberOfRooms=15; the
+        // elite bag is always filled 15 deep and RoomSet.NextNormalEncounter
+        // wraps by normalEncountersVisited % Count.
+        check("normal_bag_rooms", r.normalBagN, r.map.rooms);
+        check("elite_bag_depth", r.eliteBagN, 15);
+        check("normal_bag_first_is_weak",
+              std::strstr(encounter_def(r.normalBag[0]).key, "WEAK") != nullptr, 1);
+        // A room entry with no concrete pull is a generator invariant failure,
+        // not an invitation to draw a random encounter off MonsterAi.
+        bool threw = false;
+        try {
+            r.begin_combat(Encounter::INVALID);
+        } catch (const std::invalid_argument &) {
+            threw = true;
+        }
+        check("begin_combat_rejects_invalid", threw ? 1 : 0, 1);
     }
 
     std::cout << "SUMMARY checks=" << checks << " failures=" << failures << "\n";

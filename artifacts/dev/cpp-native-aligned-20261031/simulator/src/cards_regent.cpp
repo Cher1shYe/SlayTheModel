@@ -3,7 +3,7 @@
 namespace sts2 {
 namespace {
 void choose(BattleContext &b,Card &c,ChoiceOp op,ChoicePile pile,int n,bool optional=false) {
-    b.start_choice(op,pile,n,c,false,optional);
+    b.start_choice(op,pile,n,optional,c,false);
     auto &p=b.pending;
     for(int i=0;i<p.count;) {
         const Card &candidate=p.cards[i];
@@ -130,12 +130,11 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::PLOT:break; // Multiplayer-only: no other players in this simulator.
     case CardId::PROPHESIZE:b.draw_cards(v(VarId::CARDS));break;
     case CardId::QUASAR: {
-        Card offers[3];CardId pool[static_cast<int>(CardId::COUNT)];int n=0;
-        for(int i=1;i<static_cast<int>(CardId::COUNT);++i){const auto id=static_cast<CardId>(i);const auto &d=card_def(id);
-            if(d.pool==CardPool::COLORLESS && card_native_available(id) && !(d.flags&(CF_MULTIPLAYER_ONLY|CF_CANNOT_GENERATE_IN_COMBAT)))pool[n++]=id;}
-        native_sort_card_ids(pool,n);
-        for(int i=0;i<3;++i){int k=b.cardGenerationRng.next_int(0,n-1);offers[i]=make_card(pool[k],c.upgraded,b.require_card_uid());for(int j=k+1;j<n;++j)pool[j-1]=pool[j];--n;}
-        b.start_offer(ChoiceOp::OFFER_TO_HAND,offers,3,c,false,false);b.pending.optional=true;break;
+        Card offers[3];CardId picks[static_cast<int>(CardId::COUNT)];int n=0;
+        regent_colorless_cards(b,3,picks,n);
+        for(int i=0;i<n;++i){offers[i]=make_card(picks[i],false,b.require_card_uid());
+            if(c.upgraded&&card_upgradable(offers[i]))b.upgrade_card(offers[i]);}
+        b.start_offer(ChoiceOp::OFFER_TO_HAND,offers,n,c,false,false);b.pending.optional=true;break;
     }
     case CardId::RADIATE:b.attack_all_from_card(c,damage,b.regent.starsGainedThisTurn);break;
     case CardId::REFINE_BLADE:regent_forge(b,v(VarId::FORGE));b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(VarId::ENERGY));break;
@@ -162,7 +161,7 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::THE_SMITH:regent_forge(b,v(VarId::FORGE));break;
     case CardId::TUTOR:choose(b,c,ChoiceOp::DRAW_TO_HAND,ChoicePile::DRAW,1);break;
     case CardId::TYRANNY:b.add_player_power(PowerId::TYRANNY,1);break;
-    case CardId::VOID_FORM:b.add_player_power(PowerId::VOID_FORM,v(VarId::VOID_FORM_POWER));b.regent.voidFormManualPlays=999999999;b.regent.endTurnRequested=true;break;
+    case CardId::VOID_FORM:b.add_player_power(PowerId::VOID_FORM,v(VarId::VOID_FORM_POWER));b.regent.endTurnRequested=true;break;
     case CardId::WROUGHT_IN_WAR:b.attack_from_card(c,target,damage);regent_forge(b,v(VarId::FORGE));break;
     case CardId::MINION_STRIKE:b.attack_from_card(c,target,damage);b.draw_cards(v(VarId::CARDS));break;
     case CardId::SOVEREIGN_BLADE:

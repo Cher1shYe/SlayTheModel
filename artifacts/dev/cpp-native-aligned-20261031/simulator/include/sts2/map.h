@@ -52,6 +52,9 @@ struct ActMap {
 // Generates the act map exactly as StandardActMap does (paths, type counts,
 // pruning, centering, spreading, straightening). mapRng is advanced.
 void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension = 0);
+// SpoilsMap.ModifyGeneratedMap: hourglass map where every path converges on a
+// single centered treasure node. spoilsRng is the named "spoils_map" stream.
+void generate_spoils_act_map(ActMap &map, Rng &spoilsRng, int actIndex, int ascension = 0);
 void generate_golden_path_map(ActMap &map);
 
 const char *map_point_name(MapPointType type);

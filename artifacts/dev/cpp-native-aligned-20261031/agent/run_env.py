@@ -32,16 +32,17 @@ ACT = sim.ActionType
 class RunEnv:
     """Gym-like wrapper around one native run."""
 
-    def __init__(self, seed: int = 1, ascension: int = 0):
+    def __init__(self, seed: int = 1, ascension: int = 0, character=None):
         self.seed = int(seed)
         self.ascension = int(ascension)
-        self.rc = new_run(self.seed, self.ascension)
+        self.character = character
+        self.rc = new_run(self.seed, self.ascension, self.character)
 
     # -- core API ---------------------------------------------------------
     def reset(self, seed: int | None = None) -> np.ndarray:
         if seed is not None:
             self.seed = int(seed)
-        self.rc = new_run(self.seed, self.ascension)
+        self.rc = new_run(self.seed, self.ascension, self.character)
         return self.observe()
 
     def observe(self) -> np.ndarray:

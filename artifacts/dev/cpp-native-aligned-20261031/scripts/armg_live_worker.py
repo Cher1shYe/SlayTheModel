@@ -148,7 +148,11 @@ class Encoder:
         vector += [float(context[k]) for k in names[1:]] + seen
         # No stored Pael cards above. Queue state is explicitly approximate;
         # active acquisition/selectors are unsupported, not guessed by prompt.
+        # v17 tail: queue/approximation blocks, FakeMerchant's six entries and
+        # the CrystalSphere fog grid. The native bridge never surfaces either
+        # event, so those slots are explicit zeros rather than guessed state.
         vector += [0.0] * (1 + 5 * 17 + 1 + 32 + 160)
+        vector += [0.0] * (6 * (3 + self.relic_count) + 121 + 2 + 15 * 5)
         if len(vector) != int(self.sim.PUB_RUN_EXTENSION):
             raise Unsupported('native extension layout differs from current binding')
         return vector, bosses
@@ -328,17 +332,19 @@ class Encoder:
                 v += [0.0] + _one(0, 9) + [-1 / 16, -1 / 6, 0.0, 0.0, 0.0]
         # eventId=-1; eventPage defaults to zero even when no event is active.
         if event is not None:
-            v += event.observation_block(self.relic_count)
+            v += event.observation_block(self.relic_count, self.sim.PUB_EVENT_N)
         else:
-            v += [0.0] * 64
+            v += [0.0] * self.sim.PUB_EVENT_N
             for i in range(4): v += [0, 0, 0, 0, 0, float(i == 0)] + _one(0, self.relic_count)
             v += [0.0] * 4
         # Unknown reward context is represented with simulator neutral defaults.
         v += [0.0] * 4 + _one(0, self.potion_count)
         for _ in range(8): v += [0.0, 0.0] + _one(0, self.relic_count)
-        v += [0.0] * (12 + 8 + 1 + 9 + 1 + 1 + 160 * 18)
+        # Reward meta includes two reroll-availability flags per reward slot
+        # (v18): 8 extra zeros for the four native reward slots.
+        v += [0.0] * (12 + 8 + 8 + 1 + 9 + 1 + 1 + 160 * 18)
         default_card = list(self.sim.card_features(0, False, -1))
-        for i in range(3):
+        for i in range(4):
             v += list(self.sim.card_features(*offered[i], -1)) if i < len(offered) else default_card
         for i in range(7):
             item = shop_items.get('cards', {}).get(i)
@@ -421,7 +427,7 @@ def main():
     import torch
     from deployment.evaluate_armg import load_armg_checkpoint
     torch.set_num_threads(1)
-    if (sim.PUBLIC_OBS_VERSION, sim.ACTION_SCHEMA_VERSION, armg.ARMG_FEATURE_VERSION) != (13, 12, 4):
+    if (sim.PUBLIC_OBS_VERSION, sim.ACTION_SCHEMA_VERSION, armg.ARMG_FEATURE_VERSION) != (19, 17, 7):
         raise RuntimeError('incompatible simulator feature/action schema')
     model = armg.ArmGScorer().eval()
     payload = load_armg_checkpoint(args.checkpoint, model)

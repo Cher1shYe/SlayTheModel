@@ -279,16 +279,21 @@ const std::pair<PowerId,const char*> powers[]={
 {PowerId::WITHERING_PRESENCE,"WITHERING_PRESENCE_POWER"},
 {PowerId::WRAITH_FORM,"WRAITH_FORM_POWER"},
 };
-CardId card_id(const std::string &s){for(int i=1;i<int(CardId::COUNT);++i)if(s==card_key(CardId(i)))return CardId(i);throw std::runtime_error("Unknown "+s);}
+CardId card_id(const std::string &s){for(int i=1;i<int(CardId::COUNT);++i)if(s==card_key(CardId(i))||s+"_CARD"==card_key(CardId(i)))return CardId(i);throw std::runtime_error("Unknown "+s);}
 void read_powers(const json &j,Player &p){for(auto [id,name]:powers)if(j.contains(name))power_ref(p,id)=j[name];}
 void read_powers(const json &j,Monster &m){for(auto [id,name]:powers)if(j.contains(name))power_ref(m,id)=j[name];}
 json dump_powers(BattleContext &b,int target=-1){json result=json::object();for(auto [id,name]:powers){int amount=target<0?b.player_power(id):b.monster_power(target,id);if(amount)result[name]=amount;}return result;}
-void read_cards(BattleContext &b,Card *pile,int &n,const json &j,bool reverse=false){n=0;for(const auto &c:j){Card card=make_card(card_id(c["id"]),c["upgraded"],b.require_card_uid());card.costForTurn=card.storedCost=int(c["cost"]);card.etherealThisCombat=c["ethereal"];card.retainThisCombat=c["retain"];card.bonusReplay=c["replay"];pile[n++]=card;}if(reverse)std::reverse(pile,pile+n);}
-json dump_cards(Card *pile,int n,bool reverse=false){json out=json::array();for(int j=0;j<n;++j){const Card &c=pile[reverse?n-1-j:j];out.push_back({{"id",card_key(c.id)},{"upgraded",c.upgraded},{"cost",card_cost(c)},{"ethereal",card_has(c,CF_ETHEREAL)},{"retain",card_has(c,CF_RETAIN)},{"replay",c.bonusReplay}});}return out;}
+void read_cards(BattleContext &b,Card *pile,int &n,const json &j,bool reverse=false){n=0;for(const auto &c:j){Card card=make_card(card_id(c["id"]),c["upgraded"],b.require_card_uid());if(card_def(card.id).cost>=0)card.costForTurn=card.storedCost=int(c["cost"]);card.etherealThisCombat=c["ethereal"];card.retainThisCombat=c["retain"];card.bonusReplay=c["replay"];pile[n++]=card;}if(reverse)std::reverse(pile,pile+n);}
+json dump_cards(Card *pile,int n,bool reverse=false){json out=json::array();for(int j=0;j<n;++j){const Card &c=pile[reverse?n-1-j:j];out.push_back({{"id",card_key(c.id)},{"upgraded",c.upgraded},{"cost",card_def(c.id).cost<0&&!card_has(c,CF_UNPLAYABLE)?0:card_cost(c)},{"ethereal",card_has(c,CF_ETHEREAL)},{"retain",card_has(c,CF_RETAIN)},{"replay",c.bonusReplay}});}return out;}
+Rng stream_rng(const char *kind){
+ // RunRngSet: Seed = hash(seedString); each stream is new Rng(Seed, name),
+ // i.e. Seed + hash64(name) in full 64-bit arithmetic (no uint truncation).
+ return Rng(fixtureSeed?fixtureSeed:Rng::deterministic_hash_code("NATIVE-NECROBINDER"),kind);
+}
 BattleContext base(const json &f){BattleContext b;b.characterPool=CardPool::NECROBINDER;b.turn=1;b.player.hp=b.player.maxHp=f["hp"];b.player.block=f["block"];b.player.energy=f["energy"];b.necro.ostyPresent=true;b.necro.ostyHp=f["ostyHp"];b.necro.ostyMaxHp=f["ostyMaxHp"];b.relics[b.relicCount++]=int(RelicId::BOUND_PHYLACTERY);read_powers(f["playerPowers"],b.player);
- b.monsterCount=f["enemies"].size();for(int i=0;i<b.monsterCount;++i){auto &m=b.monsters[i];m.id=MonsterId::CALCIFIED_CULTIST;m.hp=f["enemies"][i]["hp"];m.maxHp=1000;m.block=f["enemies"][i]["block"];read_powers(f["enemies"][i]["powers"],m);if(b.monster_power(i,PowerId::DOOM)>0)b.necro.doomAppliedThisTurn=true;}
+ b.monsterCount=static_cast<int>(f["enemies"].size());for(int i=0;i<b.monsterCount;++i){auto &m=b.monsters[i];m.id=MonsterId::CALCIFIED_CULTIST;m.hp=f["enemies"][i]["hp"];m.maxHp=1000;m.block=f["enemies"][i]["block"];read_powers(f["enemies"][i]["powers"],m);if(b.monster_power(i,PowerId::DOOM)>0)b.necro.doomAppliedThisTurn=true;}
  read_cards(b,b.hand,b.handCount,f["hand"]);read_cards(b,b.draw,b.drawCount,f["draw"],true);read_cards(b,b.discard,b.discardCount,f["discard"]);read_cards(b,b.exhaust,b.exhaustCount,f["exhaust"]);
- const auto seed=fixtureSeed;b.shuffleRng=Rng(seed,"shuffle");b.cardGenerationRng=Rng(seed,"combat_card_generation");b.cardSelectionRng=Rng(seed,"combat_card_selection");b.targetRng=Rng(seed,"combat_targets");
+ b.shuffleRng=stream_rng("shuffle");b.cardGenerationRng=stream_rng("combat_card_generation");b.cardSelectionRng=stream_rng("combat_card_selection");b.targetRng=stream_rng("combat_targets");
  b.shuffleRng.fast_forward(f["rng"]["shuffle"]);b.cardGenerationRng.fast_forward(f["rng"]["generate"]);b.cardSelectionRng.fast_forward(f["rng"]["selection"]);b.targetRng.fast_forward(f["rng"]["targets"]);return b;}
 void compare(BattleContext &b,const json &f,bool piles=true){
  check("hp",b.player.hp,f["hp"]);check("block",b.player.block,f["block"]);check("energy",b.player.energy,f["energy"]);check("Osty hp",b.necro.ostyHp,f["ostyHp"]);check("Osty maxHp",b.necro.ostyMaxHp,f["ostyMaxHp"]);check("player powers",dump_powers(b),f["playerPowers"]);
@@ -299,8 +304,8 @@ void compare(BattleContext &b,const json &f,bool piles=true){
 void add(BattleContext &b,CardId id,ChoicePile pile=ChoicePile::HAND){Card c=make_card(id,false,b.require_card_uid());if(pile==ChoicePile::HAND)b.add_card_to_hand(c);else if(pile==ChoicePile::DISCARD)b.add_card_to_discard(c);b.notify_card_generated(c);}
 void play(BattleContext &b,CardId id){int index=-1;for(int i=0;i<b.handCount;++i)if(b.hand[i].id==id){index=i;break;}check("play",index>=0&&b.play_card(index,0),true);}
 }
-int main(){const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixtures;std::ifstream(root/"native-round4-step2-necrobinder-fixtures/results.json")>>fixtures;
- fixtureSeed=fixtures["numericSeed"];check("completed",fixtures["status"],"completed");check("DLL",fixtures["gameAssemblySha256"],"9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");
+int main(){ const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixtures;std::ifstream(root/"native-round4-step2-necrobinder-fixtures/results.json")>>fixtures;
+ fixtureSeed=fixtures.value("numericSeed",std::uint64_t{0});check("completed",fixtures["status"],"completed");check("DLL",fixtures["gameAssemblySha256"],"9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");
  for(const auto &f:fixtures["results"]){const std::string type=f["test"];label=type=="mechanism"?std::string(f["scenario"]):std::string(f["id"])+(bool(f["upgraded"])?"+":"");auto b=base(f["before"]);
   if(type=="no_single_player_target"){check("single-player excluded",card_def(card_id(f["id"])).target==TargetType::ALLY,true);continue;}
   if(type=="card"){
@@ -317,7 +322,7 @@ int main(){const auto root=std::filesystem::path(__FILE__).parent_path().parent_
   }else if(type=="mechanism"){
    const std::string scenario=f["scenario"];
    if(scenario=="redirect_tungsten")b.relics[b.relicCount++]=int(RelicId::TUNGSTEN_ROD);
-   if(scenario=="redirect_buffer")b.add_player_power(PowerId::BUFFER,1);
+   if(scenario=="redirect_buffer"&&b.player_power(PowerId::BUFFER)==0)b.add_player_power(PowerId::BUFFER,1);
    if(scenario.rfind("redirect",0)==0)b.damage_player(scenario=="redirect_overkill"?14:7,false,true);
    if(scenario=="osty_thorns"){b.add_monster_power(0,PowerId::THORNS,3);add(b,CardId::POKE);play(b,CardId::POKE);}
    if(scenario=="sacrifice_mastery"){b.add_player_power(PowerId::NECRO_MASTERY,2);add(b,CardId::SACRIFICE);play(b,CardId::SACRIFICE);}

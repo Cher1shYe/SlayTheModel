@@ -1,12 +1,14 @@
 """Cross-cycle policy/optimizer lineage and reproducible validation contracts."""
 from concurrent.futures import Future
 import hashlib
+from pathlib import Path
 
 import numpy as np
 import pytest
 import torch
 
 from agent.armg import ARMG_ACTION_DIM, ARMG_OBS_DIM, ArmGScorer
+from agent.common import sim
 from agent import armg_train as base
 from deployment import train_armg_hidden_mcts as trainer
 
@@ -47,7 +49,9 @@ def _prior(path, extension_hash, source=None):
 
 def test_rl_two_cycles_preserve_optimizer_and_keep_independent_seeds(tmp_path, monkeypatch):
     extension = tmp_path / 'extension.pyd'
-    extension.write_bytes(b'isolated-test-extension')
+    # Checkpoint settings are validated against the loaded engine, so the
+    # stand-in extension is a byte copy of it rather than a dummy file.
+    extension.write_bytes(Path(sim.__file__).read_bytes())
     ext_hash = hashlib.sha256(extension.read_bytes()).hexdigest()
     monkeypatch.setattr(trainer.extension_loader, '_extension', str(extension))
     monkeypatch.setattr(trainer, 'ProcessPoolExecutor', InlinePool)

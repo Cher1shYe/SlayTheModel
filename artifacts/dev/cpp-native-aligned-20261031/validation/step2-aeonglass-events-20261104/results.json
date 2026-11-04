@@ -1,0 +1,210 @@
+{
+  "date": "2026-11-04",
+  "scope": "Ironclad single-player, native v0.111.0 / 41cef1ea",
+  "identity": {
+    "engine_ruleset": "native-41cef1ea-port-v6",
+    "public_observation_version": 15,
+    "public_obs_dim": 67784,
+    "public_run_dim": 23519,
+    "public_combat_obs_dim": 44265,
+    "action_schema_version": 13,
+    "action_feat_dim": 717,
+    "card_feat_dim": 625,
+    "armg_feature_version": 6,
+    "snapshot_version": 10,
+    "event_count": 66
+  },
+  "build": {
+    "toolchain": "MSVC 19.51, Ninja, Release, /UNDEBUG",
+    "full_rebuild": true,
+    "clean_full_rebuild_log": "../step2-monster-hp-20261104/build-clean-20261104q.txt"
+  },
+  "events": {
+    "total": 66,
+    "implemented": 43,
+    "approximate": 18,
+    "unsupported": 5,
+    "implemented_this_batch_b": [
+      "MORPHIC_GROVE",
+      "BUGSLAYER",
+      "ENDLESS_CONVEYOR",
+      "TRIAL",
+      "PUNCH_OFF",
+      "RANWID_THE_ELDER",
+      "RELIC_TRADER",
+      "SELF_HELP_BOOK",
+      "WOOD_CARVINGS"
+    ],
+    "non_gaps_among_unsupported": [
+      "AROMA_PLACEHOLDER (no native class in v0.111.0)",
+      "WAR_HISTORIAN_REPY (native IsAllowed returns false; unreachable)",
+      "CRYSTAL_SPHERE (native IsDeterministic=false, interactive minigame)"
+    ],
+    "implemented_this_batch_c": [
+      "FIELD_OF_MAN_SIZED_HOLES",
+      "GRAVE_OF_THE_FORGOTTEN",
+      "SYMBIOTE",
+      "BATTLEWORN_DUMMY",
+      "THE_LANTERN_KEY",
+      "THIS_OR_THAT"
+    ],
+    "unsupported_remaining": [
+      "AROMA_PLACEHOLDER",
+      "CRYSTAL_SPHERE",
+      "FAKE_MERCHANT",
+      "TINKER_TIME",
+      "WAR_HISTORIAN_REPY"
+    ],
+    "enchantments_added": [
+      "SHARP",
+      "SLITHER",
+      "PERFECT_FIT",
+      "SOULS_POWER",
+      "CORRUPTED",
+      "NIMBLE (CanEnchant selector)"
+    ],
+    "reward_flow_fix_d": {
+      "rule": "EncounterModel.ShouldGiveRewards defaults true; only BattlewornDummyEventEncounter overrides false",
+      "standard_rewards_restored": [
+        "DENSE_VEGETATION",
+        "PUNCH_OFF",
+        "THE_LANTERN_KEY"
+      ],
+      "extra_rewards_after_standard": [
+        "PUNCH_OFF relic+potion",
+        "THE_LANTERN_KEY fixed card in next free slot"
+      ],
+      "tests_added": [
+        "punchoff_standard_gold",
+        "punchoff_standard_cards",
+        "punchoff_extra_relic",
+        "punchoff_extra_potion",
+        "dense_vegetation_standard_gold",
+        "dense_vegetation_standard_cards",
+        "lanternkey_standard_gold",
+        "lanternkey_standard_cards",
+        "lanternkey_special_card_id (slot 1)"
+      ],
+      "pytest_fixture_change": "test_snapshot_restore_replays_identically seed 4 -> 5 (seed 4 now dies before step 250; seed 5 verified non-terminal)"
+    },
+    "promoted_this_batch_e": [
+      "DENSE_VEGETATION",
+      "BRAIN_LEECH",
+      "POTION_COURIER",
+      "SPIRIT_GRAFTER"
+    ],
+    "rng_range_fixes_e": [
+      "PUNCH_OFF CalculateVars NextInt(91,99) -> 91..98",
+      "LUMINOUS_CHOIR 149-NextInt(0,50) -> 100..149",
+      "WHISPERING_HOLLOW 35+NextInt(-9,10) -> 26..44",
+      "PUNCH_OFF StartingHpReduction NextInt(2,10) -> 2..9"
+    ],
+    "stone_of_all_time_slot_fix": "Lift indexes non-null physical potion slots and leaves the discarded slot empty",
+    "orobas_locked_option_fix_f": {
+      "rule": "Ancient OptionPool3 locked entry is a disabled EventOption (null onChosen); ArchaicTooth keys are Bash/Neutralize/Unleash/FallingStar/Dualcast",
+      "changes": [
+        "INVALID ancient relic slot is unavailable",
+        "locked NextItem still consumes one draw",
+        "removed BREAK from ArchaicTooth condition"
+      ],
+      "tests": [
+        "orobas_third_available_with_starter",
+        "orobas_third_locked",
+        "orobas_locked_not_selectable"
+      ]
+    }
+  },
+  "tests": {
+    "ctest": {
+      "passed": 33,
+      "failed": 0,
+      "log": "ctest-final-20261104q.txt"
+    },
+    "rules_regression_checks": {
+      "checks": 840,
+      "failures": 0,
+      "log": "rules-regression-final-20261104q.txt"
+    },
+    "artifact_pytest": {
+      "passed": 363,
+      "failed": 0,
+      "skipped": 16,
+      "log": "pytest-final-20261104q.txt",
+      "skip_reason": "external historical checkpoints, community snapshots, isolated extension or seed ended before snapshot point"
+    },
+    "workspace_pytest": {
+      "status": "not applicable",
+      "reason": "workspace-root tests import a different deployment package layout and the base repo's sts2_sim extension is older than its sources (missing mcts_priors)"
+    },
+    "step2_regressions": {
+      "file": "tests/test_step2_rules_20261104.py",
+      "tests": 11
+    }
+  },
+  "smoke": {
+    "tool": "simulator/bench.exe run 1000",
+    "runs": 1000,
+    "completed": 1000,
+    "truncated": 0,
+    "errors": 0,
+    "runs_per_second": 77.2,
+    "combat_us_per_step": 3.9,
+    "avg_floor": 9.6,
+    "log": "benchmark-runs-1000-final-20261104q.txt",
+    "note": "single 1000-run sample; 1000/1000 complete, 0 truncation, 0 errors; highly load-sensitive host (51-108 runs/s observed for this build)"
+  },
+  "throughput_before_after": {
+    "before_median_runs_per_second": 68.2,
+    "after_median_runs_per_second": 65.3,
+    "samples": {
+      "before": [
+        68.2,
+        69.8,
+        67.5
+      ],
+      "after": [
+        70.3,
+        65.3,
+        64.7
+      ]
+    },
+    "note": "same-machine interleaved run against validation/round4-step2/source-before build",
+    "log": "benchmark-before-after.txt"
+  },
+  "native_evidence": {
+    "target_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "target_dll_present": false,
+    "local_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+    "evidence_level": "decompilation of same-commit local Windows build; not target-DLL differential",
+    "whole_run_native_oracle": false,
+    "blockers": "BLOCKERS.md"
+  },
+  "not_done": [
+    "target-DLL same-seed whole-run differential (blocked: target DLL absent)",
+    "3 real unsupported events remain: CrystalSphere (native IsDeterministic=false interactive minigame), FakeMerchant (custom merchant inventory UI), TinkerTime (MadScience dynamic card type/rider). AromaPlaceholder has no native class and WarHistorianRepy is unreachable (IsAllowed=false).",
+    "14 approximate events remain approximate (TabletOfTruth, LostWisp, SapphireSeed and Wellspring were re-verified against the decompile and promoted to IMPLEMENTED in this batch)",
+    "MysteriousKnight (TheLanternKey) generated monster data lacks A9 deadly overrides and A8 HP; compensated by explicit setup_encounter/roll_intent overrides in monsters.cpp pending generator regeneration",
+    "SlipperyBridge skip bitmap covers only 62 deck positions",
+    "TheFutureOfPotions uniform three-card selection order is approximate",
+    "combat step throughput ~4.2-4.4 us/step vs ~2.3 us baseline; profiling completed (validation/step2-aeonglass-events-20261104/PROFILE.md): whole-run time is dominated by map segment pruning (76% inclusive), combat cost is spread across per-card/per-power hook scans with no single hotspot; optimization still pending",
+    "Wither fake upgrade level not encoded in public observation (under-encoding, no leak)",
+    "RelicTrader StableShuffle uses relic key ordinal; not verified against target ModelId ordinal because the target build is unavailable",
+    "Monster initial HP uses decompile-extracted MinInitialHp/MaxInitialHp (106/109; DOOR/DOORMAKER/ROYAL_GUARD absent) on RunState.Rng.Niche with the native unique-HP set. EncounterModel.Rng drives roster/correlated-start/PunchOff rolls; the six randomised encounters replay native NextItem/NextBool rosters and six deterministic rosters were corrected from the decompile. Remaining: the bag-exhaustion fallback in random_encounter_for_act uses MonsterAi (native UpFront); docs/MONSTERS_REFERENCE.md still carries old sampled HP (it is now marked stale at the top; content/monsters.json is authoritative)."
+  ],
+  "profiling": {
+    "report": "PROFILE.md",
+    "traces": [
+      "profiling/run-1000.diagsession",
+      "profiling/combat-200000.diagsession"
+    ],
+    "tool": "VS DiagnosticsHub CpuUsage + xperf -symbols -a stack",
+    "whole_run_dominant": "find_matching_segments 29.8% exclusive / 76.4% inclusive (act map pruning at RunContext::init)",
+    "combat_dominant": [
+      "BattleContext::BattleContext 13.5% exclusive (one per bench combat)",
+      "player_power 1.2%",
+      "start_player_turn 1.2%",
+      "legal_actions 1.0%",
+      "no single >1.3% step hotspot"
+    ]
+  }
+}

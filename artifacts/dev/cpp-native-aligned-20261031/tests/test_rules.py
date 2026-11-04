@@ -157,6 +157,12 @@ def test_knowledge_demon_curse_counter_advances():
     visited_curses = 0
     moves = []
     for _ in range(13):
+        # Curse of Knowledge is a real mid-turn choice: resolve the pending
+        # offer before the next turn can end.
+        choose = [a for a in bc.legal_actions()
+                  if a[0] == int(sim.ActionType.CHOOSE)]
+        if choose:
+            assert bc.step(*choose[0])
         moves.append(bc.monster_state(0)[0])
         bc.step(END_TURN, 0, 0, 0)
     curse_state = 0

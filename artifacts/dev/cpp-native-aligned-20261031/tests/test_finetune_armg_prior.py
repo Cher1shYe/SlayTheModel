@@ -4,10 +4,11 @@ import json
 import numpy as np
 import pytest
 import torch
+from pathlib import Path
 from types import SimpleNamespace
 
 from agent.armg import ARMG_ACTION_DIM, ARMG_OBS_DIM, _CARD_OFF, ArmGScorer
-from agent.common import RACT
+from agent.common import RACT, sim
 from agent.armg_train import _save
 from deployment import finetune_armg_prior as ft
 
@@ -35,7 +36,9 @@ def make_source(tmp_path):
         snapshots[name] = {'sha256': sha(p)}
     (snap/'manifest.json').write_text(json.dumps({'snapshots': snapshots}),encoding='utf-8')
     ext = tmp_path/'ext.pyd'
-    ext.write_bytes(b'not loaded, test identity only')
+    # Settings carry a simulator hash that engine_identity validates against
+    # the loaded engine, so the stand-in is a byte copy of it.
+    ext.write_bytes(Path(sim.__file__).read_bytes())
     config = {'games': 5, 'simulator_sha256': sha(ext), 'data_manifest_sha256': sha(snap/'manifest.json'),
               'information': 'oracle', 'ascension': 0, 'simulations_per_decision': 2000,
               'boss_simulations_per_decision': 10000, 'path_cache': 'none', 'combat': 'pure mcts'}

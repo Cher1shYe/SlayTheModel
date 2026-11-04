@@ -4,6 +4,7 @@
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 namespace sts2 {
 DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
                                           bool poweredAttack, bool unblockable) {
@@ -88,7 +89,12 @@ DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
 
     if(fromPlayer){
         necrobinder_after_damage_given(*this,idx,res,poweredAttack);
-        if(poweredAttack&&!necro.dealingOstyDamage)silent_after_attack_damage(*this,idx,res.unblocked);
+        if(poweredAttack&&!necro.dealingOstyDamage){
+            // BeatIntoShape counts powered DamageReceivedEntries dealt by the
+            // player's creature; Osty (a pet) is a different dealer.
+            if(idx<4)++regent.hitsGivenThisTurn[idx];
+            silent_after_attack_damage(*this,idx,res.unblocked);
+        }
     }
     if(diedThisHit)resolve_monster_death(idx);
     // AfterDamageReceived hooks run for surviving targets.
@@ -160,6 +166,11 @@ int BattleContext::damage_player(int amount, bool unblockable, bool poweredAttac
                                  bool deferCardRupture) {
     if (amount <= 0 || outcome != Outcome::UNDECIDED) return 0;
     if (poweredAttack && player_power(PowerId::COVERED) > 0) return 0;
+    // TankPower.ModifyDamageMultiplicative: the owner takes 1.5x powered
+    // attack damage (DamageIncrease). Its teammate GuardedPower branch has no
+    // targets in single player.
+    if (poweredAttack && player_power(PowerId::TANK) > 0)
+        amount = static_cast<int>(std::floor(amount * 1.5f));
     if (player_power(PowerId::INTANGIBLE) > 0) amount = 1;
     int remaining = amount;
     if (!unblockable && player.block > 0) {
@@ -403,14 +414,27 @@ void BattleContext::resolve_monster_death(int idx) {
         if (stolenStrength != 0) add_player_power(PowerId::STRENGTH, stolenStrength);
         if (stolenSpeed != 0) add_player_power(PowerId::DEXTERITY, stolenSpeed);
         if (surpriseGold >= 0) {
-        spawn_monster(*this, MonsterId::SNEAKY_GREMLIN);
-        int fatSlot = -1;
-        for (int i = 0; i < monsterCount; ++i) {
-            if (!monsters[i].alive && !monsters[i].reviving) { fatSlot = i; break; }
+        // SurprisePower.AfterDeath adds SneakyGremlin then FatGremlin at the
+        // end of the enemy list; the other gremlins are not present at spawn.
+        int sneakySlot = monsterCount < MAX_MONSTERS ? monsterCount : -1;
+        if (sneakySlot < 0) {
+            for (int i = 0; i < monsterCount; ++i) {
+                if (!monsters[i].alive && !monsters[i].reviving) { sneakySlot = i; break; }
+            }
         }
-        if (fatSlot < 0 && monsterCount < MAX_MONSTERS) fatSlot = monsterCount++;
+        if (sneakySlot >= 0) {
+            spawn_monster(*this, MonsterId::SNEAKY_GREMLIN, sneakySlot);
+            monsterCount = std::max(monsterCount, sneakySlot + 1);
+        }
+        int fatSlot = monsterCount < MAX_MONSTERS ? monsterCount : -1;
+        if (fatSlot < 0) {
+            for (int i = 0; i < monsterCount; ++i) {
+                if (!monsters[i].alive && !monsters[i].reviving) { fatSlot = i; break; }
+            }
+        }
         if (fatSlot >= 0) {
             spawn_monster(*this, MonsterId::FAT_GREMLIN, fatSlot);
+            monsterCount = std::max(monsterCount, fatSlot + 1);
             monsters[fatSlot].stolenGold = surpriseGold;
         }
     }

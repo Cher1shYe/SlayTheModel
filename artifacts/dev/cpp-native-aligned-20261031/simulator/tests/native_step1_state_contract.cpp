@@ -56,7 +56,7 @@ int main() {
 
     auto restored = std::make_unique<RunContext>();
     const auto blob = source->serialize();
-    assert(static_cast<unsigned char>(blob[4]) == 8);
+    assert(static_cast<unsigned char>(blob[4]) == 14);
     assert(RunContext::restore(blob, *restored));
     assert(restored->serialize() == blob);
     assert(public_observation(*restored) == runObservation);
@@ -67,7 +67,7 @@ int main() {
     assert(public_combat_observation(source->battle) == public_combat_observation(restored->battle));
     assert(public_combat_observation(source->battle) == public_combat_observation(copied->battle));
 
-    auto old = blob; old[4] = 7;
+    auto old = blob; old[4] = 9;
     rejects_atomically(old, *restored);
     const auto playerOffset = 12 + reinterpret_cast<const char *>(&source->battle.player)
                                 - reinterpret_cast<const char *>(source.get());

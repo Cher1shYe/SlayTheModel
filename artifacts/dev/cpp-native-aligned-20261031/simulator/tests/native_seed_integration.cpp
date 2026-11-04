@@ -40,14 +40,14 @@ int main() {
     require(same_rng(wide->eventRng, denseRng), "shared event stream after CalculateVars");
     auto restored = std::make_unique<RunContext>();
     const auto snapshot = text->serialize();
-    require(static_cast<unsigned char>(snapshot[4]) == 8, "snapshot version 8");
+    require(static_cast<unsigned char>(snapshot[4]) == 14, "snapshot version 14 (run layout v14)");
     require(RunContext::restore(snapshot, *restored), "restore native RNG snapshot");
     require(restored->seed == text->seed, "snapshot preserves 64-bit seed");
     for (int stream=0; stream<RNG_COUNT; ++stream)
         require(same_rng(restored->runRng[stream], text->runRng[stream]), "snapshot preserves every run stream");
-    auto old = snapshot; old[4] = 7;
+    auto old = snapshot; old[4] = 10;
     const auto before = restored->serialize();
-    require(!RunContext::restore(old, *restored), "reject snapshot version 7");
+    require(!RunContext::restore(old, *restored), "reject snapshot version 10");
     require(restored->serialize() == before, "rejected snapshot leaves destination unchanged");
     std::cout << "native seed integration: raw/string/high bits/streams/snapshot passed\n";
 }

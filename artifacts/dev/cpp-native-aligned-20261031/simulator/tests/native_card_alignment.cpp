@@ -175,6 +175,18 @@ int main() {
         check("Thrash picks randomized candidate",static_cast<int>(b.exhaust[0].id),
               static_cast<int>(chosen==0?CardId::STRIKE_IRONCLAD:CardId::BASH));
     }
+    for (bool upgraded : {false,true}) {
+        // DramaticEntrance has no hand-written case: it is a plain attack that
+        // reaches the generic all-enemies fallback, with Innate+Exhaust flags.
+        auto b=base(); hand(b,CardId::DRAMATIC_ENTRANCE,upgraded);
+        const Card def=make_card(CardId::DRAMATIC_ENTRANCE,upgraded,1);
+        check("Dramatic Entrance is Innate",card_has(def,CF_INNATE),1);
+        check("Dramatic Entrance exhausts",card_has(def,CF_EXHAUST),1);
+        const int hp=b.monsters[0].hp; play(b);
+        check(upgraded?"Dramatic Entrance+ damage":"Dramatic Entrance damage",
+              10000-b.monsters[0].hp,upgraded?15:11);
+        check("Dramatic Entrance is exhausted after play",b.exhaustCount,1);
+    }
     std::cout << checks << " checks, " << failures << " failures\n";
     return failures?1:0;
 }

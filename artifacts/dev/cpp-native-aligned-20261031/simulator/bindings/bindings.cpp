@@ -12,6 +12,7 @@
 #include "sts2/map.h"
 #include "sts2/monsters.h"
 #include "sts2/observe.h"
+#include "sts2/relic_card_rewards.h"
 #include "sts2/relics.h"
 #include "sts2/run.h"
 #include "sts2/search.h"
@@ -66,10 +67,25 @@ static py::list card_enchantments(const Card *cards, int n) {
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
     // Identity of this port, not a claim of complete native-game parity.
-    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v4";
+    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v10";
     m.attr("TARGET_GAME_DLL_SHA256") = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4";
     m.attr("NATIVE_PARITY_COMPLETE") = false;
 
+    py::enum_<RelicPool>(m, "RelicPool")
+        .value("SHARED", RelicPool::SHARED)
+        .value("IRONCLAD", RelicPool::IRONCLAD)
+        .value("SILENT", RelicPool::SILENT)
+        .value("DEFECT", RelicPool::DEFECT)
+        .value("REGENT", RelicPool::REGENT)
+        .value("NECROBINDER", RelicPool::NECROBINDER)
+        .value("EVENT", RelicPool::EVENT)
+        .value("OTHER", RelicPool::OTHER);
+    py::enum_<CardPool>(m, "CardPool")
+        .value("IRONCLAD", CardPool::IRONCLAD)
+        .value("SILENT", CardPool::SILENT)
+        .value("DEFECT", CardPool::DEFECT)
+        .value("REGENT", CardPool::REGENT)
+        .value("NECROBINDER", CardPool::NECROBINDER);
     py::enum_<Outcome>(m, "Outcome")
         .value("UNDECIDED", Outcome::UNDECIDED)
         .value("PLAYER_VICTORY", Outcome::PLAYER_VICTORY)
@@ -155,7 +171,12 @@ PYBIND11_MODULE(sts2_sim, m) {
         .value("SELECT_GRID_CARD", RunActionType::SELECT_GRID_CARD)
         .value("CONFIRM_GRID_CARDS", RunActionType::CONFIRM_GRID_CARDS)
         .value("CANCEL_GRID_PREVIEW", RunActionType::CANCEL_GRID_PREVIEW)
-        .value("REST_CLONE", RunActionType::REST_CLONE);
+        .value("REST_CLONE", RunActionType::REST_CLONE)
+        .value("REST_HATCH", RunActionType::REST_HATCH)
+        .value("REST_COOK", RunActionType::REST_COOK)
+        .value("CRYSTAL_DIVINE", RunActionType::CRYSTAL_DIVINE)
+        .value("REROLL_CARD_REWARD", RunActionType::REROLL_CARD_REWARD)
+        .value("REST_LEAVE", RunActionType::REST_LEAVE);
     py::enum_<EventStatus>(m, "EventStatus")
         .value("IMPLEMENTED", EventStatus::IMPLEMENTED)
         .value("APPROXIMATE", EventStatus::APPROXIMATE)
@@ -236,6 +257,15 @@ PYBIND11_MODULE(sts2_sim, m) {
         for (int i = 0; i < n; ++i) out.append(ids[i]);
         return out;
     });
+    // Alternate first act (Underdocks) uses ActModel.GenerateRooms order, which
+    // is not reachable through event_pool(0..2).
+    m.def("event_pool_type", [](int actType) {
+        int ids[128];
+        const int n = event_pool_for_act_type(static_cast<ActType>(actType), ids, 128);
+        py::list out;
+        for (int i = 0; i < n; ++i) out.append(ids[i]);
+        return out;
+    });
     m.def("event_ancient", [](int act) { return event_ancient_for_act(act); });
     m.def("event_info", [](int id) {
         const EventInfo *info = sts2::event_info(id);
@@ -253,6 +283,7 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("PUB_RUN_BOSS_OFFSET") = PUB_RUN_BOSS_OFFSET;
     m.attr("PUB_RUN_EXTENSION") = PUB_RUN_EXTENSION;
     m.attr("PUBLIC_COMBAT_OBS_DIM") = PUBLIC_COMBAT_OBS_DIM;
+    m.attr("PUB_EVENT_N") = PUB_EVENT_N;
     m.attr("PUBLIC_OBS_VERSION") = PUBLIC_OBS_VERSION;
     m.attr("ACTION_SCHEMA_VERSION") = ACTION_SCHEMA_VERSION;
     m.attr("CARD_COUNT") = static_cast<int>(CardId::COUNT);
@@ -279,6 +310,36 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.def("card_name", [](int id) { return std::string(card_name(static_cast<CardId>(id))); });
     m.def("card_count", []() { return static_cast<int>(CardId::COUNT); });
     m.def("card_native_available", [](int id) { return card_native_available(static_cast<CardId>(id)); });
+    m.def("card_pool_name", [](int id) {
+        switch (card_def(static_cast<CardId>(id)).pool) {
+            case CardPool::IRONCLAD: return "IRONCLAD";
+            case CardPool::COLORLESS: return "COLORLESS";
+            case CardPool::EVENT: return "EVENT";
+            case CardPool::CURSE: return "CURSE";
+            case CardPool::TOKEN: return "TOKEN";
+            case CardPool::STATUS: return "STATUS";
+            case CardPool::SILENT: return "SILENT";
+            case CardPool::REGENT: return "REGENT";
+            case CardPool::NECROBINDER: return "NECROBINDER";
+            case CardPool::DEFECT: return "DEFECT";
+            case CardPool::QUEST: return "QUEST";
+        }
+        return "UNKNOWN";
+    });
+    m.def("card_type_name", [](int id) {
+        switch (card_def(static_cast<CardId>(id)).type) {
+            case CardType::ATTACK: return "ATTACK";
+            case CardType::SKILL: return "SKILL";
+            case CardType::POWER: return "POWER";
+            case CardType::STATUS: return "STATUS";
+            case CardType::CURSE: return "CURSE";
+            case CardType::QUEST: return "QUEST";
+        }
+        return "UNKNOWN";
+    });
+    m.def("card_multiplayer_only", [](int id) {
+        return (card_def(static_cast<CardId>(id)).flags & CF_MULTIPLAYER_ONLY) != 0;
+    });
     m.def("card_features", [](int id, bool upgraded, int price) {
         return card_features(make_card(static_cast<CardId>(id), upgraded, 0), price);
     }, py::arg("card_id"), py::arg("upgraded") = false, py::arg("price") = -1);
@@ -465,6 +526,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("inferno_self_damage", [](const BattleContext &bc) { return bc.player.infernoSelfDamage; })
         .def_property_readonly("inferno_before_crimson_mantle", [](const BattleContext &bc) { return bc.player.infernoBeforeCrimsonMantle; })
         .def_readwrite("gold", &BattleContext::gold)
+        .def_readwrite("unlocked_character_mask", &BattleContext::unlockedCharacterMask)
+        .def_readwrite("character_pool", &BattleContext::characterPool)
         .def_property_readonly("energy", [](const BattleContext &bc) { return bc.player.energy; })
         .def_property_readonly("strength", [](const BattleContext &bc) { return bc.player.strength; })
         .def_property_readonly("dexterity", [](const BattleContext &bc) { return bc.player.dexterity; })
@@ -491,6 +554,15 @@ PYBIND11_MODULE(sts2_sim, m) {
             for (int i = 0; i < bc.discardCount; ++i) out.append(static_cast<int>(bc.discard[i].id));
             return out;
         })
+        .def_property_readonly("discard_cards", [](const BattleContext &bc) {
+            py::list out;
+            for (int i = 0; i < bc.discardCount; ++i) {
+                const Card &c = bc.discard[i];
+                out.append(py::make_tuple(static_cast<int>(c.id), c.uid, c.upgraded,
+                                          c.fakeUpgradeLevel));
+            }
+            return out;
+        })
         .def_property_readonly("draw_count", [](const BattleContext &bc) { return bc.drawCount; })
         .def_property_readonly("discard_count", [](const BattleContext &bc) { return bc.discardCount; })
         .def_property_readonly("exhaust_count", [](const BattleContext &bc) { return bc.exhaustCount; })
@@ -503,6 +575,12 @@ PYBIND11_MODULE(sts2_sim, m) {
                                           static_cast<int>(mm.intentType), mm.alive,
                                           mm.vulnerable, mm.weak, mm.strength));
             }
+            return out;
+        })
+        .def_property_readonly("player_powers", [](const BattleContext &bc) {
+            py::list out;
+            for (int p = 0; p < static_cast<int>(PowerId::COUNT); ++p)
+                if (bc.player.power[p] != 0) out.append(py::make_tuple(p, bc.player.power[p]));
             return out;
         })
         .def("monster_powers", [](const BattleContext &bc, int idx) {
@@ -524,6 +602,15 @@ PYBIND11_MODULE(sts2_sim, m) {
             for (int i = 0; i < bc.pending.count; ++i) out.append(bc.pending.cards[i].uid);
             return out;
         })
+        .def_property_readonly("pending_cards", [](const BattleContext &bc) {
+            py::list out;
+            for (int i = 0; i < bc.pending.count; ++i) {
+                const Card &c = bc.pending.cards[i];
+                out.append(py::make_tuple(static_cast<int>(c.id), c.uid, c.upgraded,
+                                          c.fakeUpgradeLevel));
+            }
+            return out;
+        })
         .def_property_readonly("pending_info", [](const BattleContext &bc) {
             return py::make_tuple(static_cast<int>(bc.pending.op),
                                   static_cast<int>(bc.pending.pile),
@@ -531,7 +618,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def_property_readonly("potions", [](const BattleContext &bc) {
             py::list out;
-            for (int i = 0; i < bc.potionCount; ++i) out.append(bc.potions[i]);
+            for (int i = 0; i < bc.potionSlots; ++i)
+                if (bc.potions[i]) out.append(bc.potions[i]);
             return out;
         })
         .def("add_potion", [](BattleContext &bc, int id) {
@@ -542,6 +630,10 @@ PYBIND11_MODULE(sts2_sim, m) {
             for (int i = 0; i < bc.relicCount; ++i) out.append(bc.relics[i]);
             return out;
         });
+
+    py::enum_<PowerId>(m, "PowerId")
+        .value("ARTIFACT", PowerId::ARTIFACT)
+        .value("WITHERING_PRESENCE", PowerId::WITHERING_PRESENCE);
 
     py::enum_<ActType>(m, "ActType")
         .value("OVERGROWTH", ActType::OVERGROWTH)
@@ -573,19 +665,44 @@ PYBIND11_MODULE(sts2_sim, m) {
         });
     py::class_<RunContext>(m, "RunContext")
         .def(py::init<>())
-        .def("init", [](RunContext &rc, std::uint64_t seed, int ascension) {
-            rc.init(seed, ascension);
-        }, py::arg("seed"), py::arg("ascension") = 0)
-        .def("init_seed", &RunContext::init_seed, py::arg("seed"), py::arg("ascension") = 0,
-             "Canonicalize/hash an ASCII game seed string; numeric init uses a raw uint64 RNG seed.")
-        .def("init_with_context", &RunContext::init_with_context,
-             py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"),
-             "Raw uint64 seed; first_act=-1 selects natively, 0 fixes Overgrowth, 3 fixes Underdocks.")
-        .def("init_seed_with_context", &RunContext::init_seed_with_context,
-             py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"))
-        .def("reset", [](RunContext &rc, std::uint64_t seed, int ascension) {
-            rc.init(seed, ascension);
-        }, py::arg("seed"), py::arg("ascension") = 0)
+        .def("init", [](RunContext &rc, std::uint64_t seed, int ascension, int character) {
+            rc.init(seed, ascension, static_cast<CardPool>(character));
+        }, py::arg("seed"), py::arg("ascension") = 0,
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
+        .def("init_seed", [](RunContext &rc, const std::string &seed, int ascension, int character) {
+            rc.init_seed(seed, ascension, static_cast<CardPool>(character));
+        }, py::arg("seed"), py::arg("ascension") = 0,
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           "Canonicalize/hash an ASCII game seed string; numeric init uses a raw uint64 RNG seed.")
+        .def("init_with_context", [](RunContext &rc, std::uint64_t seed, int ascension,
+                                     int firstAct, const NativeProgressContext &progress,
+                                     int character) {
+            rc.init_with_context(seed, ascension, firstAct, progress,
+                                 static_cast<CardPool>(character));
+        }, py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"),
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           "Raw uint64 seed; first_act=-1 selects natively, 0 fixes Overgrowth, 3 fixes Underdocks.")
+        .def("init_seed_with_context", [](RunContext &rc, const std::string &seed, int ascension,
+                                          int firstAct, const NativeProgressContext &progress,
+                                          int character) {
+            rc.init_seed_with_context(seed, ascension, firstAct, progress,
+                                      static_cast<CardPool>(character));
+        }, py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"),
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
+        .def("reset", [](RunContext &rc, std::uint64_t seed, int ascension, int character) {
+            rc.init(seed, ascension, static_cast<CardPool>(character));
+        }, py::arg("seed"), py::arg("ascension") = 0,
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
+        .def_property("character",
+             [](const RunContext &rc) { return static_cast<int>(rc.character); },
+             [](RunContext &rc, int character) {
+                 const CardPool pool = static_cast<CardPool>(character);
+                 if (pool != CardPool::IRONCLAD && pool != CardPool::SILENT &&
+                     pool != CardPool::DEFECT && pool != CardPool::REGENT &&
+                     pool != CardPool::NECROBINDER)
+                     throw std::invalid_argument("Unsupported single-player character pool");
+                 rc.character = pool;
+             })
         .def("clone", [](const RunContext &rc) { return rc; },
              py::call_guard<py::gil_scoped_release>())
         .def("legal_actions", [](const RunContext &rc) {
@@ -604,7 +721,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def("step", [](RunContext &rc, int type, int index) {
             if (type < static_cast<int>(RunActionType::MOVE) ||
-                type > static_cast<int>(RunActionType::REST_CLONE)) {
+                type > static_cast<int>(RunActionType::REROLL_CARD_REWARD)) {
                 throw std::invalid_argument("type is not a valid run action type");
             }
             RunAction a;
@@ -687,10 +804,14 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("second_boss_encounter", [](const RunContext &rc) { return rc.secondBossEncounter; })
         .def_property_readonly("potions", [](const RunContext &rc) {
             py::list out;
-            for (int i = 0; i < rc.potionCount; ++i) out.append(rc.potions[i]);
+            for (int i = 0; i < rc.potionSlots; ++i)
+                if (rc.potions[i]) out.append(rc.potions[i]);
             return out;
         })
         .def_property_readonly("potion_slots", [](const RunContext &rc) { return rc.potionSlots; })
+        .def_property_readonly("potion_slot_ids", [](const RunContext &rc) {
+            return std::vector<int>(rc.potions, rc.potions + rc.potionSlots);
+        })
         .def_property_readonly("relics", [](const RunContext &rc) {
             py::list out;
             for (int i = 0; i < rc.relicCount; ++i) out.append(rc.relics[i]);
@@ -705,10 +826,31 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def("add_relic", [](RunContext &rc, int id) {
             return rc.add_relic(static_cast<RelicId>(id));
         })
+        // Darv prepares the Tome's ancient card while building the visible
+        // option; direct callers that emulate that option must do the same.
+        .def("prepare_dusty_tome", [](RunContext &rc) {
+            rc.preparedDustyTomeCard = prepare_dusty_tome_card(rc);
+            return static_cast<int>(rc.preparedDustyTomeCard);
+        })
         .def("add_potion", [](RunContext &rc, int id) {
             rc.add_potion(static_cast<PotionId>(id));
         })
         .def_property_readonly("event_id", [](const RunContext &rc) { return static_cast<int>(rc.eventId); })
+        .def_property_readonly("event_bag", [](const RunContext &rc) {
+            py::list out;
+            for (int i = 0; i < rc.eventBagN; ++i) out.append(rc.eventBag[i]);
+            return out;
+        })
+        .def_property_readonly("normal_encounters", [](const RunContext &rc) {
+            py::list out;
+            for (int i = 0; i < rc.normalBagN; ++i) out.append(rc.normalBag[i]);
+            return out;
+        })
+        .def_property_readonly("elite_encounters", [](const RunContext &rc) {
+            py::list out;
+            for (int i = 0; i < rc.eliteBagN; ++i) out.append(rc.eliteBag[i]);
+            return out;
+        })
         .def_property_readonly("ancient_id", [](const RunContext &rc) { return static_cast<int>(rc.ancientId); })
         .def("start_act", [](RunContext &rc, int actIndex) {
             if (actIndex < 0 || actIndex >= MAX_ACTS) return false;

@@ -265,18 +265,18 @@ self-play/search threads scale; Python-side policy bookkeeping does not.
 
 | Constant | Size | Contents |
 | --- | --- | --- |
-| `RUN_OBS_DIM` | 237 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
-| `PUBLIC_OBS_DIM` | 37305 | schema v10 public run + combat observation, rewards and selection grids |
-| `PUBLIC_COMBAT_OBS_DIM` | 21330 | visible combat state, piles, stolen cards, enchantments, power instances and choice candidates |
-| `CARD_FEAT_DIM` | 250 | card one-hot, cost, type, rarity, upgrade, price, enchantments, replay and combat state |
+| `RUN_OBS_DIM` | 612 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
+| `PUBLIC_OBS_DIM` | 69977 | schema v17 public run + combat observation, rewards and selection grids |
+| `PUBLIC_COMBAT_OBS_DIM` | 44284 | visible combat state, piles, stolen cards, enchantments, power instances and choice candidates |
+| `CARD_FEAT_DIM` | 625 | card one-hot, cost, type, rarity, upgrade, price, enchantments, replay and combat state |
 | `COMBAT_OBS_DIM` | 61 | player status block + 4 monster slots |
-| `ACTION_FEAT_DIM` | 340 | action schema v9: card/potion identity, instance state, target and choice op/pile |
+| `ACTION_FEAT_DIM` | 718 | action schema v15: card/potion identity, instance state, target and choice op/pile |
 
 `observe_public()` exposes only player-visible information (deck, resources,
 visible map, in-combat hand/piles/intents, combat relics/counters, potions and
 the full pending-choice candidate set); draw order, future intents, RNG state
-and hidden event outcomes are not included.  Observation schema v9 and action
-schema v8 invalidate older checkpoints; `load_checkpoint` rejects mismatches.
+and hidden event outcomes are not included.  Observation schema v17 and action
+schema v15 invalidate older checkpoints; `load_checkpoint` rejects mismatches.
 
 ## Content
 

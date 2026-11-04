@@ -231,7 +231,14 @@ void necrobinder_after_card_played(BattleContext &b,Card &c){
         each_card(b,[&](Card &card){if(card.id==CardId::BANSHEES_CRY)card_modify_cost(card,-2,false,0);});
     }
     bool found=false;for(int i=0;i<b.necro.finishedUidCount;++i)if(b.necro.finishedUidsThisTurn[i]==c.uid)found=true;
-    if(!found){if(b.necro.finishedUidCount==160)throw std::overflow_error("Finished card identity capacity");b.necro.finishedUidsThisTurn[b.necro.finishedUidCount++]=c.uid;}
+    if(!found){
+        // Native keeps an unbounded HashSet of uids finished this turn. The
+        // fixed 160-entry image only fills under pathological >160-distinct-
+        // card turns (generated-card loops); keep the most recent entries
+        // instead of throwing, which would abort long rollouts.
+        if(b.necro.finishedUidCount<160)b.necro.finishedUidsThisTurn[b.necro.finishedUidCount++]=c.uid;
+        else{std::memmove(b.necro.finishedUidsThisTurn,b.necro.finishedUidsThisTurn+1,159*sizeof(std::uint16_t));b.necro.finishedUidsThisTurn[159]=c.uid;}
+    }
     if(b.activePlay.energySpent>=2){
         for(int i=0;i<b.discardCount;){if(b.discard[i].id!=CardId::RIGHT_HAND_HAND){++i;continue;}
             Card card=b.discard[i];for(int j=i+1;j<b.discardCount;++j)b.discard[j-1]=b.discard[j];--b.discardCount;b.add_card_to_hand(card);

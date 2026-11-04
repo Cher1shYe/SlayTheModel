@@ -302,6 +302,15 @@ constexpr int relic_raw_rarity(RelicId id) {
         case RelicId::CIRCLET: return static_cast<int>(RelicRawRarity::NONE);
         case RelicId::DEPRECATED_RELIC: return static_cast<int>(RelicRawRarity::NONE);
         case RelicId::SILKEN_TRESS: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::DOWSING_ROD: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::HEFTY_TABLET: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::NEOWS_BONES: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::NEOWS_SACRIFICE: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::FISHING_ROD: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::KALEIDOSCOPE: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::PHIAL_HOLSTER: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::WINGED_BOOTS: return static_cast<int>(RelicRawRarity::ANCIENT);
+        case RelicId::NEOWS_TALISMAN: return static_cast<int>(RelicRawRarity::ANCIENT);
         default: return static_cast<int>(RelicRawRarity::NONE);
     }
 }

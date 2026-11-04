@@ -66,6 +66,7 @@ enum PotionId : std::uint8_t {
     GLOWWATER_POTION,
     POTION_SHAPED_ROCK,
     DEPRECATED_POTION,
+    AMBERGRIS,
     COUNT
 };
 #else
@@ -136,6 +137,7 @@ static const PotionDef POTION_DEFS[] = {
     {PotionId::GLOWWATER_POTION, "GlowwaterPotion", "Glowwater Potion", Rarity::SPECIAL, PotionUsage::COMBAT_ONLY, PotionTarget::SELF, true, true},
     {PotionId::POTION_SHAPED_ROCK, "PotionShapedRock", "Potion Shaped Rock", Rarity::SPECIAL, PotionUsage::COMBAT_ONLY, PotionTarget::ANY_ENEMY, true, true},
     {PotionId::DEPRECATED_POTION, "DeprecatedPotion", "Deprecated Potion", Rarity::SPECIAL, PotionUsage::COMBAT_ONLY, PotionTarget::ANY_ENEMY, true, true},
+    {PotionId::AMBERGRIS, "Ambergris", "Ambergris", Rarity::SPECIAL, PotionUsage::ANY_TIME, PotionTarget::ANY_PLAYER, false, false},
 };
 
 static_assert(sizeof(POTION_DEFS) / sizeof(POTION_DEFS[0]) == static_cast<int>(PotionId::COUNT), "potion table size");

@@ -210,6 +210,40 @@ int main() {
         check(last.id == CardId::MAUL && last.upgraded && last.enchantment == EnchantmentId::VIGOROUS,
               "claws selected card becomes upgraded enchanted maul");
     }
+    {
+        // Round 5 enchantments: Adroit, Momentum, Tezcataras Ember.
+        Card deck3[10];
+        for (int i = 0; i < 10; ++i) deck3[i] = make_card(CardId::STRIKE_IRONCLAD, false, 600 + i);
+        BattleContext c;
+        c.init(Encounter::SETUP_CEREMONIAL_BEAST_BOSS, 99, deck3, 10, 0, 500, 500);
+        c.handCount = c.drawCount = c.discardCount = c.exhaustCount = 0;
+        c.player.energy = 20;
+        c.monsters[0].hp = c.monsters[0].maxHp = 10000;
+        c.monsters[0].block = 0;
+
+        Card adroit = make_card(CardId::STRIKE_IRONCLAD, false, 700);
+        check(card_apply_enchantment(adroit, EnchantmentId::ADROIT, 5), "adroit applied");
+        Card adroit_skill = make_card(CardId::DEFEND_IRONCLAD, false, 701);
+        check(card_apply_enchantment(adroit_skill, EnchantmentId::ADROIT, 5),
+              "adroit allows skills");
+        c.hand[c.handCount++] = adroit;
+        check(c.play_card(0, 0) && c.player.block == 5, "adroit grants block equal to amount");
+
+        Card momentum = make_card(CardId::STRIKE_IRONCLAD, false, 702);
+        check(card_apply_enchantment(momentum, EnchantmentId::MOMENTUM, 5), "momentum applied");
+        momentum.replay = 1;
+        c.hand[c.handCount++] = momentum;
+        const int before = c.monsters[0].hp;
+        check(c.play_card(0, 0), "momentum card plays twice");
+        check(before - c.monsters[0].hp == 11 + 16,
+              "momentum grows by five for each play, including the first");
+
+        Card ember = make_card(CardId::STRIKE_IRONCLAD, false, 703);
+        check(card_apply_enchantment(ember, EnchantmentId::TEZCATARAS_EMBER, 1), "ember applied");
+        check(card_cost(ember) == 0, "ember makes the card cost zero");
+        check(card_has(ember, CF_ETERNAL), "ember grants Eternal");
+        check(c.calc_player_damage(6, 0, true, &ember) == 9, "ember adds three damage");
+    }
     std::cout << "dimensions=" << PUBLIC_OBS_DIM << ',' << PUBLIC_COMBAT_OBS_DIM
               << ',' << CARD_FEAT_DIM << ',' << ACTION_FEAT_DIM << '\n';
     return failures ? 1 : 0;

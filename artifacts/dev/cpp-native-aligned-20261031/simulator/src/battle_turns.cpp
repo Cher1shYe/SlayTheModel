@@ -12,6 +12,12 @@ static void remove_at(Card *cards,int &count,int index){for(int i=index;i+1<coun
 
 void BattleContext::start_player_turn() {
     ++turn;
+    // SideTurnStart: per-turn history counters reset before energy and draw.
+    silent_reset_turn_counters(*this);
+    defect_begin_turn(*this);
+    necrobinder_player_turn_start(*this);
+    regent_reset_turn(*this);
+    regent_after_side_turn_start(*this);
     // PlatingPower.BeforeSideTurnStart: at the start of round 1 enemies gain
     // block equal to their plating.
     if (turn == 1) {
@@ -35,7 +41,8 @@ void BattleContext::start_player_turn() {
         }
     }
     player.tookUnblockedDamageThisTurn = false;
-    if (player_power(PowerId::BARRICADE) <= 0) {
+    // BlurPower.BeforeSideTurnStart: block is not removed this turn.
+    if (player_power(PowerId::BARRICADE) <= 0 && player_power(PowerId::BLUR) <= 0) {
         const int keep = relics_block_retain(*this);
         player.block = keep > 0 ? std::min(player.block, keep) : 0;
     }
@@ -64,6 +71,8 @@ void BattleContext::start_player_turn() {
     }
     int baseEnergy = player.energyPerTurn;
     if (player_power(PowerId::PYRE) > 0) baseEnergy += player_power(PowerId::PYRE);
+    // WasteAwayPower.ModifyMaxEnergy: reduce the player's maximum energy.
+    baseEnergy = std::max(0, baseEnergy - player_power(PowerId::WASTE_AWAY));
     player.energy = relics_energy_for_turn(*this, baseEnergy) + nextTurnEnergy;
     nextTurnEnergy = 0;
     relic_persistent_after_energy_reset(*this);
@@ -71,6 +80,16 @@ void BattleContext::start_player_turn() {
     if (player_power(PowerId::RADIANCE) > 0) {
         player.energy += 1;
         add_player_power(PowerId::RADIANCE, -1);
+    }
+    defect_after_energy_reset(*this);
+    necrobinder_after_energy_reset(*this);
+    regent_after_energy_reset(*this);
+    player.energy += necrobinder_extra_energy(*this);
+    // "Next turn" powers grant their payload once, then expire.
+    if (player_power(PowerId::ENERGY_NEXT_TURN) > 0) {
+        const int n = player_power(PowerId::ENERGY_NEXT_TURN);
+        player.energy += n;
+        add_player_power(PowerId::ENERGY_NEXT_TURN, -n);
     }
 
     cardsPlayedThisTurn = 0;
@@ -195,7 +214,7 @@ void BattleContext::start_player_turn() {
         for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
             const CardDef &d = card_def(static_cast<CardId>(i));
         if (!card_native_available(static_cast<CardId>(i))) continue;
-            if (d.pool == CardPool::IRONCLAD && d.rarity == Rarity::COMMON &&
+            if (d.pool == characterPool && d.rarity == Rarity::COMMON &&
                 !(d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
                              CF_CANNOT_GENERATE_IN_COMBAT))) {
                 pool[n++] = static_cast<CardId>(i);
@@ -215,8 +234,32 @@ void BattleContext::start_player_turn() {
         }
     }
 
+    // ---- character BeforeHandDraw hooks ----
+    necrobinder_after_side_turn_start(*this);
+    silent_before_hand_draw(*this);
+    defect_before_hand_draw(*this);
+    necrobinder_before_hand_draw(*this);
+    regent_before_hand_draw(*this);
+    if (outcome != Outcome::UNDECIDED) return;
+
     int drawCountThisTurn = relics_modify_draw(*this, player.drawPerTurn) + nextTurnDraw;
     nextTurnDraw = 0;
+    drawCountThisTurn = defect_modify_hand_draw(*this, drawCountThisTurn);
+    drawCountThisTurn += necrobinder_extra_draw(*this);
+    // ToolsOfTheTradePower.ModifyHandDraw: the discard happens after the
+    // enlarged hand draw, not as a separate draw in AfterPlayerTurnStart.
+    drawCountThisTurn += player_power(PowerId::TOOLS_OF_THE_TRADE);
+    // TyrannyPower.ModifyHandDraw: draws Amount extra, then exhausts Amount
+    // cards from hand in AfterPlayerTurnStart.
+    drawCountThisTurn += player_power(PowerId::TYRANNY);
+    if (player_power(PowerId::DRAW_CARDS_NEXT_TURN) > 0) {
+        const int n = player_power(PowerId::DRAW_CARDS_NEXT_TURN);
+        drawCountThisTurn += n;
+        add_player_power(PowerId::DRAW_CARDS_NEXT_TURN, -n);
+    }
+    // MindRotPower.ModifyHandDraw: reduce the turn-start hand draw.
+    if (player_power(PowerId::MIND_ROT) > 0)
+        drawCountThisTurn = std::max(0, drawCountThisTurn - player_power(PowerId::MIND_ROT));
     // ClarityPower.ModifyHandDraw: one extra card for each remaining turn.
     const bool clarity = player_power(PowerId::CLARITY) > 0;
     // Innate cards go on top of the draw pile on turn 1; the opening draw is
@@ -244,6 +287,15 @@ void BattleContext::start_player_turn() {
     if (pending.op != ChoiceOp::NONE) return;
     relics_hand_drawn(*this);
 
+    // AfterPlayerTurnStart / AfterSideTurnStart character hooks.
+    silent_after_player_turn_start(*this);
+    if (pending.op != ChoiceOp::NONE || outcome != Outcome::UNDECIDED) return;
+    defect_player_turn_start(*this);
+    necrobinder_after_player_turn_start(*this);
+    silent_player_turn_start(*this);
+    defect_after_side_turn_start(*this);
+    if (outcome != Outcome::UNDECIDED) return;
+
     // powers that act on the drawn hand
     if (player_power(PowerId::ENTROPY) > 0) {
         int n = player_power(PowerId::ENTROPY);
@@ -270,6 +322,23 @@ void BattleContext::start_player_turn() {
         auto_play_from_draw(player_power(PowerId::MAYHEM), false);
     }
     relic_persistent_finish_turn_start(*this);
+    // TyrannyPower.AfterPlayerTurnStart: exhaust the extra cards it drew. This
+    // may open a hand selector, which the caller drives before acting.
+    regent_after_player_turn_start(*this);
+    // Imbued.AfterAutoPrePlayPhaseEntered: every Imbued card auto-plays once,
+    // on turn 1 only. The card normally waits at the bottom of the draw pile;
+    // scan the hand too in case a small deck drew it.
+    if (turn <= 1 && outcome == Outcome::UNDECIDED && pending.op == ChoiceOp::NONE) {
+        Card imbued[MAX_PILE];
+        int n = 0;
+        for (int i = 0; i < drawCount && n < MAX_PILE; ++i)
+            if (draw[i].enchantment == EnchantmentId::IMBUED && !draw[i].enchantmentDisabled)
+                imbued[n++] = draw[i];
+        for (int i = 0; i < handCount && n < MAX_PILE; ++i)
+            if (hand[i].enchantment == EnchantmentId::IMBUED && !hand[i].enchantmentDisabled)
+                imbued[n++] = hand[i];
+        if (n > 0) auto_play_cards(imbued, n);
+    }
 }
 
 void BattleContext::end_player_turn() {
@@ -327,13 +396,43 @@ void BattleContext::end_player_turn() {
         heal_hp(player_power(PowerId::REGEN));
         add_player_power(PowerId::REGEN, -1);
     }
+    // PaelsEye.BeforeSideTurnEndEarly: on a turn with no card plays, exhaust
+    // the remaining hand and take an extra player turn (once per combat).
+    if (relic_has(*this, RelicId::PAELS_EYE) && !(paelsEyeState & PAELS_EYE_USED) &&
+        cardsPlayedThisTurn == 0) {
+        Card remaining[MAX_PILE];
+        const int n = handCount;
+        for (int i = 0; i < n; ++i) remaining[i] = hand[i];
+        handCount = 0;
+        for (int i = 0; i < n; ++i) {
+            move_to_exhaust(remaining[i]);
+            if (outcome != Outcome::UNDECIDED) return;
+        }
+        paelsEyeState |= PAELS_EYE_EXTRA_TURN;
+    }
     relics_turn_end(*this);
     relics_after_turn(*this);
     if (outcome != Outcome::UNDECIDED) return;
 
+    // OrbQueue.BeforeTurnEnd and Hailstorm precede hand end-of-turn/Ethereal.
+    defect_before_side_turn_end(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     discard_hand();
     if (outcome != Outcome::UNDECIDED) return;
     flush_ethereal_exhaust_hooks();
+    // PlayerCombatState.EndOfTurnCleanup runs after the flush: every card in
+    // combat drops its EndOfTurn local cost modifiers (expiration 2).
+    for (Card *pile : {hand, draw, discard, exhaust, playPile, returnNextTurn}) {
+        const int count = pile == hand ? handCount : pile == draw ? drawCount
+                        : pile == discard ? discardCount : pile == exhaust ? exhaustCount
+                        : pile == playPile ? playCount : returnNextTurnCount;
+        for (int i = 0; i < count; ++i) card_clear_cost_modifiers(pile[i], 2);
+    }
+    silent_player_turn_end(*this);
+    necrobinder_player_turn_end(*this);
+    regent_player_turn_end(*this);
+    defect_after_side_turn_end(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     if (player.tempStrength != 0) {
         player.strength -= player.tempStrength;
         player.tempStrength = 0;
@@ -369,12 +468,35 @@ void BattleContext::end_player_turn() {
 
     for (int i = 0; i < panacheCount; ++i) panacheLeft[i] = 5;
     for (int i = 0; i < monsterCount; ++i) monsters[i].skittishTriggeredThisTurn = false;
+    // DisintegrationPower.AfterSideTurnEndLate(player side): unpowered,
+    // blockable damage. Runs on every player side end, including extra turns.
+    if (player_power(PowerId::DISINTEGRATION) > 0 && outcome == Outcome::UNDECIDED) {
+        damage_player(player_power(PowerId::DISINTEGRATION), false, false);
+        if (outcome != Outcome::UNDECIDED) return;
+    }
+    // Pael's Eye grants its extra turn without an enemy turn, then expires.
+    if (paelsEyeState & PAELS_EYE_EXTRA_TURN) {
+        paelsEyeState &= ~PAELS_EYE_EXTRA_TURN;
+        paelsEyeState |= PAELS_EYE_USED;
+        start_player_turn();
+        return;
+    }
+    // SwitchFromPlayerToEnemySide: AmbergrisPower grants the player another
+    // turn instead of starting the enemy side, then decrements.
+    if (ambergrisExtraTurns > 0) {
+        --ambergrisExtraTurns;
+        start_player_turn();
+        return;
+    }
     monster_turn();
     if (outcome != Outcome::UNDECIDED) return;
     for (int i = 0; i < monsterCount; ++i) {
         if (monsters[i].tempStrengthLoss != 0) {
             monsters[i].strength += monsters[i].tempStrengthLoss;
             monsters[i].tempStrengthLoss = 0;
+            // TemporaryStrengthPower removes its own instance when restoring.
+            monsters[i].power[static_cast<int>(PowerId::ENFEEBLING_TOUCH)] = 0;
+            monsters[i].power[static_cast<int>(PowerId::DARK_SHACKLES)] = 0;
         }
     }
     // IntangiblePower.AfterTurnEnd: expires after the enemy turn it protected
@@ -397,12 +519,37 @@ void BattleContext::end_player_turn() {
     if (player_power(PowerId::COLOSSUS) > 0) add_player_power(PowerId::COLOSSUS, -1);
     player.power[static_cast<int>(PowerId::NO_DRAW)] = 0;
     player.power[static_cast<int>(PowerId::EQUILIBRIUM)] = 0;
+    // KnowledgeDemon.CurseOfKnowledgeMove: offer Disintegration (damage from
+    // the per-counter table) plus the set's other curse. The chosen card is a
+    // transient offer; its OnChosen applies the matching debuff power.
+    if (knowledgeCursePending && outcome == Outcome::UNDECIDED) {
+        knowledgeCursePending = false;
+        const int index = knowledgeCurseIndex >= 0 && knowledgeCurseIndex <= 2
+                              ? knowledgeCurseIndex : 0;
+        static const CardId kOther[3] = {CardId::MIND_ROT, CardId::SLOTH_STATUS,
+                                         CardId::WASTE_AWAY};
+        static const int kDisintegration[3] = {6, 7, 8};
+        static const int kOtherPower[3] = {1, 3, 1};
+        Card offers[2];
+        offers[0] = make_card(CardId::DISINTEGRATION, false, require_card_uid());
+        offers[0].bonusDamage = kDisintegration[index];
+        offers[1] = make_card(kOther[index], false, require_card_uid());
+        offers[1].bonusDamage = kOtherPower[index];
+        Card source = make_card(CardId::INVALID, false, 0);
+        start_offer(ChoiceOp::KNOWLEDGE_CURSE, offers, 2, source, false, false);
+        pending.hasSource = false;
+        knowledgeCurseResume = 1;
+        return;
+    }
     start_player_turn();
 }
 
 void BattleContext::monster_turn() {
     inMonsterTurn = true;
     vitalSparkTriggeredThisEnemyTurn = false;
+    silent_enemy_turn_start(*this);
+    check_outcome();
+    if (outcome != Outcome::UNDECIDED) { inMonsterTurn = false; return; }
     // SlowPower.AfterSideTurnStart: the card count resets when the monsters'
     // own side begins its turn.
     for (int i = 0; i < monsterCount; ++i) monsters[i].slowCardsThisTurn = 0;
@@ -437,6 +584,42 @@ void BattleContext::monster_turn() {
             if (outcome != Outcome::UNDECIDED) break;
         }
     }
+    if (outcome == Outcome::UNDECIDED) {
+        // RitualPower.AfterTurnEnd(owner side): skips the turn it was applied.
+        for (int i = 0; i < monsterCount; ++i) {
+            Monster &m = monsters[i];
+            if (m.ritualJustApplied) { m.ritualJustApplied = false; continue; }
+            if (m.alive && power_ref(m, PowerId::RITUAL) > 0)
+                add_monster_power(i, PowerId::STRENGTH, power_ref(m, PowerId::RITUAL));
+        }
+        // Doom resolves before the generic enemy-turn end hooks.
+        necrobinder_enemy_turn_end(*this);
+        regent_enemy_turn_end(*this);
+        check_outcome();
+        if (outcome == Outcome::UNDECIDED) silent_enemy_turn_end(*this);
+    }
+    if (outcome == Outcome::UNDECIDED) {
+        // BattlewornDummyTimeLimitPower.AfterSideTurnEnd(Enemy): decrement,
+        // then on the last stack set RanOutOfTime and escape the owner.
+        for (int i = 0; i < monsterCount; ++i) {
+            Monster &m = monsters[i];
+            int &limit = m.power[static_cast<int>(PowerId::BATTLEWORN_DUMMY_TIME_LIMIT)];
+            if (!m.alive || limit <= 0) continue;
+            if (limit > 1) { --limit; continue; }
+            limit = 0;
+            // Escape removes the creature without a death event; hp stays > 0.
+            m.alive = false;
+            m.combatEndBlocker = false;
+        }
+        check_outcome();
+    }
+    // CoveredPower.AfterSideTurnEnd(Enemy) always expires at the end of the
+    // enemy side turn; KnockdownPower expires when its owner's side ends (all
+    // owners are monsters here). Multiplayer-only powers still follow their
+    // state lifetime in single player.
+    player.power[static_cast<int>(PowerId::COVERED)] = 0;
+    for (int i = 0; i < monsterCount; ++i)
+        monsters[i].power[static_cast<int>(PowerId::KNOCKDOWN)] = 0;
     inMonsterTurn = false;
 }
 
@@ -450,6 +633,11 @@ void BattleContext::discard_hand() {
             case CardId::TOXIC:
             case CardId::INFECTION:
                 damage_player(card_var(c, VarId::DAMAGE));
+                break;
+            case CardId::WITHER:
+                // Wither.FakeUpgrade adds 3 damage per level without changing
+                // the card's normal upgrade state.
+                damage_player(card_var(c, VarId::DAMAGE) + 3 * c.fakeUpgradeLevel);
                 break;
             case CardId::BECKON:
                 damage_player(card_var(c, VarId::HP_LOSS), true);
@@ -485,11 +673,16 @@ void BattleContext::discard_hand() {
     }
     Card kept[MAX_HAND];
     int keptN = 0;
+    // v0.111.0 fixture evidence: Well Laid Plans retains the whole hand at
+    // end of turn (no selector call, Amount is not a per-turn cap). The old
+    // cb602cef decompile's "select up to Amount" model does not match.
     const bool retainAll = player_power(PowerId::RETAIN_HAND) > 0 ||
                            player_power(PowerId::EQUILIBRIUM) > 0 ||
+                           player_power(PowerId::WELL_LAID_PLANS) > 0 ||
                            relic_has(*this, RelicId::RUNIC_PYRAMID);
-    while (handCount > 0) {
-        Card c = hand[--handCount];
+    // Preserve hand order for both the discard pile and retained cards.
+    for (int i = 0; i < handCount; ++i) {
+        const Card c = hand[i];
         // Ethereal is resolved before retention (C# CombatManager end-of-turn).
         if (card_has(c, CF_ETHEREAL) || c.etherealThisCombat ||
             player_power(PowerId::HEX) > 0) {
@@ -500,6 +693,8 @@ void BattleContext::discard_hand() {
             move_to_discard(c);
         }
     }
-    for (int i = keptN - 1; i >= 0; --i) hand[handCount++] = kept[i];
+    handCount = keptN;
+    for (int i = 0; i < keptN; ++i) hand[i] = kept[i];
+    relics_after_flush(*this, hand, keptN);
 }
 }

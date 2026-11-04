@@ -196,7 +196,12 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
         case CardId::ICE_LANCE: attack(); channels(bc, OrbId::FROST, card_var(card, VarId::REPEAT)); return true;
         case CardId::IGNITION: defect_channel(bc, OrbId::PLASMA); return true;
         case CardId::IMITATION_LEARNING:
-            throw std::logic_error("Imitation Learning requires the native multiplayer-only teammate context");
+            // Multiplayer-only AnyAlly. In single player the only ally is the
+            // owner, so PlayerTarget is the player; the cloning hook runs in
+            // BattleContext::after_card_played.
+            bc.add_player_power(PowerId::IMITATION_LEARNING,
+                                card_var(card, VarId::IMITATION_LEARNING_POWER));
+            return true;
         case CardId::ITERATION: power(PowerId::ITERATION, VarId::ITERATION_POWER); return true;
         case CardId::LIGHTNING_ROD: block(); power(PowerId::LIGHTNING_ROD, VarId::LIGHTNING_ROD_POWER); return true;
         case CardId::LOOP: power(PowerId::LOOP, VarId::LOOP); return true;

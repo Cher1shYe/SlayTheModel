@@ -55,9 +55,9 @@ class LiveEventEncoding:
     page: int = 0
     relic_indices: tuple[int, ...] = ()
 
-    def observation_block(self, relic_count: int) -> list[float]:
+    def observation_block(self, relic_count: int, event_n: int) -> list[float]:
         """Event segment of the simulator public observation for an initial page."""
-        event = [0.0] * 64
+        event = [0.0] * event_n
         event[self.event_id] = 1.0
         for index in range(4):
             relic = self.relic_indices[index] if index < len(self.relic_indices) else 0
@@ -84,7 +84,7 @@ def encode_live_event(observation: dict, actions: list[dict], sim) -> LiveEventE
         raise UnsupportedEvent(f'event has no verified simulator mapping: {name}')
     events = {sim.event_info(i)[0]: i for i in range(sim.event_count())}
     event_id = events.get(name)
-    if event_id is None or not 0 <= event_id < 64:
+    if event_id is None or not 0 <= event_id < sim.PUB_EVENT_N:
         raise UnsupportedEvent(f'event not present in simulator: {name}')
     if pools is not None:
         if len(actions) != 3:

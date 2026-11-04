@@ -5,6 +5,10 @@
 
 ---
 
+> **2026-11-04 status:** the HP ranges below predate the decompile extraction of
+> `MinInitialHp`/`MaxInitialHp`; `simulator/content/monsters.json` is the
+> authoritative table (validation/step2-monster-hp-20261104/README.md).
+
 ## Act 1 - Overgrowth
 
 Encounters in this act: FuzzyWurmCrawlerWeak, NibbitsWeak, ShrinkerBeetleWeak, SlimesWeak, CubexConstructNormal, FlyconidNormal, FogmogNormal, InkletsNormal, MawlerNormal, NibbitsNormal, OvergrowthCrawlers, RubyRaidersNormal, SlimesNormal, SlitheringStranglerNormal, SnappingJaxfruitNormal, VineShamblerNormal, BygoneEffigyElite, ByrdonisElite, PhrogParasiteElite, CeremonialBeastBoss, TheKinBoss, VantomBoss.

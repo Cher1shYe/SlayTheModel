@@ -191,6 +191,9 @@ def run_policy(env) -> tuple:
         selections = [a for a in legal if a[0] == int(RACT.EVENT_SELECT_CARD)]
         if selections:
             return selections[0]
+        # CrystalSphere replaces the option list with its divination grid.
+        if not any(a[0] == int(RACT.EVENT_CHOICE) for a in legal):
+            return legal[0]
         choice = _event_choice(rc)
         options = {a[1] for a in legal}
         if choice not in options:

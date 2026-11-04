@@ -1,0 +1,251 @@
+'vswhere.exe' 不是内部或外部命令，也不是可运行的程序
+或批处理文件。
+Cleaning... 1099 files.
+[0/2] Re-checking globbed directories...
+[1/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\battle_powers.cpp.obj
+[2/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\battle_damage.cpp.obj
+[3/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\card_candidates.cpp.obj
+[4/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_ironclad.cpp.obj
+[5/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_status.cpp.obj
+[6/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_regent.cpp.obj
+[7/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\battle_turns.cpp.obj
+[8/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_silent.cpp.obj
+[9/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_necrobinder.cpp.obj
+[10/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\events.cpp.obj
+[11/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_defect.cpp.obj
+[12/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\battle_flow.cpp.obj
+[13/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\necrobinder.cpp.obj
+[14/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\defect.cpp.obj
+[15/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\potion_slots.cpp.obj
+[16/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards_colorless.cpp.obj
+[17/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\monsters.cpp.obj
+[18/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\mcts.cpp.obj
+[19/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\regent.cpp.obj
+[20/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\relic_lifecycle.cpp.obj
+[21/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\map.cpp.obj
+[22/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\relic_card_rewards.cpp.obj
+[23/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\search.cpp.obj
+[24/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\relic_persistent.cpp.obj
+[25/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\run.cpp.obj
+[26/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\observe.cpp.obj
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(71): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(131): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(285): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(691): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(822): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+[27/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\battle_powers.cpp.obj
+[28/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\battle_damage.cpp.obj
+[29/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\silent.cpp.obj
+[30/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\relics.cpp.obj
+[31/1156] Building CXX object CMakeFiles\sts2_bench.dir\apps\bench.cpp.obj
+[32/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\cards.cpp.obj
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\cards.cpp(126): warning C4244: “return”: 从“const double”转换到“int”，可能丢失数据
+[33/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\battle_flow.cpp.obj
+[34/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\card_candidates.cpp.obj
+[35/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\potions.cpp.obj
+[36/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_regent.cpp.obj
+[37/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_status.cpp.obj
+[38/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_ironclad.cpp.obj
+[39/1156] Building CXX object CMakeFiles\sts2_sim.dir\src\battle.cpp.obj
+[40/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_defect.cpp.obj
+[41/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\potion_slots.cpp.obj
+[42/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\necrobinder.cpp.obj
+[43/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_necrobinder.cpp.obj
+[44/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\monsters.cpp.obj
+[45/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\regent.cpp.obj
+[46/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\defect.cpp.obj
+[47/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_silent.cpp.obj
+[48/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\relic_lifecycle.cpp.obj
+[49/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\relic_persistent.cpp.obj
+[50/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards.cpp.obj
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\cards.cpp(126): warning C4244: “return”: 从“const double”转换到“int”，可能丢失数据
+[51/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\relic_card_rewards.cpp.obj
+[52/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\search.cpp.obj
+[53/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\silent.cpp.obj
+[54/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\battle_turns.cpp.obj
+[55/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\battle_damage.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[56/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\battle_flow.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[57/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\battle_powers.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[58/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\cards_colorless.cpp.obj
+[59/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\battle_turns.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[60/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\events.cpp.obj
+[61/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\relics.cpp.obj
+[62/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\run.cpp.obj
+[63/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\cards.cpp(126): warning C4244: “return”: 从“const double”转换到“int”，可能丢失数据
+[64/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\card_candidates.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[65/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\battle.cpp.obj
+[66/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_status.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[67/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_regent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[68/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_ironclad.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[69/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_defect.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[70/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\observe.cpp.obj
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(71): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(131): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(285): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(691): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(822): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+[71/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_necrobinder.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[72/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_silent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[73/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\defect.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[74/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\potions.cpp.obj
+[75/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\potion_slots.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[76/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\necrobinder.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[77/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\battle.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[78/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\regent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[79/1156] Building CXX object CMakeFiles\sts2_sim.dir\bindings\bindings.cpp.obj
+[80/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\monsters.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[81/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\map.cpp.obj
+[82/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\relic_card_rewards.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[83/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\relic_lifecycle.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[84/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\cards_colorless.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[85/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\relic_persistent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[86/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\silent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[87/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\battle_damage.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[88/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\search.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[89/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\battle_powers.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[90/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\battle_flow.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[91/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\battle_turns.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[92/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\events.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[93/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\map.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[94/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\card_candidates.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[95/1156] Building CXX object CMakeFiles\sts2_bench.dir\src\mcts.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_bench.dir/src/mcts.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /showIncludes /FoCMakeFiles\sts2_bench.dir\src\mcts.cpp.obj /FdCMakeFiles\sts2_bench.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\mcts.cpp
+[96/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\tests\rules_regression.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/tests/rules_regression.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\tests\rules_regression.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\tests\rules_regression.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[97/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\mcts.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/src/mcts.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\src\mcts.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\mcts.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[98/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\observe.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/src/observe.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\src\observe.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(71): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(131): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(285): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(691): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\observe.cpp(822): warning C4244: “参数”: 从“double”转换到“_Ty”，可能丢失数据
+        with
+        [
+            _Ty=float
+        ]
+[99/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\potions.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/src/potions.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\src\potions.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\potions.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[100/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\cards_necrobinder.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[101/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\relics.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/src/relics.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\src\relics.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\relics.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[102/1156] Building CXX object CMakeFiles\sts2_rules_test.dir\src\run.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_rules_test.dir/src/run.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_rules_test.dir\src\run.cpp.obj /FdCMakeFiles\sts2_rules_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\run.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[103/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\cards_status.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[104/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\cards_ironclad.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[105/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\tests\observation_contract.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_observation_test.dir/tests/observation_contract.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_observation_test.dir\tests\observation_contract.cpp.obj /FdCMakeFiles\sts2_observation_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\tests\observation_contract.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[106/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\battle.cpp.obj
+FAILED: [code=1] CMakeFiles/sts2_observation_test.dir/src/battle.cpp.obj 
+"D:\Program Files\VisualStudio\VC\Tools\MSVC\14.51.36231\bin\Hostx64\x64\cl.exe"  /nologo /TP  -ID:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\include /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD /O2 /EHsc /bigobj /W3 /UNDEBUG /showIncludes /FoCMakeFiles\sts2_observation_test.dir\src\battle.cpp.obj /FdCMakeFiles\sts2_observation_test.dir\ /FS -c D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\src\battle.cpp
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[107/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\cards_regent.cpp.obj
+cl: 命令行 warning D9025 :正在重写“/DNDEBUG”(用“/UNDEBUG”)
+[108/1156] Building CXX object CMakeFiles\sts2_observation_test.dir\src\cards.cpp.obj

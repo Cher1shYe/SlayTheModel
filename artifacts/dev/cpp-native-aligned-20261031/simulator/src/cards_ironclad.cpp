@@ -177,6 +177,11 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             hit(bc, card, target, card_var(card, VarId::CALC_BASE) +
                                    card_var(card, VarId::EXTRA_DAMAGE) * bc.exhaustCount);
             return true;
+        case CardId::BLAZE:
+            // Multiplayer-only, TargetType.AnyAlly. In single player the only
+            // ally is the owner, so the Strength lands on the player.
+            bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::STRENGTH_POWER));
+            return true;
         case CardId::BATTLE_TRANCE:
             bc.draw_cards(card_var(card, VarId::CARDS));
             bc.add_player_power(PowerId::NO_DRAW, 1);
@@ -199,7 +204,14 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         case CardId::DEMONIC_SHIELD:
-            return true;  // multiplayer-only in single player
+            // Multiplayer-only AnyAlly. Owner loses HpLossVar(1) as
+            // unblockable/unpowered damage, then the chosen ally gains block
+            // equal to the owner's current block (CalculationExtraVar 1 x
+            // owner.Block). In single player the ally is the owner.
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true, false);
+            if (bc.outcome != Outcome::UNDECIDED) return true;
+            bc.gain_block(bc.player.block, true);
+            return true;
         case CardId::DISMANTLE: {
             const bool vuln = target >= 0 && target < bc.monsterCount &&
                               bc.monsters[target].vulnerable > 0;
@@ -437,6 +449,12 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                 bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS));
             }
             return true;
+        case CardId::MIDNIGHT:
+            // Multiplayer-only by CardMultiplayerConstraint, but the play is a
+            // plain single-target attack. AfterCardExhausted cost reduction is
+            // applied in BattleContext::trigger_exhaust_hooks.
+            hit(bc, card, target, dmg);
+            return true;
         case CardId::OFFERING:
             bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             bc.player.energy += card_var(card, VarId::ENERGY);
@@ -444,6 +462,12 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::ONE_TWO_PUNCH_CARD:
             bc.add_player_power(PowerId::ONE_TWO_PUNCH, card_var(card, VarId::ATTACKS));
+            return true;
+        case CardId::OUTRAGE:
+            // Multiplayer-only: native also adds a clone to each living
+            // teammate's discard pile. Single player has no teammates, so only
+            // the damage applies.
+            hit(bc, card, target, dmg);
             return true;
         case CardId::PACTS_END:
             if (bc.exhaustCount >= card_var(card, VarId::CARDS)) hit_all(bc, card, dmg);
@@ -487,7 +511,12 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::TANK_CARD:
-            return true;  // multiplayer-only in single player
+            // Multiplayer-only Power. TankPower guards teammates (none in
+            // single player) and multiplies powered attack damage to its owner
+            // by DamageIncrease 1.5; that half is implemented in
+            // BattleContext::damage_player.
+            bc.add_player_power(PowerId::TANK, 1);
+            return true;
         case CardId::TEAR_ASUNDER: {
             const int hits = 1 + bc.unblockedHitsThisCombat;
             hit(bc, card, target, dmg, hits);

@@ -31,7 +31,7 @@ def test_previous_snapshot_version_is_rejected():
     run = sim.RunContext()
     run.init(123, 0)
     snapshot = run.snapshot()
-    assert snapshot[4:6] == b"\x08\x00"
-    stale = snapshot[:4] + b"\x07\x00" + snapshot[6:]
+    assert snapshot[4:6] == b"\x0e\x00"
+    stale = snapshot[:4] + b"\x0d\x00" + snapshot[6:]
     assert not run.restore(stale)
     assert run.snapshot() == snapshot

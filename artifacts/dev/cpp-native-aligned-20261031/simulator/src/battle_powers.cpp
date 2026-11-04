@@ -4,6 +4,7 @@
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 namespace sts2 {
 int &power_ref(Player &,PowerId);
 int &power_ref(Monster &,PowerId);
@@ -39,6 +40,7 @@ static bool power_is_debuff(PowerId id,int amount) {
         case PowerId::ENFEEBLING_TOUCH:
         case PowerId::FLANKING:
         case PowerId::FRAIL:
+        case PowerId::GRAPPLE:
         case PowerId::HANG:
         case PowerId::HEX:
         case PowerId::HYPERBEAM_FOCUS_DOWN:
@@ -107,7 +109,6 @@ void BattleContext::add_player_power(PowerId id, int amount) {
         if (id == PowerId::FRAIL) frailSkipTick = true;
         if (id == PowerId::VULNERABLE) vulnerableSkipTick = true;
     }
-    if (id == PowerId::STRENGTH && amount > 0) relics_strength_gain(*this, amount);
     if (id == PowerId::AUTOMATION && amount > 0 && automationCount < MAX_AUTOMATION) {
         // AutomationPower.IsInstanced: each application counts its own ten
         // drawn cards (Data.cardsLeft), never a shared per-turn total.
@@ -125,9 +126,13 @@ void BattleContext::add_player_power(PowerId id, int amount) {
         ++panacheCount;
     }
     power_ref(player,id)=power_new_amount(id,previousAmount,amount);
+    // RuinedHelmet.PowerReceived raises StrengthPower's amount after the
+    // applied amount landed (player.strength is the StrengthPower amount).
+    if (id == PowerId::STRENGTH && amount > 0) relics_strength_gain(*this, amount);
     const int accepted=player_power(id)-previousAmount;
     defect_power_changed(*this,id,accepted);
     necrobinder_after_power_changed(*this,-1,id,accepted,!inMonsterTurn);
+    regent_power_changed(*this,id,accepted);
     // Native stores these values on the PowerModel, independently of Amount.
     // Only the card's successful OnPlay increments SelfDamage; raw Apply does
     // not. Removing and later reapplying a power creates a fresh instance.
@@ -148,6 +153,17 @@ void BattleContext::add_player_power(PowerId id, int amount) {
 
 void BattleContext::add_monster_power(int idx, PowerId id, int amount) {
     if (idx < 0 || idx >= monsterCount || !monsters[idx].alive || monsters[idx].hp<=0 || amount==0) return;
+    // SneckoSkull.ModifyPowerAmountGivenAdditive: +1 whenever the player gives Poison.
+    if (id == PowerId::POISON && amount > 0 && !inMonsterTurn &&
+        relic_has(*this, RelicId::SNECKO_SKULL)) amount += 1;
+    // UnsettlingLamp: the first card-applied visible debuff each combat is doubled.
+    if (id != PowerId::POISON && amount > 0 && !inMonsterTurn && activePlay.active &&
+        power_is_debuff(id, amount) && power_visible(id) &&
+        relic_has(*this, RelicId::UNSETTLING_LAMP) &&
+        relic_aux(*this, RelicId::UNSETTLING_LAMP) == 0) {
+        relic_aux_set(*this, RelicId::UNSETTLING_LAMP, 1);
+        amount *= 2;
+    }
     const int previousAmount=monster_power(idx,id);
     // Monster-side Artifact (beetle shrink, potions, ...).
     if (power_is_debuff(id,amount) && power_visible(id) &&
@@ -160,6 +176,7 @@ void BattleContext::add_monster_power(int idx, PowerId id, int amount) {
         monster.grappleAmounts[monster.grappleCount++] = amount;
     }
     power_ref(monsters[idx],id)=power_new_amount(id,previousAmount,amount);
+    if (id == PowerId::RITUAL && amount > 0) monsters[idx].ritualJustApplied = true;
     necrobinder_after_power_changed(*this,idx,id,monster_power(idx,id)-previousAmount,!inMonsterTurn);
     if (id == PowerId::ILLUSION && amount > 0) {
         monsters[idx].power[static_cast<int>(PowerId::MINION)] = 1;

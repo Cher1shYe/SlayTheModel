@@ -237,6 +237,7 @@ int main() {
         for (int i = 0; i < shop.shopRelicCount; ++i) {
             const RelicId id = static_cast<RelicId>(shop.shopRelics[i]);
             assert(id != RelicId::THE_COURIER && id != RelicId::OLD_COIN);
+            assert(relic_allowed_in_shops(id));
             assert(run_relic_allowed(shop, id));
             for (int j = 0; j < i; ++j) assert(shop.shopRelics[j] != shop.shopRelics[i]);
         }
@@ -279,6 +280,29 @@ int main() {
     for (int i = 0; i < shared.playerRelicBag.counts[0]; ++i)
         assert(shared.playerRelicBag.entries[0][i] != static_cast<int>(shared_id));
 
+    // A caller filter (Wongos shop pulls) skips disallowed relics without
+    // consuming them: PullFromFront only removes the relic it returns.
+    RunContext filtered = bag_base;
+    filtered.playerRelicBag.counts[0] = 2;
+    filtered.playerRelicBag.entries[0][0] = static_cast<std::uint16_t>(RelicId::AMETHYST_AUBERGINE);
+    int allowedCommon = -1;
+    for (int i = 1; i < static_cast<int>(RelicId::COUNT); ++i) {
+        const RelicId id = static_cast<RelicId>(i);
+        const RelicDef &def = relic_def(id);
+        if (relic_raw_rarity(id) == 1 && relic_implemented(id) &&
+            relic_allowed_in_shops(id) && (def.pool == RelicPool::SHARED || def.pool == RelicPool::IRONCLAD)) {
+            allowedCommon = i;
+            break;
+        }
+    }
+    assert(allowedCommon > 0);
+    filtered.playerRelicBag.entries[0][1] = static_cast<std::uint16_t>(allowedCommon);
+    assert(static_cast<int>(filtered.pull_relic(Rarity::COMMON, false, false, nullptr, 0, true)) ==
+           allowedCommon);
+    assert(filtered.playerRelicBag.counts[0] == 1);
+    assert(filtered.playerRelicBag.entries[0][0] == static_cast<int>(RelicId::AMETHYST_AUBERGINE));
+    assert(filtered.pull_relic(Rarity::COMMON) == RelicId::AMETHYST_AUBERGINE);
+
     TEST_RUN(exhausted);
     exhausted.init(778, 0);
     for (int &count : exhausted.playerRelicBag.counts) count = 0;
@@ -301,15 +325,18 @@ int main() {
     exhausted.shopRelicSold[0] = false;
     assert(exhausted.step({RunActionType::BUY_RELIC, 0}));
 
+    // Native GenerateRooms fills each category from a GrabBag and refills it
+    // when empty, so entries are unique within one draw cycle but may repeat
+    // after a refill.  Pool sizes below are the target act declaration lists
+    // (weak/normal/elite, bosses excluded); the content table additionally
+    // carries SETUP_TUNNELER_NORMAL, which no act declares.
+    const int native_weak[3] = {4, 4, 3};
+    const int native_normal[3] = {12, 10, 9};
+    const int native_elite[3] = {3, 3, 3};
     for (int act = 0; act < MAX_ACTS; ++act) {
-        int weak_pool = 0, normal_pool = 0, elite_pool = 0;
-        for (int i = 1; i < static_cast<int>(Encounter::COUNT); ++i) {
-            const EncounterDef &def = encounter_def(i);
-            if (def.act != act + 1 || !def.key || std::strstr(def.key, "BOSS")) continue;
-            if (std::strstr(def.key, "ELITE")) ++elite_pool;
-            else if (std::strstr(def.key, "WEAK")) ++weak_pool;
-            else ++normal_pool;
-        }
+        const int weak_pool = native_weak[act];
+        const int normal_pool = native_normal[act];
+        const int elite_pool = native_elite[act];
         const int weak_count = act == 0 ? 3 : 2;
         for (int seed = 0; seed < 100; ++seed) {
             TEST_RUN(bag);
@@ -320,13 +347,18 @@ int main() {
                 const char *key = encounter_def(bag.normalBag[i]).key;
                 assert((std::strstr(key, "WEAK") != nullptr) == (i < weak_count));
             }
-            for (int i = 0; i < std::min(weak_count, weak_pool); ++i)
-                for (int j = 0; j < i; ++j) assert(bag.normalBag[i] != bag.normalBag[j]);
-            const int normal_end = std::min(bag.normalBagN, weak_count + normal_pool);
-            for (int i = weak_count; i < normal_end; ++i)
-                for (int j = weak_count; j < i; ++j) assert(bag.normalBag[i] != bag.normalBag[j]);
-            for (int i = 0; i < std::min(15, elite_pool); ++i)
-                for (int j = 0; j < i; ++j) assert(bag.eliteBag[i] != bag.eliteBag[j]);
+            assert(weak_count <= weak_pool);
+            for (int i = 1; i < weak_count; ++i)
+                for (int j = 0; j < i; ++j)
+                    assert(bag.normalBag[i] != bag.normalBag[j]);
+            for (int cycle = weak_count; cycle < bag.normalBagN; cycle += normal_pool)
+                for (int i = cycle; i < std::min(bag.normalBagN, cycle + normal_pool); ++i)
+                    for (int j = cycle; j < i; ++j)
+                        assert(bag.normalBag[i] != bag.normalBag[j]);
+            for (int cycle = 0; cycle < 15; cycle += std::min(15, elite_pool))
+                for (int i = cycle; i < std::min(15, cycle + elite_pool); ++i)
+                    for (int j = cycle; j < i; ++j)
+                        assert(bag.eliteBag[i] != bag.eliteBag[j]);
         }
     }
 

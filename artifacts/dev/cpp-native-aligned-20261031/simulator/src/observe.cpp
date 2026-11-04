@@ -115,7 +115,8 @@ std::vector<float> card_features(const Card &c, int price) {
     const CardDef &d = card_def(c.id);
     const int cost = card_cost(c);
     v.push_back(cost < 0 ? 1.0f : cost / 3.0f);
-    for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.type) == i ? 1.0f : 0.0f);
+    const int typeOrdinal = static_cast<int>(card_type_of(c));
+    for (int i = 0; i < 5; ++i) v.push_back(typeOrdinal == i ? 1.0f : 0.0f);
     for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.rarity) == i ? 1.0f : 0.0f);
     v.push_back(c.upgraded ? 1.0f : 0.0f);
     v.push_back(price >= 0 ? price / 200.0f : 0.0f);
@@ -137,6 +138,9 @@ std::vector<float> card_features(const Card &c, int price) {
     v.push_back(static_cast<int>(c.enchantment) / 5.0f);
     v.push_back(c.enchantmentAmount / 10.0f);
     v.push_back(c.enchantmentDisabled ? 1.0f : 0.0f);
+    // MadScience's TinkerTime RiderEffect is saved on the card and changes its
+    // public text/effect; the type above already follows TinkerTimeType.
+    v.push_back(c.tinkerRider / 9.0f);
     return v;
 }
 
@@ -385,13 +389,13 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicCounts[i]);
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicAux[i] / 10.0f);
         float potionCounts[POTION_COUNT]{};
-        for (int i = 0; i < bc.potionCount; ++i) {
+        for (int i = 0; i < bc.potionSlots; ++i) {
             const int id = bc.potions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < bc.potionCount ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < bc.potionSlots ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // Monsters: identity, live stats, full power list, intent.
@@ -604,13 +608,13 @@ std::vector<float> public_observation(const RunContext &rc) {
     {
         float potionCounts[POTION_COUNT]{};
         const int *livePotions = inCombat ? rc.battle.potions : rc.potions;
-        for (int i = 0; i < livePotionCount; ++i) {
+        for (int i = 0; i < livePotionSlots; ++i) {
             const int id = livePotions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < livePotionCount ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < livePotionSlots ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // --- map ----------------------------------------------------------------
@@ -672,6 +676,9 @@ std::vector<float> public_observation(const RunContext &rc) {
                     rc.pendingPotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     for (int i = 0; i < MAX_CARD_REWARDS; ++i)
         v.push_back(rewardsVisible && rc.rewardCardPending[i] ? 1.0f : 0.0f);
+    for (int i = 0; i < MAX_CARD_REWARDS; ++i)
+        v.push_back(rewardsVisible && rc.rewardCardPending[i] && rc.rewardCardCanReroll[i]
+                    ? 1.0f : 0.0f);
     v.push_back(rewardsVisible ? (rc.activeCardReward + 1) / static_cast<float>(MAX_CARD_REWARDS) : 0.0f);
     push_one_hot(v, rewardsVisible ? static_cast<int>(rc.rewardResumeScreen) : -1, PUB_SCREENS);
     v.push_back(rewardsVisible && rc.deferredCustomRewards ? 1.0f : 0.0f);
@@ -757,6 +764,28 @@ std::vector<float> public_observation(const RunContext &rc) {
     for (int i = 0; i < MAX_PILE; ++i)
         v.push_back(theftVisible && i < rc.stolenSyncCount && rc.stolenOriginalPresent[i] &&
                     rc.stolenOriginals[i].costThisTurn ? rc.stolenOriginals[i].storedCost / 3.0f : 0.0f);
+    // FakeMerchant's custom inventory.
+    const bool fakeVisible = rc.screen == RunScreen::EVENT && event_is_fake_merchant(rc);
+    for (int i = 0; i < PUB_FAKE_MERCHANT_N; ++i) {
+        v.push_back(fakeVisible ? 1.0f : 0.0f);
+        push_one_hot(v, fakeVisible ? rc.fakeMerchantRelics[i] : 0, RELIC_COUNT);
+        v.push_back(fakeVisible ? rc.fakeMerchantPrices[i] / 200.0f : 0.0f);
+        v.push_back(fakeVisible && rc.fakeMerchantSold[i] ? 1.0f : 0.0f);
+    }
+    // CrystalSphere minigame grid and visible items.
+    const bool crystalVisible = event_crystal_active(rc);
+    for (int i = 0; i < PUB_CRYSTAL_CELLS; ++i)
+        v.push_back(crystalVisible && rc.crystalHidden[i] ? 1.0f : 0.0f);
+    v.push_back(crystalVisible ? rc.crystalDivinations / 6.0f : 0.0f);
+    v.push_back(crystalVisible && rc.crystalTool ? 1.0f : 0.0f);
+    for (int i = 0; i < PUB_CRYSTAL_ITEMS; ++i) {
+        const bool present = crystalVisible && i < rc.crystalItemCount;
+        v.push_back(present ? 1.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].type / 8.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].x / 10.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].y / 10.0f : 0.0f);
+        v.push_back(present && rc.crystalItems[i].revealed ? 1.0f : 0.0f);
+    }
     assert(static_cast<int>(v.size()) == PUBLIC_RUN_DIM);
 
     // --- combat -------------------------------------------------------------
@@ -807,8 +836,8 @@ std::vector<float> combat_action_features(const BattleContext &bc, const Action 
     const int id = card ? static_cast<int>(card->id) : 0;
     push_one_hot(v, id, static_cast<int>(CardId::COUNT));
 
-    const int potionId = (a.type == ActionType::USE_POTION && a.hand < bc.potionCount)
-                             ? bc.potions[a.hand] : 0;
+    const int potionId = (a.type == ActionType::USE_POTION && a.hand >= 0 &&
+                          a.hand < bc.potionSlots) ? bc.potions[a.hand] : 0;
     push_one_hot(v, potionId, POTION_COUNT);
 
     v.push_back(card ? card_cost(*card) / 3.0f : 0.0f);

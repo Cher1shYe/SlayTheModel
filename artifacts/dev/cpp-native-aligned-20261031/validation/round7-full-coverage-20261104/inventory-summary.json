@@ -1,0 +1,58 @@
+{
+  "cards": 596,
+  "potions": 66,
+  "relics": 300,
+  "cards_no_effect": [],
+  "potions_no_effect": [
+    "DEPRECATED_POTION"
+  ],
+  "relics_no_effect": [
+    "WONGO_CUSTOMER_APPRECIATION_BADGE",
+    "DEPRECATED_RELIC"
+  ],
+  "cards_untested": 0,
+  "potions_untested": 0,
+  "relics_untested": 0,
+  "multiplayer_only": [
+    "DEMONIC_SHIELD",
+    "TANK_CARD",
+    "BEACON_OF_HOPE",
+    "BELIEVE_IN_YOU",
+    "COORDINATE_CARD",
+    "GANG_UP",
+    "HUDDLE_UP",
+    "INTERCEPT_CARD",
+    "KNOCKDOWN",
+    "LIFT",
+    "MIMIC",
+    "RALLY",
+    "TAG_TEAM",
+    "BLADE_SYMPHONY",
+    "BLAZE",
+    "CACOPHONY",
+    "CONCOCT",
+    "CONSTELLATION",
+    "ENERGY_SURGE",
+    "FADE",
+    "FLANKING",
+    "GLIMPSE_BEYOND",
+    "HAMMER_TIME",
+    "HIBERNATE",
+    "IGNITION",
+    "IMITATION_LEARNING",
+    "LARGESSE",
+    "LEGION_OF_BONE",
+    "MIDNIGHT",
+    "ONE_FOR_ALL",
+    "OUTRAGE",
+    "PLOT",
+    "SNEAKY",
+    "SOULBOUND",
+    "THE_BALL",
+    "TUTOR",
+    "UNDERWORLD"
+  ],
+  "deprecated": [
+    "GRAPPLE"
+  ]
+}

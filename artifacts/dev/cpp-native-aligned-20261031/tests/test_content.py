@@ -111,22 +111,39 @@ def test_ancient_choice_grants_the_offered_relic():
 
 
 def test_neow_offers_follow_the_relic_mirror_rules():
+    # Neow.CurseOptions in native declaration order (:125403).
     curses = {relic_id(n) for n in
-              ("CURSED_PEARL", "LARGE_CAPSULE", "LEAFY_POULTICE",
-               "PRECARIOUS_SHEARS", "SCROLL_BOXES", "SILVER_CRUCIBLE")}
+              ("CURSED_PEARL", "DOWSING_ROD", "HEFTY_TABLET", "LARGE_CAPSULE",
+               "LEAFY_POULTICE", "NEOWS_BONES", "NEOWS_SACRIFICE",
+               "PRECARIOUS_SHEARS", "SILKEN_TRESS", "SILVER_CRUCIBLE")}
+    positives = {relic_id(n) for n in
+                 ("ARCANE_SCROLL", "BOOMING_CONCH", "FISHING_ROD", "GOLDEN_PEARL",
+                  "KALEIDOSCOPE", "LEAD_PAPERWEIGHT", "LOST_COFFER",
+                  "MASSIVE_SCROLL", "NEOWS_TORMENT", "NEW_LEAF", "PHIAL_HOLSTER",
+                  "PRECISE_SCISSORS", "SCROLL_BOXES", "WINGED_BOOTS",
+                  "LAVA_ROCK", "NEOWS_TALISMAN", "NUTRITIOUS_OYSTER", "POMANDER",
+                  "SMALL_CAPSULE", "STONE_HUMIDIFIER")}
     seen_curses = set()
     for seed in range(1, 161):
         rc = new_run(seed)
         offers = list(rc.event_relics)
         curse = offers[2]
         assert curse in curses
+        assert offers[0] in positives and offers[1] in positives
+        # MassiveScroll requires Players.Count > 1 and is never offered here.
+        assert relic_id("MASSIVE_SCROLL") not in offers
         seen_curses.add(curse)
         if curse == relic_id("CURSED_PEARL"):
             assert relic_id("GOLDEN_PEARL") not in offers[:2]
+        if curse == relic_id("HEFTY_TABLET"):
+            assert relic_id("ARCANE_SCROLL") not in offers[:2]
         if curse == relic_id("PRECARIOUS_SHEARS"):
             assert relic_id("PRECISE_SCISSORS") not in offers[:2]
         if curse == relic_id("LEAFY_POULTICE"):
             assert relic_id("NEW_LEAF") not in offers[:2]
+        if curse == relic_id("NEOWS_SACRIFICE"):
+            assert relic_id("PHIAL_HOLSTER") not in offers[:2]
+            assert relic_id("LOST_COFFER") not in offers[:2]
     assert {relic_id("CURSED_PEARL"), relic_id("LARGE_CAPSULE")} <= seen_curses
 
 
