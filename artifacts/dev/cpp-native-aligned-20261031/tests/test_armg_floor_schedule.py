@@ -76,16 +76,19 @@ def test_collect_passes_actual_floor_to_search(monkeypatch):
     import agent.armg_train as train
     class Run:
         floor, hp, won, truncated = 8, 1, False, False
+        act, act_floor, deck, card_shop_removals_used = 0, 8, [], 0
         screen = SCREEN.COMBAT
         combat_is_boss = True
+        combat_is_elite = False
         class Battle:
+            outcome = None
             def legal_actions(self):
                 return [(1, 0, 0, 0), (2, 0, 0, 0)]
         battle = Battle()
         def step_combat(self, *args):
             self.screen = SCREEN.RUN_OVER
             return True
-    monkeypatch.setattr(train, 'new_run', lambda *args: Run())
+    monkeypatch.setattr(train, 'new_run', lambda *args, **kwargs: Run())
     seen = []
     def plan(battle, seed, combat, simulations, epsilon, is_boss):
         seen.append((simulations, is_boss))
@@ -102,10 +105,12 @@ def test_collect_uses_public_combat_kind(monkeypatch, elite, boss, expected):
     import agent.armg_train as train
     class Run:
         floor, hp, won, truncated = 8, 1, False, False
+        act, act_floor, deck, card_shop_removals_used = 0, 8, [], 0
         screen = SCREEN.COMBAT
         combat_is_boss = boss
         combat_is_elite = elite
         class Battle:
+            outcome = None
             def legal_actions(self):
                 return [(1, 0, 0, 0), (2, 0, 0, 0)]
         battle = Battle()
@@ -116,7 +121,7 @@ def test_collect_uses_public_combat_kind(monkeypatch, elite, boss, expected):
         def step_combat(self, *args):
             self.screen = SCREEN.RUN_OVER
             return True
-    monkeypatch.setattr(train, 'new_run', lambda *args: Run())
+    monkeypatch.setattr(train, 'new_run', lambda *args, **kwargs: Run())
     seen = []
     def plan(battle, seed, combat, simulations, epsilon, is_boss):
         seen.append((simulations, is_boss))

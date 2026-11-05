@@ -250,6 +250,25 @@ PYBIND11_MODULE(sts2_sim, m) {
     }, py::arg("seed"), py::arg("act"), py::arg("ascension") = 0,
        "Generate a map from a raw uint64 RNG seed (same numeric contract as RunContext.init).");
     m.def("event_count", []() { return event_count(); });
+    py::enum_<RunContentProfile>(m, "RunContentProfile")
+        .value("ORIGINAL", RunContentProfile::ORIGINAL)
+        .value("SINGLE_PLAYER_TRAINING", RunContentProfile::SINGLE_PLAYER_TRAINING);
+    m.def("run_content_profile_name", [](int profile) {
+        if (profile < 0 || profile >= RUN_CONTENT_PROFILE_COUNT)
+            throw std::invalid_argument("unknown content profile");
+        return std::string(run_content_profile_name(static_cast<RunContentProfile>(profile)));
+    });
+    // The exact event bag an act would generate under a content profile, in
+    // generated order (identity of the filtering configuration).
+    m.def("event_pool_profile", [](int actType, int profile) {
+        int ids[128];
+        const int n = event_pool_for_act_type(static_cast<ActType>(actType), ids, 128);
+        py::list out;
+        for (int i = 0; i < n; ++i)
+            if (event_allowed_by_profile(static_cast<RunContentProfile>(profile), ids[i]))
+                out.append(ids[i]);
+        return out;
+    });
     m.def("event_pool", [](int act) {
         int ids[64];
         const int n = event_pool_for_act(act, ids, 64);
@@ -282,6 +301,8 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("PUBLIC_RUN_DIM") = PUBLIC_RUN_DIM;
     m.attr("PUB_RUN_BOSS_OFFSET") = PUB_RUN_BOSS_OFFSET;
     m.attr("PUB_RUN_EXTENSION") = PUB_RUN_EXTENSION;
+    m.attr("PUB_CARD_INSTANCE_FEAT") = PUB_CARD_INSTANCE_FEAT;
+    m.attr("RUN_CARD_GRID_N") = RUN_CARD_GRID_N;
     m.attr("PUBLIC_COMBAT_OBS_DIM") = PUBLIC_COMBAT_OBS_DIM;
     m.attr("PUB_EVENT_N") = PUB_EVENT_N;
     m.attr("PUBLIC_OBS_VERSION") = PUBLIC_OBS_VERSION;
@@ -616,11 +637,17 @@ PYBIND11_MODULE(sts2_sim, m) {
                                   static_cast<int>(bc.pending.pile),
                                   bc.pending.remaining, bc.pending.count);
         })
+        // Occupied potions only, without their slots. Any caller that maps an
+        // action index to a potion must use ``potion_slot_ids`` (physical
+        // slots, holes as 0) because USE_POTION/DISCARD_POTION index the belt.
         .def_property_readonly("potions", [](const BattleContext &bc) {
             py::list out;
             for (int i = 0; i < bc.potionSlots; ++i)
                 if (bc.potions[i]) out.append(bc.potions[i]);
             return out;
+        })
+        .def_property_readonly("potion_slot_ids", [](const BattleContext &bc) {
+            return std::vector<int>(bc.potions, bc.potions + bc.potionSlots);
         })
         .def("add_potion", [](BattleContext &bc, int id) {
             bc.add_potion(static_cast<PotionId>(id));
@@ -665,34 +692,58 @@ PYBIND11_MODULE(sts2_sim, m) {
         });
     py::class_<RunContext>(m, "RunContext")
         .def(py::init<>())
-        .def("init", [](RunContext &rc, std::uint64_t seed, int ascension, int character) {
-            rc.init(seed, ascension, static_cast<CardPool>(character));
-        }, py::arg("seed"), py::arg("ascension") = 0,
-           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
-        .def("init_seed", [](RunContext &rc, const std::string &seed, int ascension, int character) {
-            rc.init_seed(seed, ascension, static_cast<CardPool>(character));
+        .def("init", [](RunContext &rc, std::uint64_t seed, int ascension, int character,
+                        int profile) {
+            rc.init(seed, ascension, static_cast<CardPool>(character),
+                    static_cast<RunContentProfile>(profile));
         }, py::arg("seed"), py::arg("ascension") = 0,
            py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           py::arg("content_profile") = static_cast<int>(RunContentProfile::ORIGINAL))
+        .def("init_seed", [](RunContext &rc, const std::string &seed, int ascension,
+                             int character, int profile) {
+            rc.init_seed(seed, ascension, static_cast<CardPool>(character),
+                         static_cast<RunContentProfile>(profile));
+        }, py::arg("seed"), py::arg("ascension") = 0,
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           py::arg("content_profile") = static_cast<int>(RunContentProfile::ORIGINAL),
            "Canonicalize/hash an ASCII game seed string; numeric init uses a raw uint64 RNG seed.")
         .def("init_with_context", [](RunContext &rc, std::uint64_t seed, int ascension,
                                      int firstAct, const NativeProgressContext &progress,
-                                     int character) {
+                                     int character, int profile) {
             rc.init_with_context(seed, ascension, firstAct, progress,
-                                 static_cast<CardPool>(character));
+                                 static_cast<CardPool>(character),
+                                 static_cast<RunContentProfile>(profile));
         }, py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"),
            py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           py::arg("content_profile") = static_cast<int>(RunContentProfile::ORIGINAL),
            "Raw uint64 seed; first_act=-1 selects natively, 0 fixes Overgrowth, 3 fixes Underdocks.")
         .def("init_seed_with_context", [](RunContext &rc, const std::string &seed, int ascension,
                                           int firstAct, const NativeProgressContext &progress,
-                                          int character) {
+                                          int character, int profile) {
             rc.init_seed_with_context(seed, ascension, firstAct, progress,
-                                      static_cast<CardPool>(character));
+                                      static_cast<CardPool>(character),
+                                      static_cast<RunContentProfile>(profile));
         }, py::arg("seed"), py::arg("ascension"), py::arg("first_act"), py::arg("progress"),
-           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
-        .def("reset", [](RunContext &rc, std::uint64_t seed, int ascension, int character) {
-            rc.init(seed, ascension, static_cast<CardPool>(character));
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           py::arg("content_profile") = static_cast<int>(RunContentProfile::ORIGINAL))
+        .def("reset", [](RunContext &rc, std::uint64_t seed, int ascension, int character,
+                         int profile) {
+            rc.init(seed, ascension, static_cast<CardPool>(character),
+                    static_cast<RunContentProfile>(profile));
         }, py::arg("seed"), py::arg("ascension") = 0,
-           py::arg("character") = static_cast<int>(CardPool::IRONCLAD))
+           py::arg("character") = static_cast<int>(CardPool::IRONCLAD),
+           py::arg("content_profile") = static_cast<int>(RunContentProfile::ORIGINAL))
+        .def_property_readonly("content_profile", [](const RunContext &rc) {
+            return static_cast<int>(rc.contentProfile);
+        })
+        .def_property_readonly("content_profile_name", [](const RunContext &rc) {
+            return std::string(run_content_profile_name(rc.contentProfile));
+        })
+        .def_property_readonly("event_ids", [](const RunContext &rc) {
+            py::list out;
+            for (int i = 0; i < rc.eventBagN; ++i) out.append(rc.eventBag[i]);
+            return out;
+        })
         .def_property("character",
              [](const RunContext &rc) { return static_cast<int>(rc.character); },
              [](RunContext &rc, int character) {
@@ -751,6 +802,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("battle", [](RunContext &rc) -> BattleContext & { return rc.battle; },
                                py::return_value_policy::reference_internal)
         .def_property_readonly("combat_is_boss", [](const RunContext &rc) { return rc.combatIsBoss; })
+        .def_property_readonly("combat_is_elite", [](const RunContext &rc) { return rc.combatIsElite; })
         .def_property_readonly("hp", [](const RunContext &rc) { return rc.hp; })
         .def_property_readonly("max_hp", [](const RunContext &rc) { return rc.maxHp; })
         .def_property_readonly("gold", [](const RunContext &rc) { return rc.gold; })
@@ -871,9 +923,13 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("event_card_selection", [](const RunContext &rc) { return rc.eventCardSelection; })
         .def_property_readonly("card_grid_kind", [](const RunContext &rc) { return rc.cardGrid.kind; })
         .def_property_readonly("card_grid_preview", [](const RunContext &rc) { return rc.cardGrid.preview; })
+        // Generated offer lists (event selects, Scroll Boxes, and the relic
+        // grids 13/14/16). Deck-indexed grids read ``deck`` instead.
         .def_property_readonly("card_grid_cards", [](const RunContext &rc) {
-            return (rc.cardGrid.kind == 1 || rc.cardGrid.kind == 2 || rc.cardGrid.kind == 5)
-                ? card_list(rc.cardGrid.cards, rc.cardGrid.count) : py::list();
+            const int kind = rc.cardGrid.kind;
+            const bool generated = kind == 1 || kind == 2 || kind == 5 ||
+                                   kind == 13 || kind == 14 || kind == 16;
+            return generated ? card_list(rc.cardGrid.cards, rc.cardGrid.count) : py::list();
         })
         .def_property_readonly("card_grid_selected", [](const RunContext &rc) {
             py::list out;
@@ -986,6 +1042,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def_property_readonly("removal_price", [](const RunContext &rc) { return rc.removalPrice; })
         .def_property_readonly("removal_used", [](const RunContext &rc) { return rc.removalUsed; })
+        .def_property_readonly("card_shop_removals_used",
+                               [](const RunContext &rc) { return rc.cardShopRemovalsUsed; })
         .def_property_readonly("combats_fought", [](const RunContext &rc) { return rc.combatsFought; })
         .def_property_readonly("elites_fought", [](const RunContext &rc) { return rc.elitesFought; })
         .def_property_readonly("bosses_fought", [](const RunContext &rc) { return rc.bossesFought; });

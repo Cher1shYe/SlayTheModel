@@ -163,5 +163,39 @@ def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
     assert rows[1, armg._CARD_OFF + 6] == 1
     assert rows[0, armg._META_OFF + 1] == pytest.approx(grid_kind / 5)
     assert rows[0, armg._META_OFF + 5] == 1
-    end = armg._CARD_OFF + int(sim.CARD_FEAT_DIM)
-    np.testing.assert_allclose(rows[0, end - 3:end], [3 / 5, 2 / 10, 0])
+    # Locate the enchantment triple by the engine's own field order instead of
+    # a hard-coded trailing offset: v20 appended seven fields after it.
+    ench = armg._CARD_OFF + armg.ENCHANT_FEATURE_OFFSET
+    np.testing.assert_allclose(rows[0, ench:ench + 3], [3 / 5, 2 / 10, 0])
+    # The appended Sly/Retain fields must not be clobbered by the patch.
+    assert armg.ENCHANT_FEATURE_OFFSET + 3 <= sim.CARD_FEAT_DIM - 7
+
+
+def test_old_observation_checkpoint_cannot_be_forced_to_load(tmp_path):
+    """Bumping the stored version number must not make an old file loadable."""
+    import torch
+    from agent.armg import ARMG_ACTION_DIM, ARMG_OBS_DIM, ARMG_FEATURE_VERSION, ArmGScorer
+    from agent.common import ACTION_SCHEMA_VERSION, PUBLIC_OBS_VERSION, sim
+    from agent.nets import checkpoint_config
+    from deployment.evaluate_armg import load_armg_checkpoint
+
+    model = ArmGScorer()
+    config = checkpoint_config(model) | {"armg_feature_version": ARMG_FEATURE_VERSION,
+                                         "armg_obs_dim": ARMG_OBS_DIM,
+                                         "armg_action_dim": ARMG_ACTION_DIM}
+    # A file from the previous observation schema with the version string
+    # rewritten to the current one: the shape/engine checks must still reject it.
+    forged = dict(config, obs_version=int(PUBLIC_OBS_VERSION),
+                  action_schema_version=int(ACTION_SCHEMA_VERSION),
+                  in_features=int(ARMG_OBS_DIM) - 1,
+                  param_shapes=[[128, int(ARMG_OBS_DIM) - 1], [128], [128, 128],
+                                [128], [1, 128], [1]])
+    torch.save({"state_dict": model.state_dict(), "config": forged},
+               tmp_path / "forged.pt")
+    with pytest.raises(ValueError, match="parameter shapes"):
+        load_armg_checkpoint(tmp_path / "forged.pt", ArmGScorer())
+
+    stale = dict(config, obs_version=int(PUBLIC_OBS_VERSION) - 1)
+    torch.save({"state_dict": model.state_dict(), "config": stale}, tmp_path / "old.pt")
+    with pytest.raises(ValueError, match="observation version"):
+        load_armg_checkpoint(tmp_path / "old.pt", ArmGScorer())

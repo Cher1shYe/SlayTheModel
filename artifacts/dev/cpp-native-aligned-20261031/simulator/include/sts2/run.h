@@ -33,6 +33,22 @@ struct RunAction {
     int index = 0;
 };
 
+// Training/evaluation content profile. The default (ORIGINAL) is the complete
+// native content set; SINGLE_PLAYER_TRAINING removes only content that cannot
+// occur in a single-player Ironclad run so a simulated run never reaches an
+// unsupported interactive event. It changes the native content distribution
+// (one event is missing from the generated pool); every filter is applied when
+// the pool is built, never by drawing an excluded entry and silently skipping.
+enum class RunContentProfile : std::uint8_t {
+    ORIGINAL = 0,
+    // Excludes the CrystalSphere event (interactive mini-game outside the
+    // current support scope). Multiplayer-only cards are already excluded from
+    // every generation entry point in both profiles.
+    SINGLE_PLAYER_TRAINING = 1,
+};
+constexpr int RUN_CONTENT_PROFILE_COUNT = 2;
+const char *run_content_profile_name(RunContentProfile profile);
+
 // RunRngSet order matches MegaCrit.Sts2.Core.Entities.Rngs.RunRngType.
 enum RunRngType : int {
     RNG_UP_FRONT, RNG_SHUFFLE, RNG_UNKNOWN_MAP_POINT, RNG_COMBAT_CARD_GENERATION,
@@ -336,18 +352,25 @@ struct RunContext {
     bool treasureSkipped = false;
     int eventRelicsLegacy[3]{};
 
+    // --- content profile ----------------------------------------------------
+    RunContentProfile contentProfile = RunContentProfile::ORIGINAL;
+
     // --- lifecycle ----------------------------------------------------------
     // Numeric input is the raw 64-bit RNG seed; strings use native canonicalization/hash.
     void init(std::uint64_t seedValue, int ascensionLevel,
-              CardPool character = CardPool::IRONCLAD);
+              CardPool character = CardPool::IRONCLAD,
+              RunContentProfile profile = RunContentProfile::ORIGINAL);
     void init_seed(const std::string &seedText, int ascensionLevel,
-                   CardPool character = CardPool::IRONCLAD);
+                   CardPool character = CardPool::IRONCLAD,
+                   RunContentProfile profile = RunContentProfile::ORIGINAL);
     void init_with_context(std::uint64_t seedValue, int ascensionLevel, int firstAct,
                            const NativeProgressContext &progress,
-                           CardPool character = CardPool::IRONCLAD);
+                           CardPool character = CardPool::IRONCLAD,
+                           RunContentProfile profile = RunContentProfile::ORIGINAL);
     void init_seed_with_context(const std::string &seedText, int ascensionLevel, int firstAct,
                                 const NativeProgressContext &progress,
-                                CardPool character = CardPool::IRONCLAD);
+                                CardPool character = CardPool::IRONCLAD,
+                                RunContentProfile profile = RunContentProfile::ORIGINAL);
     void init_relic_bags();
 
     bool add_card_to_deck(Card c);
@@ -424,6 +447,10 @@ const EventInfo *event_info(int id);
 int event_pool_for_act_type(ActType actType, int *out, int maxOut);
 int event_count();
 bool event_is_allowed(const RunContext &rc, int id);
+// Content-profile gate applied while an act's event bag is built. Kept
+// separate from event_allowed_now (which mirrors the native IsAllowed) so the
+// profile's deviation from native content stays explicit.
+bool event_allowed_by_profile(RunContentProfile profile, int id);
 int event_pool_for_act(int act, int *out, int maxOut);  // implemented-only ids
 int event_ancient_for_act(int act);  // legacy: act 1 -> Neow
 int event_ancient_for_act(const RunContext &rc);

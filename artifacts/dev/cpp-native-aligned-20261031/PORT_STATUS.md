@@ -1,3 +1,27 @@
+> **2026-11-05 后续训练审计修复完成（trainer v2）。**
+> 修复隐藏牌堆排序遗漏公开状态、异常局 error/errors 导致 KeyError、need-rules 的 PPO 采样/更新概率不一致、Boss 预算隐式三倍。
+> 新增整局循环访问计数、BrokenProcessPool 原批次重试/失败保存、串并行一致的逐局采样种子；验证加入 Elo，best 按完整奖励选择。
+> 最终本机验证：CTest **42/42**；pytest **444 passed / 17 skipped**；A0/A10 各 202 局合计 **404 局 0 异常/0 截断**；need-rules + 2 workers 的 PPO **8 局训练 + 2 局验证**正常完成。
+> 证据及边界见 `validation/rl-fixes-20261105/README.md`。旧 1024 局权重未改写，未重跑其长程评估；过去 worker 崩溃底层原因仍未知，新增的是可审计的恢复路径。
+> 水晶球及多人卡继续排除；未提交、未推送。观察/动作/特征布局未变，但源/二进制身份与训练配置已变化，旧 checkpoint 不得伪造身份直接 resume。
+
+> **2026-11-05 铁甲 RL 审计修复与 PPO：当前身份 v10 / 观察 v20 / ArmG feature v9。**
+> 对应 `reports/ironclad-rl-audit-20261104/REPORT.md` 的 8 项已复现问题全部修复
+> （水晶球隐藏信息、三种遗物选牌网格、药水物理槽、Pounce FREE_SKILL、卡牌状态混叠、
+> 局外 MadScience 变体、隐藏重采样顺序、启发式非法动作）。新增独立训练内容配置
+> `RunContentProfile.SINGLE_PLAYER_TRAINING`（洗牌前排除 CrystalSphere、全部生成入口
+> 排除多人卡，运行中逐步断言），并说明它改变了原生内容分布。训练目标改为
+> actor-critic PPO + 指定终局奖励（层数/精英/首领/营地升级/商店删牌/永久牌组 Elo）。
+> 上面提到的 `scripts/content_inventory.py` 集合表达式问题已修复：596 张卡中
+> **368 张无自动化测试引用**（此前误报 0），修正结果见 `validation/rl-audit-20261105/`。
+> 验证：CTest 42/42；`audit_rl_regressions` 新增 5 组引擎检查；artifact pytest
+> **437 passed / 17 skipped / 0 failed**；A0/A10 各 200 局整局冒烟 0 异常/0 截断。
+> ArmG feature 由 8 升到 9（动作特征的附魔三元组偏移修正为引擎真实位置）。
+> 旧 checkpoint 因引擎源哈希/特征版本不符被拒绝，未改写版本号强行加载。
+> 目标 DLL 仍不在本机：不宣称原生差分，`mcts-oracle` 战斗控制器使用完整状态与
+> 未来 RNG，相关成绩不能称为纯玩家可见信息策略。
+> 证据 `validation/rl-audit-20261105/`。
+
 > **2026-11-04 推送前核验：当前身份为 v10，覆盖统计存在已知问题。**
 > 当前 ruleset `native-41cef1ea-port-v10`，公开观察 v19、动作 schema v17、ArmG feature v7、快照 v14；下方第十批 v8 是历史记录。推送前复跑已有构建：CTest 41/41 通过，artifact pytest 362 passed / 17 skipped。此前五角色 25 局冒烟均正常结束；这些测试不证明所有交互或多人运行时已经验证。
 > `scripts/content_inventory.py` 的卡牌测试引用集合表达式会把所有 Python 测试文件加入每张卡，故 `docs/content-inventory-20261104.*` 及 `validation/round7-full-coverage-20261104/inventory-summary.json` 中卡牌“无测试引用为 0”等结果不可靠，须修正生成器并重新盘点。即使修正，源文件引用也不等于逐项语义断言。该问题尚未修复。

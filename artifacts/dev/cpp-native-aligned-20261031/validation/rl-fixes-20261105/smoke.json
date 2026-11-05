@@ -1,0 +1,32 @@
+[
+  {
+    "ascension": 0,
+    "runs": 202,
+    "completed": 202,
+    "truncated": 0,
+    "errors": 0,
+    "cycle_recoveries": 0,
+    "runs_with_recovery": 0,
+    "mcts_searches": 0,
+    "mcts_simulations": 0,
+    "mean_reward": 2.8059810408891024,
+    "mean_floor": 11.183168316831683,
+    "win_rate": 0.0,
+    "failures": []
+  },
+  {
+    "ascension": 10,
+    "runs": 202,
+    "completed": 202,
+    "truncated": 0,
+    "errors": 0,
+    "cycle_recoveries": 0,
+    "runs_with_recovery": 0,
+    "mcts_searches": 0,
+    "mcts_simulations": 0,
+    "mean_reward": 2.541263594701153,
+    "mean_floor": 8.301980198019802,
+    "win_rate": 0.0,
+    "failures": []
+  }
+]

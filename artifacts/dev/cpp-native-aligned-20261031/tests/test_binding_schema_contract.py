@@ -52,11 +52,11 @@ def test_run_action_type_is_checked_before_narrowing(contexts, action_type):
 def test_field_limits_and_public_schema(contexts):
     battle, run = contexts
     assert len(battle.action_features(int(sim.ActionType.END_TURN), 255, 255, 65535)) == 729
-    assert int(sim.PUBLIC_OBS_VERSION) == 19
+    assert int(sim.PUBLIC_OBS_VERSION) == 20
     assert int(sim.ACTION_SCHEMA_VERSION) == 17
-    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 70651
-    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 44306
-    assert int(sim.CARD_FEAT_DIM) == 626
+    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 83208
+    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 49972
+    assert int(sim.CARD_FEAT_DIM) == 632
     assert int(sim.ACTION_FEAT_DIM) == 729
 
 

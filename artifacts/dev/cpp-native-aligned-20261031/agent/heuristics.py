@@ -116,10 +116,21 @@ def run_policy(env) -> tuple:
     rc = getattr(env, "rc", env)
     screen = rc.screen
     legal = [(int(t), int(i)) for t, i in rc.legal_actions()]
+
+    def pick(action):
+        # Every branch below is a preference, not a legality check: an option
+        # can disappear mid-visit (Miniature Tent keeps the rest site open
+        # after a heal, so REST_HEAL is legal once but not twice). Returning a
+        # stale preference drops the whole episode as an error.
+        action = tuple(action)
+        if not legal:
+            raise ValueError(f"no legal action on {screen.name}")
+        return action if action in legal else legal[0]
+
     if rc.card_grid_kind:
-        return card_grid_action(rc)
+        return pick(card_grid_action(rc))
     if screen == SCREEN.REWARDS:
-        return reward_action(rc)
+        return pick(reward_action(rc))
     if screen == SCREEN.MAP:
         nodes = rc.available_map_nodes()
         # Prefer rest when hurt, avoid elites when hurt, prefer unknown otherwise.
@@ -143,7 +154,7 @@ def run_policy(env) -> tuple:
                 score = 1.0
             scored.append((score, idx))
         scored.sort(key=lambda x: (-x[0], x[1]))
-        return (int(RACT.MOVE), scored[0][1])
+        return pick((int(RACT.MOVE), scored[0][1]))
     if screen == SCREEN.CARD_REWARD:
         best = (-1.0, None)
         for a in legal:
@@ -152,14 +163,14 @@ def run_policy(env) -> tuple:
                 if q > best[0]:
                     best = (q, a)
         if best[1] is not None and (best[0] >= 1.5 or rc.deck_count < 15):
-            return best[1]
-        return skip_card_action(rc)
+            return pick(best[1])
+        return pick(skip_card_action(rc))
     if screen == SCREEN.REST:
         if rc.hp * 100 < rc.max_hp * 80:
-            return (int(RACT.REST_HEAL), 0)
+            return pick((int(RACT.REST_HEAL), 0))
         clones = [a for a in legal if a[0] == int(RACT.REST_CLONE)]
         if clones:
-            return clones[0]
+            return pick(clones[0])
         upgrades = [a for a in legal if a[0] == int(RACT.REST_UPGRADE)]
         if upgrades:
             def up_value(a):
@@ -169,36 +180,37 @@ def run_policy(env) -> tuple:
                 base = 3.0 if int(card_id) == 6 else 0.0  # Bash
                 return base + (1.0 if type_idx == 2 else 0.0) + (0.5 if type_idx == 0 else 0.0)
             upgrades.sort(key=lambda a: -up_value(a))
-            return upgrades[0]
-        return (int(RACT.REST_HEAL), 0)
+            return pick(upgrades[0])
+        return pick((int(RACT.REST_HEAL), 0))
     if screen == SCREEN.SHOP:
         relics_on_sale = [a for a in legal if a[0] == int(RACT.BUY_RELIC)]
         for a in relics_on_sale:
             if rc.gold >= rc.shop_relics[a[1]][1] + 40:
-                return a
+                return pick(a)
         potions = [a for a in legal if a[0] == int(RACT.BUY_POTION)]
         if potions and len(rc.potions) < rc.potion_slots and rc.gold >= 120:
-            return potions[0]
+            return pick(potions[0])
         cards = [a for a in legal if a[0] == int(RACT.BUY_CARD)]
         if cards and rc.gold >= 150:
-            return cards[0]
+            return pick(cards[0])
         if rc.gold >= rc.removal_price + 50:
             removals = [a for a in legal if a[0] == int(RACT.REMOVE_CARD)]
             if removals and rc.deck_count > 11:
-                return removals[0]
-        return (int(RACT.LEAVE_SHOP), 0)
+                return pick(removals[0])
+        return pick((int(RACT.LEAVE_SHOP), 0))
     if screen == SCREEN.EVENT:
         selections = [a for a in legal if a[0] == int(RACT.EVENT_SELECT_CARD)]
         if selections:
-            return selections[0]
-        # CrystalSphere replaces the option list with its divination grid.
-        if not any(a[0] == int(RACT.EVENT_CHOICE) for a in legal):
-            return legal[0]
+            return pick(selections[0])
+        # CrystalSphere and other interactive pages replace the option list
+        # with a grid or tool action; only actual EVENT_CHOICE indices are
+        # option indices. Returning a made-up index is illegal and used to
+        # drop whole episodes (audit seed 466).
+        choices = [a[1] for a in legal if a[0] == int(RACT.EVENT_CHOICE)]
+        if not choices:
+            return pick(legal[0])
         choice = _event_choice(rc)
-        options = {a[1] for a in legal}
-        if choice not in options:
-            choice = legal[0][1]
-        return (int(RACT.EVENT_CHOICE), choice)
+        return pick((int(RACT.EVENT_CHOICE), choice if choice in choices else choices[0]))
     if screen == SCREEN.TREASURE:
-        return (int(RACT.COLLECT), 0)
+        return pick((int(RACT.COLLECT), 0))
     return legal[0]

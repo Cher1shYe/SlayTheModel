@@ -1035,6 +1035,19 @@ bool event_is_allowed(const RunContext &rc, int id) {
     return id >= 0 && id < EV_COUNT && event_allowed_now(rc, id);
 }
 
+bool event_allowed_by_profile(RunContentProfile profile, int id) {
+    switch (profile) {
+        case RunContentProfile::ORIGINAL:
+            return true;
+        case RunContentProfile::SINGLE_PLAYER_TRAINING:
+            // CrystalSphere is an interactive divination mini-game outside the
+            // current single-player simulation scope; its public observation
+            // and policy support stay in place for the original profile.
+            return id != EV_CRYSTAL_SPHERE;
+    }
+    return false;
+}
+
 namespace {
 // ActModel.GenerateRooms concatenates AllEvents then ModelDb.AllSharedEvents in
 // model declaration order (v0.111.0). The order matters: the bag is shuffled

@@ -43,15 +43,17 @@ def test_native_rule_regressions():
 
 def test_observation_schema_versions_are_bumped():
     """Layout changes must bump versions and expose one exact dimension."""
-    assert int(sim.PUBLIC_OBS_VERSION) == 19
+    assert int(sim.PUBLIC_OBS_VERSION) == 20
     assert int(sim.ACTION_SCHEMA_VERSION) == 17
     # v16 appends nine Neow relic ids (+9 per relic one-hot block) and
     # PotionId.AMBERGRIS (+1 per potion one-hot block); v17 appends the
     # FakeMerchant inventory and CrystalSphere grid. The action vocabulary
     # gains REST_COOK (Cook) and CRYSTAL_DIVINE.
-    assert int(sim.PUBLIC_OBS_DIM) == 70651
-    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == 44306
-    assert int(sim.CARD_FEAT_DIM) == 626
+    # v20 adds Sly/Retain/cost-expiry card state, MadScience's TinkerTime type
+    # and RiderEffect, and a 15-candidate run card grid for every grid kind.
+    assert int(sim.PUBLIC_OBS_DIM) == 83208
+    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == 49972
+    assert int(sim.CARD_FEAT_DIM) == 632
     assert int(sim.ACTION_FEAT_DIM) == 729
 
 

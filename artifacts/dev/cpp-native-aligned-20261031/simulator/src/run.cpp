@@ -715,33 +715,46 @@ RelicId RunContext::pull_relic(Rarity rarity, bool fromBack, bool shared,
 }
 
 void RunContext::init_seed(const std::string &seedText, int ascensionLevel,
-                           CardPool character) {
+                           CardPool character, RunContentProfile profile) {
     const auto canonical = Rng::canonicalize_seed(seedText);
-    init(Rng::deterministic_hash_code(std::string_view(canonical)), ascensionLevel, character);
+    init(Rng::deterministic_hash_code(std::string_view(canonical)), ascensionLevel,
+         character, profile);
 }
 
-void RunContext::init(std::uint64_t seedValue, int ascensionLevel, CardPool character) {
+void RunContext::init(std::uint64_t seedValue, int ascensionLevel, CardPool character,
+                      RunContentProfile profile) {
     init_with_context(seedValue, ascensionLevel, static_cast<int>(ActType::OVERGROWTH),
-                      NativeProgressContext{}, character);
+                      NativeProgressContext{}, character, profile);
+}
+
+const char *run_content_profile_name(RunContentProfile profile) {
+    switch (profile) {
+        case RunContentProfile::ORIGINAL: return "original";
+        case RunContentProfile::SINGLE_PLAYER_TRAINING: return "single-player-training";
+    }
+    return "invalid";
 }
 
 void RunContext::init_seed_with_context(const std::string &seedText, int ascensionLevel,
                                        int firstAct, const NativeProgressContext &progress,
-                                       CardPool character) {
+                                       CardPool character, RunContentProfile profile) {
     const auto canonical = Rng::canonicalize_seed(seedText);
     init_with_context(Rng::deterministic_hash_code(std::string_view(canonical)),
-                      ascensionLevel, firstAct, progress, character);
+                      ascensionLevel, firstAct, progress, character, profile);
 }
 
 void RunContext::init_with_context(std::uint64_t seedValue, int ascensionLevel,
                                   int firstAct, const NativeProgressContext &progress,
-                                  CardPool character_) {
+                                  CardPool character_, RunContentProfile profile) {
     if (ascensionLevel < 0 || ascensionLevel > 10 || progress.numberOfRuns < 0 ||
         (firstAct != -1 && firstAct != static_cast<int>(ActType::OVERGROWTH) &&
          firstAct != static_cast<int>(ActType::UNDERDOCKS)))
         throw std::invalid_argument("Invalid ascension, first act or native progress context");
     if (firstAct == static_cast<int>(ActType::UNDERDOCKS) && !progress.underdocksUnlocked)
         throw std::invalid_argument("Underdocks must be unlocked in the supplied context");
+    if (profile != RunContentProfile::ORIGINAL &&
+        profile != RunContentProfile::SINGLE_PLAYER_TRAINING)
+        throw std::invalid_argument("Unknown content profile");
     // Copy before resetting: callers may pass this->nativeProgress.
     const NativeProgressContext context = progress;
     *this = RunContext();
@@ -752,6 +765,7 @@ void RunContext::init_with_context(std::uint64_t seedValue, int ascensionLevel,
         character_ != CardPool::NECROBINDER)
         throw std::invalid_argument("Unsupported single-player character pool");
     character = character_;
+    contentProfile = profile;
     nativeProgress = context;
     if (firstAct == -1) {
         Rng actSelection(seed, "act_selection");
@@ -837,8 +851,12 @@ void RunContext::roll_act_rooms() {
     Rng &rng = runRng[RNG_UP_FRONT];
     int ev[128];
     const int n = event_pool_for_act_type(actTypes[act], ev, 128);
-    for (int i = 0; i < n && eventBagN < 64; ++i)
+    for (int i = 0; i < n && eventBagN < 64; ++i) {
+        // Content profile filters the pool before the shuffle; an excluded
+        // event is never drawn and then skipped, so the bag itself is smaller.
+        if (!event_allowed_by_profile(contentProfile, ev[i])) continue;
         eventBag[eventBagN++] = static_cast<std::uint16_t>(ev[i]);
+    }
     for (int i = eventBagN - 1; i > 0; --i) {
         const int j = rng.next_int(0, i);
         std::swap(eventBag[i], eventBag[j]);

@@ -88,6 +88,10 @@ class Encoder:
         self.potion_count = max(self.potions.values()) + 1
         self.card_count = sim.CARD_COUNT
         self.card_dim = armg.CARD_FEAT_DIM
+        # Compact per-instance card state inside the observation extension.
+        # Mirrors PUB_CARD_INSTANCE_FEAT; the encoder never fills those slots
+        # (no stored Pael cards), so only the width has to match.
+        self.card_instance_feat = int(getattr(sim, 'PUB_CARD_INSTANCE_FEAT', 24))
         if len(self.cards) != self.card_count:
             raise RuntimeError('card enum source does not match simulator extension')
 
@@ -151,7 +155,7 @@ class Encoder:
         # v17 tail: queue/approximation blocks, FakeMerchant's six entries and
         # the CrystalSphere fog grid. The native bridge never surfaces either
         # event, so those slots are explicit zeros rather than guessed state.
-        vector += [0.0] * (1 + 5 * 17 + 1 + 32 + 160)
+        vector += [0.0] * (1 + 5 * self.card_instance_feat + 1 + 32 + 160)
         vector += [0.0] * (6 * (3 + self.relic_count) + 121 + 2 + 15 * 5)
         if len(vector) != int(self.sim.PUB_RUN_EXTENSION):
             raise Unsupported('native extension layout differs from current binding')
@@ -312,10 +316,19 @@ class Encoder:
         for cid, _ in cards: bag[cid] += 1
         v += bag
         for i in range(128):
-            v += ([cards[i][0] / self.card_count, float(cards[i][1]), details[i][0] / 5, details[i][1] / 5, details[i][2] / 10, float(details[i][3])]
-                  if i < len(cards) else [0.0] * 6)
-        # No selector active. The grid's default slots have no card features.
-        v += [0.0] * (8 + 16 + 8 * self.card_dim + 128)
+            # v20 deck slots carry the full public instance state; only the
+            # fields the native context exposes are filled, the rest is zero.
+            if i < len(cards):
+                inst = [cards[i][0] / self.card_count, float(cards[i][1]),
+                        details[i][0] / 5, details[i][1] / 5, details[i][2] / 10,
+                        float(details[i][3])]
+                v += inst + [0.0] * (self.card_instance_feat - len(inst))
+            else:
+                v += [0.0] * self.card_instance_feat
+        # No selector active. The grid block exposes RUN_CARD_GRID_N candidate
+        # slots (order, free-slot, card features); all are zero here.
+        grid_n = int(self.sim.RUN_CARD_GRID_N)
+        v += [0.0] * (8 + 2 * grid_n + grid_n * self.card_dim + 128)
         relic_bag = [0.0] * self.relic_count
         for rid in relics: relic_bag[rid] += 1
         v += relic_bag + [0.0] * self.relic_count

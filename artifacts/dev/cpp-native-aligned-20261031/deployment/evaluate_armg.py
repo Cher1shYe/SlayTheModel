@@ -11,6 +11,7 @@ reports them explicitly, including the number of complete pairs.
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import math
 import pathlib
@@ -20,17 +21,42 @@ from typing import Callable
 import torch
 
 from agent.armg import ARMG_ACTION_DIM, ARMG_FEATURE_VERSION, ARMG_OBS_DIM, ArmGScorer
-from agent.armg_train import collect_episode
-from agent.nets import load_checkpoint
+from agent import content_profile
+from agent.armg_train import FloorBudget, collect_episode
+from agent.run_reward import DeckElo
+from agent.nets import load_checkpoint, read_checkpoint
 from agent.policy import split_seeds
 
 
 def load_armg_checkpoint(path, model):
-    """Reject incompatible ArmG features even when tensor shapes are equal."""
+    """Reject incompatible ArmG features even when tensor shapes are equal.
+
+    Accepts the PPO actor-critic checkpoints written by ``agent.armg_train`` by
+    extracting the ``actor.*`` weights: evaluation only needs the policy, and
+    the shape/engine checks below still run against the extracted weights.
+    """
+    payload = read_checkpoint(path)
+    state = payload.get("state_dict", {})
+    if state and any(key.startswith("actor.") for key in state):
+        # PPO checkpoint: keep the engine/schema identity, shrink the recorded
+        # shapes to the actor's, and let strict load_state_dict catch a real
+        # architecture mismatch (the critic's shapes are irrelevant here).
+        config = dict(payload.get("config", {}),
+                      param_shapes=[list(p.shape) for p in model.parameters()])
+        payload = dict(payload, state_dict={k[6:]: v for k, v in state.items()
+                                             if k.startswith("actor.")},
+                       config=config)
     expected = {"armg_feature_version": ARMG_FEATURE_VERSION,
                 "armg_obs_dim": ARMG_OBS_DIM,
                 "armg_action_dim": ARMG_ACTION_DIM}
-    return load_checkpoint(path, model, expected_config=expected)
+    return load_checkpoint(_serialise(payload), model, expected_config=expected)
+
+
+def _serialise(payload):
+    buffer = io.BytesIO()
+    torch.save(payload, buffer)
+    buffer.seek(0)
+    return buffer
 
 
 def _summary(results: list[dict]) -> dict:
@@ -54,6 +80,8 @@ def _summary(results: list[dict]) -> dict:
 
 def evaluate_pairs(model, seeds: list[int], *, combat: str, simulations: int,
                    epsilon: float, max_steps: int, ascension: int = 0,
+                   floor_increment: int = 0, elite_simulations: int = 0,
+                   boss_simulations: int = 0, deck_elo=None,
                    play: Callable = collect_episode) -> dict:
     """Compare models with identical per-seed combat policy and budget.
 
@@ -63,7 +91,13 @@ def evaluate_pairs(model, seeds: list[int], *, combat: str, simulations: int,
     if len(set(seeds)) != len(seeds):
         raise ValueError("evaluation seeds must be unique")
     options = {"deterministic": True, "combat": combat, "simulations": simulations,
-               "epsilon": epsilon, "max_steps": max_steps, "ascension": ascension}
+               "epsilon": epsilon, "max_steps": max_steps, "ascension": ascension,
+               "content_profile": content_profile.PROFILE,
+               # The terminal reward includes the permanent-deck Elo term; a
+               # missing snapshot must never be reported as an Elo of zero.
+               "deck_elo": deck_elo,
+               "combat_budget_by_context": FloorBudget(simulations, floor_increment,
+                                                       elite_simulations, boss_simulations)}
     arms: dict[str, list[dict]] = {"armg": [], "heuristic": []}
     for i, seed in enumerate(seeds):
         # Alternate order to reduce sensitivity to machine-load drift.
@@ -104,6 +138,9 @@ def main(argv=None):
     ap.add_argument("--combat", choices=("greedy", "search", "mcts-oracle", "mcts-resampled"),
                     default="mcts-oracle")
     ap.add_argument("--simulations", type=int, default=64)
+    ap.add_argument("--floor-increment", type=int, default=0)
+    ap.add_argument("--elite-simulations", type=int, default=0)
+    ap.add_argument("--boss-simulations", type=int, default=0)
     ap.add_argument("--epsilon", type=float, default=0.05)
     ap.add_argument("--max-steps", type=int, default=5000)
     ap.add_argument("--ascension", type=int, default=0)
@@ -117,17 +154,25 @@ def main(argv=None):
     model = ArmGScorer()
     payload = load_armg_checkpoint(args.checkpoint, model)
     model.eval()
+    deck_elo = DeckElo()
     seeds = split_seeds(args.split, args.start + args.seeds)[args.start:]
     start = time.perf_counter()
     report = evaluate_pairs(model, seeds, combat=args.combat, simulations=args.simulations,
                             epsilon=args.epsilon, max_steps=args.max_steps,
-                            ascension=args.ascension)
+                            ascension=args.ascension, floor_increment=args.floor_increment,
+                            elite_simulations=args.elite_simulations,
+                            boss_simulations=args.boss_simulations, deck_elo=deck_elo)
     trained_settings = payload.get("settings", {})
     report["config"] = {"checkpoint": args.checkpoint, "split": args.split,
                         "start": args.start, "seeds": args.seeds,
                         "seed_base": seeds[0], "combat": args.combat,
                         "simulations": args.simulations, "epsilon": args.epsilon,
                         "max_steps": args.max_steps, "ascension": args.ascension,
+                        "search_budget": FloorBudget(args.simulations, args.floor_increment,
+                                                     args.elite_simulations,
+                                                     args.boss_simulations).as_dict(),
+                        "content_profile": content_profile.identity(),
+                        "elo_snapshot": deck_elo.identity(),
                         "cycle_recovery": "Both policies use the same repeated-public-state guard; "
                                           "a different legal action is forced on repeated states.",
                         "information_mode": ("oracle: full simulator state and future RNG"
@@ -137,7 +182,11 @@ def main(argv=None):
                         "checkpoint_training_settings": trained_settings,
                         "evaluation_matches_training_battle": all(
                             trained_settings.get(k) == getattr(args, k)
-                            for k in ("combat", "simulations", "epsilon", "ascension")),
+                            for k in ("combat", "simulations", "epsilon", "ascension"))
+                        and trained_settings.get("search_budget", {}).get("per_floor", 0)
+                        == args.floor_increment
+                        and trained_settings.get("content_profile", {}).get("sha256")
+                        == content_profile.identity()["sha256"],
                         "seconds": time.perf_counter() - start}
     text = json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False)
     if args.out:

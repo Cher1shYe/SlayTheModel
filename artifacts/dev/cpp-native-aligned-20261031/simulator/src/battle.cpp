@@ -342,16 +342,13 @@ void BattleContext::resample_hidden(std::uint32_t seed) {
     // (Headbutt, Nostalgia, known status placements); only shuffle the unknown
     // remainder of the draw pile.
     const int hidden = std::max(0, drawCount - knownTopCount);
-    // Normalize using only the public pile-view fields before randomizing.
+    // Normalize using only publicly visible card state before randomizing.
     // Otherwise a fixed search seed would map different original hidden
     // permutations to different samples. Do not use internal card UIDs here.
-    const auto publicPileKey = [](const Card &c) {
-        return std::make_tuple(static_cast<int>(c.id), c.upgraded,
-                               static_cast<int>(c.enchantment), c.enchantmentAmount,
-                               c.enchantmentDisabled);
-    };
-    const auto publicPileLess = [&](const Card &a, const Card &b) {
-        return publicPileKey(a) < publicPileKey(b);
+    // The key is the shared public identity (card_public_key), so every field
+    // that distinguishes two cards in the pile viewer also orders the sample.
+    const auto publicPileLess = [](const Card &a, const Card &b) {
+        return card_public_key(a) < card_public_key(b);
     };
     std::sort(draw, draw + hidden, publicPileLess);
     for (int i = hidden - 1; i > 0; --i) {
@@ -1704,6 +1701,9 @@ std::vector<Action> BattleContext::legal_actions() const {
             cost = std::max(0, cost - player_power(PowerId::CURIOUS));
         cost = necrobinder_resolved_cost(*this, c, cost);
         if (card_is_attack(c) && player_power(PowerId::FREE_ATTACK) > 0) cost = 0;
+        // FreeSkillPower (Pounce): the same TryModifyEnergyCostInCombat hook.
+        // X-cost cards still spend all energy, so the cap is computed below.
+        if (card_is_skill(c) && player_power(PowerId::FREE_SKILL) > 0 && cost >= 0) cost = 0;
         if (relic_has(*this, RelicId::BRILLIANT_SCARF) && cardsPlayedThisTurn == 4) cost = 0;
         if (cost > 0 && player_power(PowerId::CHAINS_OF_BINDING) > 0) ++cost;
         if (relic_has(*this, RelicId::SPIKED_GAUNTLETS) && card_is_power(c) && cost > 0) ++cost;
@@ -1839,10 +1839,14 @@ bool BattleContext::play_card(int handIdx, int target) {
         cost = std::max(0, cost - player_power(PowerId::CURIOUS));
     cost = necrobinder_resolved_cost(*this, card, cost);
     const bool freeAttack = card_is_attack(card) && player_power(PowerId::FREE_ATTACK) > 0;
+    // FreeSkillPower (Pounce) is the skill twin: the cost hook is the same and
+    // the charge is consumed when the skill is played.
+    const bool freeSkill = card_is_skill(card) && player_power(PowerId::FREE_SKILL) > 0;
     // FreeAttackPower.TryModifyEnergyCostInCombat returns 0 for attacks, but an
     // X-cost card still spends all current energy: GetAmountToSpend special-
     // cases CostsX before any cost modification.
     if (freeAttack && !xCostCard) cost = 0;
+    if (freeSkill && !xCostCard) cost = 0;
     if (relic_has(*this, RelicId::BRILLIANT_SCARF) && cardsPlayedThisTurn == 4) cost = 0;
     if (player_power(PowerId::CHAINS_OF_BINDING) > 0 && cost > 0) ++cost;
     if (relic_has(*this, RelicId::SPIKED_GAUNTLETS) && card_is_power(card) && cost > 0) ++cost;
@@ -1861,6 +1865,7 @@ bool BattleContext::play_card(int handIdx, int target) {
     const int starSpend = std::max(0, starCost);
 
     if (freeAttack) add_player_power(PowerId::FREE_ATTACK, -1);
+    if (freeSkill) add_player_power(PowerId::FREE_SKILL, -1);
     // IntimidatingHelmet.BeforeCardPlayed checks the energy actually spent
     // (CardPlay.Resources.EnergyValue), not the printed cost.
     if (spend >= 2 && relic_has(*this, RelicId::INTIMIDATING_HELMET)) {

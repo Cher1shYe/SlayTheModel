@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <vector>
 
 namespace sts2 {
@@ -474,6 +475,28 @@ bool card_is_defend(const Card &c);
 
 const char *card_name(CardId id);
 const char *card_key(CardId id);
+// Every card property a player can read on the card, excluding UID, master-deck
+// index and underlying stack position. The order defines what makes two card
+// instances distinguishable; observations, hidden-state resampling and the
+// pending-choice views must all use this one key so they cannot disagree.
+inline auto card_public_key(const Card &c) {
+    int endOfTurnMods = 0, playedMods = 0;
+    for (int i = 0; i < c.costModifierCount; ++i) {
+        if (c.costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c.costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c),
+                           c.replay, c.bonusReplay, c.freeCombat, c.costThisTurn,
+                           c.combatCostCap, c.bonusDamage, c.etherealThisCombat,
+                           c.retainThisCombat, c.galvanized, c.guiltyCombatsSeen,
+                           static_cast<int>(c.enchantment), c.enchantmentAmount,
+                           c.enchantmentDisabled,
+                           c.costThisTurn ? c.storedCost : 0,
+                           c.id == CardId::MAD_SCIENCE ? c.tinkerType : 0,
+                           c.id == CardId::MAD_SCIENCE ? c.tinkerRider : 0,
+                           c.slyThisTurn, c.slyThisCombat, c.retainThisTurn,
+                           endOfTurnMods, playedMods);
+}
 // Native CardModel.CompareTo: ordinal model entry, then upgrade level.
 // Deliberately does not use UID or mutable bonus damage as a tie breaker.
 inline bool native_card_less(const Card &a, const Card &b) {

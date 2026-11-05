@@ -68,6 +68,8 @@ def test_forced_relic_rule_does_not_enter_policy_gradient(monkeypatch):
         won = False
         floor = 1
         hp = 0
+        act = act_floor = card_shop_removals_used = 0
+        deck = []
         def step(self, action, index):
             assert (action, index) == (2, 0)
             self.screen = SCREEN.RUN_OVER
@@ -75,7 +77,7 @@ def test_forced_relic_rule_does_not_enter_policy_gradient(monkeypatch):
     class Model:
         def __call__(self, obs, candidates):
             return torch.tensor([[1.0, 0.0]])
-    monkeypatch.setattr(armg_train, "new_run", lambda *args: Run())
+    monkeypatch.setattr(armg_train, "new_run", lambda *args, **kwargs: Run())
     monkeypatch.setattr(armg_train, "build_candidates", lambda rc: (
         np.zeros(2, dtype=np.float32), [(1, 0), (2, 0)], np.zeros((2, 2), dtype=np.float32)))
     monkeypatch.setattr(relic, "relic_action", lambda rc, actions, logits: (2, 0))

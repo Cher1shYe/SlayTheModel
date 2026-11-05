@@ -20,11 +20,28 @@ def test_paired_evaluation_excludes_abnormal_and_keeps_episode_results():
                 "records": [object()], "error": "blocked" if status == "error" else None,
                 "cycle_recoveries": 3 if seed == 21 and model is policy else 0}
 
+    from agent.run_reward import DeckElo
+    deck_elo = DeckElo()
     report = evaluate_pairs(policy, [21, 22, 23], combat="search", simulations=32,
-                            epsilon=0.05, max_steps=100, ascension=0, play=play)
+                            epsilon=0.05, max_steps=100, ascension=0, deck_elo=deck_elo,
+                            play=play)
     assert len(calls) == 6
-    assert all(c[2] == {"deterministic": True, "combat": "search", "simulations": 32,
-                        "epsilon": 0.05, "max_steps": 100, "ascension": 0} for c in calls)
+    # Both arms must run the same content profile and search budget so the
+    # paired comparison measures the policy, not a different environment.
+    from agent import content_profile
+    from agent.armg_train import FloorBudget
+    expected = {"deterministic": True, "combat": "search", "simulations": 32,
+                "epsilon": 0.05, "max_steps": 100, "ascension": 0,
+                "content_profile": content_profile.PROFILE, "deck_elo": deck_elo,
+                "combat_budget_by_context": FloorBudget(32, 0, 0, 0)}
+    assert all(c[2].keys() == expected.keys() for c in calls)
+    assert all(c[2]["deck_elo"] is deck_elo for c in calls)
+    for seed, _model, options in calls:
+        assert options["deterministic"] is True
+        assert options["content_profile"] == expected["content_profile"]
+        assert options["combat_budget_by_context"].as_dict() ==             expected["combat_budget_by_context"].as_dict()
+        for key in ("combat", "simulations", "epsilon", "max_steps", "ascension"):
+            assert options[key] == expected[key]
     assert report["armg"]["errors"] == 1
     assert report["armg"]["completed"] == 2
     assert report["armg"]["win_rate_completed"] == 0.5
@@ -67,3 +84,20 @@ def test_armg_checkpoint_rejects_semantically_wrong_features(tmp_path):
     torch.save({"state_dict": model.state_dict(), "config": config}, path)
     with pytest.raises(ValueError, match="armg_feature_version"):
         load_armg_checkpoint(path, model)
+
+
+def test_ppo_actor_checkpoint_loads_for_evaluation(tmp_path):
+    """agent.armg_train writes an actor-critic; evaluation needs the actor only."""
+    import torch
+    from agent.armg_ppo import ArmGActorCritic
+    from agent.armg_train import _save
+
+    model = ArmGActorCritic()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    _save(tmp_path / "latest.pt", model, optimizer, {"games": 0}, {"algorithm": "ppo"})
+    scorer = ArmGScorer()
+    payload = load_armg_checkpoint(tmp_path / "latest.pt", scorer)
+    assert payload["settings"]["algorithm"] == "ppo"
+    for actor_weight, scorer_weight in zip(model.actor.state_dict().values(),
+                                           scorer.state_dict().values()):
+        assert torch.equal(actor_weight, scorer_weight)

@@ -47,14 +47,7 @@ void push_card_bag_split(std::vector<float> &v, const Card *cards, int n) {
 
 // Only attributes visible on the offered card are used to order a choice.
 // The underlying draw/discard stack order is not public information.
-auto visible_choice_key(const Card &c) {
-    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c), c.replay,
-                           c.bonusReplay, c.freeCombat, c.costThisTurn, c.combatCostCap,
-                           c.bonusDamage, c.etherealThisCombat, c.retainThisCombat,
-                           c.galvanized, c.guiltyCombatsSeen,
-                           static_cast<int>(c.enchantment), c.enchantmentAmount,
-                           c.enchantmentDisabled, c.costThisTurn ? c.storedCost : 0);
-}
+auto visible_choice_key(const Card &c) { return card_public_key(c); }
 
 // Compact public card state, shared by unordered piles, known top and choices.
 // UID, master-deck index and underlying stack position are deliberately absent.
@@ -77,6 +70,22 @@ void push_card_instance(std::vector<float> &v, const Card *c) {
     v.push_back(c->enchantmentAmount / 10.0f);
     v.push_back(c->enchantmentDisabled ? 1.0f : 0.0f);
     v.push_back(c->costThisTurn ? c->storedCost / 3.0f : 0.0f);
+    // MadScience TinkerTime variant, then Sly / one-turn Retain / cost-expiry
+    // profile: these change what the card does when discarded or when the turn
+    // ends, so they belong to the instance identity too (v20).
+    v.push_back(c->id == CardId::MAD_SCIENCE ? c->tinkerType / 3.0f : 0.0f);
+    v.push_back(c->id == CardId::MAD_SCIENCE ? c->tinkerRider / 9.0f : 0.0f);
+    v.push_back(c->slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c->slyThisCombat ? 1.0f : 0.0f);
+    v.push_back(c->retainThisTurn ? 1.0f : 0.0f);
+    int endOfTurnMods = 0;
+    int playedMods = 0;
+    for (int i = 0; i < c->costModifierCount; ++i) {
+        if (c->costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c->costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    v.push_back(endOfTurnMods / 4.0f);
+    v.push_back(playedMods / 4.0f);
 }
 
 }  // namespace
@@ -138,9 +147,32 @@ std::vector<float> card_features(const Card &c, int price) {
     v.push_back(static_cast<int>(c.enchantment) / 5.0f);
     v.push_back(c.enchantmentAmount / 10.0f);
     v.push_back(c.enchantmentDisabled ? 1.0f : 0.0f);
-    // MadScience's TinkerTime RiderEffect is saved on the card and changes its
-    // public text/effect; the type above already follows TinkerTimeType.
-    v.push_back(c.tinkerRider / 9.0f);
+    // MadScience's TinkerTime type and RiderEffect are saved on the card and
+    // both change its public text/effect: two MadSciences with different
+    // riders have different consequences and must not encode identically.
+    if (c.id == CardId::MAD_SCIENCE) {
+        v.push_back(c.tinkerType / 3.0f);
+        v.push_back(c.tinkerRider / 9.0f);
+    } else {
+        v.push_back(0.0f);
+        v.push_back(0.0f);
+    }
+    // Sly and the one-turn Retain keyword change what happens when the card is
+    // discarded or the turn ends; the amount is visible on the card.
+    v.push_back(c.slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c.slyThisCombat ? 1.0f : 0.0f);
+    v.push_back(c.retainThisTurn ? 1.0f : 0.0f);
+    // Both "free this turn" and "free until played" can read 0 now. Encode how
+    // many local cost modifiers expire at end of turn (2) vs after the play
+    // (4), so the two states stay distinguishable.
+    int endOfTurnMods = 0;
+    int playedMods = 0;
+    for (int i = 0; i < c.costModifierCount; ++i) {
+        if (c.costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c.costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    v.push_back(endOfTurnMods / 4.0f);
+    v.push_back(playedMods / 4.0f);
     return v;
 }
 
@@ -551,18 +583,11 @@ std::vector<float> public_observation(const RunContext &rc) {
 
     // --- deck ---------------------------------------------------------------
     push_card_bag(v, rc.deck, rc.deckCount);
-    // Run actions refer to deck positions. Preserve which visible card is
-    // upgraded at each slot, including otherwise identical copies.
-    for (int i = 0; i < MAX_DECK; ++i) {
-        const bool exists = i < rc.deckCount;
-        v.push_back(exists ? static_cast<int>(rc.deck[i].id) /
-                                 static_cast<float>(CardId::COUNT) : 0.0f);
-        v.push_back(exists && rc.deck[i].upgraded ? 1.0f : 0.0f);
-        v.push_back(exists ? rc.deck[i].guiltyCombatsSeen / 5.0f : 0.0f);
-        v.push_back(exists ? static_cast<int>(rc.deck[i].enchantment) / 5.0f : 0.0f);
-        v.push_back(exists ? rc.deck[i].enchantmentAmount / 10.0f : 0.0f);
-        v.push_back(exists && rc.deck[i].enchantmentDisabled ? 1.0f : 0.0f);
-    }
+    // Run actions refer to deck positions, so each slot needs the card's full
+    // public state: two MadSciences with different TinkerTime riders (or a
+    // retained/Sly copy) are different choices for remove/upgrade/transform.
+    for (int i = 0; i < MAX_DECK; ++i)
+        push_card_instance(v, i < rc.deckCount ? &rc.deck[i] : nullptr);
     const RunCardGrid &grid = rc.cardGrid;
     v.push_back(grid.kind / 5.0f);
     v.push_back(grid.count / static_cast<float>(MAX_DECK));
@@ -572,12 +597,21 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(grid.preview ? 1.0f : 0.0f);
     v.push_back(grid.slotCount / 8.0f);
     v.push_back((grid.freeHead + 1) / 8.0f);
-    for (int i = 0; i < 8; ++i)
+    // Selection order is player-visible and decides multi-select outcomes, so
+    // every grid slot is exposed (15, matching the stored order slots).
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i)
         v.push_back(grid.kind ? (grid.orderSlots[i] + 1) / static_cast<float>(MAX_DECK) : 0.0f);
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i)
         v.push_back(grid.kind ? (grid.freeNext[i] + 1) / 8.0f : 0.0f);
-    for (int i = 0; i < 8; ++i) {
-        if ((grid.kind == 1 || grid.kind == 2 || grid.kind == 5) && i < grid.count) {
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i) {
+        // Every grid kind with an on-screen candidate list exposes those
+        // candidates. Deck-indexed grids (3, 4, 6-12, 15, 17-23) already show
+        // the full deck; the relic grids 13/14/16 and the event grids 1/2/5
+        // carry the generated offers in grid.cards.
+        const bool generatedCards =
+            grid.kind == 1 || grid.kind == 2 || grid.kind == 5 ||
+            grid.kind == 13 || grid.kind == 14 || grid.kind == 16;
+        if (generatedCards && i < grid.count) {
             const auto features = card_features(grid.cards[i]);
             v.insert(v.end(), features.begin(), features.end());
         } else if (grid.kind >= 6 && i == 0) {
@@ -779,12 +813,15 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(crystalVisible ? rc.crystalDivinations / 6.0f : 0.0f);
     v.push_back(crystalVisible && rc.crystalTool ? 1.0f : 0.0f);
     for (int i = 0; i < PUB_CRYSTAL_ITEMS; ++i) {
-        const bool present = crystalVisible && i < rc.crystalItemCount;
-        v.push_back(present ? 1.0f : 0.0f);
+        // Items sit on hidden cells until divination reveals them; only a
+        // revealed item's type and position are player-visible.
+        const bool present = crystalVisible && i < rc.crystalItemCount &&
+                             rc.crystalItems[i].revealed;
+        v.push_back(crystalVisible && i < rc.crystalItemCount ? 1.0f : 0.0f);
         v.push_back(present ? rc.crystalItems[i].type / 8.0f : 0.0f);
         v.push_back(present ? rc.crystalItems[i].x / 10.0f : 0.0f);
         v.push_back(present ? rc.crystalItems[i].y / 10.0f : 0.0f);
-        v.push_back(present && rc.crystalItems[i].revealed ? 1.0f : 0.0f);
+        v.push_back(present ? 1.0f : 0.0f);
     }
     assert(static_cast<int>(v.size()) == PUBLIC_RUN_DIM);
 

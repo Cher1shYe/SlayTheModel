@@ -15,6 +15,7 @@ This is a coverage map, not a native-differential result.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -101,13 +102,16 @@ def main() -> int:
                     "relic_persistent.cpp", "run.cpp", "events.cpp",
                     "relic_card_rewards.cpp"}
 
+    cpp_tests = {p.name for p in SIM.glob("tests/*.cpp")}
+    py_tests = {p.name for p in ROOT.glob("tests/*.py")}
     for c in cards:
         f = card_refs.get(c["id"], set())
         c["effect_files"] = sorted(f & effect_files)
         c["data"] = True
-        c["tested"] = sorted((card_name_hits.get(c["id"], set()) | f) &
-                             {p.name for p in SIM.glob("tests/*.cpp")} |
-                             {p.name for p in ROOT.glob("tests/*.py")})
+        # Intersect with both suites separately: the previous `a & b | c`
+        # prececedence made every card "tested" by every Python file.
+        seen = card_name_hits.get(c["id"], set()) | f
+        c["tested"] = sorted((seen & cpp_tests) | (seen & py_tests))
     for p in potions:
         f = potion_refs.get(p["id"], set())
         p["effect_files"] = sorted(f & effect_files)
@@ -169,8 +173,9 @@ def main() -> int:
     for label, items in (("cards", no_effect_cards), ("potions", no_effect_potions),
                          ("relics", no_effect_relics)):
         lines.append(f"- {label}: " + (", ".join(x["id"] for x in items) or "none"))
-    DOCS.mkdir(exist_ok=True)
-    (DOCS / "content-inventory-20261104.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    out = Path(os.environ.get("CONTENT_INVENTORY_OUT", DOCS))
+    out.mkdir(parents=True, exist_ok=True)
+    (out / "content-inventory-20261104.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     summary = {
         "cards": len(cards), "potions": len(potions), "relics": len(relics),
         "cards_no_effect": [c["id"] for c in no_effect_cards],
@@ -182,7 +187,7 @@ def main() -> int:
                              if c["flags"] & CARD_FLAG["MULTIPLAYER_ONLY"]],
         "deprecated": [c["id"] for c in cards if c["id"] == "GRAPPLE"],
     }
-    (DOCS / "content-inventory-20261104.json").write_text(
+    (out / "content-inventory-20261104.json").write_text(
         json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary, indent=2))
     return 0
