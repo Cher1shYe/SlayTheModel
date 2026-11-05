@@ -8,6 +8,8 @@ from __future__ import annotations
 import torch
 import torch.nn as nn
 
+from .engine_identity import current_engine_contract, validate_engine_contract
+
 from .common import (
     ACTION_FEAT_DIM,
     ACTION_SCHEMA_VERSION,
@@ -83,7 +85,7 @@ class CombatNet(nn.Module):
         return logits, value
 
 
-CHECKPOINT_FORMAT = 2
+CHECKPOINT_FORMAT = 3
 
 
 def checkpoint_config(model) -> dict:
@@ -94,6 +96,7 @@ def checkpoint_config(model) -> dict:
         "action_schema_version": int(ACTION_SCHEMA_VERSION),
         "param_shapes": [list(p.shape) for p in model.parameters()],
         "in_features": int(first.shape[1]) if first.dim() == 2 else int(first.numel()),
+        "engine_contract": current_engine_contract(),
     }
 
 
@@ -101,16 +104,33 @@ def save_checkpoint(path, model, extra=None):
     payload = {"state_dict": model.state_dict(), "config": checkpoint_config(model)}
     if extra:
         payload.update(extra)
+    validate_engine_contract(payload["config"], path)
     torch.save(payload, path)
 
 
-def load_checkpoint(path, model, map_location="cpu"):
-    """Load only a checkpoint matching the current observation/action schema.
+def read_checkpoint(path, map_location="cpu"):
+    """Read tensors plus standard NumPy RNG state, never arbitrary pickle code."""
+    import numpy as np
+    from numpy.core.multiarray import _reconstruct
 
-    Old files are left untouched; callers should retrain them instead of
-    silently loading weights whose input layout no longer matches.
+    with torch.serialization.safe_globals([
+        (_reconstruct, "numpy.core.multiarray._reconstruct"),
+        (_reconstruct, "numpy._core.multiarray._reconstruct"),
+        np.dtype, np.ndarray, type(np.dtype(np.uint32)),
+    ]):
+        payload = torch.load(path, map_location=map_location, weights_only=True)
+    if not isinstance(payload, dict):
+        raise ValueError(f"{path}: checkpoint must be a dictionary")
+    return payload
+
+
+def load_checkpoint(path, model, map_location="cpu", *, expected_config=None):
+    """Load only the current engine and observation/action schema.
+
+    Old files are left untouched. Eligible ArmG weights require the separate,
+    explicit migration entry point; incompatible layouts require retraining.
     """
-    payload = torch.load(path, map_location=map_location, weights_only=False)
+    payload = read_checkpoint(path, map_location=map_location)
     cfg = payload.get("config")
     if not isinstance(cfg, dict):
         raise ValueError(
@@ -125,5 +145,11 @@ def load_checkpoint(path, model, map_location="cpu"):
     current = [list(p.shape) for p in model.parameters()]
     if cfg.get("param_shapes") != current:
         raise ValueError(f"{path}: parameter shapes do not match the current network")
+    validate_engine_contract(cfg, path)
+    if cfg.get("format") != CHECKPOINT_FORMAT:
+        raise ValueError(f"{path}: incompatible checkpoint format")
+    for key, value in (expected_config or {}).items():
+        if cfg.get(key) != value:
+            raise ValueError(f"{path}: incompatible {key}: {cfg.get(key)} != {value}")
     model.load_state_dict(payload["state_dict"])
     return payload

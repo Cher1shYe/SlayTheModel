@@ -1,0 +1,46 @@
+{
+  "command": [
+    "/opt/anaconda3/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_engine_checkpoint_identity.py",
+    "tests/test_training.py::test_checkpoint_schema_validation",
+    "tests/test_armg_evaluation.py::test_armg_checkpoint_rejects_semantically_wrong_features",
+    "tests/test_combat_dagger_training.py::test_checkpoint_restores_optimizer_progress_and_rejects_schema_mismatch",
+    "tests/test_combat_dagger_training.py::test_resume_teacher_budget_change_is_explicit_and_preserves_replay"
+  ],
+  "exit_code": 0,
+  "seconds": 4.32,
+  "engine_contract": {
+    "version": 1,
+    "ruleset_id": "native-41cef1ea-port-v1",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "b7dd2251aa418dcc1b39082e7e76cfa665dd4f065ec9416e49a602349933f7ee",
+    "source_content_sha256": "5398996f46dbb610ec91df16c76c47dc3bbccd9448a2c1a093ddcc2dd8a3e8f8",
+    "id_layout_sha256": "6a0aee3066db87b41b2dc7c3c696a1056f8a07013fbd0607b0927870f1c3ff7f",
+    "schema_layout_sha256": "4cc00ee083f3d1181afc43ab7d33ad768575d94275ed6f51f12d72f3f97e1485",
+    "dimensions": {
+      "RUN_OBS_DIM": 237,
+      "CARD_FEAT_DIM": 250,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 340,
+      "PUBLIC_OBS_DIM": 37305,
+      "PUBLIC_COMBAT_OBS_DIM": 21330,
+      "PUBLIC_OBS_VERSION": 10,
+      "ACTION_SCHEMA_VERSION": 9,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 222
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "d50f5a62330fe2d59e63471aacf352ad9a2d7de87c01d7d3fab3b850484ec2fa",
+      "agent/armg.py": "674e817e0a699dc2ba5e63e4e9fec589848607b0deeac6f7929d9ffaba452362",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "user_checkpoint_migrated": false,
+  "training_games": 0,
+  "output": "..................                                                       [100%]\n18 passed in 3.60s\n"
+}

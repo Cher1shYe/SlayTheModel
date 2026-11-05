@@ -2,11 +2,13 @@
 from concurrent.futures import Future
 import hashlib
 import json
+from pathlib import Path
 
 import pytest
 import torch
 
 from agent.armg import ArmGScorer
+from agent.common import sim
 from agent import armg_train as base
 from deployment import evaluate_armg_prior_guard as guard
 
@@ -45,7 +47,9 @@ def test_bootstrap_rule_needs_both_magnitude_and_negative_ci():
 
 def _checkpoints(tmp_path):
     extension = tmp_path/'extension.pyd'
-    extension.write_bytes(b'guard test')
+    # Checkpoint settings are validated against the loaded engine, so the
+    # stand-in extension is a byte copy of it rather than a dummy file.
+    extension.write_bytes(Path(sim.__file__).read_bytes())
     extension_sha = hashlib.sha256(extension.read_bytes()).hexdigest()
     old = tmp_path/'old.pt'
     model = ArmGScorer()

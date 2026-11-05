@@ -1,0 +1,5 @@
+# Interleaved same-machine comparison, 1000 runs per sample, 3 before / 3 after
+before: 68.2, 69.8, 67.5 runs/s (median 68.2)
+after:  70.3, 65.3, 64.7 runs/s (median 65.3)
+before build: validation/round4-step2/source-before/simulator/bench.exe
+after build: simulator/bench.exe (current source, incl. Amalgamator)

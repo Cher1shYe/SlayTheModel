@@ -44,6 +44,15 @@ def test_progress_and_paired_summary():
 
 
 def test_real_configuration_preflight_without_pool(tmp_path,monkeypatch):
+    # Needs an isolated prior-capable extension (STS2_PRIOR_PYD) plus the
+    # archived training checkpoints; neither ships with the repository.
+    checkpoints = [Path(p) for p in (
+        'runs/armg_ironclad_skip_site_rl_20261030/train/latest.pt',
+        'runs/armg_floor2000_elite1000_boss2000_rl_20261030/best.pt',
+        'runs/armg_floor2000_elite1000_boss2000_rl_20261030/latest.pt',
+        'runs/combat_dagger_a0_20261029/round5.pt')]
+    if not e.root._extension or not all(p.exists() for p in checkpoints):
+        pytest.skip('needs STS2_PRIOR_PYD and the archived runs/*.pt checkpoints')
     class Halt(Exception): pass
     def no_pool(*args,**kwargs): raise Halt()
     monkeypatch.setattr(e,'ProcessPoolExecutor',no_pool)

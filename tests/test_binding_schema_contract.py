@@ -40,7 +40,7 @@ def test_combat_action_components_are_checked_before_narrowing(contexts, field, 
     assert run.snapshot() == before_run
 
 
-@pytest.mark.parametrize("action_type", [-1, int(sim.RunActionType.REST_CLONE) + 1, 256])
+@pytest.mark.parametrize("action_type", [-1, int(sim.RunActionType.REROLL_CARD_REWARD) + 1, 256])
 def test_run_action_type_is_checked_before_narrowing(contexts, action_type):
     _, run = contexts
     before = run.snapshot()
@@ -51,22 +51,25 @@ def test_run_action_type_is_checked_before_narrowing(contexts, action_type):
 
 def test_field_limits_and_public_schema(contexts):
     battle, run = contexts
-    assert len(battle.action_features(int(sim.ActionType.END_TURN), 255, 255, 65535)) == 340
-    assert int(sim.PUBLIC_OBS_VERSION) == 10
-    assert int(sim.ACTION_SCHEMA_VERSION) == 9
-    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 37305
-    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 21330
-    assert int(sim.CARD_FEAT_DIM) == 250
-    assert int(sim.ACTION_FEAT_DIM) == 340
+    assert len(battle.action_features(int(sim.ActionType.END_TURN), 255, 255, 65535)) == 729
+    assert int(sim.PUBLIC_OBS_VERSION) == 20
+    assert int(sim.ACTION_SCHEMA_VERSION) == 17
+    assert int(sim.PUBLIC_OBS_DIM) == len(run.observe_public()) == 83208
+    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == len(battle.observation_public()) == 49972
+    assert int(sim.CARD_FEAT_DIM) == 632
+    assert int(sim.ACTION_FEAT_DIM) == 729
 
 
 def test_generate_map_takes_raw_rng_seed():
     run = sim.RunContext()
     run.init(123, 0)
-    # The reference deterministic hash of the decimal string "123".
-    derived_seed = 1816791482
-    assert sim.generate_map(derived_seed, 0)[2] == run.map_nodes()
-    assert sim.generate_map(123, 0)[2] != run.map_nodes()
+    # Numeric APIs now both take the raw native 64-bit seed. Human-readable
+    # game seeds use init_seed and are covered by test_native_seed_identity.
+    assert sim.generate_map(123, 0)[2] == run.map_nodes()
+    text_run = sim.RunContext()
+    text_run.init_seed("123", 0)
+    assert text_run.seed != run.seed
+    assert sim.generate_map(text_run.seed, 0)[2] == text_run.map_nodes()
 
 
 def test_a10_map_includes_second_boss_coordinates():

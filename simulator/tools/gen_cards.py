@@ -15,17 +15,18 @@ SRC = ROOT / "content" / "cards.json"
 OUT = ROOT / "include" / "sts2" / "cards_generated.inc"
 
 TYPES = {"ATTACK": "ATTACK", "SKILL": "SKILL", "POWER": "POWER",
-         "STATUS": "STATUS", "CURSE": "CURSE"}
+         "STATUS": "STATUS", "CURSE": "CURSE", "QUEST": "QUEST"}
 TARGETS = {"ANY_ENEMY": "ENEMY", "ALL_ENEMIES": "ALL_ENEMIES", "SELF": "SELF",
            "RANDOM_ENEMY": "RANDOM_ENEMY", "ANY_ALLY": "ALLY",
            "ALL_ALLIES": "ALL_ALLIES", "NONE": "NONE"}
 RARITIES = {"BASIC": "BASIC", "COMMON": "COMMON", "UNCOMMON": "UNCOMMON",
             "RARE": "RARE", "SPECIAL": "SPECIAL", "ANCIENT": "ANCIENT",
             "EVENT": "EVENT", "STATUS": "STATUS", "CURSE": "CURSE",
-            "TOKEN": "TOKEN"}
+            "TOKEN": "TOKEN", "QUEST": "QUEST"}
 POOLS = {"ironclad": "IRONCLAD", "colorless": "COLORLESS",
          "event": "EVENT", "curse": "CURSE", "token": "TOKEN",
-         "status": "STATUS"}
+         "status": "STATUS", "quest": "QUEST", "silent": "SILENT", "regent": "REGENT",
+         "necrobinder": "NECROBINDER", "defect": "DEFECT"}
 
 
 def cstr(s: str) -> str:
@@ -34,8 +35,11 @@ def cstr(s: str) -> str:
 
 def main() -> None:
     cards = json.loads(SRC.read_text(encoding="utf-8"))
-    var_keys = sorted({k for c in cards for k in c["effect_vars"]}
-                      | {k for c in cards for k in c["variants"]["upgraded"]["effect_vars"]})
+    # This manifest freezes the pre-expansion IDs and appends new variables.
+    # Sorting the full key set would silently reinterpret every old model.
+    var_keys = json.loads((ROOT / "content/card_var_ids.json").read_text())
+    present = {k for c in cards for v in c["variants"].values() for k in v["effect_vars"]}
+    assert present <= set(var_keys), "append new VarIds to card_var_ids.json first"
     var_id = {k: k.upper() for k in var_keys}
     for name in var_id.values():
         assert name.replace("_", "").isalnum(), name
@@ -79,16 +83,18 @@ def main() -> None:
             if "DEFEND" in c.get("tags", []): f |= 64
             if c.get("multiplayer_only"): f |= 128
             if not c.get("can_be_generated_in_combat", True): f |= 256
+            if "sly" in kw: f |= 512
+            if "eternal" in kw: f |= 1024
             return f
-        base_vars = [str(int(c["effect_vars"].get(k, 0))) for k in var_keys]
-        up_vars = [str(int(up["effect_vars"].get(k, 0))) for k in var_keys]
+        base_vars = [str(c["effect_vars"].get(k, 0)) for k in var_keys]
+        up_vars = [str(up["effect_vars"].get(k, 0)) for k in var_keys]
         title = c["title"] or c["id"]
         cost = -1 if c.get("x_cost") else c["cost"]
         cost_up = -1 if up.get("x_cost") else up["cost"]
         lines.append(
             "    {CardId::%s, %s, %s, CardPool::%s, %d, %d, CardType::%s,"
             " TargetType::%s, Rarity::%s, "
-            "%d, %d, %d, %d, {%s}, {%s}, %d, %d}," % (
+            "%d, %d, %d, %d, {%s}, {%s}, %d, %d, %d, %d, %s, %s, %d, %d}," % (
                 c["id"], cstr(c["id"]), cstr(title),
                 POOLS.get(c["pool"], "IRONCLAD"), cost, cost_up,
                 TYPES.get(c["type"], "SKILL"), TARGETS.get(c["target"], "SELF"),
@@ -96,7 +102,10 @@ def main() -> None:
                 c["base_damage"] or 0, up["base_damage"] or 0,
                 c["base_block"] or 0, up["base_block"] or 0,
                 ", ".join(base_vars), ", ".join(up_vars),
-                flags(c["variants"]["base"]), flags(up)))
+                flags(c["variants"]["base"]), flags(up),
+                c.get("star_cost", -1), up.get("star_cost", -1),
+                str(c.get("star_cost_x", False)).lower(), str(up.get("star_cost_x", False)).lower(),
+                c.get("max_upgrade_level", 1), c.get("native_pool_order", 99999)))
     lines.append("};")
     lines.append("static_assert(sizeof(CARD_DEFS) / sizeof(CARD_DEFS[0]) =="
                  " static_cast<int>(CardId::COUNT), \"card table size\");")

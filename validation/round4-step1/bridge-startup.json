@@ -1,0 +1,12 @@
+{
+  "returncode": 0,
+  "stdout": "",
+  "stderr": "",
+  "schemas": [
+    13,
+    12,
+    4
+  ],
+  "scope": "Worker startup using a temporary untrained current-format checkpoint, then EOF. No game/UI actions or training.",
+  "user_checkpoint_read_or_modified": false
+}

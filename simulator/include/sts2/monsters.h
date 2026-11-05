@@ -78,9 +78,12 @@ struct EncounterDef {
     std::uint16_t patternOff;
     std::uint8_t patternCount;
     std::uint16_t tags;
+    // Native ModelId.Entry (StringHelper.Slugify(class name)); null for
+    // reference-engine content that has no class in the aligned build.
+    const char *nativeEntry;
 };
 
-void setup_encounter(BattleContext &bc, Encounter enc);
+void setup_encounter(BattleContext &bc, Encounter enc, Rng *encounterRng = nullptr);
 void spawn_monster(BattleContext &bc, MonsterId id, int slot = -1);
 void roll_intent(BattleContext &bc, Monster &m);
 void monster_act(BattleContext &bc, Monster &m);

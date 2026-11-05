@@ -49,7 +49,7 @@ Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon) {
     std::vector<Action> actions = bc.legal_actions();
     if (actions.empty()) return Action{};
     if (actions.size() == 1) return actions[0];
-    if (epsilon > 0.0f && rng.sample() < static_cast<float>(epsilon)) {
+    if (epsilon > 0.0f && rng.next_double() < static_cast<float>(epsilon)) {
         return actions[rng.next_int(0, static_cast<int>(actions.size()) - 1)];
     }
 
@@ -58,7 +58,7 @@ Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon) {
         if (a.type != ActionType::PLAY_CARD || a.target >= bc.monsterCount) continue;
         const Card &c = bc.hand[a.hand];
         if (!card_is_attack(c)) continue;
-        if (card_def(c.id).target == TargetType::ENEMY) {
+        if (card_target_type_of(c) == TargetType::ENEMY) {
             int dmg = bc.calc_player_damage(card_damage(c), a.target);
             const Monster &m = bc.monsters[a.target];
             if (m.alive && dmg >= m.hp + m.block) return a;

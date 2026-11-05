@@ -1,0 +1,9 @@
+--- run 1
+runs=1000 completed=1000 truncated=0 errors=0 seconds=14.217 runs_per_s=70.3 avg_floor=9.6 win_rate=0.000 combats=5587
+init=13.42ms/run combat=0.381s (86622 steps, 4.4 us/step) other=0.42ms/run
+--- run 2
+runs=1000 completed=1000 truncated=0 errors=0 seconds=15.209 runs_per_s=65.8 avg_floor=9.6 win_rate=0.000 combats=5587
+init=14.40ms/run combat=0.384s (86622 steps, 4.4 us/step) other=0.43ms/run
+--- run 3
+runs=1000 completed=1000 truncated=0 errors=0 seconds=7.791 runs_per_s=128.4 avg_floor=9.6 win_rate=0.000 combats=5587
+init=7.37ms/run combat=0.210s (86622 steps, 2.4 us/step) other=0.21ms/run

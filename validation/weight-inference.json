@@ -1,0 +1,20 @@
+[
+  {
+    "relic": "PRECISE_SCISSORS",
+    "grid_kind": 6,
+    "legal_actions": 10,
+    "finite_output": true
+  },
+  {
+    "relic": "NEW_LEAF",
+    "grid_kind": 7,
+    "legal_actions": 10,
+    "finite_output": true
+  },
+  {
+    "relic": "ASTROLABE",
+    "grid_kind": 8,
+    "legal_actions": 10,
+    "finite_output": true
+  }
+]

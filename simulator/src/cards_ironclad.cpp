@@ -11,20 +11,20 @@ static void block_card(BattleContext &bc, Card &card) {
     bc.gain_block(b, true);
 }
 
-static bool hit(BattleContext &bc, Card &card, int target, int base, int hits = 1) {
+static bool hit(BattleContext &bc, Card &card, int target, double base, int hits = 1) {
     return bc.attack_from_card(card, target, base, hits);
 }
 
-static void hit_all(BattleContext &bc, Card &card, int base, int hits = 1) {
+static void hit_all(BattleContext &bc, Card &card, double base, int hits = 1) {
     bc.attack_all_from_card(card, base, hits);
 }
 
-static void exhaust_random_from_draw(BattleContext &bc) {
-    if (bc.drawCount == 0) bc.shuffle_discard_into_draw();
-    if (bc.drawCount == 0) return;
-    const int idx = bc.cardSelectionRng.next_int(0, bc.drawCount - 1);
-    Card c = bc.draw[idx];
-    bc.remove_draw_at(idx);
+static void exhaust_random_from_hand(BattleContext &bc) {
+    if (bc.handCount == 0) return;
+    const int idx = bc.cardSelectionRng.next_int(0, bc.handCount - 1);
+    Card c = bc.hand[idx];
+    for (int i = idx; i + 1 < bc.handCount; ++i) bc.hand[i] = bc.hand[i + 1];
+    --bc.handCount;
     bc.move_to_exhaust(c);
 }
 
@@ -33,7 +33,7 @@ static void return_next_turn(BattleContext &bc, const Card &card) {
 }
 
 bool ironclad_effect(BattleContext &bc, Card &card, int target) {
-    const int dmg = card_damage(card);
+    const double dmg = card_base_damage(card);
     const int magic = card_var(card, VarId::POWER);
 
     switch (card.id) {
@@ -45,7 +45,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::ENTRENCH:
             // Entrench.cs: GainBlock(owner.Block, Unpowered | Move).
-            bc.gain_block(bc.player.block, false, false);
+            bc.gain_block(bc.player.block, true, false);
             return true;
         case CardId::BASH:
             hit(bc, card, target, dmg);
@@ -55,8 +55,10 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         // ---- common ----
         case CardId::ANGER: {
             hit(bc, card, target, dmg);
-            Card copy = make_card(CardId::ANGER, card.upgraded, bc.require_card_uid());
-            copy.bonusDamage = card.bonusDamage;
+            // Native CreateClone preserves mutable card fields, including
+            // enchantment status and cost modifiers. Only entity identity is new.
+            Card copy = card;
+            copy.uid = bc.require_card_uid();
             bc.add_card_to_discard(copy);
             return true;
         }
@@ -88,7 +90,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::CINDER:
             hit(bc, card, target, dmg);
-            for (int i = 0; i < card_var(card, VarId::CARDS_TO_EXHAUST); ++i) exhaust_random_from_draw(bc);
+            exhaust_random_from_hand(bc);
             return true;
         case CardId::HAVOC:
             bc.auto_play_from_draw(1, true);
@@ -137,18 +139,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.draw_cards(card_var(card, VarId::CARDS));
             return true;
         case CardId::SWORD_BOOMERANG: {
-            // Each hit rolls its own random target; damage modifiers apply once
-            // per hit (the attack path already applies strength/vulnerable).
-            int b = dmg;
-            if (bc.player_power(PowerId::VIGOR) > 0) {
-                b += bc.player_power(PowerId::VIGOR);
-                bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
-            }
-            for (int i = 0; i < card_var(card, VarId::REPEAT); ++i) {
-                const int t = bc.random_alive_monster();
-                if (t < 0) break;
-                bc.damage_monster(t, bc.calc_player_damage(b, t, true, &card), true, true);
-            }
+            bc.attack_random_from_card(card, dmg, card_var(card, VarId::REPEAT));
             return true;
         }
         case CardId::THUNDERCLAP: {
@@ -186,6 +177,11 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             hit(bc, card, target, card_var(card, VarId::CALC_BASE) +
                                    card_var(card, VarId::EXTRA_DAMAGE) * bc.exhaustCount);
             return true;
+        case CardId::BLAZE:
+            // Multiplayer-only, TargetType.AnyAlly. In single player the only
+            // ally is the owner, so the Strength lands on the player.
+            bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::STRENGTH_POWER));
+            return true;
         case CardId::BATTLE_TRANCE:
             bc.draw_cards(card_var(card, VarId::CARDS));
             bc.add_player_power(PowerId::NO_DRAW, 1);
@@ -208,7 +204,14 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         case CardId::DEMONIC_SHIELD:
-            return true;  // multiplayer-only in single player
+            // Multiplayer-only AnyAlly. Owner loses HpLossVar(1) as
+            // unblockable/unpowered damage, then the chosen ally gains block
+            // equal to the owner's current block (CalculationExtraVar 1 x
+            // owner.Block). In single player the ally is the owner.
+            bc.damage_player(card_var(card, VarId::HP_LOSS), true, false);
+            if (bc.outcome != Outcome::UNDECIDED) return true;
+            bc.gain_block(bc.player.block, true);
+            return true;
         case CardId::DISMANTLE: {
             const bool vuln = target >= 0 && target < bc.monsterCount &&
                               bc.monsters[target].vulnerable > 0;
@@ -216,6 +219,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::DOMINATE: {
+            bc.apply_vulnerable(target, card_var(card, VarId::VULNERABLE));
             const int vuln = target >= 0 && target < bc.monsterCount
                                  ? bc.monsters[target].vulnerable : 0;
             if (vuln > 0) bc.add_player_power(PowerId::STRENGTH,
@@ -224,16 +228,14 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         }
         case CardId::DRUM_OF_BATTLE_CARD:
             bc.draw_cards(card_var(card, VarId::CARDS));
-            bc.add_player_power(PowerId::DRUM_OF_BATTLE, 1);
             return true;
         case CardId::EVIL_EYE:
             block_card(bc, card);
             if (bc.exhaustedThisTurn > 0) block_card(bc, card);
             return true;
         case CardId::EXPECT_A_FIGHT: {
-            int attacks = 0;
-            for (int i = 0; i < bc.handCount; ++i) attacks += card_is_attack(bc.hand[i]) ? 1 : 0;
-            bc.player.energy += attacks;
+            bc.gain_block(card_var(card, VarId::CALC_BASE) +
+                          card_var(card, VarId::CALC_EXTRA) * std::max(0, bc.player.strength), true);
             return true;
         }
         case CardId::FEEL_NO_PAIN_CARD:
@@ -251,7 +253,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::FLAME_BARRIER, card_var(card, VarId::DAMAGE_BACK));
             return true;
         case CardId::FORGOTTEN_RITUAL:
-            if (bc.exhaustedThisTurn > 0) bc.player.energy += card_var(card, VarId::ENERGY);
+            bc.player.energy += card_var(card, VarId::ENERGY);
             return true;
         case CardId::GRAPPLE:
             hit(bc, card, target, dmg);
@@ -271,6 +273,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::INFERNO_CARD:
             bc.add_player_power(PowerId::INFERNO, card_var(card, VarId::INFERNO_POWER));
+            if (bc.player_power(PowerId::INFERNO) > 0) ++bc.player.infernoSelfDamage;
             return true;
         case CardId::INFLAME:
             bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::STRENGTH));
@@ -292,29 +295,35 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::RAMPAGE:
             hit(bc, card, target, dmg);
-            card.bonusDamage = static_cast<std::int16_t>(card.bonusDamage + card_var(card, VarId::INCREASE));
+            card.bonusDamage += card_var(card, VarId::INCREASE);
             return true;
         case CardId::RUPTURE_CARD:
             bc.add_player_power(PowerId::RUPTURE, card_var(card, VarId::STRENGTH));
             return true;
         case CardId::SECOND_WIND: {
             const int per = card_var(card, VarId::BLOCK);
-            for (int i = bc.handCount - 1; i >= 0; --i) {
-                if (!card_is_attack(bc.hand[i])) {
-                    Card c = bc.hand[i];
-                    for (int j = i; j < bc.handCount - 1; ++j) bc.hand[j] = bc.hand[j + 1];
+            // Native snapshots the eligible cards in hand order. Exhaust hooks
+            // may draw cards, but those new entities are outside this snapshot.
+            std::uint16_t initial[MAX_HAND];
+            int count = 0;
+            for (int i = 0; i < bc.handCount; ++i)
+                if (!card_is_attack(bc.hand[i])) initial[count++] = bc.hand[i].uid;
+            for (int i = 0; i < count && bc.outcome == Outcome::UNDECIDED; ++i) {
+                for (int j = 0; j < bc.handCount; ++j) {
+                    if (bc.hand[j].uid != initial[i]) continue;
+                    Card c = bc.hand[j];
+                    for (int k = j; k + 1 < bc.handCount; ++k) bc.hand[k] = bc.hand[k + 1];
                     --bc.handCount;
                     bc.move_to_exhaust(c);
-                    // SecondWind.cs: BlockVar with cardPlay ("Move"), i.e.
-                    // powered block from a card: NoBlock must stop it.
                     bc.gain_block(per, true);
+                    break;
                 }
             }
             return true;
         }
         case CardId::SPITE:
-            hit(bc, card, target, dmg);
-            if (bc.player.tookUnblockedDamageThisTurn) bc.draw_cards(card_var(card, VarId::CARDS));
+            hit(bc, card, target, dmg, bc.player.tookUnblockedDamageThisTurn
+                ? card_var(card, VarId::REPEAT) : 1);
             return true;
         case CardId::STAMPEDE_CARD:
             bc.add_player_power(PowerId::STAMPEDE, 1);
@@ -375,11 +384,11 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::COLOSSUS, card_var(card, VarId::COLOSSUS));
             return true;
         case CardId::CONFLAGRATION:
-            hit_all(bc, card, card_var(card, VarId::CALC_BASE) +
-                                card_var(card, VarId::EXTRA_DAMAGE) * bc.attacksPlayedThisTurn);
+            hit_all(bc, card, dmg, card_var(card, VarId::REPEAT));
             return true;
         case CardId::CRIMSON_MANTLE:
             bc.add_player_power(PowerId::CRIMSON_MANTLE, card_var(card, VarId::CRIMSON_MANTLE_POWER));
+            if (bc.player_power(PowerId::CRIMSON_MANTLE) > 0) ++bc.player.crimsonMantleSelfDamage;
             return true;
         case CardId::CRUELTY_CARD:
             bc.add_player_power(PowerId::CRUELTY, card_var(card, VarId::CRUELTY_POWER));
@@ -395,7 +404,7 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             const bool killed = hit(bc, card, target, dmg);
             if (fatal_eligible && killed) {
                 bc.player.maxHp += card_var(card, VarId::MAX_HP);
-                bc.player.hp += card_var(card, VarId::MAX_HP);
+                bc.heal_hp(card_var(card, VarId::MAX_HP));
             }
             return true;
         }
@@ -440,6 +449,12 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                 bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS));
             }
             return true;
+        case CardId::MIDNIGHT:
+            // Multiplayer-only by CardMultiplayerConstraint, but the play is a
+            // plain single-target attack. AfterCardExhausted cost reduction is
+            // applied in BattleContext::trigger_exhaust_hooks.
+            hit(bc, card, target, dmg);
+            return true;
         case CardId::OFFERING:
             bc.damage_player(card_var(card, VarId::HP_LOSS), true);
             bc.player.energy += card_var(card, VarId::ENERGY);
@@ -448,8 +463,14 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         case CardId::ONE_TWO_PUNCH_CARD:
             bc.add_player_power(PowerId::ONE_TWO_PUNCH, card_var(card, VarId::ATTACKS));
             return true;
+        case CardId::OUTRAGE:
+            // Multiplayer-only: native also adds a clone to each living
+            // teammate's discard pile. Single player has no teammates, so only
+            // the damage applies.
+            hit(bc, card, target, dmg);
+            return true;
         case CardId::PACTS_END:
-            hit_all(bc, card, dmg);
+            if (bc.exhaustCount >= card_var(card, VarId::CARDS)) hit_all(bc, card, dmg);
             return true;
         case CardId::PRIMAL_FORCE: {
             for (int i = 0; i < bc.handCount; ++i) {
@@ -490,7 +511,12 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::TANK_CARD:
-            return true;  // multiplayer-only in single player
+            // Multiplayer-only Power. TankPower guards teammates (none in
+            // single player) and multiplies powered attack damage to its owner
+            // by DamageIncrease 1.5; that half is implemented in
+            // BattleContext::damage_player.
+            bc.add_player_power(PowerId::TANK, 1);
+            return true;
         case CardId::TEAR_ASUNDER: {
             const int hits = 1 + bc.unblockedHitsThisCombat;
             hit(bc, card, target, dmg, hits);
@@ -498,15 +524,19 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         }
         case CardId::THRASH: {
             hit(bc, card, target, dmg, 2);
-            int idx = -1;
+            int attacks[MAX_HAND];
+            int count = 0;
             for (int i = 0; i < bc.handCount; ++i) {
-                if (card_is_attack(bc.hand[i])) { idx = i; break; }
+                if (card_is_attack(bc.hand[i])) attacks[count++] = i;
             }
-            if (idx >= 0) {
+            if (count > 0) {
+                const int idx = attacks[bc.cardSelectionRng.next_int(0, count - 1)];
                 Card c = bc.hand[idx];
+                // Calculate while c is still in Hand and before exhaust hooks.
+                const double growth = bc.thrash_damage_growth(c);
+                card.bonusDamage += growth;
                 for (int i = idx; i < bc.handCount - 1; ++i) bc.hand[i] = bc.hand[i + 1];
                 --bc.handCount;
-                card.bonusDamage = static_cast<std::int16_t>(card.bonusDamage + card_damage(c));
                 bc.move_to_exhaust(c);
             }
             return true;
@@ -520,6 +550,9 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::CORRUPTION_CARD:
             bc.add_player_power(PowerId::CORRUPTION, 1);
+            return true;
+        case CardId::NOT_YET:
+            bc.heal_hp(card_var(card, VarId::HEAL));
             return true;
 
         default:

@@ -1,0 +1,71 @@
+Test project D:/sts2_datacollection/sts2-workspace_YE/artifacts/dev/cpp-native-aligned-20261031/simulator/build-win
+      Start  1: simulator_rules
+ 1/33 Test  #1: simulator_rules ..................   Passed    5.92 sec
+      Start  2: simulator_observation
+ 2/33 Test  #2: simulator_observation ............   Passed    0.99 sec
+      Start  3: simulator_relics
+ 3/33 Test  #3: simulator_relics .................   Passed    0.26 sec
+      Start  4: regent_mechanics
+ 4/33 Test  #4: regent_mechanics .................   Passed    0.03 sec
+      Start  5: enchantment_contract
+ 5/33 Test  #5: enchantment_contract .............   Passed    0.36 sec
+      Start  6: monster_audit
+ 6/33 Test  #6: monster_audit ....................   Passed    0.02 sec
+      Start  7: map_event_audit
+ 7/33 Test  #7: map_event_audit ..................   Passed   13.92 sec
+      Start  8: snapshot_validation
+ 8/33 Test  #8: snapshot_validation ..............   Passed   20.21 sec
+      Start  9: scroll_boxes
+ 9/33 Test  #9: scroll_boxes .....................   Passed    0.17 sec
+      Start 10: mcts
+10/33 Test #10: mcts .............................   Passed    0.28 sec
+      Start 11: hidden_resampling
+11/33 Test #11: hidden_resampling ................   Passed    1.68 sec
+      Start 12: native_card_alignment
+12/33 Test #12: native_card_alignment ............   Passed    0.02 sec
+      Start 13: native_rng_contract
+13/33 Test #13: native_rng_contract ..............   Passed    0.02 sec
+      Start 14: native_run_alignment
+14/33 Test #14: native_run_alignment .............   Passed    0.47 sec
+      Start 15: native_seed_integration
+15/33 Test #15: native_seed_integration ..........   Passed    0.08 sec
+      Start 16: native_relic_round2_alignment
+16/33 Test #16: native_relic_round2_alignment ....   Passed    0.59 sec
+      Start 17: native_act_alignment
+17/33 Test #17: native_act_alignment .............   Passed    1.34 sec
+      Start 18: native_underdocks_events
+18/33 Test #18: native_underdocks_events .........   Passed    0.59 sec
+      Start 19: native_event_oracle_alignment
+19/33 Test #19: native_event_oracle_alignment ....   Passed    0.66 sec
+      Start 20: native_relic_round3_alignment
+20/33 Test #20: native_relic_round3_alignment ....   Passed    0.34 sec
+      Start 21: native_card_round3_alignment
+21/33 Test #21: native_card_round3_alignment .....   Passed    0.13 sec
+      Start 22: native_event_round3_alignment
+22/33 Test #22: native_event_round3_alignment ....   Passed    2.52 sec
+      Start 23: native_round3_shared_alignment
+23/33 Test #23: native_round3_shared_alignment ...   Passed    0.20 sec
+      Start 24: native_step1_self_damage
+24/33 Test #24: native_step1_self_damage .........   Passed    0.03 sec
+      Start 25: native_step1_downgrade
+25/33 Test #25: native_step1_downgrade ...........   Passed    0.43 sec
+      Start 26: native_step1_relic_replace
+26/33 Test #26: native_step1_relic_replace .......   Passed    0.33 sec
+      Start 27: native_step1_state_contract
+27/33 Test #27: native_step1_state_contract ......   Passed    0.12 sec
+      Start 28: native_step2_card_rewards
+28/33 Test #28: native_step2_card_rewards ........   Passed    3.77 sec
+      Start 29: native_step2_defect
+29/33 Test #29: native_step2_defect ..............   Passed    0.31 sec
+      Start 30: native_step2_necrobinder
+30/33 Test #30: native_step2_necrobinder .........   Passed    0.20 sec
+      Start 31: native_step2_persistent
+31/33 Test #31: native_step2_persistent ..........   Passed    0.03 sec
+      Start 32: native_step2_relic_lifecycle
+32/33 Test #32: native_step2_relic_lifecycle .....   Passed    0.57 sec
+      Start 33: native_step2_silent
+33/33 Test #33: native_step2_silent ..............   Passed    0.21 sec
+
+100% tests passed out of 33
+
+Total Test time (real) =  56.98 sec

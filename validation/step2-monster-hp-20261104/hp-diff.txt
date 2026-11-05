@@ -1,0 +1,34 @@
+classes with HP override: 124
+matched: 106 / 109; differing: 25
+AXEBOT                           old A0=[40, 44] A8=[40, 44]  new A0=[70, 78] A8=[76, 86]
+BYRDONIS                         old A0=[91, 94] A8=[99, 99]  new A0=[81, 84] A8=[90, 90]
+CRUSHER                          old A0=[199, 199] A8=[209, 209]  new A0=[209, 209] A8=[219, 219]
+DECIMILLIPEDE_SEGMENT            old A0=[42, 48] A8=[48, 56]  new A0=[40, 46] A8=[46, 52]
+ENTOMANCER                       old A0=[145, 145] A8=[155, 155]  new A0=[145, 145] A8=[165, 165]
+EXOSKELETON                      old A0=[24, 28] A8=[25, 29]  new A0=[24, 28] A8=[26, 30]
+FAKE_MERCHANT_MONSTER            old A0=[165, 165] A8=[165, 165]  new A0=[165, 165] A8=[175, 175]
+GAS_BOMB                         old A0=[10, 10] A8=[12, 12]  new A0=[7, 7] A8=[8, 8]
+GUARDBOT                         old A0=[22, 24] A8=[23, 25]  new A0=[16, 20] A8=[17, 21]
+INFESTED_PRISM                   old A0=[200, 200] A8=[215, 215]  new A0=[161, 161] A8=[171, 171]
+LIVING_SHIELD                    old A0=[55, 55] A8=[55, 55]  new A0=[55, 55] A8=[65, 65]
+MYSTERIOUS_KNIGHT                old A0=[101, 101] A8=[101, 101]  new A0=[101, 101] A8=[108, 108]
+NOISEBOT                         old A0=[24, 27] A8=[25, 28]  new A0=[18, 23] A8=[19, 24]
+OWL_MAGISTRATE                   old A0=[234, 234] A8=[243, 243]  new A0=[231, 231] A8=[247, 247]
+PHANTASMAL_GARDENER              old A0=[28, 32] A8=[29, 33]  new A0=[26, 31] A8=[27, 32]
+PUNCH_CONSTRUCT                  old A0=[46, 55] A8=[46, 60]  new A0=[55, 55] A8=[60, 60]
+ROCKET                           old A0=[189, 189] A8=[199, 199]  new A0=[199, 199] A8=[209, 209]
+SCROLL_OF_BITING                 old A0=[31, 38] A8=[31, 38]  new A0=[30, 37] A8=[33, 39]
+SKULKING_COLONY                  old A0=[79, 79] A8=[84, 84]  new A0=[75, 75] A8=[80, 80]
+SLIMED_BERSERKER                 old A0=[266, 266] A8=[276, 276]  new A0=[261, 261] A8=[281, 281]
+STABBOT                          old A0=[24, 27] A8=[25, 28]  new A0=[18, 23] A8=[19, 24]
+TOUGH_EGG                        old A0=[15, 17] A8=[16, 18]  new A0=[14, 18] A8=[15, 19]
+WATERFALL_GIANT                  old A0=[250, 250] A8=[260, 260]  new A0=[240, 240] A8=[250, 250]
+WRIGGLER                         old A0=[18, 20] A8=[19, 21]  new A0=[17, 21] A8=[18, 22]
+ZAPBOT                           old A0=[24, 27] A8=[25, 28]  new A0=[18, 23] A8=[19, 24]
+
+unmatched keys:
+  DOOR
+  DOORMAKER
+  ROYAL_GUARD
+
+wrote 106 HP ranges to simulator/content/monsters.json

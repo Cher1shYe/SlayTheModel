@@ -1,0 +1,2025 @@
+[
+ {
+  "id": "BURNING_BLOOD",
+  "name": "BurningBlood",
+  "rarity": 0,
+  "pool": "IRONCLAD",
+  "doc": ""
+ },
+ {
+  "id": "BLACK_BLOOD",
+  "name": "BlackBlood",
+  "rarity": 0,
+  "pool": "EVENT",
+  "doc": "Upgraded BurningBlood."
+ },
+ {
+  "id": "RING_OF_THE_SNAKE",
+  "name": "RingOfTheSnake",
+  "rarity": 0,
+  "pool": "SILENT",
+  "doc": ""
+ },
+ {
+  "id": "RING_OF_THE_DRAKE",
+  "name": "RingOfTheDrake",
+  "rarity": 0,
+  "pool": "EVENT",
+  "doc": "Upgraded RingOfTheSnake."
+ },
+ {
+  "id": "CRACKED_CORE",
+  "name": "CrackedCore",
+  "rarity": 0,
+  "pool": "DEFECT",
+  "doc": ""
+ },
+ {
+  "id": "INFUSED_CORE",
+  "name": "InfusedCore",
+  "rarity": 0,
+  "pool": "EVENT",
+  "doc": "Upgraded CrackedCore."
+ },
+ {
+  "id": "BOUND_PHYLACTERY",
+  "name": "BoundPhylactery",
+  "rarity": 0,
+  "pool": "NECROBINDER",
+  "doc": ""
+ },
+ {
+  "id": "PHYLACTERY_UNBOUND",
+  "name": "PhylacteryUnbound",
+  "rarity": 0,
+  "pool": "EVENT",
+  "doc": "Upgraded BoundPhylactery."
+ },
+ {
+  "id": "DIVINE_RIGHT",
+  "name": "DivineRight",
+  "rarity": 0,
+  "pool": "REGENT",
+  "doc": ""
+ },
+ {
+  "id": "DIVINE_DESTINY",
+  "name": "DivineDestiny",
+  "rarity": 0,
+  "pool": "EVENT",
+  "doc": "Upgraded DivineRight."
+ },
+ {
+  "id": "AMETHYST_AUBERGINE",
+  "name": "AmethystAubergine",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 10 gold after non-boss combat rooms."
+ },
+ {
+  "id": "ANCHOR",
+  "name": "Anchor",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 10 block at combat start."
+ },
+ {
+  "id": "BAG_OF_PREPARATION",
+  "name": "BagOfPreparation",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Draw +2 cards on round 1."
+ },
+ {
+  "id": "BLOOD_VIAL",
+  "name": "BloodVial",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Heal 2 on round 1."
+ },
+ {
+  "id": "BONE_FLUTE",
+  "name": "BoneFlute",
+  "rarity": 1,
+  "pool": "NECROBINDER",
+  "doc": "When Osty attacks, gain 2 block."
+ },
+ {
+  "id": "BRONZE_SCALES",
+  "name": "BronzeScales",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 3 Thorns at combat start."
+ },
+ {
+  "id": "CENTENNIAL_PUZZLE",
+  "name": "CentennialPuzzle",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "First time taking unblocked damage in combat, draw 3."
+ },
+ {
+  "id": "DATA_DISK",
+  "name": "DataDisk",
+  "rarity": 1,
+  "pool": "DEFECT",
+  "doc": "Gain 1 Focus at combat start."
+ },
+ {
+  "id": "FENCING_MANUAL",
+  "name": "FencingManual",
+  "rarity": 1,
+  "pool": "REGENT",
+  "doc": "Round 1: forge 10."
+ },
+ {
+  "id": "FESTIVE_POPPER",
+  "name": "FestivePopper",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Round 1: deal 9 unpowered damage to all enemies."
+ },
+ {
+  "id": "GORGET",
+  "name": "Gorget",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 4 Plating at combat start."
+ },
+ {
+  "id": "HAPPY_FLOWER",
+  "name": "HappyFlower",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Every 3 turns gain 1 energy."
+ },
+ {
+  "id": "JUZU_BRACELET",
+  "name": "JuzuBracelet",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Removes Monster from unknown room types."
+ },
+ {
+  "id": "LANTERN",
+  "name": "Lantern",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Round 1: gain 1 energy."
+ },
+ {
+  "id": "MEAL_TICKET",
+  "name": "MealTicket",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Heal 15 at merchant rooms."
+ },
+ {
+  "id": "ODDLY_SMOOTH_STONE",
+  "name": "OddlySmoothStone",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 1 Dexterity at combat start."
+ },
+ {
+  "id": "PENDULUM",
+  "name": "Pendulum",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Draw 1 card on shuffle."
+ },
+ {
+  "id": "PERMAFROST",
+  "name": "Permafrost",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "First Power card played per combat: gain 6 block."
+ },
+ {
+  "id": "POTION_BELT",
+  "name": "PotionBelt",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 2 potion slots on obtain."
+ },
+ {
+  "id": "RED_SKULL",
+  "name": "RedSkull",
+  "rarity": 1,
+  "pool": "IRONCLAD",
+  "doc": "When HP <= 50%: gain 3 Strength. When HP > 50%: remove it."
+ },
+ {
+  "id": "REGAL_PILLOW",
+  "name": "RegalPillow",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Add 15 to rest site heal amount."
+ },
+ {
+  "id": "SNECKO_SKULL",
+  "name": "SneckoSkull",
+  "rarity": 1,
+  "pool": "SILENT",
+  "doc": "When applying Poison, add +1."
+ },
+ {
+  "id": "STRAWBERRY",
+  "name": "Strawberry",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 7 max HP on obtain."
+ },
+ {
+  "id": "STRIKE_DUMMY",
+  "name": "StrikeDummy",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Strike-tagged attacks deal +3 damage."
+ },
+ {
+  "id": "TINY_MAILBOX",
+  "name": "TinyMailbox",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Add potion reward at rest site."
+ },
+ {
+  "id": "VAJRA",
+  "name": "Vajra",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Gain 1 Strength at combat start."
+ },
+ {
+  "id": "VENERABLE_TEA_SET",
+  "name": "VenerableTeaSet",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "After rest site, gain 2 energy next combat."
+ },
+ {
+  "id": "WAR_PAINT",
+  "name": "WarPaint",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Upgrade 2 random Skill cards on obtain."
+ },
+ {
+  "id": "WHETSTONE",
+  "name": "Whetstone",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Upgrade 2 random Attack cards on obtain."
+ },
+ {
+  "id": "BOOK_OF_FIVE_RINGS",
+  "name": "BookOfFiveRings",
+  "rarity": 1,
+  "pool": "SHARED",
+  "doc": "Every 5 cards added to deck, heal 15."
+ },
+ {
+  "id": "AKABEKO",
+  "name": "Akabeko",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 1: gain 8 Vigor."
+ },
+ {
+  "id": "BAG_OF_MARBLES",
+  "name": "BagOfMarbles",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 1: apply 1 Vulnerable to all enemies."
+ },
+ {
+  "id": "BELLOWS",
+  "name": "Bellows",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 1: upgrade all cards in hand."
+ },
+ {
+  "id": "BOOK_REPAIR_KNIFE",
+  "name": "BookRepairKnife",
+  "rarity": 2,
+  "pool": "NECROBINDER",
+  "doc": "When enemies die to Doom, heal 3 per enemy."
+ },
+ {
+  "id": "BOWLER_HAT",
+  "name": "BowlerHat",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Gain 20% bonus gold on gold gains."
+ },
+ {
+  "id": "CANDELABRA",
+  "name": "Candelabra",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 2: gain 2 energy."
+ },
+ {
+  "id": "ETERNAL_FEATHER",
+  "name": "EternalFeather",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "At rest sites, heal 3 * (deck_size / 5)."
+ },
+ {
+  "id": "FUNERARY_MASK",
+  "name": "FuneraryMask",
+  "rarity": 2,
+  "pool": "NECROBINDER",
+  "doc": "Round 1: create 3 Soul cards in draw pile."
+ },
+ {
+  "id": "GALACTIC_DUST",
+  "name": "GalacticDust",
+  "rarity": 2,
+  "pool": "REGENT",
+  "doc": "Every 10 stars spent, gain 10 block."
+ },
+ {
+  "id": "GOLD_PLATED_CABLES",
+  "name": "GoldPlatedCables",
+  "rarity": 2,
+  "pool": "DEFECT",
+  "doc": "First orb gets +1 passive trigger."
+ },
+ {
+  "id": "GREMLIN_HORN",
+  "name": "GremlinHorn",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "When enemy dies, gain 1 energy and draw 1."
+ },
+ {
+  "id": "HORN_CLEAT",
+  "name": "HornCleat",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 2: gain 14 block after block cleared."
+ },
+ {
+  "id": "JOSS_PAPER",
+  "name": "JossPaper",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 5 cards exhausted, draw 1."
+ },
+ {
+  "id": "KUSARIGAMA",
+  "name": "Kusarigama",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 3 attacks this turn, deal 6 damage to random enemy."
+ },
+ {
+  "id": "LETTER_OPENER",
+  "name": "LetterOpener",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 3 skills this turn, deal 5 damage to all enemies."
+ },
+ {
+  "id": "LUCKY_FYSH",
+  "name": "LuckyFysh",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Gain 15 gold when card added to deck."
+ },
+ {
+  "id": "MERCURY_HOURGLASS",
+  "name": "MercuryHourglass",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every turn: deal 3 damage to all enemies."
+ },
+ {
+  "id": "MINIATURE_CANNON",
+  "name": "MiniatureCannon",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Upgraded card attacks by owner deal +3 damage."
+ },
+ {
+  "id": "NUNCHAKU",
+  "name": "Nunchaku",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 10 attacks played, gain 1 energy."
+ },
+ {
+  "id": "ORICHALCUM",
+  "name": "Orichalcum",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "If 0 block at end of turn, gain 6 block."
+ },
+ {
+  "id": "ORNAMENTAL_FAN",
+  "name": "OrnamentalFan",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 3 attacks this turn, gain 4 block."
+ },
+ {
+  "id": "PANTOGRAPH",
+  "name": "Pantograph",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Heal 25 at boss rooms."
+ },
+ {
+  "id": "PAPER_PHROG",
+  "name": "PaperPhrog",
+  "rarity": 2,
+  "pool": "IRONCLAD",
+  "doc": "Enemies take +25% more damage from Vulnerable."
+ },
+ {
+  "id": "PARRYING_SHIELD",
+  "name": "ParryingShield",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "If >= 10 block at end of turn, deal 6 damage to random enemy."
+ },
+ {
+  "id": "PEAR",
+  "name": "Pear",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Gain 10 max HP on obtain."
+ },
+ {
+  "id": "PEN_NIB",
+  "name": "PenNib",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 10th attack: double damage."
+ },
+ {
+  "id": "PETRIFIED_TOAD",
+  "name": "PetrifiedToad",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "At combat start, procure a PotionShapedRock."
+ },
+ {
+  "id": "PLANISPHERE",
+  "name": "Planisphere",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Heal 4 at unknown rooms."
+ },
+ {
+  "id": "RED_MASK",
+  "name": "RedMask",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 1: apply 1 Weak to all enemies."
+ },
+ {
+  "id": "REGALITE",
+  "name": "Regalite",
+  "rarity": 2,
+  "pool": "REGENT",
+  "doc": "When colorless card enters combat, gain 2 block."
+ },
+ {
+  "id": "REPTILE_TRINKET",
+  "name": "ReptileTrinket",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "After potion used, gain 3 temporary Strength."
+ },
+ {
+  "id": "RIPPLE_BASIN",
+  "name": "RippleBasin",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "If no attacks played this turn, gain 4 block at end of turn."
+ },
+ {
+  "id": "SELF_FORMING_CLAY",
+  "name": "SelfFormingClay",
+  "rarity": 2,
+  "pool": "IRONCLAD",
+  "doc": "When taking unblocked damage, gain 3 block next turn."
+ },
+ {
+  "id": "SPARKLING_ROUGE",
+  "name": "SparklingRouge",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 3 block clear: gain 1 Str + 1 Dex."
+ },
+ {
+  "id": "STONE_CRACKER",
+  "name": "StoneCracker",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Boss room: upgrade 3 random cards in draw pile."
+ },
+ {
+  "id": "TUNING_FORK",
+  "name": "TuningFork",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Every 10 skills played, gain 7 block."
+ },
+ {
+  "id": "TINGSHA",
+  "name": "Tingsha",
+  "rarity": 2,
+  "pool": "SILENT",
+  "doc": "When card discarded on player turn, deal 3 damage to random enemy."
+ },
+ {
+  "id": "VAMBRACE",
+  "name": "Vambrace",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "First block-granting card in combat: double block (once per combat)."
+ },
+ {
+  "id": "ART_OF_WAR",
+  "name": "ArtOfWar",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "If no attacks played last turn, gain 1 energy."
+ },
+ {
+  "id": "BEATING_REMNANT",
+  "name": "BeatingRemnant",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Cap damage taken per turn to 20."
+ },
+ {
+  "id": "BIG_HAT",
+  "name": "BigHat",
+  "rarity": 3,
+  "pool": "NECROBINDER",
+  "doc": "Round 1: generate 2 random Ethereal cards in hand."
+ },
+ {
+  "id": "BOOKMARK",
+  "name": "Bookmark",
+  "rarity": 3,
+  "pool": "NECROBINDER",
+  "doc": "End of turn: reduce cost of random Retained card by 1."
+ },
+ {
+  "id": "CAPTAINS_WHEEL",
+  "name": "CaptainsWheel",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Round 3 block clear: gain 18 block."
+ },
+ {
+  "id": "CHANDELIER",
+  "name": "Chandelier",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Round 3: gain 3 energy."
+ },
+ {
+  "id": "CHARONS_ASHES",
+  "name": "CharonsAshes",
+  "rarity": 3,
+  "pool": "IRONCLAD",
+  "doc": "On card exhaust: deal 3 damage to all enemies."
+ },
+ {
+  "id": "DEMON_TONGUE",
+  "name": "DemonTongue",
+  "rarity": 3,
+  "pool": "IRONCLAD",
+  "doc": "First unblocked damage on owner's turn: heal that amount."
+ },
+ {
+  "id": "EMOTION_CHIP",
+  "name": "EmotionChip",
+  "rarity": 3,
+  "pool": "DEFECT",
+  "doc": "If took HP loss previous turn, trigger all orb passives."
+ },
+ {
+  "id": "FROZEN_EGG",
+  "name": "FrozenEgg",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Auto-upgrade Power cards when obtained."
+ },
+ {
+  "id": "GAMBLING_CHIP",
+  "name": "GamblingChip",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Round 1: discard any cards and draw that many."
+ },
+ {
+  "id": "GAME_PIECE",
+  "name": "GamePiece",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "When Power played, draw 1 card."
+ },
+ {
+  "id": "GIRYA",
+  "name": "Girya",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Combat start: gain Strength equal to times lifted (max 3)."
+ },
+ {
+  "id": "HELICAL_DART",
+  "name": "HelicalDart",
+  "rarity": 3,
+  "pool": "SILENT",
+  "doc": "When Shiv played, gain 1 Dexterity."
+ },
+ {
+  "id": "ICE_CREAM",
+  "name": "IceCream",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "After round 1, conserve energy between turns."
+ },
+ {
+  "id": "INTIMIDATING_HELMET",
+  "name": "IntimidatingHelmet",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Cards costing >= 2: gain 4 block."
+ },
+ {
+  "id": "IVORY_TILE",
+  "name": "IvoryTile",
+  "rarity": 3,
+  "pool": "NECROBINDER",
+  "doc": "When card spends >= 3 energy, gain 1 energy."
+ },
+ {
+  "id": "KUNAI",
+  "name": "Kunai",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Every 3 attacks this turn, gain 1 Dexterity."
+ },
+ {
+  "id": "LASTING_CANDY",
+  "name": "LastingCandy",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Every 2nd combat: extra Power in card rewards."
+ },
+ {
+  "id": "LIZARD_TAIL",
+  "name": "LizardTail",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Prevent death once, heal 50% max HP."
+ },
+ {
+  "id": "LUNAR_PASTRY",
+  "name": "LunarPastry",
+  "rarity": 3,
+  "pool": "REGENT",
+  "doc": "End of each turn: gain 1 star."
+ },
+ {
+  "id": "MANGO",
+  "name": "Mango",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Gain 14 max HP on obtain."
+ },
+ {
+  "id": "MEAT_ON_THE_BONE",
+  "name": "MeatOnTheBone",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "After combat, if HP <= 50%, heal 12."
+ },
+ {
+  "id": "METRONOME",
+  "name": "Metronome",
+  "rarity": 3,
+  "pool": "DEFECT",
+  "doc": "After 7 orbs channeled, deal 30 damage to all enemies."
+ },
+ {
+  "id": "MINI_REGENT",
+  "name": "MiniRegent",
+  "rarity": 3,
+  "pool": "REGENT",
+  "doc": "First time stars spent each turn: gain 1 Strength."
+ },
+ {
+  "id": "MOLTEN_EGG",
+  "name": "MoltenEgg",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Auto-upgrade Attack cards when obtained."
+ },
+ {
+  "id": "MUMMIFIED_HAND",
+  "name": "MummifiedHand",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "When Power played, reduce cost of random card in hand to 0."
+ },
+ {
+  "id": "OLD_COIN",
+  "name": "OldCoin",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Gain 300 gold on obtain."
+ },
+ {
+  "id": "ORANGE_DOUGH",
+  "name": "OrangeDough",
+  "rarity": 3,
+  "pool": "REGENT",
+  "doc": "Round 1: generate 2 random colorless cards in hand."
+ },
+ {
+  "id": "POCKETWATCH",
+  "name": "Pocketwatch",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "If <= 3 cards played last turn, draw +3 this turn."
+ },
+ {
+  "id": "POWER_CELL",
+  "name": "PowerCell",
+  "rarity": 3,
+  "pool": "DEFECT",
+  "doc": "Round 1: move 2 random 0-cost cards from draw pile to hand."
+ },
+ {
+  "id": "PRAYER_WHEEL",
+  "name": "PrayerWheel",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Extra card reward after monster combats."
+ },
+ {
+  "id": "RAINBOW_RING",
+  "name": "RainbowRing",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "If Attack+Skill+Power played this turn, gain 1 Str + 1 Dex."
+ },
+ {
+  "id": "RAZOR_TOOTH",
+  "name": "RazorTooth",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "When Attack/Skill played that is upgradable, upgrade it in combat."
+ },
+ {
+  "id": "SHOVEL",
+  "name": "Shovel",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Add Dig rest site option."
+ },
+ {
+  "id": "SHURIKEN",
+  "name": "Shuriken",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Every 3 attacks this turn, gain 1 Strength."
+ },
+ {
+  "id": "STONE_CALENDAR",
+  "name": "StoneCalendar",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "On turn 7: deal 52 damage to all enemies."
+ },
+ {
+  "id": "STURDY_CLAMP",
+  "name": "SturdyClamp",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Retain up to 10 block between turns."
+ },
+ {
+  "id": "THE_COURIER",
+  "name": "TheCourier",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "20% discount at merchants, merchant entries refill."
+ },
+ {
+  "id": "TOUGH_BANDAGES",
+  "name": "ToughBandages",
+  "rarity": 3,
+  "pool": "SILENT",
+  "doc": "When card discarded on player turn, gain 3 block."
+ },
+ {
+  "id": "TOXIC_EGG",
+  "name": "ToxicEgg",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Auto-upgrade Skill cards when obtained."
+ },
+ {
+  "id": "TUNGSTEN_ROD",
+  "name": "TungstenRod",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Reduce all HP loss by 1."
+ },
+ {
+  "id": "UNCEASING_TOP",
+  "name": "UnceasingTop",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "When hand is empty in play phase, draw 1."
+ },
+ {
+  "id": "UNSETTLING_LAMP",
+  "name": "UnsettlingLamp",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "First debuff card: double all debuff amounts (once per combat)."
+ },
+ {
+  "id": "RUINED_HELMET",
+  "name": "RuinedHelmet",
+  "rarity": 3,
+  "pool": "IRONCLAD",
+  "doc": "First positive Strength gain in combat is doubled."
+ },
+ {
+  "id": "VEXING_PUZZLEBOX",
+  "name": "VexingPuzzlebox",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Round 1: generate random card with 0 cost in hand."
+ },
+ {
+  "id": "WHITE_BEAST_STATUE",
+  "name": "WhiteBeastStatue",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Force potion reward after all combats."
+ },
+ {
+  "id": "WHITE_STAR",
+  "name": "WhiteStar",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Add boss-rarity card reward after elite combats."
+ },
+ {
+  "id": "PAPER_KRANE",
+  "name": "PaperKrane",
+  "rarity": 3,
+  "pool": "SILENT",
+  "doc": "Reduce Weak damage multiplier by 15%."
+ },
+ {
+  "id": "BELT_BUCKLE",
+  "name": "BeltBuckle",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "No potions: +2 Dex. Potion procured: -2 Dex."
+ },
+ {
+  "id": "BREAD",
+  "name": "Bread",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "+1 max energy, but lose 2 energy round 1."
+ },
+ {
+  "id": "BRIMSTONE",
+  "name": "Brimstone",
+  "rarity": 4,
+  "pool": "IRONCLAD",
+  "doc": "Each turn: gain 2 Str, all enemies gain 1 Str."
+ },
+ {
+  "id": "BURNING_STICKS",
+  "name": "BurningSticks",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "First Skill exhausted per combat: clone it in hand."
+ },
+ {
+  "id": "CAULDRON",
+  "name": "Cauldron",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: offer 5 random potions."
+ },
+ {
+  "id": "CHEMICAL_X",
+  "name": "ChemicalX",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "X-cost cards get +2 to X value."
+ },
+ {
+  "id": "DINGY_RUG",
+  "name": "DingyRug",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Add colorless cards to card reward pool."
+ },
+ {
+  "id": "DOLLYS_MIRROR",
+  "name": "DollysMirror",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: duplicate a card from deck."
+ },
+ {
+  "id": "DRAGON_FRUIT",
+  "name": "DragonFruit",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Gain 1 max HP every time gold is gained."
+ },
+ {
+  "id": "GHOST_SEED",
+  "name": "GhostSeed",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Basic Strike/Defend become Ethereal in combat."
+ },
+ {
+  "id": "GNARLED_HAMMER",
+  "name": "GnarledHammer",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: enchant up to 3 cards with Sharp(3)."
+ },
+ {
+  "id": "KIFUDA",
+  "name": "Kifuda",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: enchant up to 3 cards with Adroit(3)."
+ },
+ {
+  "id": "LAVA_LAMP",
+  "name": "LavaLamp",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "If no damage taken this combat, upgrade all card rewards."
+ },
+ {
+  "id": "LEES_WAFFLE",
+  "name": "LeesWaffle",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Gain 7 max HP and heal to full."
+ },
+ {
+  "id": "MEMBERSHIP_CARD",
+  "name": "MembershipCard",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "50% discount at merchants."
+ },
+ {
+  "id": "MINIATURE_TENT",
+  "name": "MiniatureTent",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Allow multiple rest site options."
+ },
+ {
+  "id": "MYSTIC_LIGHTER",
+  "name": "MysticLighter",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Enchanted card attacks deal +9 damage."
+ },
+ {
+  "id": "NINJA_SCROLL",
+  "name": "NinjaScroll",
+  "rarity": 4,
+  "pool": "SILENT",
+  "doc": "Round 1: generate 3 Shivs in hand."
+ },
+ {
+  "id": "ORRERY",
+  "name": "Orrery",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: offer 5 card rewards."
+ },
+ {
+  "id": "PUNCH_DAGGER",
+  "name": "PunchDagger",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: enchant 1 card with Momentum(5)."
+ },
+ {
+  "id": "RINGING_TRIANGLE",
+  "name": "RingingTriangle",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Prevent hand flush on turn 1 (retain all cards)."
+ },
+ {
+  "id": "ROYAL_STAMP",
+  "name": "RoyalStamp",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On obtain: enchant 1 card with RoyallyApproved."
+ },
+ {
+  "id": "RUNIC_CAPACITOR",
+  "name": "RunicCapacitor",
+  "rarity": 4,
+  "pool": "DEFECT",
+  "doc": "Round 1: add 3 orb slots."
+ },
+ {
+  "id": "SCREAMING_FLAGON",
+  "name": "ScreamingFlagon",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "If hand empty at end of turn, deal 20 damage to all enemies."
+ },
+ {
+  "id": "SLING_OF_COURAGE",
+  "name": "SlingOfCourage",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Elite rooms: gain 2 Strength."
+ },
+ {
+  "id": "THE_ABACUS",
+  "name": "TheAbacus",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "On shuffle: gain 6 block."
+ },
+ {
+  "id": "TOOLBOX",
+  "name": "Toolbox",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "Round 1: offer 3 colorless cards, chosen one goes to hand."
+ },
+ {
+  "id": "UNDYING_SIGIL",
+  "name": "UndyingSigil",
+  "rarity": 4,
+  "pool": "NECROBINDER",
+  "doc": "If enemy HP <= Doom, halve damage to owner."
+ },
+ {
+  "id": "VITRUVIAN_MINION",
+  "name": "VitruvianMinion",
+  "rarity": 4,
+  "pool": "REGENT",
+  "doc": "Minion-tagged cards deal 2x damage and grant 2x block."
+ },
+ {
+  "id": "WING_CHARM",
+  "name": "WingCharm",
+  "rarity": 4,
+  "pool": "SHARED",
+  "doc": "One random card reward gets Swift(1) enchantment."
+ },
+ {
+  "id": "ALCHEMICAL_COFFER",
+  "name": "AlchemicalCoffer",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 4 potion slots and fill with random potions."
+ },
+ {
+  "id": "ARCANE_SCROLL",
+  "name": "ArcaneScroll",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add 1 random Rare card to deck."
+ },
+ {
+  "id": "ARCHAIC_TOOTH",
+  "name": "ArchaicTooth",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Transform starter card into ancient version."
+ },
+ {
+  "id": "ASTROLABE",
+  "name": "Astrolabe",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Select 3 cards from deck to transform + upgrade."
+ },
+ {
+  "id": "BEAUTIFUL_BRACELET",
+  "name": "BeautifulBracelet",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant 3 cards with Swift(3)."
+ },
+ {
+  "id": "BIG_MUSHROOM",
+  "name": "BigMushroom",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Gain 20 max HP, draw -2 on round 1."
+ },
+ {
+  "id": "BIIIG_HUG",
+  "name": "BiiigHug",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove 4 cards from deck. On shuffle, add Soot to draw pile."
+ },
+ {
+  "id": "BING_BONG",
+  "name": "BingBong",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "When card added to deck, duplicate it."
+ },
+ {
+  "id": "BLACK_STAR",
+  "name": "BlackStar",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Extra relic reward after elite combats."
+ },
+ {
+  "id": "BLESSED_ANTLER",
+  "name": "BlessedAntler",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, round 1 shuffle 3 Dazed into draw pile."
+ },
+ {
+  "id": "BLOOD_SOAKED_ROSE",
+  "name": "BloodSoakedRose",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, add Enthralled curse to deck."
+ },
+ {
+  "id": "BONE_TEA",
+  "name": "BoneTea",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "For 1 combat, upgrade all cards in hand round 1."
+ },
+ {
+  "id": "BOOMING_CONCH",
+  "name": "BoomingConch",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Round 1 in elite: draw +2."
+ },
+ {
+  "id": "BRILLIANT_SCARF",
+  "name": "BrilliantScarf",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "5th card played each turn costs 0."
+ },
+ {
+  "id": "BYRDPIP",
+  "name": "Byrdpip",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Summon Byrdpip pet."
+ },
+ {
+  "id": "CALLING_BELL",
+  "name": "CallingBell",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add CurseOfTheBell to deck, offer 3 relic rewards."
+ },
+ {
+  "id": "CHOICES_PARADOX",
+  "name": "ChoicesParadox",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Round 1: offer 5 random cards with Retain, pick 1."
+ },
+ {
+  "id": "CHOSEN_CHEESE",
+  "name": "ChosenCheese",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Gain 1 max HP after every combat."
+ },
+ {
+  "id": "CLAWS",
+  "name": "Claws",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "On obtain: transform up to 6 cards into Maul."
+ },
+ {
+  "id": "CROSSBOW",
+  "name": "Crossbow",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Each turn: generate 1 random 0-cost Attack in hand."
+ },
+ {
+  "id": "CURSED_PEARL",
+  "name": "CursedPearl",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add Greed curse, gain 333 gold."
+ },
+ {
+  "id": "DARKSTONE_PERIAPT",
+  "name": "DarkstonePeriapt",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "When curse added to deck, gain 6 max HP."
+ },
+ {
+  "id": "DAUGHTER_OF_THE_WIND",
+  "name": "DaughterOfTheWind",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "When Attack played, gain 1 block."
+ },
+ {
+  "id": "DELICATE_FROND",
+  "name": "DelicateFrond",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Combat start: fill empty potion slots with random potions."
+ },
+ {
+  "id": "DIAMOND_DIADEM",
+  "name": "DiamondDiadem",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "If <= 2 cards played this turn, gain stacking buff."
+ },
+ {
+  "id": "DISTINGUISHED_CAPE",
+  "name": "DistinguishedCape",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Lose 9 max HP, add 3 Apparition cards."
+ },
+ {
+  "id": "DREAM_CATCHER",
+  "name": "DreamCatcher",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Add card reward at rest site."
+ },
+ {
+  "id": "DRIFTWOOD",
+  "name": "Driftwood",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Allow rerolling card rewards."
+ },
+ {
+  "id": "DUSTY_TOME",
+  "name": "DustyTome",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add 1 random Ancient-rarity upgraded card to deck."
+ },
+ {
+  "id": "ECTOPLASM",
+  "name": "Ectoplasm",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Prevent all gold gain, +1 max energy."
+ },
+ {
+  "id": "ELECTRIC_SHRYMP",
+  "name": "ElectricShrymp",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant 1 card with Imbued."
+ },
+ {
+  "id": "EMBER_TEA",
+  "name": "EmberTea",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "For 5 combats, gain 2 Strength at start."
+ },
+ {
+  "id": "EMPTY_CAGE",
+  "name": "EmptyCage",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove 2 cards from deck."
+ },
+ {
+  "id": "FAKE_ANCHOR",
+  "name": "FakeAnchor",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Gain 4 block at combat start."
+ },
+ {
+  "id": "FAKE_BLOOD_VIAL",
+  "name": "FakeBloodVial",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Heal 1 on round 1."
+ },
+ {
+  "id": "FAKE_HAPPY_FLOWER",
+  "name": "FakeHappyFlower",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Every 5 turns, gain 1 energy."
+ },
+ {
+  "id": "FAKE_LEES_WAFFLE",
+  "name": "FakeLeesWaffle",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Heal 10% max HP on obtain."
+ },
+ {
+  "id": "FAKE_MANGO",
+  "name": "FakeMango",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Gain 3 max HP."
+ },
+ {
+  "id": "FAKE_MERCHANTS_RUG",
+  "name": "FakeMerchantsRug",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "No effect placeholder."
+ },
+ {
+  "id": "FAKE_ORICHALCUM",
+  "name": "FakeOrichalcum",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "If 0 block at end of turn, gain 3 block."
+ },
+ {
+  "id": "FAKE_SNECKO_EYE",
+  "name": "FakeSneckoEye",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Apply Confused power."
+ },
+ {
+  "id": "FAKE_STRIKE_DUMMY",
+  "name": "FakeStrikeDummy",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Strike cards deal +1 damage."
+ },
+ {
+  "id": "FAKE_VENERABLE_TEA_SET",
+  "name": "FakeVenerableTeaSet",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "After rest site, gain 1 energy next combat."
+ },
+ {
+  "id": "FIDDLE",
+  "name": "Fiddle",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+2 hand draw, block non-hand-draw draws."
+ },
+ {
+  "id": "FORGOTTEN_SOUL",
+  "name": "ForgottenSoul",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "On card exhaust: deal 1 damage to random enemy."
+ },
+ {
+  "id": "FRAGRANT_MUSHROOM",
+  "name": "FragrantMushroom",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Take 15 damage, upgrade 3 random cards."
+ },
+ {
+  "id": "FRESNEL_LENS",
+  "name": "FresnelLens",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "All card rewards get Nimble(2)."
+ },
+ {
+  "id": "FUR_COAT",
+  "name": "FurCoat",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Mark 7 combat rooms; enemies there start at 1 HP."
+ },
+ {
+  "id": "GLASS_EYE",
+  "name": "GlassEye",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 5 card rewards (2 common, 2 uncommon, 1 rare)."
+ },
+ {
+  "id": "GLITTER",
+  "name": "Glitter",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "All card rewards get Glam enchantment."
+ },
+ {
+  "id": "GOLDEN_COMPASS",
+  "name": "GoldenCompass",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Replace current act map with the fixed golden path."
+ },
+ {
+  "id": "GOLDEN_PEARL",
+  "name": "GoldenPearl",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 150 gold."
+ },
+ {
+  "id": "HAND_DRILL",
+  "name": "HandDrill",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "When owner breaks enemy block, apply 2 Vulnerable."
+ },
+ {
+  "id": "HISTORY_COURSE",
+  "name": "HistoryCourse",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "After round 1, auto-play last Attack/Skill from previous turn."
+ },
+ {
+  "id": "IRON_CLUB",
+  "name": "IronClub",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Every 4 cards played (persistent), draw 1."
+ },
+ {
+  "id": "JEWELED_MASK",
+  "name": "JeweledMask",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Round 1: pull random Power from draw pile, make free."
+ },
+ {
+  "id": "JEWELRY_BOX",
+  "name": "JewelryBox",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add Apotheosis card to deck."
+ },
+ {
+  "id": "LARGE_CAPSULE",
+  "name": "LargeCapsule",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Obtain 2 random relics + add Strike + Defend to deck."
+ },
+ {
+  "id": "LAVA_ROCK",
+  "name": "LavaRock",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "After Act 1 boss: add 2 relic rewards (once)."
+ },
+ {
+  "id": "LEAD_PAPERWEIGHT",
+  "name": "LeadPaperweight",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 2 random Colorless cards, choose 1."
+ },
+ {
+  "id": "LEAFY_POULTICE",
+  "name": "LeafyPoultice",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Lose 10 max HP, transform 1 Strike and 1 Defend."
+ },
+ {
+  "id": "LOOMING_FRUIT",
+  "name": "LoomingFruit",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 31 max HP."
+ },
+ {
+  "id": "LORDS_PARASOL",
+  "name": "LordsParasol",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "At merchant: auto-purchase everything for free."
+ },
+ {
+  "id": "LOST_COFFER",
+  "name": "LostCoffer",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 1 card reward + 1 potion reward."
+ },
+ {
+  "id": "LOST_WISP",
+  "name": "LostWisp",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "When Power played, deal 8 damage to all enemies."
+ },
+ {
+  "id": "MASSIVE_SCROLL",
+  "name": "MassiveScroll",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 3 multiplayer cards, choose 1."
+ },
+ {
+  "id": "MAW_BANK",
+  "name": "MawBank",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Gain 12 gold per room until first purchase."
+ },
+ {
+  "id": "MEAT_CLEAVER",
+  "name": "MeatCleaver",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add Cook rest site option."
+ },
+ {
+  "id": "MR_STRUGGLES",
+  "name": "MrStruggles",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Each turn: deal damage = round number to all enemies."
+ },
+ {
+  "id": "MUSIC_BOX",
+  "name": "MusicBox",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "First Attack each turn: create Ethereal clone in hand."
+ },
+ {
+  "id": "NEOWS_TORMENT",
+  "name": "NeowsTorment",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add NeowsFury card to deck."
+ },
+ {
+  "id": "NEW_LEAF",
+  "name": "NewLeaf",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Select 1 card to transform."
+ },
+ {
+  "id": "NUTRITIOUS_OYSTER",
+  "name": "NutritiousOyster",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 11 max HP."
+ },
+ {
+  "id": "NUTRITIOUS_SOUP",
+  "name": "NutritiousSoup",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant all basic Strikes with TezcatarasEmber."
+ },
+ {
+  "id": "PAELS_BLOOD",
+  "name": "PaelsBlood",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Draw +1 card every turn."
+ },
+ {
+  "id": "PAELS_CLAW",
+  "name": "PaelsClaw",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant all valid cards with Goopy."
+ },
+ {
+  "id": "PAELS_EYE",
+  "name": "PaelsEye",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "If no cards played: exhaust hand, take extra turn (once per combat)."
+ },
+ {
+  "id": "PAELS_FLESH",
+  "name": "PaelsFlesh",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "From round 3 onward, gain 1 energy each turn."
+ },
+ {
+  "id": "PAELS_GROWTH",
+  "name": "PaelsGrowth",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant 1 card with Clone(4), add Clone rest option."
+ },
+ {
+  "id": "PAELS_HORN",
+  "name": "PaelsHorn",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add 2 Relax cards to deck."
+ },
+ {
+  "id": "PAELS_LEGION",
+  "name": "PaelsLegion",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Summon pet, double block from first block card (2 turn cooldown)."
+ },
+ {
+  "id": "PAELS_TEARS",
+  "name": "PaelsTears",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "If leftover energy at end of turn, gain 2 energy next turn."
+ },
+ {
+  "id": "PAELS_TOOTH",
+  "name": "PaelsTooth",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove up to 5 cards, return 1 upgraded per combat."
+ },
+ {
+  "id": "PAELS_WING",
+  "name": "PaelsWing",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Sacrifice card rewards; every 2, obtain random relic."
+ },
+ {
+  "id": "PANDORAS_BOX",
+  "name": "PandorasBox",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Transform all basic Strikes/Defends to random cards."
+ },
+ {
+  "id": "PHILOSOPHERS_STONE",
+  "name": "PhilosophersStone",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, all enemies gain 1 Strength."
+ },
+ {
+  "id": "POLLINOUS_CORE",
+  "name": "PollinousCore",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Every 4 turns, draw +2 extra cards."
+ },
+ {
+  "id": "POMANDER",
+  "name": "Pomander",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Upgrade 1 card from deck."
+ },
+ {
+  "id": "PRECARIOUS_SHEARS",
+  "name": "PrecariousShears",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove 2 cards, take 13 damage."
+ },
+ {
+  "id": "PRECISE_SCISSORS",
+  "name": "PreciseScissors",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove 1 card from deck."
+ },
+ {
+  "id": "PRESERVED_FOG",
+  "name": "PreservedFog",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Remove 5 cards, add Folly curse."
+ },
+ {
+  "id": "PRISMATIC_GEM",
+  "name": "PrismaticGem",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, all character pools in card rewards."
+ },
+ {
+  "id": "PUMPKIN_CANDLE",
+  "name": "PumpkinCandle",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy in act obtained."
+ },
+ {
+  "id": "RADIANT_PEARL",
+  "name": "RadiantPearl",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Round 1: add 1 Luminesce to hand."
+ },
+ {
+  "id": "ROYAL_POISON",
+  "name": "RoyalPoison",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Round 1: deal 4 unblockable damage to self."
+ },
+ {
+  "id": "RUNIC_PYRAMID",
+  "name": "RunicPyramid",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Retain all cards every turn."
+ },
+ {
+  "id": "SAI",
+  "name": "Sai",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 7 block every turn."
+ },
+ {
+  "id": "SAND_CASTLE",
+  "name": "SandCastle",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Upgrade 6 random cards."
+ },
+ {
+  "id": "SCROLL_BOXES",
+  "name": "ScrollBoxes",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Lose all gold, choose from 2 bundles of cards."
+ },
+ {
+  "id": "SEA_GLASS",
+  "name": "SeaGlass",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 15 cards from assigned character pool."
+ },
+ {
+  "id": "SEAL_OF_GOLD",
+  "name": "SealOfGold",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "If >= 5 gold, gain 1 energy and lose 5 gold each turn."
+ },
+ {
+  "id": "SERE_TALON",
+  "name": "SereTalon",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add 2 random curses and 3 Wish cards."
+ },
+ {
+  "id": "SIGNET_RING",
+  "name": "SignetRing",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Gain 999 gold."
+ },
+ {
+  "id": "SILVER_CRUCIBLE",
+  "name": "SilverCrucible",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "First 3 card rewards: all pre-upgraded. Skip first treasure."
+ },
+ {
+  "id": "SMALL_CAPSULE",
+  "name": "SmallCapsule",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 1 random relic reward."
+ },
+ {
+  "id": "SNECKO_EYE",
+  "name": "SneckoEye",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Confused power + draw +2 per turn."
+ },
+ {
+  "id": "SOZU",
+  "name": "Sozu",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Prevent potion procurement, +1 max energy."
+ },
+ {
+  "id": "SPIKED_GAUNTLETS",
+  "name": "SpikedGauntlets",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, Power cards cost +1."
+ },
+ {
+  "id": "STONE_HUMIDIFIER",
+  "name": "StoneHumidifier",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "After rest site heal, gain 5 max HP."
+ },
+ {
+  "id": "STORYBOOK",
+  "name": "Storybook",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add BrightestFlame card to deck."
+ },
+ {
+  "id": "SWORD_OF_STONE",
+  "name": "SwordOfStone",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Count elite victories; at 5, transform into SwordOfJade."
+ },
+ {
+  "id": "SWORD_OF_JADE",
+  "name": "SwordOfJade",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Combat rooms: gain 3 Strength."
+ },
+ {
+  "id": "TANXS_WHISTLE",
+  "name": "TanxsWhistle",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add Whistle card to deck."
+ },
+ {
+  "id": "TEA_OF_DISCOURTESY",
+  "name": "TeaOfDiscourtesy",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "For 1 combat, add 2 Dazed to draw pile."
+ },
+ {
+  "id": "THE_BOOT",
+  "name": "TheBoot",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "Owner's powered attacks deal min 5 damage."
+ },
+ {
+  "id": "THROWING_AXE",
+  "name": "ThrowingAxe",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "First card each combat: played twice."
+ },
+ {
+  "id": "TOASTY_MITTENS",
+  "name": "ToastyMittens",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Each turn: exhaust top of draw pile, gain 1 Strength."
+ },
+ {
+  "id": "TOUCH_OF_OROBAS",
+  "name": "TouchOfOrobas",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Replace starter relic with upgraded version."
+ },
+ {
+  "id": "TOY_BOX",
+  "name": "ToyBox",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 4 wax relics. Every 3 combats, melt one."
+ },
+ {
+  "id": "TRI_BOOMERANG",
+  "name": "TriBoomerang",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Enchant 3 cards with Instinct."
+ },
+ {
+  "id": "VELVET_CHOKER",
+  "name": "VelvetChoker",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, max 6 cards per turn."
+ },
+ {
+  "id": "VERY_HOT_COCOA",
+  "name": "VeryHotCocoa",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Round 1: gain 4 energy."
+ },
+ {
+  "id": "WAR_HAMMER",
+  "name": "WarHammer",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "After elite: upgrade 4 random cards."
+ },
+ {
+  "id": "WHISPERING_EARRING",
+  "name": "WhisperingEarring",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 max energy, round 1 auto-play all cards."
+ },
+ {
+  "id": "WONGO_CUSTOMER_APPRECIATION_BADGE",
+  "name": "WongoCustomerAppreciationBadge",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "No effect."
+ },
+ {
+  "id": "WONGOS_MYSTERY_TICKET",
+  "name": "WongosMysteryTicket",
+  "rarity": 5,
+  "pool": "EVENT",
+  "doc": "After 5 combats, add 3 relic rewards next combat."
+ },
+ {
+  "id": "YUMMY_COOKIE",
+  "name": "YummyCookie",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Select 4 cards to upgrade."
+ },
+ {
+  "id": "SYMBIOTIC_VIRUS",
+  "name": "SymbioticVirus",
+  "rarity": 2,
+  "pool": "DEFECT",
+  "doc": "Round 1: channel 1 Dark orb."
+ },
+ {
+  "id": "TWISTED_FUNNEL",
+  "name": "TwistedFunnel",
+  "rarity": 2,
+  "pool": "SHARED",
+  "doc": "Round 1: apply 4 Poison to all enemies."
+ },
+ {
+  "id": "CLOAK_CLASP",
+  "name": "CloakClasp",
+  "rarity": 3,
+  "pool": "SHARED",
+  "doc": "Before turn end, gain block equal to cards in hand."
+ },
+ {
+  "id": "CIRCLET",
+  "name": "Circlet",
+  "rarity": 1,
+  "pool": "FALLBACK",
+  "doc": "Stackable placeholder when no other relics available."
+ },
+ {
+  "id": "DEPRECATED_RELIC",
+  "name": "DeprecatedRelic",
+  "rarity": 1,
+  "pool": "DEPRECATED",
+  "doc": "Stackable placeholder for deprecated relics."
+ }
+]

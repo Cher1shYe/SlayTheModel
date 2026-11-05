@@ -1,338 +1,95 @@
-# STS2 native simulator + training
+# STS2 C++ 模拟器与 PPO 训练
 
-A Slay the Spire 2 simulator written in C++ (modeled on
-[gamerpuppy/sts_lightspeed](https://github.com/gamerpuppy/sts_lightspeed)) with
-Python only for the neural heads and training loops.
+更新日期：**2026-11-05**。本分支根目录来自 `sts2-workspace_YE/artifacts/dev/cpp-native-aligned-20261031` 的当前源码快照，整体替换原 `alphazero` 文件树，不混入旧分支文件。发布的是源码、测试和文档；游戏 DLL、模型权重、本机编译产物与缓存不随仓库分发。
 
-Everything that advances game state lives in `simulator/`: card effects are
-switch tables, `BattleContext`/`RunContext` are plain copyable structs, and
-search is done in C++. The Python layer builds observations with the extension
-itself (`sts2_sim`), then trains small PyTorch scorers.
+C++ 引擎负责游戏状态推进、战斗、整局流程和搜索，Python/PyTorch 负责策略与训练。当前主要验证目标是铁甲战士单人强化学习；其他四角色内容已接入，但不能将条目存在或主效果测试等同于完整规则等价。
 
-The fixed target is **Slay the Spire 2 v0.111.0, standard single-player,
-all content unlocked, Ironclad, Ascension 0**: one complete climb from the
-opening Ancient through acts 1-3 to victory or death. The rules contract and the
-per-item coverage manifest are in
-[`docs/a0-ironclad-contract.md`](docs/a0-ironclad-contract.md) and
-[`docs/a0-ironclad-coverage.md`](docs/a0-ironclad-coverage.md); evaluation
-protocol and fixed-seed results are in [`docs/evaluation.md`](docs/evaluation.md).
-Decompiled game code was consulted locally as a behavior reference; no game
-assemblies or assets are committed here.
+## 当前进度
 
-## Layout
+- 内容清单包含 596 张卡牌、66 种药水、300 件遗物。覆盖清单已修正：**368 张卡没有自动化测试文本引用**；不再采用此前“全部条目均已测”的错误结论。详见 [内容清单](validation/rl-audit-20261105/content-inventory-20261104.md)。
+- 已修复遗物选牌网格、药水物理槽、Pounce 免费技能、公开卡牌状态、MadScience 变体、隐藏牌堆重采样顺序，以及启发式非法动作等已复现问题。
+- 本次跟进修复：PPO 异常局状态名、need-rules 采样与训练概率一致性、Boss 搜索预算重复乘三倍、长循环访问记录、进程池中断后的重试与保存、串并行逐局种子一致性。
+- 内部验证包含牌组 Elo 奖励，`best.pt` 按完整验证奖励选取；只有全部验证局正常结束才更新最佳模型。
+- 当前身份：ruleset `native-41cef1ea-port-v10`，公开观察 v20 / 83208，战斗公开观察 49972，动作 schema v17 / 729，ArmG feature v9，snapshot v14，trainer v2。
 
-```
-simulator/                 C++ engine + pybind11 module
-  include/sts2/            common.h battle.h map.h monsters.h potions relics run.h search.h observe.h
-  src/                     cards, battle, map, monsters, potions, relics, events, run, search, observe
-  content/                 generated JSON tables from the reference dump
-  tools/                   dump/gen scripts + gen_coverage.py
-  bindings/bindings.cpp    sts2_sim Python module
-  apps/bench.cpp           standalone throughput benchmark
-agent/
-  common.py                binding import, observation helpers, legacy run loop
-  run_env.py               training-facing full-run env, JSONL, thread-pool batch
-  heuristics.py            baseline run/combat policies used by the tests
-  nets.py                  CardScorer (run-level), CombatNet (combat policy/value)
-  policy.py                strategy entry points for every run screen + eval summary
-  card_train.py            REINFORCE card-selection training
-  selfplay.py              root-PUCT self-play training (C++ search, network priors)
-deployment/
-  train_local.py           CLI: card | selfplay | benchmark
-  benchmark_speed.py       throughput numbers (completed runs/simulations only)
-  evaluate.py              fixed-seed evaluation: heuristic vs network vs search
-  selfplay_compare.py      evaluate two checkpoints against the heuristic baseline
-docs/                      rules contract + generated coverage manifest
-tests/test_smoke.py        engine, run, determinism, coverage and training checks
+最新状态见 [PORT_STATUS.md](PORT_STATUS.md)，机器可读身份见 [PORT_SOURCE.json](PORT_SOURCE.json)，本轮详情见 [修复与验证报告](validation/rl-fixes-20261105/README.md)。历史文档中的旧布局、训练方法和旧成绩不代表当前状态；部分历史路径指向原工作区外部资料。
+
+## 已完成的本机验证
+
+| 检查 | 结果 |
+| --- | --- |
+| 最终完整构建 | 成功 |
+| CTest | 42/42 通过 |
+| Python 测试 | 444 通过、17 跳过（可选历史资产缺失） |
+| 铁甲 A0 / A10 冒烟 | 各 202 局，共 404 局；0 异常、0 截断 |
+| need-rules PPO 短程验证 | 2 workers，8 局训练 + 2 局验证，正常完成 |
+
+证据：[CTest](validation/rl-fixes-20261105/ctest-complete.txt)、[pytest](validation/rl-fixes-20261105/pytest-complete.txt)、[整局冒烟](validation/rl-fixes-20261105/smoke.json)、[PPO 指标](validation/rl-fixes-20261105/ppo-smoke/metrics.jsonl)。404 局使用启发式局外决策和 greedy 战斗，0 胜；这是稳定性验证，不是模型胜率证明。首轮中断日志不作为通过证据。
+
+## PPO 与奖励
+
+`agent/armg_train.py` 使用 actor-critic PPO，只学习**局外决策**。战斗由固定控制器执行，并未在此训练战斗策略。
+
+正常终局（含死亡）的总奖励为：
+
+```text
+R = Σ_i (L_i × i / 20 + E_i × i / 10)
+    + Σ_{k=1..B} k / 2
+    + 0.05 × U + 0.02 × D
+    + 平均牌组 Elo / 600
 ```
 
-## Build
+- `i` 是幕数；`L_i` 是该幕到达的最高层数，`E_i` 是该幕击败的精英数。
+- 第 k 个 Boss 额外加 k/2，四个累计 +5。
+- `U` 仅统计火堆实际升级次数，`D` 仅统计商店实际删牌次数。
+- Elo 按永久牌组统计；打击、防御、痛击及缺失 Elo 牌按 1150，升级牌沿用原牌 Elo。
+- 多人专用牌、诅咒、状态、衍生、事件牌、腐化、Break、GRAPPLE 不计入 Elo 分子或分母；空集合奖励为 0。
+- 错误与截断局不作为正常终局进入 PPO 更新。
 
-MSVC (preferred):
+训练及评估采用 `SINGLE_PLAYER_TRAINING` 内容配置：**排除水晶球事件与多人专用卡牌**。该配置改变原生内容分布。水晶球完整规则暂不作为本轮修复目标。
+
+`mcts-oracle` 会读取完整战斗状态及未来 RNG，成绩不能称为纯玩家可见信息策略；`mcts-resampled` 对隐藏状态重采样。搜索预算为 `base + per_floor × (floor−1) + elite/boss 增量`，没有隐式 Boss 三倍。
+
+## 构建与测试
+
+需要 Python（本机验证为 3.12）、C++17 编译器、CMake。Windows 可在 Visual Studio x64 开发者终端中使用 Ninja：
 
 ```powershell
-cd simulator
-cmake -S . -B build -G "Visual Studio 18 2026" -A x64
-cmake --build build --config Release --target sts2_sim sts2_bench
-copy build\Release\sts2_sim.*.pyd .
-copy build\Release\bench.exe .
+python -m pip install -r requirements.txt
+python -m pip install cmake ninja
+cmake -S simulator -B simulator/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build simulator/build --parallel 4
+ctest --test-dir simulator/build --output-on-failure
+python -m pytest -q tests
 ```
 
-MinGW fallback (`pip install cmake ninja` first; used to validate this tree):
+扩展默认输出到 `simulator/`，由 Python 层加载。正在使用扩展的 Python 进程应退出后再重新链接。仓库中已包含 pybind11 构建所需文件。历史日志中的 `build-win`、绝对路径和工具版本属于验证机器，不是通用安装路径。
 
-```bash
-TC=/path/to/mingw/bin; PY=.venv/Scripts
-export PATH="$TC:$PY:$PATH"
-$PY/cmake.exe -S . -B build-mingw -G Ninja -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_COMPILER="$TC/x86_64-w64-mingw32-g++.exe" \
-    -DPYTHON_EXECUTABLE="$PY/python.exe"
-$PY/cmake.exe --build build-mingw -j 8
+## 训练入口
+
+Elo 冻结快照需单独准备，目录中包含 `cards.json` 和 `manifest.json`；当前默认路径指向原机器，换机器应显式传入 `--elo-data`。缺失文件会报错，不能把“单张卡缺 Elo 按 1150”当成整份快照缺失时的回退。
+
+```powershell
+python -m agent.armg_train --help
+python -m agent.armg_train --games 8 --batch-size 4 --eval-every 8 --eval-runs 2 --combat greedy --workers 2 --elo-data D:/path/to/elo-snapshot --out-dir runs/ppo-smoke-new
 ```
 
-Both generators drop `sts2_sim.*.pyd` and `bench.exe` next to `CMakeLists.txt`,
-so `agent/common.py` imports the simulator without extra `sys.path` setup.
+正式训练可选择 `--combat mcts-oracle` 或 `mcts-resampled`，配置 `--simulations`、`--floor-increment`、`--elite-simulations`、`--boss-simulations`。`--need-rules` 和 `--relic-rules` 默认关闭。
 
-## Usage
+输出含 `latest.pt`、验证最佳 `best.pt`、`metrics.jsonl`、`worker-events.jsonl`。恢复用 `--resume` 并匹配环境及训练配置；`--init-checkpoint` 只在身份兼容时初始化权重。旧模型不得伪造版本或哈希直接加载，本轮未覆盖旧权重。
 
-```bash
-python -m deployment.train_local card     # card-selection REINFORCE
-python -m deployment.train_local selfplay # combat self-play
-python -m deployment.train_local armg     # unified non-combat REINFORCE
-python -m deployment.train_local combat-dagger --out-dir runs/combat-dagger
-python -m deployment.train_local benchmark
-pytest tests -q
-python -m deployment.evaluate --split test --seeds 1000 \
-    --combat-checkpoint runs/v3/selfplay/combat.pt \
-    --card-checkpoint runs/v3/card/card.pt \
-    --strategies heuristic,network,network_combat,network_cards,search_resampled
-python -m deployment.selfplay_compare --kind combat --split val --seeds 500 \
-    --a runs/v3/selfplay/combat.pt --simulations 16 --resample
-simulator/bench.exe run 2000             # full-run throughput, greedy policy
-simulator/bench.exe map 500              # map-generation throughput
-simulator/bench.exe 10000                # combat throughput (Shrinker Beetle)
-simulator/bench.exe 10000 72             # combat throughput (Cultists)
-python simulator/tools/gen_coverage.py   # regenerate docs/a0-ironclad-coverage.md
-```
+## 剩余限制
 
-The ArmG trainer scores each legal non-combat candidate with one shared MLP and
-uses final floor / 50 with an exponential moving baseline for REINFORCE. Its
-default fixed combat controller is native multi-level `mcts-oracle`: it uses the
-complete simulator battle state and future RNG, like the STS1 reference, so
-results are not directly player-usable. `mcts-resampled` resamples hidden state
-and uses only the first action of a searched path. The old root-only `search`
-controller remains available. Run `python -m deployment.train_local armg --help`
-for the training options. It saves resumable `latest.pt`, the best checkpoint
-on the validation seeds as `best.pt`, and `metrics.jsonl` in the output
-directory. Truncated and errored episodes are reported and excluded from
-updates. To compare the trained policy with the existing non-combat heuristic
-on independent, paired test seeds, use:
+- 目标 DLL `9cb4f1ad…` 不在本机；本轮依据本地源码阅读与 C++/Python 测试，未进行目标原生差分，不宣称完整原生等价。
+- 多人运行时未实现，多人卡不属于单人训练支持承诺。
+- 复杂费用栈的完整可观察性、长组合、所有事件分支尚未穷举。
+- 过去 worker 崩溃的底层原因尚未定位；现已加入一次原批次重试，持续失败则保存批次前状态并报错。
+- 长循环恢复保留全部合法选择并记录强制干预，不保证任何旧模型都无需恢复；旧 1024 局模型未在本次修复后重做长程评估。
 
-```bash
-python -m deployment.evaluate_armg --checkpoint runs/armg/best.pt --split test \
-    --start 100 --seeds 100 --combat mcts-oracle --simulations 64 --out runs/armg/test.json
-```
+## 目录
 
-The ArmG policy uses only public run observations. To prevent a deterministic
-policy from cycling indefinitely on reversible choices, repeated public states
-can trigger a different legal action; these interventions are counted in the
-training and evaluation reports.
-
-Optional non-combat overlays can be enabled with `--need-rules` (deck-need
-scoring on normal card rewards) and `--relic-rules` (shop relic and Ancient
-energy-relic priorities). Both default to off, preserving the original model
-and old checkpoint behavior. They are STS2-specific hypotheses, not a copy of
-the STS1 card and relic pool. Compare the four combinations on the same seeds:
-
-```bash
-python -m deployment.evaluate_armg_rules --checkpoint runs/armg/best.pt \
-    --out-dir runs/armg/rule_ablation --split val --start 100 --seeds 100 \
-    --combat mcts-oracle --simulations 2000 --workers 8
-```
-
-The evaluator records per-run results, rule-source hashes, and the paired
-floor differences. `mcts-oracle` has access to future battle state; its results
-do not establish real-client performance.
-
-The combat DAgger trainer uses the frozen original ArmG for non-combat choices.
-It first bootstraps STS2-specific policy and value weights with MCTS-controlled
-episodes, then trains on student-visited states labelled by native MCTS. The
-default oracle teacher can see hidden future state; select
-`--teacher-mode resampled` to study a hidden-state-resampled teacher. Policy and value targets
-from completed battles are stored in disk shards, and aborted runs contribute
-no training samples. Checkpoints include optimizers, RNG state and the active
-replay manifest. Restart with the same settings and `--resume <output>/latest.pt`.
-Training stores historical shards even after they leave the replay window, so
-the output directory can grow. Each round chooses `best.pt` using separate
-validation seeds; test seeds should only be used for final evaluation:
-
-```bash
-python -m deployment.evaluate_combat_dagger \
-    --policy-checkpoint runs/combat-dagger/best.pt \
-    --armg-checkpoint runs/armg_a0_mcts_20261029/eval_mcts10000_20261029_215142/model.pt \
-    --out-dir runs/combat-dagger/test-eval --split test --seeds 100 \
-    --simulations 512 --workers 8
-```
-
-To change battle controllers, start a separate run with `--init-checkpoint`
-and a disjoint `--train-seed-offset`; only model weights are loaded and the
-optimizer, baseline, and RNG are reset. The source checkpoint hash and settings
-are recorded. `--resume` instead requires the same settings and restores the
-optimizer, baseline, and RNG. In the MCTS oracle mode the controller caches up
-to 15 actions from a victory path, or five from a non-victory path, checks each
-action against the current legal set, and searches again if it is invalid. Boss
-combats use three times the configured simulation budget.
-
-Full-run training API:
-
-```python
-from agent.common import SCREEN
-from agent.run_env import RunEnv, run_batch, play_and_log
-from agent.heuristics import run_policy, combat_policy
-
-env = RunEnv(seed=26)
-obs = env.reset(26)                # public observation, np.float32[RUN_OBS_DIM]
-legal = env.legal_actions()        # [(action_type, index), ...]
-mask = env.action_mask()
-while not env.is_terminal():
-    action = combat_policy(env) if env.screen == SCREEN.COMBAT else run_policy(env)
-    assert env.step(action)
-blob = env.snapshot()              # binary; restore(blob) rewinds exactly
-
-results = run_batch(range(1, 41), run_policy, combat_policy, workers=8)
-play_and_log(26, run_policy, combat_policy, "runs/traj.jsonl")
-```
-
-Checkpoints go to `runs/card/card.pt` and `runs/selfplay/combat.pt`; both
-scripts accept `--resume` and `--out-dir`. Current models:
-
-- `runs/v3/card/card.pt` — card reward model (comparable to the heuristic card
-  policy on validation seeds).
-- `runs/v4/selfplay/combat.pt` — visit-target combat self-play.
-- `runs/v4b/selfplay/combat.pt` — value-target combat self-play
-  (`--target value`); used with root search in the final evaluation.
-
-Older checkpoints are left in place. See `docs/evaluation.md` for the fixed-seed
-comparison.
-
-Seed splits are disjoint and fixed in `agent/policy.py`: train `10,000,000+`,
-val `20,000,000+`, test `30,000,000+`. `search` is oracle root search over the
-true draw order; `search_resampled` re-draws hidden draw/discard zones and the
-future RNG stream per simulation and is the only search variant quoted as
-player-usable. Search visits each root action once in descending-prior order
-before PUCT, so a peaked network prior cannot collapse the budget onto one
-action. `network_combat` (network combat + heuristic cards) and `network_cards`
-(heuristic combat + network cards) separate the two learned heads.
-
-## Full-run model
-
-- `RunContext` holds HP/gold/act/floor/map position, deck card instances,
-  relics with counters, potions/slots, all RNG streams and counters, room odds,
-  encounter/event bags, shop/reward/event state, and the embedded combat state.
-  It is fully copyable, snapshot/restorable (in-build binary blob) and hashed
-  for replay checks.
-- 12 run RNG streams plus 3 player streams, all named-seeded and independent;
-  map generation uses a per-act seed; events derive their own seed from
-  run seed + player id + event-name hash. No global RNG.
-
-  The standalone `sim.generate_map(seed, act, ascension=0)` accepts the raw RNG seed;
-  `RunContext.init(seed)` first hashes the decimal representation of the
-  user-facing run seed before deriving its per-act map stream.
-- Map generation is a port of `StandardActMap`: 7 columns, 15/14/13 rooms,
-  seven starting paths, DAG edges, crossover prevention, redundant-path
-  pruning, centering/spreading/straightening, forced monster/treasure/rest
-  rows, and elite/shop/rest/unknown count assignment.
-- Rooms: opening Ancient (Neow), Monster/Elite/Boss combats, Unknown resolution
-  with growth/reset odds and shop blacklist, regular events, Rest
-  (heal/smith/Dig/Lift), Shop (7 cards, 3 relics, 3 potions, one removal,
-  sale/price variance), Treasure, selectable combat rewards and act transitions.
-- A combat reaching the 200-turn safety limit ends the episode as truncated;
-  it is not recorded as a game loss or used as a terminal training label.
-- Events have their own engine, including event combats that return to the
-  event page; the coverage manifest filters unsupported events out of the bag.
-
-## Measured throughput
-
-This machine, MinGW -O3, single thread:
-
-| Path | Result |
-| --- | --- |
-| C++ native greedy full runs | 102.3 runs/s, 3535 combats, mean floor 12.4 |
-| C++ map generation | 9.08 ms/run init inside the full-run benchmark |
-| Python `RunEnv` + heuristic policy | 19.9 completed runs/s, 6310 env steps/s, 270 combats/s |
-| Root search, oracle, 32 sims/decision | 90,479 completed sims/s (2827 decisions/s) |
-| Root search, resampled hidden zones, 32 sims/decision | 55,280 completed sims/s (1728 decisions/s) |
-| Resampled search, 64 sims/decision, 1 / 2 / 4 threads | 136,665 / 240,766 / 330,999 sims/s |
-| Network + search self-play | 3917 sims/s, 490 valid samples/s, 633 env steps/s |
-| C++ native greedy combats (Shrinker Beetle, 2.9 turns) | ~240,000 combats/s |
-| C++ native greedy combats (Cultists, 6.2 turns) | ~130,000 combats/s |
-
-Numbers come from `python -m deployment.benchmark_speed --runs 500
---simulations 8 --mcts-sims 32 --mcts-decisions 300` (single thread) and only
-count completed runs/simulations. Batch worker scaling is GIL-bound in the
-Python policy loop; native search releases the GIL.
-
-A full run spends almost all of its native time generating the act map
-(~90% of `init`); combat itself is ~1.5 µs per action. Map generation is
-dominated by `StandardActMap` redundant-path pruning, which re-enumerates all
-start-to-boss paths and their segments each iteration. The pruning scan now
-uses a compact allocation-free segment key and first-occurrence bucket order;
-the remaining cost is inherent to the reference algorithm.
-
-Native state copies (`clone`) and `rollout` release the GIL, so C++-only
-self-play/search threads scale; Python-side policy bookkeeping does not.
-
-## Observations (built in C++)
-
-| Constant | Size | Contents |
-| --- | --- | --- |
-| `RUN_OBS_DIM` | 237 | HP/gold/floor/deck stats, screen one-hot, deck card histogram |
-| `PUBLIC_OBS_DIM` | 37305 | schema v10 public run + combat observation, rewards and selection grids |
-| `PUBLIC_COMBAT_OBS_DIM` | 21330 | visible combat state, piles, stolen cards, enchantments, power instances and choice candidates |
-| `CARD_FEAT_DIM` | 250 | card one-hot, cost, type, rarity, upgrade, price, enchantments, replay and combat state |
-| `COMBAT_OBS_DIM` | 61 | player status block + 4 monster slots |
-| `ACTION_FEAT_DIM` | 340 | action schema v9: card/potion identity, instance state, target and choice op/pile |
-
-`observe_public()` exposes only player-visible information (deck, resources,
-visible map, in-combat hand/piles/intents, combat relics/counters, potions and
-the full pending-choice candidate set); draw order, future intents, RNG state
-and hidden event outcomes are not included.  Observation schema v9 and action
-schema v8 invalidate older checkpoints; `load_checkpoint` rejects mismatches.
-
-## Content
-
-Generated from the reference engine by `simulator/tools/dump_*.py` and
-`gen_*.py` (cards, monsters, potions, relics):
-
-- **221 cards**: 87 Ironclad, 64 colorless, 11 status, 14 tokens, 18 curses,
-  27 event cards. All single-player cards are playable; multiplayer-only cards
-  are present but inert and marked UNSUPPORTED. Curses are real cards: Decay,
-  Regret, Bad Luck, Doubt, Shame and Debt apply their end-of-turn effects, and
-  Normality blocks playing more than three cards in a turn.
-- **108 monsters / 89 A0 encounters** with reference AI state machines, intents,
-  random/conditional branches, repeats, summons and recorded move effects. 62
-  encounters are in the acts 1-3 climb plus the Dense Vegetation event fight;
-  act-4 and unsupported-event setups are out of scope.
-- **64 potions**: 52 drop for Ironclad (49 shared + 3 Ironclad-pool); the 12
-  other-character potions never drop in this contract.
-  Combat potions are legal `USE_POTION` actions; `ANY_TIME` potions work on run
-  screens. Slots default to 3 (+2 with Potion Belt); Entropic Brew refills them.
-- **289 relics, 241 implemented**: all 132 event/ancient relics, all 8
-  Ironclad-pool relics and 101 of 116 shared relics. Only implemented relics
-  enter random drop pools. Rest sites expose Shovel Dig and Girya Lift.
-- **54 events**: 3 fully executable, 22 approximate (deterministic substitutes
-  for card/enchantment UIs and curated event-relic effects), 29 unsupported and
-  excluded from event bags. All seven Ancients (Neow, Orobas, Pael,
-  Tezcatara, Nonupeipe, Tanx, Vakuu) and shared Darv generate their C# offer
-  pools and grant the chosen relic.
-- **Map**: standard 7-column act maps with 15/14/13 rooms; the generated map and
-  its room counts are covered by golden tests.
-
-Known approximations (full list in the coverage manifest): event
-card/enchantment selection uses RNG substitutes, enchantments remain
-approximated by upgrades, some event relics needing enchantments/pets/map
-manipulation are no-ops or substitutes, and the exact tagged GrabBag ordering
-is approximated. Act 4 is out of
-scope. Card text is never parsed; semantics follow the reference effect code.
-
-## Verification
-
-`pytest tests -q` (84 tests) checks observation/action dimensions, the full
-event manifest gating, every card/potion/implemented relic, map golden hashes
-and structural invariants, deterministic replay and snapshot/restore equality,
-room/economy transitions, boss reward/act changes, JSONL output, Ancient offer
-pools and grants, curse mechanics, search resampling/completed-simulation
-accounting, and automated A0 Ironclad wins from the opening Ancient to the
-act-3 boss (seeds 24 and 32).
-Differential traces against a live headless client are not available in this
-environment; unverified behavior is marked APPROXIMATE/UNSUPPORTED rather than
-claimed exact.
-
-Current fixed-seed status (1000 test seeds, 16-simulation search) is in
-[`docs/evaluation.md`](docs/evaluation.md): the heuristic wins 10.2%, the card
-model with heuristic combat wins 10.9%, the v4b combat network wins 1.5%, and
-the same network with resampled root search wins 4.8%. The combat model is still
-below the heuristic baseline; the card model is comparable, not proven better.
-
-The Python package `sts2_env` was removed per the pure-C++ requirement; the
-reference engine remains at
-`D:\project\sts2_compactformer\sts2-rl-agent\sts2_env`.
+- `simulator/`：C++ 引擎、绑定、搜索与引擎测试。
+- `agent/`：PPO、奖励、内容过滤、特征及策略。
+- `deployment/`：评估与其他训练入口；部分为历史实验工具。
+- `tests/`：Python 回归测试。
+- `docs/`、`validation/`：规则文档、历史记录和验证证据。

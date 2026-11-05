@@ -1,0 +1,370 @@
+{
+  "ASSASSIN_RUBY_RAIDER": {
+    "KILLSHOT_MOVE": 12
+  },
+  "AXEBOT": {
+    "HAMMER_UPPERCUT_MOVE": 10,
+    "ONE_TWO_MOVE": 6
+  },
+  "AXE_RUBY_RAIDER": {
+    "BIG_SWING": 13,
+    "SWING_1": 6,
+    "SWING_2": 6
+  },
+  "BOWLBUG_EGG": {
+    "BITE_MOVE": 8
+  },
+  "BOWLBUG_ROCK": {
+    "HEADBUTT_MOVE": 16
+  },
+  "BOWLBUG_SILK": {
+    "TRASH_MOVE": 5
+  },
+  "BRUTE_RUBY_RAIDER": {
+    "BEAT_MOVE": 8
+  },
+  "BYGONE_EFFIGY": {
+    "SLASHES_MOVE": 17
+  },
+  "BYRDONIS": {
+    "PECK_MOVE": 4,
+    "SWOOP_MOVE": 18
+  },
+  "CALCIFIED_CULTIST": {
+    "DARK_STRIKE_MOVE": 11
+  },
+  "CEREMONIAL_BEAST": {
+    "CRUSH_MOVE": 19,
+    "PLOW_MOVE": 20,
+    "STOMP_MOVE": 17
+  },
+  "CHOMPER": {
+    "CLAMP_MOVE": 9
+  },
+  "CORPSE_SLUG": {
+    "GLOMP_MOVE": 9
+  },
+  "CROSSBOW_RUBY_RAIDER": {
+    "FIRE_MOVE": 16
+  },
+  "CRUSHER": {
+    "BUG_STING_MOVE": 7,
+    "GUARDED_STRIKE_MOVE": 14,
+    "THRASH_MOVE": 14
+  },
+  "CUBEX_CONSTRUCT": {
+    "EXPEL_BLAST": 6,
+    "REPEATER_MOVE": 8,
+    "REPEATER_MOVE_2": 8
+  },
+  "DAMP_CULTIST": {
+    "DARK_STRIKE_MOVE": 3
+  },
+  "DECIMILLIPEDE_SEGMENT": {
+    "BULK_MOVE": 7,
+    "CONSTRICT_MOVE": 9,
+    "WRITHE_MOVE": 6
+  },
+  "DEVOTED_SCULPTOR": {
+    "SAVAGE_MOVE": 15
+  },
+  "DOOR": {
+    "DRAMATIC_OPEN_MOVE": 28
+  },
+  "DOORMAKER": {
+    "BEAM_MOVE": 34,
+    "GET_BACK_IN_MOVE": 45
+  },
+  "ENTOMANCER": {
+    "SPEAR_MOVE": 20
+  },
+  "EXOSKELETON": {
+    "MANDIBLE_MOVE": 9
+  },
+  "FABRICATOR": {
+    "DISINTEGRATE_MOVE": 13,
+    "FABRICATING_STRIKE_MOVE": 21
+  },
+  "FAKE_MERCHANT_MONSTER": {
+    "SWIPE": 15,
+    "THROW_RELIC": 10
+  },
+  "FLAIL_KNIGHT": {
+    "FLAIL_MOVE": 10,
+    "RAM_MOVE": 17
+  },
+  "FLYCONID": {
+    "FRAIL_SPORES_MOVE": 9,
+    "SMASH_MOVE": 12
+  },
+  "FOGMOG": {
+    "HEADBUTT_MOVE": 16,
+    "SWIPE_MOVE": 9,
+    "SWIPE_RANDOM_MOVE": 9
+  },
+  "FOSSIL_STALKER": {
+    "LASH_MOVE": 4,
+    "LATCH_MOVE": 14,
+    "TACKLE_MOVE": 11
+  },
+  "FROG_KNIGHT": {
+    "BEETLE_CHARGE": 40,
+    "STRIKE_DOWN_EVIL": 23,
+    "TONGUE_LASH": 14
+  },
+  "FUZZY_WURM_CRAWLER": {
+    "ACID_GOOP": 6,
+    "FIRST_ACID_GOOP": 6
+  },
+  "GAS_BOMB": {
+    "EXPLODE_MOVE": 9
+  },
+  "GLOBE_HEAD": {
+    "GALVANIC_BURST": 17,
+    "SHOCKING_SLAP": 14,
+    "THUNDER_STRIKE": 7
+  },
+  "HAUNTED_SHIP": {
+    "RAMMING_SPEED_MOVE": 11,
+    "STOMP_MOVE": 5,
+    "SWIPE_MOVE": 14
+  },
+  "HUNTER_KILLER": {
+    "BITE_MOVE": 19,
+    "PUNCTURE_MOVE": 8
+  },
+  "INFESTED_PRISM": {
+    "JAB_MOVE": 24,
+    "RADIATE_MOVE": 18,
+    "WHIRLWIND_MOVE": 10
+  },
+  "INKLET": {
+    "JAB_MOVE": 4,
+    "PIERCING_GAZE_MOVE": 11,
+    "WHIRLWIND_MOVE": 3
+  },
+  "KIN_PRIEST": {
+    "ORB_OF_FRAILTY_MOVE": 9,
+    "ORB_OF_WEAKNESS_MOVE": 9
+  },
+  "KNOWLEDGE_DEMON": {
+    "KNOWLEDGE_OVERWHELMING_MOVE": 9,
+    "PONDER_MOVE": 13,
+    "SLAP_MOVE": 18
+  },
+  "LAGAVULIN_MATRIARCH": {
+    "DISEMBOWEL_MOVE": 10,
+    "SLASH2_MOVE": 14,
+    "SLASH_MOVE": 21
+  },
+  "LEAF_SLIME_M": {
+    "CLUMP_SHOT": 9
+  },
+  "LEAF_SLIME_S": {
+    "BUTT_MOVE": 4
+  },
+  "LIVING_FOG": {
+    "ADVANCED_GAS_MOVE": 9,
+    "BLOAT_MOVE": 6,
+    "SUPER_GAS_BLAST_MOVE": 9
+  },
+  "LIVING_SHIELD": {
+    "SMASH_MOVE": 18
+  },
+  "LOUSE_PROGENITOR": {
+    "POUNCE_MOVE": 16,
+    "WEB_CANNON_MOVE": 10
+  },
+  "MAGI_KNIGHT": {
+    "FIRST_POWER_SHIELD_MOVE": 7,
+    "MAGIC_BOMB": 40,
+    "RAM_MOVE": 11
+  },
+  "MAWLER": {
+    "CLAW_MOVE": 5,
+    "RIP_AND_TEAR_MOVE": 16
+  },
+  "MECHA_KNIGHT": {
+    "CHARGE_MOVE": 30,
+    "HEAVY_CLEAVE_MOVE": 40
+  },
+  "MYTE": {
+    "BITE_MOVE": 15,
+    "SUCK_MOVE": 6
+  },
+  "NIBBIT": {
+    "BUTT_MOVE": 13
+  },
+  "OVICOPTER": {
+    "SMASH_MOVE": 17,
+    "TENDERIZER_MOVE": 8
+  },
+  "OWL_MAGISTRATE": {
+    "MAGISTRATE_SCRUTINY": 17,
+    "VERDICT": 36
+  },
+  "PARAFRIGHT": {
+    "SLAM_MOVE": 17
+  },
+  "PHROG_PARASITE": {
+    "LASH_MOVE": 5
+  },
+  "PUNCH_CONSTRUCT": {
+    "FAST_PUNCH_MOVE": 6,
+    "STRONG_PUNCH_MOVE": 16
+  },
+  "QUEEN": {
+    "EXECUTION_MOVE": 18,
+    "OFF_WITH_YOUR_HEAD_MOVE": 4
+  },
+  "ROCKET": {
+    "LASER_MOVE": 35,
+    "PRECISION_BEAM_MOVE": 20,
+    "TARGETING_RETICLE_MOVE": 4
+  },
+  "SCROLL_OF_BITING": {
+    "CHEW": 6,
+    "CHOMP": 16
+  },
+  "SEAPUNK": {
+    "SEA_KICK_MOVE": 12
+  },
+  "SEWER_CLAM": {
+    "JET_MOVE": 11
+  },
+  "SHRINKER_BEETLE": {
+    "CHOMP_MOVE": 8,
+    "STOMP_MOVE": 14
+  },
+  "SKULKING_COLONY": {
+    "SMASH_MOVE": 11,
+    "SUPER_CRAB_MOVE": 7,
+    "ZOOM_MOVE": 17
+  },
+  "SLIMED_BERSERKER": {
+    "FURIOUS_PUMMELING_MOVE": 5,
+    "SMOTHER_MOVE": 33
+  },
+  "SLITHERING_STRANGLER": {
+    "LASH": 13,
+    "TWACK": 8
+  },
+  "SLUDGE_SPINNER": {
+    "OIL_SPRAY_MOVE": 9,
+    "RAGE_MOVE": 7,
+    "SLAM_MOVE": 12
+  },
+  "SLUMBERING_BEETLE": {
+    "ROLL_OUT_MOVE": 18
+  },
+  "SNAPPING_JAXFRUIT": {
+    "ENERGY_ORB_MOVE": 4
+  },
+  "SNEAKY_GREMLIN": {
+    "TACKLE_MOVE": 10
+  },
+  "SOUL_FYSH": {
+    "DE_GAS_MOVE": 17,
+    "GAZE_MOVE": 8,
+    "SCREAM_MOVE": 12
+  },
+  "SOUL_NEXUS": {
+    "DRAIN_LIFE_MOVE": 19,
+    "MAELSTROM_MOVE": 7,
+    "SOUL_BURN_MOVE": 31
+  },
+  "SPECTRAL_KNIGHT": {
+    "SOUL_FLAME": 4,
+    "SOUL_SLASH": 17
+  },
+  "SPINY_TOAD": {
+    "SPIKE_EXPLOSION_MOVE": 25,
+    "TONGUE_LASH_MOVE": 19
+  },
+  "STABBOT": {
+    "STAB_MOVE": 12
+  },
+  "TERROR_EEL": {
+    "CRASH_MOVE": 19,
+    "ThrashMove": 4
+  },
+  "TEST_SUBJECT": {
+    "BITE_MOVE": 22,
+    "MULTI_CLAW_MOVE": 11,
+    "PHASE3_LACERATE_MOVE": 11,
+    "POUNCE_MOVE": 32,
+    "SKULL_BASH_MOVE": 16
+  },
+  "THE_FORGOTTEN": {
+    "DREAD": 17
+  },
+  "THE_INSATIABLE": {
+    "LUNGING_BITE_MOVE": 31,
+    "THRASH_MOVE_1": 9,
+    "THRASH_MOVE_2": 9
+  },
+  "THE_LOST": {
+    "EYE_LASERS": 5
+  },
+  "THE_OBSCURA": {
+    "HARDENING_STRIKE_MOVE": 7,
+    "PIERCING_GAZE_MOVE": 11
+  },
+  "THIEVING_HOPPER": {
+    "HAT_TRICK_MOVE": 23,
+    "NAB_MOVE": 16,
+    "THIEVERY_MOVE": 19
+  },
+  "TOADPOLE": {
+    "SPIKE_SPIT_MOVE": 4,
+    "WHIRL_MOVE": 8
+  },
+  "TORCH_HEAD_AMALGAM": {
+    "TACKLE_1_MOVE": 19,
+    "TACKLE_2_MOVE": 19,
+    "TACKLE_3_MOVE": 15,
+    "TACKLE_4_MOVE": 15
+  },
+  "TOUGH_EGG": {
+    "NIBBLE_MOVE": 5
+  },
+  "TUNNELER": {
+    "BELOW_MOVE_1": 26,
+    "BITE_MOVE": 15
+  },
+  "TURRET_OPERATOR": {
+    "UNLOAD_MOVE_1": 4,
+    "UNLOAD_MOVE_2": 4
+  },
+  "TWIG_SLIME_M": {
+    "CLUMP_SHOT_MOVE": 12
+  },
+  "TWIG_SLIME_S": {
+    "BUTT_MOVE": 5
+  },
+  "TWO_TAILED_RAT": {
+    "DISEASE_BITE_MOVE": 7,
+    "SCRATCH_MOVE": 9
+  },
+  "VANTOM": {
+    "DISMEMBER_MOVE": 30,
+    "INKY_LANCE_MOVE": 7,
+    "INK_BLOT_MOVE": 8
+  },
+  "VINE_SHAMBLER": {
+    "CHOMP_MOVE": 18,
+    "GRASPING_VINES_MOVE": 9,
+    "SWIPE_MOVE": 7
+  },
+  "WATERFALL_GIANT": {
+    "PRESSURE_UP_MOVE": 14,
+    "RAM_MOVE": 11,
+    "STOMP_MOVE": 16
+  },
+  "WRIGGLER": {
+    "NASTY_BITE_MOVE": 7
+  },
+  "ZAPBOT": {
+    "ZAP": 15
+  }
+}

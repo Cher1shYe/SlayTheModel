@@ -181,7 +181,7 @@ static MctsResult mcts_impl(const BattleContext &root, int simulations, double c
                 if (depth_puct || (nodeId == 0 && root_priors)) {
                     // Match STS1: the initial root expansion is sampled from
                     // the network prior; later leaf expansions stay uniform.
-                    double draw = rng.sample();
+                    double draw = rng.next_double();
                     choice = static_cast<int>(legal.size()) - 1;
                     for (int i = 0; i < static_cast<int>(legal.size()); ++i) {
                         if (depth_puct) {

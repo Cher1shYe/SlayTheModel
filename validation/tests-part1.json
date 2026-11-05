@@ -1,0 +1,44 @@
+[
+  {
+    "name": "enchantment_contract",
+    "exit_code": 0,
+    "wall_seconds": 1.3280169160007063,
+    "tail": "dimensions=37305,21330,250,340\n"
+  },
+  {
+    "name": "hidden_resampling",
+    "exit_code": 0,
+    "wall_seconds": 0.5690397920006944,
+    "tail": "public state and known top preserved across 6000 resamplings; hidden next-card distributions in bounds\n"
+  },
+  {
+    "name": "map_event_audit_regression",
+    "exit_code": 0,
+    "wall_seconds": 7.641830041999128,
+    "tail": ""
+  },
+  {
+    "name": "mcts_regression",
+    "exit_code": 0,
+    "wall_seconds": 0.3740496249993157,
+    "tail": "mcts regression passed\n"
+  },
+  {
+    "name": "monster_audit_regression",
+    "exit_code": 0,
+    "wall_seconds": 0.29267341699960525,
+    "tail": ""
+  },
+  {
+    "name": "native_card_alignment",
+    "exit_code": 0,
+    "wall_seconds": 0.29191262499989534,
+    "tail": "2 expected=2 PASS\nAnger clone retain actual=1 expected=1 PASS\nAnger original enchantment used actual=1 expected=1 PASS\nAnger original count actual=1 expected=1 PASS\nAnger unique clone actual=1 expected=1 PASS\nThrash with Strength initial attack actual=18 expected=18 PASS\nThrash with Strength growth actual=11 expected=11 PASS\nThrash Body Slam growth actual=10 expected=10 PASS\nThrash Weak fractional growth actual=4.5 expected=4.5 PASS\nThrash fractional base used in next attack actual=12 expected=12 PASS\nThrash fractional growth accumulates actual=9 expected=9 PASS\nThrash growth has no enemy modifiers actual=6 expected=6 PASS\nThrash Bully has null target actual=4 expected=4 PASS\nThrash Ashen counts before exhaustion actual=9 expected=9 PASS\nThrash Perfected includes selected card actual=8 expected=8 PASS\nThrash Gold Axe counts completed plays actual=3 expected=3 PASS\nThrash increments finished history afterwards actual=4 expected=4 PASS\nThrash ninth attack hand-preview Pen Nib actual=12 expected=12 PASS\nThrash tenth attack does not double selected card actual=6 expected=6 PASS\nThrash growth sees Gigantification after attack actual=6 expected=6 PASS\nThrash growth sees Gigantification after attack actual=18 expected=18 PASS\nThrash no attacks consumes no RNG actual=0 expected=0 PASS\nThrash no attacks grows zero actual=0 expected=0 PASS\nThrash consumes one native selection draw actual=1 expected=1 PASS\nThrash picks randomized candidate actual=6 expected=6 PASS\n44 checks, 0 failures\n"
+  },
+  {
+    "name": "native_rng_contract",
+    "exit_code": 0,
+    "wall_seconds": 0.3032478750010341,
+    "tail": "native RNG contract: 424 mixed operations, hashes, states and edge cases passed\n"
+  }
+]

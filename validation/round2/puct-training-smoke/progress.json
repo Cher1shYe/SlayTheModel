@@ -1,0 +1,19 @@
+{
+  "state": "failed",
+  "stage": "failed",
+  "games": 0,
+  "target_games": 2,
+  "workers": 1,
+  "combat_budget_start": 8,
+  "combat_budget_per_floor": 0,
+  "combat_budget_elite_bonus": 0,
+  "combat_budget_boss_bonus": 0,
+  "combat_budget_formula": "start + increment * (max(floor, 1) - 1) + room bonus",
+  "started_utc": "2026-10-31T09:57:53.509509+00:00",
+  "last_batch": null,
+  "mean_floor": null,
+  "last_validation": null,
+  "active_episodes": [],
+  "updated_utc": "2026-10-31T09:57:54.558562+00:00",
+  "error": "RuntimeError: episode 10330000 error: RuntimeError: unsupported combat classification observation version"
+}

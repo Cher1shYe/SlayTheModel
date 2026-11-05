@@ -1,0 +1,55 @@
+{
+  "base_commit": "be401e8ba09ac58c9f3b01cf77e195f7122c8d0c",
+  "target_release": "v0.111.0",
+  "target_commit": "41cef1ea",
+  "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "engine_ruleset": "native-41cef1ea-port-v10",
+  "native_parity_complete": false,
+  "purpose": "Retain C++ execution speed while porting actual native rules and checking against the native worker.",
+  "public_observation_version": 20,
+  "public_obs_dim": 83208,
+  "public_combat_obs_dim": 49972,
+  "action_schema_version": 17,
+  "action_feat_dim": 729,
+  "armg_feature_version": 9,
+  "snapshot_version": 14,
+  "workspace_status": "rl-followup-fixes-20261105-locally-validated",
+  "identity_fields_describe": "Built 2026-11-05 with public-card-key followup fixes; unchanged layouts, new source/binary identity; trainer v2. Target DLL unavailable; no native differential claim.",
+  "handoff": "../../../docs/native-port-step2-wip-20261031.md",
+  "local_game_dll_sha256": "0861bfa1df347538d932f22d580e75420f08082792eb914e53b4882764acdbe9",
+  "public_run_dim": 33236,
+  "card_feat_dim": 632,
+  "armg_obs_dim": 33236,
+  "armg_action_dim": 2459,
+  "simulator_sha256": "cd1f7896069085c1dd369b94b9a696d66c2809a5cd856c71e74d6eb8448b4e53",
+  "content_profile": {
+    "name": "single-player-training",
+    "sha256": "3a9b141c97aab3183ed170ab6b0dbd94f3b93a8131cb8d0437b5cf90c6c47298",
+    "excluded_events": [
+      "CRYSTAL_SPHERE"
+    ],
+    "note": "Training/evaluation use RunContentProfile.SINGLE_PLAYER_TRAINING: CrystalSphere is removed from the act event bags before the shuffle and every card-generation entry point rejects CF_MULTIPLAYER_ONLY. This changes the native content distribution and must not be reported as unmodified content."
+  },
+  "elo_snapshot": {
+    "path": "D:\\sts2_datacollection\\sts2\\runs\\armg_spire_wr50_prior_20261030\\data",
+    "cards_sha256": "478581112e7a83efcc664156373cc71bf025e981572b63adb927a9468fa1bac1",
+    "manifest_sha256": "e667b082ed6d9c9543163faee32c861ac36c92ef3333431326f16c0fbc9ab14a",
+    "rows": 322,
+    "matched_card_ids": 322,
+    "unmatched_card_ids": 274,
+    "flat_elo": 1150.0,
+    "matching_rule": "title -> upper snake (punctuation dropped, spaces collapsed to _), strip trailing _CARD; rows with upgraded=true ignored",
+    "excluded_pools": [
+      "CURSE",
+      "EVENT",
+      "STATUS",
+      "TOKEN"
+    ],
+    "excluded_names": [
+      "break",
+      "corruption",
+      "grapple"
+    ]
+  },
+  "trainer_version": 2
+}

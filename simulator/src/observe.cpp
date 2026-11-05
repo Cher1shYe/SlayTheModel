@@ -47,13 +47,45 @@ void push_card_bag_split(std::vector<float> &v, const Card *cards, int n) {
 
 // Only attributes visible on the offered card are used to order a choice.
 // The underlying draw/discard stack order is not public information.
-auto visible_choice_key(const Card &c) {
-    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c), c.replay,
-                           c.bonusReplay, c.freeCombat, c.costThisTurn, c.combatCostCap,
-                           c.bonusDamage, c.etherealThisCombat, c.retainThisCombat,
-                           c.galvanized, c.guiltyCombatsSeen,
-                           static_cast<int>(c.enchantment), c.enchantmentAmount,
-                           c.enchantmentDisabled);
+auto visible_choice_key(const Card &c) { return card_public_key(c); }
+
+// Compact public card state, shared by unordered piles, known top and choices.
+// UID, master-deck index and underlying stack position are deliberately absent.
+void push_card_instance(std::vector<float> &v, const Card *c) {
+    if (!c) { v.insert(v.end(), PUB_CARD_INSTANCE_FEAT, 0.0f); return; }
+    v.push_back(static_cast<int>(c->id) / static_cast<float>(CardId::COUNT));
+    v.push_back(c->upgraded ? 1.0f : 0.0f);
+    v.push_back(card_cost(*c) / 3.0f);
+    v.push_back(c->replay / 4.0f);
+    v.push_back(c->bonusReplay / 4.0f);
+    v.push_back(c->freeCombat ? 1.0f : 0.0f);
+    v.push_back(c->costThisTurn ? 1.0f : 0.0f);
+    v.push_back(c->combatCostCap / 3.0f);
+    v.push_back(c->bonusDamage / 30.0f);
+    v.push_back(c->etherealThisCombat ? 1.0f : 0.0f);
+    v.push_back(c->retainThisCombat ? 1.0f : 0.0f);
+    v.push_back(c->galvanized / 10.0f);
+    v.push_back(c->guiltyCombatsSeen / 5.0f);
+    v.push_back(static_cast<int>(c->enchantment) / 5.0f);
+    v.push_back(c->enchantmentAmount / 10.0f);
+    v.push_back(c->enchantmentDisabled ? 1.0f : 0.0f);
+    v.push_back(c->costThisTurn ? c->storedCost / 3.0f : 0.0f);
+    // MadScience TinkerTime variant, then Sly / one-turn Retain / cost-expiry
+    // profile: these change what the card does when discarded or when the turn
+    // ends, so they belong to the instance identity too (v20).
+    v.push_back(c->id == CardId::MAD_SCIENCE ? c->tinkerType / 3.0f : 0.0f);
+    v.push_back(c->id == CardId::MAD_SCIENCE ? c->tinkerRider / 9.0f : 0.0f);
+    v.push_back(c->slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c->slyThisCombat ? 1.0f : 0.0f);
+    v.push_back(c->retainThisTurn ? 1.0f : 0.0f);
+    int endOfTurnMods = 0;
+    int playedMods = 0;
+    for (int i = 0; i < c->costModifierCount; ++i) {
+        if (c->costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c->costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    v.push_back(endOfTurnMods / 4.0f);
+    v.push_back(playedMods / 4.0f);
 }
 
 }  // namespace
@@ -92,7 +124,8 @@ std::vector<float> card_features(const Card &c, int price) {
     const CardDef &d = card_def(c.id);
     const int cost = card_cost(c);
     v.push_back(cost < 0 ? 1.0f : cost / 3.0f);
-    for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.type) == i ? 1.0f : 0.0f);
+    const int typeOrdinal = static_cast<int>(card_type_of(c));
+    for (int i = 0; i < 5; ++i) v.push_back(typeOrdinal == i ? 1.0f : 0.0f);
     for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.rarity) == i ? 1.0f : 0.0f);
     v.push_back(c.upgraded ? 1.0f : 0.0f);
     v.push_back(price >= 0 ? price / 200.0f : 0.0f);
@@ -114,6 +147,32 @@ std::vector<float> card_features(const Card &c, int price) {
     v.push_back(static_cast<int>(c.enchantment) / 5.0f);
     v.push_back(c.enchantmentAmount / 10.0f);
     v.push_back(c.enchantmentDisabled ? 1.0f : 0.0f);
+    // MadScience's TinkerTime type and RiderEffect are saved on the card and
+    // both change its public text/effect: two MadSciences with different
+    // riders have different consequences and must not encode identically.
+    if (c.id == CardId::MAD_SCIENCE) {
+        v.push_back(c.tinkerType / 3.0f);
+        v.push_back(c.tinkerRider / 9.0f);
+    } else {
+        v.push_back(0.0f);
+        v.push_back(0.0f);
+    }
+    // Sly and the one-turn Retain keyword change what happens when the card is
+    // discarded or the turn ends; the amount is visible on the card.
+    v.push_back(c.slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c.slyThisCombat ? 1.0f : 0.0f);
+    v.push_back(c.retainThisTurn ? 1.0f : 0.0f);
+    // Both "free this turn" and "free until played" can read 0 now. Encode how
+    // many local cost modifiers expire at end of turn (2) vs after the play
+    // (4), so the two states stay distinguishable.
+    int endOfTurnMods = 0;
+    int playedMods = 0;
+    for (int i = 0; i < c.costModifierCount; ++i) {
+        if (c.costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c.costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    v.push_back(endOfTurnMods / 4.0f);
+    v.push_back(playedMods / 4.0f);
     return v;
 }
 
@@ -292,7 +351,7 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
     push_card_bag_split(v, bc.draw, bc.drawCount);
     push_card_bag_split(v, bc.discard, bc.discardCount);
     push_card_bag_split(v, bc.exhaust, bc.exhaustCount);
-    // Pile viewers expose enchantment states but not the stack order.
+    // Pile viewers expose full visible card state but not the stack order.
     const Card *piles[] = {bc.draw, bc.discard, bc.exhaust};
     const int pileCounts[] = {bc.drawCount, bc.discardCount, bc.exhaustCount};
     for (int p = 0; p < 3; ++p) {
@@ -303,11 +362,7 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         });
         for (int i = 0; i < MAX_PILE; ++i) {
             const Card *c = i < static_cast<int>(cards.size()) ? cards[i] : nullptr;
-            v.push_back(c ? static_cast<int>(c->id) / static_cast<float>(CardId::COUNT) : 0.0f);
-            v.push_back(c && c->upgraded ? 1.0f : 0.0f);
-            v.push_back(c ? static_cast<int>(c->enchantment) / 5.0f : 0.0f);
-            v.push_back(c ? c->enchantmentAmount / 10.0f : 0.0f);
-            v.push_back(c && c->enchantmentDisabled ? 1.0f : 0.0f);
+            push_card_instance(v, c);
         }
     }
 
@@ -339,9 +394,7 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         for (int k = 0; k < MAX_PILE; ++k) {
             const int idx = bc.drawCount - 1 - k;
             const Card *c = k < known && idx >= 0 ? &bc.draw[idx] : nullptr;
-            v.push_back(c ? static_cast<int>(c->enchantment) / 5.0f : 0.0f);
-            v.push_back(c ? c->enchantmentAmount / 10.0f : 0.0f);
-            v.push_back(c && c->enchantmentDisabled ? 1.0f : 0.0f);
+            push_card_instance(v, c);
         }
     }
 
@@ -368,13 +421,13 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicCounts[i]);
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicAux[i] / 10.0f);
         float potionCounts[POTION_COUNT]{};
-        for (int i = 0; i < bc.potionCount; ++i) {
+        for (int i = 0; i < bc.potionSlots; ++i) {
             const int id = bc.potions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < bc.potionCount ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < bc.potionSlots ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // Monsters: identity, live stats, full power list, intent.
@@ -456,29 +509,18 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         return visible_choice_key(*a) < visible_choice_key(*b);
     });
     for (int i = 0; i < MAX_PILE; ++i) {
-        if (i >= static_cast<int>(visibleChoices.size())) {
-            v.insert(v.end(), PUB_PENDING_INSTANCE_FEAT, 0.0f);
-            continue;
-        }
-        const Card &c = *visibleChoices[i];
-        v.push_back(static_cast<int>(c.id) / static_cast<float>(CardId::COUNT));
-        v.push_back(c.upgraded ? 1.0f : 0.0f);
-        v.push_back(card_cost(c) / 3.0f);
-        v.push_back(c.replay / 4.0f);
-        v.push_back(c.bonusReplay / 4.0f);
-        v.push_back(c.freeCombat ? 1.0f : 0.0f);
-        v.push_back(c.costThisTurn ? 1.0f : 0.0f);
-        v.push_back(c.combatCostCap / 3.0f);
-        v.push_back(c.bonusDamage / 30.0f);
-        v.push_back(c.etherealThisCombat ? 1.0f : 0.0f);
-        v.push_back(c.retainThisCombat ? 1.0f : 0.0f);
-        v.push_back(c.galvanized / 10.0f);
-        v.push_back(c.guiltyCombatsSeen / 5.0f);
-        v.push_back(static_cast<int>(c.enchantment) / 5.0f);
-        v.push_back(c.enchantmentAmount / 10.0f);
-        v.push_back(c.enchantmentDisabled ? 1.0f : 0.0f);
+        push_card_instance(v, i < static_cast<int>(visibleChoices.size()) ? visibleChoices[i] : nullptr);
     }
+    v.push_back(bc.cardsFinishedThisCombat / 10.0f);
+    for (int i = 0; i < MAX_PILE; ++i)
+        v.push_back(i < bc.theftCount && bc.theftCards[i].costThisTurn ?
+                    bc.theftCards[i].storedCost / 3.0f : 0.0f);
 
+    // v13 appends the visible self-damage values and relative power order.
+    // Preserve every existing feature offset; no RNG or hidden order is added.
+    v.push_back(p.crimsonMantleSelfDamage / 10.0f);
+    v.push_back(p.infernoSelfDamage / 10.0f);
+    v.push_back(p.infernoBeforeCrimsonMantle ? 1.0f : 0.0f);
     assert(static_cast<int>(v.size()) == PUBLIC_COMBAT_OBS_DIM);
     return v;
 }
@@ -541,18 +583,11 @@ std::vector<float> public_observation(const RunContext &rc) {
 
     // --- deck ---------------------------------------------------------------
     push_card_bag(v, rc.deck, rc.deckCount);
-    // Run actions refer to deck positions. Preserve which visible card is
-    // upgraded at each slot, including otherwise identical copies.
-    for (int i = 0; i < MAX_DECK; ++i) {
-        const bool exists = i < rc.deckCount;
-        v.push_back(exists ? static_cast<int>(rc.deck[i].id) /
-                                 static_cast<float>(CardId::COUNT) : 0.0f);
-        v.push_back(exists && rc.deck[i].upgraded ? 1.0f : 0.0f);
-        v.push_back(exists ? rc.deck[i].guiltyCombatsSeen / 5.0f : 0.0f);
-        v.push_back(exists ? static_cast<int>(rc.deck[i].enchantment) / 5.0f : 0.0f);
-        v.push_back(exists ? rc.deck[i].enchantmentAmount / 10.0f : 0.0f);
-        v.push_back(exists && rc.deck[i].enchantmentDisabled ? 1.0f : 0.0f);
-    }
+    // Run actions refer to deck positions, so each slot needs the card's full
+    // public state: two MadSciences with different TinkerTime riders (or a
+    // retained/Sly copy) are different choices for remove/upgrade/transform.
+    for (int i = 0; i < MAX_DECK; ++i)
+        push_card_instance(v, i < rc.deckCount ? &rc.deck[i] : nullptr);
     const RunCardGrid &grid = rc.cardGrid;
     v.push_back(grid.kind / 5.0f);
     v.push_back(grid.count / static_cast<float>(MAX_DECK));
@@ -562,14 +597,29 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(grid.preview ? 1.0f : 0.0f);
     v.push_back(grid.slotCount / 8.0f);
     v.push_back((grid.freeHead + 1) / 8.0f);
-    for (int i = 0; i < 8; ++i)
+    // Selection order is player-visible and decides multi-select outcomes, so
+    // every grid slot is exposed (15, matching the stored order slots).
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i)
         v.push_back(grid.kind ? (grid.orderSlots[i] + 1) / static_cast<float>(MAX_DECK) : 0.0f);
-    for (int i = 0; i < 8; ++i)
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i)
         v.push_back(grid.kind ? (grid.freeNext[i] + 1) / 8.0f : 0.0f);
-    for (int i = 0; i < 8; ++i) {
-        if ((grid.kind == 1 || grid.kind == 2 || grid.kind == 5) && i < grid.count) {
+    for (int i = 0; i < RUN_CARD_GRID_N; ++i) {
+        // Every grid kind with an on-screen candidate list exposes those
+        // candidates. Deck-indexed grids (3, 4, 6-12, 15, 17-23) already show
+        // the full deck; the relic grids 13/14/16 and the event grids 1/2/5
+        // carry the generated offers in grid.cards.
+        const bool generatedCards =
+            grid.kind == 1 || grid.kind == 2 || grid.kind == 5 ||
+            grid.kind == 13 || grid.kind == 14 || grid.kind == 16;
+        if (generatedCards && i < grid.count) {
             const auto features = card_features(grid.cards[i]);
             v.insert(v.end(), features.begin(), features.end());
+        } else if (grid.kind >= 6 && i == 0) {
+            // These new selectors do not use the generated-card slots. Their
+            // pending effects must still be visible to a state-based policy.
+            v.push_back(grid.damageAfterSelection / 16.0f);
+            v.push_back(static_cast<int>(grid.curseAfterSelection) / static_cast<float>(CardId::COUNT));
+            v.insert(v.end(), CARD_FEAT_DIM - 2, 0.0f);
         } else v.insert(v.end(), CARD_FEAT_DIM, 0.0f);
     }
     for (int i = 0; i < MAX_DECK; ++i)
@@ -592,13 +642,13 @@ std::vector<float> public_observation(const RunContext &rc) {
     {
         float potionCounts[POTION_COUNT]{};
         const int *livePotions = inCombat ? rc.battle.potions : rc.potions;
-        for (int i = 0; i < livePotionCount; ++i) {
+        for (int i = 0; i < livePotionSlots; ++i) {
             const int id = livePotions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < livePotionCount ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < livePotionSlots ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // --- map ----------------------------------------------------------------
@@ -660,6 +710,9 @@ std::vector<float> public_observation(const RunContext &rc) {
                     rc.pendingPotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     for (int i = 0; i < MAX_CARD_REWARDS; ++i)
         v.push_back(rewardsVisible && rc.rewardCardPending[i] ? 1.0f : 0.0f);
+    for (int i = 0; i < MAX_CARD_REWARDS; ++i)
+        v.push_back(rewardsVisible && rc.rewardCardPending[i] && rc.rewardCardCanReroll[i]
+                    ? 1.0f : 0.0f);
     v.push_back(rewardsVisible ? (rc.activeCardReward + 1) / static_cast<float>(MAX_CARD_REWARDS) : 0.0f);
     push_one_hot(v, rewardsVisible ? static_cast<int>(rc.rewardResumeScreen) : -1, PUB_SCREENS);
     v.push_back(rewardsVisible && rc.deferredCustomRewards ? 1.0f : 0.0f);
@@ -720,6 +773,58 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(rc.cardShopRemovalsUsed / 5.0f);
     v.push_back(0.0f);  // reserved
 
+    // v11: public environment context and suspended acquisition decisions.
+    for (const auto type : rc.actTypes) push_one_hot(v, static_cast<int>(type), 4);
+    push_one_hot(v, rc.goldenPathAct + 1, 4);
+    v.push_back(rc.unknownMapPointsVisited / 30.0f);
+    const auto &progress = rc.nativeProgress;
+    v.push_back(progress.applyDiscoveryOrder ? 1.0f : 0.0f);
+    v.push_back(progress.numberOfRuns / 100.0f);
+    v.push_back(progress.neowUnlocked ? 1.0f : 0.0f);
+    v.push_back(progress.orobasUnlocked ? 1.0f : 0.0f);
+    v.push_back(progress.darvUnlocked ? 1.0f : 0.0f);
+    v.push_back(progress.underdocksUnlocked ? 1.0f : 0.0f);
+    v.push_back(progress.underdocksDiscovered ? 1.0f : 0.0f);
+    v.push_back(progress.aeonglassSeen ? 1.0f : 0.0f);
+    for (int i = 0; i < static_cast<int>(Encounter::COUNT); ++i)
+        v.push_back(progress.has_seen(static_cast<Encounter>(i)) ? 1.0f : 0.0f);
+    v.push_back(rc.paelsToothCount / 5.0f);
+    for (int i = 0; i < 5; ++i)
+        push_card_instance(v, i < rc.paelsToothCount ? &rc.paelsToothCards[i] : nullptr);
+    v.push_back(rc.pendingRelicObtainCount / static_cast<float>(MAX_RELICS));
+    for (int i = 0; i < MAX_RELICS; ++i)
+        v.push_back(i < rc.pendingRelicObtainCount ?
+                    rc.pendingRelicObtains[i] / static_cast<float>(RELIC_COUNT) : 0.0f);
+    for (int i = 0; i < MAX_PILE; ++i)
+        v.push_back(theftVisible && i < rc.stolenSyncCount && rc.stolenOriginalPresent[i] &&
+                    rc.stolenOriginals[i].costThisTurn ? rc.stolenOriginals[i].storedCost / 3.0f : 0.0f);
+    // FakeMerchant's custom inventory.
+    const bool fakeVisible = rc.screen == RunScreen::EVENT && event_is_fake_merchant(rc);
+    for (int i = 0; i < PUB_FAKE_MERCHANT_N; ++i) {
+        v.push_back(fakeVisible ? 1.0f : 0.0f);
+        push_one_hot(v, fakeVisible ? rc.fakeMerchantRelics[i] : 0, RELIC_COUNT);
+        v.push_back(fakeVisible ? rc.fakeMerchantPrices[i] / 200.0f : 0.0f);
+        v.push_back(fakeVisible && rc.fakeMerchantSold[i] ? 1.0f : 0.0f);
+    }
+    // CrystalSphere minigame grid and visible items.
+    const bool crystalVisible = event_crystal_active(rc);
+    for (int i = 0; i < PUB_CRYSTAL_CELLS; ++i)
+        v.push_back(crystalVisible && rc.crystalHidden[i] ? 1.0f : 0.0f);
+    v.push_back(crystalVisible ? rc.crystalDivinations / 6.0f : 0.0f);
+    v.push_back(crystalVisible && rc.crystalTool ? 1.0f : 0.0f);
+    for (int i = 0; i < PUB_CRYSTAL_ITEMS; ++i) {
+        // Items sit on hidden cells until divination reveals them; only a
+        // revealed item's type and position are player-visible.
+        const bool present = crystalVisible && i < rc.crystalItemCount &&
+                             rc.crystalItems[i].revealed;
+        v.push_back(crystalVisible && i < rc.crystalItemCount ? 1.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].type / 8.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].x / 10.0f : 0.0f);
+        v.push_back(present ? rc.crystalItems[i].y / 10.0f : 0.0f);
+        v.push_back(present ? 1.0f : 0.0f);
+    }
+    assert(static_cast<int>(v.size()) == PUBLIC_RUN_DIM);
+
     // --- combat -------------------------------------------------------------
     if (rc.screen == RunScreen::COMBAT && rc.inBattle) {
         const auto combat = public_combat_observation(rc.battle);
@@ -768,8 +873,8 @@ std::vector<float> combat_action_features(const BattleContext &bc, const Action 
     const int id = card ? static_cast<int>(card->id) : 0;
     push_one_hot(v, id, static_cast<int>(CardId::COUNT));
 
-    const int potionId = (a.type == ActionType::USE_POTION && a.hand < bc.potionCount)
-                             ? bc.potions[a.hand] : 0;
+    const int potionId = (a.type == ActionType::USE_POTION && a.hand >= 0 &&
+                          a.hand < bc.potionSlots) ? bc.potions[a.hand] : 0;
     push_one_hot(v, potionId, POTION_COUNT);
 
     v.push_back(card ? card_cost(*card) / 3.0f : 0.0f);
@@ -818,6 +923,9 @@ std::vector<float> combat_action_features(const BattleContext &bc, const Action 
     const bool choosing = a.type == ActionType::CHOOSE;
     push_one_hot(v, choosing ? static_cast<int>(bc.pending.op) : 0, PUB_CHOICE_OP_N);
     push_one_hot(v, choosing ? static_cast<int>(bc.pending.pile) : 0, PUB_CHOICE_PILE_N);
+
+    v.push_back(card && card->costThisTurn ? card->storedCost / 3.0f : 0.0f);
+    v.push_back(bc.cardsFinishedThisCombat / 10.0f);
 
     assert(static_cast<int>(v.size()) == ACTION_FEAT_DIM);
     return v;

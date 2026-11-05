@@ -7,6 +7,7 @@ namespace sts2 {
 namespace {
 
 bool usable_generated(const CardDef &d) {
+    if (!card_native_available(d.id)) return false;
     if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
                    CF_CANNOT_GENERATE_IN_COMBAT)) {
         return false;
@@ -15,10 +16,10 @@ bool usable_generated(const CardDef &d) {
            d.rarity == Rarity::RARE;
 }
 
-int ironclad_pool(CardId *out) {
+int character_pool(const BattleContext &bc, CardId *out) {
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-        if (CARD_DEFS[i].pool == CardPool::IRONCLAD &&
+        if (CARD_DEFS[i].pool == bc.characterPool &&
             usable_generated(CARD_DEFS[i])) {
             out[n++] = static_cast<CardId>(i);
         }
@@ -26,25 +27,56 @@ int ironclad_pool(CardId *out) {
     return n;
 }
 
-void random_ironclad_cards(BattleContext &bc, int count, bool upgraded, Card *out, int &outN) {
+void random_character_cards(BattleContext &bc, int count, bool upgraded, Card *out, int &outN) {
     CardId pool[static_cast<int>(CardId::COUNT)];
-    const int n = ironclad_pool(pool);
+    const int n = character_pool(bc, pool);
     outN = 0;
-    for (int k = 0; k < count && n > 0; ++k) {
-        // distinct pick
-        bool duplicate = true;
-        int attempts = 0;
-        while (duplicate && attempts++ < 64) {
-            const CardId id = pool[bc.cardGenerationRng.next_int(0, n - 1)];
-            duplicate = false;
-            for (int j = 0; j < outN; ++j) if (out[j].id == id) duplicate = true;
-            if (!duplicate) {
-                Card c = make_card(id, upgraded, bc.require_card_uid());
-                if (upgraded) c.costForTurn = card_def(id).costUp;
-                out[outN++] = c;
-            }
-        }
+    // CardFactory.GetDistinctForCombat uses TakeRandom: one full Fisher-Yates
+    // shuffle, then Take(count), including draws for candidates not selected.
+    bc.cardGenerationRng.shuffle(pool, n);
+    for (int k = 0; k < count && k < n; ++k) {
+        out[outN++] = make_card(pool[k], upgraded, bc.require_card_uid());
     }
+}
+
+// Splash: every unlocked character pool except the owner's own (the native
+// list only drops the owner pool when at least two character pools exist),
+// filtered to combat-generatable Attacks, then CardFactory.GetDistinctForCombat.
+void random_cross_character_attack_cards(BattleContext &bc, int count, bool upgraded,
+                                         Card *out, int &outN) {
+    constexpr CardPool unlockOrder[] = {CardPool::IRONCLAD, CardPool::SILENT, CardPool::REGENT,
+                                        CardPool::NECROBINDER, CardPool::DEFECT};
+    CardPool pools[5];
+    int poolCount = 0;
+    for (int bit = 0; bit < 5; ++bit)
+        if (bc.unlockedCharacterMask & (1u << bit)) pools[poolCount++] = unlockOrder[bit];
+    const CardPool owner = bc.characterPool;
+    if (poolCount > 1) {
+        int write = 0;
+        for (int i = 0; i < poolCount; ++i)
+            if (pools[i] != owner) pools[write++] = pools[i];
+        poolCount = write;
+    }
+    CardId pool[static_cast<int>(CardId::COUNT)];
+    int n = 0;
+    for (int p = 0; p < poolCount; ++p) {
+        const int start = n;
+        for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+            const CardDef &d = CARD_DEFS[i];
+            if (d.pool != pools[p] || d.type != CardType::ATTACK) continue;
+            if (!usable_generated(d)) continue;
+            pool[n++] = static_cast<CardId>(i);
+        }
+        // CardPoolModel.AllCards order, exported as nativePoolOrder.
+        std::stable_sort(pool + start, pool + n, [](CardId a, CardId b) {
+            return CARD_DEFS[static_cast<int>(a)].nativePoolOrder <
+                   CARD_DEFS[static_cast<int>(b)].nativePoolOrder;
+        });
+    }
+    outN = 0;
+    bc.cardGenerationRng.shuffle(pool, n);
+    for (int k = 0; k < count && k < n; ++k)
+        out[outN++] = make_card(pool[k], upgraded, bc.require_card_uid());
 }
 
 void add_from_draw(BattleContext &bc, int idx) {
@@ -55,18 +87,32 @@ void add_from_draw(BattleContext &bc, int idx) {
 
 void random_draw_auto_play(BattleContext &bc, int count) {
     for (int k = 0; k < count && bc.drawCount > 0 && bc.outcome == Outcome::UNDECIDED; ++k) {
-        const int idx = bc.cardSelectionRng.next_int(0, bc.drawCount - 1);
+        // Catastrophe prefers playable cards and stable-shuffles candidates on
+        // the Shuffle stream, separately for every auto-play.
+        int candidates[MAX_PILE];
+        int n = 0;
+        for (int i = 0; i < bc.drawCount; ++i)
+            if (!card_has(bc.draw[i], CF_UNPLAYABLE)) candidates[n++] = i;
+        if (n == 0)
+            for (int i = 0; i < bc.drawCount; ++i) candidates[n++] = i;
+        std::stable_sort(candidates, candidates + n, [&](int a, int b) {
+            const int byId = std::strcmp(card_key(bc.draw[a].id), card_key(bc.draw[b].id));
+            if (byId != 0) return byId < 0;
+            return bc.draw[a].upgraded < bc.draw[b].upgraded;
+        });
+        bc.shuffleRng.shuffle(candidates, n);
+        const int idx = candidates[0];
         Card c = bc.draw[idx];
         bc.remove_draw_at(idx);
         bc.auto_play_random(c, false);
     }
 }
 
-int zero_cost_pool(CardId *out) {
+int zero_cost_pool(const BattleContext &bc, CardId *out) {
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
-        if (d.pool != CardPool::IRONCLAD) continue;
+        if (d.pool != bc.characterPool) continue;
         if (!usable_generated(d)) continue;
         if (d.cost == 0 && d.costUp == 0) out[n++] = static_cast<CardId>(i);
     }
@@ -77,21 +123,106 @@ int rend_debuff_count(const Monster &m) {
     int n = 0;
     if (m.vulnerable > 0) ++n;
     if (m.weak > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::POISON)] > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::GRAPPLE)] > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::KNOCKDOWN)] > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::SHRINK)] > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::SLOW)] > 0) ++n;
-    if (m.power[static_cast<int>(PowerId::MANGLE_POW)] > 0) ++n;
+    if (m.strength < 0) ++n;
+    // Rend counts native TypeForCurrentAmount == Debuff, excluding temporary
+    // wrapper powers. Mangle/Dark Shackles can still contribute through the
+    // resulting negative StrengthPower, which is a separate debuff.
+    constexpr PowerId debuffs[] = {
+        PowerId::POISON, PowerId::KNOCKDOWN, PowerId::SHRINK, PowerId::SLOW,
+        PowerId::FRAIL, PowerId::NO_DRAW, PowerId::NO_BLOCK, PowerId::THE_GAMBIT,
+        PowerId::DEMISE, PowerId::TANGLED, PowerId::SURROUNDED,
+        PowerId::CHAINS_OF_BINDING, PowerId::DAMPEN, PowerId::PLOW,
+        PowerId::HEX, PowerId::RINGING, PowerId::TENDER, PowerId::SMOGGY,
+        PowerId::CONSTRICT, PowerId::SHRIEK, PowerId::IMBALANCED
+    };
+    for (PowerId id : debuffs) if (m.power[static_cast<int>(id)] != 0) ++n;
     return n;
 }
 
 }  // namespace
 
 bool colorless_effect(BattleContext &bc, Card &card, int target) {
-    const int dmg = card_damage(card);
+    const double dmg = card_base_damage(card);
 
     switch (card.id) {
+        case CardId::ABUNDANCE: {
+            // Abundance.OnPlay: choose one of three distinct upgraded Power
+            // cards from the character pool; the chosen card enters the hand.
+            CardId ids[static_cast<int>(CardId::COUNT)];
+            int n = 0;
+            for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+                const CardId id = static_cast<CardId>(i);
+                const CardDef &d = card_def(id);
+                if (!card_native_available(id) || d.pool != bc.characterPool) continue;
+                if (d.type != CardType::POWER) continue;
+                if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) continue;
+                ids[n++] = id;
+            }
+            if (n == 0) return true;
+            std::sort(ids, ids + n, [](CardId a, CardId b) {
+                return static_cast<int>(a) < static_cast<int>(b);
+            });
+            bc.cardGenerationRng.shuffle(ids, n);
+            Card offers[3];
+            const int count = std::min(3, n);
+            for (int k = 0; k < count; ++k) {
+                offers[k] = make_card(ids[k], false, bc.require_card_uid());
+                card_apply_upgrade(offers[k]);
+            }
+            bc.start_offer(ChoiceOp::OFFER_TO_HAND, offers, count, card,
+                           bc.card_will_exhaust(card), false);
+            return true;
+        }
+        // ---- TinkerTime ----
+        case CardId::MAD_SCIENCE: {
+            // MadScience.OnPlay: base effect by TinkerTimeType, then the rider.
+            // RiderEffect: 0 None, 1 Sapping, 2 Violence, 3 Choking,
+            // 4 Energized, 5 Wisdom, 6 Chaos, 7 Expertise, 8 Curious,
+            // 9 Improvement.
+            const int type = card.tinkerType;
+            const int rider = card.tinkerRider;
+            if (type == 0) {
+                const int hits = rider == 2 ? card_var(card, VarId::VIOLENCE_HITS) : 1;
+                bc.attack_from_card(card, target, card_damage(card), hits);
+            } else if (type == 1) {
+                // BlockVar("Block", 8): stored in effect vars, not base_block.
+                bc.gain_block(card_var(card, VarId::BLOCK), true);
+            } else {
+                if (rider == 7) {
+                    bc.add_player_power(PowerId::STRENGTH, card_var(card, VarId::EXPERTISE_STRENGTH));
+                    bc.add_player_power(PowerId::DEXTERITY, card_var(card, VarId::EXPERTISE_DEXTERITY));
+                } else if (rider == 8) {
+                    bc.add_player_power(PowerId::CURIOUS, card_var(card, VarId::CURIOUS_REDUCTION));
+                } else if (rider == 9) {
+                    bc.add_player_power(PowerId::IMPROVEMENT, 1);
+                }
+            }
+            // The rider hook only runs for Sapping and Energized..Chaos;
+            // Violence is the attack hit count and the Power riders are the
+            // Power base effect above.
+            if (rider == 1 || (rider >= 3 && rider <= 6)) {
+                if (rider == 1) {
+                    bc.apply_weak(target, card_var(card, VarId::SAPPING_WEAK));
+                    bc.apply_vulnerable(target, card_var(card, VarId::SAPPING_VULNERABLE));
+                } else if (rider == 3) {
+                    bc.add_monster_power(target, PowerId::STRANGLE,
+                                         card_var(card, VarId::CHOKING_DAMAGE));
+                } else if (rider == 4) {
+                    bc.player.energy += card_var(card, VarId::ENERGIZED_ENERGY);
+                } else if (rider == 5) {
+                    bc.draw_cards(card_var(card, VarId::WISDOM_CARDS));
+                } else if (rider == 6) {
+                    Card offers[MAX_HAND];
+                    int n = 0;
+                    random_character_cards(bc, 1, false, offers, n);
+                    if (n > 0) {
+                        card_set_turn_cost(offers[0], 0);
+                        bc.add_card_to_hand(offers[0]);
+                    }
+                }
+            }
+            return true;
+        }
         // ---- uncommon ----
         case CardId::AUTOMATION:
             bc.add_player_power(PowerId::AUTOMATION, 1);
@@ -109,13 +240,14 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             if (target < 0 || target >= bc.monsterCount) return true;
             // DarkShacklesPower: temporary strength loss, restored at the end of
             // the affected monster's turn (same timing as Mangle).
-            bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS));
+            bc.apply_strength_loss(target, card_var(card, VarId::STRENGTH_LOSS),
+                                   static_cast<int>(PowerId::DARK_SHACKLES));
             return true;
         }
         case CardId::DISCOVERY: {
             Card offers[MAX_HAND];
             int n = 0;
-            random_ironclad_cards(bc, 3, false, offers, n);
+            random_character_cards(bc, 3, false, offers, n);
             if (n == 0) return true;
             bc.start_offer(ChoiceOp::OFFER_TO_HAND, offers, n, card, bc.card_will_exhaust(card), true);
             bc.pending.optional = true;
@@ -136,7 +268,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             // Fisticuffs.cs: GainBlock(sum of DamageResult.TotalDamage +
             // OverkillDamage), i.e. the actual result, including Vigor and
             // Intangible, not a precomputed estimate.
-            int b = dmg;
+            double b = dmg;
             if (bc.player_power(PowerId::VIGOR) > 0) {
                 b += bc.player_power(PowerId::VIGOR);
                 bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
@@ -151,15 +283,59 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.attack_from_card(card, target, dmg);
             bc.draw_cards(card_var(card, VarId::CARDS));
             return true;
+        // ---- multiplayer-only cards ----
+        // These cards are marked CardMultiplayerConstraint.MultiplayerOnly and
+        // are excluded from every single-player pool.  The port still executes
+        // their single-player-degenerate form (target ally == owner) so that a
+        // card forced into a deck is never selected-but-silent; the teammate
+        // branches are unreachable because the port runs one player.
         case CardId::GANG_UP:
+            // CalculationBaseVar(5) + ExtraDamageVar(5/7) per this-turn
+            // powered hit on the target by a *teammate* (native checks
+            // Dealer.Side == owner side and Dealer != owner). No teammates in
+            // single player, so only the base damage applies.
+            bc.attack_from_card(card, target, card_var(card, VarId::CALC_BASE));
+            return true;
         case CardId::HUDDLE_UP:
+            // AllAllies draw: the single player draws for the owner only.
+            bc.draw_cards(card_var(card, VarId::CARDS));
+            return true;
         case CardId::INTERCEPT_CARD:
+            // Owner gains the block; the chosen ally gains CoveredPower, which
+            // nullifies powered attack damage until the enemy turn ends. In
+            // single player the only ally is the owner (CoveredPower's 0x
+            // multiplier makes InterceptPower's covered+1 multiplier moot).
+            bc.gain_block(card_block(card), true);
+            bc.add_player_power(PowerId::COVERED, 1);
+            return true;
         case CardId::LIFT:
+            // AnyAlly block: single player targets the owner.
+            bc.gain_block(card_block(card), true);
+            return true;
         case CardId::MIMIC:
+            // CalculatedBlock = 0 + 1 * target.Block; in single player the
+            // target is the owner, so this copies the owner's current block.
+            bc.gain_block(bc.player.block, true);
+            return true;
         case CardId::RALLY:
+            // AllAllies block: single player gains it once, for the owner.
+            bc.gain_block(card_block(card), true);
+            return true;
         case CardId::TAG_TEAM:
+            // TagTeamPower only raises a *teammate's* attack play count, so it
+            // is inert in single player; the power is still applied for state
+            // parity with the native combat.
+            bc.attack_from_card(card, target, dmg);
+            bc.add_monster_power(target, PowerId::TAG_TEAM, 1);
+            return true;
         case CardId::KNOCKDOWN:
-            return false;  // multiplayer behaviour; generic fallback applies
+            // KnockdownPower multiplies powered attack damage to the target
+            // unless the dealer is its applier; the player is always the
+            // applier here, so single player only sees the attack + debuff.
+            bc.attack_from_card(card, target, dmg);
+            bc.add_monster_power(target, PowerId::KNOCKDOWN,
+                                 card_var(card, VarId::KNOCKDOWN));
+            return true;
         case CardId::IMPATIENCE: {
             bool has_attack = false;
             for (int i = 0; i < bc.handCount; ++i) has_attack |= card_is_attack(bc.hand[i]);
@@ -185,7 +361,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::OMNISLICE: {
             // Omnislice.cs: the splash base is the first target's actual
             // DamageResult.TotalDamage + OverkillDamage, dealt as Unpowered.
-            int b = dmg;
+            double b = dmg;
             if (bc.player_power(PowerId::VIGOR) > 0) {
                 b += bc.player_power(PowerId::VIGOR);
                 bc.add_player_power(PowerId::VIGOR, -bc.player_power(PowerId::VIGOR));
@@ -228,10 +404,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::BRIGHTEST_FLAME: {
             bc.player.energy += card_var(card, VarId::ENERGY);
             bc.draw_cards(card_var(card, VarId::CARDS));
-            // CreatureCmd.LoseMaxHp: max HP drops by the full amount; current
-            // HP is only reduced when it would exceed the new maximum.
-            bc.player.maxHp = std::max(0, bc.player.maxHp - card_var(card, VarId::MAX_HP));
-            if (bc.player.hp > bc.player.maxHp) bc.player.hp = bc.player.maxHp;
+            bc.lose_max_hp(card_var(card, VarId::MAX_HP), true);
             return true;
         }
         case CardId::PROWESS:
@@ -284,7 +457,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::SPLASH: {
             Card offers[MAX_HAND];
             int n = 0;
-            random_ironclad_cards(bc, 3, card.upgraded, offers, n);
+            random_cross_character_attack_cards(bc, 3, card.upgraded, offers, n);
             if (n == 0) return true;
             bc.start_offer(ChoiceOp::OFFER_TO_HAND, offers, n, card, bc.card_will_exhaust(card), true);
             bc.pending.optional = true;
@@ -302,6 +475,13 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                 ++bc.bombCount;
             }
             return true;
+        case CardId::THE_BALL:
+            // Multiplayer-only. OnPlay deals its current damage, then grows by
+            // DynamicVars["Increase"] (10, 15 upgraded) for every later play.
+            // Growth lives on the card instance (bonusDamage) for this combat.
+            bc.attack_from_card(card, target, dmg);
+            card.bonusDamage += card_var(card, VarId::INCREASE);
+            return true;
         case CardId::THINKING_AHEAD:
             bc.draw_cards(card_var(card, VarId::CARDS));
             if (bc.handCount > 0) {
@@ -315,11 +495,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.attack_from_card(card, target, dmg);
             return true;
         case CardId::VOLLEY:
-            for (int i = 0; i < bc.xCost; ++i) {
-                const int t = bc.random_alive_monster();
-                if (t < 0) break;
-                bc.attack_from_card(card, t, dmg);
-            }
+            if (bc.xCost > 0) bc.attack_random_from_card(card, dmg, bc.xCost);
             return true;
 
         // ---- rare ----
@@ -342,9 +518,20 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                                 card_var(card, VarId::INTANGIBLE_POWER));
             return true;
         case CardId::ANOINTED: {
-            for (int i = bc.drawCount - 1; i >= 0; --i) {
-                const CardDef &d = card_def(bc.draw[i].id);
-                if (d.rarity == Rarity::RARE && !(d.flags & CF_UNPLAYABLE)) add_from_draw(bc, i);
+            // TakeRandom shuffles all rare cards, then takes only free hand
+            // slots. Cards beyond that limit must remain in the draw pile.
+            std::uint16_t candidates[MAX_PILE];
+            int n = 0;
+            for (int i = 0; i < bc.drawCount; ++i)
+                if (card_def(bc.draw[i].id).rarity == Rarity::RARE) candidates[n++] = bc.draw[i].uid;
+            bc.cardSelectionRng.shuffle(candidates, n);
+            const int take = std::min(n, MAX_HAND - bc.handCount);
+            for (int k = 0; k < take; ++k) {
+                for (int i = 0; i < bc.drawCount; ++i) {
+                    if (bc.draw[i].uid != candidates[k]) continue;
+                    add_from_draw(bc, i);
+                    break;
+                }
             }
             return true;
         }
@@ -386,14 +573,14 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::MAUL: {
             bc.attack_from_card(card, target, dmg, 2);
             const int increase = card_var(card, VarId::INCREASE);
+            card.bonusDamage += increase;
             Card *piles[] = {bc.hand, bc.draw, bc.discard, bc.exhaust, bc.playPile};
             const int counts[] = {bc.handCount, bc.drawCount, bc.discardCount,
                                   bc.exhaustCount, bc.playCount};
             for (int p = 0; p < 5; ++p) {
                 for (int i = 0; i < counts[p]; ++i) {
-                    if (piles[p][i].id != CardId::MAUL) continue;
-                    piles[p][i].bonusDamage = static_cast<std::int16_t>(
-                        piles[p][i].bonusDamage + increase);
+                    if (piles[p][i].id != CardId::MAUL || &piles[p][i] == &card) continue;
+                    piles[p][i].bonusDamage += increase;
                 }
             }
             return true;
@@ -427,11 +614,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.reboundPending = true;
             return true;
         case CardId::RIP_AND_TEAR:
-            for (int i = 0; i < 2; ++i) {
-                const int t = bc.random_alive_monster();
-                if (t < 0) break;
-                bc.attack_from_card(card, t, dmg);
-            }
+            bc.attack_random_from_card(card, dmg, 2);
             return true;
         case CardId::SQUASH:
             bc.attack_from_card(card, target, dmg);
@@ -443,6 +626,11 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                           true);
             return true;
         case CardId::BEACON_OF_HOPE:
+            // Multiplayer-only. The power gives half of the owner's block gain
+            // to *other* players, so in single player it is applied but its
+            // trigger finds no teammates. Applying it keeps power state (and
+            // the observed power list) consistent with the native combat.
+            bc.add_player_power(PowerId::BEACON_OF_HOPE, 1);
             return true;
         case CardId::BEAT_DOWN: {
             // BeatDown.cs: snapshot the discard's playable attacks, stable
@@ -493,7 +681,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.attack_from_card(
                 card, target,
                 card_var(card, VarId::CALC_BASE) +
-                    card_var(card, VarId::EXTRA_DAMAGE) * bc.cardsPlayedThisCombat);
+                    card_var(card, VarId::EXTRA_DAMAGE) * bc.cardsFinishedThisCombat);
             return true;
         case CardId::HAND_OF_GREED: {
             const bool fatal_eligible = bc.can_trigger_fatal(target);
@@ -507,15 +695,26 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         }
         case CardId::HIDDEN_GEM: {
             int valid[MAX_PILE];
+            int preferred[MAX_PILE];
             int n = 0;
+            int preferredCount = 0;
             for (int i = 0; i < bc.drawCount; ++i) {
                 const CardDef &d = card_def(bc.draw[i].id);
-                if (d.flags & CF_UNPLAYABLE) continue;
+                if (card_has(bc.draw[i], CF_UNPLAYABLE)) continue;
                 if (d.type == CardType::CURSE) continue;
+                const Card &c = bc.draw[i];
+                const int enchantedReplay = c.replay + c.bonusReplay +
+                    (c.enchantment == EnchantmentId::SPIRAL ||
+                     (c.enchantment == EnchantmentId::GLAM && !c.enchantmentDisabled));
+                if (enchantedReplay > 0) continue;
                 valid[n++] = i;
+                if (d.type == CardType::ATTACK || d.type == CardType::SKILL || d.type == CardType::POWER)
+                    preferred[preferredCount++] = i;
             }
             if (n > 0) {
-                const int idx = valid[bc.cardSelectionRng.next_int(0, n - 1)];
+                const int idx = preferredCount > 0
+                    ? preferred[bc.cardSelectionRng.next_int(0, preferredCount - 1)]
+                    : valid[bc.cardSelectionRng.next_int(0, n - 1)];
                 bc.draw[idx].replay = static_cast<std::uint8_t>(
                     bc.draw[idx].replay + card_var(card, VarId::REPLAY));
             }
@@ -524,7 +723,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::JACKPOT: {
             bc.attack_from_card(card, target, dmg);
             CardId pool[static_cast<int>(CardId::COUNT)];
-            const int n = zero_cost_pool(pool);
+            const int n = zero_cost_pool(bc, pool);
             for (int k = 0; k < card_var(card, VarId::CARDS) && n > 0; ++k) {
                 Card c = make_card(pool[bc.cardGenerationRng.next_int(0, n - 1)],
                                    false, bc.require_card_uid());
@@ -579,6 +778,23 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             if (bc.drawCount > 0) {
                 bc.start_draw_choice(card, bc.card_will_exhaust(card), -1, -1);
             }
+            return true;
+        case CardId::FUEL:
+            bc.player.energy += card_var(card, VarId::ENERGY);
+            return true;
+        case CardId::BYRD_SWOOP:
+            // Native uses Byrdpip only as the visual attacker. Damage and
+            // attack hooks belong to the player, even if no pet is present.
+            bc.attack_from_card(card, target, dmg);
+            return true;
+        case CardId::SOUL:
+            bc.draw_cards(card_var(card, VarId::CARDS));
+            return true;
+
+        // DramaticEntrance has no extra effect beyond its plain all-enemies
+        // attack; kept explicit so coverage tooling sees the dispatch.
+        case CardId::DRAMATIC_ENTRANCE:
+            bc.attack_from_card(card, target, card_damage(card), 1, true);
             return true;
 
         default:

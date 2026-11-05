@@ -2021,5 +2021,75 @@
   "rarity": 1,
   "pool": "DEPRECATED",
   "doc": "Stackable placeholder for deprecated relics."
+ },
+ {
+  "id": "SILKEN_TRESS",
+  "name": "SilkenTress",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Lose all gold on obtain; enchant the next card reward with Glam."
+ },
+ {
+  "id": "DOWSING_ROD",
+  "name": "DowsingRod",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Add Dowsing to the deck."
+ },
+ {
+  "id": "HEFTY_TABLET",
+  "name": "HeftyTablet",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Choose 1 of 3 Rare cards; add it and an Injury to the deck."
+ },
+ {
+  "id": "NEOWS_BONES",
+  "name": "NeowsBones",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 2 Neow-eligible relics; add 1 random curse."
+ },
+ {
+  "id": "NEOWS_SACRIFICE",
+  "name": "NeowsSacrifice",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Obtain an Ambergris potion and a Guilty curse."
+ },
+ {
+  "id": "FISHING_ROD",
+  "name": "FishingRod",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Every 3 Monster combats: upgrade a random upgradable card."
+ },
+ {
+  "id": "KALEIDOSCOPE",
+  "name": "Kaleidoscope",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Offer 2 rewards of 3 cross-character cards."
+ },
+ {
+  "id": "PHIAL_HOLSTER",
+  "name": "PhialHolster",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "+1 potion slot; gain 2 random potions."
+ },
+ {
+  "id": "WINGED_BOOTS",
+  "name": "WingedBoots",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "3 free travels to any room in the next row."
+ },
+ {
+  "id": "NEOWS_TALISMAN",
+  "name": "NeowsTalisman",
+  "rarity": 7,
+  "pool": "EVENT",
+  "doc": "Upgrade the last Basic Strike and Basic Defend."
  }
 ]

@@ -1,4 +1,6 @@
+#include <string>
 #include "sts2/card_candidates.h"
+#include "sts2/relic_card_rewards.h"
 #include "sts2/relics.h"
 
 namespace sts2 {
@@ -16,6 +18,96 @@ bool card_can_transform_from_deck(const Card &card) {
     }
 }
 
+bool card_eligible_for_deck_choice(const Card &card, int kind) {
+    if (kind == 9) return card_upgradable(card);
+    if (kind == 11 || kind == 12 || kind == 15)
+        return card_can_enchant(card,kind==11?EnchantmentId::SPIRAL:
+                                     kind==12?EnchantmentId::STEADY:EnchantmentId::INSTINCT);
+    if (kind == 23) return card_can_enchant(card, EnchantmentId::IMBUED);
+    // CookRestSiteOption removes any CardModel.IsRemovable deck card.
+    if (kind == 17)
+        return card.id != CardId::INVALID && !(card_def(card.id).flags & CF_ETERNAL);
+    // DollysMirror.Filter: any deck card except Quest.
+    if (kind == 18) return card.id != CardId::INVALID && card_def(card.id).type != CardType::QUEST;
+    if (kind == 19) return card_can_enchant(card, EnchantmentId::SHARP);
+    if (kind == 20) return card_can_enchant(card, EnchantmentId::ADROIT);
+    if (kind == 21) return card_can_enchant(card, EnchantmentId::MOMENTUM);
+    if (kind == 22) return card_can_enchant(card, EnchantmentId::ROYALLY_APPROVED);
+    return card_can_transform_from_deck(card) && (kind != 10 || card_upgradable(card));
+}
+
+namespace {
+// .NET List<T>.Sort uses introsort with insertion sort for <=16 elements.
+// Matching its tie handling matters when duplicate cards have different
+// enchantments: CardModel.CompareTo deliberately ignores those enchantments.
+template<class Less> void native_sort_indices(int *a, int count, Less less) {
+    auto swap_if = [&](int i, int j) { if (i != j && less(a[j],a[i])) std::swap(a[i],a[j]); };
+    auto down_heap = [&](int i,int n,int lo) {
+        int d=a[lo+i-1];
+        while(i<=n/2) {
+            int child=2*i;
+            if(child<n && less(a[lo+child-1],a[lo+child])) ++child;
+            if(!less(d,a[lo+child-1])) break;
+            a[lo+i-1]=a[lo+child-1]; i=child;
+        }
+        a[lo+i-1]=d;
+    };
+    auto intro = [&](auto &&self,int lo,int hi,int depth)->void {
+        while(hi>lo) {
+            const int n=hi-lo+1;
+            if(n<=16) {
+                if(n==2) { swap_if(lo,hi); return; }
+                if(n==3) { swap_if(lo,hi-1);swap_if(lo,hi);swap_if(hi-1,hi);return; }
+                for(int i=lo;i<hi;++i) {
+                    int t=a[i+1],j=i;
+                    while(j>=lo && less(t,a[j])) {a[j+1]=a[j];--j;}
+                    a[j+1]=t;
+                }
+                return;
+            }
+            if(depth==0) {
+                for(int i=n/2;i>=1;--i)down_heap(i,n,lo);
+                for(int i=n;i>1;--i) {std::swap(a[lo],a[lo+i-1]);down_heap(1,i-1,lo);}
+                return;
+            }
+            --depth;
+            int middle=lo+((hi-lo)/2);
+            swap_if(lo,middle);swap_if(lo,hi);swap_if(middle,hi);
+            int pivot=a[middle];std::swap(a[middle],a[hi-1]);
+            int left=lo,right=hi-1;
+            for(;;) {
+                while(less(a[++left],pivot)) {}
+                while(less(pivot,a[--right])) {}
+                if(left>=right)break;
+                std::swap(a[left],a[right]);
+            }
+            std::swap(a[left],a[hi-1]);
+            self(self,left+1,hi,depth);hi=left-1;
+        }
+    };
+    int bits=0;for(int n=count;n;n>>=1)++bits;
+    if(count>1)intro(intro,0,count-1,2*bits);
+}
+
+bool add_transformed_card(RunContext &rc,Card card) {
+    const auto type=card_def(card.id).type;
+    if(card_upgradable(card) &&
+       ((type==CardType::ATTACK && run_has_relic(rc,RelicId::MOLTEN_EGG)) ||
+        (type==CardType::SKILL && run_has_relic(rc,RelicId::TOXIC_EGG)) ||
+        (type==CardType::POWER && run_has_relic(rc,RelicId::FROZEN_EGG))))
+        card_apply_upgrade(card);
+    return rc.add_card_to_deck(card);
+}
+}
+
+void native_sort_card_indices(const RunContext &rc,int *indices,int count) {
+    native_sort_card_indices(rc.deck,indices,count);
+}
+
+void native_sort_card_indices(const Card *cards,int *indices,int count) {
+    native_sort_indices(indices,count,[&](int a,int b){return native_card_less(cards[a],cards[b]);});
+}
+
 Card make_maul_transformation(RunContext &rc, const Card &original) {
     Card replacement = rc.make_run_card(CardId::MAUL, original.upgraded);
     if (original.enchantment != EnchantmentId::NONE)
@@ -24,7 +116,8 @@ Card make_maul_transformation(RunContext &rc, const Card &original) {
 }
 
 int make_noncombat_card_candidates(RunContext &rc, Card *out, int count,
-                                   CardPool pool, bool commonOnly) {
+                                   CardPool pool, bool commonOnly,
+                                   NoncombatCardFilter filter) {
     Rng &rng = rc.playerRng[PRNG_REWARDS];
     int made = 0;
     while (made < count) {
@@ -32,9 +125,13 @@ int make_noncombat_card_candidates(RunContext &rc, Card *out, int count,
         int total = 0;
         for (int id = 1; id < static_cast<int>(CardId::COUNT); ++id) {
             const CardDef &d = card_def(static_cast<CardId>(id));
+            if (!card_native_available(d.id)) continue;
             if (d.pool != pool || (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY))) continue;
             if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON && d.rarity != Rarity::RARE) continue;
             if (commonOnly && d.rarity != Rarity::COMMON) continue;
+            // Native CardCreationOptions predicates (InfestedAutomaton).
+            if (filter == NoncombatCardFilter::POWER && d.type != CardType::POWER) continue;
+            if (filter == NoncombatCardFilter::ZERO_COST && d.cost != 0) continue;
             bool used = false;
             for (int i = 0; i < made; ++i) used |= out[i].id == d.id;
             if (!used) candidates[total++] = d.id;
@@ -59,7 +156,20 @@ int make_noncombat_card_candidates(RunContext &rc, Card *out, int count,
                 if (card_def(candidates[i]).rarity == rarity) candidates[kept++] = candidates[i];
             total = kept;
         }
-        out[made++] = rc.make_run_card(candidates[rng.next_int(0, total - 1)], false);
+        native_sort_card_ids(candidates, total);
+        out[made] = rc.make_run_card(candidates[rng.next_int(0, total - 1)], false);
+        // CardFactory.CreateForReward's per-card RollForUpgrade: the float is
+        // drawn even for non-upgradable cards, and Rares never roll.
+        const float upgradeRoll = rng.next_float();
+        const float upgradeOdds = card_def(out[made].id).rarity == Rarity::RARE
+                                      ? 0.0f
+                                      : static_cast<float>(rc.act) *
+                                            (rc.ascension >= 7 ? 0.125f : 0.25f);
+        if (card_upgradable(out[made]) && upgradeRoll <= upgradeOdds)
+            card_apply_upgrade(out[made]);
+        if (run_has_relic(rc, RelicId::FRESNEL_LENS))
+            card_apply_enchantment(out[made], EnchantmentId::NIMBLE, 2);
+        ++made;
     }
     return made;
 }
@@ -71,11 +181,187 @@ bool can_generate_scroll_boxes(const RunContext &rc) {
     int common = 0, uncommon = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = card_def(static_cast<CardId>(i));
-        if (d.pool != CardPool::IRONCLAD || (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY))) continue;
+        if (!card_native_available(d.id)) continue;
+        if (d.pool != rc.character || (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY))) continue;
         common += d.rarity == Rarity::COMMON;
         uncommon += d.rarity == Rarity::UNCOMMON;
     }
     return common >= 4 && uncommon >= 2;
+}
+
+bool can_begin_deck_relic_choice(const RunContext &rc, int kind, int count, CardId curseAfter) {
+    if (rc.cardGrid.kind || kind < 6 ||
+        (kind > 12 && kind != 15 && kind != 17 && kind != 23 && (kind < 18 || kind > 22)) ||
+        count < 0 || count > 6)
+        return false;
+    if (kind == 10 && (count > 5 || rc.paelsToothCount)) return false;
+    int eligible = 0;
+    for (int i = 0; i < rc.deckCount; ++i)
+        eligible += rc.hp>0 && card_eligible_for_deck_choice(rc.deck[i],kind);
+    const int selected = std::min(count, eligible);
+    const int copies = run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1;
+    const int finalCount = rc.deckCount + ((kind == 6 || kind == 10 || kind == 17) ? -selected :
+                           (kind == 9 || kind >= 11) ? 0 :
+                           kind == 18 ? selected * copies : selected * (copies - 1)) +
+                           (curseAfter == CardId::INVALID ? 0 : copies);
+    return finalCount <= MAX_DECK;
+}
+
+bool begin_deck_relic_choice(RunContext &rc, int kind, int count,
+                             int damageAfter, CardId curseAfter) {
+    if (!can_begin_deck_relic_choice(rc, kind, count, curseAfter)) return false;
+    RunCardGrid grid;
+    grid.kind = static_cast<std::uint8_t>(kind);
+    grid.count = rc.deckCount;
+    int eligible = 0;
+    for (int i = 0; i < rc.deckCount; ++i)
+        eligible += rc.hp>0 && card_eligible_for_deck_choice(rc.deck[i],kind);
+    grid.minSelect = grid.maxSelect = std::min(count, eligible);
+    // Gnarled Hammer and Kifuda allow selecting zero cards ("up to 3").
+    if (kind == 19 || kind == 20) grid.minSelect = 0;
+    grid.damageAfterSelection = damageAfter;
+    grid.curseAfterSelection = curseAfter;
+    rc.cardGrid = grid;
+    // Native skips an empty selector, but still applies subsequent effects.
+    if (!grid.maxSelect) return confirm_card_grid(rc);
+    if ((kind == 9 || kind == 10 || kind == 11 || kind == 12 || kind == 15 || kind == 23) &&
+        eligible <= count) {
+        // Native automatically takes all eligible cards when there is no choice.
+        for (int i=0;i<rc.deckCount;++i)
+            if (card_eligible_for_deck_choice(rc.deck[i],kind)) select_card_grid(rc,i);
+        return confirm_card_grid(rc);
+    }
+    return true;
+}
+
+void native_sort_card_ids(CardId *cards, int count) {
+    // IDs remain append-only; pool order is exported independently from the
+    // target DLL and includes every character, including nonalphabetic entries.
+    std::stable_sort(cards, cards + count, [](CardId a, CardId b) {
+        return card_def(a).nativePoolOrder < card_def(b).nativePoolOrder;
+    });
+}
+
+int native_unlocked_character_pools(const RunContext &rc, CardPool *out, int capacity) {
+    constexpr CardPool pools[] = {CardPool::IRONCLAD, CardPool::SILENT, CardPool::REGENT,
+                                  CardPool::NECROBINDER, CardPool::DEFECT};
+    int count = 0;
+    for (int i = 0; i < 5; ++i)
+        if ((rc.nativeProgress.unlockedCharacterMask & (1u << i)) && count < capacity)
+            out[count++] = pools[i];
+    return count;
+}
+
+bool native_card_pool_unlocked(const RunContext &rc, CardPool pool) {
+    CardPool pools[5];
+    const int count = native_unlocked_character_pools(rc, pools, 5);
+    return std::find(pools, pools + count, pool) != pools + count;
+}
+
+static Card random_deck_transformation(RunContext &rc, const Card &original, bool upgrade, Rng *rng = nullptr) {
+    const CardDef &old = card_def(original.id);
+    const CardPool pool = (old.type == CardType::QUEST || old.rarity == Rarity::EVENT ||
+                           old.rarity == Rarity::ANCIENT || old.rarity == Rarity::TOKEN)
+                              ? CardPool::COLORLESS : old.pool;
+    const bool unrestricted = old.rarity == Rarity::CURSE || old.rarity == Rarity::STATUS;
+    CardId options[static_cast<int>(CardId::COUNT)];
+    int count = 0;
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
+        const CardDef &def = card_def(static_cast<CardId>(i));
+        if (!card_native_available(def.id)) continue;
+        if (def.pool != pool || def.id == original.id || (def.flags & CF_MULTIPLAYER_ONLY)) continue;
+        if (!unrestricted && def.rarity != Rarity::COMMON && def.rarity != Rarity::UNCOMMON &&
+            def.rarity != Rarity::RARE) continue;
+        options[count++] = def.id;
+    }
+    if (!count) throw std::logic_error("No native transformation candidates in compiled card pool");
+    native_sort_card_ids(options, count);
+    // A transformation creates a fresh entity. Original upgrade/enchantment and
+    // permanent growth do not carry over (Claws has its own explicit exception).
+    return rc.make_run_card(options[(rng ? *rng : rc.runRng[RNG_NICHE]).next_int(0, count - 1)], upgrade);
+}
+
+bool transform_basic_strikes_and_defends(RunContext &rc) {
+    bool selected[MAX_DECK]{};Card replacements[MAX_DECK];int adjusted[MAX_DECK],order[MAX_DECK];
+    int count=0;
+    for(int i=0;i<rc.deckCount;++i) {
+        const Card &c=rc.deck[i];
+        selected[i]=card_def(c.id).rarity==Rarity::BASIC &&
+                    (card_is_strike(c)||card_is_defend(c)) && card_can_transform_from_deck(c);
+        if(selected[i])++count;
+    }
+    if(rc.deckCount+(run_has_relic(rc,RelicId::BING_BONG)?count:0)>MAX_DECK)return false;
+    count=0;
+    for(int i=0;i<rc.deckCount;++i)if(selected[i]) {
+        replacements[count]=random_deck_transformation(rc,rc.deck[i],false);
+        adjusted[count]=i-count;order[count]=count;++count;
+    }
+    // CardCmd.Transform materializes all replacements, removes originals,
+    // sorts the recorded (already shifted) pile indices, then appends with hooks.
+    native_sort_indices(order,count,[&](int a,int b){return adjusted[a]<adjusted[b];});
+    int dst=0;for(int i=0;i<rc.deckCount;++i)if(!selected[i])rc.deck[dst++]=rc.deck[i];
+    rc.deckCount=dst;
+    for(int i=0;i<count;++i)
+        if(!add_transformed_card(rc,replacements[order[i]]))throw std::logic_error("Pandora transformation capacity changed");
+    return true;
+}
+
+bool transform_first_basic_strike_and_defend(RunContext &rc) {
+    int selected[2] = {-1, -1};
+    for (int i = 0; i < rc.deckCount; ++i) {
+        const Card &card = rc.deck[i];
+        if (card_def(card.id).rarity != Rarity::BASIC) continue;
+        if (selected[0] < 0 && card_is_strike(card)) selected[0] = i;
+        if (selected[1] < 0 && card_is_defend(card)) selected[1] = i;
+    }
+    const int count = (selected[0] >= 0) + (selected[1] >= 0);
+    if (rc.deckCount + (run_has_relic(rc, RelicId::BING_BONG) ? count : 0) > MAX_DECK) return false;
+    Card replacements[2]; int adjusted[2], order[2], made = 0;
+    // Native requests the Strike first even when the Defend precedes it.
+    for (int i = 0; i < 2; ++i) if (selected[i] >= 0) {
+        replacements[made] = random_deck_transformation(rc, rc.deck[selected[i]], false,
+                                                        &rc.playerRng[PRNG_TRANSFORMATIONS]);
+        adjusted[made] = selected[i] - (i == 1 && selected[0] >= 0 && selected[0] < selected[i]);
+        order[made] = made; ++made;
+    }
+    native_sort_indices(order, made, [&](int a, int b) { return adjusted[a] < adjusted[b]; });
+    int dst = 0;
+    for (int i = 0; i < rc.deckCount; ++i)
+        if (i != selected[0] && i != selected[1]) rc.deck[dst++] = rc.deck[i];
+    rc.deckCount = dst;
+    for (int i = 0; i < made; ++i)
+        if (!add_transformed_card(rc, replacements[order[i]]))
+            throw std::logic_error("Leafy Poultice transformation capacity changed");
+    return true;
+}
+
+bool begin_relic_card_choice(RunContext &rc, RelicId source) {
+    if(rc.cardGrid.kind) return false;
+    if(source==RelicId::ARCANE_SCROLL) {
+        Card card;
+        return make_relic_card_reward_candidates(rc,source,&card,1)==1 && rc.add_card_to_deck(card);
+    }
+    if(source!=RelicId::LEAD_PAPERWEIGHT && source!=RelicId::SEA_GLASS) return false;
+    RunCardGrid grid;
+    grid.kind=source==RelicId::LEAD_PAPERWEIGHT?13:14;
+    grid.count=make_relic_card_reward_candidates(rc,source,grid.cards,15,rc.preparedSeaGlassPool);
+    if(grid.count<0) return false;
+    grid.minSelect=0;
+    grid.maxSelect=source==RelicId::LEAD_PAPERWEIGHT?1:15;
+    rc.cardGrid=grid;
+    return true;
+}
+
+bool begin_hefty_tablet_choice(RunContext &rc) {
+    if (rc.cardGrid.kind) return false;
+    RunCardGrid grid;
+    grid.kind = 16;
+    grid.count = make_hefty_tablet_candidates(rc, grid.cards, 15);
+    if (grid.count != 3) return false;
+    grid.minSelect = 0;
+    grid.maxSelect = 1;
+    rc.cardGrid = grid;
+    return true;
 }
 
 bool begin_card_grid(RunContext &rc, int kind) {
@@ -92,12 +378,14 @@ bool begin_card_grid(RunContext &rc, int kind) {
             for (int j = 1; j < static_cast<int>(CardId::COUNT); ++j) {
                 const CardId id = static_cast<CardId>(j);
                 const CardDef &d = card_def(id);
-                if (d.pool != CardPool::IRONCLAD || d.rarity != wanted ||
+                if (!card_native_available(id)) continue;
+                if (d.pool != rc.character || d.rarity != wanted ||
                     (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY))) continue;
                 bool used = false;
                 for (int k = 0; k < i; ++k) used |= grid.cards[k].id == id;
                 if (!used) candidates[count++] = id;
             }
+            native_sort_card_ids(candidates, count);
             grid.cards[i] = rc.make_run_card(candidates[rng.next_int(0, count - 1)], false);
         }
         grid.count = 6;
@@ -114,7 +402,7 @@ bool begin_card_grid(RunContext &rc, int kind) {
         }
     } else {
         const int desired = kind == 1 ? 5 : 8;
-        grid.count = make_noncombat_card_candidates(rc, grid.cards, desired, CardPool::IRONCLAD, kind == 2);
+        grid.count = make_noncombat_card_candidates(rc, grid.cards, desired, rc.character, kind == 2);
         grid.minSelect = grid.maxSelect = kind == 1 ? 1 : 2;
         if (grid.count < grid.minSelect) return false;
     }
@@ -129,6 +417,19 @@ bool card_grid_can_select(const RunContext &rc, int index) {
         rc.deckCount <= MAX_DECK - 3 * (run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1);
     if (grid.selected[index]) return true;
     if (grid.selectedCount >= grid.maxSelect) return false;
+    if (grid.kind == 16)
+        return rc.deckCount + 2 * (run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1) <= MAX_DECK;
+    if ((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || grid.kind == 23 ||
+        (grid.kind >= 18 && grid.kind <= 22)) {
+        if (!card_eligible_for_deck_choice(rc.deck[index],grid.kind)) return false;
+        if (grid.kind == 6 || grid.kind >= 9) {
+            if (grid.kind != 18) return true;
+            const int copies = run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1;
+            return rc.deckCount + (grid.selectedCount + 1) * copies <= MAX_DECK;
+        }
+        const int net = run_has_relic(rc, RelicId::BING_BONG) ? 1 : 0;
+        return rc.deckCount + (grid.selectedCount + 1) * net <= MAX_DECK;
+    }
     if (grid.kind == 3 && !card_can_transform_from_deck(rc.deck[index])) return false;
     if (grid.kind == 4) return card_can_enchant(rc.deck[index], EnchantmentId::CLONE);
     const int copies = run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1;
@@ -162,8 +463,9 @@ bool select_card_grid(RunContext &rc, int index) {
     grid.selected[index] = true;
     ++grid.selectedCount;
     if (grid.selectedCount == grid.maxSelect) {
-        if (grid.kind == 3 || grid.kind == 5) grid.preview = true;
-        else return confirm_card_grid(rc);
+        if (grid.kind == 3 || grid.kind == 5 || (grid.kind >= 6 && grid.kind <= 12) ||
+            grid.kind == 15 || grid.kind == 19 || grid.kind == 20) grid.preview = true;
+        else if(grid.kind!=14) return confirm_card_grid(rc);
     }
     return true;
 }
@@ -173,11 +475,150 @@ bool confirm_card_grid(RunContext &rc) {
     if (!grid.kind || grid.selectedCount < grid.minSelect || grid.selectedCount > grid.maxSelect)
         return false;
     const int kind = grid.kind;
+    if (kind == 9 || kind == 11 || kind == 12 || kind == 15 || kind == 23) {
+        for(int i=0;i<rc.deckCount;++i)
+            if(grid.selected[i] && rc.hp>0) {
+                if(kind==9)card_apply_upgrade(rc.deck[i]);
+                else if(!card_apply_enchantment(rc.deck[i],kind==11?EnchantmentId::SPIRAL:
+                                                      kind==12?EnchantmentId::STEADY:
+                                                      kind==23?EnchantmentId::IMBUED:
+                                                      EnchantmentId::INSTINCT,1))
+                    throw std::logic_error(std::string("Selected card cannot receive enchantment kind=") +
+                                           std::to_string(kind) + " card=" +
+                                           std::to_string(static_cast<int>(rc.deck[i].id)) +
+                                           " deckIndex=" + std::to_string(i));
+            }
+        rc.cardGrid=RunCardGrid{};
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
+    if (kind == 10) {
+        rc.paelsToothCount=0;
+        for(int slot=0;slot<grid.slotCount;++slot) {
+            int i=grid.orderSlots[slot];
+            if(i>=0)rc.paelsToothCards[rc.paelsToothCount++]=rc.deck[i];
+        }
+        std::stable_sort(rc.paelsToothCards,rc.paelsToothCards+rc.paelsToothCount,
+            [](const Card&a,const Card&b){return std::strcmp(card_key(a.id),card_key(b.id))<0;});
+        int dst=0;for(int i=0;i<rc.deckCount;++i)if(!grid.selected[i])rc.deck[dst++]=rc.deck[i];
+        rc.deckCount=dst;
+        rc.cardGrid=RunCardGrid{};
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
+    if (kind == 17) {
+        // CookRestSiteOption: remove the selected cards, then GainMaxHp 5 and
+        // consume the rest site.
+        int dst = 0;
+        for (int i = 0; i < rc.deckCount; ++i)
+            if (!grid.selected[i]) rc.deck[dst++] = rc.deck[i];
+        rc.deckCount = dst;
+        rc.cardGrid = RunCardGrid{};
+        rc.maxHp += 5;
+        rc.hp += 5;
+        // MiniatureTent keeps the rest site open; mark Cook used there instead
+        // of closing the room (bit 1 << 1, see run.cpp rest helpers).
+        int tent = -1;
+        for (int i = 0; i < rc.relicCount; ++i)
+            if (!rc.relicMelted[i] && rc.relics[i] == static_cast<int>(RelicId::MINIATURE_TENT))
+                tent = i;
+        if (tent >= 0) {
+            rc.relicAux[tent] |= (1 << 1);
+            rc.screen = RunScreen::REST;
+        } else {
+            rc.finish_room();
+        }
+        return true;
+    }
+    if (kind == 16) {
+        // HeftyTablet: CardPileCmd.Add([chosen?, Injury]) in that order. The
+        // chosen card was already generated with NoUpgradeRoll, but reward
+        // hooks ran at generation, so only deck-add hooks apply here.
+        Card chosen;
+        bool hasChosen = false;
+        for (int slot = 0; slot < grid.slotCount; ++slot) {
+            const int i = grid.orderSlots[slot];
+            if (i < 0) continue;
+            chosen = grid.cards[i];
+            hasChosen = true;
+        }
+        rc.cardGrid = RunCardGrid{};
+        if (hasChosen && !rc.add_card_to_deck(chosen))
+            throw std::logic_error("Hefty Tablet chosen card exceeds deck capacity");
+        if (!rc.add_card_to_deck(rc.make_run_card(CardId::INJURY, false)))
+            throw std::logic_error("Hefty Tablet Injury exceeds deck capacity");
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
+    if (kind == 18) {
+        // DollysMirror: add a fresh copy of each selected deck card.
+        int indices[8]{};
+        int n = 0;
+        for (int slot = 0; slot < grid.slotCount && n < 8; ++slot)
+            if (grid.orderSlots[slot] >= 0) indices[n++] = grid.orderSlots[slot];
+        rc.cardGrid = RunCardGrid{};
+        for (int i = 0; i < n; ++i) {
+            if (indices[i] < 0 || indices[i] >= rc.deckCount) return false;
+            Card copy = rc.deck[indices[i]];
+            copy.uid = rc.allocate_card_uid();
+            if (!rc.add_card_to_deck(copy))
+                throw std::logic_error("Dolly's Mirror copy exceeds deck capacity");
+        }
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
+    if (kind >= 19 && kind <= 22) {
+        const EnchantmentId enchantment =
+            kind == 19 ? EnchantmentId::SHARP :
+            kind == 20 ? EnchantmentId::ADROIT :
+            kind == 21 ? EnchantmentId::MOMENTUM : EnchantmentId::ROYALLY_APPROVED;
+        const int amount = kind == 21 ? 5 : kind == 22 ? 1 : 3;
+        for (int i = 0; i < rc.deckCount; ++i)
+            if (grid.selected[i] && rc.hp > 0) {
+                if (!card_apply_enchantment(rc.deck[i], enchantment, amount))
+                    throw std::logic_error("Selected card cannot receive relic enchantment");
+            }
+        rc.cardGrid = RunCardGrid{};
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
+    if (kind >= 6 && kind <= 12) {
+        // Resolve in selection order while indices still refer to the original
+        // deck. Removing one selection must not change what another points at.
+        Card replacements[8];
+        int n = 0;
+        for (int slot = 0; slot < grid.slotCount; ++slot) {
+            const int index = grid.orderSlots[slot];
+            if (index < 0) continue;
+            if (kind != 6) replacements[n] = random_deck_transformation(rc, rc.deck[index], kind == 8);
+            ++n;
+        }
+        const int damage = grid.damageAfterSelection;
+        const CardId curse = grid.curseAfterSelection;
+        int dst = 0;
+        for (int i = 0; i < rc.deckCount; ++i)
+            if (!grid.selected[i]) rc.deck[dst++] = rc.deck[i];
+        rc.deckCount = dst;
+        rc.cardGrid = RunCardGrid{};
+        if (kind != 6) {
+            // Astrolabe awaits one Transform per selected card, in selection
+            // order. Each replacement is appended to the permanent deck.
+            for (int i = 0; i < n; ++i) {
+                if (!add_transformed_card(rc,replacements[i])) throw std::logic_error("Transformation deck capacity changed");
+            }
+        }
+        if (curse != CardId::INVALID && !rc.add_card_to_deck(rc.make_run_card(curse, false)))
+            throw std::logic_error("Post-selection curse exceeds deck capacity");
+        if (damage) run_take_noncombat_damage(rc, damage);
+        rc.resume_pending_relic_obtains();
+        return true;
+    }
     if (kind == 4) {
         for (int i = 0; i < grid.count; ++i) {
             if (!grid.selected[i]) continue;
             if (!card_apply_enchantment(rc.deck[i], EnchantmentId::CLONE, 4)) return false;
             rc.cardGrid = RunCardGrid{};
+            rc.resume_pending_relic_obtains();
             return true;
         }
         return false;
@@ -186,8 +627,8 @@ bool confirm_card_grid(RunContext &rc) {
         grid.preview = true;
         return true;
     }
-    Card selected[8];
-    int originalIndices[8];
+    Card selected[15];
+    int originalIndices[15];
     int n = 0;
     for (int slot = 0; slot < grid.slotCount; ++slot) {
         const int i = grid.orderSlots[slot];
@@ -234,29 +675,93 @@ bool confirm_card_grid(RunContext &rc) {
         if (!rc.add_card_to_deck(card)) return false; // capacity was checked on selection
     }
     if (kind == 1 || kind == 2) event_finish_card_grid(rc);
+    rc.resume_pending_relic_obtains();
     return true;
 }
 
 bool cancel_card_grid_preview(RunContext &rc) {
     RunCardGrid &grid = rc.cardGrid;
-    if ((grid.kind != 3 && grid.kind != 5) || !grid.preview) return false;
+    if (grid.kind == 17) {
+        // CookRestSiteOption's selector is Cancelable; cancelling leaves the
+        // rest site unused and returns to its option list.
+        rc.cardGrid = RunCardGrid{};
+        return true;
+    }
+    if ((grid.kind != 3 && grid.kind != 5 && grid.kind < 6) || !grid.preview) return false;
     grid.preview = false;
     grid.selectedCount = grid.slotCount = 0;
     grid.freeHead = -1;
     for (bool &selected : grid.selected) selected = false;
-    for (int i = 0; i < 8; ++i) grid.orderSlots[i] = grid.freeNext[i] = -1;
+    for (int i = 0; i < 15; ++i) grid.orderSlots[i] = grid.freeNext[i] = -1;
     return true;
 }
 
 bool card_grid_valid(const RunContext &rc) {
     const RunCardGrid &grid = rc.cardGrid;
     if (!grid.kind) return grid.count == 0 && grid.selectedCount == 0 && !grid.preview &&
-                           grid.slotCount == 0 && grid.freeHead == -1;
-    if (grid.kind > 5 || grid.count < 0 || grid.count > ((grid.kind == 3 || grid.kind == 4) ? rc.deckCount : 8) ||
-        grid.minSelect < 0 || grid.maxSelect < grid.minSelect || grid.maxSelect > 6 ||
+                           grid.slotCount == 0 && grid.freeHead == -1 &&
+                           grid.damageAfterSelection == 0 && grid.curseAfterSelection == CardId::INVALID;
+    const bool deckKind = grid.kind == 3 || grid.kind == 4 ||
+                          (grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 ||
+                          grid.kind == 17 || (grid.kind >= 18 && grid.kind <= 22);
+    if (grid.kind > 22 || grid.count < 0 || grid.count > (deckKind ? rc.deckCount : 15) ||
+        grid.minSelect < 0 || grid.maxSelect < grid.minSelect ||
+        grid.maxSelect > (grid.kind == 14 ? 15 : grid.kind == 16 ? 1 : 6) ||
         grid.selectedCount < 0 || grid.selectedCount > grid.maxSelect) return false;
-    if (grid.slotCount < 0 || grid.slotCount > 8 || grid.freeHead < -1 ||
-        grid.freeHead >= grid.slotCount || (grid.preview && grid.kind != 3 && grid.kind != 5)) return false;
+    if (grid.slotCount < 0 || grid.slotCount > 15 || grid.freeHead < -1 ||
+        grid.freeHead >= grid.slotCount || (grid.preview && grid.kind != 3 && grid.kind != 5 && grid.kind < 6)) return false;
+    if (grid.kind >= 6 && grid.kind <= 12 && (grid.count != rc.deckCount || grid.minSelect != grid.maxSelect ||
+        grid.maxSelect < 1 || grid.preview != (grid.selectedCount == grid.maxSelect))) return false;
+    if (grid.kind >= 6 && grid.kind <= 12) {
+        int eligible = 0;
+        for (int i = 0; i < rc.deckCount; ++i)
+            eligible += card_eligible_for_deck_choice(rc.deck[i],grid.kind);
+        const int copies = run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1;
+        const int finalCount = rc.deckCount + ((grid.kind == 6 || grid.kind == 10) ? -grid.maxSelect :
+                              (grid.kind == 9 || grid.kind >= 11) ? 0 : grid.maxSelect * (copies - 1)) +
+                              (grid.curseAfterSelection == CardId::INVALID ? 0 : copies);
+        if (rc.hp <= 0 || grid.maxSelect > eligible || finalCount > MAX_DECK) return false;
+        if (grid.kind==10 && (grid.maxSelect>5 || rc.paelsToothCount || !run_has_relic(rc,RelicId::PAELS_TOOTH)))return false;
+    }
+    if (grid.kind >= 13) {
+        if (grid.kind >= 18) {
+            if (grid.count != rc.deckCount) return false;
+            int eligible = 0;
+            for (int i = 0; i < rc.deckCount; ++i)
+                eligible += rc.hp > 0 && card_eligible_for_deck_choice(rc.deck[i], grid.kind);
+            if (grid.kind == 18 || grid.kind >= 21) {
+                if (grid.minSelect != 1 || grid.maxSelect != 1 || grid.preview ||
+                    grid.maxSelect > eligible) return false;
+            } else {
+                if (grid.minSelect != 0 || grid.maxSelect > 3 || grid.maxSelect > eligible ||
+                    grid.preview != (grid.selectedCount == grid.maxSelect)) return false;
+            }
+        } else if (grid.kind == 15 || grid.kind == 17) {
+            // Tri Boomerang (Instinct, 3) and Cook (remove 2): deck selectors
+            // whose count equals the eligible cards at begin time.
+            const int limit = grid.kind == 15 ? 3 : 2;
+            if (grid.count != rc.deckCount || grid.minSelect != grid.maxSelect ||
+                grid.maxSelect < 1 || grid.maxSelect > limit || grid.preview) return false;
+            int eligible = 0;
+            for (int i = 0; i < rc.deckCount; ++i)
+                eligible += rc.hp > 0 && card_eligible_for_deck_choice(rc.deck[i], grid.kind);
+            if (grid.maxSelect > eligible) return false;
+        } else {
+            const int wantCount = grid.kind == 13 ? 2 : grid.kind == 16 ? 3 : 15;
+            if (grid.minSelect != 0 || grid.maxSelect != (grid.kind == 14 ? 15 : 1) ||
+                grid.count != wantCount || grid.preview) return false;
+            // Kind 16's candidates already went through CreateForReward hooks.
+            for (int i = 0; i < grid.count; ++i) {
+                if (!card_native_available(grid.cards[i].id) || grid.cards[i].uid == 0) return false;
+                if (grid.kind == 16 && card_def(grid.cards[i].id).rarity != Rarity::RARE) return false;
+                for (int j = 0; j < i; ++j)
+                    if (grid.cards[j].uid == grid.cards[i].uid) return false;
+            }
+        }
+    }
+    if (grid.damageAfterSelection < 0 || grid.damageAfterSelection > 16 ||
+        (grid.curseAfterSelection != CardId::INVALID && grid.curseAfterSelection != CardId::FOLLY) ||
+        (grid.kind != 6 && (grid.damageAfterSelection || grid.curseAfterSelection != CardId::INVALID))) return false;
     if (grid.kind == 3 && (grid.count != rc.deckCount || grid.minSelect != 0 || grid.maxSelect != 6)) return false;
     if (grid.kind == 4 && (grid.count != rc.deckCount || grid.minSelect != 1 || grid.maxSelect != 1)) return false;
     if (grid.kind == 5 && (grid.count != 6 || grid.minSelect != 1 || grid.maxSelect != 1 ||
@@ -266,7 +771,7 @@ bool card_grid_valid(const RunContext &rc) {
             const Card &card = grid.cards[i];
             if (card.id == CardId::INVALID || static_cast<int>(card.id) >= static_cast<int>(CardId::COUNT)) return false;
             const CardDef &def = card_def(card.id);
-            if (def.pool != CardPool::IRONCLAD ||
+            if (def.pool != rc.character ||
                 def.rarity != (i % 3 == 2 ? Rarity::UNCOMMON : Rarity::COMMON) ||
                 (def.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY))) return false;
             for (int j = 0; j < i; ++j)
@@ -278,7 +783,13 @@ bool card_grid_valid(const RunContext &rc) {
     int selected = 0;
     for (int i = 0; i < MAX_DECK; ++i) {
         if (grid.selected[i]) {
-            if (i >= grid.count || (grid.kind == 5 && i >= 2) || (grid.kind == 3 && !card_can_transform_from_deck(rc.deck[i])) ||
+            if (i >= grid.count || (grid.kind == 5 && i >= 2) ||
+                (grid.kind == 3 && !card_can_transform_from_deck(rc.deck[i])) ||
+                (grid.kind >= 6 && grid.kind <= 12 && !card_eligible_for_deck_choice(rc.deck[i],grid.kind)) ||
+                (grid.kind == 15 && !card_eligible_for_deck_choice(rc.deck[i], 15)) ||
+                (grid.kind == 17 && !card_eligible_for_deck_choice(rc.deck[i], 17)) ||
+                (grid.kind >= 18 && grid.kind <= 22 &&
+                 !card_eligible_for_deck_choice(rc.deck[i], grid.kind)) ||
                 (grid.kind == 4 && !card_can_enchant(rc.deck[i], EnchantmentId::CLONE))) return false;
             ++selected;
         }
@@ -294,7 +805,7 @@ bool card_grid_valid(const RunContext &rc) {
             ++activeSlots;
         }
     }
-    bool freeSlots[8]{};
+    bool freeSlots[15]{};
     int free = grid.freeHead;
     while (free >= 0) {
         if (free >= grid.slotCount || freeSlots[free] || grid.orderSlots[free] != -1) return false;

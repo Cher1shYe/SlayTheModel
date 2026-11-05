@@ -1,0 +1,2 @@
+runs=1000 completed=1000 truncated=0 errors=0 seconds=14.794 runs_per_s=67.6 avg_floor=9.4 win_rate=0.000 combats=5496
+init=14.11ms/run combat=0.360s (84830 steps, 4.2 us/step) other=0.32ms/run

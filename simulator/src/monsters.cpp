@@ -194,6 +194,10 @@ void roll_intent(BattleContext &bc, Monster &m) {
     } else if (m.id == MonsterId::FAKE_MERCHANT_MONSTER && m.move == 4) {
         // ThrowRelic advertises ThrowRelicDamage but its attack uses SwipeDamage.
         m.intentDamage = bc.ascension >= 9 ? 10 : 9;
+    } else if (m.id == MonsterId::MYSTERIOUS_KNIGHT && m.move == 2) {
+        m.intentDamage = bc.ascension >= 9 ? 10 : 9;
+    } else if (m.id == MonsterId::MYSTERIOUS_KNIGHT && m.move == 3) {
+        m.intentDamage = bc.ascension >= 9 ? 17 : 15;
     }
     if (m.stunned) {
         m.intentType = 8;  // StunIntent
@@ -206,6 +210,32 @@ void roll_intent(BattleContext &bc, Monster &m) {
     }
 }
 
+static bool monster_hp_taken(const BattleContext &bc, int hp, int slot) {
+    for (int i = 0; i < bc.monsterCount; ++i) {
+        if (i == slot) continue;
+        const Monster &o = bc.monsters[i];
+        if (o.id != MonsterId::INVALID && o.alive && o.maxHp == hp) return true;
+    }
+    return false;
+}
+
+// Native Creature.SetUniqueMonsterHpValue: uniform over MinInitialHp..
+// MaxInitialHp on RunState.Rng.Niche, excluding MaxHp values already present on
+// the same side. Every value taken falls back to a plain uniform draw.
+static int roll_monster_hp(BattleContext &bc, int lo, int hi, int slot) {
+    int available = 0;
+    for (int v = lo; v <= hi; ++v) {
+        if (!monster_hp_taken(bc, v, slot)) ++available;
+    }
+    if (available == 0) return bc.nicheRng.next_int_range(lo, hi + 1);
+    int k = bc.nicheRng.next_int_range(0, available);
+    for (int v = lo; v <= hi; ++v) {
+        if (monster_hp_taken(bc, v, slot)) continue;
+        if (k-- == 0) return v;
+    }
+    return lo;
+}
+
 static void spawn_at(BattleContext &bc, MonsterId id, int slot,
                      int forcedInitialState = -1) {
     if (slot < 0 || slot >= MAX_MONSTERS) return;
@@ -216,7 +246,7 @@ static void spawn_at(BattleContext &bc, MonsterId id, int slot,
     if (id == MonsterId::WATERFALL_GIANT) m.aux[2] = bc.ascension >= 9 ? 23 : 20;
     const MonsterDef &def = monster_def(id);
     const int asc = bc.ascension >= 8 ? 1 : 0;
-    m.maxHp = m.hp = bc.monsterAiRng.next_int(def.hpLo[asc], def.hpHi[asc]);
+    m.maxHp = m.hp = roll_monster_hp(bc, def.hpLo[asc], def.hpHi[asc], slot);
     for (int i = 0; i < def.innateCount[asc]; ++i) {
         const MonPowerDef &p = MON_INNATE[def.innateOff[asc] + i];
         power_ref(m, p.id) += bc.ascension >= 9 && p.deadlyAmount >= 0
@@ -261,27 +291,158 @@ void spawn_monster(BattleContext &bc, MonsterId id, int slot) {
     spawn_at(bc, id, slot);
 }
 
-void setup_encounter(BattleContext &bc, Encounter enc) {
+// Replays the native GenerateMonsters draws for encounters whose roster is
+// randomised. Returns the number of monsters written to out, or -1 when the
+// generated pattern table should be used instead.
+static int native_random_roster(Encounter enc, Rng &rng, MonsterId *out) {
+    switch (enc) {
+        case Encounter::SETUP_AXEBOTS_NORMAL:
+            out[0] = MonsterId::AXEBOT;
+            return 1;
+        case Encounter::SETUP_EXOSKELETONS_NORMAL:
+            for (int i = 0; i < 4; ++i) out[i] = MonsterId::EXOSKELETON;
+            return 4;
+        case Encounter::SETUP_EXOSKELETONS_WEAK:
+            for (int i = 0; i < 3; ++i) out[i] = MonsterId::EXOSKELETON;
+            return 3;
+        case Encounter::SETUP_SLUMBERING_BEETLE_NORMAL:
+            out[0] = MonsterId::BOWLBUG_ROCK;
+            out[1] = MonsterId::BOWLBUG_SILK;
+            out[2] = MonsterId::SLUMBERING_BEETLE;
+            return 3;
+        case Encounter::SETUP_TUNNELER_NORMAL:
+            out[0] = MonsterId::CHOMPER;
+            out[1] = MonsterId::TUNNELER;
+            return 2;
+        case Encounter::SETUP_GREMLIN_MERC_NORMAL:
+            out[0] = MonsterId::GREMLIN_MERC;
+            return 1;
+        case Encounter::SETUP_FLYCONID_NORMAL: {
+            // FlyconidNormal: NextItem(_mediumSlimes), then Flyconid.
+            static const MonsterId kMedium[2] = {MonsterId::LEAF_SLIME_M, MonsterId::TWIG_SLIME_M};
+            out[0] = kMedium[rng.next_int(0, 1)];
+            out[1] = MonsterId::FLYCONID;
+            return 2;
+        }
+        case Encounter::SETUP_SLIMES_NORMAL: {
+            // SlimesNormal: NextBool picks which small slime is third.
+            const bool flag = rng.next_bool();
+            out[0] = MonsterId::TWIG_SLIME_M;
+            out[1] = MonsterId::LEAF_SLIME_M;
+            out[2] = flag ? MonsterId::LEAF_SLIME_S : MonsterId::TWIG_SLIME_S;
+            out[3] = flag ? MonsterId::TWIG_SLIME_S : MonsterId::LEAF_SLIME_S;
+            return 4;
+        }
+        case Encounter::SETUP_SLIMES_WEAK: {
+            // Two distinct small slimes (NextItem without replacement), then a
+            // medium slime; native list order is small1, medium, small2.
+            static const MonsterId kSmall[2] = {MonsterId::LEAF_SLIME_S, MonsterId::TWIG_SLIME_S};
+            static const MonsterId kMedium[2] = {MonsterId::LEAF_SLIME_M, MonsterId::TWIG_SLIME_M};
+            const int i1 = rng.next_int(0, 1);
+            out[0] = kSmall[i1];
+            const int i2 = rng.next_int(0, 0);  // one-item list still draws
+            (void)i2;
+            out[2] = kSmall[1 - i1];
+            out[1] = kMedium[rng.next_int(0, 1)];
+            return 3;
+        }
+        case Encounter::SETUP_SLITHERING_STRANGLER_NORMAL: {
+            // NextItem over SecondaryEnemyType
+            // {SnappingJaxfruit, MediumSlime, SmallSlimes}, then Strangler.
+            static const MonsterId kMedium[2] = {MonsterId::LEAF_SLIME_M, MonsterId::TWIG_SLIME_M};
+            static const MonsterId kSmall[2] = {MonsterId::LEAF_SLIME_S, MonsterId::TWIG_SLIME_S};
+            const int type = rng.next_int(0, 2);
+            int n = 0;
+            if (type == 0) {
+                out[n++] = MonsterId::SNAPPING_JAXFRUIT;
+            } else if (type == 1) {
+                out[n++] = kMedium[rng.next_int(0, 1)];
+            } else {
+                out[n++] = kSmall[rng.next_int(0, 1)];
+                out[n++] = kSmall[rng.next_int(0, 1)];
+            }
+            out[n++] = MonsterId::SLITHERING_STRANGLER;
+            return n;
+        }
+        case Encounter::SETUP_BOWLBUGS_NORMAL: {
+            // Rock then two distinct workers from {Egg, Silk, Nectar} in
+            // dictionary declaration order.
+            static const MonsterId kWorkers[3] = {MonsterId::BOWLBUG_EGG, MonsterId::BOWLBUG_SILK,
+                                                  MonsterId::BOWLBUG_NECTAR};
+            MonsterId remaining[2];
+            out[0] = MonsterId::BOWLBUG_ROCK;
+            const int i1 = rng.next_int(0, 2);
+            out[1] = kWorkers[i1];
+            int n = 0;
+            for (int i = 0; i < 3; ++i) {
+                if (i != i1) remaining[n++] = kWorkers[i];
+            }
+            out[2] = remaining[rng.next_int(0, 1)];
+            return 3;
+        }
+        case Encounter::SETUP_BOWLBUGS_WEAK: {
+            static const MonsterId kBugs[2] = {MonsterId::BOWLBUG_EGG, MonsterId::BOWLBUG_NECTAR};
+            out[0] = MonsterId::BOWLBUG_ROCK;
+            out[1] = kBugs[rng.next_int(0, 1)];
+            return 2;
+        }
+        case Encounter::SETUP_RUBY_RAIDERS_NORMAL: {
+            static const MonsterId kRaiders[5] = {
+                MonsterId::AXE_RUBY_RAIDER, MonsterId::ASSASSIN_RUBY_RAIDER,
+                MonsterId::BRUTE_RUBY_RAIDER, MonsterId::CROSSBOW_RUBY_RAIDER,
+                MonsterId::TRACKER_RUBY_RAIDER};
+            MonsterId pool[5];
+            for (int i = 0; i < 5; ++i) pool[i] = kRaiders[i];
+            int n = 5;
+            for (int i = 0; i < 3; ++i) {
+                const int pick = rng.next_int(0, n - 1);
+                out[i] = pool[pick];
+                for (int j = pick; j + 1 < n; ++j) pool[j] = pool[j + 1];
+                --n;
+            }
+            return 3;
+        }
+        default:
+            return -1;
+    }
+}
+
+void setup_encounter(BattleContext &bc, Encounter enc, Rng *encounterRng) {
     bc.monsterCount = 0;
     bc.encounter = enc;
     const int ei = static_cast<int>(enc);
     if (ei <= 0 || ei >= static_cast<int>(Encounter::COUNT)) return;
     const EncounterDef &ed = ENCOUNTER_DEFS[ei];
-    int total = 0;
-    for (int i = 0; i < ed.patternCount; ++i) total += ENC_PATTERNS[ed.patternOff + i].weight;
-    int pick = 0;
-    int roll = bc.monsterAiRng.next_int(0, total > 0 ? total - 1 : 0);
-    for (int i = 0; i < ed.patternCount; ++i) {
-        roll -= ENC_PATTERNS[ed.patternOff + i].weight;
-        if (roll < 0) { pick = i; break; }
-    }
+    // Native EncounterModel.Rng = new Rng(seed + TotalFloor + hash(Id.Entry));
+    // it drives GenerateMonsters roster rolls and correlated starting moves.
+    Rng &setupRng = encounterRng ? *encounterRng : bc.monsterAiRng;
     if (ed.patternCount == 0) {
         spawn_monster(bc, MonsterId::SHRINKER_BEETLE, 0);
         bc.monsterCount = 1;
         return;
     }
-    const EncounterPattern &pat = ENC_PATTERNS[ed.patternOff + pick];
-    bc.monsterCount = std::min<int>(pat.count, MAX_MONSTERS);
+    MonsterId roster[MAX_MONSTERS];
+    int rosterN = native_random_roster(enc, setupRng, roster);
+    if (rosterN < 0) {
+        int total = 0;
+        for (int i = 0; i < ed.patternCount; ++i) total += ENC_PATTERNS[ed.patternOff + i].weight;
+        int pick = 0;
+        // A single observed roster means GenerateMonsters is deterministic;
+        // native consumes no encounter RNG for it.
+        if (ed.patternCount > 1) {
+            int roll = setupRng.next_int(0, total > 0 ? total - 1 : 0);
+            for (int i = 0; i < ed.patternCount; ++i) {
+                roll -= ENC_PATTERNS[ed.patternOff + i].weight;
+                if (roll < 0) { pick = i; break; }
+            }
+        }
+        const EncounterPattern &pat = ENC_PATTERNS[ed.patternOff + pick];
+        rosterN = std::min<int>(pat.count, MAX_MONSTERS);
+        for (int i = 0; i < rosterN; ++i)
+            roster[i] = static_cast<MonsterId>(pat.ids[i]);
+    }
+    rosterN = std::min(rosterN, MAX_MONSTERS);
+    bc.monsterCount = rosterN;
     int forcedInitial[MAX_MONSTERS];
     for (int i = 0; i < MAX_MONSTERS; ++i) forcedInitial[i] = -1;
 
@@ -290,8 +451,20 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
     if (enc == Encounter::SETUP_CHOMPERS_NORMAL) {
         forcedInitial[0] = 0;  // CLAMP_MOVE
         forcedInitial[1] = 1;  // SCREECH_MOVE
+    } else if (enc == Encounter::SETUP_TUNNELER_NORMAL) {
+        // TunnelerNormal.GenerateMonsters: Chomper.ScreamFirst = true.
+        forcedInitial[0] = 1;  // SCREECH_MOVE
     } else if (enc == Encounter::SETUP_DECIMILLIPEDE_ELITE) {
-        const int first = bc.monsterAiRng.next_int(0, 2);
+        const int first = setupRng.next_int(0, 2);
+        // StarterMoveIdx 0/1/2 = WRITHE/BULK/CONSTRICT, but the port's state
+        // table stores WRITHE, CONSTRICT, BULK in that order.
+        static const int kStarter[3] = {0, 2, 1};
+        for (int i = 0; i < 3; ++i) forcedInitial[i] = kStarter[(first + i) % 3];
+    } else if (enc == Encounter::SETUP_CORPSE_SLUGS_NORMAL ||
+               enc == Encounter::SETUP_CORPSE_SLUGS_WEAK) {
+        // CorpseSlug.EnsureCorpseSlugsStartWithDifferentMoves: one encounter
+        // draw, then WHIP_SLAP/GLOMP/GOOP rotated across the three slugs.
+        const int first = setupRng.next_int(0, 2);
         for (int i = 0; i < 3; ++i) forcedInitial[i] = (first + i) % 3;
     } else if (enc == Encounter::SETUP_INKLETS_NORMAL) {
         forcedInitial[0] = 0;  // JAB_MOVE
@@ -301,14 +474,14 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
         forcedInitial[0] = 1;  // STRONG_PUNCH_MOVE
         forcedInitial[1] = 0;  // READY_MOVE
     } else if (enc == Encounter::SETUP_SCROLLS_OF_BITING_NORMAL) {
-        const int first = bc.monsterAiRng.next_int(0, 2);
+        const int first = setupRng.next_int(0, 2);
         for (int i = 0; i < 3; ++i) forcedInitial[i] = (first + i) % 3;
         forcedInitial[3] = 2;  // MORE_TEETH
     } else if (enc == Encounter::SETUP_SCROLLS_OF_BITING_WEAK) {
-        const int first = bc.monsterAiRng.next_int(0, 2);
+        const int first = setupRng.next_int(0, 2);
         for (int i = 0; i < 3; ++i) forcedInitial[i] = (first + i) % 3;
     } else if (enc == Encounter::SETUP_TWO_TAILED_RATS_NORMAL) {
-        const int first = bc.monsterAiRng.next_int(0, 2);
+        const int first = setupRng.next_int(0, 2);
         // StarterMoveIndex 0/1/2 maps to SCRATCH/DISEASE_BITE/SCREECH.
         for (int i = 0; i < 3; ++i) forcedInitial[i] = (first + i) % 3 + 1;
     } else if (enc == Encounter::SETUP_THE_KIN_BOSS) {
@@ -316,8 +489,8 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
         forcedInitial[1] = 0;  // QUICK_SLASH_MOVE
     }
 
-    for (int i = 0; i < pat.count && i < MAX_MONSTERS; ++i) {
-        spawn_at(bc, static_cast<MonsterId>(pat.ids[i]), i, forcedInitial[i]);
+    for (int i = 0; i < rosterN; ++i) {
+        spawn_at(bc, roster[i], i, forcedInitial[i]);
     }
 
     if (enc == Encounter::SETUP_DECIMILLIPEDE_ELITE) {
@@ -342,12 +515,22 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
             m.maxHp = m.hp = hp;
             seen[seenN++] = hp;
         }
+    } else if (enc == Encounter::SETUP_MYSTERIOUS_KNIGHT) {
+        // FlailKnight.MinInitialHp: 101, 108 at A8+.
+        const int hp = bc.ascension >= 8 ? 108 : 101;
+        for (int i = 0; i < bc.monsterCount; ++i) {
+            if (bc.monsters[i].id != MonsterId::MYSTERIOUS_KNIGHT) continue;
+            bc.monsters[i].maxHp = hp;
+            bc.monsters[i].hp = hp;
+        }
     } else if (enc == Encounter::SETUP_PUNCH_OFF) {
         const int maxHp = bc.ascension >= 8 ? 60 : 55;
         for (int i = 0; i < bc.monsterCount; ++i) {
             Monster &m = bc.monsters[i];
             if (m.id != MonsterId::PUNCH_CONSTRUCT) continue;
-            const int reduction = bc.monsterAiRng.next_int(2, 10);
+            // C#: PunchOffEventEncounter.GenerateMonsters uses the encounter
+            // RNG: base.Rng.NextInt(2, 10), upper bound exclusive.
+            const int reduction = setupRng.next_int(2, 9);
             m.maxHp = maxHp;
             m.hp = maxHp - reduction;
         }
@@ -359,6 +542,11 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
                 bc.monsters[i].block += 13;
             }
         }
+    }
+    if (enc == Encounter::SETUP_AEONGLASS_BOSS) {
+        // Aeonglass.AfterAddedToRoom: 6-card WitheringPresence on each
+        // opponent, then Artifact 3 on itself (the innate table).
+        bc.add_player_power(PowerId::WITHERING_PRESENCE, 6);
     }
 }
 
@@ -387,9 +575,36 @@ static void apply_monster_power(Monster &m, PowerId id, int amount) {
     }
     if (id == PowerId::ILLUSION && amount > 0 && power_ref(m, PowerId::MINION) <= 0)
         power_ref(m, PowerId::MINION) = 1;
+    if (id == PowerId::RITUAL && amount > 0) m.ritualJustApplied = true;
+}
+
+static void wither_fake_upgrade(Card &card) {
+    if (card.id == CardId::WITHER) ++card.fakeUpgradeLevel;
 }
 
 static void perform_ops(BattleContext &bc, Monster &m, int selfIdx, const MonStateDef &st, int asc) {
+    // Aeonglass.IncreasingIntensityMove: fake-upgrade every Wither in combat,
+    // add WitherAmount new ones marked at the new level, then gain
+    // (base + accumulated) Strength and accumulate one more point.
+    if (m.id == MonsterId::AEONGLASS && st.auxCode == 5) {
+        for (int i = 0; i < bc.handCount; ++i) wither_fake_upgrade(bc.hand[i]);
+        for (int i = 0; i < bc.drawCount; ++i) wither_fake_upgrade(bc.draw[i]);
+        for (int i = 0; i < bc.discardCount; ++i) wither_fake_upgrade(bc.discard[i]);
+        for (int i = 0; i < bc.exhaustCount; ++i) wither_fake_upgrade(bc.exhaust[i]);
+        for (int i = 0; i < bc.playCount; ++i) wither_fake_upgrade(bc.playPile[i]);
+        for (int i = 0; i < bc.returnNextTurnCount; ++i) wither_fake_upgrade(bc.returnNextTurn[i]);
+        ++m.aux[1];
+        const int amount = bc.ascension >= 9 ? 2 : 1;
+        for (int i = 0; i < amount; ++i) {
+            Card c = make_card(CardId::WITHER, false, bc.require_card_uid());
+            c.fakeUpgradeLevel = static_cast<std::uint8_t>(m.aux[1]);
+            bc.add_card_to_discard(c);
+        }
+        const int base = bc.ascension >= 9 ? 4 : 3;
+        apply_monster_power(m, PowerId::STRENGTH, base + m.aux[0]);
+        ++m.aux[0];
+        return;
+    }
     for (int i = 0; i < st.opN[asc]; ++i) {
         const MonOpDef &op = MON_OPS[st.opOff[asc] + i];
         const bool useDeadly = bc.ascension >= 9 && op.deadlyAmount >= 0;
@@ -603,6 +818,11 @@ void monster_act(BattleContext &bc, Monster &m) {
                 damage = m.aux[2];
             else if (m.id == MonsterId::FAKE_MERCHANT_MONSTER && local == 4)
                 damage = bc.ascension >= 9 ? 15 : 13;
+            // FlailKnight FlailDamage/RamDamage (MysteriousKnight inherits).
+            else if (m.id == MonsterId::MYSTERIOUS_KNIGHT && local == 2)
+                damage = bc.ascension >= 9 ? 10 : 9;
+            else if (m.id == MonsterId::MYSTERIOUS_KNIGHT && local == 3)
+                damage = bc.ascension >= 9 ? 17 : 15;
             for (int h = 0; h < hits; ++h) {
                 if (bc.outcome != Outcome::UNDECIDED) break;
                 bc.monster_attack_player(selfIdx, damage);
@@ -708,7 +928,14 @@ void monster_act(BattleContext &bc, Monster &m) {
 
     // AI counter side effects (see MonStateDef::auxCode).
     switch (st.auxCode) {
-        case 1: ++m.aux[0]; break;
+        case 1:
+            if (m.id == MonsterId::KNOWLEDGE_DEMON &&
+                m.aux[0] >= 0 && m.aux[0] <= 2) {
+                bc.knowledgeCursePending = true;
+                bc.knowledgeCurseIndex = static_cast<std::int8_t>(m.aux[0]);
+            }
+            ++m.aux[0];
+            break;
         case 2: m.aux[0] = 1; break;
         case 3: ++m.aux[1]; break;
         case 4: {
@@ -737,8 +964,7 @@ void monster_act(BattleContext &bc, Monster &m) {
     int next = st.follow == 255 ? local : st.follow;
     m.move = static_cast<std::uint8_t>(resolve_state(bc, m, selfIdx, next));
 
-    // end-of-turn monster powers
-    if (power_ref(m, PowerId::RITUAL) > 0) m.strength += power_ref(m, PowerId::RITUAL);
+    // end-of-turn monster powers (Ritual resolves at the side turn end)
     if (m.alive && power_ref(m, PowerId::TERRITORIAL) > 0) {
         m.strength += power_ref(m, PowerId::TERRITORIAL);
     }

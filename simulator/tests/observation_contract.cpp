@@ -68,6 +68,38 @@ int main() {
         check(public_combat_observation(a) != public_combat_observation(b), "grapple instance amount");
     }
     CHECK_BATTLE(hand[0].bonusDamage, 7);
+    CHECK_BATTLE(draw[0].bonusDamage, 4.5);
+    CHECK_BATTLE(cardsFinishedThisCombat, 3);
+    {
+        BattleContext a = combat(), b = a;
+        a.draw[0] = b.draw[0] = make_card(CardId::THRASH, false, 100);
+        a.draw[1] = b.draw[1] = make_card(CardId::THRASH, false, 101);
+        a.draw[0].bonusDamage = b.draw[0].bonusDamage = 4.5;
+        a.draw[1].bonusDamage = b.draw[1].bonusDamage = 12;
+        std::swap(b.draw[0], b.draw[1]);
+        a.knownTopCount = b.knownTopCount = 0;
+        check(public_combat_observation(a) == public_combat_observation(b), "growth cards hidden order invariant");
+        for (auto *state : {&a, &b}) {
+            state->drawCount = 2;
+            state->knownTopCount = 1;
+        }
+        check(public_combat_observation(a) != public_combat_observation(b), "known top growth is distinguished");
+        a.knownTopCount = b.knownTopCount = 0;
+        a.draw[0] = b.draw[0]; a.draw[1] = b.draw[1];
+        a.draw[0].costThisTurn = b.draw[0].costThisTurn = true;
+        a.draw[0].storedCost = 1; b.draw[0].storedCost = 2;
+        check(public_combat_observation(a) != public_combat_observation(b), "temporary pile cost restoration");
+        a.discardCount = b.discardCount = 1;
+        a.discard[0] = b.discard[0] = a.draw[1];
+        a.draw[0] = b.draw[0];
+        b.discard[0].bonusDamage += 2.5;
+        check(public_combat_observation(a) != public_combat_observation(b), "discard growth is distinguished");
+        a.discard[0] = b.discard[0];
+        a.exhaustCount = b.exhaustCount = 1;
+        a.exhaust[0] = b.exhaust[0] = a.draw[1];
+        b.exhaust[0].replay = 2;
+        check(public_combat_observation(a) != public_combat_observation(b), "exhaust replay is distinguished");
+    }
     CHECK_BATTLE(hand[0].etherealThisCombat, true);
     CHECK_BATTLE(hand[0].retainThisCombat, true);
     CHECK_BATTLE(hand[0].combatCostCap, 1);
@@ -172,6 +204,24 @@ int main() {
         check(combat_action_features(a, action) != combat_action_features(b, action), "discard-any action encoding");
     }
     CHECK_RUN(rewardIsBoss, true);
+    CHECK_RUN(actTypes[0], ActType::UNDERDOCKS);
+    CHECK_RUN(goldenPathAct, 1);
+    CHECK_RUN(unknownMapPointsVisited, 2);
+    CHECK_RUN(nativeProgress.numberOfRuns, 10);
+    CHECK_RUN(paelsToothCount, 1);
+    CHECK_RUN(pendingRelicObtainCount, 1);
+    {
+        RunContext a; a.init(123u, 0); RunContext b = a;
+        a.paelsToothCount = b.paelsToothCount = 1;
+        a.paelsToothCards[0] = b.paelsToothCards[0] = a.deck[0];
+        b.paelsToothCards[0].bonusDamage = 7;
+        check(public_observation(a) != public_observation(b), "Pael stored card state");
+        a.paelsToothCards[0] = b.paelsToothCards[0];
+        a.pendingRelicObtainCount = b.pendingRelicObtainCount = 1;
+        a.pendingRelicObtains[0] = static_cast<int>(RelicId::POMANDER);
+        b.pendingRelicObtains[0] = static_cast<int>(RelicId::YUMMY_COOKIE);
+        check(public_observation(a) != public_observation(b), "queued relic identity");
+    }
     CHECK_RUN(potionSlots, 4);
     CHECK_RUN(teaSetPending, true);
     CHECK_RUN(cardsAdded, 5);
@@ -192,7 +242,15 @@ int main() {
     CHECK_RUN(deck[0].guiltyCombatsSeen, 3);
     CHECK_RUN(deck[0].enchantment, EnchantmentId::SOWN);
     CHECK_RUN(deck[0].enchantmentAmount, 1);
-    CHECK_RUN(bossEncounter, static_cast<int>(Encounter::SETUP_THE_KIN_BOSS));
+    {
+        RunContext a; a.init(123u, 0);
+        RunContext b = a;
+        const int kin = static_cast<int>(Encounter::SETUP_THE_KIN_BOSS);
+        b.bossEncounter = a.bossEncounter == kin
+            ? static_cast<int>(Encounter::SETUP_CEREMONIAL_BEAST_BOSS) : kin;
+        check(a.bossEncounter != b.bossEncounter, "bossEncounter fixture changes identity");
+        check(public_observation(a) != public_observation(b), "bossEncounter");
+    }
     CHECK_RUN(secondBossEncounter, static_cast<int>(Encounter::SETUP_VANTOM_BOSS));
     {
         RunContext a; a.init(123u, 0); RunContext b = a;

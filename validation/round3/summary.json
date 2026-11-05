@@ -1,0 +1,86 @@
+{
+  "status": "round3_targeted_rules_passed",
+  "native_parity_complete": false,
+  "engine": {
+    "version": 2,
+    "ruleset_id": "native-41cef1ea-port-v3",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "c442e2f1357ae8208812506c5b6f839464aa7d8a587ae834e4b18ba2b5898004",
+    "source_content_sha256": "11d47de0b93023d742e1a849ba6a66bff050125b86ad4586c40a12610f353c72",
+    "id_layout_sha256": "00983f8954c1d63f24aabdabdc837051500ce3da81c056092f1a03f052bb42f5",
+    "schema_layout_sha256": "f34bfac2022b7d6844db4fee6ad1c8e23565069d72eb997747cc18ae4dbb9795",
+    "dimensions": {
+      "RUN_OBS_DIM": 238,
+      "CARD_FEAT_DIM": 251,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 343,
+      "PUBLIC_OBS_DIM": 46079,
+      "PUBLIC_COMBAT_OBS_DIM": 29688,
+      "PUBLIC_OBS_VERSION": 12,
+      "ACTION_SCHEMA_VERSION": 11,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 223
+    },
+    "boundaries": {
+      "PUBLIC_RUN_DIM": 16391,
+      "PUB_RUN_BOSS_OFFSET": 3855,
+      "PUB_RUN_EXTENSION": 395
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac",
+      "agent/armg.py": "75bd943f228a0eb5ee734b75a205071d7838e575bc90b87755526ca7c46720dd",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "native_dynamic_fixtures_this_round": {
+    "native-round3-card-fixtures": 70,
+    "native-round3-relic-fixtures": 26,
+    "native-round3-event-fixtures": 57
+  },
+  "native_dynamic_fixtures_total_this_round": 153,
+  "metadata": {
+    "native_models_exported": 596,
+    "native_base_and_upgrade_variants": 1192,
+    "compiled_card_entries_excluding_invalid": 222,
+    "compiled_native_matches": 221,
+    "absent_native_card_excluded": "GRAPPLE",
+    "existing_card_records_corrected": 62,
+    "appended_cards": [
+      "NOT_YET"
+    ]
+  },
+  "coverage": {
+    "ordinary_event_source_reviewed": 23,
+    "relic_classes_reviewed": 30,
+    "card_scope": "metadata plus targeted effects; not all card combinations"
+  },
+  "cpp_regression_programs": 23,
+  "cpp_regression_failures": 0,
+  "card_differential_checks": 3996,
+  "python_selected_tests": 113,
+  "python_result": "113 passed in 7.19s",
+  "snapshot_checks": 6742,
+  "hidden_resamplings": 6000,
+  "benchmark": "runs=1000 completed=1000 truncated=0 errors=0 seconds=9.059 runs_per_s=110.4 avg_floor=9.6 win_rate=0.000 combats=5572\ninit=8.88ms/run combat=0.090s (85095 steps, 1.1 us/step) other=0.09ms/run\n",
+  "benchmark_scope": "greedy engine smoke, not neural-network/MCTS training throughput or strategy strength",
+  "training_this_round": false,
+  "old_checkpoint_loading": "prior schemas rejected; no reviewed migration into new NotYet card vocabulary yet",
+  "original_weight_unchanged": true,
+  "original_weight_sha256": "cfcb115024b0b0a222b88bf0033ef55e1e7b3cf667194c9dbba36b923180b91c",
+  "source_patch": "validation/round3/native-rules-port-v3.patch",
+  "remaining_reports": [
+    "validation/round3/cards-audit.json",
+    "validation/round3/relics-audit.json",
+    "validation/round3/events-audit.json"
+  ],
+  "remaining": [
+    "ToyBox wax relic lifecycle; SeaGlass/LeadPaperweight real reward choices; DustyTome generation",
+    "DreamCatcher/BoneTea/FakeVenerableTeaSet/Byrdpip hooks",
+    "CrimsonMantle/Inferno per-application self-damage state; MadScience configured card state; cross-character pools",
+    "Wongos shop/progress filters; Reflections/Wongos downgrade storedCost",
+    "complete account epoch filters, missing events/bosses, full-run same-seed native differential",
+    "native bridge complex active grids/Pael scope/UI validation; old checkpoint explicit new-schema migration"
+  ]
+}

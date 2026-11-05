@@ -80,6 +80,32 @@ def cstr(s: str) -> str:
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
+# EncounterModel.Models derive their Id.Entry from StringHelper.Slugify(class
+# name). Reference-engine setup names usually match the class name, but event
+# encounters carry an EVENT (and sometimes ENCOUNTER) infix, and the aligned
+# build has no DoormakerBoss / ToadpolesNormal class.
+_EVENT_ENCOUNTER_ENTRIES = {
+    "setup_battleworn_dummy_v1": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+    "setup_battleworn_dummy_v2": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER",
+    "setup_battleworn_dummy_v3": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER",
+    "setup_dense_vegetation": "DENSE_VEGETATION_EVENT_ENCOUNTER",
+    "setup_fake_merchant": "FAKE_MERCHANT_EVENT_ENCOUNTER",
+    "setup_mysterious_knight": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER",
+    "setup_punch_off": "PUNCH_OFF_EVENT_ENCOUNTER",
+    "setup_the_architect": "THE_ARCHITECT_EVENT_ENCOUNTER",
+}
+_NON_NATIVE_ENCOUNTERS = {"setup_doormaker_boss", "setup_toadpoles_normal"}
+
+
+def native_encounter_entry(name: str) -> str | None:
+    if name in _NON_NATIVE_ENCOUNTERS:
+        return None
+    if name in _EVENT_ENCOUNTER_ENTRIES:
+        return _EVENT_ENCOUNTER_ENTRIES[name]
+    prefix = "setup_"
+    return name[len(prefix):].upper() if name.startswith(prefix) else None
+
+
 def main() -> None:
     data = json.loads(SRC.read_text(encoding="utf-8"))
     monsters = data["monsters"]
@@ -91,7 +117,11 @@ def main() -> None:
     if len(tag_names) > 16:
         raise ValueError("encounter tag mask exceeds 16 bits")
     tag_bits = {name: 1 << i for i, name in enumerate(tag_names)}
-    ids = sorted(monsters)
+    append_monsters = ("AEONGLASS",)
+    ids = [name for name in sorted(monsters) if name not in append_monsters]
+    # New content is appended so every existing enum value (and therefore
+    # snapshot/checkpoint identity) stays stable across regeneration.
+    ids += [name for name in append_monsters if name in monsters]
     index = {name: i + 1 for i, name in enumerate(ids)}
 
     # encounters: merge the A0/A8 probes, keeping distinct roster patterns
@@ -101,7 +131,17 @@ def main() -> None:
             continue
         name = key[:-3]
         encs[name] = info
-    enc_order = sorted(encs, key=lambda n: (encs[n]["act"], n))
+    append_encounters = ("setup_aeonglass_boss",)
+    enc_order = [n for n in sorted(encs, key=lambda n: (encs[n]["act"], n))
+                 if n not in append_encounters]
+    # Current native 41cef1ea has this Underdocks encounter; the historical
+    # extracted table did not. Append to preserve every existing encounter ID.
+    encs["setup_seapunk_normal"] = {
+        "act": "act4", "rosters": [[["CALCIFIED_CULTIST", "SEAPUNK"], 1]]
+    }
+    encounter_tags["setup_seapunk_normal"] = ["Seapunk"]
+    enc_order.append("setup_seapunk_normal")
+    enc_order += [name for name in append_encounters if name in encs]
     enc_index = {n: i + 1 for i, n in enumerate(enc_order)}
 
     intents = []
@@ -161,6 +201,8 @@ def main() -> None:
                     aux_code = 3
                 elif upper == "RESPAWN_MOVE":
                     aux_code = 4
+                elif upper == "INCREASING_INTENSITY_MOVE":
+                    aux_code = 5
                 intent_off = [0, 0]
                 intent_n = [0, 0]
                 a9 = deadly_damage.get(mid, {}).get(sname, -1)
@@ -358,10 +400,13 @@ def main() -> None:
     lines.append("};")
 
     lines.append("constexpr EncounterDef ENCOUNTER_DEFS[] = {")
-    lines.append("    {nullptr, 0, 0, 0, 0},")
+    lines.append("    {nullptr, 0, 0, 0, 0, nullptr},")
     for _tag, ename, act, poff, pnum in [d for d in defs if d[0] == "__enc__"]:
         tags = sum(tag_bits[tag] for tag in encounter_tags.get(ename, []))
-        lines.append("    {%s, %d, %d, %d, %d}," % (cstr(ename.upper()), act, poff, pnum, tags))
+        entry = native_encounter_entry(ename)
+        lines.append("    {%s, %d, %d, %d, %d, %s}," %
+                     (cstr(ename.upper()), act, poff, pnum, tags,
+                      cstr(entry) if entry else "nullptr"))
     lines.append("};")
 
     lines.append("static_assert(sizeof(MONSTER_DEFS) / sizeof(MONSTER_DEFS[0]) =="

@@ -1,0 +1,130 @@
+{
+  "status": "passed",
+  "engine_contract": {
+    "version": 2,
+    "ruleset_id": "native-41cef1ea-port-v2",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+    "source_content_sha256": "3d7f31cf52bbd9f94246a0d95ff616ef48f7d498bf39d69282c399a2cd84d25c",
+    "id_layout_sha256": "fd0bacc6f8d55ba605dd91e23950d6c282fe6641be9d0757c09800504762233a",
+    "schema_layout_sha256": "25c9c9606cc0d53f51cb6c0cd1fab5c24f34da5e33f11a8951963338f44f3ebc",
+    "dimensions": {
+      "RUN_OBS_DIM": 237,
+      "CARD_FEAT_DIM": 250,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 342,
+      "PUBLIC_OBS_DIM": 46023,
+      "PUBLIC_COMBAT_OBS_DIM": 29651,
+      "PUBLIC_OBS_VERSION": 11,
+      "ACTION_SCHEMA_VERSION": 10,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 222
+    },
+    "boundaries": {
+      "PUBLIC_RUN_DIM": 16372,
+      "PUB_RUN_BOSS_OFFSET": 3846,
+      "PUB_RUN_EXTENSION": 395
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac",
+      "agent/armg.py": "edb75c6d69b3a07d6d8b39e6aa6735350988716e2055d9dc6bad24df59dd4f4f",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "initial_checkpoint": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/weights/armg-native-port-v2-init.pt",
+  "initial_sha256": "bc6af615c4612bf5eb9414e5c1e5884e484c499230b0e8ac47976b8d8412aff9",
+  "final_checkpoint": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round2/puct-training-smoke-fixed/latest.pt",
+  "final_sha256": "d51cf8ce9fc089db80b3da78fe4c8b04cda8014bcbc91d9accc76e6116e145e9",
+  "strict_model_reload": true,
+  "strict_combat_prior_reload": true,
+  "source_weight_unchanged": true,
+  "training_games": 2,
+  "validation_games_not_training": 1,
+  "training_seed_base": 10330000,
+  "validation_seed_base": 20300000,
+  "max_abs_parameter_change": {
+    "net.0.weight": 0.0003000013530254364,
+    "net.0.bias": 0.00029999949038028717,
+    "net.2.weight": 0.00030000507831573486,
+    "net.2.bias": 0.0003000013530254364,
+    "net.4.weight": 0.00030000507831573486,
+    "net.4.bias": 4.009157419204712e-05
+  },
+  "optimizer_steps": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "initial_target_environment_games": 0,
+  "final_target_environment_games": 2,
+  "metrics": {
+    "games": 2,
+    "train": {
+      "runs": 2,
+      "completed": 2,
+      "truncated": 0,
+      "errors": 0,
+      "cycle_recoveries": 0,
+      "runs_with_recovery": 0,
+      "mcts_searches": 155,
+      "mcts_simulations": 1240,
+      "mean_floor": 13.5,
+      "win_rate": 0.0,
+      "normal_decisions": 155,
+      "boss_decisions": 0,
+      "normal_simulations": 1240,
+      "boss_simulations": 0,
+      "elite_decisions": 29,
+      "elite_simulations": 232
+    },
+    "baseline": 0.2994,
+    "loss": -0.8181052729487419,
+    "site_prior": {
+      "enabled": false,
+      "strength": 0.0
+    },
+    "seconds": 1.512,
+    "validation": {
+      "runs": 1,
+      "completed": 1,
+      "truncated": 0,
+      "errors": 0,
+      "cycle_recoveries": 0,
+      "runs_with_recovery": 0,
+      "mcts_searches": 133,
+      "mcts_simulations": 1064,
+      "mean_floor": 17.0,
+      "win_rate": 0.0,
+      "normal_decisions": 108,
+      "boss_decisions": 25,
+      "normal_simulations": 864,
+      "boss_simulations": 200,
+      "elite_decisions": 0,
+      "elite_simulations": 0
+    }
+  },
+  "conditions": {
+    "simulations_per_nonforced_root": 8,
+    "floor_increment": 0,
+    "combat_prior": "frozen random untrained network",
+    "website_prior": "disabled",
+    "information": "oracle",
+    "reproduces_colleague_training_configuration": false
+  },
+  "prior_failure": {
+    "directory": "validation/round2/puct-training-smoke",
+    "training_games": 0,
+    "cause": "old combat classification guard required observation schema 10",
+    "fix": "schema11 public native combat prefix validated, elite/boss mutual exclusion checked"
+  },
+  "limits": [
+    "A pipeline smoke test, not a strength estimate or native parity proof.",
+    "Two training games ended in death; validation reached first boss floor and died.",
+    "The real original trained combat prior and website snapshot remain unavailable."
+  ]
+}

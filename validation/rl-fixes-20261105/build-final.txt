@@ -1,0 +1,36 @@
+[0/2] Re-checking globbed directories...
+[1/36] Linking CXX executable sts2_scroll_boxes_test.exe
+[2/36] Linking CXX executable sts2_hidden_resampling_test.exe
+[3/36] Linking CXX executable sts2_mcts_test.exe
+[4/36] Linking CXX executable sts2_native_card_alignment_test.exe
+[5/36] Linking CXX executable sts2_native_seed_integration_test.exe
+[6/36] Linking CXX executable sts2_native_run_alignment_test.exe
+[7/36] Linking CXX executable sts2_native_rng_contract_test.exe
+[8/36] Linking CXX executable sts2_native_relic_round2_alignment_test.exe
+[9/36] Linking CXX executable sts2_native_act_alignment_test.exe
+[10/36] Linking CXX executable sts2_native_underdocks_events_test.exe
+[11/36] Linking CXX executable sts2_native_event_oracle_alignment_test.exe
+[12/36] Linking CXX executable sts2_native_relic_round3_alignment_test.exe
+[13/36] Linking CXX executable sts2_native_card_round3_alignment_test.exe
+[14/36] Linking CXX executable sts2_native_event_round3_alignment_test.exe
+[15/36] Linking CXX executable sts2_native_step1_self_damage_test.exe
+[16/36] Linking CXX executable sts2_native_round3_shared_alignment_test.exe
+[17/36] Linking CXX executable sts2_native_step1_downgrade_test.exe
+[18/36] Linking CXX executable sts2_native_step1_relic_replace_test.exe
+[19/36] Linking CXX executable sts2_native_step1_state_contract_test.exe
+[20/36] Linking CXX executable sts2_native_step2_defect_test.exe
+[21/36] Linking CXX executable sts2_native_step2_card_rewards_test.exe
+[22/36] Linking CXX executable sts2_native_step2_persistent_test.exe
+[23/36] Linking CXX executable sts2_native_step2_necrobinder_test.exe
+[24/36] Linking CXX executable sts2_native_step2_relic_lifecycle_test.exe
+[25/36] Linking CXX executable sts2_native_step2_silent_test.exe
+[26/36] Linking CXX executable sts2_relic_shared_round5_test.exe
+[27/36] Linking CXX executable sts2_multiplayer_cards_test.exe
+[28/36] Linking CXX executable sts2_character_potions_test.exe
+[29/36] Linking CXX executable sts2_quest_cards_test.exe
+[30/36] Linking CXX executable sts2_knowledge_curse_test.exe
+[31/36] Linking CXX executable sts2_potion_coverage_round7_test.exe
+[32/36] Linking CXX executable sts2_relic_coverage_round7_test.exe
+[33/36] Linking CXX executable sts2_relic_event_audit_test.exe
+[34/36] Linking CXX executable sts2_audit_rl_regressions_test.exe
+[35/36] Linking CXX shared module D:\sts2_datacollection\sts2-workspace_YE\artifacts\dev\cpp-native-aligned-20261031\simulator\sts2_sim.cp312-win_amd64.pyd

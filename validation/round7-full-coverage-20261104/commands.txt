@@ -1,0 +1,12 @@
+# Local Windows/MSVC evidence for round 7 (2026-11-04).
+# Reference: native v0.111.0 / 41cef1ea. Local DLL 0861bfa1..., target 9cb4f1ad... unavailable.
+# Build (Ninja, Release, tests compiled with /UNDEBUG):
+C:\Users\15808\.claude\jobs\0dee285a\tmp\build.bat
+# C++ tests:
+D:/sts2_datacollection/sts2/.venv/Lib/site-packages/cmake/data/bin/ctest.exe --test-dir simulator/build-win --output-on-failure
+# Artifact Python tests:
+D:/sts2_datacollection/sts2/.venv/Scripts/python.exe -m pytest tests -q
+# Five-character smoke (25 runs, JSON in smoke-5char-5seeds.json):
+D:/sts2_datacollection/sts2/.venv/Scripts/python.exe scripts/five_character_smoke.py --seeds 5
+# Coverage inventory (rewrites docs/content-inventory-20261104.{md,json}):
+D:/sts2_datacollection/sts2/.venv/Scripts/python.exe scripts/content_inventory.py

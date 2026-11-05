@@ -1,0 +1,476 @@
+{
+  "base_ruleset": "native-41cef1ea-port-v3",
+  "new_ruleset": "native-41cef1ea-port-v4",
+  "patch_kind": "incremental_against_step1_source_before",
+  "files": [
+    {
+      "path": "AGENTS.md",
+      "status": "modified",
+      "sha256": "5c0dfe4c5c046cd3b5ea32bb4548674fad297d5cb3bce81df603d39de9b81b55"
+    },
+    {
+      "path": "PORT_SOURCE.json",
+      "status": "modified",
+      "sha256": "0778e2cfcb6a9cf690571f144e3b2bd40ec7888460ce9f9c68caa501b6a0c7fc"
+    },
+    {
+      "path": "PORT_STATUS.md",
+      "status": "modified",
+      "sha256": "4303be17558cf20b06577395c3dfdd386355ef0e41d59f45a7aef55ac53d7f84"
+    },
+    {
+      "path": "agent/armg_train.py",
+      "status": "modified",
+      "sha256": "4d3cf1a99d080e9bd89ba4384f6af5a62f7ffb15cd8520d4a346f69e9da21fef"
+    },
+    {
+      "path": "agent/engine_identity.py",
+      "status": "modified",
+      "sha256": "55d9e862252cb3bf3eccb22d7733ee86f9d447740606e43375b81860214d60fa"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "1f2f1b1d3059e48b79a7f3be35e7ef82c5ea7923c0f2e9c1eb59abf342efd48a"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/Directory.Build.props",
+      "status": "added",
+      "sha256": "ac53928a9a97e51adbdeda6fb423568d41c5e31d7d194c33b49594cf7bb889b0"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/README.md",
+      "status": "added",
+      "sha256": "01f53a061cc3de2ac56867bc17f95417136c6448daddf08d7460630d6fb61dd7"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/first-AuditWorker.cs.txt",
+      "status": "added",
+      "sha256": "0f6c4502a08d4b079ae42e1356005354db23a7c9b5b202e20c4a2a1049b31bb1"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/first-invocation.json",
+      "status": "added",
+      "sha256": "191bc0c7b60ad4770c8d4ea23efe80db4975a7928793c0700d6af3fb238c80a3"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/first-results.json",
+      "status": "added",
+      "sha256": "394fda40889fd385cd5f9b910bb619757faca04562d7b1c4510ee5ce02dc7179"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "e94abdd633fbe25a0fbb0adfef55d1c506144b7315c81e1578a6142cbaa45016"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/project.godot",
+      "status": "added",
+      "sha256": "627e0540c0513678056feebecb034615f13344e0b899733a954c7af0a4fd934a"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/results.json",
+      "status": "added",
+      "sha256": "7a41520e70cd010f296dfc1bd9036847d9256d383f98551d5ccedf121c41d20a"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/run-output.txt",
+      "status": "added",
+      "sha256": "b5806267dcb7eee316f600a7c3d3be29dcee4b772daeffc8b7e58a7496211104"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/stale-build-invocation.json",
+      "status": "added",
+      "sha256": "86efae93a90e5071598ffb86fe030751091b999d0d16b3ada7ea71b7a7f21b3e"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/stale-build-results.json",
+      "status": "added",
+      "sha256": "394fda40889fd385cd5f9b910bb619757faca04562d7b1c4510ee5ce02dc7179"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/validate.py",
+      "status": "added",
+      "sha256": "8fb32cb83b361c6a610759b7113391cba1653797ef8f41df6dfdbbcc7ecd7ac2"
+    },
+    {
+      "path": "native-round4-step1-card-fixtures/validation.json",
+      "status": "added",
+      "sha256": "e372300337198fa3b41eb945cbabe483deb61397d8f98c674c6114e629db5a1d"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "d027e9752a1ce1bb7563be46e4de41254f231325eaacce58d0bb739836168e89"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/Directory.Build.props",
+      "status": "added",
+      "sha256": "ac53928a9a97e51adbdeda6fb423568d41c5e31d7d194c33b49594cf7bb889b0"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/README.md",
+      "status": "added",
+      "sha256": "30670c34d78c71eb392f9ab36b47d9ad0d669675c09d0a68db9ec1807286dc4a"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/cpp-validation.json",
+      "status": "added",
+      "sha256": "52046e32bc879b7b7295e70fa6d5adc69754d68583a673bea0eae11dccf846b7"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/first-cpp-failure-test.cpp.txt",
+      "status": "added",
+      "sha256": "43a15afb72498e461bc26e8919bdab919cf5db8bf0d87a60ef5bbe946ffad8a3"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/first-cpp-failure.txt",
+      "status": "added",
+      "sha256": "2dce8507c33fd42a1b014ce701164798c07e03f4451a1754e7952f8a47f8b93a"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "35ce7cb7f0262b25dbf5367fd68c6ab56efedc281cb6333a15f9f594d7708aea"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/project.godot",
+      "status": "added",
+      "sha256": "cd818148b777ad8edcbb9ec581eb5ca0d95d83de13ccca1969a26c7042a2a592"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/results.json",
+      "status": "added",
+      "sha256": "59af59cd910c1e02eb795e5b59a8fa210fd59fbe6bfdd2887a10b29e5e4f1a58"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/run-output.txt",
+      "status": "added",
+      "sha256": "05a5ecf0aaf4a276cc2c9e7fa583aa7270fdb4a8775bbb1fcc81fb6672964413"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round4-step1-downgrade-fixtures/validation.json",
+      "status": "added",
+      "sha256": "c7407b527bd71998e74a9910a417b1f268f16650e29961f24cec390c6d36faa8"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "08d130defc035857f8a6625d39f16d22c9af578756fec47bcb9f568ed68d9c2a"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/AuditWorker.tscn",
+      "status": "added",
+      "sha256": "c58210dc4465ac980870a240a6b91c2680c8511b9c8fefbfb3368093c1c47a1f"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/README.md",
+      "status": "added",
+      "sha256": "a80ee0e2919d1f6164afe4e8b21816d29d3a1fc73a01819421ccf38f351a8905"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/build.json",
+      "status": "added",
+      "sha256": "e3bc234581b39213c8b2a499ae742829693351c821a6accf81f97c9b948c6a1c"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/build_native.py",
+      "status": "added",
+      "sha256": "f2b47b6e1119f42c6ab295f6d36f25faeaf062fc2d69434e910a0583109da68a"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/invocation.json",
+      "status": "added",
+      "sha256": "696e90d4680f553466bd65a91adac3ed134a75e3f64c3904ee0686c435f26234"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/project.godot",
+      "status": "added",
+      "sha256": "bfced2d5833d80b0d62fb175448ea4ceeedf8347cbbae8db3424e9c55f2e69c4"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/replacement_cases.inc",
+      "status": "added",
+      "sha256": "ea123edd9c49e39ca8be0b31b5e10fe4911f38ddfea7ee8dd00726cf73b483d0"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/results.json",
+      "status": "added",
+      "sha256": "f3308ab698279d6421a8971a63a58bbe5317397d1856ed44d5951491950ec155"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/validate.py",
+      "status": "added",
+      "sha256": "bf70244f3b1ad611f65793cd8e5bd9d6ad609ca7187ed18367420b1d8a217d93"
+    },
+    {
+      "path": "native-round4-step1-relic-fixtures/validation.json",
+      "status": "added",
+      "sha256": "bda1e97d3f4efdff8d5bedb95338f1f52f9fe7c7432f0ae576ea0e9c82fedbd5"
+    },
+    {
+      "path": "scripts/armg_live_worker.py",
+      "status": "modified",
+      "sha256": "7401a9723792b6df1a9f512afc5e945e83e6bd497ef84a0c33bf25bc64016eb8"
+    },
+    {
+      "path": "simulator/CMakeLists.txt",
+      "status": "modified",
+      "sha256": "58ce8999e451d9bcec291756ba01267144c8e5e7ce3fc962d590f0d34ae98d7f"
+    },
+    {
+      "path": "simulator/bindings/bindings.cpp",
+      "status": "modified",
+      "sha256": "4cd8f54909110699f18f0a65a8215e43be0679d9ee77d2908d1cb24d1e6a4b35"
+    },
+    {
+      "path": "simulator/include/sts2/battle.h",
+      "status": "modified",
+      "sha256": "6b1dad996b109170ad893590eaacf46379a4d1ab8b5705b1055bb32933532e07"
+    },
+    {
+      "path": "simulator/include/sts2/common.h",
+      "status": "modified",
+      "sha256": "aaab1b32e44f38fb0cbf796b65b2950e172825038bfa957504d0641b9ba8d441"
+    },
+    {
+      "path": "simulator/include/sts2/observe.h",
+      "status": "modified",
+      "sha256": "16b63b1f729fdfc458622dbeacb8253c856c1d04ca58a0141019f35a89a46cc8"
+    },
+    {
+      "path": "simulator/include/sts2/run.h",
+      "status": "modified",
+      "sha256": "a6b94202b0104f94914fcdbe8d91063b061145bb689b14ce77e5ef5d5b6630d7"
+    },
+    {
+      "path": "simulator/src/battle.cpp",
+      "status": "modified",
+      "sha256": "1b921c1ac8a1315daee780227c48f1d774270db647de37032e4ec602aae27d59"
+    },
+    {
+      "path": "simulator/src/cards.cpp",
+      "status": "modified",
+      "sha256": "3fe9493ada0f44b76cc70b22847e630c47786a526236f2795f6ec37679a1d1fe"
+    },
+    {
+      "path": "simulator/src/cards_ironclad.cpp",
+      "status": "modified",
+      "sha256": "5477284b98a7dd7b84292898ced8724e60961b8ce89eb11e528a0a384187d184"
+    },
+    {
+      "path": "simulator/src/events.cpp",
+      "status": "modified",
+      "sha256": "6f8cbb02b1a06e6f184594ea882f37fd7d047075200e75cc65aeb5e2ad5a6fd8"
+    },
+    {
+      "path": "simulator/src/observe.cpp",
+      "status": "modified",
+      "sha256": "2ca4abecfa9111fb1e49f97b8d57e7fe8923937bd3295809259e1eb9352f2fca"
+    },
+    {
+      "path": "simulator/src/relics.cpp",
+      "status": "modified",
+      "sha256": "691fe29b6db5c9136c1d3bcba4efc938160140af512797c2960a349cf60b7298"
+    },
+    {
+      "path": "simulator/src/run.cpp",
+      "status": "modified",
+      "sha256": "955aafc51549aef765395468045eeb5c07af520a89c5279d33bab54800c7ccd5"
+    },
+    {
+      "path": "simulator/tests/native_seed_integration.cpp",
+      "status": "modified",
+      "sha256": "566ba18190aed36808e6158d0b10ec1858d46953c0763bb1e28b8cd68fa91e24"
+    },
+    {
+      "path": "simulator/tests/native_step1_downgrade.cpp",
+      "status": "added",
+      "sha256": "0a7231fa65e25c2d1a58d1a3732b556f845bc6fc0e59895c2cef3730b82fc187"
+    },
+    {
+      "path": "simulator/tests/native_step1_relic_replace.cpp",
+      "status": "added",
+      "sha256": "831e5edee1cd6db90d19a57e30866871e9c541de44a3f88420c86894c90b894e"
+    },
+    {
+      "path": "simulator/tests/native_step1_self_damage.cpp",
+      "status": "added",
+      "sha256": "c8566b3b007b6002bb60b45e4f801263ecb8cf91bc6337df15a29388e7ca24e9"
+    },
+    {
+      "path": "simulator/tests/native_step1_state_contract.cpp",
+      "status": "added",
+      "sha256": "82cd03d5146e2fe40601f208731b685c2bb1cef3e67b1d59ecce2e9279ca63c6"
+    },
+    {
+      "path": "simulator/tests/rules_regression.cpp",
+      "status": "modified",
+      "sha256": "be03506cc1515a7b69842467a0b7f4404b97f437968afe26890e98f81b3565d3"
+    },
+    {
+      "path": "tests/test_armg_floor_schedule.py",
+      "status": "modified",
+      "sha256": "3fe4f5a4a8dd7a8f7805b558b2e440977b1487c6cf0d5db5eb81c13959aa4554"
+    },
+    {
+      "path": "tests/test_audit_regressions.py",
+      "status": "modified",
+      "sha256": "19ef620a7cc860158e065368fedf1f094fecabbadec3a720be55ab063fc1e86d"
+    },
+    {
+      "path": "tests/test_binding_schema_contract.py",
+      "status": "modified",
+      "sha256": "cd3b1ecd125fc78d28b23fa066a2f8c4074bde2c52d59e3268f4d5a7bbea0b64"
+    },
+    {
+      "path": "tests/test_native_step1_state.py",
+      "status": "added",
+      "sha256": "84ed7f484fe0f720091dbff75b1623be57826ef2a316527ab0950d56e706baa9"
+    },
+    {
+      "path": "validation/round4-step1/benchmark-1000.txt",
+      "status": "added",
+      "sha256": "5955911aff5d2c1da6addb2f057793f2a412c2fd25e1f4a2d2fe3f404c388c4a"
+    },
+    {
+      "path": "validation/round4-step1/bridge-startup.json",
+      "status": "added",
+      "sha256": "d7f77f25234d4baf1e4b53c37ddddce3786fb704bce5220c31e415decee036a9"
+    },
+    {
+      "path": "validation/round4-step1/bridge_startup_check.py",
+      "status": "added",
+      "sha256": "fb03163ac4caa7ee86ed6a3df65004b7846f1f3cf7d010048f8c800bb40b9a58"
+    },
+    {
+      "path": "validation/round4-step1/build.json",
+      "status": "added",
+      "sha256": "13b97a9707acd7bc7dc4dfaad2a714f0e5f8feda3842bcd5854b14d5bc393514"
+    },
+    {
+      "path": "validation/round4-step1/commands.txt",
+      "status": "added",
+      "sha256": "ad5dd6b31e561fdbf11f41a48bbc2032209e6aecfb4eec999772a63ebc96e17a"
+    },
+    {
+      "path": "validation/round4-step1/cpp-run.txt",
+      "status": "added",
+      "sha256": "e8a7b66c6f4e574b858227cbfa3bea09bf1770069cf124295bff3600475fb944"
+    },
+    {
+      "path": "validation/round4-step1/cpp-tests.json",
+      "status": "added",
+      "sha256": "fa317b9769e652f30207d24e7345b5b4bedce11e3dc4d97e91e7e6ccb08111c2"
+    },
+    {
+      "path": "validation/round4-step1/engine-contract.json",
+      "status": "added",
+      "sha256": "3cd44c35ff9ccf693e5e5155513033100f9bfe8e57ec3a0ee7bbf50f386cd38e"
+    },
+    {
+      "path": "validation/round4-step1/export_patch.py",
+      "status": "added",
+      "sha256": "f2e62a89bcc32c1ba2dedbe80d106cdb05f7f48a57ee73b8b7c70bdd6d540210"
+    },
+    {
+      "path": "validation/round4-step1/initial-cpp-run.txt",
+      "status": "added",
+      "sha256": "e8a7b66c6f4e574b858227cbfa3bea09bf1770069cf124295bff3600475fb944"
+    },
+    {
+      "path": "validation/round4-step1/initial-cpp-tests.json",
+      "status": "added",
+      "sha256": "7b5a1c0b7061e858226fe689099304ffe2a506db64c8d21cdc010df10788e306"
+    },
+    {
+      "path": "validation/round4-step1/initial-python-tests.txt",
+      "status": "added",
+      "sha256": "c7caab0f5943105be5602570defad12f69b4735f98a1871bd2d5b137f5b69c7e"
+    },
+    {
+      "path": "validation/round4-step1/prior-evidence-integrity.json",
+      "status": "added",
+      "sha256": "900fb985d581ed1114a477ec86c7f0df6a49df88dbfb6baa44d06d0c10bd6424"
+    },
+    {
+      "path": "validation/round4-step1/python-tests.txt",
+      "status": "added",
+      "sha256": "d26e38a796b31505445eebfd19cb3b470e0b997582debc7f53dbb28e264c2d69"
+    },
+    {
+      "path": "validation/round4-step1/run_cpp_tests.py",
+      "status": "added",
+      "sha256": "0d80f51d3c97b85bcb5928ffeec8a2296b43d5c9137e13fbc6856ded39039013"
+    },
+    {
+      "path": "validation/round4-step1/summary.json",
+      "status": "added",
+      "sha256": "121c9545b4dd0a5c72d28824e2f61181b6d568893d4f47b91c8ee71be3de0da7"
+    }
+  ],
+  "patch_sha256": "0cbae30b44f514c06e09b315e868a472fcae33a8ce796a5aa61104868a6b1dfc",
+  "patch_bytes": 716784,
+  "apply_check": true,
+  "excludes": [
+    "game DLLs",
+    "native host binaries",
+    "weights",
+    "root AGENTS.md"
+  ]
+}

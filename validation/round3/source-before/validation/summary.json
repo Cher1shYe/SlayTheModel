@@ -1,0 +1,79 @@
+{
+  "status": "round2_targeted_rules_and_training_pipeline_passed",
+  "native_parity_complete": false,
+  "engine": {
+    "version": 2,
+    "ruleset_id": "native-41cef1ea-port-v2",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "212402640efd753944306ece0bad85913d07cb3be33f448bb17651a2636cda1a",
+    "source_content_sha256": "3d7f31cf52bbd9f94246a0d95ff616ef48f7d498bf39d69282c399a2cd84d25c",
+    "id_layout_sha256": "fd0bacc6f8d55ba605dd91e23950d6c282fe6641be9d0757c09800504762233a",
+    "schema_layout_sha256": "25c9c9606cc0d53f51cb6c0cd1fab5c24f34da5e33f11a8951963338f44f3ebc",
+    "dimensions": {
+      "RUN_OBS_DIM": 237,
+      "CARD_FEAT_DIM": 250,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 342,
+      "PUBLIC_OBS_DIM": 46023,
+      "PUBLIC_COMBAT_OBS_DIM": 29651,
+      "PUBLIC_OBS_VERSION": 11,
+      "ACTION_SCHEMA_VERSION": 10,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 222
+    },
+    "boundaries": {
+      "PUBLIC_RUN_DIM": 16372,
+      "PUB_RUN_BOSS_OFFSET": 3846,
+      "PUB_RUN_EXTENSION": 395
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "501f84fa96f92c81bda4b10dce5ebfe49978a4517957cc269c9adc81cbea30ac",
+      "agent/armg.py": "edb75c6d69b3a07d6d8b39e6aa6735350988716e2055d9dc6bad24df59dd4f4f",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "native_dynamic_fixtures_this_round": {
+    "native-relic-round2-fixtures": 24,
+    "native-event-round2-fixtures": 15,
+    "native-boundary-fixtures": 9
+  },
+  "cpp_regression_programs": 19,
+  "cpp_regression_failures": 0,
+  "python_interface_selected_tests": 58,
+  "python_identity_bridge_selected_tests": 32,
+  "python_classification_selected_tests": 7,
+  "python_counts_note": "Separate suites; do not sum overlapping selections as unique tests.",
+  "benchmark": "runs=1000 completed=1000 truncated=0 errors=0 seconds=9.398 runs_per_s=106.4 avg_floor=9.6 win_rate=0.000 combats=5592\ninit=9.20ms/run combat=0.092s (85336 steps, 1.1 us/step) other=0.10ms/run\n",
+  "training": {
+    "train_games": 2,
+    "evaluation_games": 1,
+    "train_mean_floor": 13.5,
+    "eval_mean_floor": 17.0,
+    "wins": 0,
+    "strict_reload": true,
+    "actual_parameter_update": true,
+    "conditions": {
+      "simulations_per_nonforced_root": 8,
+      "floor_increment": 0,
+      "combat_prior": "frozen random untrained network",
+      "website_prior": "disabled",
+      "information": "oracle",
+      "reproduces_colleague_training_configuration": false
+    },
+    "checkpoint": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round2/puct-training-smoke-fixed/latest.pt",
+    "sha256": "d51cf8ce9fc089db80b3da78fe4c8b04cda8014bcbc91d9accc76e6116e145e9"
+  },
+  "original_weight_unchanged": true,
+  "source_patch": "validation/round2/native-rules-port-v2.patch",
+  "remaining": [
+    "Prismatic Gem cross-character pool",
+    "Underdocks 3 events and unported shared events",
+    "Aeonglass and complete native Boss pools",
+    "complete account epochs/content pools",
+    "full-run same-seed native differential",
+    "native bridge active grids and Pael source scope/UI execution",
+    "training effectiveness under native game conditions"
+  ]
+}

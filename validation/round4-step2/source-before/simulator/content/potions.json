@@ -1,0 +1,578 @@
+[
+ {
+  "id": "AttackPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BlockPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BloodPotion",
+  "rarity": 0,
+  "usage": 1,
+  "target": 3,
+  "char": "Ironclad",
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "ColorlessPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "DexterityPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "EnergyPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "ExplosiveAmpoule",
+  "rarity": 0,
+  "usage": 0,
+  "target": 2,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "FirePotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "FlexPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "FocusPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": "Defect",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "PoisonPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 1,
+  "char": "Silent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "PotionOfDoom",
+  "rarity": 0,
+  "usage": 0,
+  "target": 1,
+  "char": "Necrobinder",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "PowerPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "SkillPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "SpeedPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "StarPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 0,
+  "char": "Regent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "StrengthPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "SwiftPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "VulnerablePotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "WeakPotion",
+  "rarity": 0,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "Ashwater",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": "Ironclad",
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BlessingOfTheForge",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BoneBrew",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": "Necrobinder",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "Clarity",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "CunningPotion",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": "Silent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "CureAll",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "Duplicator",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "Fortifier",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "FyshOil",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "GamblersBrew",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "HeartOfIron",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "KingsCourage",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": "Regent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "LiquidBronze",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "PotionOfBinding",
+  "rarity": 1,
+  "usage": 0,
+  "target": 2,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "PotionOfCapacity",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": "Defect",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "PowderedDemise",
+  "rarity": 1,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "RadiantTincture",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "RegenPotion",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": false,
+  "ironclad": true
+ },
+ {
+  "id": "StableSerum",
+  "rarity": 1,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "TouchOfInsanity",
+  "rarity": 1,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BeetleJuice",
+  "rarity": 2,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "BottledPotential",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "CosmicConcoction",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": "Regent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "DistilledChaos",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "DropletOfPrecognition",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "EntropicBrew",
+  "rarity": 2,
+  "usage": 1,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "EssenceOfDarkness",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": "Defect",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "FairyInABottle",
+  "rarity": 2,
+  "usage": 2,
+  "target": 0,
+  "char": null,
+  "combatGen": false,
+  "ironclad": true
+ },
+ {
+  "id": "FruitJuice",
+  "rarity": 2,
+  "usage": 1,
+  "target": 3,
+  "char": null,
+  "combatGen": false,
+  "ironclad": true
+ },
+ {
+  "id": "GhostInAJar",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": "Silent",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "GigantificationPotion",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "LiquidMemories",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "LuckyTonic",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "MazalethsGift",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "OrobicAcid",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "PotOfGhouls",
+  "rarity": 2,
+  "usage": 0,
+  "target": 0,
+  "char": "Necrobinder",
+  "combatGen": true,
+  "ironclad": false
+ },
+ {
+  "id": "ShacklingPotion",
+  "rarity": 2,
+  "usage": 0,
+  "target": 2,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "ShipInABottle",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "SneckoOil",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "SoldiersStew",
+  "rarity": 2,
+  "usage": 0,
+  "target": 3,
+  "char": "Ironclad",
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "FoulPotion",
+  "rarity": 3,
+  "usage": 1,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "GlowwaterPotion",
+  "rarity": 3,
+  "usage": 0,
+  "target": 0,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "PotionShapedRock",
+  "rarity": 4,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ },
+ {
+  "id": "DeprecatedPotion",
+  "rarity": 5,
+  "usage": 0,
+  "target": 1,
+  "char": null,
+  "combatGen": true,
+  "ironclad": true
+ }
+]

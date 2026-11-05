@@ -6,6 +6,7 @@ Python-side controllers to it.
 from __future__ import annotations
 
 import pathlib
+import hashlib
 import sys
 
 import numpy as np
@@ -15,6 +16,9 @@ if str(_SIM_DIR) not in sys.path:
     sys.path.insert(0, str(_SIM_DIR))
 
 import sts2_sim as sim  # noqa: E402
+
+# Record the imported artifact before a concurrent rebuild could replace it.
+LOADED_SIMULATOR_SHA256 = hashlib.sha256(pathlib.Path(sim.__file__).read_bytes()).hexdigest()
 
 RUN_OBS_DIM = sim.RUN_OBS_DIM
 CARD_FEAT_DIM = sim.CARD_FEAT_DIM
@@ -34,9 +38,16 @@ OUTCOME = sim.Outcome
 CARD_NAMES = [sim.card_name(i) for i in range(CARD_COUNT)]
 
 
-def new_run(seed: int, ascension: int = 0) -> "sim.RunContext":
+def new_run(seed: int, ascension: int = 0, character=None,
+            content_profile=None) -> "sim.RunContext":
     rc = sim.RunContext()
-    rc.init(int(seed), int(ascension))
+    if character is None and content_profile is None:
+        rc.init(int(seed), int(ascension))
+    else:
+        rc.init(int(seed), int(ascension),
+                character=0 if character is None else int(character),
+                content_profile=int(sim.RunContentProfile.ORIGINAL if content_profile is None
+                                    else content_profile))
     return rc
 
 

@@ -1,0 +1,8 @@
+ruleset native-41cef1ea-port-v8
+dims {'RUN_OBS_DIM': 612, 'CARD_FEAT_DIM': 625, 'COMBAT_OBS_DIM': 61, 'ACTION_FEAT_DIM': 718, 'PUBLIC_OBS_DIM': 69977, 'PUBLIC_COMBAT_OBS_DIM': 44284, 'PUBLIC_OBS_VERSION': 17, 'ACTION_SCHEMA_VERSION': 15, 'MAX_DECK': 128, 'MAP_MAX_POINTS': 119, 'CARD_COUNT': 597}
+snapshot_version 12 blob_len 271308
+sim 3d6e32aa00b243b9d16df22342c888bdabd613dd0c3d5a925fc647e98282de94
+PORT_SOURCE consistent
+old_snapshot 11 accepted False state_unchanged True
+old_snapshot 10 accepted False state_unchanged True
+old_snapshot 9 accepted False state_unchanged True

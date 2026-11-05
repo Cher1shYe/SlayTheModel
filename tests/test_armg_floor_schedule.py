@@ -76,16 +76,19 @@ def test_collect_passes_actual_floor_to_search(monkeypatch):
     import agent.armg_train as train
     class Run:
         floor, hp, won, truncated = 8, 1, False, False
+        act, act_floor, deck, card_shop_removals_used = 0, 8, [], 0
         screen = SCREEN.COMBAT
         combat_is_boss = True
+        combat_is_elite = False
         class Battle:
+            outcome = None
             def legal_actions(self):
                 return [(1, 0, 0, 0), (2, 0, 0, 0)]
         battle = Battle()
         def step_combat(self, *args):
             self.screen = SCREEN.RUN_OVER
             return True
-    monkeypatch.setattr(train, 'new_run', lambda *args: Run())
+    monkeypatch.setattr(train, 'new_run', lambda *args, **kwargs: Run())
     seen = []
     def plan(battle, seed, combat, simulations, epsilon, is_boss):
         seen.append((simulations, is_boss))
@@ -102,9 +105,12 @@ def test_collect_uses_public_combat_kind(monkeypatch, elite, boss, expected):
     import agent.armg_train as train
     class Run:
         floor, hp, won, truncated = 8, 1, False, False
+        act, act_floor, deck, card_shop_removals_used = 0, 8, [], 0
         screen = SCREEN.COMBAT
         combat_is_boss = boss
+        combat_is_elite = elite
         class Battle:
+            outcome = None
             def legal_actions(self):
                 return [(1, 0, 0, 0), (2, 0, 0, 0)]
         battle = Battle()
@@ -115,7 +121,7 @@ def test_collect_uses_public_combat_kind(monkeypatch, elite, boss, expected):
         def step_combat(self, *args):
             self.screen = SCREEN.RUN_OVER
             return True
-    monkeypatch.setattr(train, 'new_run', lambda *args: Run())
+    monkeypatch.setattr(train, 'new_run', lambda *args, **kwargs: Run())
     seen = []
     def plan(battle, seed, combat, simulations, epsilon, is_boss):
         seen.append((simulations, is_boss))
@@ -159,6 +165,7 @@ def test_simulator_migration_requires_matching_explicit_hashes_and_strict_settin
     import torch
     from agent.armg import ArmGScorer
     from agent.armg_train import _save, _restore
+    from agent.engine_identity import current_engine_contract
     from deployment.train_armg_floor_prior_rl import _simulator_resume_settings
 
     old, new = 'a' * 64, 'b' * 64
@@ -169,8 +176,11 @@ def test_simulator_migration_requires_matching_explicit_hashes_and_strict_settin
     model = ArmGScorer()
     optimizer = torch.optim.Adam(model.parameters())
     path = tmp_path / 'latest.pt'
-    _save(path, model, optimizer, {'games': 608}, old_settings)
-    resumed = torch.load(path, map_location='cpu', weights_only=False)
+    # The hash-transition helper checks metadata only. Exact engine identity
+    # must still prevent a fake/old binary hash from being saved or resumed.
+    with pytest.raises(ValueError, match='does not match the loaded engine'):
+        _save(path, model, optimizer, {'games': 608}, old_settings)
+    resumed = {'settings': old_settings, 'progress': {'games': 608}}
     with pytest.raises(ValueError, match='both simulator migration hashes'):
         _simulator_resume_settings(previous, resumed, new_settings, None, None)
     with pytest.raises(ValueError, match='do not match'):
@@ -181,9 +191,13 @@ def test_simulator_migration_requires_matching_explicit_hashes_and_strict_settin
         _simulator_resume_settings(previous, None, new_settings, 'c' * 64, new)
     restore_settings, changed = _simulator_resume_settings(previous, resumed, new_settings, old, new)
     assert changed and restore_settings == old_settings
-    assert _restore(str(path), model, optimizer, restore_settings)['games'] == 608
+    current_settings = {**old_settings, 'simulator_sha256': current_engine_contract()['simulator_sha256']}
+    _save(path, model, optimizer, {'games': 608}, current_settings)
+    with pytest.raises(ValueError, match='does not match the loaded engine'):
+        _restore(str(path), model, optimizer, restore_settings)
+    assert _restore(str(path), model, optimizer, current_settings)['games'] == 608
     with pytest.raises(ValueError, match='settings differ'):
-        _restore(str(path), model, optimizer, {**restore_settings, 'workers': 4})
+        _restore(str(path), model, optimizer, {**current_settings, 'workers': 4})
     migrated = {'settings': new_settings,
                 'progress': {'games': 608, 'simulator_changes': [{'from': old, 'to': new}]}}
     _, changed = _simulator_resume_settings(previous, migrated, new_settings, None, None)

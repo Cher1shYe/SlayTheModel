@@ -1,0 +1,325 @@
+{
+  "base_commit": "be401e8ba09ac58c9f3b01cf77e195f7122c8d0c",
+  "files": [
+    {
+      "path": "PORT_SOURCE.json",
+      "status": "added",
+      "sha256": "7d25da2489fe8bdf16ec2c9b78ba29c64f6e74cda53876f08af41734bda2656f"
+    },
+    {
+      "path": "PORT_STATUS.md",
+      "status": "added",
+      "sha256": "55fa3f2549e738bf9b6c80bf868e866b6e97b91727110b057f5a9a2b9f89ed9a"
+    },
+    {
+      "path": "agent/armg.py",
+      "status": "modified",
+      "sha256": "674e817e0a699dc2ba5e63e4e9fec589848607b0deeac6f7929d9ffaba452362"
+    },
+    {
+      "path": "agent/armg_train.py",
+      "status": "modified",
+      "sha256": "4360ce01d3541973d06f09173b234aacfe492f1f3c5b69ce4766ad98d58f2436"
+    },
+    {
+      "path": "agent/combat_dagger.py",
+      "status": "modified",
+      "sha256": "504055c9a2de069c2ffa8e0de6a9fa8007283aa468baa7dd3fbab22a589c4807"
+    },
+    {
+      "path": "agent/common.py",
+      "status": "modified",
+      "sha256": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    },
+    {
+      "path": "agent/engine_identity.py",
+      "status": "added",
+      "sha256": "8c10de9008e7ca981d73098a27627f4e2d3b7d99ba144a0d8a9bed8ea2e3db12"
+    },
+    {
+      "path": "agent/nets.py",
+      "status": "modified",
+      "sha256": "6d6cfd26a1cc1b492bda9ea21c7509581bf9b70ac8f858f7b3ec48ce1bad03aa"
+    },
+    {
+      "path": "deployment/evaluate_armg.py",
+      "status": "modified",
+      "sha256": "b9ef18bcf32dd6ab0cf030aff8d4be6bf47b6550f68af5a4153ba7ddd85d32cd"
+    },
+    {
+      "path": "deployment/migrate_armg_weights.py",
+      "status": "added",
+      "sha256": "8f328ddc08f7583396e8250fb9b24d34f42aad4db75ceeb281547fb7879a1176"
+    },
+    {
+      "path": "deployment/train_armg_puct_prior_rl.py",
+      "status": "modified",
+      "sha256": "e81c45c68e9abd79e4f214b238f66063519c8385394dc790e9a86a501387ddd9"
+    },
+    {
+      "path": "docs/native-engine-checkpoints.md",
+      "status": "added",
+      "sha256": "64a6e8f5b2866401d4a4d50102767512d11a0a4c62a54cf886944502b616447c"
+    },
+    {
+      "path": "docs/native-rng-alignment-20261031.md",
+      "status": "added",
+      "sha256": "aaf8ccf95830e95ddc3649ba57597fc67f9e27fea394ece452427e65aa887682"
+    },
+    {
+      "path": "native-card-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "b516123fc59c95679c6a532692a3d72c17a4f7ff7f51453b69d6be917508ad09"
+    },
+    {
+      "path": "native-card-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-card-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-card-fixtures/project.godot",
+      "status": "added",
+      "sha256": "f0182cefa53b45eecf46f22b2e817dd7c47d093869b3d6c978e1e6f5125dc85f"
+    },
+    {
+      "path": "native-card-fixtures/results.json",
+      "status": "added",
+      "sha256": "bd8689d539720420f20bae1e0441ef686d7fbfed15133b30250d1af0de98a45d"
+    },
+    {
+      "path": "native-card-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-card-fixtures/validation.json",
+      "status": "added",
+      "sha256": "ea1032f77d25137203525bf978cde3cf5e68e38f4b544e675a31dc488d5592d1"
+    },
+    {
+      "path": "native-run-fixtures/AuditWorker.cs",
+      "status": "added",
+      "sha256": "3279c54de5c1312dd5928dcece730a3ed8ff605905308670f483f4b5d83ef87f"
+    },
+    {
+      "path": "native-run-fixtures/SimulatorAudit.csproj",
+      "status": "added",
+      "sha256": "1ee4a0c2f9252369f74e05297b3c09a0cc91f87761da11b767cce1805b2b151e"
+    },
+    {
+      "path": "native-run-fixtures/entitlements.plist",
+      "status": "added",
+      "sha256": "33d9522751e4d00aba4e9d9fc206b08339f114084adf4516341751904c5e38b8"
+    },
+    {
+      "path": "native-run-fixtures/project.godot",
+      "status": "added",
+      "sha256": "8eb340579362fb4b204fccafce8b83e5f7271c06a8837433ce5baa3ea9ebf3a0"
+    },
+    {
+      "path": "native-run-fixtures/results.json",
+      "status": "added",
+      "sha256": "cca882062cac1c23f14a28745824531632089addb20d1dafa0c14001fe3e32d2"
+    },
+    {
+      "path": "native-run-fixtures/run_native.py",
+      "status": "added",
+      "sha256": "b37eec5c4fca204a0adfef57e00c482c872c2afc7cc5c80a68c662c2549c9d37"
+    },
+    {
+      "path": "native-run-fixtures/validation.json",
+      "status": "added",
+      "sha256": "ca64500286d583484d588052b5357ce6b9e46215deba6f6ccc1ccf798844078b"
+    },
+    {
+      "path": "simulator/CMakeLists.txt",
+      "status": "modified",
+      "sha256": "c02cd279f6e1c6bb85fea5c1b5220cb4398798b4901da3230cd1a142421d3a34"
+    },
+    {
+      "path": "simulator/bindings/bindings.cpp",
+      "status": "modified",
+      "sha256": "af56f5c99ffa966f4053547356d90a4dc00a753ad0a073ba6998ccadd1a61aab"
+    },
+    {
+      "path": "simulator/include/sts2/battle.h",
+      "status": "modified",
+      "sha256": "3375bd353122ad2e465dc961f5d3d3a7abd617c6b5f8730a2a4c46227e5faeda"
+    },
+    {
+      "path": "simulator/include/sts2/card_candidates.h",
+      "status": "modified",
+      "sha256": "560c0ccafe4d3c0e99a96b56c4a45b41ddfe26fe709d15f1db697d7f28ae17b4"
+    },
+    {
+      "path": "simulator/include/sts2/cards_generated.inc",
+      "status": "modified",
+      "sha256": "848ed732caee64d81874634383dde396926ddc5aad7d94776b038bd513cadc88"
+    },
+    {
+      "path": "simulator/include/sts2/common.h",
+      "status": "modified",
+      "sha256": "7b2fa850b8713a42c33d98f4c60c1e445fa1798ff33f296e9fd644fa93c88c39"
+    },
+    {
+      "path": "simulator/include/sts2/relics.h",
+      "status": "modified",
+      "sha256": "6a56564d8410f52bb62d46c6b24524175d72533c82b8630e9527d15f5dfa6317"
+    },
+    {
+      "path": "simulator/include/sts2/run.h",
+      "status": "modified",
+      "sha256": "e74d18bcd9ff5c0a0fe3b9b842304c5caf2750d016e27e94a1c798520231fba9"
+    },
+    {
+      "path": "simulator/src/battle.cpp",
+      "status": "modified",
+      "sha256": "79a114f892fe7645d1851b492a40a56f2b1bf35e6475432c1de2851f08d813ba"
+    },
+    {
+      "path": "simulator/src/card_candidates.cpp",
+      "status": "modified",
+      "sha256": "71a63833b805ba66f29d8f3edbafa5e03b53bc7584c0b3c5a120f51fe16be9cb"
+    },
+    {
+      "path": "simulator/src/cards.cpp",
+      "status": "modified",
+      "sha256": "99ccdaeeab896b60fc7b696d4015f844dfa2619153b1fe522bea20a46d4b5f64"
+    },
+    {
+      "path": "simulator/src/cards_colorless.cpp",
+      "status": "modified",
+      "sha256": "d9148c3495c4cf077c8fe09c453445849bbc4e641397411e07e3bfab9c11f1f6"
+    },
+    {
+      "path": "simulator/src/cards_ironclad.cpp",
+      "status": "modified",
+      "sha256": "4fb766eb3b6162ebc4d9fe54a3eb142a8aafcd627510c180c3421399fa5edf12"
+    },
+    {
+      "path": "simulator/src/events.cpp",
+      "status": "modified",
+      "sha256": "f6375b8c245d2bd14ade05cc84dfd5361fced1fd064e786ce977273101d21ca6"
+    },
+    {
+      "path": "simulator/src/map.cpp",
+      "status": "modified",
+      "sha256": "c862ec95bb8e5fd7e36951740397e5436d28061ec2ce0cd5e5226d39a3987ce2"
+    },
+    {
+      "path": "simulator/src/mcts.cpp",
+      "status": "modified",
+      "sha256": "da33c2eaeea323d89d76c688a35a8ac31d886e691f3879f21e378338bc357b5e"
+    },
+    {
+      "path": "simulator/src/observe.cpp",
+      "status": "modified",
+      "sha256": "d50f5a62330fe2d59e63471aacf352ad9a2d7de87c01d7d3fab3b850484ec2fa"
+    },
+    {
+      "path": "simulator/src/relics.cpp",
+      "status": "modified",
+      "sha256": "2af84a7bce2780938b676902341699957b163f677b9fd735a786affb3279c9cf"
+    },
+    {
+      "path": "simulator/src/run.cpp",
+      "status": "modified",
+      "sha256": "a5270b32c5887ddf1edcf95f60df37dcd2b94352d62a6be22bdf9d86c036027f"
+    },
+    {
+      "path": "simulator/src/search.cpp",
+      "status": "modified",
+      "sha256": "cbb170500f75d84655b98e949bc1d936fd0f251f5b9aee21d1a2323f26d29a53"
+    },
+    {
+      "path": "simulator/tests/fixtures/native_rng_41cef1ea.json",
+      "status": "added",
+      "sha256": "98ab2cd3884da876654a9989ae10b785dcc5cda688ac7c3f231d8c88f5500c88"
+    },
+    {
+      "path": "simulator/tests/map_event_audit_regression.cpp",
+      "status": "modified",
+      "sha256": "58633f0af3c55976b0ce97c4435155e7c8ec7a7ef6d5a20f70b318cd551ad299"
+    },
+    {
+      "path": "simulator/tests/native_card_alignment.cpp",
+      "status": "added",
+      "sha256": "0a176d811d54a02098ea0e87bdb869c197f60a6dae5a2b29644daea508c23262"
+    },
+    {
+      "path": "simulator/tests/native_rng_contract.cpp",
+      "status": "added",
+      "sha256": "e5c8438e0ac930755f0cf4502c3f0030ae7eb7b7fa1775b35f723b6c2019fa0b"
+    },
+    {
+      "path": "simulator/tests/native_run_alignment.cpp",
+      "status": "added",
+      "sha256": "88de646b32e87e5ed5181573fc906ee57805f995f986ebe40bcc7f43f6c36f7a"
+    },
+    {
+      "path": "simulator/tests/native_seed_integration.cpp",
+      "status": "added",
+      "sha256": "6c228fd6f440b9a907b165a759ca83b550d9088c4eca583261dac9506acb2735"
+    },
+    {
+      "path": "simulator/tests/observation_contract.cpp",
+      "status": "modified",
+      "sha256": "79c67bc1550ef15aea796bf59d6e562519f369e79a51bb17311a1dcbfd10b8ae"
+    },
+    {
+      "path": "simulator/tests/relic_contract.cpp",
+      "status": "modified",
+      "sha256": "2e37df0c9329d20c6488083afd9d75f3d9a260b68d91d0b97d372319a1a18bd1"
+    },
+    {
+      "path": "simulator/tests/rules_regression.cpp",
+      "status": "modified",
+      "sha256": "71e55eef1ddad4fd0e142a291ee1eef73d53b29e5154abda58fac5966a8b6d2b"
+    },
+    {
+      "path": "simulator/tests/snapshot_validation.cpp",
+      "status": "modified",
+      "sha256": "e34353717748938a7391adfecd54681dc4cc6280b33ab5ecc234352b8af9d290"
+    },
+    {
+      "path": "tests/test_binding_schema_contract.py",
+      "status": "modified",
+      "sha256": "f8a2c3a27ffe7d6869bf0bb0bfc16b3a2f9e6f685680f75a093e3f7d586e8064"
+    },
+    {
+      "path": "tests/test_engine_checkpoint_identity.py",
+      "status": "added",
+      "sha256": "d82673b694938ac1969354c9250ee1f6208167494dbe468e898f3ec436de6e8c"
+    },
+    {
+      "path": "tests/test_native_seed_identity.py",
+      "status": "added",
+      "sha256": "5c010f28e3bb86383b26d28c06ec8c2d91f3020f907f502c2dfb875a6cf413f0"
+    },
+    {
+      "path": "tools/native-rng-vectors/NativeRngVectors.csproj",
+      "status": "added",
+      "sha256": "69191799a32483364fac1205060bc00cc792ca478c35a2ff8c627eabd2e24e5c"
+    },
+    {
+      "path": "tools/native-rng-vectors/NuGet.Config",
+      "status": "added",
+      "sha256": "9508cae5f76364f56e80eb97cb16493977243cf38e5cca6284e3d74f83b20a2c"
+    },
+    {
+      "path": "tools/native-rng-vectors/Program.cs",
+      "status": "added",
+      "sha256": "d7ff60d37f70126f9ca0ecb2db141a08fdbea0689f39dfff49c9bf3174e3299c"
+    },
+    {
+      "path": "validation/build_local.py",
+      "status": "added",
+      "sha256": "fd669c67dc4759b6b3b215542ddb197817918df63f658fd4c1d1b43eb30f2ee4"
+    }
+  ]
+}

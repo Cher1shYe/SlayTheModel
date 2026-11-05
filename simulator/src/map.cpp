@@ -311,6 +311,9 @@ std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
     // a compact key avoids one heap string per candidate segment.
     std::unordered_map<SegmentKey, int, SegmentKeyHash, SegmentKeyEq> index;
     std::vector<std::vector<std::vector<int>>> buckets;
+    // Pure capacity hints: insertion order and candidate order are unchanged.
+    index.reserve(paths.size() * 2 + 1);
+    buckets.reserve(paths.size());
     for (const auto &path : paths) {
         for (int i = 0; i + 1 < static_cast<int>(path.size()); ++i) {
             if (!valid_segment_start(g, path[i])) continue;
@@ -329,14 +332,13 @@ std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
                 for (int k = 0; k < len; ++k) {
                     key.types[k] = static_cast<std::uint8_t>(g.nodes[path[i + k]].type);
                 }
-                auto it = index.find(key);
-                if (it == index.end()) {
-                    index.emplace(key, static_cast<int>(buckets.size()));
+                auto ins = index.emplace(key, static_cast<int>(buckets.size()));
+                if (ins.second) {
                     buckets.emplace_back();
                     buckets.back().emplace_back(path.begin() + i, path.begin() + i + len);
                     continue;
                 }
-                auto &bucket = buckets[it->second];
+                auto &bucket = buckets[ins.first->second];
                 bool overlap = false;
                 for (const auto &existing : bucket) {
                     for (int k = 1; k + 1 < len; ++k) {
@@ -353,7 +355,7 @@ std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
     }
     std::vector<std::vector<std::vector<int>>> out;
     for (auto &bucket : buckets) {
-        if (bucket.size() > 1) out.push_back(bucket);
+        if (bucket.size() > 1) out.push_back(std::move(bucket));
     }
     return out;
 }
@@ -640,23 +642,12 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
     if (actIndex == 0) {
         numRests = mapRng.next_gaussian_int(7, 1, 6, 7);
         numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14);
-        (void)mapRng.next_gaussian_int(5, 1, 3, 6);
     } else if (actIndex == 1) {
-        Rng copy = mapRng;  // reference copies (seed, counter) into a new Rng
-        const int copyUnknown = copy.next_gaussian_int(12, 1, 10, 14);
-        (void)copy.next_gaussian_int(5, 1, 3, 6);
         numRests = mapRng.next_gaussian_int(6, 1, 6, 7);
-        numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14);
-        (void)mapRng.next_gaussian_int(5, 1, 3, 6);
-        numUnknowns = copyUnknown - 1;
+        numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14) - 1;
     } else {
-        Rng copy = mapRng;
-        const int copyUnknown = copy.next_gaussian_int(12, 1, 10, 14);
-        (void)copy.next_gaussian_int(5, 1, 3, 6);
         numRests = mapRng.next_int_range(5, 7);
-        numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14);
-        (void)mapRng.next_gaussian_int(5, 1, 3, 6);
-        numUnknowns = copyUnknown - 1;
+        numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14) - 1;
     }
     if (ascension >= 6) --numRests;
 
@@ -705,6 +696,289 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
         MapNode &first = map.nodes[map.bossIdx];
         first.children[first.childCount++] = static_cast<std::uint8_t>(second);
         map.index[map.mapLength + 1][MAP_WIDTH / 2] = static_cast<std::int8_t>(second);
+    }
+}
+
+namespace {
+
+// ---- SpoilsActMap (MegaCrit.Sts2.Core.Map.SpoilsActMap) --------------------
+
+int spoils_next_column(int col, int direction) {
+    if (direction < 0) return std::max(0, col - 1);
+    if (direction > 0) return std::min(MAP_WIDTH - 1, col + 1);
+    return col;
+}
+
+// GetAllowedColumnsForRow: the hourglass narrows towards the treasure row.
+void spoils_allowed_columns(int mapLength, int treasureRow, int row, int &minCol,
+                            int &maxCol) {
+    const int center = MAP_WIDTH / 2;
+    const int distance = std::abs(row - treasureRow);
+    const int remaining = mapLength - 1 - row;
+    const int maxHorizontal = std::min(center, std::max(0, remaining) + 1);
+    const int span = std::min(center, std::min(distance, maxHorizontal));
+    minCol = std::max(0, center - span);
+    maxCol = std::min(MAP_WIDTH - 1, center + span);
+}
+
+// BuildCenteredPriorityList: near the treasure prefer steps toward the center.
+std::vector<int> spoils_centered_priority(int currentCol, int centerCol) {
+    std::vector<int> order;
+    const int sign = (centerCol > currentCol) - (centerCol < currentCol);
+    if (sign != 0) order.push_back(sign);
+    order.push_back(0);
+    if (sign != 0) order.push_back(-sign);
+    if (std::find(order.begin(), order.end(), -1) == order.end()) order.push_back(-1);
+    if (std::find(order.begin(), order.end(), 1) == order.end()) order.push_back(1);
+    return order;
+}
+
+int spoils_next_coord(Gen &g, Rng &rng, int current, int treasureRow) {
+    const int nextRow = g.nodes[current].row + 1;
+    int minCol = 0, maxCol = 0;
+    spoils_allowed_columns(g.mapLength, treasureRow, nextRow, minCol, maxCol);
+    const int center = MAP_WIDTH / 2;
+    const int remaining = treasureRow - g.nodes[current].row;
+    std::vector<int> dirs;
+    if (remaining > 3 || remaining <= 0) {
+        dirs = {-1, 0, 1};
+        rng.shuffle(dirs.data(), static_cast<int>(dirs.size()));
+    } else {
+        dirs = spoils_centered_priority(g.nodes[current].col, center);
+    }
+    for (const int direction : dirs) {
+        const int nextCol = spoils_next_column(g.nodes[current].col, direction);
+        if (nextCol < minCol || nextCol > maxCol) continue;
+        if (has_invalid_crossover(g, current, nextCol)) continue;
+        const int point = get_point(g, nextCol, nextRow);
+        const bool parentOk =
+            point < 0 ||
+            std::find(g.nodes[point].parents.begin(), g.nodes[point].parents.end(),
+                      current) != g.nodes[point].parents.end() ||
+            g.nodes[point].parents.size() < 3;
+        const bool childOk =
+            g.nodes[current].children.size() < 3 ||
+            (point >= 0 &&
+             std::find(g.nodes[current].children.begin(),
+                       g.nodes[current].children.end(), point) !=
+                 g.nodes[current].children.end());
+        if (parentOk && childOk) return nextCol;
+    }
+    int fallback = std::clamp(center, minCol, maxCol);
+    if (std::abs(fallback - g.nodes[current].col) > 1) {
+        const int direction = fallback > g.nodes[current].col ? 1 : -1;
+        fallback = std::clamp(g.nodes[current].col + direction, minCol, maxCol);
+    }
+    if (has_invalid_crossover(g, current, fallback))
+        fallback = std::clamp(g.nodes[current].col, minCol, maxCol);
+    // The reference throws when adjacency is still violated; staying in place is
+    // the only reachable state that keeps the graph valid.
+    if (std::abs(fallback - g.nodes[current].col) > 1) fallback = g.nodes[current].col;
+    return fallback;
+}
+
+void spoils_path_generate(Gen &g, Rng &rng, int startIdx, int treasureRow) {
+    int current = startIdx;
+    while (g.nodes[current].row < g.mapLength - 1) {
+        const int nextCol = spoils_next_coord(g, rng, current, treasureRow);
+        const int next = get_or_create(g, nextCol, g.nodes[current].row + 1);
+        add_child(g, current, next);
+        current = next;
+    }
+}
+
+void spoils_redirect_to_treasure(Gen &g, int stray, int treasure) {
+    const std::vector<int> parents = g.nodes[stray].parents;
+    const std::vector<int> children = g.nodes[stray].children;
+    for (const int p : parents) {
+        remove_child(g, p, stray);
+        add_child(g, p, treasure);
+    }
+    for (const int c : children) {
+        remove_child(g, stray, c);
+        add_child(g, treasure, c);
+    }
+    g.grid[g.nodes[stray].row][g.nodes[stray].col] = -1;
+}
+
+bool spoils_parent_restricted(MapPointType type) {
+    return type == MapPointType::ELITE || type == MapPointType::REST ||
+           type == MapPointType::TREASURE || type == MapPointType::SHOP;
+}
+
+bool spoils_child_restricted(MapPointType type) {
+    return type == MapPointType::ELITE || type == MapPointType::REST ||
+           type == MapPointType::TREASURE || type == MapPointType::SHOP;
+}
+
+bool spoils_sibling_restricted(MapPointType type) {
+    return type == MapPointType::REST || type == MapPointType::MONSTER ||
+           type == MapPointType::UNKNOWN || type == MapPointType::ELITE ||
+           type == MapPointType::SHOP;
+}
+
+bool spoils_valid_point_type(Gen &g, MapPointType type, int idx) {
+    const GNode &n = g.nodes[idx];
+    if (n.row < 6 && (type == MapPointType::REST || type == MapPointType::ELITE))
+        return false;
+    if (n.row >= g.mapLength - 3 && type == MapPointType::REST) return false;
+    if (spoils_parent_restricted(type)) {
+        for (const int p : n.parents)
+            if (g.nodes[p].type == type) return false;
+        for (const int c : n.children)
+            if (g.nodes[c].type == type) return false;
+    }
+    if (spoils_child_restricted(type)) {
+        for (const int c : n.children)
+            if (g.nodes[c].type == type) return false;
+    }
+    if (spoils_sibling_restricted(type)) {
+        for (const int p : n.parents)
+            for (const int c : g.nodes[p].children) {
+                if (c == idx) continue;
+                if (g.nodes[c].type == type) return false;
+            }
+    }
+    return true;
+}
+
+MapPointType spoils_next_valid_type(Gen &g, std::vector<MapPointType> &queue, int idx) {
+    const int n = static_cast<int>(queue.size());
+    for (int i = 0; i < n; ++i) {
+        const MapPointType t = queue.front();
+        queue.erase(queue.begin());
+        if (spoils_valid_point_type(g, t, idx)) return t;
+        queue.push_back(t);
+    }
+    return MapPointType::UNASSIGNED;
+}
+
+void spoils_assign_point_types(Gen &g, Rng &rng, int numElites, int numShops,
+                               int numUnknowns, int numRests) {
+    for_each_row(g, g.mapLength - 1, [&](int idx) { g.nodes[idx].type = MapPointType::REST; });
+    for_each_row(g, 1, [&](int idx) { g.nodes[idx].type = MapPointType::MONSTER; });
+
+    std::vector<MapPointType> queue;
+    for (int i = 0; i < numRests; ++i) queue.push_back(MapPointType::REST);
+    for (int i = 0; i < numShops; ++i) queue.push_back(MapPointType::SHOP);
+    for (int i = 0; i < numElites; ++i) queue.push_back(MapPointType::ELITE);
+    for (int i = 0; i < numUnknowns; ++i) queue.push_back(MapPointType::UNKNOWN);
+
+    // AssignRemainingTypesToRandomPoints runs at most three shuffle passes.
+    for (int pass = 0; pass < 3 && !queue.empty(); ++pass) {
+        std::vector<int> points;
+        for (const int idx : all_map_points(g))
+            if (g.nodes[idx].type == MapPointType::UNASSIGNED) points.push_back(idx);
+        std::sort(points.begin(), points.end(), [&](int a, int b) {
+            if (g.nodes[a].col != g.nodes[b].col) return g.nodes[a].col < g.nodes[b].col;
+            return g.nodes[a].row < g.nodes[b].row;
+        });
+        for (int i = static_cast<int>(points.size()) - 1; i > 0; --i) {
+            const int j = rng.next_int(0, i);
+            std::swap(points[i], points[j]);
+        }
+        for (const int idx : points) {
+            if (queue.empty()) break;
+            if (g.nodes[idx].type != MapPointType::UNASSIGNED) continue;
+            const MapPointType t = spoils_next_valid_type(g, queue, idx);
+            if (t != MapPointType::UNASSIGNED) g.nodes[idx].type = t;
+        }
+    }
+    for (const int idx : all_map_points(g))
+        if (g.nodes[idx].type == MapPointType::UNASSIGNED)
+            g.nodes[idx].type = MapPointType::MONSTER;
+    g.nodes[g.bossIdx].type = MapPointType::BOSS;
+    g.nodes[g.startIdx].type = MapPointType::ANCIENT;
+}
+
+}  // namespace
+
+void generate_spoils_act_map(ActMap &map, Rng &rng, int actIndex, int ascension) {
+    const int rooms = actIndex == 0 ? 15 : (actIndex == 1 ? 14 : 13);
+    Gen g;
+    g.mapLength = rooms + 1;
+    for (auto &rowArr : g.grid)
+        for (int &v : rowArr) v = -1;
+
+    int numElites = ascension >= 1 ? 8 : 5;
+    int numShops = 3;
+    int numUnknowns = 0;
+    int numRests = 0;
+    if (actIndex == 0) {
+        numRests = rng.next_gaussian_int(7, 1, 6, 7);
+        numUnknowns = rng.next_gaussian_int(12, 1, 10, 14);
+    } else if (actIndex == 1) {
+        numRests = rng.next_gaussian_int(6, 1, 6, 7);
+        numUnknowns = rng.next_gaussian_int(12, 1, 10, 14) - 1;
+    } else {
+        numRests = rng.next_int_range(5, 7);
+        numUnknowns = rng.next_gaussian_int(12, 1, 10, 14) - 1;
+    }
+    if (ascension >= 6) --numRests;
+
+    GNode startNode;
+    startNode.col = MAP_WIDTH / 2;
+    startNode.row = 0;
+    g.nodes.push_back(startNode);
+    g.startIdx = 0;
+    GNode bossNode;
+    bossNode.col = MAP_WIDTH / 2;
+    bossNode.row = g.mapLength;
+    g.nodes.push_back(bossNode);
+    g.bossIdx = 1;
+
+    const int treasureRow = g.mapLength - 7;
+    std::vector<int> startPoints;
+    for (int i = 0; i < 7; ++i) {
+        int start = get_or_create(g, rng.next_int_exclusive(MAP_WIDTH), 1);
+        if (i == 1) {
+            while (std::find(startPoints.begin(), startPoints.end(), start) != startPoints.end())
+                start = get_or_create(g, rng.next_int_exclusive(MAP_WIDTH), 1);
+        }
+        startPoints.push_back(start);
+        spoils_path_generate(g, rng, start, treasureRow);
+    }
+    g.startPoints = startPoints;
+
+    const int treasure = get_or_create(g, MAP_WIDTH / 2, treasureRow);
+    g.nodes[treasure].type = MapPointType::TREASURE;
+    std::vector<int> treasureRowPoints;
+    for (int col = 0; col < MAP_WIDTH; ++col)
+        if (g.grid[treasureRow][col] >= 0) treasureRowPoints.push_back(g.grid[treasureRow][col]);
+    for (const int idx : treasureRowPoints)
+        if (idx != treasure) spoils_redirect_to_treasure(g, idx, treasure);
+
+    for_each_row(g, g.mapLength - 1, [&](int idx) { add_child(g, idx, g.bossIdx); });
+    for_each_row(g, 1, [&](int idx) { add_child(g, g.startIdx, idx); });
+
+    spoils_assign_point_types(g, rng, numElites, numShops, numUnknowns, numRests);
+    prune_duplicate_segments(g, rng);
+    bake(g, map);
+}
+
+void generate_golden_path_map(ActMap &map) {
+    // GoldenPathActMap._defaultPointTypes, native 41cef1ea single-player.
+    constexpr MapPointType types[] = {
+        MapPointType::ANCIENT, MapPointType::MONSTER, MapPointType::UNKNOWN,
+        MapPointType::MONSTER, MapPointType::REST, MapPointType::MONSTER,
+        MapPointType::REST, MapPointType::UNKNOWN, MapPointType::TREASURE,
+        MapPointType::UNKNOWN, MapPointType::TREASURE, MapPointType::UNKNOWN,
+        MapPointType::SHOP, MapPointType::ELITE, MapPointType::REST,
+        MapPointType::ELITE, MapPointType::REST, MapPointType::BOSS
+    };
+    map = ActMap{};
+    for (auto &row : map.index) for (auto &node : row) node = -1;
+    map.rooms = 16;
+    map.mapLength = 17;
+    map.startIdx = 0;
+    map.bossIdx = 17;
+    map.pointCount = 18;
+    for (int row = 0; row < 18; ++row) {
+        map.index[row][MAP_WIDTH / 2] = static_cast<std::int8_t>(row);
+        auto &node = map.nodes[row];
+        node.type = static_cast<std::int8_t>(types[row]);
+        if (row > 0) { node.parentCount = 1; node.parents[0] = row - 1; }
+        if (row < 17) { node.childCount = 1; node.children[0] = row + 1; }
     }
 }
 

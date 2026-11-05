@@ -1,5 +1,10 @@
 #include "sts2/battle.h"
 #include "sts2/relics.h"
+#include "sts2/potion_slots.h"
+#include "sts2/defect.h"
+#include "sts2/necrobinder.h"
+#include "sts2/regent.h"
+#include "sts2/silent.h"
 
 namespace sts2 {
 #include "sts2/cards_generated.inc"
@@ -18,20 +23,23 @@ const char *potion_name(PotionId id) {
 
 namespace {
 
+#include "sts2/native_potion_pool.inc"
+
 struct GeneratedCardPool {
     CardId ids[192];
     int n = 0;
 };
 
-enum class CardPath { IRONCLAD, COLORLESS };
+enum class CardPath { CHARACTER, COLORLESS };
 
 // Potion card generation uses Character.CardPool for the typed potions and the
 // whole ColorlessCardPool for ColorlessPotion (no type restriction there).
-void collect_cards(CardPath pool_kind, CardType type, GeneratedCardPool &pool) {
+void collect_cards(CardPool bc_pool, CardPath pool_kind, CardType type, GeneratedCardPool &pool) {
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (!card_native_available(static_cast<CardId>(i))) continue;
         const bool wanted_pool =
-            pool_kind == CardPath::IRONCLAD ? d.pool == CardPool::IRONCLAD
+            pool_kind == CardPath::CHARACTER ? d.pool == bc_pool
                                             : d.pool == CardPool::COLORLESS;
         if (!wanted_pool) continue;
         if (pool_kind != CardPath::COLORLESS && d.type != type) continue;
@@ -49,7 +57,7 @@ void collect_cards(CardPath pool_kind, CardType type, GeneratedCardPool &pool) {
 
 int deal_cards(BattleContext &bc, Card *out, int want, CardType type, CardPath pool_kind) {
     GeneratedCardPool pool;
-    collect_cards(pool_kind, type, pool);
+    collect_cards(bc.characterPool, pool_kind, type, pool);
     int n = 0;
     for (int k = 0; k < want && pool.n > 0; ++k) {
         const int idx = bc.cardGenerationRng.next_int(0, pool.n - 1);
@@ -96,40 +104,42 @@ void apply_damage_one(BattleContext &bc, int target, int amount) {
 }  // namespace
 
 bool BattleContext::can_use_potion(int idx) const {
-    if (idx < 0 || idx >= potionCount) return false;
+    if (idx < 0 || idx >= potionSlots || !potions[idx]) return false;
     const PotionDef &d = potion_def(static_cast<PotionId>(potions[idx]));
     return d.usage != PotionUsage::AUTOMATIC;
 }
 
 void BattleContext::add_potion(PotionId id) {
-    // Sozu.ShouldProcurePotion applies to every acquisition path, in combat
-    // and out of combat.
-    if (relic_has(*this, RelicId::SOZU)) return;
-    if (potionCount >= std::min(potionSlots, MAX_POTIONS)) return;
-    potions[potionCount++] = static_cast<int>(id);
-    relics_potion_obtained(*this);
+    battle_try_procure_potion(*this, id);
 }
 
 // PotionFactory.CreateRandomPotionOutOfCombat: 10% rare / 25% uncommon / 65%
 // common over the character + shared pools, without the combat-only filter.
-PotionId random_potion_out_of_combat(Rng &rng) {
+PotionId random_potion_out_of_combat(Rng &rng, CardPool character) {
     const float roll = rng.next_float();
     const Rarity want = roll <= 0.1f ? Rarity::RARE
                         : roll <= 0.35f ? Rarity::UNCOMMON
                                         : Rarity::COMMON;
+    const PotionId *ids = nullptr;
+    int total = 0;
+    native_potion_pool(character, ids, total);
     int pool[static_cast<int>(PotionId::COUNT)];
     int n = 0;
-    for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
+    for (int k = 0; k < total; ++k) {
+        const int i = static_cast<int>(ids[k]);
         const PotionDef &d = POTION_DEFS[i];
-        if (!d.ironclad || d.rarity != want) continue;
+        if (d.rarity != want) continue;
         pool[n++] = i;
     }
     if (n == 0) return PotionId::INVALID;
     return static_cast<PotionId>(pool[rng.next_int(0, n - 1)]);
 }
 
-int random_potions_out_of_combat(Rng &rng, PotionId *out, int count) {
+int random_potions_out_of_combat(Rng &rng, PotionId *out, int count, CardPool character) {
     if (out == nullptr || count <= 0) return 0;
+    const PotionId *ids = nullptr;
+    int total = 0;
+    native_potion_pool(character, ids, total);
     bool used[static_cast<int>(PotionId::COUNT)]{};
     int made = 0;
     for (int k = 0; k < count; ++k) {
@@ -139,9 +149,10 @@ int random_potions_out_of_combat(Rng &rng, PotionId *out, int count) {
                                             : Rarity::COMMON;
         int pool[static_cast<int>(PotionId::COUNT)];
         int n = 0;
-        for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
+        for (int q = 0; q < total; ++q) {
+            const int i = static_cast<int>(ids[q]);
             const PotionDef &d = POTION_DEFS[i];
-            if (!d.ironclad || d.rarity != want || used[i]) continue;
+            if (d.rarity != want || used[i]) continue;
             pool[n++] = i;
         }
         if (n == 0) break;
@@ -156,16 +167,20 @@ int random_potions_out_of_combat(Rng &rng, PotionId *out, int count) {
 // over the character + shared pools, combat-generatable potions only.
 PotionId BattleContext::gain_random_combat_potion() {
     if (relic_has(*this, RelicId::SOZU)) return PotionId::INVALID;
-    if (potionCount >= std::min(potionSlots, MAX_POTIONS)) return PotionId::INVALID;
+    if (potion_first_empty_slot(potions, potionSlots) < 0) return PotionId::INVALID;
     const float roll = potionRng.next_float();
     const Rarity want = roll <= 0.1f ? Rarity::RARE
                         : roll <= 0.35f ? Rarity::UNCOMMON
                                         : Rarity::COMMON;
+    const PotionId *ids = nullptr;
+    int total = 0;
+    native_potion_pool(characterPool, ids, total);
     int pool[static_cast<int>(PotionId::COUNT)];
     int n = 0;
-    for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
+    for (int k = 0; k < total; ++k) {
+        const int i = static_cast<int>(ids[k]);
         const PotionDef &d = POTION_DEFS[i];
-        if (!d.ironclad || !d.combatGen || d.rarity != want) continue;
+        if (!d.combatGen || d.rarity != want) continue;
         pool[n++] = i;
     }
     if (n == 0) return PotionId::INVALID;
@@ -175,11 +190,11 @@ PotionId BattleContext::gain_random_combat_potion() {
 }
 
 bool BattleContext::try_fairy_revive() {
-    for (int i = 0; i < potionCount; ++i) {
+    for (int i = 0; i < potionSlots; ++i) {
         if (static_cast<PotionId>(potions[i]) != PotionId::FAIRY_IN_ABOTTLE) continue;
-        for (int j = i; j + 1 < potionCount; ++j) potions[j] = potions[j + 1];
-        --potionCount;
+        potion_remove_at(potions, potionSlots, potionCount, i);
         player.hp = std::max(1, player.maxHp * 30 / 100);
+        relics_current_hp_changed(*this);
         outcome = Outcome::UNDECIDED;
         return true;
     }
@@ -191,7 +206,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
     switch (id) {
         case PotionId::ATTACK_POTION: {
             Card cards[3];
-            const int n = deal_cards(*this, cards, 3, CardType::ATTACK, CardPath::IRONCLAD);
+            const int n = deal_cards(*this, cards, 3, CardType::ATTACK, CardPath::CHARACTER);
             offer(*this, cards, n, true);
             break;
         }
@@ -201,7 +216,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
             gain_block(12, false, false);
             break;
         case PotionId::BLOOD_POTION:
-            player.hp = std::min(player.maxHp, player.hp + player.maxHp * 20 / 100);
+            heal_hp(player.maxHp * 20 / 100);
             break;
         case PotionId::COLORLESS_POTION: {
             Card cards[3];
@@ -226,13 +241,13 @@ void BattleContext::apply_potion(PotionId id, int target) {
             break;
         case PotionId::POWER_POTION: {
             Card cards[3];
-            const int n = deal_cards(*this, cards, 3, CardType::POWER, CardPath::IRONCLAD);
+            const int n = deal_cards(*this, cards, 3, CardType::POWER, CardPath::CHARACTER);
             offer(*this, cards, n, true);
             break;
         }
         case PotionId::SKILL_POTION: {
             Card cards[3];
-            const int n = deal_cards(*this, cards, 3, CardType::SKILL, CardPath::IRONCLAD);
+            const int n = deal_cards(*this, cards, 3, CardType::SKILL, CardPath::CHARACTER);
             offer(*this, cards, n, true);
             break;
         }
@@ -250,6 +265,11 @@ void BattleContext::apply_potion(PotionId id, int target) {
             break;
         case PotionId::WEAK_POTION:
             apply_weak(target, 3);
+            break;
+        case PotionId::AMBERGRIS:
+            // Ambergris.cs: heal 50% MaxHp, then apply AmbergrisPower 1.
+            heal_hp(player.maxHp * 50 / 100);
+            if (outcome == Outcome::UNDECIDED) ++ambergrisExtraTurns;
             break;
         case PotionId::ASHWATER:
             hand_choice(*this, ChoiceOp::EXHAUST, handCount, true);
@@ -366,7 +386,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
             // Generation RNG, no CanBeGeneratedInCombat filter) and stops when
             // TryToProcure fails (Sozu, full belt).
             while (potionCount < std::min(potionSlots, MAX_POTIONS)) {
-                const PotionId next = random_potion_out_of_combat(potionRng);
+                const PotionId next = random_potion_out_of_combat(potionRng, characterPool);
                 if (next == PotionId::INVALID) break;
                 const int before = potionCount;
                 add_potion(next);
@@ -378,7 +398,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
             break;  // automatic
         case PotionId::FRUIT_JUICE:
             player.maxHp += 5;
-            player.hp += 5;
+            heal_hp(5);
             break;
         case PotionId::GHOST_IN_AJAR:
             // GhostInAJar.cs applies IntangiblePower 1, not Buffer.
@@ -466,6 +486,49 @@ void BattleContext::apply_potion(PotionId id, int target) {
         case PotionId::POTION_SHAPED_ROCK:
             apply_damage_one(*this, target, 15);
             break;
+        // Character pools (Epoch 4). Each mirrors the native OnUse below.
+        case PotionId::FOCUS_POTION:
+            // FocusPotion.cs: PowerCmd.Apply<FocusPower>(2).
+            add_player_power(PowerId::FOCUS, 2);
+            break;
+        case PotionId::POISON_POTION:
+            // PoisonPotion.cs: PowerCmd.Apply<PoisonPower>(6) to an enemy.
+            if (target >= 0 && target < monsterCount && monsters[target].alive)
+                add_monster_power(target, PowerId::POISON, 6);
+            break;
+        case PotionId::POTION_OF_DOOM:
+            // PotionOfDoom.cs: PowerCmd.Apply<DoomPower>(33) to an enemy.
+            if (target >= 0 && target < monsterCount && monsters[target].alive)
+                add_monster_power(target, PowerId::DOOM, 33);
+            break;
+        case PotionId::STAR_POTION:
+            // StarPotion.cs: PlayerCmd.GainStars(3).
+            regent_gain_stars(*this, 3);
+            break;
+        case PotionId::BONE_BREW:
+            // BoneBrew.cs: OstyCmd.Summon(15).
+            necrobinder_summon(*this, 15);
+            break;
+        case PotionId::CUNNING_POTION:
+            // CunningPotion.cs: three upgraded Shivs created in hand.
+            silent_create_shivs(*this, 3, true);
+            break;
+        case PotionId::KINGS_COURAGE:
+            // KingsCourage.cs: ForgeCmd.Forge(15).
+            regent_forge(*this, 15);
+            break;
+        case PotionId::POTION_OF_CAPACITY:
+            // PotionOfCapacity.cs: OrbCmd.AddSlots(2).
+            defect_add_orb_slots(*this, 2);
+            break;
+        case PotionId::ESSENCE_OF_DARKNESS:
+            // EssenceOfDarkness.cs: channel one Dark orb per orb slot.
+            for (int i = 0; i < defect.orbCapacity; ++i) defect_channel(*this, OrbId::DARK);
+            break;
+        case PotionId::POT_OF_GHOULS:
+            // PotOfGhouls.cs: two Soul cards created in hand.
+            necrobinder_create_souls(*this, 2, ChoicePile::HAND);
+            break;
         default:
             break;
     }
@@ -476,8 +539,7 @@ void BattleContext::use_potion(int idx, int target) {
     if (!can_use_potion(idx)) return;
     const PotionId id = static_cast<PotionId>(potions[idx]);
     if (potion_def(id).target == PotionTarget::ANY_ENEMY) face_surrounded_target(target);
-    for (int j = idx; j + 1 < potionCount; ++j) potions[j] = potions[j + 1];
-    --potionCount;
+    potion_remove_at(potions, potionSlots, potionCount, idx);
     apply_potion(id, target);
     relics_potion_used(*this);
 }

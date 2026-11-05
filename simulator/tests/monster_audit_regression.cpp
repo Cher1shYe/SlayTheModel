@@ -386,6 +386,11 @@ int main() {
         spawn_monster(b, MonsterId::TOUGH_EGG, 0);
         b.monsterCount = 1;
         Monster &egg = b.monsters[0];
+        // Native CombatState.CreateCreature draws the egg's initial HP from
+        // RunState.Rng.Niche before the hatch roll.
+        check("ToughEgg initial HP uses Niche RNG", egg.maxHp,
+              expected.next_int_range(asc ? 15 : 14, asc ? 20 : 19));
+        expected = b.nicheRng;
         egg.strength = 7;
         egg.weak = 2;
         egg.power[static_cast<int>(PowerId::METALLICIZE)] = 4;
@@ -399,6 +404,62 @@ int main() {
         check("Hatch retains Minion", egg.power[static_cast<int>(PowerId::MINION)], 1);
         check("Hatch power removed", egg.power[static_cast<int>(PowerId::HATCH)], 0);
         check("Hatch follows with Nibble", egg.move, 1);
+    }
+    {
+        // Native Creature.SetUniqueMonsterHpValue draws from RunState.Rng.Niche
+        // and excludes MaxHp values already present on the same side.
+        BattleContext b = battle();
+        b.monsterCount = 0;
+        b.nicheRng = Rng(4242, "niche");
+        Rng expected = b.nicheRng;
+        const MonsterDef &def = monster_def(MonsterId::CHOMPER);
+        const int lo = def.hpLo[0], hi = def.hpHi[0];
+        const int first = expected.next_int_range(lo, hi + 1);
+        spawn_monster(b, MonsterId::CHOMPER, 0);
+        b.monsterCount = 1;
+        check("First monster HP uses Niche RNG", b.monsters[0].maxHp, first);
+        const int k = expected.next_int_range(0, hi - lo);
+        int second = lo;
+        for (int v = lo, seen = 0; v <= hi; ++v) {
+            if (v == first) continue;
+            if (seen++ == k) { second = v; break; }
+        }
+        spawn_monster(b, MonsterId::CHOMPER, 1);
+        b.monsterCount = 2;
+        check("Second monster HP excludes taken value", b.monsters[1].maxHp, second);
+        check("Niche consumed once per monster", b.nicheRng.counter, expected.counter);
+    }
+    {
+        // PunchOffEventEncounter.GenerateMonsters draws both StartingHpReduction
+        // values from the encounter RNG (seed + TotalFloor + hash(entry)).
+        BattleContext b = battle();
+        b.monsterAiRng = Rng(999, "ai");
+        b.nicheRng = Rng(1234, "niche");
+        Rng enc(4242);
+        Rng expected = enc;
+        const int r0 = expected.next_int(2, 9);
+        const int r1 = expected.next_int(2, 9);
+        setup_encounter(b, Encounter::SETUP_PUNCH_OFF, &enc);
+        check("PunchOff first HP reduction uses encounter RNG", b.monsters[0].maxHp - b.monsters[0].hp, r0);
+        check("PunchOff second HP reduction uses encounter RNG", b.monsters[1].maxHp - b.monsters[1].hp, r1);
+        check("PunchOff consumes encounter RNG twice", enc.counter, expected.counter);
+        check("PunchOff does not consume MonsterAi", b.monsterAiRng.counter, 0);
+    }
+    {
+        // DecimillipedeElite: one encounter draw, StarterMoveIdx 0/1/2 maps to
+        // WRITHE/BULK/CONSTRICT (JSON state order is WRITHE/CONSTRICT/BULK).
+        BattleContext b = battle();
+        b.monsterAiRng = Rng(999, "ai");
+        b.nicheRng = Rng(1234, "niche");
+        Rng enc(777);
+        Rng expected = enc;
+        const int first = expected.next_int(0, 2);
+        static const int kStarter[3] = {0, 2, 1};
+        setup_encounter(b, Encounter::SETUP_DECIMILLIPEDE_ELITE, &enc);
+        check("Decimillipede first starter move", b.monsters[0].move, kStarter[first]);
+        check("Decimillipede second starter move", b.monsters[1].move, kStarter[(first + 1) % 3]);
+        check("Decimillipede third starter move", b.monsters[2].move, kStarter[(first + 2) % 3]);
+        check("Decimillipede consumes encounter RNG once", enc.counter, expected.counter);
     }
     for (int initialHp : {1000, 10}) {
         BattleContext b = battle();
@@ -440,6 +501,119 @@ int main() {
         monster_act(b, b.monsters[2]);
         check("Door second revival resets base HP", b.monsters[0].maxHp, asc ? 215 : 195);
         check("Door second revival strength", b.monsters[0].strength, asc ? 8 : 6);
+    }
+    {
+        // Deterministic native rosters (decompiled GenerateMonsters).
+        BattleContext b = battle();
+        Rng enc(11);
+        setup_encounter(b, Encounter::SETUP_AXEBOTS_NORMAL, &enc);
+        check("AxebotsNormal roster size", b.monsterCount, 1);
+        check("AxebotsNormal roster monster", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::AXEBOT));
+
+        b = battle();
+        Rng enc2(12);
+        setup_encounter(b, Encounter::SETUP_EXOSKELETONS_NORMAL, &enc2);
+        check("ExoskeletonsNormal roster size", b.monsterCount, 4);
+        b = battle();
+        Rng enc3(13);
+        setup_encounter(b, Encounter::SETUP_EXOSKELETONS_WEAK, &enc3);
+        check("ExoskeletonsWeak roster size", b.monsterCount, 3);
+
+        b = battle();
+        Rng enc4(14);
+        setup_encounter(b, Encounter::SETUP_SLUMBERING_BEETLE_NORMAL, &enc4);
+        check("SlumberingBeetle roster size", b.monsterCount, 3);
+        check("SlumberingBeetle first", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::BOWLBUG_ROCK));
+        check("SlumberingBeetle second", static_cast<int>(b.monsters[1].id), static_cast<int>(MonsterId::BOWLBUG_SILK));
+        check("SlumberingBeetle third", static_cast<int>(b.monsters[2].id), static_cast<int>(MonsterId::SLUMBERING_BEETLE));
+
+        b = battle();
+        Rng enc5(15);
+        setup_encounter(b, Encounter::SETUP_TUNNELER_NORMAL, &enc5);
+        check("TunnelerNormal roster size", b.monsterCount, 2);
+        check("TunnelerNormal first", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::CHOMPER));
+        check("TunnelerNormal chomper screams first", b.monsters[0].move, 1);
+
+        b = battle();
+        Rng enc6(16);
+        setup_encounter(b, Encounter::SETUP_GREMLIN_MERC_NORMAL, &enc6);
+        check("GremlinMercNormal roster size", b.monsterCount, 1);
+        check("GremlinMercNormal roster monster", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::GREMLIN_MERC));
+    }
+    {
+        // Randomised rosters: native draw counts and composition.
+        BattleContext b = battle();
+        Rng e(21), expected = e;
+        setup_encounter(b, Encounter::SETUP_FLYCONID_NORMAL, &e);
+        expected.next_int(0, 1);
+        check("Flyconid roster size", b.monsterCount, 2);
+        check("Flyconid second", static_cast<int>(b.monsters[1].id), static_cast<int>(MonsterId::FLYCONID));
+        check("Flyconid first is a medium slime",
+              b.monsters[0].id == MonsterId::LEAF_SLIME_M || b.monsters[0].id == MonsterId::TWIG_SLIME_M, 1);
+        check("Flyconid encounter draws", e.counter, expected.counter);
+
+        b = battle();
+        Rng e2(22), exp2 = e2;
+        setup_encounter(b, Encounter::SETUP_SLIMES_NORMAL, &e2);
+        exp2.next_bool();
+        check("SlimesNormal roster size", b.monsterCount, 4);
+        check("SlimesNormal medium order 0", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::TWIG_SLIME_M));
+        check("SlimesNormal medium order 1", static_cast<int>(b.monsters[1].id), static_cast<int>(MonsterId::LEAF_SLIME_M));
+        check("SlimesNormal distinct smalls", b.monsters[2].id != b.monsters[3].id, 1);
+        check("SlimesNormal encounter draws", e2.counter, exp2.counter);
+
+        b = battle();
+        Rng e3(23), exp3 = e3;
+        setup_encounter(b, Encounter::SETUP_SLIMES_WEAK, &e3);
+        exp3.next_int(0, 1);
+        exp3.next_int(0, 0);
+        exp3.next_int(0, 1);
+        check("SlimesWeak roster size", b.monsterCount, 3);
+        check("SlimesWeak smalls distinct", b.monsters[0].id != b.monsters[2].id, 1);
+        check("SlimesWeak medium in middle",
+              b.monsters[1].id == MonsterId::LEAF_SLIME_M || b.monsters[1].id == MonsterId::TWIG_SLIME_M, 1);
+        check("SlimesWeak encounter draws", e3.counter, exp3.counter);
+
+        b = battle();
+        Rng e4(24), exp4 = e4;
+        setup_encounter(b, Encounter::SETUP_BOWLBUGS_NORMAL, &e4);
+        exp4.next_int(0, 2);
+        exp4.next_int(0, 1);
+        check("BowlbugsNormal roster size", b.monsterCount, 3);
+        check("BowlbugsNormal first", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::BOWLBUG_ROCK));
+        check("BowlbugsNormal distinct workers", b.monsters[1].id != b.monsters[2].id, 1);
+        check("BowlbugsNormal encounter draws", e4.counter, exp4.counter);
+
+        b = battle();
+        Rng e5(25), exp5 = e5;
+        setup_encounter(b, Encounter::SETUP_BOWLBUGS_WEAK, &e5);
+        exp5.next_int(0, 1);
+        check("BowlbugsWeak roster size", b.monsterCount, 2);
+        check("BowlbugsWeak first", static_cast<int>(b.monsters[0].id), static_cast<int>(MonsterId::BOWLBUG_ROCK));
+        check("BowlbugsWeak encounter draws", e5.counter, exp5.counter);
+
+        b = battle();
+        Rng e6(26), exp6 = e6;
+        setup_encounter(b, Encounter::SETUP_RUBY_RAIDERS_NORMAL, &e6);
+        for (int i = 0; i < 3; ++i) exp6.next_int(0, 4 - i);
+        check("RubyRaiders roster size", b.monsterCount, 3);
+        check("RubyRaiders distinct", b.monsters[0].id != b.monsters[1].id &&
+              b.monsters[1].id != b.monsters[2].id && b.monsters[0].id != b.monsters[2].id, 1);
+        check("RubyRaiders encounter draws", e6.counter, exp6.counter);
+    }
+    {
+        // SurprisePower spawns SneakyGremlin then FatGremlin when the merc dies.
+        BattleContext b = battle();
+        Rng enc(31);
+        setup_encounter(b, Encounter::SETUP_GREMLIN_MERC_NORMAL, &enc);
+        b.monsters[0].stolenGold = 17;
+        check("GremlinMerc has Surprise", b.monsters[0].power[static_cast<int>(PowerId::SURPRISE)], 1);
+        b.damage_monster(0, 10000, true, true);
+        check("Surprise adds both gremlins", b.monsterCount, 3);
+        check("Surprise adds Sneaky first", static_cast<int>(b.monsters[1].id), static_cast<int>(MonsterId::SNEAKY_GREMLIN));
+        check("Surprise adds Fat second", static_cast<int>(b.monsters[2].id), static_cast<int>(MonsterId::FAT_GREMLIN));
+        check("Surprise gremlins alive", b.monsters[1].alive && b.monsters[2].alive, 1);
+        check("Surprise transfers stolen gold", b.monsters[2].stolenGold, 17);
     }
     return failures == 0 ? 0 : 1;
 }

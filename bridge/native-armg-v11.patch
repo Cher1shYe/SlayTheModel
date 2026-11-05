@@ -1,0 +1,194 @@
+--- /dev/null
++++ b/src/SlayTheModel.Sts2.ModAdapter/ArmGNativeContextProjector.cs
+@@ -0,0 +1,48 @@
++using MegaCrit.Sts2.Core.Map;
++using MegaCrit.Sts2.Core.Models;
++using MegaCrit.Sts2.Core.Models.Acts;
++using MegaCrit.Sts2.Core.Models.Encounters;
++using MegaCrit.Sts2.Core.Models.Relics;
++using MegaCrit.Sts2.Core.Runs;
++using MegaCrit.Sts2.Core.Saves;
++using MegaCrit.Sts2.Core.Timeline.Epochs;
++using SlayTheModel.Sts2.Protocol;
++
++namespace SlayTheModel.Sts2.ModAdapter;
++
++// Isolated bridge patch; no game actions or inferred selector source. A missing
++// context makes the Python bridge unsupported while other policies still work.
++internal static class ArmGNativeContextProjector
++{
++    internal static OutsideArmGNativeContext? TryCapture(RunState state)
++    {
++        try
++        {
++            if (state.Players.Count != 1 || state.Acts.Count != 3) return null;
++            var player = state.Players[0];
++            var unlocks = state.UnlockState;
++            return new OutsideArmGNativeContext(
++                1,
++                state.Acts.Select(act => act.Id.ToString()).ToArray(),
++                player.Relics.OfType<GoldenCompass>().SingleOrDefault()?.GoldenPathAct ?? -1,
++                state.MapPointHistory.SelectMany(act => act).Count(point => point.MapPointType == MapPointType.Unknown),
++                RunManager.Instance.ShouldApplyTutorialModifications(),
++                unlocks.NumberOfRuns,
++                unlocks.IsEpochRevealed<NeowEpoch>(),
++                unlocks.IsEpochRevealed<OrobasEpoch>(),
++                unlocks.IsEpochRevealed<DarvEpoch>(),
++                unlocks.IsEpochRevealed<UnderdocksEpoch>(),
++                SaveManager.Instance.Progress.DiscoveredActs.Contains(ModelDb.Act<Underdocks>().Id),
++                unlocks.HasSeenEncounter(ModelDb.Encounter<AeonglassBoss>()),
++                ModelDb.AllEncounters.Where(unlocks.HasSeenEncounter).Select(encounter => encounter.Id.ToString()).ToArray(),
++                state.Act.BossEncounter.Id.ToString(),
++                state.Act.SecondBossEncounter?.Id.ToString(),
++                player.Relics.OfType<PaelsTooth>().Sum(relic => relic.SerializableCards.Count));
++        }
++        catch (Exception exception)
++        {
++            Console.Error.WriteLine($"[SlayTheModel ArmG] Native context unavailable: {exception.GetType().Name}: {exception.Message}");
++            return null;
++        }
++    }
++}
+--- a/src/SlayTheModel.Sts2.ModAdapter/ArmGOutsidePolicy.cs
++++ b/src/SlayTheModel.Sts2.ModAdapter/ArmGOutsidePolicy.cs
+@@ -138,7 +138,8 @@
+     string? Reason,
+     bool? Approximate,
+     IReadOnlyList<string>? MissingFeatures,
+-    IReadOnlyList<float>? Scores);
++    IReadOnlyList<float>? Scores,
++    IReadOnlyList<OutsideSelectedCardReference>? SelectedCards = null);
+ 
+ internal static class ArmGDecisionGuard
+ {
+@@ -156,6 +157,16 @@
+             throw new InvalidDataException("ArmG worker did not declare approximation status.");
+         var selected = decision.LegalActions.SingleOrDefault(action => action.ActionId == response.ActionId)
+             ?? throw new InvalidDataException("ArmG returned an action not legal in the current state.");
++        if (selected.IsSelectionTemplate)
++        {
++            if (response.SelectedCards is null)
++                throw new InvalidDataException("ArmG returned an unresolved selection template.");
++            var concrete = selected with { IsSelectionTemplate = false, SelectedCards = response.SelectedCards };
++            OutsideCombatDecisionPoint.ValidateSubmittedSetAction(decision.Observation, selected, concrete);
++            selected = concrete;
++        }
++        else if (response.SelectedCards is not null)
++            throw new InvalidDataException("ArmG returned a subset for a non-template action.");
+         return autoMode && (response.Approximate != true || allowApproximate) ? selected : null;
+     }
+ }
+--- a/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatCaptureService.cs
++++ b/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatCaptureService.cs
+@@ -82,7 +82,13 @@
+                         card.Id.ToString(),
+                         card.CurrentUpgradeLevel,
+                         card.Enchantment?.Id.ToString(),
+-                        card.Affliction?.Id.ToString()))
++                        card.Affliction?.Id.ToString())
++                    {
++                        EnchantmentAmount = card.Enchantment?.Amount ?? 0,
++                        EnchantmentDisabled = card.Enchantment?.Status == MegaCrit.Sts2.Core.Entities.Enchantments.EnchantmentStatus.Disabled,
++                        GuiltyCombatsSeen = card is MegaCrit.Sts2.Core.Models.Cards.Guilty guilty ? guilty.CombatsSeen : 0,
++                        CurrentEnergyCost = card.EnergyCost.CostsX ? -1 : card.EnergyCost.GetWithModifiers(MegaCrit.Sts2.Core.Entities.Cards.CostModifiers.All),
++                    })
+                     .ToArray(),
+                 player.Relics
+                     .Select(relic => new OutsideRunRelicObservation(relic.Id.ToString())
+@@ -114,7 +120,7 @@
+                 ? ToCoordinate(coordinate)
+                 : null,
+             players,
+-            mapPoints);
++            mapPoints) { ArmGNativeContext = ArmGNativeContextProjector.TryCapture(state) };
+         observation.Validate();
+         return observation;
+     }
+--- a/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatController.cs
++++ b/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatController.cs
+@@ -1115,6 +1115,7 @@
+         int? minSelections = null;
+         int? maxSelections = null;
+         var selectedCount = 0;
++        IReadOnlyList<int>? selectedDeckIndices = null;
+         var cancelable = actions.Any(action => action.Kind is
+             OutsideCombatActionKind.CancelSelection
+             or OutsideCombatActionKind.BackToSelection
+@@ -1146,6 +1147,8 @@
+                 is IReadOnlyCollection<CardModel> selectedCards
+                     ? selectedCards.Count
+                     : 0;
++            if (DeckSelectedCardsField?.GetValue(deckScreen) is IReadOnlyCollection<CardModel> frozenSelected)
++                selectedDeckIndices = frozenSelected.Select(card => Array.IndexOf(card.Owner!.Deck.Cards.ToArray(), card)).ToArray();
+             cancelable = prefs.Cancelable;
+             requiresConfirmation = prefs.RequireManualConfirmation || requiresConfirmation;
+         }
+@@ -1206,7 +1209,7 @@
+             maxSelections,
+             selectedCount,
+             cancelable,
+-            requiresConfirmation);
++            requiresConfirmation) { SelectedDeckIndices = selectedDeckIndices };
+     }
+ 
+     private static string ReadStableProperty(object? instance, string name) =>
+--- a/src/SlayTheModel.Sts2.Protocol/OutsideCombatDecision.cs
++++ b/src/SlayTheModel.Sts2.Protocol/OutsideCombatDecision.cs
+@@ -38,6 +38,9 @@
+     public IReadOnlyList<OutsideSelectedCardReference>? CardSelectionOptions { get; init; }
+ 
+     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
++    public OutsideArmGNativeContext? ArmGNativeContext { get; init; }
++
++    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+     public OutsideShopObservation? Shop { get; init; }
+ 
+     public void Validate()
+@@ -176,6 +179,26 @@
+         }
+     }
+ }
++
++// Versioned native facts used by the isolated ArmG v11 bridge. Missing facts
++// remain null/unsupported; they must not be inferred from a matching UI prompt.
++public sealed record OutsideArmGNativeContext(
++    int SchemaVersion,
++    IReadOnlyList<string> ActIds,
++    int GoldenPathAct,
++    int UnknownMapPointsVisited,
++    bool ApplyDiscoveryOrder,
++    int NumberOfRuns,
++    bool NeowUnlocked,
++    bool OrobasUnlocked,
++    bool DarvUnlocked,
++    bool UnderdocksUnlocked,
++    bool UnderdocksDiscovered,
++    bool AeonglassSeen,
++    IReadOnlyList<string> SeenEncounterIds,
++    string BossEncounterId,
++    string? SecondBossEncounterId,
++    int PaelsToothStoredCount);
+ 
+ public sealed record OutsideShopItem(int SlotIndex, string? ModelId, int Cost, bool Sold,
+     [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] int? UpgradeLevel = null);
+@@ -281,6 +304,9 @@
+     bool Cancelable,
+     bool RequiresConfirmation)
+ {
++    // Frozen native deck identities; does not infer the selector's source relic.
++    public IReadOnlyList<int>? SelectedDeckIndices { get; init; }
++
+     public void Validate()
+     {
+         ArgumentException.ThrowIfNullOrWhiteSpace(ContextId);
+@@ -435,6 +461,10 @@
+ {
+     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+     public CardEnchantmentDisplayObservation? EnchantmentDisplay { get; init; }
++    public int? EnchantmentAmount { get; init; }
++    public bool? EnchantmentDisabled { get; init; }
++    public int? GuiltyCombatsSeen { get; init; }
++    public int? CurrentEnergyCost { get; init; }
+ 
+     public void Validate()
+     {

@@ -1,4 +1,4 @@
-"""Continue ArmG REINFORCE with floor-dependent root PUCT and card-skip prior.
+"""Train or continue ArmG REINFORCE with floor-dependent root PUCT.
 
 Load the exact extension specified by STS2_PRIOR_PYD before importing agent
 modules. Each battle decision executes one action and uses its configured
@@ -27,10 +27,11 @@ import torch
 
 import agent.armg_train as base
 from agent.armg import ARMG_ACTION_DIM, ARMG_FEATURE_VERSION, ARMG_OBS_DIM, ArmGScorer
-from agent.nets import checkpoint_config
+from agent.nets import checkpoint_config, read_checkpoint
 from agent.armg_floor_schedule import FloorMctsController, FloorCardSkipPrior, combat_budget
 from agent.armg_site_prior_loss import backward_prior
-from agent.combat_dagger import CombatPolicy, load_combat_checkpoint
+from agent.combat_dagger import (CombatPolicy, CombatValue, load_combat_checkpoint,
+                                save_checkpoint as save_combat_checkpoint)
 from agent.common import combat_action_arrays, public_combat_observation
 
 TRAIN_SEED_BASE = 10_330_000
@@ -230,12 +231,13 @@ def _play(task):
             pass
 
 
-def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, batch_size=32, workers=8,
+def train(*, init_checkpoint=None, out_dir, data_dir=None, combat_checkpoint=None, games=1024, batch_size=32, workers=8,
           simulations=3000, floor_increment=500, elite_bonus=0, boss_bonus=0,
           eval_every=640, eval_runs=50, max_steps=5000,
           seed=20261030, lr=3e-4, resume=None, combat_mode='oracle',
           prior_weight=0.05, training_seed_base=TRAIN_SEED_BASE,
-          resume_simulator_old_sha256=None, resume_simulator_new_sha256=None):
+          resume_simulator_old_sha256=None, resume_simulator_new_sha256=None,
+          fresh_init=False, combat_prior_mode='checkpoint', site_prior_mode='website', prepare_only=False):
     if min(games, batch_size, workers, simulations, eval_every, eval_runs, max_steps) < 1 or min(floor_increment, elite_bonus, boss_bonus) < 0 or lr <= 0:
         raise ValueError('training parameters must be positive')
     if combat_mode != 'oracle':
@@ -246,68 +248,99 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
         raise ValueError('training game count exceeds reserved seed range')
     if training_seed_base < 0:
         raise ValueError('training seed base must be nonnegative')
+    if prepare_only and (not fresh_init or resume):
+        raise ValueError('--prepare-only requires a fresh new run')
+    if combat_prior_mode not in ('checkpoint', 'random') or site_prior_mode not in ('website', 'disabled'):
+        raise ValueError('unknown combat/site prior mode')
+    if not fresh_init and not init_checkpoint:
+        raise ValueError('continuation requires --init-checkpoint; use --fresh-init for a new run')
+    if combat_prior_mode == 'random' and (not fresh_init or combat_checkpoint):
+        raise ValueError('a new random combat prior requires --fresh-init and no --combat-checkpoint')
+    if combat_prior_mode == 'checkpoint' and not combat_checkpoint:
+        raise ValueError('provide --combat-checkpoint or explicitly select --fresh-init --combat-prior-mode random')
+    if site_prior_mode == 'disabled' and (not fresh_init or prior_weight != 0 or data_dir):
+        raise ValueError('disabled website prior requires --fresh-init --prior-weight 0 and no --data-dir')
+    if site_prior_mode == 'website' and not data_dir:
+        raise ValueError('provide website --data-dir or explicitly disable the website prior for a fresh run')
+    if fresh_init and (resume_simulator_old_sha256 or resume_simulator_new_sha256):
+        raise ValueError('fresh initialization cannot restore another simulator; migrate weights separately')
     cycle_seed_base = training_seed_base
     if not extension_loader._extension:
         raise RuntimeError('set STS2_PRIOR_PYD to the isolated MCTS extension')
     if not _supports_potion_weight():
         raise RuntimeError('the selected PUCT extension does not support final-boss potion_weight')
     extension_path = Path(extension_loader._extension).resolve(strict=True)
-    init_path = Path(init_checkpoint).resolve(strict=True)
-    data_path = Path(data_dir).resolve(strict=True)
-    manifest = data_path / 'manifest.json'
-    manifest_data = json.loads(manifest.read_text(encoding='utf-8'))
-    for name in ('cards', 'relics', 'potions', 'community'):
-        if _sha(data_path / (name + '.json')) != manifest_data['snapshots'][name]['sha256']:
-            raise ValueError(f'website snapshot hash mismatch: {name}')
-    previous = torch.load(init_path, map_location='cpu', weights_only=False)
+    init_path = Path(init_checkpoint).resolve(strict=True) if init_checkpoint else None
+    data_path = Path(data_dir).resolve(strict=True) if data_dir else None
+    manifest = data_path / 'manifest.json' if data_path else None
+    manifest_data = json.loads(manifest.read_text(encoding='utf-8')) if manifest else None
+    if manifest:
+        for name in ('cards', 'relics', 'potions', 'community'):
+            if _sha(data_path / (name + '.json')) != manifest_data['snapshots'][name]['sha256']:
+                raise ValueError(f'website snapshot hash mismatch: {name}')
+    previous = read_checkpoint(init_path) if init_path else {}
     previous_progress = previous.get('progress', {})
     previous_settings = previous.get('settings', {})
     required = ('state_dict', 'optimizer_state_dict', 'torch_rng_state', 'python_rng_state', 'numpy_rng_state')
-    if any(previous.get(key) is None for key in required) or previous_progress.get('baseline') is None:
+    if not fresh_init and (any(previous.get(key) is None for key in required) or previous_progress.get('baseline') is None):
         raise ValueError('continuation requires model, optimizer, baseline and all RNG states')
-    resumed = torch.load(resume, map_location='cpu', weights_only=False) if resume else None
-    if previous_settings.get('website_manifest_sha256') != _sha(manifest):
+    resumed = read_checkpoint(resume) if resume else None
+    if not fresh_init and previous_settings.get('website_manifest_sha256') != _sha(manifest):
         raise ValueError('continuation website snapshot differs from checkpoint')
-    if previous_settings.get('lr') != lr:
+    if not fresh_init and previous_settings.get('lr') != lr:
         raise ValueError('continuation learning rate differs from optimizer checkpoint')
     expected_config = checkpoint_config(ArmGScorer()) | {'armg_feature_version': ARMG_FEATURE_VERSION,
                       'armg_obs_dim': ARMG_OBS_DIM, 'armg_action_dim': ARMG_ACTION_DIM}
-    if previous.get('config') != expected_config:
+    if init_path and previous.get('config') != expected_config:
         raise ValueError('source checkpoint observation/action schema or model shape mismatch')
     old_base = previous_settings.get('training_seed_base')
     old_games = previous_progress.get('games')
-    if not isinstance(old_base, int) or not isinstance(old_games, int) or old_games < 0:
+    if not fresh_init and (not isinstance(old_base, int) or not isinstance(old_games, int) or old_games < 0):
         raise ValueError('source checkpoint must record training seed base and game count')
-    if (previous_progress.get('completed') != old_games or previous_progress.get('truncated', 0) or
-            previous_progress.get('errors', 0)):
+    if not fresh_init and (previous_progress.get('completed') != old_games or previous_progress.get('truncated', 0) or
+                          previous_progress.get('errors', 0)):
         raise ValueError('source checkpoint has incomplete episodes')
-    if cycle_seed_base < old_base + old_games and old_base < cycle_seed_base + games:
+    if not fresh_init and cycle_seed_base < old_base + old_games and old_base < cycle_seed_base + games:
         raise ValueError('new training seeds overlap source checkpoint')
     val_base = previous_settings.get('validation_seed_base')
-    if not isinstance(val_base, int) or cycle_seed_base < val_base + eval_runs and val_base < cycle_seed_base + games:
+    if not fresh_init and (not isinstance(val_base, int) or cycle_seed_base < val_base + eval_runs and val_base < cycle_seed_base + games):
         raise ValueError('source validation seeds unavailable or overlap training seeds')
+    if cycle_seed_base < VALIDATION_SEED_BASE + eval_runs and VALIDATION_SEED_BASE < cycle_seed_base + games:
+        raise ValueError('training and validation seed ranges overlap')
     out = Path(out_dir).resolve()
     if resume:
         if not out.is_dir():
             raise FileNotFoundError(out)
     else:
         out.mkdir(parents=True, exist_ok=False)
-    snapshot_dir = out / 'data_snapshot'
-    if not resume:
+    snapshot_dir = out / 'data_snapshot' if manifest else None
+    if manifest and not resume:
         snapshot_dir.mkdir()
         for name in ('cards', 'relics', 'potions', 'community', 'manifest'):
             shutil.copyfile(data_path / (name + '.json'), snapshot_dir / (name + '.json'))
-    if _sha(snapshot_dir / 'manifest.json') != _sha(manifest):
+    if manifest and _sha(snapshot_dir / 'manifest.json') != _sha(manifest):
         raise ValueError('saved website data manifest differs from requested manifest')
-    for name in ('cards', 'relics', 'potions', 'community'):
-        if _sha(snapshot_dir / (name + '.json')) != manifest_data['snapshots'][name]['sha256']:
-            raise ValueError(f'saved website snapshot hash mismatch: {name}')
-    site_prior = FloorCardSkipPrior(snapshot_dir)
-    combat_path = Path(combat_checkpoint).resolve(strict=True)
+    if manifest:
+        for name in ('cards', 'relics', 'potions', 'community'):
+            if _sha(snapshot_dir / (name + '.json')) != manifest_data['snapshots'][name]['sha256']:
+                raise ValueError(f'saved website snapshot hash mismatch: {name}')
+    site_prior = FloorCardSkipPrior(snapshot_dir) if manifest else None
+    combat_path = Path(combat_checkpoint).resolve(strict=True) if combat_checkpoint else None
     combat_snapshot = out / 'combat_policy.pt'
-    if not resume:
+    if not resume and combat_path:
         shutil.copyfile(combat_path, combat_snapshot)
-    if _sha(combat_path) != _sha(combat_snapshot):
+    if not resume and combat_prior_mode == 'random':
+        # A declared new baseline: a frozen, untrained neural prior. This is
+        # not a replacement for the colleague's trained combat checkpoint.
+        with torch.random.fork_rng(devices=[]):
+            torch.manual_seed(seed)
+            prior_policy, prior_value = CombatPolicy(), CombatValue()
+            prior_po = torch.optim.Adam(prior_policy.parameters(), lr=lr)
+            prior_vo = torch.optim.Adam(prior_value.parameters(), lr=lr)
+            save_combat_checkpoint(combat_snapshot, prior_policy, prior_value, prior_po, prior_vo,
+                                   {'total_games': 0, 'initialization': 'new_random_untrained'},
+                                   {'seed': seed, 'simulator_sha256': _sha(extension_path)}, [])
+    if combat_path and _sha(combat_path) != _sha(combat_snapshot):
         raise ValueError('saved combat-policy snapshot differs from requested combat checkpoint')
     combat_policy = CombatPolicy().eval()
     load_combat_checkpoint(combat_snapshot, combat_policy)
@@ -320,7 +353,7 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
     torch.manual_seed(seed)
     model = ArmGScorer()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    settings = {'combat': 'puct-root-oracle', 'combat_prior_checkpoint': str(combat_path),
+    settings = {'combat': 'puct-root-oracle', 'combat_prior_checkpoint': str(combat_path) if combat_path else None,
                 'combat_prior_snapshot': str(combat_snapshot), 'combat_prior_sha256': _sha(combat_snapshot),
                 'combat_prior_depth': 1, 'combat_prior_c': 3.0,
                 'reward_formula': '1.0 if won else floor / 50.0',
@@ -337,22 +370,29 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
                 'root_action': 'best winning rollout else most visited' if combat_mode == 'oracle' else 'most visited',
                 'path_cache': 'none',
                 'search_rng': 'independent per-episode RNG, not derived from game seed',
-                'simulator_sha256': _sha(extension_path), 'init_sha256': _sha(init_path),
+                'simulator_sha256': _sha(extension_path), 'init_sha256': _sha(init_path) if init_path else None,
                 'validation_seed_base': VALIDATION_SEED_BASE,
-                'website_manifest_sha256': _sha(manifest), 'website_data_dir': str(data_path),
-                'website_snapshot_dir': str(snapshot_dir), 'prior_weight': prior_weight,
+                'website_manifest_sha256': _sha(manifest) if manifest else None,
+                'website_data_dir': str(data_path) if data_path else None,
+                'website_snapshot_dir': str(snapshot_dir) if snapshot_dir else None, 'prior_weight': prior_weight,
                 'skip_elo_start': 1350, 'skip_elo_per_floor': 10,
                 'skip_elo_formula': '1350 + 10 * (max(floor, 1) - 1)',
                 'prior_temperature': 2.0,
-                'prior_scope': 'ordinary skip and website-covered Ironclad reward cards; colorless/other actions remain in RL',
+                'prior_scope': ('ordinary skip and website-covered Ironclad reward cards; colorless/other actions remain in RL'
+                                if site_prior is not None else 'disabled'),
                 'training_seed_base': cycle_seed_base, 'target_games': games}
-    restore_settings, simulator_changed = _simulator_resume_settings(
-        previous, resumed, settings, resume_simulator_old_sha256, resume_simulator_new_sha256)
-    progress = {'games': 0, 'baseline': previous_progress['baseline'], 'best_floor': None, 'floor_sum': 0,
+    if fresh_init:
+        settings.update(initialization_mode='fresh', combat_prior_mode=combat_prior_mode,
+                        site_prior_mode=site_prior_mode, reproduces_original_training_configuration=False)
+        restore_settings, simulator_changed = settings, False
+    else:
+        restore_settings, simulator_changed = _simulator_resume_settings(
+            previous, resumed, settings, resume_simulator_old_sha256, resume_simulator_new_sha256)
+    progress = {'games': 0, 'baseline': None if fresh_init else previous_progress['baseline'], 'best_floor': None, 'floor_sum': 0,
                 'completed': 0, 'truncated': 0, 'errors': 0,
-                'source_games': previous_progress['games'],
+                'source_games': 0 if fresh_init else previous_progress['games'],
                 'initialization': {'mode': 'full_rl_continuation', 'source': str(init_path),
-                                   'sha256': _sha(init_path)}}
+                                   'sha256': _sha(init_path) if init_path else None}}
     if resume:
         progress = base._restore(resume, model, optimizer, restore_settings)
         if simulator_changed:
@@ -379,6 +419,10 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
                 'recorded_utc': datetime.now(timezone.utc).isoformat()})
             # Record the change before collecting, so a second interruption is resumable.
             base._save(out / 'latest.pt', model, optimizer, progress, settings)
+    elif fresh_init:
+        progress['initialization'] = (base._warm_start(init_path, model) if init_path else
+                                      {'mode': 'new_random_weights', 'seed': seed})
+        progress['training_games_in_target_environment'] = 0
     else:
         _restore_continuation(previous, model, optimizer)
         if resume_simulator_old_sha256:
@@ -396,6 +440,11 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
              'mean_floor': (progress.get('floor_sum', 0) / progress['games'] if progress['games'] else None),
              'last_validation': None, 'active_episodes': []}
     _atomic_json(out / 'config.json', settings, strict=True)
+    if prepare_only:
+        base._save(out / 'latest.pt', model, optimizer, progress, settings)
+        state.update(state='prepared', stage='not_started', training_games=0)
+        _atomic_json(out / 'progress.json', state, strict=True)
+        return 0
 
     def save():
         active = []
@@ -460,9 +509,12 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
                         prior_stats = None
                         if weighted:
                             loss = base.backward_weighted(model, weighted)
-                            prior_stats = backward_prior(model, weighted, site_prior, prior_weight)
+                            prior_stats = (backward_prior(model, weighted, site_prior, prior_weight)
+                                           if site_prior is not None else {'enabled': False, 'strength': 0.0})
                             optimizer.step()
                         progress['games'] += count
+                        if fresh_init:
+                            progress['training_games_in_target_environment'] = progress['games']
                         progress['completed'] += count
                         progress['floor_sum'] += sum(ep['floor'] for ep in eps)
                         state['mean_floor'] = progress['floor_sum'] / progress['games']
@@ -502,10 +554,14 @@ def train(*, init_checkpoint, out_dir, data_dir, combat_checkpoint, games=1024, 
 
 def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument('--init-checkpoint', required=True)
+    p.add_argument('--init-checkpoint')
     p.add_argument('--out-dir', required=True)
-    p.add_argument('--data-dir', required=True)
-    p.add_argument('--combat-checkpoint', required=True)
+    p.add_argument('--data-dir')
+    p.add_argument('--combat-checkpoint')
+    p.add_argument('--fresh-init', action='store_true', help='new optimizer, RNG and progress; optionally initialize ArmG weights')
+    p.add_argument('--combat-prior-mode', choices=('checkpoint', 'random'), default='checkpoint')
+    p.add_argument('--site-prior-mode', choices=('website', 'disabled'), default='website')
+    p.add_argument('--prepare-only', action='store_true', help='save a new zero-game initialization without collecting or training')
     p.add_argument('--games', type=int, default=1024)
     p.add_argument('--batch-size', type=int, default=32)
     p.add_argument('--workers', type=int, default=8)

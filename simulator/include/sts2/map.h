@@ -5,6 +5,9 @@
 
 namespace sts2 {
 
+// Content identity is separate from the run's zero-based act position.
+enum class ActType : std::uint8_t { OVERGROWTH, HIVE, GLORY, UNDERDOCKS };
+
 enum class MapPointType : std::uint8_t {
     UNASSIGNED,
     UNKNOWN,
@@ -18,8 +21,8 @@ enum class MapPointType : std::uint8_t {
 };
 
 constexpr int MAP_WIDTH = 7;
-constexpr int MAP_MAX_ROWS = 17;  // rooms (<=15) + start row + boss row
-constexpr int MAP_MAX_POINTS = MAP_WIDTH * MAP_MAX_ROWS;
+constexpr int MAP_MAX_ROWS = 18;  // Golden Path: 16 rooms + start + boss.
+constexpr int MAP_MAX_POINTS = 119;  // Network node slots remain unchanged.
 constexpr int MAP_MAX_EDGES = 8;
 
 struct MapNode {
@@ -49,6 +52,10 @@ struct ActMap {
 // Generates the act map exactly as StandardActMap does (paths, type counts,
 // pruning, centering, spreading, straightening). mapRng is advanced.
 void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension = 0);
+// SpoilsMap.ModifyGeneratedMap: hourglass map where every path converges on a
+// single centered treasure node. spoilsRng is the named "spoils_map" stream.
+void generate_spoils_act_map(ActMap &map, Rng &spoilsRng, int actIndex, int ascension = 0);
+void generate_golden_path_map(ActMap &map);
 
 const char *map_point_name(MapPointType type);
 

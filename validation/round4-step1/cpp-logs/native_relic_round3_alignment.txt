@@ -1,0 +1,59 @@
+Complete native Ironclad transformation pool and order PASS
+DistinguishedCape obtains PASS
+DistinguishedCape preserves HP/maxHP PASS
+DistinguishedCape adds two distinct native curses PASS
+DistinguishedCape adds three Apparition PASS
+DistinguishedCape exact RNG PASS
+SereTalon obtains PASS
+SereTalon loses nine maximum HP PASS
+SereTalon adds three Wish without curses PASS
+SereTalon consumes no RNG PASS
+LeafyPoultice obtains PASS
+LeafyPoultice loses twelve maximum HP PASS
+LeafyPoultice keeps Bash and second basic copies PASS
+LeafyPoultice exact native transformation identity/order PASS
+LeafyPoultice uses player Transformation RNG PASS
+LeafyPoultice uses fresh unique replacement entities PASS
+NeowsTorment obtains PASS
+NeowsTorment adds NeowsFury PASS
+NeowsTorment consumes no RNG PASS
+DistinguishedCape obtains PASS
+DistinguishedCape preserves HP/maxHP PASS
+DistinguishedCape adds two distinct native curses PASS
+DistinguishedCape adds three Apparition PASS
+DistinguishedCape exact RNG PASS
+SereTalon obtains PASS
+SereTalon loses nine maximum HP PASS
+SereTalon adds three Wish without curses PASS
+SereTalon consumes no RNG PASS
+LeafyPoultice obtains PASS
+LeafyPoultice loses twelve maximum HP PASS
+LeafyPoultice keeps Bash and second basic copies PASS
+LeafyPoultice exact native transformation identity/order PASS
+LeafyPoultice uses player Transformation RNG PASS
+LeafyPoultice uses fresh unique replacement entities PASS
+NeowsTorment obtains PASS
+NeowsTorment adds NeowsFury PASS
+NeowsTorment consumes no RNG PASS
+LeafyPoultice replacement hooks match native PASS
+LeafyPoultice Egg and duplicate identities PASS
+LeafyPoultice leaves Bash alone without RNG PASS
+SereTalon maxHP loss activates LizardTail before clamping PASS
+SereTalon Tungsten survival still clamps HP PASS
+SealOfGold native three-gold boundary PASS
+SealOfGold native three-gold boundary PASS
+SealOfGold native three-gold boundary PASS
+SealOfGold native three-gold boundary PASS
+SealOfGold native three-gold boundary PASS
+SealOfGold native three-gold boundary PASS
+StoneCracker exact native eligible identity outside boss PASS
+StoneCracker stable shuffle RNG includes full eligible list PASS
+StoneCracker exact native eligible identity outside boss PASS
+StoneCracker stable shuffle RNG includes full eligible list PASS
+StoneCracker exact native eligible identity outside boss PASS
+StoneCracker stable shuffle RNG includes full eligible list PASS
+StoneCracker exact native eligible identity outside boss PASS
+StoneCracker stable shuffle RNG includes full eligible list PASS
+FakeStrikeDummy adds one only to tagged strikes PASS
+FakeStrikeDummy stacks with real StrikeDummy PASS
+native relic round3: 58 checks, 0 failures

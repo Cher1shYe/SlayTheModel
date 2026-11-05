@@ -1,0 +1,19 @@
+................................s....s..ss.............................. [ 18%]
+........s...........sssss............................................... [ 37%]
+........................................................................ [ 56%]
+.........................s..s..ssss..................................... [ 75%]
+........................................................................ [ 94%]
+...................                                                      [100%]
+=========================== short test summary info ===========================
+SKIPPED [1] tests\test_armg_floor_schedule.py:53: real website snapshot unavailable
+SKIPPED [1] tests\test_armg_floor_schedule.py:138: source checkpoint unavailable
+SKIPPED [1] tests\test_armg_floor_schedule.py:225: source checkpoint, snapshot, or isolated simulator unavailable
+SKIPPED [1] tests\test_armg_floor_schedule.py:250: stopped checkpoint, snapshot, or isolated simulator unavailable
+SKIPPED [1] tests\test_armg_puct_prior_rl.py:58: real assets unavailable
+SKIPPED [5] tests\test_armg_site_prior_rl.py:18: real community snapshot is unavailable
+SKIPPED [1] tests\test_evaluate_armg_floor_root_puct.py:55: needs STS2_PRIOR_PYD and the archived runs/*.pt checkpoints
+SKIPPED [1] tests\test_evaluate_latest_puct_100.py:14: historical evaluation artifacts unavailable
+SKIPPED [1] tests\test_evaluate_latest_puct_100.py:50: historical evaluation artifacts unavailable
+SKIPPED [2] tests\test_evaluate_latest_puct_100.py:70: historical evaluation artifacts unavailable
+SKIPPED [1] tests\test_evaluate_latest_puct_100.py:121: historical evaluation artifacts unavailable
+363 passed, 16 skipped in 96.26s (0:01:36)

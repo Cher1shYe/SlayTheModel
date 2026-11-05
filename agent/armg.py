@@ -16,7 +16,7 @@ from .common import (
 )
 
 ARMG_OBS_DIM = PUBLIC_OBS_DIM - PUBLIC_COMBAT_OBS_DIM
-ARMG_FEATURE_VERSION = 1
+ARMG_FEATURE_VERSION = 9
 _ACTIONS = max(int(x) for x in RACT.__members__.values()) + 1
 _RELICS = max(int(x) for x in sim.RelicId.__members__.values()) + 1
 _POTIONS = max(int(x) for x in sim.PotionId.__members__.values()) + 1
@@ -33,6 +33,12 @@ _POTION_OFF = _RELIC_OFF + _RELICS
 _MAP_OFF = _POTION_OFF + _POTIONS
 _META_OFF = _MAP_OFF + 3 * _MAP_TYPES
 ARMG_ACTION_DIM = _META_OFF + 8
+
+# Offset of the enchantment triple inside one card's feature row, mirroring
+# observe.cpp::card_features: one-hot id, cost, type x5, rarity x5, upgraded,
+# price flag x2, replay x2, free/cost-this-turn, galvanized, bonusDamage,
+# ethereal, retain, storedCost, costCap, guilty => 25 fields after the id block.
+ENCHANT_FEATURE_OFFSET = CARD_COUNT + 25
 
 
 class ArmGScorer(nn.Module):
@@ -64,14 +70,22 @@ def _one_hot(row: np.ndarray, offset: int, index: int, length: int) -> None:
 
 
 def _card(row: np.ndarray, card, slot: int = 0, price: int = -1, enchantment=None) -> None:
+    """Encode one offered card with the engine's own public card encoder.
+
+    ``card`` is the binding's (id, upgraded, uid, cost) tuple. The engine
+    builds the base features so Sly/Retain/cost-expiry/MadScience state stays
+    in one place; only the fields the action screen overrides are patched.
+    """
     card_id, upgraded, _uid, cost = card
     start = _CARD_OFF + slot * CARD_FEAT_DIM
-    features = np.asarray(sim.card_features(int(card_id), bool(upgraded), int(price)), dtype=np.float32)
+    features = np.asarray(sim.card_features(int(card_id), bool(upgraded), int(price)),
+                          dtype=np.float32)
     if cost is not None:
         features[CARD_COUNT] = 1.0 if int(cost) < 0 else int(cost) / 3.0
     if enchantment is not None:
         ench_id, amount, disabled = enchantment
-        features[-3:] = (int(ench_id) / 5.0, int(amount) / 10.0, float(disabled))
+        features[ENCHANT_FEATURE_OFFSET:ENCHANT_FEATURE_OFFSET + 3] = (
+            int(ench_id) / 5.0, int(amount) / 10.0, float(disabled))
     row[start:start + CARD_FEAT_DIM] = features
 
 
@@ -99,9 +113,14 @@ def build_candidates(rc):
     relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
     potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
     stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
-    potions = rc.potions
+    # Physical belt (holes included): USE_POTION/DISCARD_POTION index a slot,
+    # not the position in a compacted list of occupied potions. Contexts
+    # without slot information (test doubles) fall back to the compact list.
+    potions = rc.potion_slot_ids if hasattr(rc, "potion_slot_ids") else rc.potions
     grid_kind = int(rc.card_grid_kind)
-    grid_cards = rc.card_grid_cards if grid_kind in (1, 2, 5) else []
+    # Generated offer lists (event selects, Scroll Boxes and the relic grids
+    # 13/14/16). Deck-indexed grids read rc.deck instead.
+    grid_cards = rc.card_grid_cards if grid_kind in (1, 2, 5, 13, 14, 16) else []
     selected = rc.card_grid_selected if grid_kind else []
     event_relics = rc.event_relics if rc.screen == SCREEN.EVENT else []
     nodes = {x[0]: x for x in rc.map_nodes()} if rc.screen == SCREEN.MAP else {}
@@ -131,14 +150,16 @@ def build_candidates(rc):
                 row[_META_OFF + 4] = rc.removal_price / 300.0
         elif kind == int(RACT.SELECT_GRID_CARD):
             row[_META_OFF + 5] = float(index < len(selected) and selected[index])
-            if grid_kind in (3, 4) and index < len(deck):
-                _card(row, deck[index], enchantment=deck_enchants[index])
-            elif grid_kind == 5:
+            if grid_kind == 5:
+                # Scroll Boxes: candidate index selects a triple.
                 for i in range(3):
                     if index * 3 + i < len(grid_cards):
                         _card(row, grid_cards[index * 3 + i], i)
             elif index < len(grid_cards):
                 _card(row, grid_cards[index])
+            elif index < len(deck):
+                # Deck-indexed grids (remove, transform, upgrade, enchant ...).
+                _card(row, deck[index], enchantment=deck_enchants[index])
         elif kind == int(RACT.BUY_CARD) and index < len(shop):
             card_id, price, _sold = shop[index]
             _card(row, (card_id, False, 0, None), price=price)
@@ -159,6 +180,7 @@ def build_candidates(rc):
             _one_hot(row, _POTION_OFF, int(potion_rewards[index]), _POTIONS)
         elif kind in (int(RACT.DISCARD_POTION), int(RACT.USE_POTION)) and index < len(potions):
             _one_hot(row, _POTION_OFF, int(potions[index]), _POTIONS)
+            row[_META_OFF + 7] = index / max(1, len(potions) - 1)
         elif kind in (int(RACT.TAKE_STOLEN_CARD_REWARD), int(RACT.SKIP_STOLEN_CARD_REWARD)) and index in stolen:
             _, card_id, upgraded, uid, ench_id, amount = stolen[index]
             _card(row, (card_id, upgraded, uid, None),

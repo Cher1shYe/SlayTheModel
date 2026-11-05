@@ -25,6 +25,8 @@ from torch import nn
 from torch.nn import functional as F
 
 from .common import ACTION_FEAT_DIM, ACTION_SCHEMA_VERSION, PUBLIC_COMBAT_OBS_DIM, PUBLIC_OBS_VERSION
+from .engine_identity import current_engine_contract
+from .nets import read_checkpoint
 
 MODEL_FORMAT = 1
 TRAIN_SEED_BASE = 11_000_000
@@ -65,15 +67,16 @@ def checkpoint_config(policy, value):
             "action_schema_version": int(ACTION_SCHEMA_VERSION),
             "obs_dim": int(PUBLIC_COMBAT_OBS_DIM), "action_dim": int(ACTION_FEAT_DIM),
             "policy_shapes": [list(p.shape) for p in policy.parameters()],
-            "value_shapes": [list(p.shape) for p in value.parameters()]}
+            "value_shapes": [list(p.shape) for p in value.parameters()],
+            "engine_contract": current_engine_contract()}
 
 
 def load_combat_checkpoint(path, policy, value=None):
     """Load only current-schema DAgger weights, including when loading policy alone."""
-    data = torch.load(path, map_location="cpu", weights_only=False)
+    data = read_checkpoint(path)
     actual_value = value if value is not None else CombatValue()
     if data.get("config") != checkpoint_config(policy, actual_value):
-        raise ValueError("combat checkpoint model or observation/action schema mismatch")
+        raise ValueError("combat checkpoint engine identity, model or observation/action schema mismatch")
     policy.load_state_dict(data["policy_state_dict"])
     if value is not None:
         value.load_state_dict(data["value_state_dict"])

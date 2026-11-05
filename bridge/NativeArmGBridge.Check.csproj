@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <AssemblyName>SlayTheModelAdapter.BridgeCheck</AssemblyName>
+    <ReferenceRoot>$(MSBuildProjectDirectory)/../../../reference/workspace-82e5621</ReferenceRoot>
+    <UserProfileDir>$([System.Environment]::GetFolderPath(System.Environment+SpecialFolder.UserProfile))</UserProfileDir>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(UserProfileDir)/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/data_sts2_macos_arm64</Sts2ManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(ReferenceRoot)/src/SlayTheModel.Sts2.ModAdapter/*.cs"
+      Exclude="$(ReferenceRoot)/src/SlayTheModel.Sts2.ModAdapter/ArmGOutsidePolicy.cs;$(ReferenceRoot)/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatCaptureService.cs;$(ReferenceRoot)/src/SlayTheModel.Sts2.ModAdapter/OutsideCombatController.cs" />
+    <Compile Include="$(ReferenceRoot)/src/SlayTheModel.Sts2.Protocol/*.cs"
+      Exclude="$(ReferenceRoot)/src/SlayTheModel.Sts2.Protocol/OutsideCombatDecision.cs" />
+    <Compile Include="src/**/*.cs" />
+    <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" Private="false" />
+    <Reference Include="GodotSharp" HintPath="$(Sts2ManagedDir)/GodotSharp.dll" Private="false" />
+    <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" Private="false" />
+  </ItemGroup>
+</Project>

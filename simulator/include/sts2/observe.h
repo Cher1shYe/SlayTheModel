@@ -7,39 +7,83 @@ namespace sts2 {
 // Legacy compact observations (kept for the original nets/checkpoints).
 constexpr int RUN_OBS_DIM = 7 + 8 + static_cast<int>(CardId::COUNT);
 // + cost, type x5, rarity x5, upgraded, price, hasPrice, replay, bonusReplay,
-// freeCombat, costThisTurn, galvanized, combat damage/keywords and cost state.
-constexpr int CARD_FEAT_DIM = static_cast<int>(CardId::COUNT) + 28;
+// freeCombat, costThisTurn, galvanized, combat damage/keywords, cost state,
+// Sly this turn/combat, Retain this turn, and the end-of-turn vs played-this-
+// card cost-modifier profile (two cards that both read 0 now can still differ
+// in what they cost after the turn ends).
+constexpr int CARD_FEAT_DIM = static_cast<int>(CardId::COUNT) + 35;
 constexpr int COMBAT_OBS_DIM = 21 + MAX_MONSTERS * 10;
 
 // Versioned public schema.  Anything a player can see is encoded; RNG state,
 // draw order and future intents are not.  Bump both versions when the layout
 // changes and keep old checkpoints loadable only by their matching version.
-constexpr int PUBLIC_OBS_VERSION = 10;
-constexpr int ACTION_SCHEMA_VERSION = 9;
+// v14 grows the card/power vocabulary to the full v0.111.0 ModelDb (597 cards,
+// 276 powers) and adds the Regent tail; the dimensions below are derived, so
+// both version numbers must move with the content tables.
+// v16 appended the nine Neow relic identities and PotionId.AMBERGRIS; v17
+// appends the FakeMerchant inventory and CrystalSphere grid blocks, and the
+// action schema gains CRYSTAL_DIVINE.
+// v18 grows the run card-reward block to four options (Lasting Candy).
+// v19 added the FakeMerchant/CrystalSphere extension (unchanged by v20).
+// v20 adds Sly/Retain/cost-expiry card state, MadScience's TinkerTime type and
+// RiderEffect, and re-encodes the run card grid: every grid exposes up to 15
+// visible candidates instead of the three relic grids exposing none.
+constexpr int PUBLIC_OBS_VERSION = 20;
+constexpr int ACTION_SCHEMA_VERSION = 17;
+// Card instance identity inside piles/pending views: the same public fields as
+// CARD_FEAT_DIM below the card one-hot, so a pile's viewer state and the
+// offered-card features stay consistent (the MadScience variant is constant
+// zero off that card, so rows stay aligned with card_features' field order).
+constexpr int PUB_CARD_INSTANCE_FEAT = 24;
 
 constexpr int PUB_BASE = 38;
 constexpr int PUB_SCREENS = 9;
 constexpr int PUB_MAP_FEAT = 15;  // present, type x9, row, col, reachable, visited, childCount
-constexpr int PUB_EVENT_N = 64;   // event-id space (ids are contiguous and < 64)
+constexpr int PUB_EVENT_N = 66;   // event-id space (ids are contiguous and < 66)
 constexpr int PUB_EVENT_CHOICES = 4;
 constexpr int PUB_EVENT_FEAT = 6;
-constexpr int PUB_CARD_REWARD_N = 3;
+constexpr int PUB_CARD_REWARD_N = 4;
 constexpr int PUB_SHOP_META = 4;
 constexpr int RELIC_COUNT = static_cast<int>(RelicId::COUNT);
 constexpr int POTION_COUNT = static_cast<int>(PotionId::COUNT);
 constexpr int MONSTER_COUNT = static_cast<int>(MonsterId::COUNT);
 constexpr int POWER_COUNT = static_cast<int>(PowerId::COUNT);
 constexpr int PUB_REWARD_META = 4 + POTION_COUNT + MAX_REWARD_RELICS * (2 + RELIC_COUNT) +
-    MAX_REWARD_POTIONS + MAX_CARD_REWARDS + 1 + PUB_SCREENS + 1;
+    MAX_REWARD_POTIONS + 2 * MAX_CARD_REWARDS + 1 + PUB_SCREENS + 1;
 
+// v12 appends NotYet to the card vocabulary; v11 added this tail and the
+// encounter identity. Old checkpoints require a reviewed layout migration.
+// Deck-grid choices show up to RUN_CARD_GRID_N visible candidates (Sea Glass
+// offers 15); the in-combat ChoiceOp grids already use a larger block.
+constexpr int RUN_CARD_GRID_N = 15;
+static_assert(RUN_CARD_GRID_N <= sizeof(RunCardGrid::cards) / sizeof(RunCardGrid::cards[0]),
+              "grid observation must not exceed the stored candidate array");
+// Grid block: 8 kind/selection scalars, then one order-slot and one free-slot
+// scalar per candidate, then RUN_CARD_GRID_N card features, then MAX_DECK
+// selected flags. The two scalar arrays were each 8 entries before v20.
+constexpr int PUB_RUN_GRID_META = 8 + 2 * RUN_CARD_GRID_N +
+                                  RUN_CARD_GRID_N * CARD_FEAT_DIM + MAX_DECK;
+constexpr int PUB_RUN_BOSS_OFFSET = PUB_BASE + PUB_SCREENS +
+    static_cast<int>(CardId::COUNT) + MAX_DECK * PUB_CARD_INSTANCE_FEAT +
+    PUB_RUN_GRID_META +
+    2 * RELIC_COUNT + POTION_COUNT + MAX_POTIONS;
+// FakeMerchant exposes six custom relic entries (identity, price, sold).
+constexpr int PUB_FAKE_MERCHANT_N = 6;
+// CrystalSphere: fog mask, divinations, tool, and the visible item set.
+constexpr int PUB_CRYSTAL_CELLS = 121;
+constexpr int PUB_CRYSTAL_ITEMS = 15;
+constexpr int PUB_RUN_EXTENSION = 3 * 4 + 4 + 1 + 8 + static_cast<int>(Encounter::COUNT) +
+    1 + 5 * PUB_CARD_INSTANCE_FEAT + 1 + MAX_RELICS + MAX_PILE +
+    PUB_FAKE_MERCHANT_N * (3 + RELIC_COUNT) +
+    PUB_CRYSTAL_CELLS + 2 + PUB_CRYSTAL_ITEMS * 5;
 constexpr int PUBLIC_RUN_DIM =
-    PUB_BASE + PUB_SCREENS + static_cast<int>(CardId::COUNT) + 6 * MAX_DECK + 2 * RELIC_COUNT +
+    PUB_BASE + PUB_SCREENS + static_cast<int>(CardId::COUNT) + MAX_DECK * PUB_CARD_INSTANCE_FEAT + 2 * RELIC_COUNT +
     POTION_COUNT + MAX_POTIONS + MAP_MAX_POINTS * PUB_MAP_FEAT + PUB_EVENT_N +
     PUB_EVENT_CHOICES * (PUB_EVENT_FEAT + RELIC_COUNT) + 4 +
     PUB_CARD_REWARD_N * CARD_FEAT_DIM + MAX_SHOP_CARDS * (CARD_FEAT_DIM + 2) +
     MAX_SHOP_RELICS * (RELIC_COUNT + 2) + MAX_SHOP_POTIONS * (POTION_COUNT + 2) + PUB_SHOP_META +
     PUB_REWARD_META + 2 * static_cast<int>(Encounter::COUNT) + 1 + MAX_PILE * 18 +
-    24 + 8 * CARD_FEAT_DIM + MAX_DECK;
+    PUB_RUN_GRID_META + PUB_RUN_EXTENSION;
 
 // Visible per-turn counters (Panache cycles every 5 plays, Letter Opener every
 // 3 skills) and known-top / Bomb state are part of the player's information.
@@ -56,10 +100,13 @@ constexpr int PUB_KNOWN_TOP = 16;
 constexpr int PUB_BOMB_SLOTS = MAX_PILE;
 constexpr int PUB_COMBAT_EXTRA =
     1 + PUB_KNOWN_TOP * (static_cast<int>(CardId::COUNT) + 1) +
-    (MAX_PILE - PUB_KNOWN_TOP) * 2 + MAX_PILE * 3 + 1 + PUB_BOMB_SLOTS * 2;
+    (MAX_PILE - PUB_KNOWN_TOP) * 2 + MAX_PILE * PUB_CARD_INSTANCE_FEAT + 1 + PUB_BOMB_SLOTS * 2;
 constexpr int PUB_HAND_FEAT = CARD_FEAT_DIM + 2;  // + playable, effective cost
 constexpr int PUB_MON_FEAT = 1 + MONSTER_COUNT + 12 + POWER_COUNT + 4 + 9 + 1 + MAX_PILE;
-constexpr int PUB_CHOICE_OP_N = static_cast<int>(ChoiceOp::DISCARD_ANY) + 1;
+// Every selectable ChoiceOp needs an identity bit: character-specific
+// selectors and Knowledge Demon's curse choice were previously collapsed to
+// an all-zero vector, hiding which choice the state is waiting on.
+constexpr int PUB_CHOICE_OP_N = static_cast<int>(ChoiceOp::KNOWLEDGE_CURSE) + 1;
 constexpr int PUB_CHOICE_PILE_N = 5;   // ChoicePile discriminants
 // Combat relics (identity + counter) and potions are visible in combat.
 constexpr int PUB_COMBAT_META = 2 * RELIC_COUNT + POTION_COUNT + MAX_POTIONS;
@@ -68,21 +115,24 @@ constexpr int PUB_COMBAT_META = 2 * RELIC_COUNT + POTION_COUNT + MAX_POTIONS;
 // (base / upgraded / temporarily cheaper) instead of one slot per card; the
 // operation and source pile below distinguish e.g. "upgrade" from "exhaust".
 constexpr int PUB_PENDING_BAGS = 3;
-constexpr int PUB_PENDING_INSTANCE_FEAT = 16;
+constexpr int PUB_PENDING_INSTANCE_FEAT = PUB_CARD_INSTANCE_FEAT;
 constexpr int PUB_PENDING_FEAT =
     1 + PUB_PENDING_BAGS * static_cast<int>(CardId::COUNT) + 4 + PUB_CHOICE_OP_N +
     PUB_CHOICE_PILE_N + (1 + 1 + static_cast<int>(CardId::COUNT)) +
     MAX_PILE * PUB_PENDING_INSTANCE_FEAT;
 // Visible piles are encoded per identity with a base/upgraded split (the card's
 // upgrade state is visible in the pile viewer; the order is not).
+// v13 adds three tail scalars for Crimson Mantle / Inferno self-damage and
+// their visible relative power order, preserving all previous offsets.
 constexpr int PUBLIC_COMBAT_OBS_DIM =
-    PUB_COMBAT_BASE + MAX_HAND * PUB_HAND_FEAT + 4 + 6 * static_cast<int>(CardId::COUNT) + 3 * MAX_PILE * 5 +
-    PUB_COMBAT_EXTRA + MAX_MONSTERS * PUB_MON_FEAT + PUB_COMBAT_META + PUB_PENDING_FEAT;
+    PUB_COMBAT_BASE + MAX_HAND * PUB_HAND_FEAT + 4 + 6 * static_cast<int>(CardId::COUNT) +
+    3 * MAX_PILE * PUB_CARD_INSTANCE_FEAT + PUB_COMBAT_EXTRA + MAX_MONSTERS * PUB_MON_FEAT +
+    PUB_COMBAT_META + PUB_PENDING_FEAT + 1 + MAX_PILE + 3;
 constexpr int PUBLIC_OBS_DIM = PUBLIC_RUN_DIM + PUBLIC_COMBAT_OBS_DIM;
 
 constexpr int ACTION_FEAT_DIM =
     5 + static_cast<int>(CardId::COUNT) + POTION_COUNT + 30 + PUB_CHOICE_OP_N +
-    PUB_CHOICE_PILE_N;
+    PUB_CHOICE_PILE_N + 2;
 
 std::vector<float> run_observation(const RunContext &rc);
 std::vector<float> card_features(const Card &c, int price = -1);

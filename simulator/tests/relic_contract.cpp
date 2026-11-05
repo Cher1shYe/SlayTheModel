@@ -130,7 +130,13 @@ int main() {
     {
         RunContext r; r.init(123u, 0);
         check(r.add_relic(RelicId::PRESERVED_FOG), "obtain fog");
-        check(count_card(r, CardId::FOLLY) == 1, "fog adds folly");
+        check(r.cardGrid.kind == 6 && r.cardGrid.minSelect == 3,
+              "fog waits for three player-selected removals");
+        check(count_card(r, CardId::FOLLY) == 0, "fog curse waits for removal completion");
+        for (int i = 0; i < 3; ++i)
+            check(r.step({RunActionType::SELECT_GRID_CARD, i}), "select fog removal");
+        check(r.step({RunActionType::CONFIRM_GRID_CARDS, 0}), "confirm fog removal");
+        check(count_card(r, CardId::FOLLY) == 1, "fog adds folly after selected removals");
         check(r.add_relic(RelicId::CALLING_BELL), "obtain bell");
         check(count_card(r, CardId::CURSE_OF_THE_BELL) == 1, "bell adds curse");
     }
@@ -147,7 +153,8 @@ int main() {
             else distinct = distinct && r.deck[i].id != first;
             ++curses;
         }
-        check(curses == 2 && distinct, "talon adds two different curses");
+        check(curses == 0, "native SereTalon adds no curses");
+        check(r.maxHp == 71 && r.hp == 71, "native SereTalon loses nine maximum HP");
     }
     {
         RunContext r; r.init(123u, 0);

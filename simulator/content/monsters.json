@@ -3,15 +3,15 @@
   "AXEBOT": {
    "hp": {
     "A0": [
-     40,
-     44
+     70,
+     78
     ],
     "A8": [
-     40,
-     44
+     76,
+     86
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND_MOVE": {
      "kind": "random",
@@ -310,7 +310,7 @@
      75
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -381,7 +381,7 @@
      150
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -452,7 +452,7 @@
      300
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "NOTHING_MOVE": {
      "kind": "move",
@@ -523,7 +523,7 @@
      24
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BITE_MOVE": {
      "kind": "move",
@@ -604,7 +604,7 @@
      49
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "HEADBUTT_MOVE": {
      "kind": "move",
@@ -727,7 +727,7 @@
      44
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TRASH_MOVE": {
      "kind": "move",
@@ -828,7 +828,7 @@
      39
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "THRASH_MOVE": {
      "kind": "move",
@@ -955,7 +955,7 @@
      132
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INITIAL_SLEEP_MOVE": {
      "kind": "move",
@@ -1110,15 +1110,15 @@
   "BYRDONIS": {
    "hp": {
     "A0": [
-     91,
-     94
+     81,
+     84
     ],
     "A8": [
-     99,
-     99
+     90,
+     90
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SWOOP_MOVE": {
      "kind": "move",
@@ -1215,7 +1215,7 @@
      262
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "STAMP_MOVE": {
      "kind": "move",
@@ -1482,7 +1482,7 @@
      67
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CLAMP_MOVE": {
      "kind": "move",
@@ -1617,15 +1617,15 @@
   "PUNCH_CONSTRUCT": {
    "hp": {
     "A0": [
-     46,
+     55,
      55
     ],
     "A8": [
-     46,
+     60,
      60
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "READY_MOVE": {
      "kind": "move",
@@ -1790,7 +1790,7 @@
      70
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CHARGE_UP_MOVE": {
      "kind": "move",
@@ -2037,7 +2037,7 @@
      29
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "WHIP_SLAP_MOVE": {
      "kind": "move",
@@ -2190,7 +2190,7 @@
      42
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INCANTATION_MOVE": {
      "kind": "move",
@@ -2291,7 +2291,7 @@
      54
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INCANTATION_MOVE": {
      "kind": "move",
@@ -2384,15 +2384,15 @@
   "DECIMILLIPEDE_SEGMENT": {
    "hp": {
     "A0": [
-     42,
-     48
+     40,
+     46
     ],
     "A8": [
-     48,
-     56
+     46,
+     52
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "WRITHE_MOVE": {
      "kind": "move",
@@ -2675,15 +2675,15 @@
   "WRIGGLER": {
    "hp": {
     "A0": [
-     18,
-     20
+     17,
+     21
     ],
     "A8": [
-     19,
-     21
+     18,
+     22
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -2866,7 +2866,7 @@
      172
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "FORBIDDEN_INCANTATION_MOVE": {
      "kind": "move",
@@ -3136,11 +3136,11 @@
      145
     ],
     "A8": [
-     155,
-     155
+     165,
+     165
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BEES_MOVE": {
      "kind": "move",
@@ -3285,11 +3285,11 @@
      28
     ],
     "A8": [
-     25,
-     29
+     26,
+     30
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -3480,7 +3480,7 @@
      155
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "fabricateBranch": {
      "kind": "cond",
@@ -3735,11 +3735,11 @@
      165
     ],
     "A8": [
-     165,
-     165
+     175,
+     175
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -4034,7 +4034,7 @@
      29
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RANDOM": {
      "kind": "random",
@@ -4173,7 +4173,7 @@
      53
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INITIAL": {
      "kind": "random",
@@ -4422,7 +4422,7 @@
      36
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "STICKY_SHOT": {
      "kind": "move",
@@ -4535,7 +4535,7 @@
      78
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ILLUSION_MOVE": {
      "kind": "move",
@@ -4794,7 +4794,7 @@
      56
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -5033,7 +5033,7 @@
      199
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TONGUE_LASH": {
      "kind": "move",
@@ -5246,7 +5246,7 @@
      59
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "FIRST_ACID_GOOP": {
      "kind": "move",
@@ -5373,7 +5373,7 @@
      158
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SHOCKING_SLAP": {
      "kind": "move",
@@ -5544,7 +5544,7 @@
      53
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "GIMME_MOVE": {
      "kind": "move",
@@ -5723,7 +5723,7 @@
      15
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SPAWNED_MOVE": {
      "kind": "move",
@@ -5810,7 +5810,7 @@
      18
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SPAWNED_MOVE": {
      "kind": "move",
@@ -5897,7 +5897,7 @@
      67
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -6176,7 +6176,7 @@
      126
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TENDERIZING_GOOP_MOVE": {
      "kind": "move",
@@ -6333,15 +6333,15 @@
   "INFESTED_PRISM": {
    "hp": {
     "A0": [
-     200,
-     200
+     161,
+     161
     ],
     "A8": [
-     215,
-     215
+     171,
+     171
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "JAB_MOVE": {
      "kind": "move",
@@ -6542,7 +6542,7 @@
      18
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "JAB_MOVE": {
      "kind": "move",
@@ -6703,15 +6703,15 @@
   "CRUSHER": {
    "hp": {
     "A0": [
-     199,
-     199
-    ],
-    "A8": [
      209,
      209
+    ],
+    "A8": [
+     219,
+     219
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "THRASH_MOVE": {
      "kind": "move",
@@ -6956,15 +6956,15 @@
   "ROCKET": {
    "hp": {
     "A0": [
-     189,
-     189
-    ],
-    "A8": [
      199,
      199
+    ],
+    "A8": [
+     209,
+     209
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TARGETING_RETICLE_MOVE": {
      "kind": "move",
@@ -7161,7 +7161,7 @@
      108
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -7340,7 +7340,7 @@
      97
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "HEX": {
      "kind": "move",
@@ -7505,7 +7505,7 @@
      89
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "FIRST_POWER_SHIELD_MOVE": {
      "kind": "move",
@@ -7714,7 +7714,7 @@
      399
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CURSE_OF_KNOWLEDGE_MOVE": {
      "kind": "move",
@@ -7911,7 +7911,7 @@
      233
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SLEEP_MOVE": {
      "kind": "move",
@@ -8188,7 +8188,7 @@
      82
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ADVANCED_GAS_MOVE": {
      "kind": "move",
@@ -8357,7 +8357,7 @@
      141
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "WEB_CANNON_MOVE": {
      "kind": "move",
@@ -8536,7 +8536,7 @@
      76
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -8715,7 +8715,7 @@
      320
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CHARGE_MOVE": {
      "kind": "move",
@@ -8942,11 +8942,11 @@
      101
     ],
     "A8": [
-     101,
-     101
+     108,
+     108
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -9143,7 +9143,7 @@
      69
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TOXIC_MOVE": {
      "kind": "move",
@@ -9314,7 +9314,7 @@
      48
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BUTT_MOVE": {
      "kind": "move",
@@ -9501,7 +9501,7 @@
      42
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SHRINKER_MOVE": {
      "kind": "move",
@@ -9628,7 +9628,7 @@
      132
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "LAY_EGGS_MOVE": {
      "kind": "move",
@@ -9921,15 +9921,15 @@
   "OWL_MAGISTRATE": {
    "hp": {
     "A0": [
-     234,
-     234
+     231,
+     231
     ],
     "A8": [
-     243,
-     243
+     247,
+     247
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "MAGISTRATE_SCRUTINY": {
      "kind": "move",
@@ -10098,15 +10098,15 @@
   "PHANTASMAL_GARDENER": {
    "hp": {
     "A0": [
-     28,
-     32
+     26,
+     31
     ],
     "A8": [
-     29,
-     33
+     27,
+     32
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -10335,7 +10335,7 @@
      68
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INFECT_MOVE": {
      "kind": "move",
@@ -10470,7 +10470,7 @@
      211
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TACKLE_1_MOVE": {
      "kind": "move",
@@ -10645,7 +10645,7 @@
      419
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "PUPPET_STRINGS_MOVE": {
      "kind": "move",
@@ -10986,7 +10986,7 @@
      22
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RELOAD_MOVE": {
      "kind": "move",
@@ -11083,7 +11083,7 @@
      26
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "TRACK_MOVE": {
      "kind": "move",
@@ -11184,7 +11184,7 @@
      34
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BEAT_MOVE": {
      "kind": "move",
@@ -11285,7 +11285,7 @@
      24
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "KILLSHOT_MOVE": {
      "kind": "move",
@@ -11346,7 +11346,7 @@
      23
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SWING_1": {
      "kind": "move",
@@ -11491,15 +11491,15 @@
   "SCROLL_OF_BITING": {
    "hp": {
     "A0": [
-     31,
-     38
+     30,
+     37
     ],
     "A8": [
-     31,
-     38
+     33,
+     39
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CHOMP": {
      "kind": "move",
@@ -11690,7 +11690,7 @@
      49
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SEA_KICK_MOVE": {
      "kind": "move",
@@ -11835,7 +11835,7 @@
      58
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "PRESSURIZE_MOVE": {
      "kind": "move",
@@ -11938,15 +11938,15 @@
   "SKULKING_COLONY": {
    "hp": {
     "A0": [
-     79,
-     79
+     75,
+     75
     ],
     "A8": [
-     84,
-     84
+     80,
+     80
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INERTIA_MOVE": {
      "kind": "move",
@@ -12179,15 +12179,15 @@
   "SLIMED_BERSERKER": {
    "hp": {
     "A0": [
-     266,
-     266
+     261,
+     261
     ],
     "A8": [
-     276,
-     276
+     281,
+     281
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "VOMIT_ICHOR_MOVE": {
      "kind": "move",
@@ -12484,7 +12484,7 @@
      12
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BUTT_MOVE": {
      "kind": "move",
@@ -12545,7 +12545,7 @@
      16
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RANDOM": {
      "kind": "random",
@@ -12692,7 +12692,7 @@
      56
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CONSTRICT": {
      "kind": "move",
@@ -12877,7 +12877,7 @@
      36
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ENERGY_ORB_MOVE": {
      "kind": "move",
@@ -12962,7 +12962,7 @@
      42
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -13175,7 +13175,7 @@
      89
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SNORE_MOVE": {
      "kind": "move",
@@ -13330,7 +13330,7 @@
      221
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BECKON_MOVE": {
      "kind": "move",
@@ -13583,7 +13583,7 @@
      254
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -13784,7 +13784,7 @@
      124
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "PROTRUDING_SPIKES_MOVE": {
      "kind": "move",
@@ -13925,7 +13925,7 @@
      150
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "CRASH_MOVE": {
      "kind": "move",
@@ -14112,7 +14112,7 @@
      111
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RESPAWN_MOVE": {
      "kind": "move",
@@ -14507,7 +14507,7 @@
      9999
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "NOTHING": {
      "kind": "move",
@@ -14568,7 +14568,7 @@
      341
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "LIQUIFY_GROUND_MOVE": {
      "kind": "move",
@@ -14831,7 +14831,7 @@
      63
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "QUICK_SLASH_MOVE": {
      "kind": "move",
@@ -14976,7 +14976,7 @@
      199
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ORB_OF_FRAILTY_MOVE": {
      "kind": "move",
@@ -15177,7 +15177,7 @@
      99
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "DEBILITATING_SMOG": {
      "kind": "move",
@@ -15310,7 +15310,7 @@
      111
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "MIASMA": {
      "kind": "move",
@@ -15461,7 +15461,7 @@
      129
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ILLUSION_MOVE": {
      "kind": "move",
@@ -15706,7 +15706,7 @@
      84
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "THIEVERY_MOVE": {
      "kind": "move",
@@ -15905,7 +15905,7 @@
      26
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INIT_MOVE": {
      "kind": "cond",
@@ -16066,7 +16066,7 @@
      92
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "BITE_MOVE": {
      "kind": "move",
@@ -16233,11 +16233,11 @@
      55
     ],
     "A8": [
-     55,
-     55
+     65,
+     65
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SHIELD_SLAM_BRANCH": {
      "kind": "cond",
@@ -16384,7 +16384,7 @@
      51
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "UNLOAD_MOVE_1": {
      "kind": "move",
@@ -16511,7 +16511,7 @@
      22
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "RAND": {
      "kind": "random",
@@ -16746,7 +16746,7 @@
      183
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "INK_BLOT_MOVE": {
      "kind": "move",
@@ -16957,7 +16957,7 @@
      64
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SWIPE_MOVE": {
      "kind": "move",
@@ -17086,15 +17086,15 @@
   "WATERFALL_GIANT": {
    "hp": {
     "A0": [
-     250,
-     250
+     240,
+     240
     ],
     "A8": [
-     260,
-     260
+     250,
+     250
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "PRESSURIZE_MOVE": {
      "kind": "move",
@@ -17638,7 +17638,7 @@
      6
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "DISTRACT_MOVE": {
      "kind": "move",
@@ -17747,15 +17747,15 @@
   "GAS_BOMB": {
    "hp": {
     "A0": [
-     10,
-     10
+     7,
+     7
     ],
     "A8": [
-     12,
-     12
+     8,
+     8
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "EXPLODE_MOVE": {
      "kind": "move",
@@ -17818,15 +17818,15 @@
   "GUARDBOT": {
    "hp": {
     "A0": [
-     22,
-     24
+     16,
+     20
     ],
     "A8": [
-     23,
-     25
+     17,
+     21
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "GUARD_MOVE": {
      "kind": "move",
@@ -17879,15 +17879,15 @@
   "NOISEBOT": {
    "hp": {
     "A0": [
-     24,
-     27
+     18,
+     23
     ],
     "A8": [
-     25,
-     28
+     19,
+     24
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "NOISE_MOVE": {
      "kind": "move",
@@ -17974,7 +17974,7 @@
      21
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "SLAM_MOVE": {
      "kind": "move",
@@ -18116,15 +18116,15 @@
   "STABBOT": {
    "hp": {
     "A0": [
-     24,
-     27
+     18,
+     23
     ],
     "A8": [
-     25,
-     28
+     19,
+     24
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "STAB_MOVE": {
      "kind": "move",
@@ -18201,15 +18201,15 @@
   "TOUGH_EGG": {
    "hp": {
     "A0": [
-     15,
-     17
+     14,
+     18
     ],
     "A8": [
-     16,
-     18
+     15,
+     19
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "HATCH_MOVE": {
      "kind": "move",
@@ -18306,15 +18306,15 @@
   "ZAPBOT": {
    "hp": {
     "A0": [
-     24,
-     27
+     18,
+     23
     ],
     "A8": [
-     25,
-     28
+     19,
+     24
     ]
    },
-   "hp_source": "sampled_only",
+   "hp_source": "decompiled_local_0861bfa1",
    "states": {
     "ZAP": {
      "kind": "move",
@@ -18373,6 +18373,159 @@
      ]
     ]
    }
+  },
+  "AEONGLASS": {
+   "hp": {
+    "A0": [
+     512,
+     512
+    ],
+    "A8": [
+     535,
+     535
+    ]
+   },
+   "hp_source": "decompiled_local_0861bfa1",
+   "states": {
+    "EBB_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "ATTACK",
+       "damage": 22,
+       "hits": 1
+      },
+      {
+       "type": "DEFEND",
+       "damage": 0,
+       "hits": 1
+      }
+     ],
+     "follow": "EYE_LASERS_MOVE",
+     "once": false
+    },
+    "EYE_LASERS_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "MULTI_ATTACK",
+       "damage": 11,
+       "hits": 2
+      }
+     ],
+     "follow": "INCREASING_INTENSITY_MOVE",
+     "once": false
+    },
+    "INCREASING_INTENSITY_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "STATUS_CARD",
+       "damage": 0,
+       "hits": 1
+      },
+      {
+       "type": "BUFF",
+       "damage": 0,
+       "hits": 1
+      }
+     ],
+     "follow": "EBB_MOVE",
+     "once": false
+    }
+   },
+   "states8": {
+    "EBB_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "ATTACK",
+       "damage": 26,
+       "hits": 1
+      },
+      {
+       "type": "DEFEND",
+       "damage": 0,
+       "hits": 1
+      }
+     ],
+     "follow": "EYE_LASERS_MOVE",
+     "once": false
+    },
+    "EYE_LASERS_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "MULTI_ATTACK",
+       "damage": 12,
+       "hits": 2
+      }
+     ],
+     "follow": "INCREASING_INTENSITY_MOVE",
+     "once": false
+    },
+    "INCREASING_INTENSITY_MOVE": {
+     "kind": "move",
+     "intents": [
+      {
+       "type": "STATUS_CARD",
+       "damage": 0,
+       "hits": 1
+      },
+      {
+       "type": "BUFF",
+       "damage": 0,
+       "hits": 1
+      }
+     ],
+     "follow": "EBB_MOVE",
+     "once": false
+    }
+   },
+   "initial": [
+    [
+     "EBB_MOVE",
+     1
+    ]
+   ],
+   "initial8": [
+    [
+     "EBB_MOVE",
+     1
+    ]
+   ],
+   "moves": {
+    "EBB_MOVE@A0": [
+     [
+      "block",
+      33
+     ]
+    ],
+    "EBB_MOVE@A8": [
+     [
+      "block",
+      33
+     ]
+    ],
+    "EYE_LASERS_MOVE@A0": [],
+    "EYE_LASERS_MOVE@A8": [],
+    "INCREASING_INTENSITY_MOVE@A0": [],
+    "INCREASING_INTENSITY_MOVE@A8": []
+   },
+   "powers": {
+    "A0": [
+     [
+      "ARTIFACT",
+      3
+     ]
+    ],
+    "A8": [
+     [
+      "ARTIFACT",
+      3
+     ]
+    ]
+   }
   }
  },
  "encounters": {
@@ -18383,7 +18536,6 @@
    "rosters": [
     [
      [
-      "AXEBOT",
       "AXEBOT"
      ],
      512
@@ -18397,7 +18549,6 @@
    "rosters": [
     [
      [
-      "AXEBOT",
       "AXEBOT"
      ],
      512
@@ -18937,6 +19088,7 @@
      [
       "EXOSKELETON",
       "EXOSKELETON",
+      "EXOSKELETON",
       "EXOSKELETON"
      ],
      512
@@ -18950,6 +19102,7 @@
    "rosters": [
     [
      [
+      "EXOSKELETON",
       "EXOSKELETON",
       "EXOSKELETON",
       "EXOSKELETON"
@@ -18966,6 +19119,7 @@
     [
      [
       "EXOSKELETON",
+      "EXOSKELETON",
       "EXOSKELETON"
      ],
      512
@@ -18979,6 +19133,7 @@
    "rosters": [
     [
      [
+      "EXOSKELETON",
       "EXOSKELETON",
       "EXOSKELETON"
      ],
@@ -19217,9 +19372,7 @@
    "rosters": [
     [
      [
-      "GREMLIN_MERC",
-      "SNEAKY_GREMLIN",
-      "FAT_GREMLIN"
+      "GREMLIN_MERC"
      ],
      512
     ]
@@ -19232,9 +19385,7 @@
    "rosters": [
     [
      [
-      "GREMLIN_MERC",
-      "SNEAKY_GREMLIN",
-      "FAT_GREMLIN"
+      "GREMLIN_MERC"
      ],
      512
     ]
@@ -21337,6 +21488,8 @@
    "rosters": [
     [
      [
+      "BOWLBUG_ROCK",
+      "BOWLBUG_SILK",
       "SLUMBERING_BEETLE"
      ],
      512
@@ -21350,6 +21503,8 @@
    "rosters": [
     [
      [
+      "BOWLBUG_ROCK",
+      "BOWLBUG_SILK",
       "SLUMBERING_BEETLE"
      ],
      512
@@ -21739,17 +21894,10 @@
    "rosters": [
     [
      [
-      "BOWLBUG_SILK",
+      "CHOMPER",
       "TUNNELER"
      ],
-     257
-    ],
-    [
-     [
-      "BOWLBUG_EGG",
-      "TUNNELER"
-     ],
-     255
+     512
     ]
    ]
   },
@@ -21760,17 +21908,10 @@
    "rosters": [
     [
      [
-      "BOWLBUG_SILK",
+      "CHOMPER",
       "TUNNELER"
      ],
-     257
-    ],
-    [
-     [
-      "BOWLBUG_EGG",
-      "TUNNELER"
-     ],
-     255
+     512
     ]
    ]
   },
@@ -21933,6 +22074,32 @@
       "WATERFALL_GIANT"
      ],
      512
+    ]
+   ]
+  },
+  "setup_aeonglass_boss@A0": {
+   "act": "act3",
+   "asc": 0,
+   "samples": 512,
+   "rosters": [
+    [
+     [
+      "AEONGLASS"
+     ],
+     1
+    ]
+   ]
+  },
+  "setup_aeonglass_boss@A8": {
+   "act": "act3",
+   "asc": 8,
+   "samples": 512,
+   "rosters": [
+    [
+     [
+      "AEONGLASS"
+     ],
+     1
     ]
    ]
   }

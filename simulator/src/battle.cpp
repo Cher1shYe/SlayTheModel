@@ -1,7 +1,13 @@
+#include "sts2/silent.h"
+#include "sts2/defect.h"
+#include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 #include "sts2/battle.h"
 #include "sts2/monsters.h"
 #include "sts2/effects.h"
 #include "sts2/relics.h"
+#include "sts2/relic_persistent.h"
+#include "sts2/potion_slots.h"
 
 #include <algorithm>
 #include <cstring>
@@ -31,11 +37,16 @@ std::uint16_t BattleContext::allocate_card_uid() {
             for (int i = 0; i < count; ++i) if (cards[i].uid == uid) return true;
             return false;
         };
-        return in(hand, handCount) || in(draw, drawCount) || in(discard, discardCount) ||
-               in(exhaust, exhaustCount) || in(playPile, playCount) ||
-               in(returnNextTurn, returnNextTurnCount) || in(pending.cards, pending.count) ||
-               (pending.hasSource && pending.sourceCard.uid == uid) ||
-               (activePlay.active && activePlay.card.uid == uid);
+        if (in(hand, handCount) || in(draw, drawCount) || in(discard, discardCount) ||
+            in(exhaust, exhaustCount) || in(playPile, playCount) ||
+            in(returnNextTurn, returnNextTurnCount) || in(pending.cards, pending.count) ||
+            (pending.hasSource && pending.sourceCard.uid == uid) ||
+            (activePlay.active && activePlay.card.uid == uid))
+            return true;
+        // An outer play suspended by a nested auto-play still owns its UID.
+        for (int i = 0; i < suspendedPlayCount; ++i)
+            if (suspendedPlays[i].play.card.uid == uid) return true;
+        return false;
     };
     unsigned candidate = nextUid;
     if (candidate == 0 || candidate == 65535) candidate = 1;
@@ -69,6 +80,12 @@ static bool normality_blocks(const BattleContext &bc) {
         if (bc.hand[i].id == CardId::NORMALITY) return true;
     }
     return false;
+}
+
+// SlothPower.ShouldPlay: at most Amount cards may be played each player turn.
+static bool sloth_blocks(const BattleContext &bc) {
+    const int limit = bc.player.power[static_cast<int>(PowerId::SLOTH)];
+    return limit > 0 && bc.cardsPlayedThisTurn >= limit;
 }
 
 static bool enthralled_blocks(const BattleContext &bc, const Card &card) {
@@ -152,87 +169,17 @@ void BattleContext::gain_gold(int amount) {
     if (relic_has(*this, RelicId::DRAGON_FRUIT)) {
         const int gains = 1 + (bonus > 0 ? 1 : 0);
         player.maxHp += gains;
-        player.hp += gains;
+        heal_hp(gains);
     }
 }
 
 // Powers that count as visible Debuffs for ArtifactPower (a positive amount of
 // one of these is intercepted by Artifact, whatever its source).
-static bool power_is_debuff(PowerId id) {
-    switch (id) {
-        case PowerId::VULNERABLE:
-        case PowerId::WEAK:
-        case PowerId::FRAIL:
-        case PowerId::SHRINK:
-        case PowerId::NO_DRAW:
-        case PowerId::TANGLED:
-        case PowerId::SLOW:
-        case PowerId::CHAINS_OF_BINDING:
-        case PowerId::SMOGGY:
-        case PowerId::RINGING:
-        case PowerId::HEX:
-        case PowerId::DAMPEN:
-        case PowerId::PAPER_CUTS:
-        case PowerId::SUCK:
-        case PowerId::TENDER:
-        case PowerId::GRAPPLE:
-            return true;
-        default:
-            return false;
-    }
-}
 
-void BattleContext::add_player_power(PowerId id, int amount) {
-    // ArtifactPower.TryModifyPowerAmountReceived: any visible Debuff applied to
-    // the owner is zeroed and consumes one Artifact charge.
-    if (amount > 0 && power_is_debuff(id) && player_power(PowerId::ARTIFACT) > 0) {
-        add_player_power(PowerId::ARTIFACT, -1);
-        return;
-    }
-    // PowerCmd.Apply: a Debuff applied to a player skips its first duration
-    // tick (WeakPower/FrailPower/VulnerablePower.AfterTurnEnd -> TickDownDuration).
-    if (amount > 0 && power_is_debuff(id)) {
-        if (id == PowerId::WEAK) weakSkipTick = true;
-        if (id == PowerId::FRAIL) frailSkipTick = true;
-        if (id == PowerId::VULNERABLE) vulnerableSkipTick = true;
-    }
-    if (id == PowerId::STRENGTH && amount > 0) relics_strength_gain(*this, amount);
-    if (id == PowerId::AUTOMATION && amount > 0 && automationCount < MAX_AUTOMATION) {
-        // AutomationPower.IsInstanced: each application counts its own ten
-        // drawn cards (Data.cardsLeft), never a shared per-turn total.
-        automationLeft[automationCount] = 10;
-        automationAmount[automationCount] = amount;
-        ++automationCount;
-    }
-    if (id == PowerId::ROLLING_BOULDER && amount > 0 && rollingCount < MAX_PILE) {
-        rollingDamage[rollingCount++] = amount;
-    }
-    if (id == PowerId::PANACHE && amount > 0 && panacheCount < MAX_PILE) {
-        panacheDamage[panacheCount] = amount;
-        panacheLeft[panacheCount] = 5;
-        panachePrimed[panacheCount] = false;
-        ++panacheCount;
-    }
-    power_ref(player, id) += static_cast<std::int16_t>(amount);
-}
 
-void BattleContext::add_monster_power(int idx, PowerId id, int amount) {
-    if (idx < 0 || idx >= monsterCount) return;
-    // Monster-side Artifact (beetle shrink, potions, ...).
-    if (amount > 0 && power_is_debuff(id) &&
-        monsters[idx].power[static_cast<int>(PowerId::ARTIFACT)] > 0) {
-        --monsters[idx].power[static_cast<int>(PowerId::ARTIFACT)];
-        return;
-    }
-    if (id == PowerId::GRAPPLE && amount > 0 && monsters[idx].grappleCount < MAX_PILE) {
-        Monster &monster = monsters[idx];
-        monster.grappleAmounts[monster.grappleCount++] = amount;
-    }
-    power_ref(monsters[idx], id) += static_cast<std::int16_t>(amount);
-    if (id == PowerId::ILLUSION && amount > 0) {
-        monsters[idx].power[static_cast<int>(PowerId::MINION)] = 1;
-    }
-}
+
+
+
 
 static bool card_exhausts(const BattleContext &bc, const Card &c) {
     if (card_has(c, CF_EXHAUST)) return true;
@@ -242,14 +189,16 @@ static bool card_exhausts(const BattleContext &bc, const Card &c) {
     return false;
 }
 
-void BattleContext::init(Encounter enc, std::uint32_t seed, const Card *deck, int deckCount,
+void BattleContext::init(Encounter enc, std::uint64_t seed, const Card *deck, int deckCount,
                          int ascensionLevel, int playerHp, int playerMaxHp,
                          const int *relicIds, int relicN,
                          const int *potionIds, int potionN,
                          int slotCount, int turn1Energy, int energyPerTurn, int runGold,
-                         std::uint32_t potionSeed, const int *relicAuxIn,
-                         const Rng *runRngs) {
+                         std::uint64_t potionSeed, const int *relicAuxIn,
+                         const Rng *runRngs, const bool *relicWaxIn, const bool *relicMeltedIn,
+                         Rng *encounterRng, CardPool characterPool) {
     *this = BattleContext();
+    this->characterPool = characterPool;
     ascension = ascensionLevel;
     rng = Rng(seed);
     shuffleRng = Rng(seed ^ 0x243F6A88u);
@@ -280,11 +229,19 @@ void BattleContext::init(Encounter enc, std::uint32_t seed, const Card *deck, in
     this->turn1Energy = turn1Energy;
     gold = runGold;
     potionSlots = std::min(slotCount, MAX_POTIONS);
-    potionCount = std::min(potionN, potionSlots);
-    for (int i = 0; i < potionCount; ++i) potions[i] = potionIds[i];
+    potionCount = 0;
+    const int potionValues = std::min(potionN, potionSlots);
+    for (int i = 0; i < potionValues; ++i) {
+        potions[i] = potionIds ? potionIds[i] : 0;
+        if (potions[i]) ++potionCount;
+    }
     relicCount = std::min(relicN, MAX_RELICS);
     for (int i = 0; i < relicCount; ++i) {
         relics[i] = relicIds[i];
+        relicWax[i] = relicWaxIn && relicWaxIn[i];
+        relicMelted[i] = relicMeltedIn && relicMeltedIn[i];
+        if (!relicAuxIn && static_cast<RelicId>(relics[i]) == RelicId::BONE_TEA)
+            relicAux[i] = 1;
         if (relicAuxIn && relic_aux_persistent(static_cast<RelicId>(relics[i]))) {
             relicAux[i] = relicAuxIn[i];
         }
@@ -295,7 +252,17 @@ void BattleContext::init(Encounter enc, std::uint32_t seed, const Card *deck, in
         draw[drawCount++].enchantmentDisabled = false;
     }
     shuffleRng.shuffle(draw, drawCount);
-    setup_encounter(*this, enc);
+    // Native draw piles draw index 0; this simulator stores the top at the end.
+    std::reverse(draw, draw + drawCount);
+    // Imbued.ShouldStartAtBottomOfDrawPile: the card is placed at the bottom
+    // after the opening shuffle (index 0 is the bottom of this engine's pile).
+    for (int i = drawCount - 1; i > 0; --i) {
+        if (draw[i].enchantment != EnchantmentId::IMBUED) continue;
+        const Card moved = draw[i];
+        for (int j = i; j > 0; --j) draw[j] = draw[j - 1];
+        draw[0] = moved;
+    }
+    setup_encounter(*this, enc, encounterRng);
     nextUid = 1000;
     // GalvanicPower.BeforeCombatStart afflicts every Power card already in the
     // player's combat piles.
@@ -310,6 +277,9 @@ void BattleContext::init(Encounter enc, std::uint32_t seed, const Card *deck, in
             }
         }
     }
+    // Bound / Unbound Phylactery BeforeCombatStart summons.
+    necrobinder_before_combat(*this);
+    relic_persistent_before_combat(*this);
     relics_combat_start(*this);
     start_player_turn();
     clear_card_uid_reservations();
@@ -372,16 +342,13 @@ void BattleContext::resample_hidden(std::uint32_t seed) {
     // (Headbutt, Nostalgia, known status placements); only shuffle the unknown
     // remainder of the draw pile.
     const int hidden = std::max(0, drawCount - knownTopCount);
-    // Normalize using only the public pile-view fields before randomizing.
+    // Normalize using only publicly visible card state before randomizing.
     // Otherwise a fixed search seed would map different original hidden
     // permutations to different samples. Do not use internal card UIDs here.
-    const auto publicPileKey = [](const Card &c) {
-        return std::make_tuple(static_cast<int>(c.id), c.upgraded,
-                               static_cast<int>(c.enchantment), c.enchantmentAmount,
-                               c.enchantmentDisabled);
-    };
-    const auto publicPileLess = [&](const Card &a, const Card &b) {
-        return publicPileKey(a) < publicPileKey(b);
+    // The key is the shared public identity (card_public_key), so every field
+    // that distinguishes two cards in the pile viewer also orders the sample.
+    const auto publicPileLess = [](const Card &a, const Card &b) {
+        return card_public_key(a) < card_public_key(b);
     };
     std::sort(draw, draw + hidden, publicPileLess);
     for (int i = hidden - 1; i > 0; --i) {
@@ -409,439 +376,37 @@ void BattleContext::resample_hidden(std::uint32_t seed) {
     nicheRng = Rng(seed ^ 0x082EFA98u);
 }
 
-void BattleContext::start_player_turn() {
-    ++turn;
-    // PlatingPower.BeforeSideTurnStart: at the start of round 1 enemies gain
-    // block equal to their plating.
-    if (turn == 1) {
-        for (int i = 0; i < monsterCount; ++i) {
-            const int plating = monsters[i].power[static_cast<int>(PowerId::PLATING)];
-            if (monsters[i].alive && plating > 0) monsters[i].block += plating;
-        }
-    }
-    // RampartPower.AfterSideTurnStart(Player): every Rampart owner supplies
-    // its Amount to all TurretOperator allies.
-    for (int i = 0; i < monsterCount; ++i) {
-        if (!monsters[i].alive ||
-            monsters[i].power[static_cast<int>(PowerId::RAMPART)] <= 0) {
-            continue;
-        }
-        const int amount = monsters[i].power[static_cast<int>(PowerId::RAMPART)];
-        for (int j = 0; j < monsterCount; ++j) {
-            if (monsters[j].alive && monsters[j].id == MonsterId::TURRET_OPERATOR) {
-                monsters[j].block += amount;
-            }
-        }
-    }
-    player.tookUnblockedDamageThisTurn = false;
-    if (player_power(PowerId::BARRICADE) <= 0) {
-        const int keep = relics_block_retain(*this);
-        player.block = keep > 0 ? std::min(player.block, keep) : 0;
-    }
-    // AfterBlockCleared runs at the start of the owner's turn, including
-    // turns where no block was present or Barricade retained it.
-    for (int i = 0; i < toricCount;) {
-        gain_block(toricBlock[i], false, false);
-        --toricTurns[i];
-        add_player_power(PowerId::TORIC_TOUGHNESS, -1);
-        if (toricTurns[i] <= 0) {
-            player.toricToughnessBlock -= toricBlock[i];
-            for (int j = i; j + 1 < toricCount; ++j) {
-                toricBlock[j] = toricBlock[j + 1];
-                toricTurns[j] = toricTurns[j + 1];
-            }
-            --toricCount;
-        } else {
-            ++i;
-        }
-        if (outcome != Outcome::UNDECIDED) return;
-    }
-    if (player_power(PowerId::BLOCK_NEXT_TURN) > 0) {
-        const int b = player_power(PowerId::BLOCK_NEXT_TURN);
-        add_player_power(PowerId::BLOCK_NEXT_TURN, -b);
-        gain_block(b, false, false);
-    }
-    int baseEnergy = player.energyPerTurn;
-    if (player_power(PowerId::PYRE) > 0) baseEnergy += player_power(PowerId::PYRE);
-    player.energy = relics_energy_for_turn(*this, baseEnergy) + nextTurnEnergy;
-    nextTurnEnergy = 0;
-    // RadiancePower.AfterEnergyReset: +1 energy, then one stack expires.
-    if (player_power(PowerId::RADIANCE) > 0) {
-        player.energy += 1;
-        add_player_power(PowerId::RADIANCE, -1);
-    }
 
-    cardsPlayedThisTurn = 0;
-    attacksPlayedThisTurn = 0;
-    skillsPlayedThisTurn = 0;
-    hpLostThisTurn = 0;
-    exhaustedThisTurn = 0;
-    cardsDrawnThisTurn = 0;
-    gainedBlockFromCardThisTurn = false;
-    blockCardPlaysThisTurn = 0;
-    blockPlayIndex = -1;
-    playedAttackOrSkillThisTurn = false;
-    attackSkillPlaysThisTurn = 0;
-    // HardenedShellPower.BeforeSideTurnStart(side Player): the per-turn HP-loss
-    // allowance is restored at the start of every player turn.
-    for (int i = 0; i < monsterCount; ++i) monsters[i].shellHpLostThisTurn = 0;
-    jugglingTriggeredThisTurn = false;
-    reboundPending = false;
-    skillsLocked = false;
-    relics_turn_start(*this);
-    if (outcome != Outcome::UNDECIDED) return;
 
-    if (player_power(PowerId::DEMON_FORM) > 0) add_player_power(PowerId::STRENGTH, player_power(PowerId::DEMON_FORM));
-    if (player_power(PowerId::CRIMSON_MANTLE) > 0) {
-        damage_player(1, true);
-        if (outcome == Outcome::UNDECIDED)
-            gain_block(player_power(PowerId::CRIMSON_MANTLE), false, false);
-    }
-    if (outcome != Outcome::UNDECIDED) return;
-    if (player_power(PowerId::INFERNO) > 0) damage_player(1, true);
-    if (outcome != Outcome::UNDECIDED) return;
-    for (int i = 0; i < rollingCount && outcome == Outcome::UNDECIDED; ++i) {
-        attack_all(rollingDamage[i], 1, false);
-        rollingDamage[i] += 5;
-        power_ref(player, PowerId::ROLLING_BOULDER) += 5;
-    }
-    if (outcome != Outcome::UNDECIDED) return;
-    if (player_power(PowerId::PREP_TIME) > 0) add_player_power(PowerId::VIGOR, player_power(PowerId::PREP_TIME));
 
-    // Cards whose cost was changed "this turn" expire now, wherever they are;
-    // free-until-played costs persist until that copy is played.  Hidden Gem's
-    // replay is BaseReplayCount (permanent for the combat), not a turn effect.
-    for (int i = 0; i < handCount; ++i) card_restore_cost(hand[i]);
-    for (int i = 0; i < drawCount; ++i) card_restore_cost(draw[i]);
-    for (int i = 0; i < discardCount; ++i) card_restore_cost(discard[i]);
 
-    for (int i = 0; i < returnNextTurnCount; ++i) add_card_to_hand(returnNextTurn[i]);
-    returnNextTurnCount = 0;
 
-    // ---- BeforeHandDraw hooks (all run before the hand is drawn) ----------
-    // ThrummingHatchet.BeforeHandDraw: the exact instance played last round
-    // returns from whichever pile holds it (normally the discard pile).
-    recall_played_last_turn(CardId::THRUMMING_HATCHET);
-    // HowlFromBeyond.BeforeHandDraw: every exhausted copy auto-plays.
-    if (exhaustCount > 0) {
-        std::uint16_t howls[MAX_PILE];
-        int howlN = 0;
-        for (int i = 0; i < exhaustCount; ++i) {
-            if (exhaust[i].id == CardId::HOWL_FROM_BEYOND) howls[howlN++] = exhaust[i].uid;
-        }
-        for (int i = 0; i < howlN && outcome == Outcome::UNDECIDED; ++i) {
-            for (int j = 0; j < exhaustCount; ++j) {
-                if (exhaust[j].uid != howls[i]) continue;
-                Card c = exhaust[j];
-                for (int k = j; k + 1 < exhaustCount; ++k) exhaust[k] = exhaust[k + 1];
-                --exhaustCount;
-                auto_play_random(c, false);
-                break;
-            }
-        }
-    }
-    // AggressionPower.BeforeSideTurnStart: move Amount random attacks from the
-    // discard pile to hand and upgrade them, before the draw/shuffle.
-    if (player_power(PowerId::AGGRESSION) > 0 && discardCount > 0) {
-        int idxs[MAX_PILE];
-        int n = 0;
-        for (int i = 0; i < discardCount; ++i) {
-            if (card_is_attack(discard[i])) idxs[n++] = i;
-        }
-        for (int i = n - 1; i > 0; --i) {
-            const int j = cardSelectionRng.next_int(0, i);
-            std::swap(idxs[i], idxs[j]);
-        }
-        const int take = std::min(n, player_power(PowerId::AGGRESSION));
-        int chosen[MAX_PILE];
-        for (int k = 0; k < take; ++k) chosen[k] = idxs[k];
-        // Sort the chosen indices descending so removals do not shift the rest.
-        for (int a = 1; a < take; ++a) {
-            const int v = chosen[a];
-            int b = a - 1;
-            while (b >= 0 && chosen[b] < v) { chosen[b + 1] = chosen[b]; --b; }
-            chosen[b + 1] = v;
-        }
-        for (int k = 0; k < take; ++k) {
-            Card c = discard[chosen[k]];
-            if (card_upgradable(c)) upgrade_card(c);
-            add_card_to_hand(c);
-        }
-        for (int k = 0; k < take; ++k) {
-            const int idx = chosen[k];
-            for (int j = idx; j + 1 < discardCount; ++j) discard[j] = discard[j + 1];
-            --discardCount;
-        }
-    }
-    // DrumOfBattlePower.BeforeHandDrawLate: exhaust the top Amount cards,
-    // shuffling the discard pile in as needed.
-    if (player_power(PowerId::DRUM_OF_BATTLE) > 0) {
-        for (int i = 0; i < player_power(PowerId::DRUM_OF_BATTLE); ++i) {
-            if (drawCount == 0) shuffle_discard_into_draw();
-            if (drawCount == 0) break;
-            Card c = take_draw_top();
-            move_to_exhaust(c);
-        }
-    }
-    // HelloWorldPower.BeforeHandDraw: add distinct unlocked Ironclad commons
-    // before the normal hand draw.
-    if (player_power(PowerId::HELLO_WORLD) > 0) {
-        CardId pool[static_cast<int>(CardId::COUNT)];
-        int n = 0;
-        for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-            const CardDef &d = CARD_DEFS[i];
-            if (d.pool == CardPool::IRONCLAD && d.rarity == Rarity::COMMON &&
-                !(d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
-                             CF_CANNOT_GENERATE_IN_COMBAT))) {
-                pool[n++] = static_cast<CardId>(i);
-            }
-        }
-        CardId picked[16];
-        int pickedN = 0;
-        const int wanted = std::min(player_power(PowerId::HELLO_WORLD),
-                                    static_cast<int>(sizeof(picked) / sizeof(picked[0])));
-        for (int guard = 0; guard < 256 && pickedN < wanted && n > 0; ++guard) {
-            const int idx = cardGenerationRng.next_int(0, n - 1);
-            bool duplicate = false;
-            for (int j = 0; j < pickedN; ++j) duplicate |= picked[j] == pool[idx];
-            if (duplicate) continue;
-            picked[pickedN++] = pool[idx];
-            add_card_to_hand(make_card(pool[idx], false, require_card_uid()));
-        }
-    }
-
-    int drawCountThisTurn = relics_modify_draw(*this, player.drawPerTurn) + nextTurnDraw;
-    nextTurnDraw = 0;
-    // ClarityPower.ModifyHandDraw: one extra card for each remaining turn.
-    const bool clarity = player_power(PowerId::CLARITY) > 0;
-    // Innate cards go on top of the draw pile on turn 1; the opening draw is
-    // max(normal draw, innate count), capped at the 10-card hand (C# CombatManager).
-    if (turn == 1) {
-        Card ordered[MAX_PILE];
-        int n = 0;
-        int innate = 0;
-        for (int i = 0; i < drawCount; ++i) {
-            if (!card_has(draw[i], CF_INNATE)) ordered[n++] = draw[i];
-        }
-        for (int i = 0; i < drawCount; ++i) {
-            if (card_has(draw[i], CF_INNATE)) { ordered[n++] = draw[i]; ++innate; }
-        }
-        for (int i = 0; i < n; ++i) draw[i] = ordered[i];
-        drawCount = n;
-        knownTopCount = innate;
-        drawCountThisTurn = std::min(MAX_HAND, std::max(drawCountThisTurn, innate));
-    }
-    if (clarity) drawCountThisTurn += 1;
-    draw_cards(drawCountThisTurn);
-    if (clarity) add_player_power(PowerId::CLARITY, -1);
-    if (outcome != Outcome::UNDECIDED) return;
-    // A Stratagem selection interrupted the draw; it resumes when resolved.
-    if (pending.op != ChoiceOp::NONE) return;
-    relics_hand_drawn(*this);
-
-    // powers that act on the drawn hand
-    if (player_power(PowerId::ENTROPY) > 0) {
-        int n = player_power(PowerId::ENTROPY);
-        while (n-- > 0 && handCount > 0) {
-            const int idx = cardGenerationRng.next_int(0, handCount - 1);
-            transform_card(hand[idx]);
-        }
-    }
-    if (player_power(PowerId::AGGRESSION) > 0) {
-        int attacks[MAX_PILE];
-        int n = 0;
-        for (int i = 0; i < discardCount; ++i) {
-            if (card_is_attack(discard[i])) attacks[n++] = i;
-        }
-        if (n > 0) {
-            const int idx = attacks[cardSelectionRng.next_int(0, n - 1)];
-            Card c = discard[idx];
-            remove_at(discard, discardCount, idx);
-            upgrade_card(c);
-            add_card_to_hand(c);
-        }
-    }
-    if (player_power(PowerId::MAYHEM) > 0) {
-        auto_play_from_draw(player_power(PowerId::MAYHEM), false);
-    }
-}
-
-void BattleContext::end_player_turn() {
-    if (outcome != Outcome::UNDECIDED) return;
-    if (turn >= 200) {  // stalemate cutoff, not a game-rule defeat
-        outcome = Outcome::TRUNCATED;
-        return;
-    }
-    // Rounds are the unit ThrummingHatchet's BeforeHandDraw looks back on.
-    playedLastTurnCount = 0;
-    for (int i = 0; i < playedThisTurnCount && playedLastTurnCount < MAX_PILE; ++i) {
-        bool dup = false;
-        for (int j = 0; j < playedLastTurnCount; ++j) {
-            dup = dup || playedLastTurn[j] == playedThisTurn[i];
-        }
-        if (!dup) playedLastTurn[playedLastTurnCount++] = playedThisTurn[i];
-    }
-    playedThisTurnCount = 0;
-    // end-of-turn powers
-    if (player_power(PowerId::CONSTRICT) > 0) {
-        damage_player(player_power(PowerId::CONSTRICT));
-        if (outcome != Outcome::UNDECIDED) return;
-    }
-    if (player_power(PowerId::STAMPEDE) > 0) {
-        int attacks = player_power(PowerId::STAMPEDE);
-        while (attacks-- > 0 && handCount > 0 && outcome == Outcome::UNDECIDED) {
-            int candidates[MAX_HAND];
-            int n = 0;
-            for (int i = 0; i < handCount; ++i) if (card_is_attack(hand[i])) candidates[n++] = i;
-            if (n == 0) break;
-            const int idx = candidates[cardSelectionRng.next_int(0, n - 1)];
-            Card c = hand[idx];
-            remove_at(hand, handCount, idx);
-            // StampedePower -> CardCmd.AutoPlay: the whole play lifecycle
-            // (counters, Rage/after-play hooks, Duplication) must run.
-            auto_play_random(c, false);
-        }
-    }
-    // Each bomb instance counts down and explodes independently; power duration
-    // (Unpowered) ignores strength and vulnerable.
-    for (int i = 0; i < bombCount;) {
-        if (--bombTurns[i] > 0) { ++i; continue; }
-        const int dmg = bombDamage[i];
-        for (int j = i; j + 1 < bombCount; ++j) {
-            bombTurns[j] = bombTurns[j + 1];
-            bombDamage[j] = bombDamage[j + 1];
-        }
-        --bombCount;
-        attack_all(dmg, 1, false);
-        if (outcome != Outcome::UNDECIDED) return;
-    }
-    if (player_power(PowerId::PLATING) > 0)
-        gain_block(player_power(PowerId::PLATING), false, false);
-    if (player_power(PowerId::REGEN) > 0) {
-        player.hp = std::min(player.maxHp, player.hp + player_power(PowerId::REGEN));
-        add_player_power(PowerId::REGEN, -1);
-    }
-    relics_turn_end(*this);
-    relics_after_turn(*this);
-    if (outcome != Outcome::UNDECIDED) return;
-
-    discard_hand();
-    if (outcome != Outcome::UNDECIDED) return;
-    flush_ethereal_exhaust_hooks();
-    if (player.tempStrength != 0) {
-        player.strength -= player.tempStrength;
-        player.tempStrength = 0;
-    }
-    if (player.tempDexterity != 0) {
-        player.dexterity -= player.tempDexterity;
-        player.tempDexterity = 0;
-    }
-    if (player_power(PowerId::RITUAL) > 0) add_player_power(PowerId::STRENGTH, player_power(PowerId::RITUAL));
-    if (player_power(PowerId::RAGE) > 0) add_player_power(PowerId::RAGE, -player_power(PowerId::RAGE));
-    // DuplicationPower.AfterTurnEnd(owner side): copies expire at the end of
-    // the turn in which they were applied.
-    if (player_power(PowerId::DUPLICATION) > 0)
-        add_player_power(PowerId::DUPLICATION, -player_power(PowerId::DUPLICATION));
-    // One-Two Punch expires at end of turn.  FreeAttackPower has no end-of-turn
-    // removal: it is consumed by the next attack that is actually played.
-    if (player_power(PowerId::ONE_TWO_PUNCH) > 0) add_player_power(PowerId::ONE_TWO_PUNCH, -player_power(PowerId::ONE_TWO_PUNCH));
-    if (player_power(PowerId::SETUP_STRIKE) > 0) add_player_power(PowerId::SETUP_STRIKE, -player_power(PowerId::SETUP_STRIKE));
-    if (player_power(PowerId::EQUILIBRIUM) > 0) add_player_power(PowerId::EQUILIBRIUM, 0);
-    if (player_power(PowerId::RETAIN_HAND) > 0) add_player_power(PowerId::RETAIN_HAND, -1);
-    if (player_power(PowerId::NO_BLOCK) > 0) add_player_power(PowerId::NO_BLOCK, -1);
-    if (player_power(PowerId::TENDER) > 0) {
-        add_player_power(PowerId::STRENGTH, cardsPlayedThisTurn);
-        player.dexterity += cardsPlayedThisTurn;
-    }
-    player.power[static_cast<int>(PowerId::RINGING)] = 0;
-    // GrapplePower.AfterTurnEnd removes the debuff at the end of the turn
-    // (TheGambit kills immediately in damage_player, never at turn end).
-    for (int i = 0; i < monsterCount; ++i) {
-        monsters[i].power[static_cast<int>(PowerId::GRAPPLE)] = 0;
-        monsters[i].grappleCount = 0;
-    }
-
-    for (int i = 0; i < panacheCount; ++i) panacheLeft[i] = 5;
-    for (int i = 0; i < monsterCount; ++i) monsters[i].skittishTriggeredThisTurn = false;
-    monster_turn();
-    if (outcome != Outcome::UNDECIDED) return;
-    for (int i = 0; i < monsterCount; ++i) {
-        if (monsters[i].tempStrengthLoss != 0) {
-            monsters[i].strength += monsters[i].tempStrengthLoss;
-            monsters[i].tempStrengthLoss = 0;
-        }
-    }
-    // IntangiblePower.AfterTurnEnd: expires after the enemy turn it protected
-    // against (it does not tick at the start of the next player turn).
-    if (player_power(PowerId::INTANGIBLE) > 0) add_player_power(PowerId::INTANGIBLE, -1);
-    if (player.vulnerable > 0 && !vulnerableSkipTick) --player.vulnerable;
-    if (player.weak > 0 && !weakSkipTick) --player.weak;
-    if (player.frail > 0 && !frailSkipTick) --player.frail;
-    weakSkipTick = false;
-    frailSkipTick = false;
-    vulnerableSkipTick = false;
-    // PlatingPower.AfterTurnEnd(side Enemy): the player's plating decays once
-    // per enemy turn (enemy plating decays by the player count, i.e. one).
-    if (player_power(PowerId::PLATING) > 0) add_player_power(PowerId::PLATING, -1);
-    if (player_power(PowerId::SHRINK) > 0) add_player_power(PowerId::SHRINK, -1);
-    add_player_power(PowerId::FLAME_BARRIER, 0);
-    player.power[static_cast<int>(PowerId::FLAME_BARRIER)] = 0;
-    // ColossusPower.AfterTurnEnd(side Enemy) ticks its duration once per enemy
-    // turn; it does not disappear after a single turn.
-    if (player_power(PowerId::COLOSSUS) > 0) add_player_power(PowerId::COLOSSUS, -1);
-    player.power[static_cast<int>(PowerId::NO_DRAW)] = 0;
-    player.power[static_cast<int>(PowerId::EQUILIBRIUM)] = 0;
-    start_player_turn();
-}
-
-void BattleContext::monster_turn() {
-    inMonsterTurn = true;
-    vitalSparkTriggeredThisEnemyTurn = false;
-    // SlowPower.AfterSideTurnStart: the card count resets when the monsters'
-    // own side begins its turn.
-    for (int i = 0; i < monsterCount; ++i) monsters[i].slowCardsThisTurn = 0;
-    // SandpitPower.AfterSideTurnStart decrements before any enemy acts.  Its
-    // removal kills the targeted player outright, bypassing death prevention.
-    for (int i = 0; i < monsterCount; ++i) {
-        Monster &m = monsters[i];
-        int &sandpit = m.power[static_cast<int>(PowerId::SANDPIT)];
-        if (!m.alive || sandpit <= 0) continue;
-        if (--sandpit == 0) {
-            player.hp = 0;
-            check_outcome();
-            inMonsterTurn = false;
-            return;
-        }
-    }
-    for (int i = 0; i < monsterCount; ++i) {
-        if (!monsters[i].alive) continue;
-        monster_act(*this, monsters[i]);
-        check_outcome();
-        if (outcome != Outcome::UNDECIDED) break;
-    }
-    if (outcome == Outcome::UNDECIDED) {
-        // DemisePower.AfterTurnEnd(owner side): damage is Unblockable and
-        // Unpowered, and the power remains for later enemy turns.
-        for (int i = 0; i < monsterCount; ++i) {
-            if (!monsters[i].alive) continue;
-            const int amount = monsters[i].power[static_cast<int>(PowerId::DEMISE)];
-            if (amount <= 0) continue;
-            damage_monster(i, amount, true, false, true);
-            check_outcome();
-            if (outcome != Outcome::UNDECIDED) break;
-        }
-    }
-    inMonsterTurn = false;
-}
 
 // ---------------------------------------------------------------- piles
 
-void BattleContext::shuffle_discard_into_draw() {
-    if (discardCount == 0) return;
-    for (int i = 0; i < discardCount; ++i) draw[i] = discard[i];
-    drawCount = discardCount;
+void BattleContext::shuffle_discard_into_draw(bool force) {
+    if (discardCount == 0 && !force) return;
+    if (drawCount + discardCount > MAX_PILE)
+        throw std::overflow_error("Combined draw/discard pile exceeds simulator capacity");
+    for (int i = 0; i < discardCount; ++i) draw[drawCount++] = discard[i];
     discardCount = 0;
+    // CardPileCmd.Shuffle uses StableShuffle: CardModel.CompareTo orders by
+    // ModelId.Entry, then upgrade level (all these models are CARD category).
+    std::sort(draw, draw + drawCount, native_card_less);
     shuffleRng.shuffle(draw, drawCount);
+    std::reverse(draw, draw + drawCount);
+    // PerfectFit.ModifyShuffleOrder (non-initial shuffles): move the
+    // enchanted card to the front of native's list, i.e. the top/end here.
+    for (int i = 0; i < drawCount;) {
+        if (draw[i].enchantment != EnchantmentId::PERFECT_FIT ||
+            draw[i].enchantmentDisabled) {
+            ++i;
+            continue;
+        }
+        Card top = draw[i];
+        for (int j = i; j + 1 < drawCount; ++j) draw[j] = draw[j + 1];
+        draw[--drawCount] = top;
+    }
     knownTopCount = 0;
     relics_shuffled(*this);
     // StratagemPower.AfterShuffle: the player picks Amount cards from the fresh
@@ -856,8 +421,11 @@ void BattleContext::shuffle_discard_into_draw() {
     }
 }
 
-void BattleContext::draw_cards(int count) {
+void BattleContext::draw_cards(int count, bool fromHandDraw) {
     if (player_power(PowerId::NO_DRAW) > 0) return;
+    // Scrape records only the cards drawn by its own Draw call: nested draws
+    // started by AfterCardDrawn hooks run at a deeper depth.
+    ++defect.drawDepth;
     for (int i = 0; i < count; ++i) {
         // CardPileCmd.Draw stops when the hand is full; cards must not fall
         // through to the discard pile.
@@ -901,75 +469,32 @@ void BattleContext::draw_cards(int count) {
             }
         }
         add_card_to_hand(c);
+        // Slither.Enchantment.AfterCardDrawn randomizes the card's cost each
+        // time it enters hand (Rng.CombatEnergyCosts, 0..3).
+        if (handCount > 0) {
+            Card &slither = hand[handCount - 1];
+            if (slither.enchantment == EnchantmentId::SLITHER &&
+                !slither.enchantmentDisabled) {
+                slither.costForTurn = static_cast<std::int8_t>(energyCostRng.next_int(0, 3));
+                slither.costThisTurn = false;
+                slither.storedCost = slither.costForTurn;
+            }
+        }
+        // Hook.AfterCardDrawn observes the entity in hand, so pass the stored
+        // copy (character hooks mutate per-draw state such as retain/cost).
+        Card &drawn = hand[handCount - 1];
+        silent_card_drawn(*this, drawn, fromHandDraw);
+        defect_after_card_drawn(*this, drawn);
+        necrobinder_card_drawn(*this, drawn, fromHandDraw);
         if (c.id == CardId::VOID) {
             player.energy -= card_var(c, VarId::ENERGY);
             if (player.energy < 0) player.energy = 0;
         }
     }
+    --defect.drawDepth;
 }
 
-void BattleContext::discard_hand() {
-    // end-of-turn in-hand status/curses triggers (C# HasTurnEndInHandEffect).
-    const int handAtEnd = handCount;
-    for (int i = 0; i < handCount && outcome == Outcome::UNDECIDED; ++i) {
-        const Card &c = hand[i];
-        switch (c.id) {
-            case CardId::BURN:
-            case CardId::TOXIC:
-            case CardId::INFECTION:
-                damage_player(card_var(c, VarId::DAMAGE));
-                break;
-            case CardId::BECKON:
-                damage_player(card_var(c, VarId::HP_LOSS), true);
-                break;
-            // Curses -----------------------------------------------------
-            case CardId::DECAY:  // DamageVar 2, unpowered but blockable
-                damage_player(card_var(c, VarId::DAMAGE));
-                break;
-            case CardId::BAD_LUCK:  // 13 unblockable/unpowered
-                damage_player(card_var(c, VarId::HP_LOSS), true);
-                break;
-            case CardId::REGRET:  // HP loss equal to cards in hand at turn end
-                damage_player(handAtEnd, true);
-                break;
-            case CardId::DOUBT: {
-                // A debuff applied to the player skips its first tick; Artifact
-                // intercepts it like any other visible debuff.
-                add_player_power(PowerId::WEAK, card_var(c, VarId::WEAK));
-                break;
-            }
-            case CardId::SHAME: {
-                add_player_power(PowerId::FRAIL, card_var(c, VarId::FRAIL));
-                break;
-            }
-            case CardId::DEBT: {
-                const int loss = std::min(card_var(c, VarId::GOLD), gold);
-                gold -= loss;
-                break;
-            }
-            default:
-                break;
-        }
-    }
-    Card kept[MAX_HAND];
-    int keptN = 0;
-    const bool retainAll = player_power(PowerId::RETAIN_HAND) > 0 ||
-                           player_power(PowerId::EQUILIBRIUM) > 0 ||
-                           relic_has(*this, RelicId::RUNIC_PYRAMID);
-    while (handCount > 0) {
-        Card c = hand[--handCount];
-        // Ethereal is resolved before retention (C# CombatManager end-of-turn).
-        if (card_has(c, CF_ETHEREAL) || c.etherealThisCombat ||
-            player_power(PowerId::HEX) > 0) {
-            move_to_exhaust(c, true);
-        } else if (card_has(c, CF_RETAIN) || retainAll) {
-            if (keptN < MAX_HAND) kept[keptN++] = c;
-        } else {
-            move_to_discard(c);
-        }
-    }
-    for (int i = keptN - 1; i >= 0; --i) hand[handCount++] = kept[i];
-}
+
 
 void BattleContext::move_to_discard(const Card &c) {
     if (discardCount < MAX_PILE) discard[discardCount++] = c;
@@ -1045,9 +570,13 @@ void BattleContext::add_card_to_draw_random(const Card &c) {
     }
     add_card_to_draw_top(c);
     Card inserted = take_draw_top();
-    const int pos = cardGenerationRng.next_int(0, drawCount);
-    for (int i = drawCount; i > pos; --i) draw[i] = draw[i - 1];
-    draw[pos] = inserted;
+    // CardPileCmd.Add shuffles the insertion position with the Shuffle RNG.
+    // Native CardPile.Cards is top-first while this array is bottom-first, so
+    // the random index must be mirrored.
+    const int pos = shuffleRng.next_int(0, drawCount);
+    const int insertAt = drawCount - pos;
+    for (int i = drawCount; i > insertAt; --i) draw[i] = draw[i - 1];
+    draw[insertAt] = inserted;
     ++drawCount;
     knownTopCount = 0;
 }
@@ -1131,9 +660,21 @@ void BattleContext::trigger_exhaust_hooks(const Card &c, bool causedByEthereal) 
         // FeelNoPainPower uses ValueProp.Unpowered: no dexterity/frail.
         gain_block(player_power(PowerId::FEEL_NO_PAIN), false, false);
     }
-    if (c.id == CardId::DRUM_OF_BATTLE_CARD && card_is_power(c)) {
-        player.energy += 1;
+    if (c.id == CardId::DRUM_OF_BATTLE_CARD) {
+        // Native DrumOfBattle.AfterCardExhausted runs GeneratePlayCount, with
+        // the same replay modifiers and consumption hooks as a normal play.
+        player.energy += card_var(c, VarId::ENERGY) * generate_play_count(c);
     }
+    // Midnight.AfterCardExhausted: every exhausted card in the combat reduces
+    // each Midnight's cost by one (combat-long modifier). Adjacent identical
+    // modifiers merge, so the list stays bounded.
+    Card *piles[] = {hand, draw, discard, exhaust, playPile, returnNextTurn};
+    const int counts[] = {handCount, drawCount, discardCount, exhaustCount, playCount,
+                          returnNextTurnCount};
+    for (int p = 0; p < 6; ++p)
+        for (int i = 0; i < counts[p]; ++i)
+            if (piles[p][i].id == CardId::MIDNIGHT)
+                card_modify_cost(piles[p][i], -1, false, 0, false);
     relics_exhausted(*this, c, causedByEthereal);
 }
 
@@ -1148,22 +689,107 @@ void BattleContext::flush_ethereal_exhaust_hooks() {
 
 // ---------------------------------------------------------------- damage
 
-int BattleContext::calc_player_damage(int base, int monsterIdx, bool powered,
+double BattleContext::thrash_damage_growth(const Card &selected) const {
+    // Thrash.cs calls CalculatedDamage.Calculate(null), then Hook.ModifyDamage
+    // with target=null and cardSource=the selected (still in Hand) card. Do not
+    // use an attack path: it would consume powers and apply enemy modifiers.
+    double base = card_base_damage(selected);
+    switch (selected.id) {
+        case CardId::BODY_SLAM:
+            base = card_var(selected, VarId::CALC_BASE) +
+                   card_var(selected, VarId::EXTRA_DAMAGE) * player.block;
+            break;
+        case CardId::ASHEN_STRIKE:
+            base = card_var(selected, VarId::CALC_BASE) +
+                   card_var(selected, VarId::EXTRA_DAMAGE) * exhaustCount;
+            break;
+        case CardId::BULLY:
+            // A null target has zero Vulnerable, regardless of Thrash's target.
+            base = card_var(selected, VarId::CALC_BASE);
+            break;
+        case CardId::PERFECTED_STRIKE: {
+            int strikes = 0;
+            const Card *piles[] = {hand, draw, discard, exhaust, playPile, returnNextTurn};
+            const int counts[] = {handCount, drawCount, discardCount, exhaustCount,
+                                  playCount, returnNextTurnCount};
+            for (int p = 0; p < 6; ++p)
+                for (int i = 0; i < counts[p]; ++i)
+                    strikes += card_is_strike(piles[p][i]) ? 1 : 0;
+            base = card_var(selected, VarId::CALC_BASE) +
+                   card_var(selected, VarId::EXTRA_DAMAGE) * strikes;
+            break;
+        }
+        case CardId::MIND_BLAST:
+            base = card_var(selected, VarId::CALC_BASE) +
+                   card_var(selected, VarId::EXTRA_DAMAGE) * drawCount;
+            break;
+        case CardId::GOLD_AXE:
+            base = card_var(selected, VarId::CALC_BASE) +
+                   card_var(selected, VarId::EXTRA_DAMAGE) * cardsFinishedThisCombat;
+            break;
+        default:
+            break;
+    }
+    double result = base + player.strength + relics_damage_additive(*this, selected);
+    if (selected.enchantment == EnchantmentId::VIGOROUS && !selected.enchantmentDisabled)
+        result += selected.enchantmentAmount;
+    if (selected.enchantment == EnchantmentId::SHARP && !selected.enchantmentDisabled)
+        result += selected.enchantmentAmount;
+    if (selected.enchantment == EnchantmentId::CORRUPTED && !selected.enchantmentDisabled)
+        result *= 1.5;
+    if (selected.enchantment == EnchantmentId::INSTINCT && !selected.enchantmentDisabled)
+        result *= 2.0;
+    if (selected.enchantment == EnchantmentId::TEZCATARAS_EMBER && !selected.enchantmentDisabled)
+        result += 3.0;
+    // Vigor was consumed by Thrash's completed AttackCommand. A later hook may
+    // have granted new Vigor, which ModifyDamage observes without consuming it.
+    result += player_power(PowerId::VIGOR);
+    if (player.weak > 0) result *= 0.75;
+    if (player_power(PowerId::SHRINK) != 0) result *= 0.7;
+    if (player_power(PowerId::DOUBLE_DAMAGE) > 0) result *= 2.0;
+    // This engine defers Gigantification's decrement to AfterCardPlayed. Native
+    // AfterAttack has already consumed one stack at this point in Thrash.
+    if (player_power(PowerId::GIGANTIFICATION) > 1) result *= 3.0;
+    // PenNib's AttackToDouble is Thrash, not selected. Conversely, at counter 9
+    // a card still in Hand receives the native "next attack" preview modifier.
+    if (relic_aux(*this, RelicId::PEN_NIB) == 9) result *= 2.0;
+    return std::max(0.0, result);
+}
+
+int BattleContext::calc_player_damage(double base, int monsterIdx, bool powered,
                                       const Card *card) const {
-    if (!powered) return base > 0 ? base : 0;
+    if (!powered) return base > 0 ? static_cast<int>(std::floor(base)) : 0;
     // VigorPower applies once per AttackCommand, not per hit; callers that
     // start a command fold it into `base` (see attack_* below).
-    float dmg = static_cast<float>(base + player.strength);
+    double dmg = base + player.strength;
     // Hook.ModifyDamageAdditive runs before the multiplicative phases
     // (Strike Dummy +3 must be scaled by Weak, not added after it).
     if (card != nullptr) {
         dmg += relics_damage_additive(*this, *card);
+        dmg += silent_damage_additive(*this, card, powered);
+        dmg += defect_damage_additive(*this, *card, activePlay.active ? activePlay.energySpent : 0);
         if (card->enchantment == EnchantmentId::VIGOROUS && !card->enchantmentDisabled)
             dmg += card->enchantmentAmount;
+        if (card->enchantment == EnchantmentId::SHARP && !card->enchantmentDisabled)
+            dmg += card->enchantmentAmount;
+        if (card->enchantment == EnchantmentId::CORRUPTED && !card->enchantmentDisabled)
+            dmg *= 1.5;
+        if (card->enchantment == EnchantmentId::INSTINCT && !card->enchantmentDisabled)
+            dmg *= 2.0;
+        if (card->enchantment == EnchantmentId::TEZCATARAS_EMBER && !card->enchantmentDisabled)
+            dmg += 3.0;
+        // MysticLighter: attacks from an enchanted card gain 9 (Unpowered).
+        if (card->enchantment != EnchantmentId::NONE &&
+            relic_has(*this, RelicId::MYSTIC_LIGHTER))
+            dmg += 9.0;
     }
-    if (player_power(PowerId::GIGANTIFICATION) > 0) dmg *= 3.0f;
-    if (player.weak > 0) dmg *= 0.75f;
-    if (player_power(PowerId::SHRINK) > 0) dmg *= 0.7f;
+    // VitruvianMinion: Minion-tagged card damage is doubled.
+    if (card != nullptr && card_is_minion(*card) && relic_has(*this, RelicId::VITRUVIAN_MINION))
+        dmg *= 2.0;
+    if (player_power(PowerId::GIGANTIFICATION) > 0) dmg *= 3.0;
+    if (card != nullptr && player_power(PowerId::DOUBLE_DAMAGE) > 0) dmg *= 2.0;
+    if (player.weak > 0) dmg *= 0.75;
+    if (player_power(PowerId::SHRINK) != 0) dmg *= 0.7;
     if (monsterIdx >= 0 && monsterIdx < monsterCount) {
         const Monster &m = monsters[monsterIdx];
         if (m.power[static_cast<int>(PowerId::COVERED)] > 0) return 0;
@@ -1171,25 +797,32 @@ int BattleContext::calc_player_damage(int base, int monsterIdx, bool powered,
         if (m.power[static_cast<int>(PowerId::FLUTTER)] > 0) dmg *= 0.5f;
         if (m.vulnerable > 0) {
             // CrueltyPower.ModifyVulnerableMultiplier adds to the multiplier.
-            float vuln = relic_has(*this, RelicId::PAPER_PHROG) ? 1.75f : 1.5f;
-            vuln += player_power(PowerId::CRUELTY) / 100.0f;
+            double vuln = relic_has(*this, RelicId::PAPER_PHROG) ? 1.75 : 1.5;
+            vuln += player_power(PowerId::CRUELTY) / 100.0;
             dmg *= vuln;
         }
         // SlowPower.ModifyDamageMultiplicative: +10% per card played this turn.
         if (m.power[static_cast<int>(PowerId::SLOW)] > 0 && m.slowCardsThisTurn > 0) {
-            dmg *= 1.0f + 0.1f * m.slowCardsThisTurn;
+            dmg *= 1.0 + 0.1 * m.slowCardsThisTurn;
         }
     }
-    if (card != nullptr) dmg *= static_cast<float>(relics_damage_multiplier(*this, *card));
+    if (card != nullptr) {
+        dmg *= relics_damage_multiplier(*this, *card);
+        dmg *= silent_damage_multiplier(*this, monsterIdx, powered);
+        dmg *= necrobinder_damage_multiplier(*this, card, monsterIdx, powered);
+    }
     const int result = static_cast<int>(std::floor(dmg));
     return result > 0 ? result : 0;
 }
 
-int BattleContext::calc_monster_damage(const Monster &m, int base) const {
+int BattleContext::calc_monster_damage(const Monster &m, int base, int monsterIdx) const {
     float dmg = static_cast<float>(base + m.strength + m.power[static_cast<int>(PowerId::VIGOR)]);
     if (m.power[static_cast<int>(PowerId::SHRINK)] > 0) dmg *= 0.7f;
     if (m.weak > 0) dmg *= 0.75f;
     if (player.vulnerable > 0) dmg *= 1.5f;
+    // PaperKrane.ModifyDamageMultiplicative: incoming powered attacks -15%.
+    if (relic_has(*this, RelicId::PAPER_KRANE)) dmg *= 0.85f;
+    dmg *= static_cast<float>(necrobinder_monster_damage_multiplier(*this, monsterIdx));
     if (player_power(PowerId::SURROUNDED) > 0 &&
         ((player.surroundedFacingRight && m.power[static_cast<int>(PowerId::BACK_ATTACK_LEFT)] > 0) ||
          (!player.surroundedFacingRight && m.power[static_cast<int>(PowerId::BACK_ATTACK_RIGHT)] > 0))) {
@@ -1201,345 +834,7 @@ int BattleContext::calc_monster_damage(const Monster &m, int base) const {
     return result > 0 ? result : 0;
 }
 
-DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
-                                          bool poweredAttack, bool unblockable) {
-    DamageDealt res;
-    int surpriseGold = -1;
-    bool diedThisHit = false;
-    if (idx < 0 || idx >= monsterCount) return res;
-    Monster &m = monsters[idx];
-    const MonsterDef &def = monster_def(m.id);
-    const int stolenStrength = m.power[static_cast<int>(PowerId::POSSESS_STRENGTH)] > 0 ? m.aux[0] : 0;
-    const int stolenSpeed = m.power[static_cast<int>(PowerId::POSSESS_SPEED)] > 0 ? m.aux[0] : 0;
-    if (!m.alive || m.reviving) return res;
-    if (amount <= 0) return res;
-    if (poweredAttack && m.power[static_cast<int>(PowerId::COVERED)] > 0) return res;
-    // ThornsPower.BeforeDamageReceived: a powered attack from the player
-    // triggers thorns before the hit resolves, even if the hit is fully
-    // blocked.  The reflect is Unpowered: blockable, no strength/vulnerable.
-    if (fromPlayer && poweredAttack && m.power[static_cast<int>(PowerId::THORNS)] > 0 &&
-        outcome == Outcome::UNDECIDED) {
-        damage_player(m.power[static_cast<int>(PowerId::THORNS)]);
-        if (outcome != Outcome::UNDECIDED) return res;
-    }
-    int remaining = amount;
-    // ModifyDamageCap is applied by the hook chain before block. Intangible,
-    // HardToKill and Slippery therefore combine by taking the smallest cap.
-    int damageCap = remaining;
-    if (m.power[static_cast<int>(PowerId::INTANGIBLE)] > 0) damageCap = std::min(damageCap, 1);
-    if (m.power[static_cast<int>(PowerId::HARD_TO_KILL)] > 0) {
-        damageCap = std::min(damageCap,
-                             m.power[static_cast<int>(PowerId::HARD_TO_KILL)]);
-    }
-    if (m.power[static_cast<int>(PowerId::SLIPPERY)] > 0) damageCap = std::min(damageCap, 1);
-    remaining = std::min(remaining, damageCap);
-    const bool hadBlock = m.block > 0;
-    int blockedDamage = 0;
-    if (m.block > 0 && !unblockable) {
-        blockedDamage = remaining < m.block ? remaining : m.block;
-        m.block -= blockedDamage;
-        remaining -= blockedDamage;
-    }
-    res.blockBroken = !unblockable && hadBlock && m.block == 0;
-    if (res.blockBroken && relic_has(*this, RelicId::HAND_DRILL)) {
-        // HandDrill.AfterDamageGiven only requires DamageResult.WasBlockBroken,
-        // including the exact hit that breaks the last point of block.
-        apply_vulnerable(idx, 2);
-    }
-    // TheBoot.ModifyHpLostBeforeOsty: a powered attack that would cost the
-    // enemy 1..4 HP instead costs 5, applied after block.
-    if (poweredAttack && remaining > 0 && remaining < 5 && relic_has(*this, RelicId::THE_BOOT)) {
-        remaining = 5;
-    }
-    // HardenedShellPower.ModifyHpLostBeforeOstyLate: HP loss is capped by the
-    // power amount minus what this monster already lost this player turn.
-    if (remaining > 0 && m.power[static_cast<int>(PowerId::HARDENED_SHELL)] > 0) {
-        const int cap = m.power[static_cast<int>(PowerId::HARDENED_SHELL)];
-        const int left = std::max(0, cap - m.shellHpLostThisTurn);
-        if (remaining > left) remaining = left;
-    }
-    if (remaining > 0) {
-        const bool hadAsleep = m.power[static_cast<int>(PowerId::ASLEEP)] > 0;
-        const int hpBefore = m.hp;
-        m.hp -= remaining;
-        res.unblocked = std::min(remaining, std::max(0, hpBefore));
-        res.overkill = std::max(0, remaining - hpBefore);
-        res.total = blockedDamage + res.unblocked;
-        res.fullyBlocked = blockedDamage > 0 && res.unblocked == 0;
-        if (m.power[static_cast<int>(PowerId::HARDENED_SHELL)] > 0) {
-            m.shellHpLostThisTurn += res.unblocked;
-        }
-        // Lagavulin: any unblocked damage wakes it, strips Plating and stuns it.
-        if (hadAsleep) {
-            m.power[static_cast<int>(PowerId::ASLEEP)] = 0;
-            m.power[static_cast<int>(PowerId::PLATING)] = 0;
-        }
-        if (m.power[static_cast<int>(PowerId::CURL_UP)] > 0) {
-            m.block += m.power[static_cast<int>(PowerId::CURL_UP)];
-            m.power[static_cast<int>(PowerId::CURL_UP)] = 0;
-        }
-        if (m.hp <= 0) {
-            m.hp = 0;
-            diedThisHit = true;
-            res.wasKilled = true;
-            // Each SwipePower creates its own skippable special-card reward
-            // in BeforeDeath. The run layer resolves the original deck card.
-            for (int i = 0; i < theftCount; ++i) {
-                if (theftOwners[i] == idx && !theftReturned[i]) theftReturned[i] = true;
-            }
-            if (m.power[static_cast<int>(PowerId::STEAM_ERUPTION)] > 0 &&
-                m.id == MonsterId::WATERFALL_GIANT) {
-                // TriggerAboutToBlowState keeps the giant in the encounter
-                // through its windup and explosion.
-                m.alive = true;
-                m.reviving = false;
-                m.stunned = false;
-                m.hp = m.maxHp = 999999999;
-                m.block = 0;
-                m.move = 6;  // ABOUT_TO_BLOW -> EXPLODE
-                relics_monster_died(*this);
-                roll_intent(*this, m);
-            } else if (m.power[static_cast<int>(PowerId::ILLUSION)] > 0) {
-                // Illusions remain in combat after death and revive on their
-                // next turn, but are secondary enemies and do not delay victory.
-                m.reviving = true;
-                m.alive = true;
-                m.stunned = false;
-                m.combatEndBlocker = false;
-                m.block = 0;
-                m.weak = m.vulnerable = 0;
-                m.power[static_cast<int>(PowerId::GRAPPLE)] = 0;
-                m.grappleCount = 0;
-                m.power[static_cast<int>(PowerId::MINION)] = 1;
-                relics_monster_died(*this);
-                roll_intent(*this, m);
-            } else if (m.power[static_cast<int>(PowerId::ADAPTABLE)] > 0 &&
-                def.reviveState != 255 && m.aux[0] < 2) {
-                // Test Subject: knocked out, revives on its next turn.
-                m.reviving = true;
-                m.combatEndBlocker = true;
-                m.move = def.reviveState;
-                m.block = 0;
-                roll_intent(*this, m);
-            } else if (m.power[static_cast<int>(PowerId::STOCK)] > 0) {
-                const int stock = m.power[static_cast<int>(PowerId::STOCK)];
-                const MonsterId id = m.id;
-                const int slot = idx;
-                m.alive = false;
-                relics_monster_died(*this);
-                spawn_monster(*this, id, slot);
-                monsters[slot].power[static_cast<int>(PowerId::STOCK)] = stock - 1;
-                monsters[slot].move = 0;  // Axebot stock respawns in BOOT_UP.
-                roll_intent(*this, monsters[slot]);
-            } else if (m.power[static_cast<int>(PowerId::INFESTED)] > 0) {
-                const int infested = m.power[static_cast<int>(PowerId::INFESTED)];
-                const int deadSlot = idx;
-                m.alive = false;
-                m.combatEndBlocker = false;
-                relics_monster_died(*this);
-                int nextSlot = deadSlot;
-                for (int i = 0; i < infested && i < MAX_MONSTERS; ++i) {
-                    if (i > 0) {
-                        if (monsterCount < MAX_MONSTERS) {
-                            nextSlot = monsterCount;
-                        } else {
-                            nextSlot = -1;
-                            for (int s = 0; s < monsterCount; ++s) {
-                                if (!monsters[s].alive && !monsters[s].reviving) {
-                                    nextSlot = s;
-                                    break;
-                                }
-                            }
-                            if (nextSlot < 0) break;
-                        }
-                    }
-                    spawn_monster(*this, MonsterId::WRIGGLER, nextSlot);
-                    monsters[nextSlot].stunned = true;
-                    monsterCount = std::max(monsterCount, nextSlot + 1);
-                }
-            } else if (m.power[static_cast<int>(PowerId::REATTACH)] > 0) {
-                bool siblingAlive = false;
-                for (int i = 0; i < monsterCount; ++i) {
-                    if (i != idx && monsters[i].id == MonsterId::DECIMILLIPEDE_SEGMENT &&
-                        monsters[i].alive && !monsters[i].reviving && monsters[i].hp > 0) {
-                        siblingAlive = true;
-                        break;
-                    }
-                }
-                if (siblingAlive) {
-                    m.reviving = true;
-                    m.alive = true;  // non-interactable, but still gets a reattach turn
-                    m.block = 0;
-                    m.move = 3;  // DEAD_MOVE; follow-up is REATTACH_MOVE (4)
-                    roll_intent(*this, m);
-                } else {
-                    for (int i = 0; i < monsterCount; ++i) {
-                        if (monsters[i].id == MonsterId::DECIMILLIPEDE_SEGMENT &&
-                            monsters[i].reviving) {
-                            monsters[i].reviving = false;
-                            monsters[i].alive = false;
-                        }
-                    }
-                    m.reviving = false;
-                    m.alive = false;
-                    relics_monster_died(*this);
-                }
-            } else if (m.power[static_cast<int>(PowerId::DOOR_REVIVAL)] > 0) {
-                m.reviving = true;
-                m.alive = true;
-                m.block = 0;
-                m.move = 3;  // Door DEAD_MOVE
-                roll_intent(*this, m);
-                int slot = -1;
-                for (int i = 0; i < monsterCount; ++i) {
-                    if (monsters[i].id == MonsterId::DOORMAKER &&
-                        !monsters[i].alive && monsters[i].hp > 0) {
-                        slot = i;
-                        break;
-                    }
-                }
-                if (slot >= 0) {
-                    // Door owns the same Doormaker creature across phases.
-                    monsters[slot].alive = true;
-                    roll_intent(*this, monsters[slot]);
-                } else {
-                    slot = monsterCount < MAX_MONSTERS ? monsterCount : -1;
-                    if (slot < 0) {
-                        for (int i = 0; i < monsterCount; ++i) {
-                            if (i != idx && !monsters[i].alive && !monsters[i].reviving) {
-                                slot = i;
-                                break;
-                            }
-                        }
-                    }
-                    if (slot >= 0) {
-                        spawn_monster(*this, MonsterId::DOORMAKER, slot);
-                        monsterCount = std::max(monsterCount, slot + 1);
-                    }
-                }
-            } else if (m.power[static_cast<int>(PowerId::SURPRISE)] > 0) {
-                surpriseGold = m.stolenGold;
-                m.alive = false;
-                m.combatEndBlocker = false;
-                relics_monster_died(*this);
-            } else {
-                if (m.id == MonsterId::FAT_GREMLIN && m.stolenGold > 0) {
-                    recoveredStolenGold += m.stolenGold;
-                    m.stolenGold = 0;
-                }
-                m.alive = false;
-                m.combatEndBlocker = false;
-                relics_monster_died(*this);
-            }
-        }
-    } else {
-        res.total = blockedDamage;
-        res.fullyBlocked = blockedDamage > 0;
-    }
 
-    // AfterDamageReceived/AfterDamageGiven hooks run for non-lethal hits.
-    if (m.alive && m.hp > 0) {
-        if (res.blockBroken && m.power[static_cast<int>(PowerId::BURROWED)] > 0) {
-            m.power[static_cast<int>(PowerId::BURROWED)] = 0;
-            m.block = 0;
-            m.stunned = true;
-            if (m.id == MonsterId::TUNNELER) m.move = 3;  // DIZZY -> BITE
-            roll_intent(*this, m);
-        }
-        if (res.unblocked > 0 && m.power[static_cast<int>(PowerId::SHRIEK)] > 0 &&
-            m.hp <= m.power[static_cast<int>(PowerId::SHRIEK)]) {
-            m.power[static_cast<int>(PowerId::SHRIEK)] = 0;
-            m.stunned = true;
-            if (m.id == MonsterId::TERROR_EEL) m.move = 2;  // STUN -> TERROR
-            roll_intent(*this, m);
-        }
-        if (res.unblocked > 0 && m.power[static_cast<int>(PowerId::PLOW)] > 0 &&
-            m.hp <= m.power[static_cast<int>(PowerId::PLOW)]) {
-            m.power[static_cast<int>(PowerId::PLOW)] = 0;
-            m.strength = 0;
-            m.stunned = true;
-            if (m.id == MonsterId::CEREMONIAL_BEAST) m.move = 2;  // STUN -> BEAST_CRY
-            roll_intent(*this, m);
-        }
-        if (poweredAttack && res.unblocked > 0 &&
-            m.power[static_cast<int>(PowerId::FLUTTER)] > 0 &&
-            --m.power[static_cast<int>(PowerId::FLUTTER)] == 0) {
-            m.stunned = true;
-            roll_intent(*this, m);
-        }
-        if (m.power[static_cast<int>(PowerId::SLIPPERY)] > 0 && res.total != 0) {
-            --m.power[static_cast<int>(PowerId::SLIPPERY)];
-        }
-        if (poweredAttack && m.power[static_cast<int>(PowerId::PERSONAL_HIVE)] > 0) {
-            const int count = m.power[static_cast<int>(PowerId::PERSONAL_HIVE)];
-            for (int i = 0; i < count; ++i) {
-                add_card_to_draw_random(make_card(CardId::DAZED, false, require_card_uid()));
-            }
-        }
-        if (poweredAttack && res.unblocked > 0 &&
-            m.power[static_cast<int>(PowerId::VITAL_SPARK)] > 0 &&
-            !vitalSparkTriggeredThisEnemyTurn) {
-            vitalSparkTriggeredThisEnemyTurn = true;
-            player.energy += m.power[static_cast<int>(PowerId::VITAL_SPARK)];
-        }
-        if (res.unblocked > 0 && m.power[static_cast<int>(PowerId::SLUMBER)] > 0) {
-            --m.power[static_cast<int>(PowerId::SLUMBER)];
-            if (m.power[static_cast<int>(PowerId::SLUMBER)] <= 0) {
-                m.power[static_cast<int>(PowerId::PLATING)] = 0;
-                m.stunned = true;
-                m.move = 2;  // SlumberingBeetle ROLL_OUT_MOVE
-                roll_intent(*this, m);
-            }
-        }
-    }
-
-    // CrabRagePower.AfterDeath: any ally death enrages surviving crab members.
-    if (diedThisHit) {
-        if (player_power(PowerId::SURROUNDED) > 0) {
-            int first = -1;
-            bool allLeft = true;
-            bool allRight = true;
-            for (int i = 0; i < monsterCount; ++i) {
-                if (!monsters[i].alive || monsters[i].reviving) continue;
-                if (first < 0) first = i;
-                allLeft &= monsters[i].power[static_cast<int>(PowerId::BACK_ATTACK_LEFT)] > 0;
-                allRight &= monsters[i].power[static_cast<int>(PowerId::BACK_ATTACK_RIGHT)] > 0;
-            }
-            if (first >= 0 && (allLeft || allRight)) face_surrounded_target(first);
-        }
-        for (int i = 0; i < monsterCount; ++i) {
-            Monster &ally = monsters[i];
-            if (i != idx && ally.alive && !ally.reviving &&
-                ally.power[static_cast<int>(PowerId::RAVENOUS)] > 0) {
-                ally.strength += ally.power[static_cast<int>(PowerId::RAVENOUS)];
-                ally.stunned = true;
-                roll_intent(*this, ally);
-            }
-            if (i != idx && ally.alive && ally.power[static_cast<int>(PowerId::CRAB_RAGE)] > 0) {
-                ally.strength += 5;
-                ally.block += 99;
-                ally.power[static_cast<int>(PowerId::CRAB_RAGE)] = 0;
-            }
-        }
-        // Possess powers return exactly the amount stolen by this owner.
-        if (stolenStrength != 0) add_player_power(PowerId::STRENGTH, stolenStrength);
-        if (stolenSpeed != 0) add_player_power(PowerId::DEXTERITY, stolenSpeed);
-    }
-    if (surpriseGold >= 0) {
-        spawn_monster(*this, MonsterId::SNEAKY_GREMLIN);
-        int fatSlot = -1;
-        for (int i = 0; i < monsterCount; ++i) {
-            if (!monsters[i].alive && !monsters[i].reviving) { fatSlot = i; break; }
-        }
-        if (fatSlot < 0 && monsterCount < MAX_MONSTERS) fatSlot = monsterCount++;
-        if (fatSlot >= 0) {
-            spawn_monster(*this, MonsterId::FAT_GREMLIN, fatSlot);
-            monsters[fatSlot].stolenGold = surpriseGold;
-        }
-    }
-    check_outcome();
-    return res;
-}
 
 // VigorPower.BeforeAttack: fold the whole stack into one AttackCommand and
 // consume it when that command ends.
@@ -1592,9 +887,10 @@ void BattleContext::attack_all(int base, int hits, bool powered) {
     }
 }
 
-void BattleContext::attack_all_from_card(Card &card, int base, int hits) {
+void BattleContext::attack_all_from_card(Card &card, double base, int hits) {
     bool unblocked[MAX_MONSTERS]{};
-    int b = base;
+    bool firstHitSeen[MAX_MONSTERS]{};
+    double b = base;
     if (player_power(PowerId::VIGOR) > 0) {
         b += player_power(PowerId::VIGOR);
         add_player_power(PowerId::VIGOR, -player_power(PowerId::VIGOR));
@@ -1604,16 +900,39 @@ void BattleContext::attack_all_from_card(Card &card, int base, int hits) {
         for (int i = 0; i < monsterCount; ++i) {
             if (!monsters[i].alive) continue;
             const DamageDealt result = damage_monster(i, calc_player_damage(b, i, true, &card), true, true);
-            unblocked[i] |= result.unblocked > 0;
+            if (!firstHitSeen[i]) unblocked[i] = result.unblocked > 0;
+            firstHitSeen[i] = true;
         }
     }
     for (int i = 0; i < monsterCount; ++i) trigger_skittish(i, unblocked[i]);
 }
 
-bool BattleContext::attack_from_card(Card &card, int target, int base, int hits, bool all) {
+void BattleContext::attack_random_from_card(Card &card, double base, int hits) {
     bool unblocked[MAX_MONSTERS]{};
+    bool firstHitSeen[MAX_MONSTERS]{};
+    double damage = base;
+    if (player_power(PowerId::VIGOR) > 0) {
+        damage += player_power(PowerId::VIGOR);
+        add_player_power(PowerId::VIGOR, -player_power(PowerId::VIGOR));
+    }
+    for (int h = 0; h < hits && outcome == Outcome::UNDECIDED; ++h) {
+        const int target = random_alive_monster();
+        if (target < 0) break;
+        const auto result = damage_monster(target,
+            calc_player_damage(damage, target, true, &card), true, true);
+        if (!firstHitSeen[target]) unblocked[target] = result.unblocked > 0;
+            firstHitSeen[target] = true;
+    }
+    // Native Skittish reacts after the command, examining the FIRST result
+    // for each receiver even if a later hit breaks its remaining block.
+    for (int i = 0; i < monsterCount; ++i) trigger_skittish(i, unblocked[i]);
+}
+
+bool BattleContext::attack_from_card(Card &card, int target, double base, int hits, bool all) {
+    bool unblocked[MAX_MONSTERS]{};
+    bool firstHitSeen[MAX_MONSTERS]{};
     bool killed = false;
-    int b = base;
+    double b = base;
     if (player_power(PowerId::VIGOR) > 0) {
         b += player_power(PowerId::VIGOR);
         add_player_power(PowerId::VIGOR, -player_power(PowerId::VIGOR));
@@ -1624,13 +943,15 @@ bool BattleContext::attack_from_card(Card &card, int target, int base, int hits,
             for (int i = 0; i < monsterCount; ++i) {
                 if (!monsters[i].alive || outcome != Outcome::UNDECIDED) continue;
                 const DamageDealt result = damage_monster(i, calc_player_damage(b, i, true, &card), true, true);
-                unblocked[i] |= result.unblocked > 0;
+                if (!firstHitSeen[i]) unblocked[i] = result.unblocked > 0;
+            firstHitSeen[i] = true;
                 killed |= result.wasKilled;
             }
         } else {
             if (target < 0 || target >= monsterCount || !monsters[target].alive) return killed;
             const DamageDealt result = damage_monster(target, calc_player_damage(b, target, true, &card), true, true);
-            unblocked[target] |= result.unblocked > 0;
+            if (!firstHitSeen[target]) unblocked[target] = result.unblocked > 0;
+            firstHitSeen[target] = true;
             killed |= result.wasKilled;
         }
     }
@@ -1646,8 +967,16 @@ int BattleContext::gain_block_raw(int amount, bool powered) {
 }
 
 void BattleContext::gain_block(int amount, bool fromCard, bool powered) {
+    // Native Hook.ModifyBlock applies card enchantments before Dexterity/Frail,
+    // including calculated block (e.g. Fisticuffs and Stack).
+    if (fromCard && activePlay.active && activePlay.card.enchantment == EnchantmentId::NIMBLE)
+        amount += activePlay.card.enchantmentAmount;
+    // Goopy.EnchantBlockAdditive: Amount - 1 (first play adds nothing).
+    if (fromCard && activePlay.active && activePlay.card.enchantment == EnchantmentId::GOOPY &&
+        !activePlay.card.enchantmentDisabled)
+        amount += activePlay.card.enchantmentAmount - 1;
     if (amount <= 0) return;
-    if (fromCard && player_power(PowerId::NO_BLOCK) > 0) return;
+    if (fromCard && powered && player_power(PowerId::NO_BLOCK) > 0) return;
     // Hook.ModifyBlockAdditive (Dexterity) runs before the multiplicative
     // modifiers (Vambrace, UnmovablePower, Frail).
     float value = static_cast<float>(amount);
@@ -1659,6 +988,7 @@ void BattleContext::gain_block(int amount, bool fromCard, bool powered) {
         if (blockPlayIndex < 0) blockPlayIndex = blockCardPlaysThisTurn++;
         if (blockPlayIndex < player_power(PowerId::UNMOVABLE)) value *= 2.0f;
     }
+    if (powered) value *= static_cast<float>(silent_block_multiplier(*this));
     if (powered && player.frail > 0) value *= 0.75f;
     const int before = player.block;
     gain_block_raw(static_cast<int>(std::floor(value)), false);
@@ -1695,62 +1025,34 @@ void BattleContext::trigger_block_hooks(int amount) {
     }
 }
 
-int BattleContext::damage_player(int amount, bool unblockable, bool poweredAttack) {
-    if (amount <= 0 || outcome != Outcome::UNDECIDED) return 0;
-    if (poweredAttack && player_power(PowerId::COVERED) > 0) return 0;
-    if (player_power(PowerId::INTANGIBLE) > 0) amount = 1;
-    int remaining = amount;
-    if (!unblockable && player.block > 0) {
-        const int blocked = remaining < player.block ? remaining : player.block;
-        player.block -= blocked;
-        remaining -= blocked;
-    }
-    if (remaining > 0) {
-        if (player_power(PowerId::BUFFER) > 0) {
-            add_player_power(PowerId::BUFFER, -1);
-            remaining = 0;
-        }
-    }
-    remaining = relics_modify_hp_loss(*this, remaining);
-    if (remaining > 0) {
-        player.hp -= remaining;
-        hpLostThisTurn += remaining;
-        hpLostThisCombat += remaining;
-        if (!unblockable && relic_has(*this, RelicId::LAVA_LAMP)) {
-            lavaLampTookQualifyingDamage = true;
-        }
-        ++unblockedHitsThisCombat;
-        player.tookUnblockedDamageThisTurn = true;
-        if (poweredAttack) player.tookUnblockedAttackDamageThisCombat = true;
-        // TheGambitPower.AfterDamageReceived: only powered, unblocked attack
-        // damage kills, and the kill is immediate (PowerCmd.Remove + Kill).
-        if (poweredAttack && player_power(PowerId::THE_GAMBIT) > 0) {
-            player.power[static_cast<int>(PowerId::THE_GAMBIT)] = 0;
-            player.hp = 0;
-            outcome = Outcome::PLAYER_LOSS;
-            return remaining;
-        }
-        if (player.hp <= 0) {
-            player.hp = 0;
-            if (try_fairy_revive()) return remaining;
-            if (relics_try_revive(*this)) return remaining;
-            outcome = Outcome::PLAYER_LOSS;
-            return remaining;
-        }
-        relics_damage_received(*this, remaining);
-        // RupturePower: only damage taken during the owner's side; damage from
-        // the card currently resolving is applied after that card finishes.
-        if (!inMonsterTurn && player_power(PowerId::RUPTURE) > 0) {
-            const int gain = player_power(PowerId::RUPTURE);
-            if (resolvingCard) pendingRupture += gain;
-            else add_player_power(PowerId::STRENGTH, gain);
-        }
-        if (player_power(PowerId::INFERNO) > 0 && outcome == Outcome::UNDECIDED) {
-            attack_all(player_power(PowerId::INFERNO), 1, false);
-        }
-    }
-    return remaining;
+void relics_current_hp_changed(BattleContext &bc) {
+    if (!relic_has(bc, RelicId::RED_SKULL)) return;
+    const bool low = bc.player.hp * 2 <= bc.player.maxHp;
+    const bool active = relic_aux(bc, RelicId::RED_SKULL) > 0;
+    if (low == active) return;
+    bc.add_player_power(PowerId::STRENGTH, low ? 3 : -3);
+    relic_aux_set(bc, RelicId::RED_SKULL, low ? 1 : 0);
 }
+
+void BattleContext::heal_hp(int amount) {
+    if (amount <= 0) return;
+    player.hp = std::min(player.maxHp, player.hp + amount);
+    relics_current_hp_changed(*this);
+}
+
+void BattleContext::lose_max_hp(int amount, bool fromCard) {
+    (void) fromCard; // Native's Move flag does not alter these supported hooks.
+    if (amount <= 0) return;
+    const int newMaxHp = player.maxHp - amount;
+    // CreatureCmd.LoseMaxHp first damages down to the UNCLAMPED new maximum.
+    // Damage/revival runs using the old max HP; SetMaxHp then clamps to >= 1.
+    // Native passes cardSource=null, so Rupture is immediate even in a play.
+    if (player.hp > newMaxHp) damage_player(player.hp - newMaxHp, true, false, false);
+    player.maxHp = std::max(1, newMaxHp);
+    player.hp = std::min(player.hp, player.maxHp);
+}
+
+
 
 void BattleContext::lose_hp(int amount, bool fromCard) {
     (void) fromCard;
@@ -1759,6 +1061,7 @@ void BattleContext::lose_hp(int amount, bool fromCard) {
     amount = relics_modify_hp_loss(*this, amount);
     if (amount <= 0) return;
     player.hp -= amount;
+    relics_current_hp_changed(*this);
     hpLostThisTurn += amount;
     hpLostThisCombat += amount;
     player.tookUnblockedDamageThisTurn = true;
@@ -1769,15 +1072,14 @@ void BattleContext::lose_hp(int amount, bool fromCard) {
         outcome = Outcome::PLAYER_LOSS;
         return;
     }
-    // Rupture triggers on damage received, not on direct HP loss.
-    if (player_power(PowerId::INFERNO) > 0) attack_all(player_power(PowerId::INFERNO), 1, false);
+    // Rupture and Inferno trigger on AfterDamageReceived, not direct HP loss.
 }
 
 void BattleContext::monster_attack_player(int monsterIdx, int base) {
     if (outcome != Outcome::UNDECIDED) return;
     Monster &m = monsters[monsterIdx];
     if (!m.alive) return;
-    int dmg = calc_monster_damage(m, base);
+    int dmg = calc_monster_damage(m, base, monsterIdx);
     if (player_power(PowerId::DIAMOND_DIADEM) > 0) dmg /= 2;
     if (m.power[static_cast<int>(PowerId::VIGOR)] > 0) {
         m.power[static_cast<int>(PowerId::VIGOR)] = 0;
@@ -1791,6 +1093,10 @@ void BattleContext::monster_attack_player(int monsterIdx, int base) {
     }
     const int blockBefore = player.block;
     const int unblocked = damage_player(dmg, false, true);
+    // ReflectPower.AfterDamageReceived: return the blocked part of a powered
+    // attack to its dealer (Unpowered).
+    if (outcome == Outcome::UNDECIDED && blockBefore > player.block)
+        regent_reflect_block(*this, monsterIdx, blockBefore - player.block);
     const bool fullyBlocked =
         (blockBefore > 0 || player.block > 0) && unblocked == 0 && dmg > 0;
     if (outcome == Outcome::UNDECIDED && fullyBlocked &&
@@ -1802,19 +1108,8 @@ void BattleContext::monster_attack_player(int monsterIdx, int base) {
     // PaperCutsPower.AfterDamageGiven: each unblocked powered hit from this
     // owner also removes Amount Max HP.
     if (unblocked > 0 && m.power[static_cast<int>(PowerId::PAPER_CUTS)] > 0) {
-        const int loss = m.power[static_cast<int>(PowerId::PAPER_CUTS)];
-        player.maxHp = std::max(0, player.maxHp - loss);
-        if (player.hp > player.maxHp) {
-            const int excess = player.hp - player.maxHp;
-            player.hp = player.maxHp;
-            hpLostThisTurn += excess;
-            hpLostThisCombat += excess;
-        }
-        if (player.maxHp <= 0 || player.hp <= 0) {
-            player.hp = 0;
-            outcome = Outcome::PLAYER_LOSS;
-            return;
-        }
+        lose_max_hp(m.power[static_cast<int>(PowerId::PAPER_CUTS)], false);
+        if (outcome != Outcome::UNDECIDED) return;
     }
     // PainfulStabsPower.AfterAttack: one Wound per unblocked hit of a powered
     // attack, multiplied by the power amount.
@@ -1850,7 +1145,7 @@ void BattleContext::apply_weak(int idx, int amount) {
     }
 }
 
-void BattleContext::apply_strength_loss(int idx, int amount) {
+void BattleContext::apply_strength_loss(int idx, int amount, int recordPower) {
     if (amount <= 0 || idx < 0 || idx >= monsterCount || !monsters[idx].alive) return;
     if (monsters[idx].power[static_cast<int>(PowerId::ARTIFACT)] > 0) {
         --monsters[idx].power[static_cast<int>(PowerId::ARTIFACT)];
@@ -1858,6 +1153,9 @@ void BattleContext::apply_strength_loss(int idx, int amount) {
     }
     monsters[idx].strength -= amount;
     monsters[idx].tempStrengthLoss += amount;
+    // TemporaryStrengthPower instances (Enfeebling Touch, Dark Shackles) store
+    // their own Amount and remove themselves when the loss is restored.
+    if (recordPower >= 0) add_monster_power(idx, static_cast<PowerId>(recordPower), amount);
 }
 
 void BattleContext::add_temp_strength(int amount) {
@@ -1879,6 +1177,7 @@ Card BattleContext::random_card_of_type(CardType type, bool include_colorless) {
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (!card_native_available(static_cast<CardId>(i))) continue;
         if (d.type != type) continue;
         if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
             d.rarity != Rarity::RARE) {
@@ -1888,7 +1187,7 @@ Card BattleContext::random_card_of_type(CardType type, bool include_colorless) {
                        CF_CANNOT_GENERATE_IN_COMBAT)) {
             continue;
         }
-        if (d.pool == CardPool::IRONCLAD) {
+        if (d.pool == characterPool) {
             // Always available.
         } else if (d.pool == CardPool::COLORLESS && include_colorless) {
             // Caller explicitly requested the combined pool.
@@ -1897,7 +1196,7 @@ Card BattleContext::random_card_of_type(CardType type, bool include_colorless) {
         }
         pool[n++] = static_cast<CardId>(i);
     }
-    if (n == 0) return make_card(CardId::STRIKE_IRONCLAD, false, require_card_uid());
+    if (n == 0) return make_card(basic_strike_of(characterPool), false, require_card_uid());
     return make_card(pool[cardGenerationRng.next_int(0, n - 1)], false, require_card_uid());
 }
 
@@ -1910,6 +1209,7 @@ Card BattleContext::random_colorless_card() {
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (!card_native_available(static_cast<CardId>(i))) continue;
         if (d.pool != CardPool::COLORLESS) continue;
         if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
             d.rarity != Rarity::RARE) {
@@ -1921,7 +1221,7 @@ Card BattleContext::random_colorless_card() {
         }
         pool[n++] = static_cast<CardId>(i);
     }
-    if (n == 0) return make_card(CardId::STRIKE_IRONCLAD, false, require_card_uid());
+    if (n == 0) return make_card(basic_strike_of(characterPool), false, require_card_uid());
     return make_card(pool[cardGenerationRng.next_int(0, n - 1)], false, require_card_uid());
 }
 
@@ -1931,7 +1231,8 @@ Card BattleContext::random_character_card_excluding(const CardId *excluded,
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
-        if (d.pool != CardPool::IRONCLAD) continue;
+        if (!card_native_available(static_cast<CardId>(i))) continue;
+        if (d.pool != characterPool) continue;
         if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
             d.rarity != Rarity::RARE) {
             continue;
@@ -1946,7 +1247,7 @@ Card BattleContext::random_character_card_excluding(const CardId *excluded,
         }
         if (!blocked) pool[n++] = static_cast<CardId>(i);
     }
-    if (n == 0) return make_card(CardId::STRIKE_IRONCLAD, false, require_card_uid());
+    if (n == 0) return make_card(basic_strike_of(characterPool), false, require_card_uid());
     return make_card(pool[cardGenerationRng.next_int(0, n - 1)], false, require_card_uid());
 }
 
@@ -1956,6 +1257,7 @@ Card BattleContext::random_colorless_card_excluding(const CardId *excluded,
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (!card_native_available(static_cast<CardId>(i))) continue;
         if (d.pool != CardPool::COLORLESS) continue;
         if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
             d.rarity != Rarity::RARE) {
@@ -1971,7 +1273,7 @@ Card BattleContext::random_colorless_card_excluding(const CardId *excluded,
         }
         if (!blocked) pool[n++] = static_cast<CardId>(i);
     }
-    if (n == 0) return make_card(CardId::STRIKE_IRONCLAD, false, require_card_uid());
+    if (n == 0) return make_card(basic_strike_of(characterPool), false, require_card_uid());
     return make_card(pool[cardGenerationRng.next_int(0, n - 1)], false, require_card_uid());
 }
 
@@ -1995,6 +1297,7 @@ void BattleContext::transform_card(Card &c) {
     }
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
+        if (!card_native_available(static_cast<CardId>(i))) continue;
         if (d.pool != poolKind) continue;
         if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
             d.rarity != Rarity::RARE) {
@@ -2050,12 +1353,28 @@ void BattleContext::start_choice(ChoiceOp op, ChoicePile pile, int count, bool o
         }
     } else if (pile == ChoicePile::DRAW) {
         int indices[MAX_PILE];
-        for (int i = 0; i < drawCount; ++i) indices[i] = i;
-        const int limit = std::min(candidateLimit, std::min(drawCount, MAX_PILE));
-        for (int i = 0; i < limit; ++i) {
-            const int j = i + cardSelectionRng.next_int(0, drawCount - 1 - i);
-            std::swap(indices[i], indices[j]);
-            pending.cards[pending.count++] = draw[indices[i]];
+        int n = 0;
+        for (int i = 0; i < drawCount; ++i) indices[n++] = i;
+        if (candidateLimit < 0 || candidateLimit >= n) {
+            // Full-pile selection (Cleanse, Seance): stable key order, no RNG.
+            std::sort(indices, indices + n, [&](int a, int b) {
+                const int byId = std::strcmp(card_key(draw[a].id), card_key(draw[b].id));
+                if (byId != 0) return byId < 0;
+                if (draw[a].upgraded != draw[b].upgraded)
+                    return draw[a].upgraded < draw[b].upgraded;
+                // Equal cards keep the native top-first pile order (this storage
+                // is bottom-first, so the larger index is higher in the pile).
+                return a > b;
+            });
+            for (int i = 0; i < n && pending.count < MAX_PILE; ++i)
+                pending.cards[pending.count++] = draw[indices[i]];
+        } else {
+            const int limit = std::min(candidateLimit, std::min(drawCount, MAX_PILE));
+            for (int i = 0; i < limit; ++i) {
+                const int j = i + cardSelectionRng.next_int(0, drawCount - 1 - i);
+                std::swap(indices[i], indices[j]);
+                pending.cards[pending.count++] = draw[indices[i]];
+            }
         }
     }
     if (pending.count == 0) pending = PendingChoice();
@@ -2118,6 +1437,8 @@ void BattleContext::maybe_finish_pending() {
     const bool hadSource = pending.hasSource;
     const bool sourceExhaust = pending.sourceExhaust;
     pending = PendingChoice();
+    silent_finish_choice(*this, op);
+    regent_finish_choice(*this, op);
     // A card play owns its source entity until every play iteration finished
     // (OnPlayWrapper moves it once, at the end).  Only standalone effects
     // (potions and the like) move a source card here.
@@ -2138,6 +1459,23 @@ void BattleContext::maybe_finish_pending() {
     check_outcome();
     // Resume the suspended play frame (remaining replays + AfterCardPlayed).
     if (activePlay.active) run_active_play();
+    relic_persistent_finish_turn_start(*this);
+    // Knowledge Demon's curse choice paused end_player_turn before the next
+    // player turn; finish that transition now.
+    if (knowledgeCurseResume && pending.op == ChoiceOp::NONE &&
+        outcome == Outcome::UNDECIDED) {
+        knowledgeCurseResume = 0;
+        start_player_turn();
+    }
+}
+
+void BattleContext::finish_pending() {
+    // Close a selector without choosing anything (native Finish/Confirm with
+    // no selection).
+    if (pending.op == ChoiceOp::NONE) return;
+    pending.remaining = 0;
+    maybe_finish_pending();
+    if (pending.op != ChoiceOp::NONE) pending = PendingChoice();
 }
 
 void BattleContext::auto_resolve_pending() {
@@ -2157,6 +1495,34 @@ void BattleContext::resolve_choice(std::uint16_t uid) {
     if (pending.op == ChoiceOp::NONE) return;
     const ChoiceOp op = pending.op;
     const ChoicePile pile = pending.pile;
+    // Regent selectors collect UIDs and finish the choice themselves; the
+    // selected entity keeps its pile position.
+    if (op == ChoiceOp::REGENT_TRANSFORM || op == ChoiceOp::REGENT_CLONE ||
+        op == ChoiceOp::REGENT_AUTO_SKILL) {
+        regent_resolve_choice(*this, uid);
+        return;
+    }
+    // Necrobinder selectors modify the chosen entity in place.
+    if (op == ChoiceOp::NECRO_SCULPT_ETHEREAL || op == ChoiceOp::NECRO_SNAP_RETAIN ||
+        op == ChoiceOp::NECRO_SEANCE || op == ChoiceOp::NECRO_TRANSFIGURE) {
+        Card selected{};
+        bool ok = false;
+        if (pile == ChoicePile::HAND) {
+            for (int i = 0; i < handCount; ++i) if (hand[i].uid == uid) { selected = hand[i]; ok = true; break; }
+        } else if (pile == ChoicePile::DRAW) {
+            for (int i = 0; i < drawCount; ++i) if (draw[i].uid == uid) { selected = draw[i]; ok = true; break; }
+        } else {
+            for (int i = 0; i < pending.count; ++i) if (pending.cards[i].uid == uid) { selected = pending.cards[i]; ok = true; break; }
+        }
+        if (ok) necrobinder_resolve_choice(*this, selected);
+        for (int i = 0; i < pending.count; ++i) if (pending.cards[i].uid == uid) {
+            remove_at(pending.cards, pending.count, i);
+            break;
+        }
+        --pending.remaining;
+        maybe_finish_pending();
+        return;
+    }
     Card chosen{};
     bool found = false;
     int originalHandIndex = -1;
@@ -2203,6 +1569,13 @@ void BattleContext::resolve_choice(std::uint16_t uid) {
         return;
     }
 
+    // Silent selectors run after the generic code removed the chosen entity
+    // (SLY/NIGHTMARE put it back; SILENT_DISCARD batches it).
+    if (op == ChoiceOp::SILENT_DISCARD || op == ChoiceOp::SILENT_SLY ||
+        op == ChoiceOp::SILENT_NIGHTMARE) {
+        silent_resolve_choice(*this, chosen, originalHandIndex);
+    }
+
     switch (op) {
         case ChoiceOp::UPGRADE:
             // chosen was removed from hand above; put it back upgraded
@@ -2230,6 +1603,17 @@ void BattleContext::resolve_choice(std::uint16_t uid) {
             if (pending.payload) card_set_turn_cost(chosen, 0);
             add_card_to_hand(chosen);
             break;
+        case ChoiceOp::KNOWLEDGE_CURSE: {
+            // OnChosen: the status card applies its debuff to the player and
+            // is never added to a pile. bonusDamage carries the dynamic power
+            // amount shown on the offered card.
+            PowerId power = PowerId::WASTE_AWAY;
+            if (chosen.id == CardId::DISINTEGRATION) power = PowerId::DISINTEGRATION;
+            else if (chosen.id == CardId::MIND_ROT) power = PowerId::MIND_ROT;
+            else if (chosen.id == CardId::SLOTH_STATUS) power = PowerId::SLOTH;
+            add_player_power(power, static_cast<int>(chosen.bonusDamage));
+            break;
+        }
         case ChoiceOp::GIVE_REPLAY:
             chosen.replay = static_cast<std::uint8_t>(pending.payload);
             add_card_to_draw_top(chosen);
@@ -2294,10 +1678,11 @@ std::vector<Action> BattleContext::legal_actions() const {
     Action end;
     end.type = ActionType::END_TURN;
     actions.push_back(end);
-    const bool noMoreCards = normality_blocks(*this);
+    const bool noMoreCards = normality_blocks(*this) || sloth_blocks(*this);
     for (int i = 0; i < handCount && !noMoreCards; ++i) {
         const Card &c = hand[i];
         if (!card_is_playable(c)) continue;
+        if (!silent_card_playable(*this, c) || !necrobinder_card_playable(*this, c)) continue;
         if (enthralled_blocks(*this, c)) continue;
         if (c.id == CardId::CLASH) {
             bool hasNonAttack = false;
@@ -2306,18 +1691,26 @@ std::vector<Action> BattleContext::legal_actions() const {
             }
             if (hasNonAttack) continue;
         }
-        if (c.id == CardId::PACTS_END && exhaustCount < card_var(c, VarId::CARDS)) continue;
         if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) continue;
         if (skillsLocked && card_is_skill(c)) continue;
         if (relic_has(*this, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6) continue;
         int cost = card_cost(c);
         if (player_power(PowerId::CORRUPTION) > 0 && card_is_skill(c)) cost = 0;
+        if (card_is_power(c) && player_power(PowerId::FREE_POWER) > 0) cost = 0;
+        if (card_is_power(c) && player_power(PowerId::CURIOUS) > 0 && cost > 0)
+            cost = std::max(0, cost - player_power(PowerId::CURIOUS));
+        cost = necrobinder_resolved_cost(*this, c, cost);
         if (card_is_attack(c) && player_power(PowerId::FREE_ATTACK) > 0) cost = 0;
+        // FreeSkillPower (Pounce): the same TryModifyEnergyCostInCombat hook.
+        // X-cost cards still spend all energy, so the cap is computed below.
+        if (card_is_skill(c) && player_power(PowerId::FREE_SKILL) > 0 && cost >= 0) cost = 0;
         if (relic_has(*this, RelicId::BRILLIANT_SCARF) && cardsPlayedThisTurn == 4) cost = 0;
         if (cost > 0 && player_power(PowerId::CHAINS_OF_BINDING) > 0) ++cost;
         if (relic_has(*this, RelicId::SPIKED_GAUNTLETS) && card_is_power(c) && cost > 0) ++cost;
+        if (cost >= 0 && regent_void_form_free(*this, c)) cost = 0;
+        if (regent_star_cost(*this, c) > regent.stars) continue;
         if (cost > player.energy) continue;
-        if (card_def(c.id).target == TargetType::ENEMY) {
+        if (card_target_type_of(c) == TargetType::ENEMY) {
             for (int m = 0; m < monsterCount; ++m) {
                 if (!monsters[m].alive) continue;
                 Action a;
@@ -2334,7 +1727,7 @@ std::vector<Action> BattleContext::legal_actions() const {
             actions.push_back(a);
         }
     }
-    for (int i = 0; i < potionCount; ++i) {
+    for (int i = 0; i < potionSlots; ++i) {
         if (!can_use_potion(i)) continue;
         const PotionDef &d = potion_def(static_cast<PotionId>(potions[i]));
         if (d.target == PotionTarget::ANY_ENEMY) {
@@ -2386,6 +1779,7 @@ bool BattleContext::step(const Action &action) {
     if (action.type == ActionType::PLAY_CARD) {
         if (action.hand >= handCount) return false;
         if (normality_blocks(*this)) return false;
+        if (sloth_blocks(*this)) return false;
         const Card &c = hand[action.hand];
         if (!card_is_playable(c)) return false;
         if (enthralled_blocks(*this, c)) return false;
@@ -2394,13 +1788,20 @@ bool BattleContext::step(const Action &action) {
                 if (!card_is_attack(hand[i])) return false;
             }
         }
-        if (c.id == CardId::PACTS_END && exhaustCount < card_var(c, VarId::CARDS)) return false;
         if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) return false;
         if (skillsLocked && card_is_skill(c)) return false;
-        if (card_def(c.id).target == TargetType::ENEMY) {
+        if (card_target_type_of(c) == TargetType::ENEMY) {
             if (action.target >= monsterCount || !monsters[action.target].alive) return false;
         }
-        return play_card(action.hand, action.target);
+        const bool played = play_card(action.hand, action.target);
+        // VoidForm requests EndTurn(canBackOut:false) while its OnPlay resolves;
+        // the action boundary is where the engine can safely run the turn cycle.
+        if (played && regent.endTurnRequested && pending.op == ChoiceOp::NONE &&
+            outcome == Outcome::UNDECIDED) {
+            regent.endTurnRequested = false;
+            end_player_turn();
+        }
+        return played;
     }
     if (action.type == ActionType::USE_POTION) {
         if (!can_use_potion(action.hand)) return false;
@@ -2417,6 +1818,9 @@ bool BattleContext::step(const Action &action) {
 
 bool BattleContext::play_card(int handIdx, int target) {
     if (handIdx < 0 || handIdx >= handCount) return false;
+    // VoidForm's PlayerCmd.EndTurn(canBackOut:false) ends the turn as soon as
+    // the card resolves; no later play is allowed in the same turn.
+    if (regent.endTurnRequested) return false;
     if (normality_blocks(*this)) return false;
     Card card = hand[handIdx];
     if (enthralled_blocks(*this, card)) return false;
@@ -2425,44 +1829,65 @@ bool BattleContext::play_card(int handIdx, int target) {
             if (!card_is_attack(hand[i])) return false;
         }
     }
+    if (!silent_card_playable(*this, card) || !necrobinder_card_playable(*this, card))
+        return false;
     int cost = card_cost(card);
     const bool xCostCard = cost < 0;
     if (player_power(PowerId::CORRUPTION) > 0 && card_is_skill(card)) cost = 0;
+    if (card_is_power(card) && player_power(PowerId::FREE_POWER) > 0) cost = 0;
+    if (card_is_power(card) && player_power(PowerId::CURIOUS) > 0 && cost > 0)
+        cost = std::max(0, cost - player_power(PowerId::CURIOUS));
+    cost = necrobinder_resolved_cost(*this, card, cost);
     const bool freeAttack = card_is_attack(card) && player_power(PowerId::FREE_ATTACK) > 0;
+    // FreeSkillPower (Pounce) is the skill twin: the cost hook is the same and
+    // the charge is consumed when the skill is played.
+    const bool freeSkill = card_is_skill(card) && player_power(PowerId::FREE_SKILL) > 0;
     // FreeAttackPower.TryModifyEnergyCostInCombat returns 0 for attacks, but an
     // X-cost card still spends all current energy: GetAmountToSpend special-
     // cases CostsX before any cost modification.
     if (freeAttack && !xCostCard) cost = 0;
+    if (freeSkill && !xCostCard) cost = 0;
     if (relic_has(*this, RelicId::BRILLIANT_SCARF) && cardsPlayedThisTurn == 4) cost = 0;
     if (player_power(PowerId::CHAINS_OF_BINDING) > 0 && cost > 0) ++cost;
     if (relic_has(*this, RelicId::SPIKED_GAUNTLETS) && card_is_power(card) && cost > 0) ++cost;
     if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) return false;
     if (skillsLocked && card_is_skill(card)) return false;
     if (relic_has(*this, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6) return false;
+    // VoidFormPower.TryModifyEnergyCostInCombatLate: zero costs, then the spend
+    // check. X-cost cards still spend all energy (GetAmountToSpend bypasses it).
+    if (!xCostCard && regent_void_form_free(*this, card)) cost = 0;
+    const int starCost = regent_star_cost(*this, card);
+    if (starCost > regent.stars) return false;
     int x = xCostCard ? player.energy : 0;
     if (xCostCard && relic_has(*this, RelicId::CHEMICAL_X)) x += 2;
     const int spend = xCostCard ? player.energy : cost;
     if (spend > player.energy) return false;
+    const int starSpend = std::max(0, starCost);
 
     if (freeAttack) add_player_power(PowerId::FREE_ATTACK, -1);
+    if (freeSkill) add_player_power(PowerId::FREE_SKILL, -1);
     // IntimidatingHelmet.BeforeCardPlayed checks the energy actually spent
     // (CardPlay.Resources.EnergyValue), not the printed cost.
     if (spend >= 2 && relic_has(*this, RelicId::INTIMIDATING_HELMET)) {
         gain_block(4, false, false);
         if (outcome != Outcome::UNDECIDED) return true;
     }
-    player.energy -= spend;
+    regent_spend_energy(*this, spend);
+    regent_spend_stars(*this, starSpend);
     xCost = x;
     remove_at(hand, handCount, handIdx);
     returnToHand = false;
-    begin_play(card, target, false, false, spend);
+    // Star-X cards capture the stars actually spent; Stardust's repeat count
+    // uses ResolveStarXValue, which reads LastStarsSpent.
+    const bool starXCard = card_def(card.id).starCostX || card_def(card.id).starCostXUp;
+    begin_play(card, target, false, false, spend, starSpend, starXCard);
     return true;
 }
 
 void BattleContext::begin_play(const Card &cardIn, int target, bool autoPlay, bool forceExhaust,
-                               int energySpent) {
-    if (card_def(cardIn.id).target == TargetType::ENEMY ||
-        card_def(cardIn.id).target == TargetType::RANDOM_ENEMY) {
+                               int energySpent, int starsSpent, bool starCostX) {
+    if (card_target_type_of(cardIn) == TargetType::ENEMY ||
+        card_target_type_of(cardIn) == TargetType::RANDOM_ENEMY) {
         face_surrounded_target(target);
     }
     activePlay = ActivePlay();
@@ -2474,6 +1899,8 @@ void BattleContext::begin_play(const Card &cardIn, int target, bool autoPlay, bo
     activePlay.dupe = nextPlayIsDupe;
     nextPlayIsDupe = false;
     activePlay.energySpent = energySpent;
+    activePlay.starsSpent = starsSpent;
+    activePlay.starX = starCostX ? starsSpent : 0;
     Card &card = activePlay.card;
     // NostalgiaPower decides the result pile once, before any play iteration
     // (CardModel.OnPlayWrapper).  Only cards that would land in the discard
@@ -2483,10 +1910,16 @@ void BattleContext::begin_play(const Card &cardIn, int target, bool autoPlay, bo
         attackSkillPlaysThisTurn < player_power(PowerId::NOSTALGIA)) {
         activePlay.resultsToDraw = true;
     }
-    // CardModel.GetEnchantedReplayCount + Hook.ModifyCardPlayCount.
+    activePlay.playCount = generate_play_count(card);
+    defect_play_started(*this, card, energySpent, activePlay.nextPlay == 0);
+    run_active_play();
+}
+
+int BattleContext::generate_play_count(const Card &card) {
+    // CardModel.GeneratePlayCount also runs for DrumOfBattle's exhaust effect.
     int plays = 1 + card.replay + card.bonusReplay;
-    if (card.enchantment == EnchantmentId::GLAM && !card.enchantmentDisabled)
-        ++plays;
+    if (card.enchantment == EnchantmentId::SPIRAL ||
+        (card.enchantment == EnchantmentId::GLAM && !card.enchantmentDisabled)) ++plays;
     if (card_is_attack(card) && player_power(PowerId::ONE_TWO_PUNCH) > 0) {
         plays += 1;
         add_player_power(PowerId::ONE_TWO_PUNCH, -1);
@@ -2499,15 +1932,43 @@ void BattleContext::begin_play(const Card &cardIn, int target, bool autoPlay, bo
         plays += 1;
         relic_aux_set(*this, RelicId::THROWING_AXE, 1);
     }
-    activePlay.playCount = plays > 0 ? plays : 1;
-    run_active_play();
+    plays = defect_modify_play_count(*this, card, plays);
+    plays += silent_extra_play_count(*this, card);
+    return plays > 0 ? plays : 1;
 }
 
-void BattleContext::run_active_play() {
-    while (activePlay.active) {
-        // A selector inside OnPlay suspends the frame until it is resolved.
+void BattleContext::run_active_play(bool driveEntryFrame) {
+    if(runningPlayLoop)return;
+    struct LoopGuard { bool &flag; LoopGuard(bool &f):flag(f){flag=true;} ~LoopGuard(){flag=false;} } guard(runningPlayLoop);
+    const bool entryActive = activePlay.active;
+    const int entrySuspended = suspendedPlayCount;
+    while (activePlay.active || suspendedPlayCount || autoPlayQueueCount) {
+        // A selector inside OnPlay suspends the frame until it is resolved;
+        // auto-played cards prompt the player just like explicit plays.
         if (pending.op != ChoiceOp::NONE) return;
+        if(!activePlay.active) {
+            restore_suspended_play();
+            // auto_play_cards entered while someone else's play frame was
+            // active: once its queue is drained, hand that frame back instead
+            // of driving it to completion ourselves.
+            if (!driveEntryFrame && entryActive && autoPlayQueueCount == 0 &&
+                suspendedPlayCount == entrySuspended)
+                break;
+        }
+        if(outcome!=Outcome::UNDECIDED)autoPlayQueueCount=0;
+        if(pendingDrawRemainder>0) {
+            const int count=pendingDrawRemainder;pendingDrawRemainder=0;draw_cards(count);
+            if(pending.op!=ChoiceOp::NONE)return;
+        }
+        if(start_queued_auto_play())continue;
+        if(!activePlay.active)break;
         if (activePlay.awaitingAfter) {
+            if(!silent_resume_effect(*this) || !necrobinder_resume_effect(*this) ||
+               !defect_resume_effect(*this,activePlay)) {
+                if(pending.op!=ChoiceOp::NONE)return;
+                continue;
+            }
+            if(autoPlayQueueCount && start_queued_auto_play())continue;
             Card &card = activePlay.card;
             if (activePlay.swiftAwaitingDraw) {
                 activePlay.swiftAwaitingDraw = false;
@@ -2525,6 +1986,11 @@ void BattleContext::run_active_play() {
                 } else if (card.enchantment == EnchantmentId::VIGOROUS ||
                            card.enchantment == EnchantmentId::GLAM) {
                     card.enchantmentDisabled = true;
+                } else if (card.enchantment == EnchantmentId::CORRUPTED) {
+                    // Corrupted.OnPlay: lose 2 HP (unblockable, unpowered).
+                    damage_player(2, true, false);
+                    card.enchantmentDisabled = true;
+                    if (outcome != Outcome::UNDECIDED) return;
                 }
             }
             activePlay.awaitingAfter = false;
@@ -2534,7 +2000,7 @@ void BattleContext::run_active_play() {
         if (activePlay.nextPlay >= activePlay.playCount ||
             outcome != Outcome::UNDECIDED) {
             finish_active_play();
-            return;
+            continue;
         }
         Card &card = activePlay.card;
         const int target = activePlay.target;
@@ -2568,12 +2034,26 @@ void BattleContext::run_active_play() {
             if (playedThisTurnCount < MAX_PILE) playedThisTurn[playedThisTurnCount++] = card.uid;
         }
         blockPlayIndex = -1;
+        silent_before_card_played(*this,card);
+        necrobinder_before_card_played(*this,card);
+        regent_before_card_played(*this);
+        defect_before_card_played(*this,activePlay);
         relics_card_about_to_play(*this, card);
+        // Momentum.OnPlay: the enchantment's extra damage grows by its amount
+        // for each play, including this one.
+        if (card.enchantment == EnchantmentId::MOMENTUM && !card.enchantmentDisabled)
+            card.bonusDamage += card.enchantmentAmount;
         resolvingCard = true;
         play_card_effect(card, target);
         resolvingCard = false;
+        // Adroit.OnPlay: gain Block equal to the enchantment amount.
+        if (outcome == Outcome::UNDECIDED &&
+            card.enchantment == EnchantmentId::ADROIT && !card.enchantmentDisabled)
+            gain_block(card.enchantmentAmount, true, true);
         activePlay.awaitingAfter = true;
-        if (pending.op != ChoiceOp::NONE) return;  // resume after the choice
+        // The selector stays open for the player; AfterCardPlayed runs once
+        // the choice closes (native prompts on auto-played cards too).
+        if (pending.op != ChoiceOp::NONE) return;
     }
 }
 
@@ -2581,6 +2061,8 @@ void BattleContext::finish_active_play() {
     const Card card = activePlay.card;
     const bool exhaustIt = activePlay.forceExhaust;
     const bool toDraw = activePlay.resultsToDraw;
+    const int energySpent = activePlay.energySpent;
+    const bool dupe = activePlay.dupe;
     activePlay = ActivePlay();
     if (outcome != Outcome::UNDECIDED) {
         // The battle ended while the card was resolving; still move the one
@@ -2608,6 +2090,13 @@ void BattleContext::finish_active_play() {
     }
     // EnergyCost.AfterCardPlayedCleanup happens once, after all plays.
     card_restore_cost(played);
+    card_clear_cost_modifiers(played,4);
+    // FeralPower: a zero-energy attack returns to hand instead of discarding.
+    if (!exhaustIt && !toDraw &&
+        defect_returns_to_hand(*this, played, energySpent, dupe)) {
+        add_card_to_hand(played);
+        return;
+    }
     // NostalgiaPower's result-pile modification (decided at play start).
     if (toDraw) {
         add_card_to_draw_top(played);
@@ -2626,12 +2115,44 @@ void BattleContext::finish_active_play() {
 }
 
 void BattleContext::after_card_played(const Card &card) {
+    ++cardsFinishedThisCombat;
     if (outcome != Outcome::UNDECIDED) return;
+    // Goopy.AfterCardPlayed: the played card and its deck version each gain a
+    // point. The deck copy is synced by uid after the combat.
+    if (card.enchantment == EnchantmentId::GOOPY) {
+        int slot = -1;
+        for (int i = 0; i < goopyGrowthCount; ++i)
+            if (goopyGrowth[i].uid == card.uid) { slot = i; break; }
+        if (slot < 0 && goopyGrowthCount < 32) {
+            slot = goopyGrowthCount++;
+            goopyGrowth[slot].uid = card.uid;
+            goopyGrowth[slot].plays = 0;
+        }
+        if (slot >= 0 && goopyGrowth[slot].plays < 255) ++goopyGrowth[slot].plays;
+        if (activePlay.active && activePlay.card.uid == card.uid &&
+            activePlay.card.enchantmentAmount < 32767)
+            ++activePlay.card.enchantmentAmount;
+    }
     // RupturePower.AfterCardPlayed: strength accrued during this card's OnPlay
     // is granted now, per play iteration.
     if (pendingRupture != 0) {
         add_player_power(PowerId::STRENGTH, pendingRupture);
         pendingRupture = 0;
+    }
+    // WitheringPresencePower.AfterCardPlayed: every played card counts down;
+    // at zero, add one Wither to hand (matched to Aeonglass's upgrade count)
+    // and reset the counter to 6.
+    if (player_power(PowerId::WITHERING_PRESENCE) > 0) {
+        int &left = player.power[static_cast<int>(PowerId::WITHERING_PRESENCE)];
+        if (--left <= 0) {
+            int level = 0;
+            for (int i = 0; i < monsterCount; ++i)
+                if (monsters[i].id == MonsterId::AEONGLASS) level = monsters[i].aux[1];
+            Card wither = make_card(CardId::WITHER, false, require_card_uid());
+            wither.fakeUpgradeLevel = static_cast<std::uint8_t>(std::max(0, level));
+            add_card_to_hand(wither);
+            left = 6;
+        }
     }
     // Galvanized affliction: the owner takes the Galvanic amount after playing
     // the afflicted Power card.
@@ -2691,52 +2212,33 @@ void BattleContext::after_card_played(const Card &card) {
             panacheLeft[i] = 5;
         }
     }
+    // Character AfterCardPlayed hooks (CardPlayFinished counters included).
+    // Master Planner mutates the played entity, so use the live frame card.
+    Card copy = card;
+    Card &hookCard = activePlay.active ? activePlay.card : copy;
+    silent_after_card_played(*this, hookCard);
+    defect_after_card_played(*this, activePlay);
+    necrobinder_after_card_played(*this, hookCard);
+    regent_after_card_played(*this, hookCard);
+    // ImitationLearningPower.AfterCardPlayed: clone the Power card the tracked
+    // player just played, spend a charge, then auto-play the clone. In single
+    // player the tracked player is the owner, so the auto-played clone (itself
+    // a Power card) repeats the hook until the charges run out, exactly like
+    // the native Before/AfterCardPlayed pair.
+    // IsFirstInSeries: only the first play iteration of an entity qualifies.
+    if (outcome == Outcome::UNDECIDED && activePlay.active && activePlay.nextPlay == 1 &&
+        card_is_power(card) && player_power(PowerId::IMITATION_LEARNING) > 0) {
+        add_player_power(PowerId::IMITATION_LEARNING, -1);
+        Card clone = card;
+        clone.uid = require_card_uid();
+        clone.costForTurn = 0;
+        auto_play_cards(&clone, 1);
+    }
     check_outcome();
 }
 
 void BattleContext::auto_play_random(const Card &card, bool exhaustIt) {
-    if (outcome != Outcome::UNDECIDED) return;
-    Card c = card;
-    // CardCmd.AutoPlay calls Hook.ShouldPlay first; Velvet Choker's limit and
-    // Normality apply to auto-plays exactly as they do to manual plays.
-    const bool blocked =
-        !card_is_playable(c) || normality_blocks(*this) ||
-        (relic_has(*this, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6);
-    if (blocked) {
-        // CardCmd.AutoPlay -> MoveToResultPileWithoutPlaying.
-        if (exhaustIt) move_to_exhaust(c);
-        else move_to_discard(c);
-        return;
-    }
-    // AutoPlay runs the same OnPlayWrapper lifecycle as a manual play
-    // (counters, Before/AfterCardPlayed, Duplication, replay).  It does not pay
-    // energy, and X is captured from the current energy like CardCmd.AutoPlay.
-    const ActivePlay outer = activePlay;
-    // The parent frame lives on the C++ stack while the nested frame runs;
-    // reserve its identity until the enclosing action completes.
-    if (outer.active && outer.card.uid != 0 && outer.card.uid != 65535)
-        uidReservations[outer.card.uid / 64] |= std::uint64_t{1} << (outer.card.uid % 64);
-    const bool outerReturnToHand = returnToHand;
-    const int outerXCost = xCost;
-    int target = 0;
-    if (card_def(c.id).target == TargetType::ENEMY || card_def(c.id).target == TargetType::RANDOM_ENEMY) {
-        target = random_alive_monster();
-        if (target < 0) target = 0;
-    }
-    const bool xCostCard = card_def(c.id).cost < 0;
-    xCost = player.energy + (xCostCard && relic_has(*this, RelicId::CHEMICAL_X) ? 2 : 0);
-    returnToHand = false;
-    begin_play(c, target, true, exhaustIt);
-    // Auto-played selectors are resolved automatically; resolution resumes the
-    // suspended frame, so a replay's second selector cannot overwrite the first.
-    if (pending.op != ChoiceOp::NONE) auto_resolve_pending();
-    if (activePlay.active) {
-        activePlay.nextPlay = activePlay.playCount;
-        run_active_play();
-    }
-    activePlay = outer;
-    returnToHand = outerReturnToHand;
-    xCost = outerXCost;
+    auto_play_cards(&card,1,-1,exhaustIt);
 }
 
 void BattleContext::auto_play_dupe(const Card &card) {
@@ -2763,10 +2265,14 @@ void BattleContext::play_card_effect(Card &card, int target) {
     if (ironclad_effect(*this, card, target)) return;
     if (colorless_effect(*this, card, target)) return;
     if (status_effect(*this, card, target)) return;
+    if (silent_effect(*this, card, target)) return;
+    if (defect_effect(*this, card, target)) return;
+    if (necrobinder_effect(*this, card, target)) return;
+    if (regent_effect(*this, card, target)) return;
     // generic fallback for plain damage/block cards
     if (card_is_attack(card)) {
-        if (card_def(card.id).target == TargetType::ALL_ENEMIES) attack_from_card(card, target, card_damage(card), 1, true);
-        else if (card_def(card.id).target == TargetType::RANDOM_ENEMY) {
+        if (card_target_type_of(card) == TargetType::ALL_ENEMIES) attack_from_card(card, target, card_damage(card), 1, true);
+        else if (card_target_type_of(card) == TargetType::RANDOM_ENEMY) {
             const int target = random_alive_monster();
             if (target >= 0) attack_from_card(card, target, card_damage(card));
         }

@@ -145,16 +145,18 @@ def test_map_generation_properties():
 
 
 def test_map_golden_hashes():
+    # Re-recorded 2026-11-04 from the v0.111.0-aligned generator (the map/AE
+    # rules fixture native_act_41cef1ea.json is checked by native_act_alignment).
     expected = {
-        (1, 0): "562244a8187e789d",
-        (1, 1): "a0a6b93497eb8f3f",
-        (1, 2): "65267800087951dc",
-        (2, 0): "2eacc09fbd60a898",
-        (2, 1): "63958bbeb925366c",
-        (2, 2): "eceb0b301a8ee82f",
-        (3, 0): "569efc5a390b3af3",
-        (3, 1): "530c9fc30b431f43",
-        (3, 2): "e699f2f93236f858",
+        (1, 0): "db2af66fc60fea06",
+        (1, 1): "3854f982e1b2f2c3",
+        (1, 2): "c5c536925bc47ab9",
+        (2, 0): "8bf35549eb0aa36d",
+        (2, 1): "c40573b2bb917b15",
+        (2, 2): "522590f267b64c7f",
+        (3, 0): "8973becb0d7be5b5",
+        (3, 1): "4d93863def7c14bb",
+        (3, 2): "a7fec69a020bd4fb",
     }
     for (seed, act), digest in expected.items():
         rooms, length, nodes = sim.generate_map(seed, act)
@@ -205,9 +207,13 @@ def test_room_transitions_and_economy():
                              if node_types.get(n) == int(MAP_POINT.TREASURE)]
                 if treasures:
                     gold = rc.gold
+                    # SpoilsMap.OnQuestComplete grants 600 gold on entering the
+                    # act's treasure point; ordinary treasure entry pays none.
+                    spoils = int(rc.act) == 1 and any(
+                        sim.card_name(int(card[0])) == "Spoils Map" for card in rc.deck)
                     assert env.step((int(RACT.MOVE), treasures[0]))
                     if rc.screen == SCREEN.TREASURE:
-                        assert rc.gold == gold
+                        assert rc.gold == gold + (600 if spoils else 0)
                         seen.add(int(SCREEN.TREASURE))
                         seen.add(int(SCREEN.REWARDS))
                         _open_treasure(env)
@@ -231,7 +237,14 @@ def test_room_transitions_and_economy():
                 assert 0 <= len(rc.offered) <= 3
             elif screen == SCREEN.EVENT:
                 assert rc.event_name
-                assert 1 <= rc.event_choices <= 4
+                # CrystalSphere swaps the option list for its 11x11 divination
+                # grid; the grid, not event_choices, is the live surface there.
+                if rc.event_choices:
+                    assert 1 <= rc.event_choices <= 4
+                else:
+                    assert rc.event_name == 'CRYSTAL_SPHERE'
+                    assert any(t == int(RACT.CRYSTAL_DIVINE)
+                               for t, _ in rc.legal_actions())
             action = (combat_policy(env) if screen == SCREEN.COMBAT
                       else run_policy(env))
             assert env.step(action)
@@ -311,7 +324,9 @@ def test_deterministic_replay():
 
 
 def test_snapshot_restore_replays_identically():
-    env = RunEnv(32)
+    # Seed 5 survives the first 250 steps under the current v0.111 rules; seeds
+    # 4 and 32 now terminate earlier after the event-combat reward fix.
+    env = RunEnv(5)
     for _ in range(250):
         if env.is_terminal():
             break
@@ -354,6 +369,14 @@ def test_event_manifest_gating():
             _name, status, event_act = sim.event_info(event_id)
             assert status != 2, (event_id, _name)
             assert event_act in (-1, act)
+    # Underdocks is the alternate first act; its event list comes from
+    # ActModel.GenerateRooms order (event_act == 4), not event_pool(0..2).
+    underdocks = int(sim.ActType.UNDERDOCKS)
+    pools[underdocks] = set(sim.event_pool_type(underdocks))
+    for event_id in pools[underdocks]:
+        _name, status, event_act = sim.event_info(event_id)
+        assert status != 2, (event_id, _name)
+        assert event_act in (-1, 0, 4)
     assert sim.event_ancient(0) >= 0
     assert sim.event_info(sim.event_ancient(0))[0] == "NEOW"
     implemented = set()
@@ -387,6 +410,14 @@ def test_greedy_runs_finish():
 def test_every_card_is_playable():
     count = sim.card_count()
     for cid in range(1, count):
+        # Reserved legacy ids (e.g. GRAPPLE) are absent from the target
+        # v0.111.0 ModelDb and cannot be put into a combat.
+        if not sim.card_native_available(cid):
+            continue
+        # Multiplayer-only cards (e.g. Imitation Learning) need a teammate and
+        # are never legal in a single-player combat.
+        if sim.card_multiplayer_only(cid):
+            continue
         bc = sim.BattleContext()
         bc.init(sim.Encounter.SETUP_SHRINKER_BEETLE_WEAK, 1234, [cid] * 5, [False] * 5, 0)
         for _ in range(80):
@@ -441,15 +472,19 @@ def test_every_event_relic_is_obtainable():
             continue
         rid = int(getattr(sim.RelicId, name))
         key, _display, _rarity, pool = sim.relic_info(rid)
-        if pool != 2:  # RelicPool::EVENT
+        if pool != int(sim.RelicPool.EVENT):
             continue
         checked += 1
         assert sim.relic_implemented(rid), name
         rc = new_run(7)
+        # Dusty Tome only spawns the card its Ancient (Darv) prepared for the
+        # run; the native flow always runs that preparation before the reward.
+        if key == "DUSTY_TOME":
+            assert rc.prepare_dusty_tome() > 0, name
         assert rc.add_relic(rid), name
         assert rid in rc.relics, name
         assert 1 <= rc.hp <= rc.max_hp, name
-    assert checked == 132
+    assert checked == 142
 
 
 def test_run_starting_relic_and_rewards():

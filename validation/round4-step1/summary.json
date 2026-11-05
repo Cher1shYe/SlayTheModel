@@ -1,0 +1,93 @@
+{
+  "status": "round4_step1_targeted_rules_passed",
+  "native_parity_complete": false,
+  "engine": {
+    "version": 2,
+    "ruleset_id": "native-41cef1ea-port-v4",
+    "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "native_parity_complete": false,
+    "simulator_sha256": "87a86288db842a528929c31953bd9b71e6ff89e55f7ab93104cfcf045adc98d2",
+    "source_content_sha256": "34b4ee27312ef46f7b98c29cc068a1c990045f7c4e72e49de112aa0547d8b335",
+    "id_layout_sha256": "00983f8954c1d63f24aabdabdc837051500ce3da81c056092f1a03f052bb42f5",
+    "schema_layout_sha256": "c97d393184abd91c3f2c5a11350ff5ba6545e61087a017ec2f510ab56b189b23",
+    "dimensions": {
+      "RUN_OBS_DIM": 238,
+      "CARD_FEAT_DIM": 251,
+      "COMBAT_OBS_DIM": 61,
+      "ACTION_FEAT_DIM": 343,
+      "PUBLIC_OBS_DIM": 46082,
+      "PUBLIC_COMBAT_OBS_DIM": 29691,
+      "PUBLIC_OBS_VERSION": 13,
+      "ACTION_SCHEMA_VERSION": 12,
+      "MAX_DECK": 128,
+      "MAP_MAX_POINTS": 119,
+      "CARD_COUNT": 223
+    },
+    "boundaries": {
+      "PUBLIC_RUN_DIM": 16391,
+      "PUB_RUN_BOSS_OFFSET": 3855,
+      "PUB_RUN_EXTENSION": 395
+    },
+    "feature_sources": {
+      "simulator/src/observe.cpp": "2ca4abecfa9111fb1e49f97b8d57e7fe8923937bd3295809259e1eb9352f2fca",
+      "agent/armg.py": "75bd943f228a0eb5ee734b75a205071d7838e575bc90b87755526ca7c46720dd",
+      "agent/common.py": "1020b2a89d8cd9bd7c71e5d3e694f1cdab3d6d960e4cbee6682ddd70f0a7cd51"
+    }
+  },
+  "completed_scope": [
+    "Crimson Mantle / Inferno independent self-damage counters and relative order",
+    "Inferno side/damage gating and Tungsten/Buffer ordering",
+    "Reflections and Wongo deck downgrade cost/keyword restoration",
+    "Touch of Orobas in-place starter replacement and relic ID/counter storage consistency"
+  ],
+  "native_dynamic_fixtures": {
+    "native-round4-step1-card-fixtures": 56,
+    "native-round4-step1-downgrade-fixtures": 28,
+    "native-round4-step1-relic-fixtures": 11
+  },
+  "native_dynamic_fixtures_total": 95,
+  "cpp_regression_programs": 27,
+  "cpp_regression_failures": 0,
+  "new_self_damage_checks": 1379,
+  "new_relic_replacement_checks": 293,
+  "new_downgrade_dll_cases": 28,
+  "python_result": "131 passed, 4 skipped in 7.04s",
+  "python_passed": 131,
+  "python_skipped": 4,
+  "python_skip_reason": "Pre-existing optional tests require unavailable website/run/checkpoint artifacts.",
+  "snapshot_checks": 6742,
+  "hidden_resamplings": 6000,
+  "new_state_hidden_resamplings": 32,
+  "bridge_startup": {
+    "returncode": 0,
+    "stdout": "",
+    "stderr": "",
+    "schemas": [
+      13,
+      12,
+      4
+    ],
+    "scope": "Worker startup using a temporary untrained current-format checkpoint, then EOF. No game/UI actions or training.",
+    "user_checkpoint_read_or_modified": false
+  },
+  "benchmark": "runs=1000 completed=1000 truncated=0 errors=0 seconds=8.712 runs_per_s=114.8 avg_floor=9.5 win_rate=0.000 combats=5518\ninit=8.55ms/run combat=0.093s (84516 steps, 1.1 us/step) other=0.07ms/run\n",
+  "benchmark_scope": "Greedy engine smoke, not neural-network/MCTS training speed or model strength.",
+  "training_this_step": false,
+  "old_checkpoint_migration_reviewed": false,
+  "original_weight_unchanged": true,
+  "original_weight_sha256": "cfcb115024b0b0a222b88bf0033ef55e1e7b3cf667194c9dbba36b923180b91c",
+  "initial_failures_and_resolution": [
+    "Downgrade fixture used -2 for unplayable costs; corrected explicit representation conversion in C++ test, preserving native raw results.",
+    "Existing floor-schedule migration test expected fake engine hashes to save/resume. Updated test to require the existing identity guard; production loading protection unchanged."
+  ],
+  "source_patch": "validation/round4-step1/native-rules-port-v4-step1.patch",
+  "patch_base": "Incremental against validation/round4-step1/source-before (v3), not the immutable original baseline.",
+  "remaining_boundaries": [
+    "Native final death clears all powers; C++ retains terminal power values. This step compares lethal effects/outcomes, not general death teardown.",
+    "The downgrade helper is used by the two deck events. General combat modifier provenance (Snecko absolute and Frantic Escape relative costs) is not fully represented.",
+    "Toy Box storage alignment only; wax lifecycle remains unsupported.",
+    "Remaining decision relics, Splash/Mad Science, 34 missing events, Aeonglass and account/content timing remain incomplete.",
+    "No complete same-seed/progress/decisions native full-run differential or game UI execution verification."
+  ],
+  "prior_evidence_files_verified_unchanged": 56
+}

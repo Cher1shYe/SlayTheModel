@@ -574,5 +574,14 @@
   "char": null,
   "combatGen": true,
   "ironclad": true
+ },
+ {
+  "id": "Ambergris",
+  "rarity": 3,
+  "usage": 1,
+  "target": 3,
+  "char": null,
+  "combatGen": false,
+  "ironclad": false
  }
 ]

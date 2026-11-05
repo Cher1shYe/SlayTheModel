@@ -7,19 +7,22 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
+#include <string>
+#include <string_view>
+#include <tuple>
 #include <vector>
 
 namespace sts2 {
 
-enum class CardType : std::uint8_t { ATTACK, SKILL, POWER, STATUS, CURSE };
+enum class CardType : std::uint8_t { ATTACK, SKILL, POWER, STATUS, CURSE, QUEST };
 enum class TargetType : std::uint8_t {
     ENEMY, ALL_ENEMIES, SELF, RANDOM_ENEMY, ALLY, ALL_ALLIES, NONE
 };
 enum class Rarity : std::uint8_t {
-    BASIC, COMMON, UNCOMMON, RARE, SPECIAL, ANCIENT, EVENT, TOKEN, STATUS, CURSE
+    BASIC, COMMON, UNCOMMON, RARE, SPECIAL, ANCIENT, EVENT, TOKEN, STATUS, CURSE, QUEST
 };
 enum class CardPool : std::uint8_t {
-    IRONCLAD, COLORLESS, EVENT, CURSE, TOKEN, STATUS
+    IRONCLAD, COLORLESS, EVENT, CURSE, TOKEN, STATUS, SILENT, REGENT, NECROBINDER, DEFECT, QUEST
 };
 enum class Outcome : std::uint8_t { UNDECIDED, PLAYER_VICTORY, PLAYER_LOSS, TRUNCATED };
 enum class ActionType : std::uint8_t { PLAY_CARD, END_TURN, CHOOSE, CONFIRM, USE_POTION };
@@ -29,7 +32,7 @@ enum class PotionUsage : std::uint8_t { COMBAT_ONLY, ANY_TIME, AUTOMATIC };
 enum class PotionTarget : std::uint8_t { SELF, ANY_ENEMY, ALL_ENEMIES, ANY_PLAYER };
 
 // Powers not already represented by a dedicated scalar on Player/Monster.
-enum class PowerId : std::uint8_t {
+enum class PowerId : std::uint16_t {
     STRENGTH, DEXTERITY, VULNERABLE, WEAK, FRAIL,
     ARTIFACT, INTANGIBLE, BUFFER, THORNS, POISON, REGEN, METALLICIZE, PLATING,
     VIGOR, RITUAL, ENRAGE, CURL_UP, HARDENED_SHELL, SLOW, SHRINK, GRAPPLE,
@@ -55,6 +58,8 @@ enum class PowerId : std::uint8_t {
     THIEVERY, VITAL_SPARK, BATTLEWORN_DUMMY_TIME_LIMIT, HIGH_VOLTAGE,
     DUPLICATION, GIGANTIFICATION, DIAMOND_DIADEM, NEMESIS,
     CLARITY, RADIANCE,
+    // Appended native character powers; existing IDs are unchanged.
+    ACCELERANT, ACCURACY, AFTERIMAGE, AMBERGRIS, ANTICIPATE, ARSENAL, BIASED_COGNITION, BLACK_HOLE, BLUR, BORROWED_TIME, BURST, CACOPHONY, CALCIFY, CALL_OF_THE_VOID, CHILD_OF_THE_STARS, CONCOCT, CONFUSED, CONQUEROR, CONSUMING_SHADOW, COOLANT, CORROSIVE_WAVE, COUNTDOWN, CREATIVE_AI, CRUSH_UNDER, CURIOUS, DANSE_MACABRE, DARK_SHACKLES, DEBILITATE, DEMESNE, DEVOUR_LIFE, DIE_FOR_YOU, DISINTEGRATION, DOOM, DRAW_CARDS_NEXT_TURN, DYING_STAR, ECHO_FORM, ENERGY_NEXT_TURN, ENFEEBLING_TOUCH, ENVENOM, FADE, FAN_OF_KNIVES, FEEDING_FRENZY, FERAL, FLANKING, FLEX_POTION, FOCUS, FOCUSED_STRIKE, FORBIDDEN_GRIMOIRE, FOREGONE_CONCLUSION, FREE_POWER, FREE_SKILL, FRIENDSHIP, FURNACE, GENESIS, GRAVITY, GUARDED, HAILSTORM, HAMMER_TIME, HANG, HAUNT, HEIST, HELICAL_DART, HIBERNATE, HOTFIX, HYPERBEAM_FOCUS_DOWN, IMITATION_LEARNING, IMPROVEMENT, INFINITE_BLADES, INTERCEPT, ITERATION, LEADERSHIP, LETHALITY, LIGHTNING_ROD, LOOP, MACHINE_LEARNING, MAGIC_BOMB, MASTER_PLANNER, MIND_ROT, MONARCHS_GAZE, MONARCHS_GAZE_STRENGTH_DOWN, MONOLOGUE, NECRO_MASTERY, NEUROSURGE, NIGHTMARE, NO_ENERGY_GAIN, NOXIOUS_FUMES, OBLIVION, ONE_FOR_ALL, ORBIT, PAGESTORM, PALE_BLUE_DOT, PARRY, PHANTOM_BLADES, PIERCING_WAIL, PILLAR_OF_CREATION, REAPER_FORM, REBOUND, REFLECT, REPTILE_TRINKET, ROYALTIES, SEEKING_EDGE, SELF_FORMING_CLAY, SENTRY_MODE, SERPENT_FORM, SHACKLING_POTION, SHADOW_STEP, SHADOWMELD, SHROUD, SIC_EM, SIGNAL_BOOST, SLEIGHT_OF_FLESH, SLOTH, SMOKESTACK, SNEAKY, SOULBOUND, SPECTRUM_SHIFT, SPEED_POTION, SPEEDSTER, SPINNER, SPIRIT_OF_ASH, STAR_NEXT_TURN, STORM, STRANGLE, SUBROUTINE, SUMMON_NEXT_TURN, SWORD_SAGE, SYNCHRONIZE, TAG_TEAM, TAINTED, TEMPORARY_DEXTERITY, TEMPORARY_FOCUS, TEMPORARY_STRENGTH, THE_HUNT, THE_SEALED_THRONE, THUNDER, TOOLS_OF_THE_TRADE, TRACKING, TRASH_TO_TREASURE, TYRANNY, UNDERWORLD, VEILPIERCER, VOID_FORM, WASTE_AWAY, WELL_LAID_PLANS, WITHERING_PRESENCE, WRAITH_FORM,
     COUNT
 };
 
@@ -81,7 +86,9 @@ struct PotionDef {
     bool combatGen;
 };
 
-enum class RelicPool : std::uint8_t { SHARED, IRONCLAD, EVENT, OTHER };
+enum class RelicPool : std::uint8_t {
+    SHARED, IRONCLAD, SILENT, DEFECT, REGENT, NECROBINDER, EVENT, OTHER
+};
 
 #define STS2_RELIC_CONTENT_ENUMS 1
 #include "sts2/relics_generated.inc"
@@ -107,185 +114,217 @@ struct Action {
     }
 };
 
-// .NET System.Random compatible generator used by the game's seeded Rng.
+// Native v0.111.0 / 41cef1ea: xxHash64 string seeds and MegaRandom (xoshiro256**).
+// Search also uses this class; changing the game RNG changes search sampling.
 class Rng {
 public:
-    static constexpr std::int32_t INT_MAX_V = 2147483647;
-
     Rng() { init(0); }
-    explicit Rng(std::uint32_t seed) { init(static_cast<std::int32_t>(seed)); }
-    Rng(std::uint32_t seed, const char *name)
-        : Rng(seed + static_cast<std::uint32_t>(deterministic_hash_code(name))) {}
-    Rng(std::uint32_t seed, int startCounter) : Rng(seed) { fast_forward(startCounter); }
+    explicit Rng(std::uint64_t seed) { init(seed); }
+    Rng(std::uint64_t seed, const char *name)
+        : Rng(seed + deterministic_hash_code(name)) {}
+    Rng(std::uint64_t seed, int startCounter) : Rng(seed) { fast_forward(startCounter); }
 
-    // Mirrors C# Rng.FastForwardCounter (advances the raw .NET sequence).
+    // Convenience retained for simulator tests; native restores all four words.
     void fast_forward(int target) {
-        if (counter > target) {
-            throw std::invalid_argument(
-                "Cannot fast-forward an Rng counter to a lower number");
-        }
-        while (counter < target) {
-            ++counter;
-            internal_sample();
-        }
+        if (target < counter) throw std::invalid_argument("Rng counter cannot move backwards");
+        while (counter < target) { bump_counter(); raw_next(); }
     }
 
-    static std::int32_t deterministic_hash_code(const char *text) {
-        std::int32_t num = 352654597;
-        std::int32_t num2 = num;
-        const int n = static_cast<int>(std::strlen(text));
-        for (int i = 0; i < n; i += 2) {
-            num = to_int32(static_cast<std::int64_t>(to_int32(static_cast<std::int64_t>(num) * 32)) + num);
-            num = to_int32(static_cast<std::int64_t>(num) ^ static_cast<unsigned char>(text[i]));
-            if (i == n - 1) break;
-            num2 = to_int32(static_cast<std::int64_t>(to_int32(static_cast<std::int64_t>(num2) * 32)) + num2);
-            num2 = to_int32(static_cast<std::int64_t>(num2) ^ static_cast<unsigned char>(text[i + 1]));
+    // xxHash64 over UTF-8 bytes, seed zero, matching StringHelper. Byte loads are
+    // explicit little endian so neither host alignment nor byte order matters.
+    static std::uint64_t deterministic_hash_code(const char *text) {
+        return deterministic_hash_code(std::string_view(text));
+    }
+    static std::uint64_t deterministic_hash_code(std::string_view text) {
+        constexpr std::uint64_t p1 = 11400714785074694791ull;
+        constexpr std::uint64_t p2 = 14029467366897019727ull;
+        constexpr std::uint64_t p3 = 1609587929392839161ull;
+        constexpr std::uint64_t p4 = 9650029242287828579ull;
+        constexpr std::uint64_t p5 = 2870177450012600261ull;
+        const auto read64 = [&](std::size_t offset) {
+            std::uint64_t value = 0;
+            for (int i = 0; i < 8; ++i)
+                value |= std::uint64_t(static_cast<unsigned char>(text[offset + i])) << (8 * i);
+            return value;
+        };
+        const auto read32 = [&](std::size_t offset) {
+            std::uint32_t value = 0;
+            for (int i = 0; i < 4; ++i)
+                value |= std::uint32_t(static_cast<unsigned char>(text[offset + i])) << (8 * i);
+            return value;
+        };
+        const auto round = [&](std::uint64_t acc, std::uint64_t value) {
+            return rotate_left(acc + value * p2, 31) * p1;
+        };
+        std::size_t offset = 0;
+        std::uint64_t hash;
+        if (text.size() >= 32) {
+            std::uint64_t v1 = p1 + p2, v2 = p2, v3 = 0, v4 = 0 - p1;
+            do {
+                v1 = round(v1, read64(offset));
+                v2 = round(v2, read64(offset + 8));
+                v3 = round(v3, read64(offset + 16));
+                v4 = round(v4, read64(offset + 24));
+                offset += 32;
+            } while (text.size() - offset >= 32);
+            hash = rotate_left(v1, 1) + rotate_left(v2, 7) +
+                   rotate_left(v3, 12) + rotate_left(v4, 18);
+            for (const auto value : {v1, v2, v3, v4})
+                hash = (hash ^ round(0, value)) * p1 + p4;
+        } else {
+            hash = p5;
         }
-        return to_int32(static_cast<std::int64_t>(num) +
-                        to_int32(static_cast<std::int64_t>(num2) * 1566083941LL));
+        hash += text.size();
+        while (text.size() - offset >= 8) {
+            hash = rotate_left(hash ^ round(0, read64(offset)), 27) * p1 + p4;
+            offset += 8;
+        }
+        if (text.size() - offset >= 4) {
+            hash = rotate_left(hash ^ (std::uint64_t(read32(offset)) * p1), 23) * p2 + p3;
+            offset += 4;
+        }
+        while (offset < text.size())
+            hash = rotate_left(hash ^ (std::uint64_t(static_cast<unsigned char>(text[offset++])) * p5), 11) * p1;
+        hash ^= hash >> 33;
+        hash *= p2;
+        hash ^= hash >> 29;
+        hash *= p3;
+        return hash ^ (hash >> 32);
     }
 
-    void init(std::int32_t seed) {
-        const std::int32_t subtraction = (seed == (-2147483647 - 1)) ? INT_MAX_V : std::abs(seed);
-        std::int32_t mj = to_int32(161803398 - subtraction);
-        seedArray[55] = mj;
-        std::int32_t mk = 1;
-        int ii = 0;
-        for (int i = 1; i < 55; ++i) {
-            ii += 21;
-            if (ii >= 55) ii -= 55;
-            seedArray[ii] = mk;
-            mk = to_int32(static_cast<std::int64_t>(mj) - mk);
-            if (mk < 0) mk += INT_MAX_V;
-            mj = seedArray[ii];
+    // Generated game seeds are ASCII. Reject unsupported Unicode case-folding
+    // rather than silently disagreeing with .NET ToUpperInvariant/Trim.
+    static std::string canonicalize_seed(std::string text) {
+        for (char &c : text) {
+            if (static_cast<unsigned char>(c) >= 128)
+                throw std::invalid_argument("Run seed canonicalization currently requires ASCII");
+            if (c >= 'a' && c <= 'z') c = static_cast<char>(c - 'a' + 'A');
+            if (c == 'O') c = '0';
+            else if (c == 'I') c = '1';
         }
-        for (int k = 1; k < 5; ++k) {
-            for (int i = 1; i < 56; ++i) {
-                int n = i + 30;
-                if (n >= 55) n -= 55;
-                seedArray[i] = to_int32(static_cast<std::int64_t>(seedArray[i]) - seedArray[1 + n]);
-                if (seedArray[i] < 0) seedArray[i] += INT_MAX_V;
-            }
-        }
-        inext = 0;
-        inextp = 21;
+        const auto space = [](char c) { return c == ' ' || (c >= '\t' && c <= '\r'); };
+        std::size_t begin = 0, end = text.size();
+        while (begin < end && space(text[begin])) ++begin;
+        while (end > begin && space(text[end - 1])) --end;
+        return text.substr(begin, end - begin);
+    }
+
+    void init(std::uint64_t seed) {
+        for (auto &word : words_) word = splitmix64(seed);
         counter = 0;
+        reserved_ = 0;
     }
 
-    int internal_sample() {
-        int loc_inext = inext + 1;
-        if (loc_inext >= 56) loc_inext = 1;
-        int loc_inextp = inextp + 1;
-        if (loc_inextp >= 56) loc_inextp = 1;
-        std::int32_t ret = to_int32(static_cast<std::int64_t>(seedArray[loc_inext]) - seedArray[loc_inextp]);
-        if (ret == INT_MAX_V) ret -= 1;
-        if (ret < 0) ret += INT_MAX_V;
-        seedArray[loc_inext] = ret;
-        inext = loc_inext;
-        inextp = loc_inextp;
-        return ret;
-    }
-
-    double sample() {
-        return static_cast<double>(internal_sample()) /
-               static_cast<double>(INT_MAX_V);
-    }
-
-    // Inclusive bounds, matching python Rng.next_int.
+    // Inclusive adapter used by existing C++ game rules. Width is computed in
+    // int64 so the entire signed-int interval and high==INT_MAX remain valid.
     int next_int(int low, int high) {
-        if (low > high) std::swap(low, high);
-        ++counter;
-        const std::int64_t range = static_cast<std::int64_t>(high) - low + 1;
-        return static_cast<int>(sample() * static_cast<double>(range)) + low;
+        if (low > high) throw std::invalid_argument("Rng inclusive minimum exceeds maximum");
+        bump_counter();
+        const std::int64_t width = std::int64_t(high) - low + 1;
+        return static_cast<int>(std::int64_t(sample() * static_cast<double>(width)) + low);
     }
-
-    // C# Rng.NextInt(maxExclusive).
     int next_int_exclusive(int maxExclusive) {
-        if (maxExclusive <= 0) return 0;
-        return next_int(0, maxExclusive - 1);
+        // Native one-argument Rng increments its counter before MegaRandom
+        // rejects an invalid maximum, without advancing the random state.
+        bump_counter();
+        if (maxExclusive < 1) throw std::invalid_argument("Rng maximum must be positive");
+        return static_cast<int>(sample() * static_cast<double>(maxExclusive));
     }
-
-    // C# Rng.NextInt(minInclusive, maxExclusive).
     int next_int_range(int minInclusive, int maxExclusive) {
-        if (minInclusive >= maxExclusive) return minInclusive;
-        return next_int(minInclusive, maxExclusive - 1);
+        if (minInclusive >= maxExclusive) throw std::invalid_argument("Rng minimum must be below maximum");
+        bump_counter();
+        const std::int64_t width = std::int64_t(maxExclusive) - minInclusive;
+        return static_cast<int>(std::int64_t(sample() * static_cast<double>(width)) + minInclusive);
     }
-
-    // C# Rng.NextFloat(min, max) (counter is advanced).
     float next_float(float lo, float hi) {
-        ++counter;
-        return static_cast<float>(static_cast<double>(internal_sample()) /
-                                      static_cast<double>(INT_MAX_V) *
-                                      static_cast<double>(hi - lo) +
-                                  static_cast<double>(lo));
+        if (lo > hi) throw std::invalid_argument("Rng float minimum exceeds maximum");
+        bump_counter();
+        // Native Rng uses MegaRandom.NextDouble, NOT its 24-bit NextFloat.
+        const volatile double scaled = sample() * static_cast<double>(hi - lo);
+        return static_cast<float>(scaled + static_cast<double>(lo));
     }
-
     float next_float() { return next_float(0.0f, 1.0f); }
-
-    // Rng.NextDouble advances the same System.Random stream and counter.
-    double next_double() {
-        ++counter;
-        return sample();
+    double next_double() { bump_counter(); return sample(); }
+    double next_double(double lo, double hi) {
+        if (lo > hi) throw std::invalid_argument("Rng double minimum exceeds maximum");
+        bump_counter();
+        const volatile double scaled = sample() * (hi - lo);
+        return scaled + lo;
     }
+    std::uint64_t next_unsigned_long() { bump_counter(); return raw_next(); }
 
-    // C# Rng.NextGaussianInt. Note the reference does not bump Counter here.
     int next_gaussian_int(int mean, int stdDev, int lo, int hi) {
-        for (int guard = 0; guard < 10000; ++guard) {
-            const double u1 = 1.0 - static_cast<double>(internal_sample()) / INT_MAX_V;
-            const double u2 = 1.0 - static_cast<double>(internal_sample()) / INT_MAX_V;
+        if (lo > hi || mean < lo || mean > hi)
+            throw std::invalid_argument("Rng Gaussian mean/bounds invalid");
+        for (;;) {
+            const double u1 = 1.0 - next_double();
+            const double u2 = 1.0 - next_double();
             const double z = std::sqrt(-2.0 * std::log(u1)) *
                              std::sin(6.28318530717958647692 * u2);
-            const int v = static_cast<int>(round_to_even(
-                static_cast<double>(mean) + static_cast<double>(stdDev) * z));
-            if (v >= lo && v <= hi) return v;
+            const int value = static_cast<int>(round_to_even(double(mean) + double(stdDev) * z));
+            if (value >= lo && value <= hi) return value;
         }
-        return mean < lo ? lo : (mean > hi ? hi : mean);
     }
+    int next_index(int count) { return count <= 0 ? -1 : next_int_exclusive(count); }
+    bool next_bool() { return next_int_exclusive(2) == 0; }
 
-    // C# Rng.NextItem over a count: next_int(0, count-1).
-    int next_index(int count) { return count <= 0 ? -1 : next_int(0, count - 1); }
-
-    bool next_bool() { return next_int(0, 1) == 0; }
-
-    // Snapshot input can contain arbitrary bytes. Validate indices before the
-    // generator is ever used, so internal_sample cannot index outside its
-    // fixed seed array.
+    [[nodiscard]] const std::array<std::uint64_t, 4> &state() const { return words_; }
+    void restore_state(const std::array<std::uint64_t, 4> &words, std::int32_t count) {
+        if ((words[0] | words[1] | words[2] | words[3]) == 0)
+            throw std::invalid_argument("Rng all-zero state is not a seeded state");
+        words_ = words;
+        counter = count;
+        reserved_ = 0;
+    }
     [[nodiscard]] bool valid_snapshot_state() const {
-        if (inext < 0 || inext >= 56 || inextp < 0 || inextp >= 56 || counter < 0)
-            return false;
-        for (const auto value : seedArray) {
-            if (value < 0 || value > INT_MAX_V) return false;
-        }
-        return true;
+        return reserved_ == 0 && (words_[0] | words_[1] | words_[2] | words_[3]) != 0;
     }
-
     template <typename T>
     void shuffle(T *arr, int n) {
         for (int i = n - 1; i > 0; --i) {
-            int j = next_int(0, i);
-            T t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+            const int j = next_int_exclusive(i + 1);
+            std::swap(arr[i], arr[j]);
         }
     }
 
 private:
-    static std::int32_t to_int32(std::int64_t v) {
-        std::uint32_t u = static_cast<std::uint32_t>(v & 0xFFFFFFFFu);
-        return static_cast<std::int32_t>(u);
+    static std::uint64_t rotate_left(std::uint64_t value, int bits) {
+        return (value << bits) | (value >> (64 - bits));
     }
-
+    static std::uint64_t splitmix64(std::uint64_t &seed) {
+        std::uint64_t value = (seed += 11400714819323198485ull);
+        value = (value ^ (value >> 30)) * 13787848793156543929ull;
+        value = (value ^ (value >> 27)) * 10723151780598845931ull;
+        return value ^ (value >> 31);
+    }
+    std::uint64_t raw_next() {
+        const std::uint64_t result = rotate_left(words_[1] * 5, 7) * 9;
+        const std::uint64_t t = words_[1] << 17;
+        words_[2] ^= words_[0];
+        words_[3] ^= words_[1];
+        words_[1] ^= words_[2];
+        words_[0] ^= words_[3];
+        words_[2] ^= t;
+        words_[3] = rotate_left(words_[3], 45);
+        return result;
+    }
+    double sample() { return double(raw_next() >> 11) * 0x1p-53; }
+    void bump_counter() {
+        const std::uint32_t bits = static_cast<std::uint32_t>(counter) + 1u;
+        std::memcpy(&counter, &bits, sizeof(counter));
+    }
     static double round_to_even(double value) {
-        const double lower = std::floor(value);
-        const double fraction = value - lower;
+        const double lower = std::floor(value), fraction = value - lower;
         if (fraction < 0.5) return lower;
         if (fraction > 0.5) return lower + 1.0;
         return std::fmod(lower, 2.0) == 0.0 ? lower : lower + 1.0;
     }
-
-    std::int32_t seedArray[56]{};
-    int inext = 0;
-    int inextp = 21;
+    std::array<std::uint64_t, 4> words_{};
 public:
-    std::int64_t counter = 0;
+    std::int32_t counter = 0;
+private:
+    // Fill tail alignment explicitly: snapshots hash this trivially-copyable object.
+    std::uint32_t reserved_ = 0;
 };
 
 struct CardDef {
@@ -302,10 +341,16 @@ struct CardDef {
     std::int16_t damageUp;
     std::int16_t block;
     std::int16_t blockUp;
-    std::int16_t var[static_cast<int>(VarId::COUNT)];
-    std::int16_t varUp[static_cast<int>(VarId::COUNT)];
+    double var[static_cast<int>(VarId::COUNT)];
+    double varUp[static_cast<int>(VarId::COUNT)];
     std::uint16_t flags;
     std::uint16_t flagsUp;
+    std::int8_t starCost = -1;
+    std::int8_t starCostUp = -1;
+    bool starCostX = false;
+    bool starCostXUp = false;
+    std::uint8_t maxUpgradeLevel = 1;
+    int nativePoolOrder = 0;
 };
 
 enum CardFlags : std::uint16_t {
@@ -318,16 +363,43 @@ enum CardFlags : std::uint16_t {
     CF_DEFEND = 1u << 6,
     CF_MULTIPLAYER_ONLY = 1u << 7,
     CF_CANNOT_GENERATE_IN_COMBAT = 1u << 8,
+    CF_SLY = 1u << 9,
+    CF_ETERNAL = 1u << 10,
 };
 
-enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE };
+enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE, SPIRAL, STEADY, NIMBLE, INKY, SHARP, SLITHER, PERFECT_FIT, SOULS_POWER, CORRUPTED, INSTINCT, GOOPY, ADROIT, MOMENTUM, ROYALLY_APPROVED, TEZCATARAS_EMBER, IMBUED, COUNT };
+
+constexpr int MAX_CARD_COST_MODIFIERS = 16;
+struct CardCostModifier {
+    // Packed so Card stays small enough for the fixed combat piles: every
+    // BattleContext carries several full piles plus pending/selection grids.
+    std::int16_t amount = 0;
+    std::uint8_t expiration = 0; // native: combat=0, end of turn=2, played=4
+    bool absolute : 1;
+    bool reduceOnly : 1;
+};
 
 struct Card {
+    // Raw snapshots hash the object image, so the tail padding must be
+    // deterministic.  Zero the whole representation first, then apply the one
+    // non-zero default (combatCostCap = -1).
+    Card() {
+        std::memset(static_cast<void *>(this), 0, sizeof(*this));
+        combatCostCap = -1;
+    }
     CardId id = CardId::INVALID;
     std::uint16_t uid = 0;
     std::int8_t costForTurn = 0;
     bool upgraded = false;
-    std::int16_t bonusDamage = 0;   // Rampage / Thrash / Body Slam adjustments
+    // Thrash stores Hook.ModifyDamage's unrounded result (e.g. Weak + Strike
+    // contributes 4.5). Keep fractional growth until actual damage is dealt.
+    double bonusDamage = 0;
+    int bonusBlock = 0;
+    bool retainThisTurn = false;
+    bool slyThisTurn = false;
+    bool slyThisCombat = false;
+    CardCostModifier costModifiers[MAX_CARD_COST_MODIFIERS]{};
+    int costModifierCount = 0;
     std::uint8_t replay = 0;        // extra plays from Hidden Gem
     std::uint8_t bonusReplay = 0;   // Soldiers Stew: permanent-for-combat replay
     std::int8_t storedCost = 0;     // cost to restore after a temporary change
@@ -338,9 +410,16 @@ struct Card {
     bool retainThisCombat = false;   // Choices Paradox temporary Retain
     std::int16_t galvanized = 0;   // Galvanized affliction; damage on play
     std::uint8_t guiltyCombatsSeen = 0;  // Guilty's per-card saved combat counter
+    // Aeonglass's Wither stores its own fake upgrade level; this is separate
+    // from `upgraded` (Wither's native MaxUpgradeLevel is 0).
+    std::uint8_t fakeUpgradeLevel = 0;
     EnchantmentId enchantment = EnchantmentId::NONE;
     std::int16_t enchantmentAmount = 0;
     bool enchantmentDisabled = false;  // reset for each combat
+    // TinkerTime MadScience variant. Only MAD_SCIENCE reads these; the native
+    // card stores CardType and TinkerTime.RiderEffect as saved properties.
+    std::uint8_t tinkerType = 0;   // 0 Attack, 1 Skill, 2 Power
+    std::uint8_t tinkerRider = 0;  // TinkerTime.RiderEffect (0 None .. 9 Improvement)
 
     bool operator==(const Card &o) const { return uid == o.uid; }
 };
@@ -360,20 +439,35 @@ inline void card_restore_cost(Card &c) {
 }
 
 const CardDef &card_def(CardId id);
+void card_modify_cost(Card &c, int amount, bool absolute, std::uint8_t expiration,
+                      bool reduceOnly = false);
+void card_clear_cost_modifiers(Card &c, std::uint8_t expiration);
 Card make_card(CardId id, bool upgraded, std::uint16_t uid);
+// Basic Strike of a character pool; used only as a defensive fallback when a
+// generated pool is unexpectedly empty.
+CardId basic_strike_of(CardPool pool);
+// CardTag.Minion (Regent summon cards).
+bool card_is_minion(const Card &card);
 // Permanent upgrade (campfire, eggs, events, relics): the upgraded card's
 // energy cost must change with the flag (CardModel.OnUpgrade -> EnergyCost).
 void card_apply_upgrade(Card &c);
+void card_apply_downgrade(Card &c);
 bool card_upgradable(const Card &c);
 int card_cost(const Card &c);
 int card_damage(const Card &c);
+double card_base_damage(const Card &c);
 int card_block(const Card &c);
 int card_var(const Card &c, VarId v);
 bool card_has(const Card &c, std::uint16_t flag);
 bool card_is_attack(const Card &c);
 bool card_is_skill(const Card &c);
 bool card_is_power(const Card &c);
+// CardModel.Type / TargetType. MadScience overrides both from its TinkerTime
+// variant; every other card reads the static CardDef.
+CardType card_type_of(const Card &c);
+TargetType card_target_type_of(const Card &c);
 bool card_is_playable(const Card &c);
+bool card_native_available(CardId id);
 bool card_can_enchant(const Card &c, EnchantmentId enchantment);
 bool card_apply_enchantment(Card &c, EnchantmentId enchantment, int amount);
 bool card_is_strike(const Card &c);
@@ -381,10 +475,39 @@ bool card_is_defend(const Card &c);
 
 const char *card_name(CardId id);
 const char *card_key(CardId id);
+// Every card property a player can read on the card, excluding UID, master-deck
+// index and underlying stack position. The order defines what makes two card
+// instances distinguishable; observations, hidden-state resampling and the
+// pending-choice views must all use this one key so they cannot disagree.
+inline auto card_public_key(const Card &c) {
+    int endOfTurnMods = 0, playedMods = 0;
+    for (int i = 0; i < c.costModifierCount; ++i) {
+        if (c.costModifiers[i].expiration & 2u) ++endOfTurnMods;
+        if (c.costModifiers[i].expiration & 4u) ++playedMods;
+    }
+    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c),
+                           c.replay, c.bonusReplay, c.freeCombat, c.costThisTurn,
+                           c.combatCostCap, c.bonusDamage, c.etherealThisCombat,
+                           c.retainThisCombat, c.galvanized, c.guiltyCombatsSeen,
+                           static_cast<int>(c.enchantment), c.enchantmentAmount,
+                           c.enchantmentDisabled,
+                           c.costThisTurn ? c.storedCost : 0,
+                           c.id == CardId::MAD_SCIENCE ? c.tinkerType : 0,
+                           c.id == CardId::MAD_SCIENCE ? c.tinkerRider : 0,
+                           c.slyThisTurn, c.slyThisCombat, c.retainThisTurn,
+                           endOfTurnMods, playedMods);
+}
+// Native CardModel.CompareTo: ordinal model entry, then upgrade level.
+// Deliberately does not use UID or mutable bonus damage as a tie breaker.
+inline bool native_card_less(const Card &a, const Card &b) {
+    const int order = std::strcmp(card_key(a.id), card_key(b.id));
+    return order != 0 ? order < 0 : a.upgraded < b.upgraded;
+}
 
 const PotionDef &potion_def(PotionId id);
 const char *potion_name(PotionId id);
-PotionId random_potion_out_of_combat(Rng &rng);
-int random_potions_out_of_combat(Rng &rng, PotionId *out, int count);
+PotionId random_potion_out_of_combat(Rng &rng, CardPool character = CardPool::IRONCLAD);
+int random_potions_out_of_combat(Rng &rng, PotionId *out, int count,
+                                 CardPool character = CardPool::IRONCLAD);
 
 }  // namespace sts2
