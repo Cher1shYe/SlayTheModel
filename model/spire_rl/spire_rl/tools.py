@@ -52,14 +52,14 @@ def host_info(run_dir: Path | None = None) -> dict:
 
 
 def check_disk(run_dir: Path, n_params: int) -> dict:
-    """Only best.pt (FP32 weights) is kept; while it is replaced a temporary copy exists."""
+    """best.pt and last.pt (FP32 weights) are kept; while one is replaced a temporary copy exists."""
     weights = 4 * n_params
-    need = 2 * weights
+    need = 3 * weights
     d = Path(run_dir)
     while not d.exists():
         d = d.parent
     free = shutil.disk_usage(d).free
-    plan = {"best_checkpoint_gb": round(weights / 1e9, 2), "needed_gb": round(need / 1e9, 1),
+    plan = {"checkpoint_gb": round(weights / 1e9, 2), "needed_gb": round(need / 1e9, 1),
             "free_gb": round(free / 1e9, 1)}
     if free < need:
         raise RuntimeError(f"not enough disk space for best.pt in {run_dir}: {plan} "
@@ -89,6 +89,7 @@ def _stress_episode(cfg: RunConfig, entities: int, candidates: int, length: int)
     ep.actions = [0] * length
     ep.logp = [float(-math.log(candidates))] * length
     ep.value = [0.0] * length
+    ep.value_comps = [np.zeros(3, np.float32)] * length
     ep.reward = [np.zeros(4, np.float32)] * length
     ep.outcome = Outcome.DEATH
     ep.aux = np.zeros((length, 6), np.float32)
@@ -96,6 +97,7 @@ def _stress_episode(cfg: RunConfig, entities: int, candidates: int, length: int)
     gen = np.random.default_rng(0)
     ep.advantages = gen.standard_normal(length).astype(np.float32)
     ep.returns = gen.standard_normal(length).astype(np.float32)
+    ep.comp_returns = gen.random((length, 3)).astype(np.float32)
     ep.info["log"] = env.log
     return ep
 
@@ -103,7 +105,7 @@ def _stress_episode(cfg: RunConfig, entities: int, candidates: int, length: int)
 def resource_check(cfg: RunConfig, device: torch.device, entities: int = 160, candidates: int = 24,
                    log=print) -> dict:
     """Peak memory at init / forward+backward / first optimizer step / save, and step time (M3)."""
-    from .train import build_model
+    from .train import build_critic, build_model
     cuda = device.type == "cuda"
 
     def mem() -> dict:
@@ -136,7 +138,11 @@ def resource_check(cfg: RunConfig, device: torch.device, entities: int = 160, ca
     reset()
     model = build_model(cfg, device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=p.lr, betas=p.betas, eps=p.eps, weight_decay=p.weight_decay)
+    critic = build_critic(cfg, device)
+    critic_opt = (torch.optim.AdamW(critic.parameters(), lr=p.critic_lr, betas=p.betas, eps=p.eps)
+                  if critic is not None else None)
     report["parameters"] = count_parameters(model)
+    report["critic_parameters"] = count_parameters(critic) if critic is not None else 0
     report["init"] = mem()
     log(f"init {report['init']}")
 
@@ -150,17 +156,17 @@ def resource_check(cfg: RunConfig, device: torch.device, entities: int = 160, ca
         torch.cuda.synchronize(device)
     report["rollout_forward"] = {**mem(), "seconds": round(time.perf_counter() - t0, 3), "batch": p.num_envs}
 
-    one = dataclasses.replace(p, epochs=1, target_kl=1e9)
+    one = dataclasses.replace(p, epochs=1, target_kl=1e9, value_epochs=1)
     reset()
     t0 = time.perf_counter()
-    ppo_update(model, optimizer, targets, one, 0.01, W, device, random.Random(0))   # creates Adam state
+    ppo_update(model, optimizer, targets, one, 0.01, W, device, random.Random(0), critic, critic_opt)   # creates Adam state
     if cuda:
         torch.cuda.synchronize(device)
     report["first_optimizer_step"] = {**mem(), "seconds": round(time.perf_counter() - t0, 3)}
     log(f"first optimizer step {report['first_optimizer_step']}")
     reset()
     t0 = time.perf_counter()
-    ppo_update(model, optimizer, targets, one, 0.01, W, device, random.Random(1))
+    ppo_update(model, optimizer, targets, one, 0.01, W, device, random.Random(1), critic, critic_opt)
     if cuda:
         torch.cuda.synchronize(device)
     step_s = time.perf_counter() - t0
@@ -171,7 +177,7 @@ def resource_check(cfg: RunConfig, device: torch.device, entities: int = 160, ca
     with tempfile.TemporaryDirectory() as tmp:
         t0 = time.perf_counter()
         path = Path(tmp) / "best.pt"
-        ckpt.save(path, cfg, model, {})
+        ckpt.save(path, cfg, model, {}, critic)
         report["save"] = {**mem(), "seconds": round(time.perf_counter() - t0, 2),
                           "file_gb": round(path.stat().st_size / 1e9, 2)}
     log(f"save {report['save']}")
@@ -191,7 +197,7 @@ def resource_check(cfg: RunConfig, device: torch.device, entities: int = 160, ca
 
 def env_check(cfg: RunConfig, episodes: int = 2, log=print) -> dict:
     """Plays random macro choices with the real combat budget; reports timing and invariants."""
-    env = MacroEnv(cfg.combat, cfg.reward, cfg.ascension, cfg.max_macro_steps)
+    env = MacroEnv(cfg.combat, cfg.reward, cfg.ascension, cfg.max_macro_steps, cfg.max_grid_steps)
     rows = []
     for k in range(episodes):
         t0 = time.perf_counter()

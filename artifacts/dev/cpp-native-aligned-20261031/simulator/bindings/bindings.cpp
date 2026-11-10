@@ -67,7 +67,7 @@ static py::list card_enchantments(const Card *cards, int n) {
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
     // Identity of this port, not a claim of complete native-game parity.
-    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v6";
+    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v7";
     m.attr("TARGET_GAME_DLL_SHA256") = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4";
     m.attr("NATIVE_PARITY_COMPLETE") = false;
 

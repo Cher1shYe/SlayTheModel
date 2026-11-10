@@ -1,0 +1,1 @@
+Silent native fixtures: 240 cases, 242956 checks, 0 failures

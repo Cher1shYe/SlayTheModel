@@ -47,15 +47,8 @@ void push_card_bag_split(std::vector<float> &v, const Card *cards, int n) {
 
 // Only attributes visible on the offered card are used to order a choice.
 // The underlying draw/discard stack order is not public information.
-auto visible_choice_key(const Card &c) {
-    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c), c.replay,
-                           c.bonusReplay, c.freeCombat, c.costThisTurn, c.combatCostCap,
-                           c.bonusDamage, c.etherealThisCombat, c.retainThisCombat,
-                           c.galvanized, c.guiltyCombatsSeen,
-                           static_cast<int>(c.enchantment), c.enchantmentAmount,
-                           c.enchantmentDisabled, c.costThisTurn ? c.storedCost : 0,
-                           c.tinkerType, c.tinkerRider);
-}
+// Shared with resampling (common.h) and covering every push_card_instance field.
+auto visible_choice_key(const Card &c) { return card_public_key(c); }
 
 // Compact public card state, shared by unordered piles, known top and choices.
 // UID, master-deck index and underlying stack position are deliberately absent.

@@ -90,7 +90,8 @@ def main(argv: list[str] | None = None) -> int:
         cfg = make_config(args.preset)
         with torch.device("meta"):
             n = count_parameters(SpireNet(cfg.model, env_spec(cfg)))
-        print(json.dumps({"preset": args.preset, "parameters": n,
+            nc = count_parameters(SpireNet(cfg.critic, env_spec(cfg))) if cfg.critic is not None else 0
+        print(json.dumps({"preset": args.preset, "parameters": n, "critic_parameters": nc,
                           "fp32_param_grad_adam_gb": round(16 * n / 1e9, 2)}, indent=2))
         return 0
     if args.cmd == "dashboard":
@@ -103,13 +104,16 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "eval":
         from . import checkpoint as ckpt
         from .config import RunConfig
-        from .train import build_model, evaluate
+        from .train import build_critic, build_model, evaluate
         device = _device(args.device)
         payload = ckpt.load(Path(args.checkpoint))
         cfg = RunConfig.from_dict(payload["config"])
         model = build_model(cfg, device)
         model.load_state_dict(payload["model"])
-        res = evaluate(model, cfg, device, args.split, args.num_envs, args.limit)
+        critic = build_critic(cfg, device)
+        if critic is not None and payload.get("critic") is not None:
+            critic.load_state_dict(payload["critic"])
+        res = evaluate(model, cfg, device, args.split, args.num_envs, args.limit, critic=critic)
         res["checkpoint"] = str(args.checkpoint)
         res["checkpoint_progress"] = payload.get("progress", {})
         if args.out:

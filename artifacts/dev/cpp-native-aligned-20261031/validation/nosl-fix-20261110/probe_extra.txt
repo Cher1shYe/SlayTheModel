@@ -1,0 +1,27 @@
+PASS slyThisTurn: public draw bag independent of true order
+DETAIL slyThisTurn differing_sampled_positions=0
+PASS slyThisTurn: same resample independent of true order
+PASS slyThisTurn: discard resample independent of true order
+PASS slyThisCombat: public draw bag independent of true order
+DETAIL slyThisCombat differing_sampled_positions=0
+PASS slyThisCombat: same resample independent of true order
+PASS slyThisCombat: discard resample independent of true order
+PASS bonusBlock: public draw bag independent of true order
+DETAIL bonusBlock differing_sampled_positions=0
+PASS bonusBlock: same resample independent of true order
+PASS bonusBlock: discard resample independent of true order
+PASS retainThisTurn: public draw bag independent of true order
+DETAIL retainThisTurn differing_sampled_positions=0
+PASS retainThisTurn: same resample independent of true order
+PASS retainThisTurn: discard resample independent of true order
+PASS bonusDamage: public draw bag independent of true order
+DETAIL bonusDamage differing_sampled_positions=0
+PASS bonusDamage: same resample independent of true order
+PASS bonusDamage: discard resample independent of true order
+PASS cost_modifier_expiry: public draw bag independent of true order
+DETAIL cost_modifier_expiry differing_sampled_positions=0
+PASS cost_modifier_expiry: same resample independent of true order
+PASS cost_modifier_expiry: discard resample independent of true order
+PASS orb_rng: combat uses the run CombatOrbs stream
+PASS orb_rng: resample replaces the real stream
+SUMMARY checks=20 failures=0

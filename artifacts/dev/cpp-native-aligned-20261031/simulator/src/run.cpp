@@ -1617,6 +1617,7 @@ void RunContext::finish_combat() {
     runRng[RNG_COMBAT_TARGETS] = battle.targetRng;
     runRng[RNG_MONSTER_AI] = battle.monsterAiRng;
     runRng[RNG_NICHE] = battle.nicheRng;
+    runRng[RNG_COMBAT_ORBS] = battle.orbRng;
     sync_potions_from_battle();
     sync_relics_from_battle();
     // Seal of Gold spends real run gold during combat.
@@ -2468,7 +2469,7 @@ bool snapshot_battle(const BattleContext &b) {
         !b.cardGenerationRng.valid_snapshot_state() || !b.potionRng.valid_snapshot_state() ||
         !b.cardSelectionRng.valid_snapshot_state() || !b.energyCostRng.valid_snapshot_state() ||
         !b.targetRng.valid_snapshot_state() || !b.monsterAiRng.valid_snapshot_state() ||
-        !b.nicheRng.valid_snapshot_state()) return false;
+        !b.nicheRng.valid_snapshot_state() || !b.orbRng.valid_snapshot_state()) return false;
     if (b.monsterCount < 0 || b.monsterCount > MAX_MONSTERS ||
         // Physical belt slots keep holes (potion_slots.h); count is occupancy.
         !potion_slots_valid(b.potions, b.potionSlots, b.potionCount) ||

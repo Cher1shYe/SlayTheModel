@@ -18,9 +18,11 @@
 
 namespace sts2 {
 
-constexpr int MACRO_OBS_VERSION = 1;
+// v2 (2026-11-10): candidate feature 4 = this SELECT_GRID_CARD deselects an
+// already selected card (toggle off), so select and deselect are distinguishable.
+constexpr int MACRO_OBS_VERSION = 2;
 constexpr int MACRO_ENTITY_NUM = 80;   // numeric features per entity (zero padded)
-constexpr int MACRO_CAND_NUM = 4;      // numeric features per candidate
+constexpr int MACRO_CAND_NUM = 5;      // numeric features per candidate
 
 enum class MacroEntity : std::uint8_t {
     GLOBAL,        // run resources and counters (exactly one)

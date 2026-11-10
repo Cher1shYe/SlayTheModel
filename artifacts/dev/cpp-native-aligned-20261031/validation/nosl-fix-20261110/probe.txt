@@ -1,0 +1,22 @@
+PASS distinct_cards_control: same public root and legal choices
+DETAIL distinct_cards_control action_mismatches=0/24
+PASS distinct_cards_control: root decision independent of hidden state
+PASS distinct_cards_control: source unchanged
+DETAIL growth_cards same_seed_different_draws=0/100
+PASS growth_cards: same sample independent of true order
+PASS growth_cards: same public root and legal choices
+DETAIL growth_cards action_mismatches=0/24
+PASS growth_cards: root decision independent of hidden state
+PASS growth_cards: source unchanged
+PASS bonusBlock: public draw bag independent of true order
+PASS retainThisTurn: public draw bag independent of true order
+DETAIL orb_rng same_sample_outputs=22024,22024
+PASS orb_rng: replaced independently of real stream
+DETAIL orb_rng unique_next_orbs_across_100_samples=5
+PASS orb_rng: simulations sample alternative orb outcomes
+PASS orb_rng: same public root and legal choices
+DETAIL orb_rng action_mismatches=0/24
+PASS orb_rng: root decision independent of hidden state
+PASS orb_rng: source unchanged
+PASS known_top: preserves legitimately visible top
+SUMMARY checks=15 failures=0

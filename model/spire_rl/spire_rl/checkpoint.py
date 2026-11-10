@@ -1,7 +1,9 @@
 """Weights-only checkpoints bound to the simulator identity.
 
-Only the best validation model is kept (``best.pt``). There is no optimizer
-or RNG state, so an interrupted run cannot be resumed; start it again.
+``best.pt`` (best validation win rate, ties keep the earlier one) and
+``last.pt`` (rewritten after every validation and at the end of training).
+There is no optimizer or RNG state, so an interrupted run cannot be resumed
+exactly. The separate critic, when configured, is stored under "critic".
 """
 from __future__ import annotations
 
@@ -12,14 +14,14 @@ import torch
 from .config import RunConfig
 from .sim import identity
 
-FORMAT = "spire_rl/2"
+FORMAT = "spire_rl/3"   # 3: stage-free inputs, 3-component critic, factorized policy
 
 
 class IncompatibleCheckpoint(RuntimeError):
     pass
 
 
-def save(path: Path, cfg: RunConfig, model, progress: dict) -> None:
+def save(path: Path, cfg: RunConfig, model, progress: dict, critic=None) -> None:
     payload = {
         "format": FORMAT,
         "config": cfg.to_dict(),
@@ -27,6 +29,7 @@ def save(path: Path, cfg: RunConfig, model, progress: dict) -> None:
         "identity": identity(),
         "model": model.state_dict(),
         "progress": progress,
+        "critic": critic.state_dict() if critic is not None else None,
     }
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)

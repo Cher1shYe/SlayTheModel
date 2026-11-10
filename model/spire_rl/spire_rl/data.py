@@ -13,7 +13,7 @@ import numpy as np
 import torch
 
 from .env import Observation, Outcome
-from .model import REWARD_FEATURES, MacroBatch
+from .model import CAND_DESELECT_FEATURE, REWARD_FEATURES, MacroBatch
 
 
 @dataclass
@@ -24,15 +24,18 @@ class Episode:
     obs: list[Observation] = field(default_factory=list)
     actions: list[int] = field(default_factory=list)
     logp: list[float] = field(default_factory=list)
-    value: list[float] = field(default_factory=list)
-    reward: list[np.ndarray] = field(default_factory=list)   # [REWARD_FEATURES] per transition
+    value: list[float] = field(default_factory=list)          # V in r_train units at the episode's alpha
+    value_comps: list[np.ndarray] = field(default_factory=list)  # [3] normalized critic outputs
+    reward: list[np.ndarray] = field(default_factory=list)   # [r_train, floors, acts, win] per transition
     outcome: Outcome = Outcome.RUNNING
     failure_reason: str = ""
     bootstrap_value: float = 0.0          # V(final state) for truncations
+    bootstrap_comps: np.ndarray | None = None
     final_obs: Observation | None = None
     aux: np.ndarray | None = None          # [T, 6]
     advantages: np.ndarray | None = None
-    returns: np.ndarray | None = None
+    returns: np.ndarray | None = None      # [T] scalar lambda-returns (r_train units)
+    comp_returns: np.ndarray | None = None  # [T, 3] normalized component targets of the critic
     info: dict = field(default_factory=dict)
 
     def __len__(self) -> int:
@@ -71,7 +74,6 @@ def collate(targets: list[tuple[Episode, int]], window: int, obs_override: dict 
     win_act[..., 1:] = -1
     win_len = np.zeros(bsz, np.int64)
     win_phase = np.zeros((bsz, window), np.int64)
-    win_stage = np.zeros((bsz, window), np.int64)
     win_abs = np.zeros((bsz, window), np.int64)
     win_reward = np.zeros((bsz, window, REWARD_FEATURES), np.float32)
     cand_k = None
@@ -85,7 +87,6 @@ def collate(targets: list[tuple[Episode, int]], window: int, obs_override: dict 
             win_state[b, j] = si
             obs = states[si]
             win_phase[b, j] = obs.phase
-            win_stage[b, j] = ep.stage
             win_abs[b, j] = step
             if step < t:
                 a = ep.actions[step]
@@ -94,7 +95,7 @@ def collate(targets: list[tuple[Episode, int]], window: int, obs_override: dict 
                     cand_k = obs.cand_num.shape[1]
                     win_act_num = np.zeros((bsz, window, cand_k), np.float32)
                 win_act_num[b, j] = obs.cand_num[a]
-                win_reward[b, j] = ep.reward[step]
+                win_reward[b, j] = ep.reward[step][1:1 + REWARD_FEATURES]   # events, not alpha-weighted
         win_len[b] = t - start + 1
         tgt_state[b] = win_state[b, t - start]
         tgt_obs.append(states[tgt_state[b]])
@@ -121,13 +122,28 @@ def collate(targets: list[tuple[Episode, int]], window: int, obs_override: dict 
     cand_t2 = _pad([o.cand_target2 for o in tgt_obs], c_max, -1, np.int64)
     cand_num = _pad([o.cand_num for o in tgt_obs], c_max, 0.0, np.float32)
     cand_mask = _pad([np.ones(o.num_candidates, bool) for o in tgt_obs], c_max, False, bool)
+    cand_group = _pad([candidate_groups(o) for o in tgt_obs], c_max, 0, np.int64)
 
     t = torch.from_numpy
     return MacroBatch(
         ent_kind=t(ent_kind), ent_id=t(ent_id), ent_num=t(ent_num), ent_mask=t(ent_mask),
         edge_src=t(edge_src), edge_dst=t(edge_dst),
         tgt_state=t(tgt_state), cand_type=t(cand_type), cand_t1=t(cand_t1), cand_t2=t(cand_t2),
-        cand_num=t(cand_num), cand_mask=t(cand_mask),
+        cand_num=t(cand_num), cand_mask=t(cand_mask), cand_group=t(cand_group),
         win_state=t(win_state), win_act_type=t(win_act[..., 0].copy()), win_act_t1=t(win_act[..., 1].copy()),
         win_act_t2=t(win_act[..., 2].copy()), win_act_num=t(win_act_num), win_reward=t(win_reward),
-        win_phase=t(win_phase), win_stage=t(win_stage), win_abs=t(win_abs), win_len=t(win_len))
+        win_phase=t(win_phase), win_abs=t(win_abs), win_len=t(win_len))
+
+
+SELECT_GRID_CARD = 25    # RunActionType values (sim.RunActionType)
+RUN_ACTION_TYPES = 32    # == sim.RUN_ACTION_TYPES; the deselect group id
+
+
+def candidate_groups(obs: Observation) -> np.ndarray:
+    """Action group of each candidate: its RunActionType, except that toggling an
+    already selected grid card off is its own group (macro observation v2 flag)."""
+    groups = obs.cand_type.astype(np.int64).copy()
+    if obs.cand_num.shape[1] > CAND_DESELECT_FEATURE:
+        deselect = (groups == SELECT_GRID_CARD) & (obs.cand_num[:, CAND_DESELECT_FEATURE] > 0.5)
+        groups[deselect] = RUN_ACTION_TYPES
+    return groups

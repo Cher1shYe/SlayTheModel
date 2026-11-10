@@ -8,6 +8,7 @@ in-flight episode, so collected episodes are always complete.
 """
 from __future__ import annotations
 
+import collections
 import concurrent.futures as cf
 import time
 from dataclasses import dataclass, field
@@ -19,7 +20,7 @@ import torch
 from .config import RunConfig
 from .data import Episode, collate
 from .env import MacroEnv, Outcome
-from .model import SpireNet
+from .model import SpireNet, combine_value, value_weights
 from .ppo import _autocast
 
 
@@ -58,26 +59,40 @@ def _episode_summary(ep: Episode) -> dict:
         "combats": len(log.combats), "mcts_decisions": log.mcts_decisions,
         "mcts_simulations": log.mcts_simulations, "combat_seconds": log.combat_seconds,
         "reward_raw": ep.info["reward_raw"],
-        "seed": ep.game_seed,
+        "seed": ep.game_seed, "menu_loops": log.menu_loops,
+        "truncation_reason": ep.failure_reason if ep.outcome == Outcome.TRUNCATED else "",
     }
 
 
 class Collector:
-    def __init__(self, cfg: RunConfig, model: SpireNet, device: torch.device, num_envs: int | None = None):
+    def __init__(self, cfg: RunConfig, model: SpireNet, device: torch.device, num_envs: int | None = None,
+                 critic: SpireNet | None = None):
         self.cfg = cfg
         self.model = model
+        self.critic = critic          # separate value network; None = the policy's value head
         self.device = device
         n = num_envs or cfg.ppo.num_envs
-        self.slots = [_Slot(MacroEnv(cfg.combat, cfg.reward, cfg.ascension, cfg.max_macro_steps)) for _ in range(n)]
+        self.slots = [_Slot(MacroEnv(cfg.combat, cfg.reward, cfg.ascension, cfg.max_macro_steps,
+                                     cfg.max_grid_steps)) for _ in range(n)]
         self.pool = cf.ThreadPoolExecutor(max_workers=n, thread_name_prefix="macro-env")
 
     def close(self) -> None:
         self.pool.shutdown(wait=True)
 
+    def _critic_values(self, targets, policy_out) -> np.ndarray:
+        """[B, 3] value components for the batch (separate critic if configured)."""
+        if self.critic is None:
+            return policy_out.value.float().cpu().numpy()
+        self.critic.eval()
+        return self.critic(collate(targets, self.critic.cfg.window).to(self.device)).value.float().cpu().numpy()
+
     # -- one rollout ---------------------------------------------------------
     def collect(self, jobs: Iterator[Job], stage: int, alpha: float, min_transitions: int | None,
                 sample_seed: int, greedy: bool = False) -> RolloutResult:
         """Run episodes until ``min_transitions`` (None = all jobs), then finish those in flight.
+
+        ``stage`` only labels the episodes; it is not a network input. ``alpha``
+        sets the reward and the critic combination weights.
 
         Each episode samples from its own stream seeded by (sample_seed,
         episode_id), so results do not depend on thread completion order.
@@ -89,6 +104,7 @@ class Collector:
         transitions = started = forward_calls = 0
         infer_s = 0.0
         scale = self.cfg.reward.scale
+        weights = value_weights(alpha, self.cfg.reward)
         jobs = iter(jobs)
         exhausted = False
 
@@ -102,7 +118,7 @@ class Collector:
                 exhausted = True
                 return False
             slot.episode = Episode(job.episode_id, job.game_seed, stage)
-            slot.episode.info["reward_raw"] = 0.0
+            slot.episode.info.update(reward_raw=0.0, alpha=alpha, value_weights=weights)
             slot.rng = np.random.default_rng([sample_seed & 0xFFFFFFFF, job.episode_id])
             futures[self.pool.submit(slot.env.reset, job.game_seed, job.search_seed)] = slot
             started += 1
@@ -148,8 +164,9 @@ class Collector:
             self.model.eval()
             with torch.no_grad(), _autocast(self.device, self.cfg.ppo.bf16):
                 out = self.model(collate(targets, self.cfg.model.window).to(self.device))
+                comps = self._critic_values(targets, out)
             logp_all = torch.log_softmax(out.logits.float(), -1).cpu().numpy()
-            values = out.value.float().cpu().numpy()
+            values = combine_value(comps, alpha, self.cfg.reward)
             infer_s += time.perf_counter() - t0
             forward_calls += 1
             for i, slot in enumerate(batch_slots):
@@ -164,6 +181,7 @@ class Collector:
                 ep.actions.append(a)
                 ep.logp.append(float(lp[a]))
                 ep.value.append(float(values[i]))
+                ep.value_comps.append(comps[i].copy())
                 futures[self.pool.submit(slot.env.step, a, slot.obs, alpha)] = slot
 
         # Bootstrap values for truncated episodes (state after the last action).
@@ -171,10 +189,17 @@ class Collector:
         if trunc:
             override = {(ep.episode_id, len(ep)): ep.final_obs for ep in trunc}
             with torch.no_grad(), _autocast(self.device, self.cfg.ppo.bf16):
-                out = self.model(collate([(ep, len(ep)) for ep in trunc], self.cfg.model.window,
-                                         obs_override=override).to(self.device))
-            for ep, v in zip(trunc, out.value.float().cpu().numpy()):
-                ep.bootstrap_value = float(v)
+                tg = [(ep, len(ep)) for ep in trunc]
+                if self.critic is None:
+                    out = self.model(collate(tg, self.cfg.model.window, obs_override=override).to(self.device))
+                    comps = out.value.float().cpu().numpy()
+                else:
+                    self.critic.eval()
+                    comps = self.critic(collate(tg, self.critic.cfg.window, obs_override=override)
+                                        .to(self.device)).value.float().cpu().numpy()
+            for ep, c in zip(trunc, comps):
+                ep.bootstrap_comps = c.copy()
+                ep.bootstrap_value = float(combine_value(c, alpha, self.cfg.reward))
         wall = time.perf_counter() - started_at
         return RolloutResult(finished, transitions, started, wall, infer_s, wall - infer_s, forward_calls,
                              summarize(finished))
@@ -205,5 +230,8 @@ def summarize(episodes: list[Episode]) -> dict:
         "mcts_simulations": int(sum(r["mcts_simulations"] for r in rows)),
         "reward_raw_mean": float(np.mean([r["reward_raw"] for r in rows])),
         "winning_seeds": sorted({r["seed"] for r in rows if r["won"]}),
+        "menu_loops": sum(r["menu_loops"] for r in rows),
+        "truncation_reasons": dict(sorted(collections.Counter(
+            r["truncation_reason"] for r in rows if r["outcome"] == "TRUNCATED").items())),
         "failure_reasons": sorted({ep.failure_reason for ep in episodes if ep.outcome == Outcome.FAILURE}),
     }

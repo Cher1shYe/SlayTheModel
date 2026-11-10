@@ -11,9 +11,9 @@ import torch
 
 from spire_rl import checkpoint as ckpt
 from spire_rl.config import PRESETS, CombatConfig, RewardConfig, make_config
-from spire_rl.data import Episode, collate
+from spire_rl.data import RUN_ACTION_TYPES, SELECT_GRID_CARD, Episode, candidate_groups, collate
 from spire_rl.env import CombatEvent, EpisodeLog, MacroEnv, Observation, Outcome, aux_labels, raw_reward
-from spire_rl.model import SpireNet, count_parameters
+from spire_rl.model import SpireNet, count_parameters, value_weights
 from spire_rl.ppo import compute_gae, ppo_update, recompute_check
 from spire_rl.train import build_model, env_spec
 
@@ -45,6 +45,8 @@ def episodes():
             ep.outcome = Outcome.TRUNCATED
         ep.logp = [0.0] * len(ep)
         ep.value = [0.0] * len(ep)
+        ep.value_comps = [np.zeros(3, np.float32)] * len(ep)
+        ep.info["value_weights"] = value_weights(1.0, RewardConfig())
         out.append(ep)
     return out
 
@@ -188,7 +190,7 @@ def test_microbatch_accumulation_matches_full_batch(episodes):
     tg = targets_of(episodes, limit=4)
     for ep in episodes:
         ep.aux = aux_labels(ep.info["log"], len(ep), ep.outcome)
-        compute_gae(ep, 1.0, 0.99)
+        compute_gae(ep, 1.0, 0.99, ep.info["value_weights"])
     grads = []
     for micro in (len(tg), 1):
         torch.manual_seed(0)
@@ -313,6 +315,151 @@ def test_training_tables_use_cumulative_episodes(tmp_path):
     table = list(csv.DictReader((tmp_path / "run" / "metrics.csv").open()))
     assert [int(r["episodes"]) for r in table] == eps and "reward_raw_mean" in table[0]
     files = {p.name for p in (tmp_path / "run").iterdir()}
-    assert "best.pt" in files and not any(f.startswith(("latest", "weights_ep")) for f in files)
+    assert "best.pt" in files and "last.pt" in files and not any(f.startswith(("latest", "weights_ep")) for f in files)
+    last = ckpt.load(tmp_path / "run" / "last.pt")
+    assert last["critic"] is not None and last["progress"].get("final")          # separate critic saved
     with pytest.raises(FileExistsError):
         train(cfg, tmp_path / "run", torch.device("cpu"), stop_after_updates=1, log=lambda *_: None)
+
+
+# --- 2026-11-10 review: P0 regressions -------------------------------------------------
+
+def test_constants_match_simulator():
+    from spire_rl.sim import sim
+    assert SELECT_GRID_CARD == int(sim.RunActionType.SELECT_GRID_CARD)
+    assert RUN_ACTION_TYPES == int(sim.RUN_ACTION_TYPES)
+
+
+def test_inputs_carry_no_training_condition(model, episodes):
+    """G2: the same history collected under another stage/alpha gives the same policy input."""
+    other = []
+    for ep in episodes:
+        e = copy.copy(ep)
+        e.stage = 3
+        e.reward = [np.array([0.0, *r[1:]], np.float32) for r in ep.reward]   # alpha = 0 r_train
+        other.append(e)
+    with torch.no_grad():
+        a = model(collate(targets_of(episodes), WINDOW))
+        b = model(collate(targets_of(other), WINDOW))
+    assert torch.equal(a.logits, b.logits) and torch.equal(a.value, b.value)
+
+
+def test_factorized_policy_is_normalized_and_starts_uniform_over_groups(model, episodes):
+    with torch.no_grad():
+        out = model(collate(targets_of(episodes, limit=14), WINDOW))
+    p = out.logits.exp()
+    assert torch.allclose(p.sum(-1), torch.ones(p.shape[0]), atol=1e-5)
+    gp = out.group_logp.exp()
+    present = (gp > 1e-6).sum(-1)
+    assert torch.allclose(gp.max(-1).values, 1.0 / present, atol=0.02)   # ~uniform over groups at init
+
+
+def test_component_gae_equals_scalar_gae_on_combined_value():
+    gen = np.random.default_rng(0)
+    w = value_weights(0.5, RewardConfig())
+    for outcome in (Outcome.DEATH, Outcome.WIN, Outcome.TRUNCATED):
+        ep = Episode(0, 0, 0)
+        ep.actions = [0] * 5
+        ep.value_comps = list(gen.random((5, 3)).astype(np.float32))
+        events = gen.integers(0, 2, (5, 3)).astype(np.float32)
+        ep.reward = [np.array([float(e @ np.asarray(w)), *e], np.float32) for e in events]
+        ep.bootstrap_comps = gen.random(3).astype(np.float32)
+        ep.outcome = outcome
+        compute_gae(ep, 1.0, 0.9, w)
+        comp_adv = ep.advantages.copy()
+        from spire_rl.model import combine_value
+        ep.value = [float(combine_value(c, 0.5, RewardConfig())) for c in ep.value_comps]
+        ep.bootstrap_value = float(combine_value(ep.bootstrap_comps, 0.5, RewardConfig()))
+        compute_gae(ep, 1.0, 0.9)
+        assert np.allclose(comp_adv, ep.advantages, atol=1e-5)
+
+
+def test_candidate_groups_split_deselect():
+    def obs(num):
+        n = len(num)
+        return Observation(np.zeros(2, np.int32), np.zeros(2, np.int32), np.zeros((2, 80), np.float32),
+                           np.zeros((0, 2), np.int32), np.array([SELECT_GRID_CARD] * (n - 1) + [26], np.int32),
+                           np.arange(n, dtype=np.int32), -np.ones(n, np.int32), -np.ones(n, np.int32),
+                           np.asarray(num, np.float32), 9)
+    v2 = obs([[0, 0, 0, 1, 0], [0, 0, 0, 1, 1], [0, 0, 0, 0, 0]])
+    assert candidate_groups(v2).tolist() == [SELECT_GRID_CARD, RUN_ACTION_TYPES, 26]
+    v1 = obs([[0, 0, 0, 1], [0, 0, 0, 1], [0, 0, 0, 0]])                    # observation v1: no flag
+    assert candidate_groups(v1).tolist() == [SELECT_GRID_CARD, SELECT_GRID_CARD, 26]
+
+
+class _GridForever:
+    """Stand-in run context: a card grid whose toggles never close it."""
+    is_terminal = won = truncated = False
+    screen = None
+    floor = act = 0
+
+    def step(self, *_):
+        return True
+
+    def macro_observation(self):
+        return {"kind": np.zeros(2, np.int32), "id": np.zeros(2, np.int32), "num": np.zeros((2, 80), np.float32),
+                "edges": np.zeros((0, 2), np.int32), "cand_type": np.array([SELECT_GRID_CARD, 26], np.int32),
+                "cand_index": np.arange(2, dtype=np.int32), "cand_target": -np.ones(2, np.int32),
+                "cand_target2": -np.ones(2, np.int32), "cand_num": np.zeros((2, 4), np.float32), "phase": 7}
+
+
+def test_menu_loop_guard_truncates_without_choosing():
+    """G3: a grid that is toggled forever ends as a menu_loop truncation; no action is taken for the policy."""
+    env = MacroEnv(CombatConfig(), RewardConfig(), max_macro_steps=10_000, max_grid_steps=5)
+    env.rc = _GridForever()
+    env.decisions = env.macro_steps = env.combat_index = env.mcts_decision_counter = 0
+    env.log, env.credited_floor, env.max_act, env.grid_phase, env.grid_steps = EpisodeLog(), 0, 0, -1, 0
+    obs = Observation.capture(env.rc)
+    outcomes = []
+    for _ in range(10):
+        r = env.step(0, obs, 1.0)                      # always the toggle, never confirm
+        outcomes.append(r.outcome)
+        if r.outcome != Outcome.RUNNING:
+            break
+        obs = r.next_obs
+    assert outcomes == [Outcome.RUNNING] * 4 + [Outcome.TRUNCATED]
+    assert r.failure_reason == "menu_loop" and r.final_obs is not None and env.log.menu_loops == 1
+
+
+# --- 2026-11-10 second batch: separate critic, sampled KL stop -----------------------
+
+def _prepared(episodes):
+    for ep in episodes:
+        ep.aux = aux_labels(ep.info["log"], len(ep), ep.outcome)
+        ep.value_comps = [np.zeros(3, np.float32)] * len(ep)
+        compute_gae(ep, 1.0, 0.99, ep.info["value_weights"])
+    return targets_of(episodes, limit=14)
+
+
+def test_critic_value_passes_reduce_value_loss(episodes):
+    from spire_rl.ppo import critic_update
+    from spire_rl.train import build_critic
+    torch.manual_seed(0)
+    tg = _prepared(episodes)
+    critic = build_critic(CFG, torch.device("cpu"))
+    opt = torch.optim.AdamW(critic.parameters(), lr=1e-3)
+    cfg = dataclasses.replace(CFG.ppo, value_epochs=1)
+    first = critic_update(critic, opt, tg, cfg, CFG.critic.window, torch.device("cpu"), random.Random(0))
+    for _ in range(5):
+        last = critic_update(critic, opt, tg, cfg, CFG.critic.window, torch.device("cpu"), random.Random(0))
+    assert last["value_loss"] < first["value_loss"]
+
+
+def test_policy_update_with_critic_has_no_value_term_and_kl_stops(episodes):
+    torch.manual_seed(0)
+    tg = _prepared(episodes)
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp = list(ep.logp)
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    opt = torch.optim.SGD(m.parameters(), lr=50.0)      # absurd step -> must stop on KL
+    cfg = dataclasses.replace(CFG.ppo, epochs=4, batch_targets=4, target_kl=1e-6, kl_check_every=1)
+    from spire_rl.train import build_critic
+    critic = build_critic(CFG, torch.device("cpu"))
+    copt = torch.optim.AdamW(critic.parameters(), lr=1e-4)
+    out = ppo_update(m, opt, tg, cfg, 0.01, WINDOW, torch.device("cpu"), random.Random(0), critic, copt).values
+    assert out["kl_early_stop"] and out["kl_stop_reason"] in ("minibatch_kl", "sampled_kl")
+    assert out["optimizer_steps"] < 4 * len(tg) / 4
+    assert "value_loss" in out and out["critic_steps"] > 0               # critic still trained

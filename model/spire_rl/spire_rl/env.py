@@ -4,6 +4,12 @@ Between two choices the environment advances on its own:
   * combats are played to the end by the fixed C++ hidden-state MCTS;
   * screens with exactly one legal action are executed (no choice exists);
 so every stored transition is a decision the policy actually made.
+
+Menu loops: a multi-select card grid can be toggled forever (run main-a0-s1
+spent 2,900+ decisions in Sea Glass three times). After ``max_grid_steps``
+consecutive decisions inside one open grid the episode ends as a TRUNCATED
+``menu_loop`` with its last state kept for bootstrap. Nothing is chosen,
+confirmed or removed on the policy's behalf.
 """
 from __future__ import annotations
 
@@ -75,6 +81,7 @@ class EpisodeLog:
     act_at_decision: list[int] = field(default_factory=list)
     max_act: int = 0
     forced_steps: int = 0
+    menu_loops: int = 0
     mcts_decisions: int = 0
     mcts_simulations: int = 0
     combat_seconds: float = 0.0
@@ -82,11 +89,12 @@ class EpisodeLog:
 
 class MacroEnv:
     def __init__(self, combat: CombatConfig, reward: RewardConfig, ascension: int = 0,
-                 max_macro_steps: int = 3000):
+                 max_macro_steps: int = 600, max_grid_steps: int = 64):
         self.combat = combat
         self.reward = reward
         self.ascension = ascension
         self.max_macro_steps = max_macro_steps
+        self.max_grid_steps = max_grid_steps
         self.rc = None
 
     # -- episode lifecycle -------------------------------------------------
@@ -103,6 +111,8 @@ class MacroEnv:
         self.log = EpisodeLog()
         self.credited_floor = 0
         self.max_act = 0
+        self.grid_phase = -1      # phase of the open grid being counted (-1 = none)
+        self.grid_steps = 0       # consecutive decisions inside it
         result = self._advance()
         # Progress made before the first decision is not credited later.
         self.credited_floor = self._completed_floor()
@@ -116,11 +126,20 @@ class MacroEnv:
         self.log.act_at_decision.append(int(self.rc.act))
         self.decisions += 1
         self.macro_steps += 1
+        if obs.phase % 2:                                   # a card grid is open
+            self.grid_steps = self.grid_steps + 1 if obs.phase == self.grid_phase else 1
+            self.grid_phase = obs.phase
+        else:
+            self.grid_phase, self.grid_steps = -1, 0
         ok = self.rc.step(int(obs.cand_type[candidate]), int(obs.cand_index[candidate]))
         if not ok:
             return StepResult(0.0, np.zeros(3, np.float32), Outcome.FAILURE, None, None,
                               "legal candidate rejected by the simulator")
         outcome, next_obs, final_obs, reason = self._advance()
+        if (outcome == Outcome.RUNNING and next_obs.phase == self.grid_phase
+                and self.grid_steps >= self.max_grid_steps):
+            self.log.menu_loops += 1
+            outcome, final_obs, next_obs, reason = Outcome.TRUNCATED, next_obs, None, "menu_loop"
         components = self._collect_progress(outcome)
         return StepResult(raw_reward(components, alpha, self.reward), components, outcome, next_obs,
                           final_obs, reason)

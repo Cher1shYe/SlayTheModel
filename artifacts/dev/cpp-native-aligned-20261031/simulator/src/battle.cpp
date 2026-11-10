@@ -211,9 +211,11 @@ void BattleContext::init(Encounter enc, std::uint64_t seed, const Card *deck, in
     targetRng = Rng(seed ^ 0xA4093822u);
     monsterAiRng = Rng(seed ^ 0x299F31D0u);
     nicheRng = Rng(seed ^ 0x082EFA98u);
+    orbRng = Rng(seed ^ 0x3C6EF372u);
     if (runRngs != nullptr) {
         // RunRngType order: shuffle=1, card generation=3, potion generation=4,
-        // card selection=5, energy costs=6, targets=7, monster AI=8.
+        // card selection=5, energy costs=6, targets=7, monster AI=8, niche=9,
+        // combat orbs=10 (RunRngSet.CombatOrbGeneration: Chaos, Trash to Treasure).
         shuffleRng = runRngs[1];
         cardGenerationRng = runRngs[3];
         potionRng = runRngs[4];
@@ -222,6 +224,7 @@ void BattleContext::init(Encounter enc, std::uint64_t seed, const Card *deck, in
         targetRng = runRngs[7];
         monsterAiRng = runRngs[8];
         nicheRng = runRngs[9];
+        orbRng = runRngs[10];
         rng = monsterAiRng;
     }
     player.maxHp = playerMaxHp > 0 ? playerMaxHp : 80;
@@ -348,25 +351,19 @@ void BattleContext::resample_hidden(std::uint32_t seed) {
     // (Headbutt, Nostalgia, known status placements); only shuffle the unknown
     // remainder of the draw pile.
     const int hidden = std::max(0, drawCount - knownTopCount);
-    // Normalize using only the public pile-view fields before randomizing.
-    // Otherwise a fixed search seed would map different original hidden
-    // permutations to different samples. Do not use internal card UIDs here.
-    const auto publicPileKey = [](const Card &c) {
-        return std::make_tuple(static_cast<int>(c.id), c.upgraded,
-                               static_cast<int>(c.enchantment), c.enchantmentAmount,
-                               c.enchantmentDisabled);
-    };
-    const auto publicPileLess = [&](const Card &a, const Card &b) {
-        return publicPileKey(a) < publicPileKey(b);
-    };
-    std::sort(draw, draw + hidden, publicPileLess);
+    // Canonicalize before randomizing: sort by every card field except the UID
+    // (card_canonical_less). Otherwise a fixed search seed would map different
+    // original hidden permutations to different samples. The old 5-field key
+    // let same-name cards with different growth/cost keep their hidden order
+    // (NoSL audit 2026-11-10).
+    std::sort(draw, draw + hidden, card_canonical_less);
     for (int i = hidden - 1; i > 0; --i) {
         const int j = shuffle.next_int(0, i);
         Card t = draw[i];
         draw[i] = draw[j];
         draw[j] = t;
     }
-    std::sort(discard, discard + discardCount, publicPileLess);
+    std::sort(discard, discard + discardCount, card_canonical_less);
     for (int i = discardCount - 1; i > 0; --i) {
         const int j = shuffle.next_int(0, i);
         Card t = discard[i];
@@ -383,6 +380,7 @@ void BattleContext::resample_hidden(std::uint32_t seed) {
     targetRng = Rng(seed ^ 0xA4093822u);
     monsterAiRng = Rng(seed ^ 0x299F31D0u);
     nicheRng = Rng(seed ^ 0x082EFA98u);
+    orbRng = Rng(seed ^ 0x3C6EF372u);
 }
 
 

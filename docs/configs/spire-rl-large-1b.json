@@ -15,7 +15,25 @@
       "max_step_index": 512,
       "action_dim": 512,
       "action_heads": 8,
-      "dropout": 0.0
+      "dropout": 0.0,
+      "type_factorized": true
+    },
+    "critic": {
+      "set_dim": 256,
+      "set_heads": 8,
+      "set_layers": 2,
+      "inducing_points": 16,
+      "map_message_rounds": 2,
+      "hist_dim": 512,
+      "hist_heads": 8,
+      "hist_layers": 4,
+      "ff_mult": 4,
+      "window": 32,
+      "max_step_index": 512,
+      "action_dim": 256,
+      "action_heads": 8,
+      "dropout": 0.0,
+      "type_factorized": true
     },
     "combat": {
       "normal_simulations": 128,
@@ -53,14 +71,17 @@
       ],
       "gate_act2_episodes": 1,
       "gate_win_seed_families": 10,
-      "gate_policy": "stop"
+      "gate_policy": "hold"
     },
     "ppo": {
       "num_envs": 8,
       "min_transitions": 2048,
-      "epochs": 4,
+      "epochs": 3,
       "clip": 0.2,
       "target_kl": 0.01,
+      "kl_check_every": 8,
+      "kl_check_targets": 512,
+      "kl_hard_mult": 4.0,
       "gamma": 1.0,
       "gae_lambda": 0.99,
       "batch_targets": 128,
@@ -74,11 +95,14 @@
       "weight_decay": 0.0,
       "max_grad_norm": 0.5,
       "value_coef": 0.5,
+      "critic_lr": 0.0001,
+      "value_epochs": 4,
       "value_huber_delta": 1.0,
       "aux_survival_coef": 0.05,
       "aux_hp_coef": 0.02,
       "aux_hp_huber_delta": 0.1,
       "aux_act_coef": 0.05,
+      "type_entropy_coef": 0.01,
       "bf16": true,
       "activation_checkpointing": true,
       "recompute_tolerance": 0.05
@@ -96,12 +120,13 @@
       1000
     ],
     "eval_every": 2000,
-    "max_macro_steps": 3000,
+    "max_macro_steps": 600,
+    "max_grid_steps": 64,
     "sweet_spot": [
       8000,
       20000
     ],
     "archive_trajectories": true
   },
-  "fingerprint": "ede238dfeff285d3"
+  "fingerprint": "25e8e8968fb8aaa1"
 }

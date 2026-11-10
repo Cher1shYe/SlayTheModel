@@ -8,6 +8,12 @@ Shapes (B targets, U unique states, N entities, C candidates, W window steps):
 
 One forward serves actor, critic and auxiliary heads (no second temporal pass).
 Only public observation arrays enter the model; returns-to-go never do.
+
+Inputs carry no training condition: no reward-stage id and no alpha-weighted
+reward. History reward tokens hold what happened (floors, act entries, win),
+so the actor sees the same input in training, validation and deployment. The
+critic predicts the three return components separately; the scalar value for
+any alpha is a fixed linear combination (``combine_value``).
 """
 from __future__ import annotations
 
@@ -22,7 +28,12 @@ from torch.utils.checkpoint import checkpoint
 from .config import ModelConfig
 
 TOKENS_PER_STEP = 4  # goal, state, action, reward
-REWARD_FEATURES = 4  # r_train, floors, act entries, win
+REWARD_FEATURES = 3  # events of the step: floors completed, acts entered, win
+# Critic outputs are these components of the future return divided by the scale.
+VALUE_COMPONENTS = ("floors", "acts", "win")
+VALUE_SCALE = (50.0, 2.0, 1.0)
+# SELECT_GRID_CARD on an already selected card (= deselect) gets its own group.
+CAND_DESELECT_FEATURE = 4   # index in cand_num (macro observation v2)
 
 
 @dataclass
@@ -33,11 +44,15 @@ class EnvSpec:
     phases: int
     vocab: list[int]
     action_types: int
-    stages: int
 
     @property
     def kinds(self) -> int:
         return len(self.vocab)
+
+    @property
+    def groups(self) -> int:
+        """Action groups of the factorized policy: one per action type + deselect."""
+        return self.action_types + 1
 
 
 @dataclass
@@ -56,6 +71,7 @@ class MacroBatch:
     cand_t2: Tensor      # [B, C] long
     cand_num: Tensor     # [B, C, K]
     cand_mask: Tensor    # [B, C] bool
+    cand_group: Tensor   # [B, C] long, action group (type, or the extra deselect group)
     # history windows (left aligned; the target is the last valid step)
     win_state: Tensor    # [B, W] long, -1 = padding
     win_act_type: Tensor  # [B, W] long, chosen candidate of each past step
@@ -64,7 +80,6 @@ class MacroBatch:
     win_act_num: Tensor  # [B, W, K]
     win_reward: Tensor   # [B, W, REWARD_FEATURES]
     win_phase: Tensor    # [B, W] long
-    win_stage: Tensor    # [B, W] long
     win_abs: Tensor      # [B, W] long, absolute decision index (clamped)
     win_len: Tensor      # [B] long, valid steps (>= 1)
 
@@ -74,9 +89,22 @@ class MacroBatch:
 
 @dataclass
 class ModelOutput:
-    logits: Tensor   # [B, C], -inf on padding/illegal
-    value: Tensor    # [B]
+    logits: Tensor   # [B, C] log-probabilities, -inf on padding/illegal
+    value: Tensor    # [B, 3] future (floors, act entries, win) / VALUE_SCALE
     aux: Tensor      # [B, 3] logits: survive, hp ratio (pre-sigmoid), act completion
+    group_logp: Tensor | None = None   # [B, G] log P(group), -inf when absent (factorized only)
+
+
+def value_weights(alpha: float, reward) -> tuple[float, float, float]:
+    """Weights turning raw-unit components into r_train units for this alpha."""
+    return (alpha * reward.floor / reward.scale, alpha * reward.act_entry / reward.scale,
+            reward.win / reward.scale)
+
+
+def combine_value(components, alpha: float, reward):
+    """Scalar V in r_train units from [..., 3] normalized critic outputs."""
+    w = value_weights(alpha, reward)
+    return sum(components[..., k] * VALUE_SCALE[k] * w[k] for k in range(3))
 
 
 class Attention(nn.Module):
@@ -209,7 +237,6 @@ class SpireNet(nn.Module):
         # --- history Transformer
         self.task_emb = nn.Embedding(1, dh)                 # WIN_RUN
         self.phase_emb = nn.Embedding(spec.phases, dh)
-        self.stage_emb = nn.Embedding(spec.stages, dh)
         self.state_in = nn.Linear(ds, dh)
         self.action_in = nn.Linear(ds, dh)
         self.reward_in = nn.Linear(REWARD_FEATURES, dh)
@@ -223,7 +250,10 @@ class SpireNet(nn.Module):
         self.policy_query = nn.Linear(dh, da)
         self.cand_proj = nn.Linear(ds, da)
         self.policy_mlp = nn.Sequential(nn.Linear(3 * da, da), nn.GELU(), nn.Linear(da, 1))
-        self.value_head = nn.Linear(dh, 1)
+        if cfg.type_factorized:
+            self.group_emb = nn.Embedding(spec.groups, da)
+            self.group_mlp = nn.Sequential(nn.Linear(3 * da, da), nn.GELU(), nn.Linear(da, 1))
+        self.value_head = nn.Linear(dh, len(VALUE_COMPONENTS))
         self.aux_head = nn.Linear(dh, 3)
         self.checkpointing = False
         self._init_weights()
@@ -244,6 +274,8 @@ class SpireNet(nn.Module):
         # Near-uniform initial policy over legal candidates.
         nn.init.normal_(self.policy_mlp[-1].weight, std=1e-4)
         nn.init.normal_(self.policy_query.weight, std=1e-3)
+        if self.cfg.type_factorized:   # near-uniform over the groups present
+            nn.init.normal_(self.group_mlp[-1].weight, std=1e-4)
 
     def set_checkpointing(self, enabled: bool) -> None:
         self.checkpointing = bool(enabled)
@@ -306,7 +338,7 @@ class SpireNet(nn.Module):
         acts = acts.reshape(bsz, w, -1)
         pos = torch.arange(w, device=z.device)
         common = self.position(pos)[None] + self.abs_step(b.win_abs.clamp(max=self.cfg.max_step_index - 1))
-        g = self.task_emb.weight[0] + self.phase_emb(b.win_phase) + self.stage_emb(b.win_stage)
+        g = self.task_emb.weight[0] + self.phase_emb(b.win_phase)
         tokens = torch.stack((
             g,
             self.state_in(z[safe_state]),
@@ -333,10 +365,37 @@ class SpireNet(nn.Module):
         cands = self.encode_candidates(entities, b.ent_mask, b.tgt_state, b.cand_type, b.cand_t1,
                                        b.cand_t2, b.cand_num)
         c = self.cand_proj(cands)                                     # [B, C, Da]
-        q = self.policy_query(h)[:, None].expand_as(c)
-        logits = (q * c).sum(-1) / math.sqrt(c.shape[-1]) + self.policy_mlp(torch.cat((q, c, q * c), -1))[..., 0]
-        logits = logits.float().masked_fill(~b.cand_mask, float("-inf"))
-        return ModelOutput(logits, self.value_head(h)[:, 0].float(), self.aux_head(h).float())
+        qh = self.policy_query(h)
+        q = qh[:, None].expand_as(c)
+        scores = (q * c).sum(-1) / math.sqrt(c.shape[-1]) + self.policy_mlp(torch.cat((q, c, q * c), -1))[..., 0]
+        scores = scores.float()
+        group_logp = None
+        if self.cfg.type_factorized:
+            logits, group_logp = self._factorized(qh, scores, b.cand_group, b.cand_mask)
+        else:
+            logits = torch.log_softmax(scores.masked_fill(~b.cand_mask, float("-inf")), -1)
+        return ModelOutput(logits, self.value_head(h).float(), self.aux_head(h).float(), group_logp)
+
+    def _factorized(self, qh: Tensor, scores: Tensor, group: Tensor, mask: Tensor) -> tuple[Tensor, Tensor]:
+        """log P(c) = log P(group(c)) + log P(c | group(c)); exact, so PPO ratios stay valid.
+
+        Masked entries use a large finite negative (not -inf) until the final
+        mask, so no all-masked logsumexp can put NaN into the backward pass.
+        Returned group_logp is ~-1e9 for groups absent from the request.
+        """
+        neg = -1e9
+        bsz, n_groups = scores.shape[0], self.spec.groups
+        g = group.clamp(0, n_groups - 1)
+        member = F.one_hot(g, n_groups).bool() & mask[..., None]                              # [B, C, G]
+        present = member.any(1)                                                               # [B, G]
+        e = self.group_emb.weight[None].expand(bsz, -1, -1)                                   # [B, G, Da]
+        qg = qh[:, None].expand_as(e)
+        u = (qg * e).sum(-1) / math.sqrt(e.shape[-1]) + self.group_mlp(torch.cat((qg, e, qg * e), -1))[..., 0]
+        group_logp = torch.log_softmax(u.float().masked_fill(~present, neg), -1)
+        safe = scores.masked_fill(~mask, neg)
+        lse = torch.logsumexp(safe[..., None].masked_fill(~member, neg), 1)                   # [B, G]
+        logits = group_logp.gather(1, g) + safe - lse.gather(1, g)
+        return logits.masked_fill(~mask, float("-inf")), group_logp
 
 
 def count_parameters(model: nn.Module) -> int:

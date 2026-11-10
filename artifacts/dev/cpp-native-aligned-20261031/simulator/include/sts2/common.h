@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <vector>
 
 namespace sts2 {
@@ -472,6 +473,43 @@ bool potion_epoch_unlocked(std::uint64_t revealedEpochs, PotionId id);
 inline bool native_card_less(const Card &a, const Card &b) {
     const int order = std::strcmp(card_key(a.id), card_key(b.id));
     return order != 0 ? order < 0 : a.upgraded < b.upgraded;
+}
+
+// Every card attribute the player can see (hand, pile viewers, choice screens),
+// in a fixed order; equal keys are visibly identical cards. It covers exactly
+// what observe.cpp's push_card_instance emits. The first 19 entries keep the
+// previous visible_choice_key order; the last four were emitted but missing from
+// the key (NoSL audit 2026-11-10), so ties could keep the hidden stack order.
+// Never use the UID or a deck/pile position here.
+inline auto card_public_key(const Card &c) {
+    return std::make_tuple(static_cast<int>(c.id), c.upgraded, card_cost(c), c.replay,
+                           c.bonusReplay, c.freeCombat, c.costThisTurn, c.combatCostCap,
+                           c.bonusDamage, c.etherealThisCombat, c.retainThisCombat,
+                           c.galvanized, c.guiltyCombatsSeen,
+                           static_cast<int>(c.enchantment), c.enchantmentAmount,
+                           c.enchantmentDisabled, c.costThisTurn ? c.storedCost : 0,
+                           c.tinkerType, c.tinkerRider,
+                           c.bonusBlock, c.retainThisTurn, c.slyThisTurn, c.slyThisCombat);
+}
+
+// Total order on every behaviour-relevant card field except the UID: the public
+// key first, then state the player does not see directly (raw cost fields and
+// the cost-modifier stack). Hidden-state resampling sorts by this before it
+// shuffles, so its result cannot depend on the real hidden order. Cards equal
+// under this order differ only by UID.
+inline bool card_canonical_less(const Card &a, const Card &b) {
+    const auto pa = card_public_key(a), pb = card_public_key(b);
+    if (pa != pb) return pa < pb;
+    const auto ra = std::make_tuple(a.costForTurn, a.storedCost, a.costModifierCount);
+    const auto rb = std::make_tuple(b.costForTurn, b.storedCost, b.costModifierCount);
+    if (ra != rb) return ra < rb;
+    for (int i = 0; i < a.costModifierCount && i < MAX_CARD_COST_MODIFIERS; ++i) {
+        const CardCostModifier &x = a.costModifiers[i], &y = b.costModifiers[i];
+        const auto mx = std::make_tuple(x.amount, x.expiration, x.absolute, x.reduceOnly);
+        const auto my = std::make_tuple(y.amount, y.expiration, y.absolute, y.reduceOnly);
+        if (mx != my) return mx < my;
+    }
+    return false;
 }
 
 const PotionDef &potion_def(PotionId id);

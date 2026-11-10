@@ -13,7 +13,7 @@ import operator
 from pathlib import Path
 import re
 
-RULESET_ID = "native-41cef1ea-port-v6"
+RULESET_ID = "native-41cef1ea-port-v7"
 TARGET_GAME_DLL_SHA256 = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
 ROOT = Path(__file__).resolve().parents[1]
 _PROCESS_CONTRACT_DIGEST = None

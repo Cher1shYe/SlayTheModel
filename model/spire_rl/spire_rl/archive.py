@@ -15,7 +15,8 @@ import numpy as np
 from .data import Episode
 from .env import Observation, Outcome
 
-FORMAT = "spire_rl.archive/1"
+FORMAT = "spire_rl.archive/2"          # 2 adds value_comps (3-component critic)
+READABLE = ("spire_rl.archive/1", FORMAT)
 _OBS_ARRAYS = ("kind", "id", "num", "edges", "cand_type", "cand_index", "cand_target", "cand_target2", "cand_num")
 
 
@@ -36,6 +37,9 @@ def write_rollout(path: Path, episodes: list[Episode], meta: dict) -> int:
         "action": np.array([e.actions[t] for e, t in steps], np.int16),
         "logp": np.array([e.logp[t] for e, t in steps], np.float32),
         "value": np.array([e.value[t] for e, t in steps], np.float32),
+        "value_comps": (np.stack([np.asarray(e.value_comps[t], np.float32) for e, t in steps])
+                        if steps and all(len(e.value_comps) == len(e) for e in ep_rows)
+                        else np.zeros((0, 3), np.float32)),
         "reward": np.stack([e.reward[t] for e, t in steps]) if steps else np.zeros((0, 4), np.float32),
         "phase": np.array([e.obs[t].phase for e, t in steps], np.int16),
     }
@@ -57,7 +61,7 @@ def write_rollout(path: Path, episodes: list[Episode], meta: dict) -> int:
 def read_rollout(path: Path) -> tuple[dict, list[Episode]]:
     z = np.load(path)
     meta = json.loads(bytes(z["meta"]).decode())
-    if meta.get("format") != FORMAT:
+    if meta.get("format") not in READABLE:
         raise ValueError(f"{path}: unknown archive format {meta.get('format')!r}")
     offs = {n: np.concatenate([[0], np.cumsum(z[n + "_len"])]) for n in _OBS_ARRAYS}
     arrays = {n: z[n] for n in _OBS_ARRAYS}
@@ -74,6 +78,8 @@ def read_rollout(path: Path) -> tuple[dict, list[Episode]]:
             ep.actions.append(int(z["action"][k]))
             ep.logp.append(float(z["logp"][k]))
             ep.value.append(float(z["value"][k]))
+            if "value_comps" in z.files and len(z["value_comps"]) > k:
+                ep.value_comps.append(z["value_comps"][k])
             ep.reward.append(z["reward"][k])
             k += 1
         episodes.append(ep)

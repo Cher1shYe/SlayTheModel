@@ -390,6 +390,10 @@ MacroObservation macro_observation(const RunContext &rc) {
         out.candNum.push_back(price >= 0 && price > rc.gold ? 1.0f : 0.0f);
         out.candNum.push_back(i / 40.0f);
         out.candNum.push_back(target >= 0 ? 1.0f : 0.0f);
+        // Toggling a selected grid card off (public: the grid shows the selection).
+        const bool deselect = a.type == RunActionType::SELECT_GRID_CARD && grid.kind &&
+                              i >= 0 && i < grid.count && grid.selected[i];
+        out.candNum.push_back(deselect ? 1.0f : 0.0f);
     }
     return out;
 }
