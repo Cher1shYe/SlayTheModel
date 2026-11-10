@@ -1,4 +1,5 @@
 #include "sts2/run.h"
+#include "port_root.h"
 #include "sts2/relics.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
@@ -80,7 +81,7 @@ void roundtrip(RunContext &r) {
 }
 
 int main() {
-    const auto path=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()/"native-round4-step2-relic-lifecycle-fixtures/results.json";
+    const auto path=port_root()/"native-round4-step2-relic-lifecycle-fixtures/results.json";
     std::ifstream input(path);json data;input>>data;
     assert(data["status"]=="completed"&&data["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");
     const json standardBag=data["results"][0]["bagBefore"];

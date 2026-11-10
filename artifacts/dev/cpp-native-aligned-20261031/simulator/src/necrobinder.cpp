@@ -117,8 +117,8 @@ void necrobinder_attack_osty(BattleContext &b,Card &c,int target,double base,int
             if(!all&&i!=chosen)continue;
             if(!b.monsters[i].alive||b.necro.ostyHp<=0)continue;
             const Monster &m=b.monsters[i];
-            double damage=base+b.necro.ostyStrength+b.player_power(PowerId::CALCIFY);
-            if(c.enchantment==EnchantmentId::VIGOROUS&&!c.enchantmentDisabled)damage+=c.enchantmentAmount;
+            // Card enchantment (Vigorous/Sharp/Corrupted) applies to the card base first.
+            double damage=b.enchant_card_damage(c,base)+b.necro.ostyStrength+b.player_power(PowerId::CALCIFY);
             if(b.necro.ostyWeak>0)damage*=0.75;
             if(m.vulnerable>0){double vuln=relic_has(b,RelicId::PAPER_PHROG)?1.75:1.5;
                 vuln+=b.player_power(PowerId::CRUELTY)/100.0;
@@ -207,7 +207,11 @@ void necrobinder_player_turn_end(BattleContext &b){
 void necrobinder_enemy_turn_end(BattleContext &b){
     necrobinder_doom_kill(b);
     for(int i=0;i<b.monsterCount;++i){if(b.monster_power(i,PowerId::DEBILITATE)>0)b.add_monster_power(i,PowerId::DEBILITATE,-1);
-        b.add_monster_power(i,PowerId::SIC_EM,-b.monster_power(i,PowerId::SIC_EM));}
+        b.add_monster_power(i,PowerId::SIC_EM,-b.monster_power(i,PowerId::SIC_EM));
+        // EnfeeblingTouchPower.AfterSideTurnEnd: remove, then restore Strength.
+        if(const int n=b.monster_power(i,PowerId::ENFEEBLING_TOUCH)){b.add_monster_power(i,PowerId::ENFEEBLING_TOUCH,-n);b.add_monster_power(i,PowerId::STRENGTH,n);}
+        // DarkShacklesPower shares TemporaryStrengthPower's AfterSideTurnEnd.
+        if(const int n=b.monster_power(i,PowerId::DARK_SHACKLES)){b.add_monster_power(i,PowerId::DARK_SHACKLES,-n);b.add_monster_power(i,PowerId::STRENGTH,n);}}
     b.add_player_power(PowerId::UNDERWORLD,-b.player_power(PowerId::UNDERWORLD));
 }
 void necrobinder_before_card_played(BattleContext &b,const Card &c){

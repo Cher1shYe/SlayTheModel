@@ -53,6 +53,10 @@ struct ActMap {
 // pruning, centering, spreading, straightening). mapRng is advanced.
 void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension = 0);
 void generate_golden_path_map(ActMap &map);
+// SpoilsActMap (Spoils Map quest card in the deck when this act's map is made):
+// an hourglass map through a fixed Treasure at row length-7, seeded by
+// Rng(runSeed, "spoils_map"). No post-processing (centering/spread/straighten).
+void generate_spoils_act_map(ActMap &map, std::uint64_t runSeed, int actIndex, int ascension);
 
 const char *map_point_name(MapPointType type);
 

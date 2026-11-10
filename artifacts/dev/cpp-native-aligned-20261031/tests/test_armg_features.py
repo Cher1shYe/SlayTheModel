@@ -16,7 +16,7 @@ def _shop_context():
         deck=[(73, False, 1, 1)], deck_enchantments=[(0, 0, False)],
         offered=[], shop=[(6, 100, False)],
         shop_relics=[(1, 120, False), (2, 140, False)],
-        shop_potions=[(1, 30, False)], potions=[], card_grid_kind=0,
+        shop_potions=[(1, 30, False)], potion_belt=[], card_grid_kind=0,
         removal_price=75,
     )
 

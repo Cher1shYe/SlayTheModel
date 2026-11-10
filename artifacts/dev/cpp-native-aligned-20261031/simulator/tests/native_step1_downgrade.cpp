@@ -1,5 +1,6 @@
 // Controlled differential checks against v0.111.0 / 41cef1ea's real DLL.
 #include "sts2/run.h"
+#include "port_root.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
 #include <cmath>
@@ -52,7 +53,7 @@ int event_id(const char *name) {
     assert(false);return -1;
 }
 int main() {
-    const auto path=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
+    const auto path=port_root()
         /"native-round4-step1-downgrade-fixtures/results.json";
     std::ifstream input(path);json fixture;input>>fixture;
     assert(fixture["status"]=="completed");
@@ -68,7 +69,7 @@ int main() {
             if(modifier=="turn0")card_set_turn_cost(c,0);
             if(modifier=="turn1")card_set_turn_cost(c,1);
             if(modifier=="cap1")c.combatCostCap=1;
-            if(modifier=="free0")c.freeCombat=true;
+            if(modifier=="free0"){c.freeCombat=true;card_modify_cost(c,0,true,0);}  // SetThisCombat(0)
             if(modifier=="keywords"){c.retainThisCombat=true;c.etherealThisCombat=true;}
             if(modifier=="steady")assert(card_apply_enchantment(c,EnchantmentId::STEADY,1));
             if(modifier=="vigorous")assert(card_apply_enchantment(c,EnchantmentId::VIGOROUS,3));

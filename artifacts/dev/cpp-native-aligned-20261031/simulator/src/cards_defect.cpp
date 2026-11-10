@@ -46,7 +46,7 @@ void start_flak(BattleContext &bc, ActivePlay &play) {
     for (auto pile : {std::pair<Card *, int>{bc.hand, bc.handCount}, {bc.draw, bc.drawCount},
                       {bc.discard, bc.discardCount}, {bc.playPile, bc.playCount}})
         for (int i = 0; i < pile.second; ++i)
-            if (card_def(pile.first[i].id).type == CardType::STATUS) {
+            if (card_type(pile.first[i]) == CardType::STATUS) {
                 if (state.drawnCount == 160) throw std::overflow_error("Flak Cannon status snapshot exceeds storage");
                 state.drawnUids[state.drawnCount++] = pile.first[i].uid;
             }
@@ -153,7 +153,7 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
         case CardId::COLD_SNAP: attack(); defect_channel(bc, OrbId::FROST); return true;
         case CardId::COMPACT:
             block();
-            for (int i = 0; i < bc.handCount; ++i) if (card_def(bc.hand[i].id).type == CardType::STATUS) {
+            for (int i = 0; i < bc.handCount; ++i) if (card_type(bc.hand[i]) == CardType::STATUS) {
                 Card replacement = make_card(CardId::FUEL, card.upgraded, bc.require_card_uid());
                 bc.hand[i] = replacement; bc.notify_card_generated(replacement);
             }

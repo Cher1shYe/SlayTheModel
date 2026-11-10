@@ -1,4 +1,5 @@
 #include "sts2/relics.h"
+#include "sts2/regent.h"
 #include "sts2/card_candidates.h"
 #include "sts2/monsters.h"
 #include "sts2/relic_raw_rarity.h"
@@ -481,20 +482,20 @@ void relics_hand_drawn(BattleContext &bc) {
     if (relic_has(bc, RelicId::JEWELED_MASK) && bc.turn == 1) {
         int idx = -1;
         for (int i = 0; i < bc.drawCount; ++i) {
-            if (card_def(bc.draw[i].id).type != CardType::POWER) continue;
+            if (card_type(bc.draw[i]) != CardType::POWER) continue;
             idx = i;
             break;
         }
         if (idx >= 0) {
             Card c = bc.draw[idx];
             bc.remove_draw_at(idx);
-            card_set_turn_cost(c, 0);
+            card_modify_cost(c, 0, true, 2 | 4);  // SetToFreeThisTurn
             bc.add_card_to_hand(c);
         }
     }
     if (relic_has(bc, RelicId::CROSSBOW)) {
         Card c = bc.random_card_of_type(CardType::ATTACK, false);
-        card_set_turn_cost(c, 0);
+        card_modify_cost(c, 0, true, 2 | 4);  // SetToFreeThisTurn
         bc.add_card_to_hand(c);
     }
     if (relic_has(bc, RelicId::CHOICES_PARADOX) && bc.turn == 1) {
@@ -531,6 +532,7 @@ void relics_hand_drawn(BattleContext &bc) {
             set_aux(bc, RelicId::VEXING_PUZZLEBOX, 1);
             Card c = bc.random_character_card_excluding(nullptr, 0);
             c.freeCombat = true;
+            card_modify_cost(c, 0, true, 0);
             bc.add_card_to_hand(c);
         }
     }
@@ -639,12 +641,15 @@ int relics_modify_block_gain(BattleContext &bc, int amount, bool fromCard) {
     return out;
 }
 
-void relics_strength_gain(BattleContext &bc, int amount) {
-    if (amount <= 0) return;
+// Returns the extra Strength to add to this application (Ruined Helmet doubles
+// the first gain).  The caller folds it into the applied amount.
+int relics_strength_gain(BattleContext &bc, int amount) {
+    if (amount <= 0) return 0;
     if (relic_has(bc, RelicId::RUINED_HELMET) && relic_aux(bc, RelicId::RUINED_HELMET) == 0) {
         set_aux(bc, RelicId::RUINED_HELMET, 1);
-        bc.player.strength += amount;
+        return amount;
     }
+    return 0;
 }
 
 void relics_card_played(BattleContext &bc, const Card &card) {
@@ -704,22 +709,30 @@ void relics_card_played(BattleContext &bc, const Card &card) {
         if (relic_has(bc, RelicId::GAME_PIECE)) bc.draw_cards(1);
         if (relic_has(bc, RelicId::LOST_WISP)) damage_all(bc, 8);
         if (relic_has(bc, RelicId::MUMMIFIED_HAND) && bc.handCount > 0) {
-            // MummifiedHand: only cards that actually cost energy/stars are
-            // candidates (includeGlobalModifiers:false), with a fallback to any.
-            int candidates[MAX_HAND];
-            int n = 0;
-            for (int i = 0; i < bc.handCount; ++i) {
-                if (card_cost(bc.hand[i]) > 0) candidates[n++] = i;
+            // MummifiedHand.AfterCardPlayed (Power): NextItem over, in turn,
+            // (base cost > 0) && currently costs; any card that costs; base
+            // cost > 0; any card. Empty sets draw nothing. Then SetToFreeThisTurn.
+            const auto baseCosts = [&](const Card &c) {
+                const CardDef &d = card_def(c.id);
+                return c.costForTurn > 0 || (c.upgraded ? d.starCostUp : d.starCost) > 0;
+            };
+            const auto costsNow = [&](const Card &c) {
+                const CardDef &d = card_def(c.id);
+                const int e = bc.energy_cost_in_combat(c);
+                return (e > 0) || (!(c.upgraded ? d.starCostXUp : d.starCostX) && regent_star_cost(bc, c) > 0);
+            };
+            int idx = -1;
+            for (int pass = 0; pass < 4 && idx < 0; ++pass) {
+                int candidates[MAX_HAND], n = 0;
+                for (int i = 0; i < bc.handCount; ++i) {
+                    const Card &c = bc.hand[i];
+                    const bool ok = pass == 0 ? baseCosts(c) && costsNow(c) : pass == 1 ? costsNow(c)
+                                  : pass == 2 ? baseCosts(c) : true;
+                    if (ok) candidates[n++] = i;
+                }
+                if (n) idx = candidates[bc.cardSelectionRng.next_int(0, n - 1)];
             }
-            if (n > 0) {
-                const int idx = candidates[bc.cardSelectionRng.next_int(0, n - 1)];
-                card_set_turn_cost(bc.hand[idx], 0);
-            } else {
-                // The reference consumes the fallback NextItem roll, but keeps
-                // the first query result (null). It must not turn X-cost cards
-                // into fixed-cost cards.
-                (void) bc.cardSelectionRng.next_int(0, bc.handCount - 1);
-            }
+            if (idx >= 0) card_modify_cost(bc.hand[idx], 0, true, 2 | 4);  // SetToFreeThisTurn
         }
     }
     if (relic_has(bc, RelicId::IRON_CLUB)) {
@@ -851,8 +864,8 @@ bool relics_keep_energy(const BattleContext &bc) {
 
 namespace {
 
-bool reward_pool_card(CardId id, bool colorless) {
-    if (!card_native_available(id)) return false;
+bool reward_pool_card(CardId id, bool colorless, std::uint64_t epochs) {
+    if (!card_native_available(id) || !card_epoch_unlocked(epochs, id)) return false;
     const CardDef &d = card_def(id);
     if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) return false;
     if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON && d.rarity != Rarity::RARE) {
@@ -862,24 +875,24 @@ bool reward_pool_card(CardId id, bool colorless) {
                      : d.pool == CardPool::IRONCLAD;
 }
 
-CardId pick_card(Rng &rng, Rarity want, bool colorless = false) {
+CardId pick_card(Rng &rng, Rarity want, std::uint64_t epochs, bool colorless = false) {
     CardId pool[static_cast<int>(CardId::COUNT)];
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardId id = static_cast<CardId>(i);
-        if (reward_pool_card(id, colorless) && card_def(id).rarity == want) pool[n++] = id;
+        if (reward_pool_card(id, colorless, epochs) && card_def(id).rarity == want) pool[n++] = id;
     }
     if (n == 0) return CardId::STRIKE_IRONCLAD;
     native_sort_card_ids(pool, n);
     return pool[rng.next_int(0, n - 1)];
 }
 
-CardId pick_card_type(Rng &rng, CardType type) {
+CardId pick_card_type(Rng &rng, CardType type, std::uint64_t epochs) {
     CardId pool[static_cast<int>(CardId::COUNT)];
     int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardId id = static_cast<CardId>(i);
-        if (!reward_pool_card(id, false)) continue;
+        if (!reward_pool_card(id, false, epochs)) continue;
         if (card_def(id).type != type) continue;
         pool[n++] = id;
     }
@@ -902,13 +915,13 @@ void add_deck_card(RunContext &rc, CardId id, bool upgraded = false) {
 
 void add_random_deck_card(RunContext &rc, Rarity want, bool upgraded = false,
                           bool colorless = false) {
-    add_deck_card(rc, pick_card(rc.runRng[RNG_NICHE], want, colorless), upgraded);
+    add_deck_card(rc, pick_card(rc.runRng[RNG_NICHE], want, rc.nativeProgress.revealedEpochs, colorless), upgraded);
 }
 
 void upgrade_random_cards(RunContext &rc, int n, int cardType = -1) {
     int candidates[MAX_DECK],count=0;
     for(int i=0;i<rc.deckCount;++i)
-        if(card_upgradable(rc.deck[i]) && (cardType<0 || static_cast<int>(card_def(rc.deck[i].id).type)==cardType))
+        if(card_upgradable(rc.deck[i]) && (cardType<0 || static_cast<int>(card_type(rc.deck[i]))==cardType))
             candidates[count++]=i;
     native_sort_card_indices(rc,candidates,count);
     rc.runRng[RNG_NICHE].shuffle(candidates,count);
@@ -941,7 +954,7 @@ void transform_random_cards(RunContext &rc, int n, bool upgrade, bool basic_only
         int pn = 0;
         for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
             const CardDef &d = CARD_DEFS[i];
-            if (!card_native_available(d.id)) continue;
+            if (!card_native_available(d.id) || !card_epoch_unlocked(rc.nativeProgress.revealedEpochs, d.id)) continue;
             if (d.pool != wantedPool) continue;
             if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON &&
                 d.rarity != Rarity::RARE) {
@@ -1015,17 +1028,112 @@ RelicId run_random_relic(Rng &rng, RunContext &rc) {
     return rc.pull_relic(rarity);
 }
 
-void run_gain_gold(RunContext &rc, int amount) {
-    if (amount <= 0) return;
-    if (run_has_relic(rc, RelicId::ECTOPLASM)) return;
-    const int bonus = run_has_relic(rc, RelicId::BOWLER_HAT) ? amount / 5 : 0;
-    rc.gold += amount + bonus;
-    if (run_has_relic(rc, RelicId::DRAGON_FRUIT)) {
-        // Bowler Hat performs a separate bonus-gold gain and fires the hook again.
-        const int gains = 1 + (bonus > 0 ? 1 : 0);
-        rc.maxHp += gains;
-        rc.hp += gains;
+// PlayerCmd.GainGold: decimal ModifyGoldGained hooks (Bowler Hat x1.25,
+// Ectoplasm -> 0), a single (int) truncation, then AfterGoldGained once
+// (Dragon Fruit +1 max HP) whenever the modified amount is positive.
+namespace {
+// v0.111.0 relics declaring HasUponPickupEffect => true (generated from the
+// decompiled Relics/*.cs; DowsingRod, HeftyTablet, Kaleidoscope, NeowsSacrifice,
+// NeowsTalisman and PhialHolster have no simulator id).
+bool relic_has_upon_pickup_effect(RelicId id) {
+    switch (id) {
+        case RelicId::ALCHEMICAL_COFFER:
+        case RelicId::ASTROLABE:
+        case RelicId::BIG_MUSHROOM:
+        case RelicId::BLOOD_SOAKED_ROSE:
+        case RelicId::BYRDPIP:
+        case RelicId::CALLING_BELL:
+        case RelicId::CAULDRON:
+        case RelicId::DISTINGUISHED_CAPE:
+        case RelicId::DOLLYS_MIRROR:
+        case RelicId::ELECTRIC_SHRYMP:
+        case RelicId::EMPTY_CAGE:
+        case RelicId::FAKE_LEES_WAFFLE:
+        case RelicId::FAKE_MANGO:
+        case RelicId::FRAGRANT_MUSHROOM:
+        case RelicId::GNARLED_HAMMER:
+        case RelicId::GOLDEN_COMPASS:
+        case RelicId::GOLDEN_PEARL:
+        case RelicId::JEWELRY_BOX:
+        case RelicId::KIFUDA:
+        case RelicId::LEES_WAFFLE:
+        case RelicId::LOOMING_FRUIT:
+        case RelicId::LOST_COFFER:
+        case RelicId::MANGO:
+        case RelicId::NEOWS_TORMENT:
+        case RelicId::NEW_LEAF:
+        case RelicId::NUTRITIOUS_OYSTER:
+        case RelicId::OLD_COIN:
+        case RelicId::ORRERY:
+        case RelicId::PAELS_TOOTH:
+        case RelicId::PANDORAS_BOX:
+        case RelicId::PEAR:
+        case RelicId::POTION_BELT:
+        case RelicId::PRECARIOUS_SHEARS:
+        case RelicId::PRECISE_SCISSORS:
+        case RelicId::PUNCH_DAGGER:
+        case RelicId::ROYAL_STAMP:
+        case RelicId::SAND_CASTLE:
+        case RelicId::SEA_GLASS:
+        case RelicId::SERE_TALON:
+        case RelicId::STRAWBERRY:
+        case RelicId::TOY_BOX:
+        case RelicId::WAR_PAINT:
+        case RelicId::WHETSTONE:
+        case RelicId::YUMMY_COOKIE:
+            return true;
+        default: return false;
     }
+}
+}  // namespace
+
+bool run_relic_tradable(const RunContext &rc, int slot) {
+    if (slot < 0 || slot >= rc.relicCount || rc.relicMelted[slot]) return false;
+    const RelicId id = static_cast<RelicId>(rc.relics[slot]);
+    const int raw = relic_raw_rarity(id);
+    if (raw == static_cast<int>(RelicRawRarity::STARTER) || raw == static_cast<int>(RelicRawRarity::EVENT) ||
+        raw == static_cast<int>(RelicRawRarity::ANCIENT)) return false;
+    if (relic_has_upon_pickup_effect(id)) return false;
+    // SpawnsPets.
+    if (id == RelicId::BYRDPIP || id == RelicId::BOUND_PHYLACTERY || id == RelicId::PHYLACTERY_UNBOUND) return false;
+    // IsUsedUp (the other IsUsedUp relics are Event/Ancient or have pickup effects).
+    if (id == RelicId::LIZARD_TAIL && rc.relicAux[slot]) return false;
+    if (id == RelicId::MAW_BANK && rc.mawBankPurchased) return false;
+    if (id == RelicId::SILKEN_TRESS && rc.relicAux[slot]) return false;
+    return true;
+}
+
+void run_remove_relic_at(RunContext &rc, int slot) {
+    if (slot < 0 || slot >= rc.relicCount) throw std::out_of_range("No relic in that slot");
+    for (int i = slot; i + 1 < rc.relicCount; ++i) {
+        rc.relics[i] = rc.relics[i + 1];
+        rc.relicAux[i] = rc.relicAux[i + 1];
+        rc.relicWax[i] = rc.relicWax[i + 1];
+        rc.relicMelted[i] = rc.relicMelted[i + 1];
+    }
+    --rc.relicCount;
+    rc.relics[rc.relicCount] = 0;
+    rc.relicAux[rc.relicCount] = 0;
+    rc.relicWax[rc.relicCount] = false;
+    rc.relicMelted[rc.relicCount] = false;
+}
+
+void run_gain_gold_precomputed(RunContext &rc, int plain, int withBowler, bool positive) {
+    if (!positive || run_has_relic(rc, RelicId::ECTOPLASM)) return;
+    rc.gold += run_has_relic(rc, RelicId::BOWLER_HAT) ? withBowler : plain;
+    if (run_has_relic(rc, RelicId::DRAGON_FRUIT)) {
+        rc.maxHp += 1;
+        rc.hp += 1;
+    }
+}
+
+void run_gain_gold(RunContext &rc, int amount) {
+    run_gain_gold_precomputed(rc, amount, amount * 5 / 4, amount > 0);
+}
+
+bool relic_allowed_in_shops(RelicId id) {
+    return id != RelicId::AMETHYST_AUBERGINE && id != RelicId::BOWLER_HAT && id != RelicId::LUCKY_FYSH &&
+           id != RelicId::OLD_COIN && id != RelicId::THE_COURIER;
 }
 
 int run_energy_bonus(const RunContext &rc) {
@@ -1203,6 +1311,8 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
         case RelicId::MASSIVE_SCROLL: add_random_deck_card(rc, Rarity::UNCOMMON, false, true); break;
         case RelicId::NEOWS_TORMENT: add_deck_card(rc, CardId::NEOWS_FURY); break;
         case RelicId::NEW_LEAF: begin_deck_relic_choice(rc, 7, 1); break;
+        // ElectricShrymp.AfterObtained: FromDeckForEnchantment(Imbued, 1).
+        case RelicId::ELECTRIC_SHRYMP: begin_deck_relic_choice(rc, 15, 1); break;
         case RelicId::NUTRITIOUS_OYSTER: rc.maxHp += 11; rc.hp += 11; break;
         case RelicId::PAELS_HORN:
             for (int i = 0; i < 2; ++i) add_deck_card(rc, CardId::RELAX);

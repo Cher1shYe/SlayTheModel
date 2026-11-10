@@ -37,9 +37,8 @@ void card_apply_upgrade(Card &c) {
 void card_apply_downgrade(Card &c) {
     // Used by deck-event downgrades. Native CardModel.DowngradeInternal resets
     // the canonical base cost and keywords, keeping the card instance and the
-    // local cost modifiers represented independently below. This is not a
-    // general combat cost-modifier stack (Snecko/relative modifiers still share
-    // costForTurn in the current representation).
+    // local cost modifiers (Snecko, Frantic Escape, free-this-combat ... on
+    // the per-card stack), which apply on top of the restored base.
     // Damage/vars/printed keywords are selected from CardDef by upgraded;
     // the supported growth cards restore their accumulated bonus on downgrade.
     c.upgraded = false;
@@ -61,7 +60,6 @@ bool card_upgradable(const Card &c) {
 int card_cost(const Card &c) {
     int value = c.costForTurn;
     if (value < 0) return value;
-    if (c.freeCombat) value = 0;
     if (c.combatCostCap >= 0) value = std::min(value, int(c.combatCostCap));
     for (int i=0;i<c.costModifierCount;++i) {
         const auto &m=c.costModifiers[i];
@@ -75,6 +73,13 @@ void card_modify_cost(Card &c,int amount,bool absolute,std::uint8_t expiration,b
     if((expiration & ~6u)!=0) throw std::invalid_argument("Unknown native cost expiration");
     if(!absolute && amount==0) return;
     if(absolute && amount==0 && card_def(c.id).cost<0) return;
+    // A combat-long, unconditional absolute modifier overrides every earlier
+    // entry for the rest of the combat, so dropping them is exact (keeps
+    // per-draw Snecko re-rolls within capacity).
+    if(absolute && !reduceOnly && expiration==0) {
+        for(int i=0;i<c.costModifierCount;++i)c.costModifiers[i]=CardCostModifier{};
+        c.costModifierCount=0;
+    }
     // Adjacent relative modifiers with identical expiry commute and can be
     // merged exactly; never clamp intermediate local costs to zero.
     if(!absolute && c.costModifierCount>0) {
@@ -120,14 +125,30 @@ int card_var(const Card &c, VarId v) {
 bool card_has(const Card &c, std::uint16_t flag) {
     if (flag == CF_RETAIN && (c.retainThisTurn || c.retainThisCombat || c.enchantment == EnchantmentId::STEADY)) return true;
     if (flag == CF_SLY && (c.slyThisTurn || c.slyThisCombat)) return true;
+    // CardCmd.ApplyKeyword(Ethereal): Ghost Seed, Music Box clones, Sculpting Strike.
+    if (flag == CF_ETHEREAL && c.etherealThisCombat) return true;
+    // SoulsPower.OnEnchant removes the card's own Exhaust keyword.
+    if (flag == CF_EXHAUST && c.enchantment == EnchantmentId::SOULS_POWER) return false;
     const CardDef &d = card_def(c.id);
     const std::uint16_t f = c.upgraded ? d.flagsUp : d.flags;
     return (f & flag) != 0;
 }
 
-bool card_is_attack(const Card &c) { return card_def(c.id).type == CardType::ATTACK; }
-bool card_is_skill(const Card &c) { return card_def(c.id).type == CardType::SKILL; }
-bool card_is_power(const Card &c) { return card_def(c.id).type == CardType::POWER; }
+CardType card_type(const Card &c) {
+    if (c.id == CardId::MAD_SCIENCE && c.tinkerType)
+        return c.tinkerType == 2 ? CardType::SKILL : c.tinkerType == 3 ? CardType::POWER : CardType::ATTACK;
+    return card_def(c.id).type;
+}
+
+TargetType card_target(const Card &c) {
+    if (c.id == CardId::MAD_SCIENCE)
+        return card_type(c) == CardType::ATTACK ? TargetType::ENEMY : TargetType::SELF;
+    return card_def(c.id).target;
+}
+
+bool card_is_attack(const Card &c) { return card_type(c) == CardType::ATTACK; }
+bool card_is_skill(const Card &c) { return card_type(c) == CardType::SKILL; }
+bool card_is_power(const Card &c) { return card_type(c) == CardType::POWER; }
 
 bool card_is_playable(const Card &c) {
     // Playability is data-driven: several status/curse cards (Slimed, Toxic,
@@ -144,15 +165,28 @@ bool card_native_available(CardId id) {
 bool card_can_enchant(const Card &c, EnchantmentId enchantment) {
     if (c.enchantment != EnchantmentId::NONE || c.id == CardId::INVALID ||
         !card_is_playable(c)) return false;
-    const CardType type = card_def(c.id).type;
-    if (type == CardType::CURSE || type == CardType::STATUS) return false;
+    const CardType type = card_type(c);
+    if (type == CardType::CURSE || type == CardType::STATUS || type == CardType::QUEST) return false;
     if (enchantment == EnchantmentId::SOWN || enchantment == EnchantmentId::SWIFT ||
         enchantment == EnchantmentId::INKY ||
         enchantment == EnchantmentId::GLAM || enchantment == EnchantmentId::CLONE ||
         enchantment == EnchantmentId::STEADY) return true;
     if (enchantment == EnchantmentId::SPIRAL)
         return card_def(c.id).rarity == Rarity::BASIC && (card_is_strike(c) || card_is_defend(c));
+    if (enchantment == EnchantmentId::PERFECT_FIT) return true;
+    if (enchantment == EnchantmentId::CORRUPTED || enchantment == EnchantmentId::SHARP)
+        return type == CardType::ATTACK;
+    if (enchantment == EnchantmentId::IMBUED) return type == CardType::SKILL;  // Imbued.CanEnchantCardType
+    // SoulsPower: the card's own (Local) keywords include Exhaust.
+    if (enchantment == EnchantmentId::SOULS_POWER) {
+        const CardDef &d = card_def(c.id);
+        return ((c.upgraded ? d.flagsUp : d.flags) & CF_EXHAUST) != 0;
+    }
+    // Slither.CanEnchant: also not Unplayable and not an X cost.
+    if (enchantment == EnchantmentId::SLITHER)
+        return (c.upgraded ? card_def(c.id).costUp : card_def(c.id).cost) >= 0;
     if (enchantment == EnchantmentId::NIMBLE) {
+        if (c.id == CardId::MAD_SCIENCE) return card_type(c) == CardType::SKILL;  // GainsBlock
         // Native CardModel.GainsBlock for the compiled card pool (not only a
         // positive static BlockVar: Stack and Fisticuffs compute block on play).
         switch (c.id) {

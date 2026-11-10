@@ -1,0 +1,223 @@
+{
+  "programs": 36,
+  "failures": 0,
+  "assertions_enabled": true,
+  "results": [
+    {
+      "name": "enchantment_contract",
+      "returncode": 0,
+      "seconds": 2.4275987919972977,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/enchantment_contract.txt"
+    },
+    {
+      "name": "hidden_resampling",
+      "returncode": 0,
+      "seconds": 3.0374681249959394,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/hidden_resampling.txt"
+    },
+    {
+      "name": "map_event_audit_regression",
+      "returncode": 0,
+      "seconds": 4.932515583997883,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/map_event_audit_regression.txt"
+    },
+    {
+      "name": "mcts_regression",
+      "returncode": 0,
+      "seconds": 0.3894594160010456,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/mcts_regression.txt"
+    },
+    {
+      "name": "monster_audit_regression",
+      "returncode": 0,
+      "seconds": 0.29690683399530826,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/monster_audit_regression.txt"
+    },
+    {
+      "name": "native_act_alignment",
+      "returncode": 0,
+      "seconds": 1.0783607909979764,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_act_alignment.txt"
+    },
+    {
+      "name": "native_card_alignment",
+      "returncode": 0,
+      "seconds": 0.28900808400067035,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_card_alignment.txt"
+    },
+    {
+      "name": "native_card_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.3318272500036983,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_card_round3_alignment.txt"
+    },
+    {
+      "name": "native_event_oracle_alignment",
+      "returncode": 0,
+      "seconds": 0.5551719579962082,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_event_oracle_alignment.txt"
+    },
+    {
+      "name": "native_event_round3_alignment",
+      "returncode": 0,
+      "seconds": 1.1623344159961562,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_event_round3_alignment.txt"
+    },
+    {
+      "name": "native_relic_round2_alignment",
+      "returncode": 0,
+      "seconds": 0.45449562500289176,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_relic_round2_alignment.txt"
+    },
+    {
+      "name": "native_relic_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.36874291600543074,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_relic_round3_alignment.txt"
+    },
+    {
+      "name": "native_rng_contract",
+      "returncode": 0,
+      "seconds": 0.29882083399570547,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_rng_contract.txt"
+    },
+    {
+      "name": "native_round3_shared_alignment",
+      "returncode": 0,
+      "seconds": 0.35074291699856985,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_round3_shared_alignment.txt"
+    },
+    {
+      "name": "native_run_alignment",
+      "returncode": 0,
+      "seconds": 0.4184891670010984,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_run_alignment.txt"
+    },
+    {
+      "name": "native_seed_integration",
+      "returncode": 0,
+      "seconds": 0.3273150409950176,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_seed_integration.txt"
+    },
+    {
+      "name": "native_step1_downgrade",
+      "returncode": 0,
+      "seconds": 0.5286760829985724,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step1_downgrade.txt"
+    },
+    {
+      "name": "native_step1_relic_replace",
+      "returncode": 0,
+      "seconds": 0.3885725829968578,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step1_relic_replace.txt"
+    },
+    {
+      "name": "native_step1_self_damage",
+      "returncode": 0,
+      "seconds": 0.3134747910007718,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step1_self_damage.txt"
+    },
+    {
+      "name": "native_step1_state_contract",
+      "returncode": 0,
+      "seconds": 0.39025012500496814,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step1_state_contract.txt"
+    },
+    {
+      "name": "native_step2_card_rewards",
+      "returncode": 0,
+      "seconds": 1.5569280830022763,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_card_rewards.txt"
+    },
+    {
+      "name": "native_step2_defect",
+      "returncode": 0,
+      "seconds": 0.31967129099939484,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_defect.txt"
+    },
+    {
+      "name": "native_step2_necrobinder",
+      "returncode": 0,
+      "seconds": 0.7427933340004529,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_necrobinder.txt"
+    },
+    {
+      "name": "native_step2_persistent",
+      "returncode": 0,
+      "seconds": 0.2870305000033113,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_persistent.txt"
+    },
+    {
+      "name": "native_step2_relic_lifecycle",
+      "returncode": 0,
+      "seconds": 0.469896417002019,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_relic_lifecycle.txt"
+    },
+    {
+      "name": "native_step2_silent",
+      "returncode": 0,
+      "seconds": 1.1508660830004374,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step2_silent.txt"
+    },
+    {
+      "name": "native_step3_events",
+      "returncode": 0,
+      "seconds": 7.681470957999409,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_step3_events.txt"
+    },
+    {
+      "name": "native_underdocks_events",
+      "returncode": 0,
+      "seconds": 0.5046373330042115,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/native_underdocks_events.txt"
+    },
+    {
+      "name": "observation_contract",
+      "returncode": 0,
+      "seconds": 0.5601737079996383,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/observation_contract.txt"
+    },
+    {
+      "name": "observation_v14_character",
+      "returncode": 0,
+      "seconds": 0.28218870799901197,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/observation_v14_character.txt"
+    },
+    {
+      "name": "relic_contract",
+      "returncode": 0,
+      "seconds": 0.36736279199976707,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/relic_contract.txt"
+    },
+    {
+      "name": "relic_raw_rarity",
+      "returncode": 0,
+      "seconds": 0.3940543749995413,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/relic_raw_rarity.txt"
+    },
+    {
+      "name": "rules_regression",
+      "returncode": 0,
+      "seconds": 1.746555375000753,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/rules_regression.txt"
+    },
+    {
+      "name": "scroll_boxes_regression",
+      "returncode": 0,
+      "seconds": 0.38466412499838043,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/scroll_boxes_regression.txt"
+    },
+    {
+      "name": "snapshot_v9_character",
+      "returncode": 0,
+      "seconds": 0.30092158299521543,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/snapshot_v9_character.txt"
+    },
+    {
+      "name": "snapshot_validation",
+      "returncode": 0,
+      "seconds": 7.021038832994236,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/round4-step3-events-20261108/cpp-logs/snapshot_validation.txt"
+    }
+  ]
+}

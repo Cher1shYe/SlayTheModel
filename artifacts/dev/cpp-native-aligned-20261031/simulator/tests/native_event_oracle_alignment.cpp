@@ -1,5 +1,6 @@
 // Actual native DLL controlled event results, not source-derived expected values.
 #include "sts2/run.h"
+#include "port_root.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
 #include <cstring>
@@ -9,7 +10,7 @@
 using namespace sts2;
 using nlohmann::json;
 int main() {
-    auto path = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
+    auto path = port_root()
         / "native-event-round2-fixtures/results.json";
     std::ifstream input(path); json fixture; input >> fixture;
     assert(fixture["status"] == "completed");

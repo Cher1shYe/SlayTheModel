@@ -6,12 +6,21 @@
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
 #include "sts2/regent.h"
+#include <algorithm>
 namespace sts2 {
 int &power_ref(Player &,PowerId);
 static void remove_at(Card *cards,int &count,int index){for(int i=index;i+1<count;++i)cards[i]=cards[i+1];--count;}
 
 void BattleContext::start_player_turn() {
     ++turn;
+    turnFlow.stage = TURN_FLOW_IDLE;
+    // Creature.BeforeTurnStart: PowerModel.AmountOnTurnStart snapshot.
+    turnFlow.drawCardsNextTurnAtStart = player_power(PowerId::DRAW_CARDS_NEXT_TURN);
+    // Per-turn character counters reset with the new PlayerCombatState turn.
+    silent_reset_turn_counters(*this);
+    defect_begin_turn(*this);
+    necrobinder_player_turn_start(*this);
+    regent_reset_turn(*this);
     // PlatingPower.BeforeSideTurnStart: at the start of round 1 enemies gain
     // block equal to their plating.
     if (turn == 1) {
@@ -35,7 +44,8 @@ void BattleContext::start_player_turn() {
         }
     }
     player.tookUnblockedDamageThisTurn = false;
-    if (player_power(PowerId::BARRICADE) <= 0) {
+    // Hook.ShouldClearBlock: Barricade and Blur keep the player's block.
+    if (player_power(PowerId::BARRICADE) <= 0 && player_power(PowerId::BLUR) <= 0) {
         const int keep = relics_block_retain(*this);
         player.block = keep > 0 ? std::min(player.block, keep) : 0;
     }
@@ -64,6 +74,7 @@ void BattleContext::start_player_turn() {
     }
     int baseEnergy = player.energyPerTurn;
     if (player_power(PowerId::PYRE) > 0) baseEnergy += player_power(PowerId::PYRE);
+    baseEnergy += necrobinder_extra_energy(*this);  // Demesne / Friendship ModifyMaxEnergy
     player.energy = relics_energy_for_turn(*this, baseEnergy) + nextTurnEnergy;
     nextTurnEnergy = 0;
     relic_persistent_after_energy_reset(*this);
@@ -72,6 +83,17 @@ void BattleContext::start_player_turn() {
         player.energy += 1;
         add_player_power(PowerId::RADIANCE, -1);
     }
+    // Hook.AfterEnergyReset listeners.
+    // EnergyNextTurnPower: gain its Amount, then remove it.
+    if (player_power(PowerId::ENERGY_NEXT_TURN) > 0) {
+        const int next = player_power(PowerId::ENERGY_NEXT_TURN);
+        player.energy += next;
+        add_player_power(PowerId::ENERGY_NEXT_TURN, -next);
+    }
+    defect_after_energy_reset(*this);
+    necrobinder_after_energy_reset(*this);
+    regent_after_energy_reset(*this);
+    if (outcome != Outcome::UNDECIDED) return;
 
     cardsPlayedThisTurn = 0;
     attacksPlayedThisTurn = 0;
@@ -128,11 +150,28 @@ void BattleContext::start_player_turn() {
     for (int i = 0; i < handCount; ++i) card_restore_cost(hand[i]);
     for (int i = 0; i < drawCount; ++i) card_restore_cost(draw[i]);
     for (int i = 0; i < discardCount; ++i) card_restore_cost(discard[i]);
+    // PlayerCombatState.EndOfTurnCleanup: every card drops EndOfTurn modifiers.
+    for (Card *pile : {hand, draw, discard, exhaust, playPile})
+        for (int i = 0, n = pile == hand ? handCount : pile == draw ? drawCount : pile == discard ? discardCount
+                                     : pile == exhaust ? exhaustCount : playCount; i < n; ++i)
+            card_clear_cost_modifiers(pile[i], 2);
 
     for (int i = 0; i < returnNextTurnCount; ++i) add_card_to_hand(returnNextTurn[i]);
     returnNextTurnCount = 0;
 
     // ---- BeforeHandDraw hooks (all run before the hand is drawn) ----------
+    silent_before_hand_draw(*this);
+    defect_before_hand_draw(*this);
+    necrobinder_before_hand_draw(*this);
+    regent_before_hand_draw(*this);
+    if (outcome != Outcome::UNDECIDED) return;
+    // Foregone Conclusion may have opened a draw-pile selection.
+    turnFlow.stage = TURN_FLOW_PRE_DRAW;
+    resume_turn_flow();
+}
+
+// Remaining BeforeHandDraw listeners, then CardPileCmd.Draw for the hand.
+void BattleContext::continue_pre_draw() {
     // ThrummingHatchet.BeforeHandDraw: the exact instance played last round
     // returns from whichever pile holds it (normally the discard pile).
     recall_played_last_turn(CardId::THRUMMING_HATCHET);
@@ -194,7 +233,7 @@ void BattleContext::start_player_turn() {
         int n = 0;
         for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
             const CardDef &d = card_def(static_cast<CardId>(i));
-        if (!card_native_available(static_cast<CardId>(i))) continue;
+        if (!card_native_available(static_cast<CardId>(i)) || !card_epoch_unlocked(revealedEpochs, static_cast<CardId>(i))) continue;
             if (d.pool == CardPool::IRONCLAD && d.rarity == Rarity::COMMON &&
                 !(d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
                              CF_CANNOT_GENERATE_IN_COMBAT))) {
@@ -222,14 +261,22 @@ void BattleContext::start_player_turn() {
     // Innate cards go on top of the draw pile on turn 1; the opening draw is
     // max(normal draw, innate count), capped at the 10-card hand (C# CombatManager).
     if (turn == 1) {
+        // Native index 0 is the top (C++ keeps the top at the end). First every
+        // ShouldStartAtBottomOfDrawPile card (Imbued) moves to the bottom in pile
+        // order, then each other Innate card moves to the top in pile order, so
+        // the Innate card lowest in the pile ends up on top.
         Card ordered[MAX_PILE];
         int n = 0;
         int innate = 0;
+        const auto bottom = [](const Card &c) { return c.enchantment == EnchantmentId::IMBUED; };
+        for (int i = drawCount - 1; i >= 0; --i)
+            if (bottom(draw[i])) ordered[n++] = draw[i];
+        std::reverse(ordered, ordered + n);
         for (int i = 0; i < drawCount; ++i) {
-            if (!card_has(draw[i], CF_INNATE)) ordered[n++] = draw[i];
+            if (!bottom(draw[i]) && !card_has(draw[i], CF_INNATE)) ordered[n++] = draw[i];
         }
-        for (int i = 0; i < drawCount; ++i) {
-            if (card_has(draw[i], CF_INNATE)) { ordered[n++] = draw[i]; ++innate; }
+        for (int i = drawCount - 1; i >= 0; --i) {
+            if (!bottom(draw[i]) && card_has(draw[i], CF_INNATE)) { ordered[n++] = draw[i]; ++innate; }
         }
         for (int i = 0; i < n; ++i) draw[i] = ordered[i];
         drawCount = n;
@@ -237,11 +284,81 @@ void BattleContext::start_player_turn() {
         drawCountThisTurn = std::min(MAX_HAND, std::max(drawCountThisTurn, innate));
     }
     if (clarity) drawCountThisTurn += 1;
-    draw_cards(drawCountThisTurn);
+    // DrawCardsNextTurnPower.ModifyHandDraw only counts once present at turn
+    // start; TyrannyPower.ModifyHandDraw always adds its Amount.
+    if (turnFlow.drawCardsNextTurnAtStart != 0)
+        drawCountThisTurn += player_power(PowerId::DRAW_CARDS_NEXT_TURN);
+    drawCountThisTurn += regent_extra_hand_draw(*this);
+    drawCountThisTurn = defect_modify_hand_draw(*this, drawCountThisTurn);  // Machine Learning
+    drawCountThisTurn += necrobinder_extra_draw(*this);                     // Demesne
+    drawCountThisTurn += std::max(0, player_power(PowerId::TOOLS_OF_THE_TRADE));
+    // A Stratagem selection may interrupt the draw; it resumes when resolved.
+    turnFlow.stage = TURN_FLOW_HAND_DRAW;
+    draw_cards(drawCountThisTurn, true);
     if (clarity) add_player_power(PowerId::CLARITY, -1);
-    if (outcome != Outcome::UNDECIDED) return;
-    // A Stratagem selection interrupted the draw; it resumes when resolved.
-    if (pending.op != ChoiceOp::NONE) return;
+}
+
+// Drives the resumable part of the player-turn setup.  Every stage that can
+// open a selection records the next stage first; resolving the selection
+// (maybe_finish_pending) calls back here.
+void BattleContext::resume_turn_flow() {
+    if (turnFlowRunning) return;
+    struct Guard { bool &flag; Guard(bool &f):flag(f){flag=true;} ~Guard(){flag=false;} } guard(turnFlowRunning);
+    while (turnFlow.stage != TURN_FLOW_IDLE) {
+        if (outcome != Outcome::UNDECIDED) { turnFlow.stage = TURN_FLOW_IDLE; return; }
+        if (pending.op != ChoiceOp::NONE || activePlay.active || suspendedPlayCount || autoPlayQueueCount)
+            return;
+        switch (turnFlow.stage) {
+        case TURN_FLOW_PRE_DRAW:
+            continue_pre_draw();
+            break;
+        case TURN_FLOW_HAND_DRAW:
+            if (pendingDrawRemainder > 0) {
+                const int count = pendingDrawRemainder;
+                pendingDrawRemainder = 0;
+                draw_cards(count, true);
+                break;
+            }
+            turnFlow.stage = TURN_FLOW_SILENT_APTS;
+            after_hand_drawn();
+            break;
+        // Hook.AfterPlayerTurnStart, one listener at a time.
+        case TURN_FLOW_SILENT_APTS:
+            turnFlow.stage = TURN_FLOW_NECRO_APTS;
+            silent_after_player_turn_start(*this);
+            break;
+        case TURN_FLOW_NECRO_APTS:
+            turnFlow.stage = TURN_FLOW_REGENT_APTS;
+            necrobinder_after_player_turn_start(*this);
+            break;
+        case TURN_FLOW_REGENT_APTS:
+            turnFlow.stage = TURN_FLOW_SIDE_START;
+            regent_after_player_turn_start(*this);
+            break;
+        case TURN_FLOW_SIDE_START:
+        default:
+            turnFlow.stage = TURN_FLOW_IDLE;
+            // Hook.AfterSideTurnStart(Player), then OrbQueue.AfterTurnStart.
+            silent_player_turn_start(*this);
+            defect_after_side_turn_start(*this);
+            necrobinder_after_side_turn_start(*this);
+            regent_after_side_turn_start(*this);
+            // DrawCardsNextTurnPower.AfterSideTurnStart removes a power that
+            // was present at turn start.
+            if (turnFlow.drawCardsNextTurnAtStart != 0 && player_power(PowerId::DRAW_CARDS_NEXT_TURN) > 0)
+                add_player_power(PowerId::DRAW_CARDS_NEXT_TURN, -player_power(PowerId::DRAW_CARDS_NEXT_TURN));
+            turnFlow.drawCardsNextTurnAtStart = 0;
+            if (outcome != Outcome::UNDECIDED) return;
+            defect_player_turn_start(*this);
+            if (outcome != Outcome::UNDECIDED) return;
+            relic_persistent_finish_turn_start(*this);
+            return;
+        }
+    }
+}
+
+// Hook.AfterCardDrawn for the hand is done; hand-drawn relic and power effects.
+void BattleContext::after_hand_drawn() {
     relics_hand_drawn(*this);
 
     // powers that act on the drawn hand
@@ -250,6 +367,7 @@ void BattleContext::start_player_turn() {
         while (n-- > 0 && handCount > 0) {
             const int idx = cardGenerationRng.next_int(0, handCount - 1);
             transform_card(hand[idx]);
+            notify_card_generated(hand[idx], true);
         }
     }
     if (player_power(PowerId::AGGRESSION) > 0) {
@@ -269,7 +387,38 @@ void BattleContext::start_player_turn() {
     if (player_power(PowerId::MAYHEM) > 0) {
         auto_play_from_draw(player_power(PowerId::MAYHEM), false);
     }
-    relic_persistent_finish_turn_start(*this);
+    // Imbued.AfterAutoPrePlayPhaseEntered (cards follow powers and relics in
+    // the listener list): on turn 1 every Imbued card auto-plays from its pile.
+    if (turn <= 1) {
+        std::uint16_t imbued[MAX_PILE];
+        int n = 0;
+        for (Card *pile : {hand, draw, discard, exhaust}) {
+            const int count = pile == hand ? handCount : pile == draw ? drawCount : pile == discard ? discardCount : exhaustCount;
+            if (pile == draw) {  // native pile order is top first
+                for (int i = count - 1; i >= 0 && n < MAX_PILE; --i)
+                    if (pile[i].enchantment == EnchantmentId::IMBUED) imbued[n++] = pile[i].uid;
+            } else {
+                for (int i = 0; i < count && n < MAX_PILE; ++i)
+                    if (pile[i].enchantment == EnchantmentId::IMBUED) imbued[n++] = pile[i].uid;
+            }
+        }
+        for (int k = 0; k < n && outcome == Outcome::UNDECIDED; ++k) {
+            Card c{};
+            bool found = false;
+            for (Card *pile : {hand, draw, discard, exhaust}) {
+                int &count = pile == hand ? handCount : pile == draw ? drawCount : pile == discard ? discardCount : exhaustCount;
+                for (int i = 0; i < count && !found; ++i)
+                    if (pile[i].uid == imbued[k]) {
+                        c = pile[i];
+                        if (pile == draw) remove_draw_at(i);
+                        else { for (int j = i; j + 1 < count; ++j) pile[j] = pile[j + 1]; --count; }
+                        found = true;
+                    }
+                if (found) break;
+            }
+            if (found) auto_play_random(c, false);
+        }
+    }
 }
 
 void BattleContext::end_player_turn() {
@@ -331,9 +480,18 @@ void BattleContext::end_player_turn() {
     relics_after_turn(*this);
     if (outcome != Outcome::UNDECIDED) return;
 
+    // Hook.BeforeSideTurnEnd (OrbQueue.BeforeTurnEnd precedes hand effects).
+    defect_before_side_turn_end(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     discard_hand();
     if (outcome != Outcome::UNDECIDED) return;
     flush_ethereal_exhaust_hooks();
+    // Hook.AfterSideTurnEnd(Player).
+    silent_player_turn_end(*this);
+    necrobinder_player_turn_end(*this);
+    regent_player_turn_end(*this);
+    defect_after_side_turn_end(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     if (player.tempStrength != 0) {
         player.strength -= player.tempStrength;
         player.tempStrength = 0;
@@ -406,6 +564,9 @@ void BattleContext::monster_turn() {
     // SlowPower.AfterSideTurnStart: the card count resets when the monsters'
     // own side begins its turn.
     for (int i = 0; i < monsterCount; ++i) monsters[i].slowCardsThisTurn = 0;
+    silent_enemy_turn_start(*this);
+    check_outcome();
+    if (outcome != Outcome::UNDECIDED) { inMonsterTurn = false; return; }
     // SandpitPower.AfterSideTurnStart decrements before any enemy acts.  Its
     // removal kills the targeted player outright, bypassing death prevention.
     for (int i = 0; i < monsterCount; ++i) {
@@ -437,6 +598,13 @@ void BattleContext::monster_turn() {
             if (outcome != Outcome::UNDECIDED) break;
         }
     }
+    if (outcome == Outcome::UNDECIDED) {
+        // Hook.AfterSideTurnEnd(Enemy): Doom resolves before other listeners.
+        necrobinder_enemy_turn_end(*this);
+        silent_enemy_turn_end(*this);
+        regent_enemy_turn_end(*this);
+        check_outcome();
+    }
     inMonsterTurn = false;
 }
 
@@ -453,6 +621,9 @@ void BattleContext::discard_hand() {
                 break;
             case CardId::BECKON:
                 damage_player(card_var(c, VarId::HP_LOSS), true);
+                break;
+            case CardId::WITHER:  // DamageVar 3 (+3 per FakeUpgrade), unpowered, blockable
+                damage_player(card_var(c, VarId::DAMAGE) + static_cast<int>(c.bonusDamage));
                 break;
             // Curses -----------------------------------------------------
             case CardId::DECAY:  // DamageVar 2, unpowered but blockable
@@ -485,11 +656,19 @@ void BattleContext::discard_hand() {
     }
     Card kept[MAX_HAND];
     int keptN = 0;
+    // Hook.ShouldFlush == false keeps the whole hand.
     const bool retainAll = player_power(PowerId::RETAIN_HAND) > 0 ||
                            player_power(PowerId::EQUILIBRIUM) > 0 ||
+                           player_power(PowerId::WELL_LAID_PLANS) > 0 ||
                            relic_has(*this, RelicId::RUNIC_PYRAMID);
-    while (handCount > 0) {
-        Card c = hand[--handCount];
+    // CombatManager.FlushPlayerHand walks the hand front to back: retained
+    // cards keep their order and the rest enter the discard pile in hand order.
+    Card cards[MAX_HAND];
+    const int count = handCount;
+    std::copy(hand, hand + count, cards);
+    handCount = 0;
+    for (int i = 0; i < count; ++i) {
+        const Card &c = cards[i];
         // Ethereal is resolved before retention (C# CombatManager end-of-turn).
         if (card_has(c, CF_ETHEREAL) || c.etherealThisCombat ||
             player_power(PowerId::HEX) > 0) {
@@ -500,6 +679,6 @@ void BattleContext::discard_hand() {
             move_to_discard(c);
         }
     }
-    for (int i = keptN - 1; i >= 0; --i) hand[handCount++] = kept[i];
+    for (int i = 0; i < keptN; ++i) hand[handCount++] = kept[i];
 }
 }

@@ -1,0 +1,324 @@
+{
+  "scope": "Existing C++ regressions, Python interface selection and greedy smoke; excludes strict NoSL audit and native DLL parity",
+  "python": "/opt/anaconda3/bin/python",
+  "passed": 37,
+  "failed": 1,
+  "results": [
+    {
+      "name": "cpp-enchantment_contract",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/enchantment_contract"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.687
+    },
+    {
+      "name": "cpp-hidden_resampling",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/hidden_resampling"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.114
+    },
+    {
+      "name": "cpp-map_event_audit_regression",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/map_event_audit_regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 5.622
+    },
+    {
+      "name": "cpp-mcts_regression",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/mcts_regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.265
+    },
+    {
+      "name": "cpp-monster_audit_regression",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/monster_audit_regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.738
+    },
+    {
+      "name": "cpp-native_act_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_act_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.876
+    },
+    {
+      "name": "cpp-native_card_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_card_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.384
+    },
+    {
+      "name": "cpp-native_card_round3_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_card_round3_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.362
+    },
+    {
+      "name": "cpp-native_event_oracle_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_event_oracle_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.639
+    },
+    {
+      "name": "cpp-native_event_round3_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_event_round3_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 2.106
+    },
+    {
+      "name": "cpp-native_relic_round2_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_relic_round2_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.811
+    },
+    {
+      "name": "cpp-native_relic_round3_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_relic_round3_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.512
+    },
+    {
+      "name": "cpp-native_rng_contract",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_rng_contract"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.371
+    },
+    {
+      "name": "cpp-native_round3_shared_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_round3_shared_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.138
+    },
+    {
+      "name": "cpp-native_run_alignment",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_run_alignment"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.495
+    },
+    {
+      "name": "cpp-native_seed_integration",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_seed_integration"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.73
+    },
+    {
+      "name": "cpp-native_step1_downgrade",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_downgrade"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.541
+    },
+    {
+      "name": "cpp-native_step1_relic_replace",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_relic_replace"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.502
+    },
+    {
+      "name": "cpp-native_step1_self_damage",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_self_damage"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.405
+    },
+    {
+      "name": "cpp-native_step1_state_contract",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_state_contract"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.364
+    },
+    {
+      "name": "cpp-native_step2_card_rewards",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_card_rewards"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 2.421
+    },
+    {
+      "name": "cpp-native_step2_defect",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_defect"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.439
+    },
+    {
+      "name": "cpp-native_step2_necrobinder",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_necrobinder"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.404
+    },
+    {
+      "name": "cpp-native_step2_persistent",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_persistent"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.353
+    },
+    {
+      "name": "cpp-native_step2_relic_lifecycle",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_relic_lifecycle"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.58
+    },
+    {
+      "name": "cpp-native_step2_silent",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_silent"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.786
+    },
+    {
+      "name": "cpp-native_step3_events",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_step3_events"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 14.882
+    },
+    {
+      "name": "cpp-native_underdocks_events",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/native_underdocks_events"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.763
+    },
+    {
+      "name": "cpp-observation_contract",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/observation_contract"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 1.195
+    },
+    {
+      "name": "cpp-observation_v14_character",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/observation_v14_character"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.348
+    },
+    {
+      "name": "cpp-relic_contract",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/relic_contract"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.455
+    },
+    {
+      "name": "cpp-relic_raw_rarity",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/relic_raw_rarity"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.367
+    },
+    {
+      "name": "cpp-rules_regression",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/rules_regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 2.976
+    },
+    {
+      "name": "cpp-scroll_boxes_regression",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/scroll_boxes_regression"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.601
+    },
+    {
+      "name": "cpp-snapshot_v9_character",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/snapshot_v9_character"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 0.535
+    },
+    {
+      "name": "cpp-snapshot_validation",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/snapshot_validation"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 15.691
+    },
+    {
+      "name": "python-interface",
+      "command": [
+        "/opt/anaconda3/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "tests/test_content.py",
+        "tests/test_binding_schema_contract.py",
+        "tests/test_native_act_context.py",
+        "tests/test_native_seed_identity.py",
+        "tests/test_engine_checkpoint_identity.py",
+        "tests/test_native_step1_state.py",
+        "tests/test_armg_features.py"
+      ],
+      "exit_code": 1,
+      "wall_seconds": 17.691
+    },
+    {
+      "name": "bench-1000",
+      "command": [
+        "/private/tmp/SlayTheModel-v111_simulator_test/artifacts/dev/cpp-native-aligned-20261031/validation/bench",
+        "run",
+        "1000"
+      ],
+      "exit_code": 0,
+      "wall_seconds": 13.423
+    }
+  ]
+}

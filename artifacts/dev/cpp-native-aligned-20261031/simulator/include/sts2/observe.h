@@ -8,23 +8,24 @@ namespace sts2 {
 constexpr int RUN_OBS_DIM = 7 + 8 + static_cast<int>(CardId::COUNT);
 // + cost, type x5, rarity x5, upgraded, price, hasPrice, replay, bonusReplay,
 // freeCombat, costThisTurn, galvanized, combat damage/keywords and cost state.
-constexpr int CARD_FEAT_DIM = static_cast<int>(CardId::COUNT) + 28;
+// v14: + bonusBlock, retainThisTurn, slyThisTurn, slyThisCombat.
+constexpr int CARD_FEAT_DIM = static_cast<int>(CardId::COUNT) + 34;  // + Mad Science type/rider
 constexpr int COMBAT_OBS_DIM = 21 + MAX_MONSTERS * 10;
 
 // Versioned public schema.  Anything a player can see is encoded; RNG state,
 // draw order and future intents are not.  Bump both versions when the layout
 // changes and keep old checkpoints loadable only by their matching version.
-constexpr int PUBLIC_OBS_VERSION = 13;
-constexpr int ACTION_SCHEMA_VERSION = 12;
-constexpr int PUB_CARD_INSTANCE_FEAT = 17;
+constexpr int PUBLIC_OBS_VERSION = 15;
+constexpr int ACTION_SCHEMA_VERSION = 14;
+constexpr int PUB_CARD_INSTANCE_FEAT = 23;  // + Mad Science type/rider
 
 constexpr int PUB_BASE = 38;
 constexpr int PUB_SCREENS = 9;
 constexpr int PUB_MAP_FEAT = 15;  // present, type x9, row, col, reachable, visited, childCount
-constexpr int PUB_EVENT_N = 64;   // event-id space (ids are contiguous and < 64)
-constexpr int PUB_EVENT_CHOICES = 4;
+constexpr int PUB_EVENT_N = 96;   // event-id space (ids are contiguous and < 96)
+constexpr int PUB_EVENT_CHOICES = MAX_EVENT_CHOICES;
 constexpr int PUB_EVENT_FEAT = 6;
-constexpr int PUB_CARD_REWARD_N = 3;
+constexpr int PUB_CARD_REWARD_N = MAX_REWARD_CARD_CHOICES;
 constexpr int PUB_SHOP_META = 4;
 constexpr int RELIC_COUNT = static_cast<int>(RelicId::COUNT);
 constexpr int POTION_COUNT = static_cast<int>(PotionId::COUNT);
@@ -38,12 +39,14 @@ constexpr int PUB_REWARD_META = 4 + POTION_COUNT + MAX_REWARD_RELICS * (2 + RELI
 constexpr int PUB_RUN_BOSS_OFFSET = PUB_BASE + PUB_SCREENS +
     static_cast<int>(CardId::COUNT) + 6 * MAX_DECK +
     24 + 8 * CARD_FEAT_DIM + MAX_DECK + 2 * RELIC_COUNT + POTION_COUNT + MAX_POTIONS;
-constexpr int PUB_RUN_EXTENSION = 3 * 4 + 4 + 1 + 8 + static_cast<int>(Encounter::COUNT) +
-    1 + 5 * PUB_CARD_INSTANCE_FEAT + 1 + MAX_RELICS + MAX_PILE;
+constexpr int PUB_RUN_EXTENSION = 3 * 4 + 4 + 1 + 11 + static_cast<int>(Encounter::COUNT) +
+    1 + 5 * PUB_CARD_INSTANCE_FEAT + 1 + MAX_RELICS + MAX_PILE +
+    2 + CRYSTAL_SPHERE_CELLS * (1 + CRYSTAL_SPHERE_ITEM_TYPES) + MAX_EXTRA_GOLD_REWARDS +
+    3;  // Spoils Map quest marker: active, row, column
 constexpr int PUBLIC_RUN_DIM =
     PUB_BASE + PUB_SCREENS + static_cast<int>(CardId::COUNT) + 6 * MAX_DECK + 2 * RELIC_COUNT +
     POTION_COUNT + MAX_POTIONS + MAP_MAX_POINTS * PUB_MAP_FEAT + PUB_EVENT_N +
-    PUB_EVENT_CHOICES * (PUB_EVENT_FEAT + RELIC_COUNT) + 4 +
+    PUB_EVENT_CHOICES * (PUB_EVENT_FEAT + RELIC_COUNT) + MAX_EVENT_CHOICES +
     PUB_CARD_REWARD_N * CARD_FEAT_DIM + MAX_SHOP_CARDS * (CARD_FEAT_DIM + 2) +
     MAX_SHOP_RELICS * (RELIC_COUNT + 2) + MAX_SHOP_POTIONS * (POTION_COUNT + 2) + PUB_SHOP_META +
     PUB_REWARD_META + 2 * static_cast<int>(Encounter::COUNT) + 1 + MAX_PILE * 18 +
@@ -67,7 +70,8 @@ constexpr int PUB_COMBAT_EXTRA =
     (MAX_PILE - PUB_KNOWN_TOP) * 2 + MAX_PILE * PUB_CARD_INSTANCE_FEAT + 1 + PUB_BOMB_SLOTS * 2;
 constexpr int PUB_HAND_FEAT = CARD_FEAT_DIM + 2;  // + playable, effective cost
 constexpr int PUB_MON_FEAT = 1 + MONSTER_COUNT + 12 + POWER_COUNT + 4 + 9 + 1 + MAX_PILE;
-constexpr int PUB_CHOICE_OP_N = static_cast<int>(ChoiceOp::DISCARD_ANY) + 1;
+// v14 covers the character selectors appended after DISCARD_ANY.
+constexpr int PUB_CHOICE_OP_N = static_cast<int>(ChoiceOp::REGENT_AUTO_SKILL) + 1;
 constexpr int PUB_CHOICE_PILE_N = 5;   // ChoicePile discriminants
 // Combat relics (identity + counter) and potions are visible in combat.
 constexpr int PUB_COMBAT_META = 2 * RELIC_COUNT + POTION_COUNT + MAX_POTIONS;
@@ -85,10 +89,16 @@ constexpr int PUB_PENDING_FEAT =
 // upgrade state is visible in the pile viewer; the order is not).
 // v13 adds three tail scalars for Crimson Mantle / Inferno self-damage and
 // their visible relative power order, preserving all previous offsets.
+// v14 appends the public character state: character one-hot, Defect orbs and
+// counters, Osty, Regent stars and counters, Silent counters.
+constexpr int PUB_CHARACTER_N = 5;
+constexpr int PUB_ORB_FEAT = 7;  // OrbId one-hot (incl. NONE) + value
+constexpr int PUB_CHARACTER_FEAT =
+    PUB_CHARACTER_N + (2 + MAX_ORBS * PUB_ORB_FEAT + 5) + 12 + 11 + 6;
 constexpr int PUBLIC_COMBAT_OBS_DIM =
     PUB_COMBAT_BASE + MAX_HAND * PUB_HAND_FEAT + 4 + 6 * static_cast<int>(CardId::COUNT) +
     3 * MAX_PILE * PUB_CARD_INSTANCE_FEAT + PUB_COMBAT_EXTRA + MAX_MONSTERS * PUB_MON_FEAT +
-    PUB_COMBAT_META + PUB_PENDING_FEAT + 1 + MAX_PILE + 3;
+    PUB_COMBAT_META + PUB_PENDING_FEAT + 1 + MAX_PILE + 3 + PUB_CHARACTER_FEAT;
 constexpr int PUBLIC_OBS_DIM = PUBLIC_RUN_DIM + PUBLIC_COMBAT_OBS_DIM;
 
 constexpr int ACTION_FEAT_DIM =

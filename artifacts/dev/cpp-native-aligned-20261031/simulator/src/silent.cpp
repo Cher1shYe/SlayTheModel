@@ -68,7 +68,7 @@ void silent_card_drawn(BattleContext &b,Card &card,bool fromHandDraw){
     ++b.silent.drawnThisCombat;
     if(b.activePlay.active){
         auto &s=b.activePlay.silent;
-        if(s.stage==2){if(s.drawn++==0)s.firstDrawnType=static_cast<int>(card_def(card.id).type);}
+        if(s.stage==2){if(s.drawn++==0)s.firstDrawnType=static_cast<int>(card_type(card));}
         if(s.stage==3)card.retainThisTurn=true;
     }
     poison_all(b,b.player_power(PowerId::CORROSIVE_WAVE));
@@ -166,7 +166,7 @@ double silent_damage_multiplier(const BattleContext &b,int target,bool powered){
 }
 double silent_block_multiplier(const BattleContext &b){return std::pow(2.0,b.player_power(PowerId::SHADOWMELD));}
 bool silent_card_playable(const BattleContext &b,const Card &c){return c.id!=CardId::GRAND_FINALE||b.drawCount==0;}
-TargetType silent_card_target(const BattleContext &b,const Card &c){return c.id==CardId::SHIV&&b.player_power(PowerId::FAN_OF_KNIVES)>0?TargetType::ALL_ENEMIES:card_def(c.id).target;}
+TargetType silent_card_target(const BattleContext &b,const Card &c){return c.id==CardId::SHIV&&b.player_power(PowerId::FAN_OF_KNIVES)>0?TargetType::ALL_ENEMIES:card_target(c);}
 int silent_extra_play_count(BattleContext &b,const Card &c){
     if(card_is_skill(c)&&b.player_power(PowerId::BURST)>0){b.add_player_power(PowerId::BURST,-1);return 1;}return 0;
 }

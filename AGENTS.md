@@ -1,220 +1,91 @@
-> **2026-10-31 暂停更新：第二部分为 WIP，尚未集成完成。** 用户已要求停止开发并自行上传到 `workspace_YE`。下文的第一部分完成记录属于历史已验证状态；当前源码已加入四角色扩展和新布局，尚未完成完整构建、schema/快照/观察接口及差分回归。不要把旧 v4 身份声明或现存二进制当作当前源码已验证。最新断点见仓库根 `docs/native-port-step2-wip-20261031.md`，恢复前先读该记录。
+# SlayTheModel：模拟器测试分支交接
 
-# SlayTheModel：当前任务与交接
+更新：2026-11-10。**当前分支职责是 `v111_simulator_test` 的 C++ 模拟器与验证，不开发新网络或训练方案。** 用户要求将本地模拟器单独成分支，README 和交接文档按此范围编写。
 
-更新：2026-10-31（第四轮第一部分完成后）。此文件是用户要求给下一个 AI 的交接记录。
-重点是**保留 C++ 模拟器的速度，将铁甲战士单人规则对齐到原生高速探针使用的游戏版本**。
-历史结果只代表下面注明的版本和覆盖范围；继续工作前核对实际文件，避免把旧审计当成现状。
+## 1. 接手先确认
 
-## 1. 用户目标与工作约定
+- 本分支从共同历史 `bb2070f0a4467f90333c81e98332be90f05baa4c` 建立，按文件提取 `v111_SF1` 的 `50d72a6` 中的模拟器更新，并加入 2026-11-10 NoSL 审计。没有合并该提交的网络部分。
+- `workspace_YE` 远端在本次查询时为 `da98753`，已有另一套独立模拟器更新（其自有 v10 / obs20 / action17 / snapshot14）。**本分支没有整合那条实现，也不是它的后继版**；不能只凭版本数字或日期判断哪一套规则更完整。
+- 新 ST-DT 网络、PPO 训练与实验在 `v111_SF1`；本分支不包含 `model/spire_rl/`、`docs/configs/spire-rl-*.json`、`docs/st-dt-training-handoff-20261110.md`。共同历史里的旧网络、模组、采集器保留，不作为此分支的开发入口。
+- 模拟器生产源码与 `50d72a6` 一致，本次不修游戏规则、不改变 MCTS 搜索预算、不做新训练。必要的旧接口兼容更新仅为 `agent/engine_identity.py` 的 ruleset、`agent/armg.py` 的特征版本/物理药槽、`agent/armg_train.py` 的观察版本检查。
+- **严格 NoSL 审计未通过，生产修复未实施。** 新 15 项检查中 8 通过、7 失败。先读 [审计](docs/mcts-nosl-audit-20261110.md)；旧 6000 次重采样测试通过不能取代这项结论。
+- 本次来源和验证见 [分支说明](docs/simulator-branch-20261110.md) 与开发副本内 `validation/branch-export-20261110/README.md`。历史文档的“WIP”“已完成”只代表当时的覆盖范围。
 
-- 最终用途：让模型高速完成对局、记录新训练数据，再进行自迭代。
-- 用户选择保留同学的 C++ 模拟器，修正规则；不要擅自换成纯原生执行、重写整套引擎，或通过删掉真实决策来提速。
-- 当前主要范围是铁甲战士。其他四个角色尚未完成完整牌池、专属机制和原生对照；跨角色生牌仍会影响铁甲。
-- 保留玩家真实选择：选牌、跳过奖励、药槽满时换药等不能用随机选择、自动领取或静默丢弃替代。
-- 未获新的明确指令时，不提交、推送、合并分支、部署或发布模组。用户通常自己提交，需要时提供命令和 commit message。
-- 不覆盖用户原始权重、不可变参考副本或前轮证据。与当前任务无关的模型、采集器、`combat/` 改动不混入本轮。
-- 子目录的历史发布/PR授权不代表当前用户已授权发布。前轮 agent 分工已结束，继续并行时重新安排文件所有权。
+## 2. 目录与规则目标
 
-## 2. 真正工作的目录：不要改错副本
-
-以下路径相对本仓库根目录：
+以下路径相对仓库根：
 
 | 用途 | 路径 |
 | --- | --- |
-| **当前可编辑 C++ 对齐副本** | `artifacts/dev/cpp-native-aligned-20261031/` |
-| 原生高速探针/执行参照 | `artifacts/dev/rtg-probe-20261027/` |
-| 目标原生反编译源码 | `artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/` |
+| **本分支可编辑模拟器** | `artifacts/dev/cpp-native-aligned-20261031/` |
+| C++ 引擎、绑定、回归 | 上述目录的 `simulator/` |
+| Python 接口回归 | 上述目录的 `tests/` |
+| 来源与接口身份 | 上述目录的 `PORT_SOURCE.json` |
+| 历史原生探针（本地可能存在） | `artifacts/dev/rtg-probe-20261027/` |
+| 原生反编译参照（本地可能存在） | `artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/` |
 | 不可变 C++ 基线 | `artifacts/reference/alphazero-be401e8/` |
-| 初始原生比较记录 | `artifacts/reference/alphazero-be401e8-review/` |
-| 用户原始权重（不要覆盖） | `artifacts/reference/armg-live-20261031/latest.pt` |
+| 用户原始权重（不得覆盖） | `artifacts/reference/armg-live-20261031/latest.pt` |
 
-- 当前开发副本基线：`be401e8ba09ac58c9f3b01cf77e195f7122c8d0c`，来自 `origin/alphazero`。
-- **原生探针与 C++ 模拟器是两个不同执行实现。** 原生探针用实际游戏代码；当前修复发生在 C++ 副本，不能把一方的测试通过当作另一方已等价。
-- 根 `.gitignore` 忽略 `artifacts/`。所以根 `git status` 看不到本轮主要代码修改；不能因此认为没有改动或已同步远程。
-- 本机安装路径：`/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources`。
+目标原生版本：**v0.111.0 / 41cef1ea**。目标 DLL SHA-256：
+`9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4`。
+C++ 上游基线为 `be401e8ba09ac58c9f3b01cf77e195f7122c8d0c`，与本分支 Git 分叉点不是同一个概念。
 
-## 3. 版本、证据和模型兼容性
+Mac 原工作目录 `/Users/yebohou/SlayTheModel` 本地还保存了 `artifacts/preserved-game-versions/sts2-v0.111.0-41cef1ea-macos-20261110/`：440 个文件核验一致的完整安装快照。该备份未上传，新克隆不会得到它；它不是缓存，清理必须保留。原生探针、不可变参考、权重和反编译目录也不能假定每个克隆都有，先检查文件再使用。
 
-目标是本机原生 **`v0.111.0 / 41cef1ea`**，DLL SHA-256：
+**原生探针和 C++ 是不同实现。** C++ 回归、元数据一致或冒烟通过不等于原生完整等价。
 
-`9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4`
+## 3. 当前接口
 
-当前开发副本：
+- Ruleset `native-41cef1ea-port-v6`；`native_parity_complete=false`。
+- 公开观察 v15、动作 v14、快照 v10、ArmG 特征 6。
+- `CARD_COUNT=597`，包括 INVALID 和保留的 Grapple 槽。Grapple 无目标原生模型且从正常牌池排除，不应当作漏实现卡牌。
+- 卡牌特征 631，动作特征 727；公开观察 75988，公开战斗观察 49252。
+- 卡牌奖励最多 4 项；新增实体观察 `MACRO_OBS_VERSION=1` 属于模拟器接口，不包含网络实现。
+- `NativeProgressContext` 包含角色/事件/epoch/遭遇发现与特殊古老角色开关；默认值不是游戏存档导入的替代品。
+- 两条分支、旧快照和旧权重不可通过修改版本号强行兼容。规则、观察、动作或隐藏信息语义变化应更新身份并记录来源；扩展模块重建后重启使用它的 Python 进程。
 
-- ruleset：`native-41cef1ea-port-v4`；`NATIVE_PARITY_COMPLETE=false`。
-- 公开观察 schema13、动作 schema12、ArmG feature4、快照v8。
-- `CARD_COUNT=223`，含 INVALID 和保留的 Grapple；222个卡牌条目中221个对应目标原生模型。
-- 卡牌特征251维，战斗动作343维，ArmG动作1300维；公开观察46082维，其中战斗29691维、局外16391维。
-- 旧权重/快照必须通过版本和引擎身份检查。**尚无经过审核的旧模型→新 Not Yet 词表迁移适配**，前两轮迁移器会明确拒绝，不能只改版本号/哈希强行加载。
-- `agent/engine_identity.py` 绑定源码、特征与二进制身份；加载后重新构建模块需要重启 Python 进程。
-- 原始上传权重 SHA-256：`cfcb115024b0b0a222b88bf0033ef55e1e7b3cf667194c9dbba36b923180b91c`，第三轮结束时未改变。
+## 4. 已做到哪里
 
-以下文档均在当前 C++ 开发副本内：
+早期已完成种子/哈希/RNG、抽洗牌、手动选牌、牌实例状态，以及多轮卡牌/遗物/事件修正。第一部分完成自伤累计顺序、事件降级费用和遗物计数关联，不要重复做旧缺口。
 
-- `PORT_STATUS.md`：最新中文总览；`PORT_SOURCE.json`：版本来源。
-- **最新第一部分证据**：`validation/round4-step1/summary.json`、`cpp-tests.json`、`python-tests.txt`、`engine-contract.json`；新原生宿主/结果在 `native-round4-step1-{card,downgrade,relic}-fixtures/`。
-- 第一部分增量补丁：`validation/round4-step1/native-rules-port-v4-step1.patch`，对本步前v3源码备份apply检查；第三轮累计基线补丁仍保留。
-- 下面 `round3` 项是第三轮历史证据，不代表已包含第一部分修复。
-- `validation/round3/summary.json`、`cpp-tests.json`、`python-tests.txt`、`engine-contract.json`：本轮最终验证。
-- `validation/round3/cards-audit.json`、`relics-audit.json`、`events-audit.json`：逐项审计及剩余问题。
-- `native-round3-{card,relic,event}-fixtures/`：实际目标 DLL 的受控样例、宿主源代码、结果及验证信息。
-- `validation/round3/source-before/`：本轮前的备份；旧轮次的报告/样例不要覆盖。
-- `validation/round3/native-rules-port-v3.patch`、`changed-files.json`：累计源码补丁与清单，已做基线 apply 检查；不含游戏DLL、宿主二进制或权重，尚未提交/推送。
-- `docs/native-act-alignment-20261031.md`：幕、Boss、账号发现顺序及生成时序边界。
+第二部分（见 `validation/round4-step2-resume-20261108/README.md`）：
 
-### 审计记录的一条纠正
+- 接入静默猎手、故障机器人、亡灵契约师、储君的卡池和专属机制。前三者有当轮原生样例，储君主要按源码实现。
+- 补齐 Sea Glass、Lead Paperweight、Dusty Tome、Arcane Scroll、Dream Catcher 等真实选择，Toy Box 蜡制、胶囊奖励、茶类和宠物持续状态，以及物理药槽。
 
-`relics-audit.json` 里 **LostCoffer“固定普通无色牌”是过期/错误描述**。
-当前 `relics.cpp` 调用 `queue_card_reward(Rarity::COMMON, true)`；第二参数是 `useBaseOdds`，默认牌池是 Ironclad。
-不要把它重新列为“牌池写错”；剩余应核验完整奖励稀有度修正、升级与联动流程。
-此外 Grapple 在目标原生不存在，保留旧ID并排除正常使用是已完成的兼容措施，不是待实现原生卡牌。
+第三至六步（见 `validation/round4-step3-events-20261108/README.md`，顺序读到末尾）：
 
-## 4. 已做成什么：避免重做
+- 补齐 34 项此前缺失的事件、小游戏和事件战斗；增加 Aeonglass，修正 Glory Boss 池和发现顺序。
+- 修正地图生成、事件顺序、账号 epoch 内容过滤、Splash/Prismatic Gem、Wongo/商店过滤。
+- 费用修正栈、死亡能力清理、新实体变牌、Imbued、奖励钩子、Lasting Candy 与奖励稀有度阈值。
+- 测试通过 `simulator/tests/port_root.h` 定位样例；`STS2_PORT_ROOT` 优先，否则从工作目录向上查找。
 
-前两轮已对齐/补充：原生种子字符串规范化、哈希/RNG、部分抽洗牌规则；战斗内外手动选牌；公开牌实例状态；多个选牌遗物、附魔和结算钩子；Golden Compass；有限账号进度及替代第一幕 Underdocks。
+**证据边界：** 历史记录为 36 个 C++ 程序通过；Python 167 项通过，另有该轮环境相关的 10 失败与 34 错误；1000 局贪心冒烟无异常/截断，普通地图 6/6 对照一致。这不是当前每次检查都可忽略失败的理由。第三步起主要是源码移植，未补对应 DLL 执行证据，也没有完整原生整局逐步对照。本次实际复验另见新的 `branch-export-20261110` 目录。
 
-第三轮主要完成：
+## 5. 下一步顺序
 
-- 导出596个原生卡牌模型的基础/升级版本，校正62条已有卡牌数据。
-- 末尾追加 **Not Yet**：2费、治疗10/13、消耗、不能战斗随机生成。保留已有 CardId，HEAL 追加到 VarId 末尾。
-- 排除原生不存在的 Grapple，铁甲单人全解锁变牌池80张候选及顺序与实际 DLL 列表一致。
-- 修复 Conflagration、Spite、Dominate、Forgotten Ritual、Pact’s End、Drum of Battle、Second Wind、Maul、Rend 等效果；随机多段的 Vigor/Skittish；Brightest Flame 最大生命损失、复活/Rupture；六张只改变行为的升级。
-- 修复 Distinguished Cape、Sere Talon、Leafy Poultice、Neow’s Torment、Stone Cracker、Seal of Gold、Fake Strike Dummy；Red Skull 随血量即时更新。
-- 修复 Aroma/Wellspring/Spirit Grafter 的真实选牌、Dense Vegetation、Tablet、部分金币生成时机；事件减伤/复活；休息入口 Feather/Tea、Mailbox两瓶奖励、满药槽奖励保留及非战斗药水池顺序。
-- 共检查23类普通事件、30类遗物。数字/元数据匹配不代表全部效果组合已等价。
+1. **修复并复验 NoSL 信息隔离。** 对同名不同成长/费用/附魔的牌建立完整可见属性规范化；补公开排序遗漏的 `bonusBlock`、`retainThisTurn`、Sly 字段；补 `orbRng` 等未来随机流的重采样，并单独核验原生初始化流。保持公开状态与搜索种子相同，仅改变真实隐藏牌序/RNG 时，观察、采样和动作应保持一致。不得用内部 UID 或真实牌序规避问题。
+2. **恢复固定版本 DLL 样例宿主，补新增规则的原生差分。** 本地保全安装不代表宿主可运行；第三步起的新规则先做受控样例，再做长路径。
+3. **补完整同种子、同账号进度、同决策的整局对照。** 包括后两幕、A10 第二 Boss、奖励顺序及 RNG 消耗；模拟器接受 A0–A10 不等于各进阶已专项验收。
+4. **继续检查边界与复杂组合。** `double`/`decimal` 取整、固定牌堆/遗物容量；回合开始 Mayhem 与遗物相对次序；`nextTurnEnergy` / `nextTurnDraw` 当前是恒 0 占位。其他角色整局、多人和实机 UI 桥接不能视为已验证。
 
-已验证：
+NoSL 证据在 `validation/nosl-audit-20261110/`，修复时新建验证目录，保留原失败记录。审计基于本地 v6，不代表远端 `workspace_YE` v10 具有相同结论。
 
-| 检查 | 第三轮结果 |
-| --- | --- |
-| 实际目标DLL受控效果样例 | 153个成功：卡牌70、遗物26、事件/休息/药水57 |
-| C++回归 | 23个程序全部通过；含3996项新卡牌对照、447项原规则、104项观察检查 |
-| 快照与隐藏状态 | 6742个运行中快照、6000次重采样通过 |
-| Python接口/版本身份/桥接编码 | 113项通过 |
-| 整局贪心冒烟 | 1000局正常终止，0异常、0截断，平均9.6层、0胜 |
+## 6. 工作约定
 
-本机冒烟约110局/秒，仅是贪心引擎吞吐，不是神经网络/MCTS训练速度或模型通关证据。
-第三轮没有重新训练。第二轮曾跑2局训练+1局验证，仅证明当时训练流程；不能据此宣称当前模型已通关或适用新版本。
-**尚无完整同种子、同进度、同决策整局与原生逐步一致的证明。**
+- 用户最新明确指令优先；未明确授权时不提交、推送、合并、部署或发布模组。本次授权仅针对创建并发布这个模拟器分支，不延伸到其他分支。
+- 保留 C++ 引擎速度与真实决策，不换纯原生执行，不通过删动作、随机代选、自动领牌或静默丢药来省事。原生候选数不足而直接完成的规则除外。
+- 先读目标版本源码；不确定效果优先用匹配 DLL 核验。不得改历史原生结果来迁就 C++，也不得把测试通过写成完整等价。
+- 新 ID 追加末尾；同时更新生成源与生成文件。新增状态覆盖 clone、快照、公开观察、动作与绑定；隐藏未来信息不得进入公开接口。
+- 不改旧网络结构、训练器设计、`model/`、采集器或 `combat/`；如接口变更确实影响旧调用方，明确列出最小兼容修改，不能混入网络功能开发。
+- 每批代码修改运行对应回归；整合接口/布局后运行完整 C++、必要 Python 和整局冒烟。检查候选顺序、RNG 消耗、选择暂停/恢复、奖励跳过、复活及满槽行为。
+- 不覆盖原始权重、不可变参考、游戏备份和前轮证据。新日志写新目录，旧 README 的历史条目保留。
+- 根 `.gitignore` 忽略 `artifacts/`，新文件必须按明确清单添加；不要强制添加整个 artifacts。禁止上传训练输出、`.pt`、游戏 DLL、编译产物或缓存。此次准确清单为 `docs/simulator-export-paths-20261110.txt`，它只用于此批导出，后续按实际变更更新。
 
-### 第四轮第一部分已完成（最新）
+## 7. 复现入口
 
-- Crimson Mantle / Inferno 独立累计自伤、两者首次施加顺序、移除重获清零；Inferno 己方回合/真实伤害门控，Tungsten/Beating Remnant减伤先于Buffer。
-- Reflections 和 Wongo 离开分支降级恢复基础费用/关键词，保留实例、附魔、成长与已独立表示的费用状态。
-- Touch of Orobas 原位替换首件起始遗物、初始化新计数并运行获取钩子；新遗物空槽清零；Toy Box删除路径同步移动ID/计数并清尾槽（不代表蜡制机制完成）。
-- 三项新战斗状态已接公开观察、Python绑定、clone、快照校验；局外ArmG布局不变，工作进程入口版本检查同步。
-- 95个实际DLL样例对照通过（自伤56、降级28、遗物11）；27个C++回归通过；Python 131通过、4个可选数据缺失跳过；6742个运行中快照、6000次重采样通过。
-- 1000局贪心冒烟正常结束，0异常、0截断、平均9.5层、0胜，约114.8局/秒。仅为引擎冒烟，未训练、未证明完整整局等价。原权重SHA-256未变。
-- 初次失败记录保留在本步目录：修正的是降级测试的不可打出费用标记转换，以及旧测试允许伪造引擎哈希的过期假设；没有改原生结果或放宽身份保护。
+工作目录 `artifacts/dev/cpp-native-aligned-20261031/`。构建和常规检查命令见仓库根 README。Mac 此次使用 `/opt/anaconda3/bin/python` 3.11 与 Command Line Tools，未使用或修改用户全局环境。Linux/WSL2 使用自己的 Conda Python 与 `g++`，不复用 Mac 对象文件。
 
-## 5. 已确认的具体缺口
+`validation/build_local.py` 保持回归断言开启，并编译所有 C++ 测试；它会重写 `validation/build.json`。需要保留新证据时，用本次 `validation/branch-export-20261110/build.py` 的方式将构建报告写到新目录。历史 `run_cpp_tests.py` 和地图/NoSL 审计运行器可能重写原报告，重跑前先选择新的输出目录，不要直接覆盖归档证据。
 
-### A. 卡牌
-
-| 对象 | 原生要求 | 当前差异 |
-| --- | --- | --- |
-| Splash | 已解锁其他角色的攻击牌池 | 使用铁甲牌池近似替代 |
-| Mad Science | 事件配置决定类型和效果 | 缺少完整配置状态 |
-
-### B. 遗物
-
-| 对象 | 原生要求与当前差异 |
-| --- | --- |
-| Toy Box | 原生5件蜡制遗物，每3战按顺序熔化，15战结束；当前4件普通遗物并持续随机删除，缺少完整蜡制状态 |
-| Sea Glass | 原生指定角色15张候选，玩家选0～15；当前自动加3张随机铁甲非普通牌 |
-| Lead Paperweight | 原生2张无色候选，可跳过；当前自动加1张随机无色非普通牌 |
-| Dusty Tome | 原生预选并保存古老角色牌，升级加入；当前用随机稀有牌替代 |
-| Prismatic Gem | 原生扩展已解锁角色牌池；当前仅第三个奖励位置变无色 |
-| Dream Catcher | 休息治疗后正常选牌奖励流程缺失 |
-| Bone Tea | 指定一场战斗升级初始手牌的触发缺失 |
-| Fake Venerable Tea Set | 进入休息点后下场战斗+1能量的保存/触发状态缺失 |
-| Byrdpip | 鸟蛋变牌与宠物召唤系统不完整 |
-| Arcane Scroll | 当前直接抽稀有牌，未走完整原生奖励牌生成随机流和联动 |
-| Small Capsule | 当前直接获取，未保留遗物奖励的跳过与获取时机 |
-| Large Capsule | 原生按有序遗物袋取出；当前额外随机稀有度，流程不同 |
-| Delicate Frond | 药水生成候选、分布和失败处理未完整对齐 |
-| Alchemical Coffer | 向新增4槽发药水的随机流和槽位规则未对齐 |
-| Massive Scroll | 原生多人专用；当前单人过滤不完整并近似为随机无色牌 |
-
-### C. 已有事件的剩余差异
-
-- Welcome to Wongo’s：特卖遗物选择、商店过滤、消费触发、徽章/进度状态不完整。
-- Dense Vegetation：主要流程已修，但模拟休息仍缺 Dream Catcher 联动，保留 APPROXIMATE。
-
-### D. 整项未实现的原生事件
-
-已核对 **31项已注册但 UNSUPPORTED，另3项未注册**。不计纯占位 `AROMA_PLACEHOLDER`。
-当前过滤未支持事件，会改变事件池、概率和随机序列；不能将“没有遇到它”视作已实现。
-
-| 范围 | 已注册但未实现 | 原生存在但尚未注册 |
-| --- | --- | --- |
-| 第一幕 Overgrowth（密林） | ByrdonisNest、JungleMazeAdventure、LuminousChoir、MorphicGrove | WhisperingHollow、WoodCarvings |
-| 替代第一幕 Underdocks | EndlessConveyor、PunchOff、TrashHeap | — |
-| 第二幕 Hive | Amalgamator、Bugslayer、ColorfulPhilosophers、ColossalFlower、FieldOfManSizedHoles、InfestedAutomaton、TheLanternKey | ZenWeaver |
-| 第三幕 Glory | BattlewornDummy、GraveOfTheForgotten、RoundTeaParty、TinkerTime、Trial | — |
-| 共享 | CrystalSphere、DollRoom、FakeMerchant、RanwidTheElder、RelicTrader、SelfHelpBook、SlipperyBridge、Symbiote、TeaMaster、TheFutureOfPotions、TheLegendsWereTrue、WarHistorianRepy | — |
-
-### E. Boss、进度和生成时序
-
-- **AeonglassBoss 无对应C++怪物/遭遇实现。** 原生Glory池是 Aeonglass/Queen/TestSubject；当前仍是 Doormaker/Queen/TestSubject，A10第二Boss也受影响。
-- 指定发现进度要求首次出现 Aeonglass 时当前会拒绝初始化；`aeonglassSeen=true`默认值不表示Boss已实现。
-- ByrdonisNest 有枚举无实现，原生首次Overgrowth强制该事件的入口当前明确拒绝。
-- 密林已是第一幕；Underdocks 已作为替代第一幕接入，不是第四幕。普通 `init/init_seed` 默认 Overgrowth→Hive→Glory，带 context 的入口才执行第一幕选择。
-- 当前只接入有限账号发现/解锁开关，没有完整epoch内容过滤和原生存档进度导入。
-- 原生开局生成所有幕的rooms；当前进入对应幕才生成。此时序不同，尚未证明一般等价，也不能断言每条路径必然不同。
-- PunchOff 的专用战斗还涉及两只怪的不同初始招式和随机初始HP减少值，不能直接套普通遭遇。
-
-### F. 第一部分确认的范围边界
-
-- 两个牌组事件的降级费用已修。通用战斗费用修正栈仍缺来源信息：Snecko的绝对改费和Frantic Escape的相对改费混在现有字段里，不能据此声称任意战斗中降级等价。
-- 原生最终死亡清空全部能力，C++保留终局能力值。本步对致死样例验证生命/格挡/伤害/失败结果，未扩展全局死亡清理。
-
-## 6. 尚待核验，不要当成已确认错误
-
-- Primal Force 的可变牌筛选、新实体替换、生成牌钩子组合。
-- 自定义奖励完整稀有度修正、升级概率及遗物联动，包括上面纠正后的 Lost Coffer。
-- 特殊生成牌、宠物/随从、队友及复杂效果组合；其中多人机制不属于当前单人完整支持承诺。
-- 固定牌堆/遗物容量边界，以及 C++ double 与原生 decimal 的取整边界。
-- 原生桥接的活动选牌网格、Pael暂存牌来源范围与UI执行仍不完整。已有编译/编码测试不是游戏UI实测。
-- 完整同种子、同账号进度、同决策长路径对照。
-
-## 7. 下一步建议与实施方法
-
-推荐顺序（后续用户指令优先）：
-
-1. **第一部分已完成**：铁甲自伤累计、两事件降级费用恢复、遗物计数关联。见第四轮第一部分证据，勿重做；范围边界见上文。
-2. **下一部分**：补齐会改变决策空间的遗物真实选牌/跳过和持续状态，禁止用随机自动领取掩盖缺失。
-3. 补事件及正确Boss池、账号过滤，再做后两幕的完整长路径对照。
-4. 等规则/特征稳定后审核旧权重迁移或从新环境初始化训练，之后才评估大规模自迭代。
-
-工作方式：
-
-- 先读目标原生源码；重要/不确定交互用实际目标DLL受控样例核验。不要采用其他游戏版本的卡牌描述冒充目标规则。
-- 每批使用新的 fixture/validation 目录保留证据；不改旧样例结果来迁就模拟器。
-- 多人并行时给文件划清所有权；共享头文件、布局、观察/动作和身份变更统一协调，构建前冻结源码。
-- 若新增状态，必须覆盖 clone、snapshot、公开观察、动作/桥接等相关路径；隐藏随机顺序不能泄漏给模型。
-- 新增ID追加到末尾，不复用Grapple槽、不重排旧ID；同时恢复原生候选顺序，编号顺序不一定等于抽取顺序。
-- 更新生成源与生成文件，避免重新运行生成器丢失修复。
-- 重要验证维度：结果、候选身份/顺序、RNG调用计数、选择暂停/恢复、奖励跳过、伤害/复活和满槽行为。
-- 小批修复后跑针对性原生对照和回归，再汇总明确已修/未修；不要把“不崩溃”或元数据一致写成完整原生等价。
-
-## 8. 本机复现入口
-
-以下命令的工作目录是 `artifacts/dev/cpp-native-aligned-20261031/`：
-
-```sh
-/opt/anaconda3/bin/python validation/build_local.py
-/opt/anaconda3/bin/python validation/round4-step1/run_cpp_tests.py
-```
-
-第二条会重写第四轮第一部分测试汇总；继续下一部分时复制/调整运行器，将新日志写入新目录以保留旧证据。第一部分全部复现命令在 `validation/round4-step1/commands.txt`。
-构建脚本使用Apple clang、Python3.11，复用对象文件并保持回归断言开启；本机未用cmake入口，未验证Windows构建。
-
-第三轮Python选择集：
-
-```sh
-/opt/anaconda3/bin/python -m pytest -q tests/test_content.py tests/test_binding_schema_contract.py tests/test_native_act_context.py tests/test_native_seed_identity.py tests/test_engine_checkpoint_identity.py tests/test_armg_native_bridge.py tests/test_armg_features.py tests/test_armg_floor_final_boss.py
-```
-
-上一轮只粗估过“3～5轮”，不是完成承诺；按实际缺口、依赖和验证结果重新评估，不给没有证据的百分比。
+> 导出复验补记：仅同步两处旧 Python 测试替身的字段名（`potions` → `potion_belt`），使其匹配已有物理药槽 API；没有改测试期望、生产规则或网络代码。初次 8 项失败及修正后复验均保留在 `validation/branch-export-20261110/`。

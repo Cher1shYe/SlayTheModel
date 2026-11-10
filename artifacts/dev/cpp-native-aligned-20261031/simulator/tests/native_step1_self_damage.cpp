@@ -1,6 +1,7 @@
 // Actual v0.111.0 DLL fixture outcomes; see native-round4-step1-card-fixtures.
 // Covers the two powers and their relative order, not general hook ordering.
 #include <cmath>
+#include "port_root.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -71,7 +72,7 @@ void state(const std::string &label,const BattleContext &b,const json &s) {
 }
 }
 int main() {
-    const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();
+    const auto root=port_root();
     json fixtures;std::ifstream(root/"native-round4-step1-card-fixtures/results.json")>>fixtures;
     check("native fixture completed",fixtures["status"]=="completed",true);
     check("target DLL hash",fixtures["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",true);

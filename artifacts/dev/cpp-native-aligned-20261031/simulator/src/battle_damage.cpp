@@ -4,6 +4,7 @@
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 namespace sts2 {
 DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
                                           bool poweredAttack, bool unblockable) {
@@ -89,6 +90,7 @@ DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
     if(fromPlayer){
         necrobinder_after_damage_given(*this,idx,res,poweredAttack);
         if(poweredAttack&&!necro.dealingOstyDamage)silent_after_attack_damage(*this,idx,res.unblocked);
+        regent_after_damage_given(*this,idx,poweredAttack&&!necro.dealingOstyDamage);
     }
     if(diedThisHit)resolve_monster_death(idx);
     // AfterDamageReceived hooks run for surviving targets.
@@ -129,7 +131,7 @@ DamageDealt BattleContext::damage_monster(int idx, int amount, bool fromPlayer,
             const int count = m.power[static_cast<int>(PowerId::PERSONAL_HIVE)];
             for (int i = 0; i < count; ++i) {
                 Card dazed=make_card(CardId::DAZED,false,require_card_uid());
-                add_card_to_draw_random(dazed);notify_card_generated(dazed);
+                add_card_to_draw_random(dazed);notify_card_generated(dazed,false);  // PersonalHive: creator null
             }
         }
         if (poweredAttack && res.unblocked > 0 &&
@@ -424,5 +426,6 @@ void BattleContext::kill_player() {
     player.hp=0;relics_current_hp_changed(*this);
     if(try_fairy_revive()||relics_try_revive(*this)){necrobinder_after_death(*this,true);return;}
     necrobinder_after_death(*this,false);necrobinder_kill_osty(*this);outcome=Outcome::PLAYER_LOSS;
+    clear_player_powers_after_death();
 }
 }

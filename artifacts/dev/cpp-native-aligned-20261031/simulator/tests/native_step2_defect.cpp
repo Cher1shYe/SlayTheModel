@@ -1,4 +1,5 @@
 #include "sts2/battle.h"
+#include "port_root.h"
 #include "sts2/defect.h"
 #include <nlohmann/json.hpp>
 #include <filesystem>
@@ -16,9 +17,19 @@ void check(bool condition, const std::string &label) {
     ++checks;
     if (!condition) {++failures; std::cerr << context << ": " << label << '\n';}
 }
+// Native model ids: the C++ keys add a _CARD suffix where a bare name would
+// clash with a macro or enum (NULL_CARD), and keep SLOTH_STATUS (round3 rule).
+std::string native_key(CardId id) {
+    std::string s = card_key(id);
+    if (s.size() > 5 && s.substr(s.size() - 5) == "_CARD") s.resize(s.size() - 5);
+    if (s == "SLOTH_STATUS") s = "SLOTH";
+    return s;
+}
 CardId card_id(const std::string &key) {
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i)
         if (key == card_key(static_cast<CardId>(i))) return static_cast<CardId>(i);
+    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i)
+        if (key == native_key(static_cast<CardId>(i))) return static_cast<CardId>(i);
     throw std::runtime_error("Unknown fixture card " + key);
 }
 PowerId power_id(const std::string &key) {
@@ -39,6 +50,10 @@ void load_pile(BattleContext &b, Card *pile, int &count, const json &cards, bool
         Card c = make_card(card_id(row["id"]), row["upgraded"], b.require_card_uid());
         c.bonusDamage = row["damage"].get<double>() - card_base_damage(c);
         c.bonusBlock = row["block"].get<int>() - card_block(c);
+        // Setup-time effects (e.g. Rocket Punch seeing a generated status)
+        // leave an until-played cost change on the native card.
+        if (!row["x"].get<bool>() && row["cost"].get<int>() >= 0 && card_cost(c) >= 0 && row["cost"].get<int>() != card_cost(c))
+            card_modify_cost(c, row["cost"].get<int>() - card_cost(c), false, 4);
         pile[count++] = c;
     }
     if (reverse) std::reverse(pile, pile + count);
@@ -50,7 +65,8 @@ std::unique_ptr<BattleContext> setup(const json &state) {
     b.monsterCount = state["enemies"].size();
     for (int i = 0; i < b.monsterCount; ++i) {
         auto &m = b.monsters[i]; m.id = MonsterId::CALCIFIED_CULTIST; m.hp = state["enemies"][i]["hp"];
-        m.maxHp = 10000; m.block = state["enemies"][i]["block"]; m.alive = true; m.intentType = 0;
+        m.maxHp = 10000; m.block = state["enemies"][i]["block"]; m.alive = true;
+        m.intentType = 2;  // both cultists open with INCANTATION_MOVE (BuffIntent)
         for (const auto &p : state["enemies"][i]["powers"]) b.add_monster_power(i, power_id(p["id"]), p["amount"]);
     }
     load_pile(b, b.hand, b.handCount, state["hand"]);
@@ -79,6 +95,11 @@ void check_pile(const BattleContext &b, const Card *pile, int count, const json 
         check(c.upgraded == row["upgraded"], label + " upgraded");
         int cost = card_cost(c);
         if (std::string(name) == "hand" && card_is_power(c) && b.player_power(PowerId::FREE_POWER) > 0) cost = 0;
+        // Native reports X-cost cards as cost 0 with x=true; C++ encodes X as -1
+        // on a playable card (unplayable cards are -1 in both).
+        const bool xCost = card_def(c.id).cost < 0 && card_is_playable(c);
+        check(xCost == row["x"].get<bool>(), label + " x-cost flag");
+        if (xCost) cost = 0;
         check(cost == row["cost"], label + " cost expected=" + row["cost"].dump() + " actual=" + std::to_string(cost));
         check(card_base_damage(c) == row["damage"], label + " damage");
         check(card_block(c) == row["block"], label + " block");
@@ -115,7 +136,7 @@ void verify(const BattleContext &b, const json &state) {
 }
 }
 int main() {
-    const auto path = std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()/"native-round4-step2-defect-fixtures/results.json";
+    const auto path = port_root()/"native-round4-step2-defect-fixtures/results.json";
     std::ifstream f(path); json data; f >> data;
     check(data["status"] == "completed" && data["gameAssemblySha256"] == "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4", "target fixture identity");
     int cases = 0;

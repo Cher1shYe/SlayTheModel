@@ -25,4 +25,9 @@ int regent_star_cost(const BattleContext&,const Card&);
 void regent_spend_energy(BattleContext&,int);
 void regent_spend_stars(BattleContext&,int);
 bool regent_void_form_free(const BattleContext&,const Card&);
+void regent_after_damage_given(BattleContext&,int target,bool poweredAttack);
+void regent_after_player_attacked(BattleContext&,int dealer,int blocked);
+double regent_damage_multiplier(const BattleContext&,const Card&,int target);
+int regent_extra_hand_draw(const BattleContext&);
+bool regent_take_end_turn_request(BattleContext&);
 }

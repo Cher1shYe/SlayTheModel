@@ -1,5 +1,6 @@
 // Differential assertions against the actual target DLL, plus selection boundaries.
 #include "sts2/run.h"
+#include "port_root.h"
 #include "sts2/relics.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
@@ -27,7 +28,7 @@ std::string potion_key_normalized(std::string name) {
     std::string out;for(char c:name)if(c!='_')out.push_back(static_cast<char>(std::tolower(c)));return out;
 }
 int main() {
-    auto path=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
+    auto path=port_root()
         / "native-round3-event-fixtures/results.json";
     std::ifstream input(path); json fixture; input>>fixture;
     assert(fixture["status"]=="completed");

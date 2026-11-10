@@ -1,0 +1,30 @@
+PASS distinct_cards_control: same public root and legal choices
+DETAIL distinct_cards_control action_mismatches=0/24
+PASS distinct_cards_control: root decision independent of hidden state
+PASS distinct_cards_control: source unchanged
+DETAIL growth_cards same_seed_different_draws=100/100
+FAIL growth_cards: same sample independent of true order
+PASS growth_cards: same public root and legal choices
+DETAIL growth_cards mismatch search_seed=1 left_type=0 left_hand=0 right_type=0 right_hand=2
+DETAIL growth_cards mismatch search_seed=2 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL growth_cards mismatch search_seed=3 left_type=0 left_hand=2 right_type=0 right_hand=0
+DETAIL growth_cards mismatch search_seed=6 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL growth_cards mismatch search_seed=15 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL growth_cards action_mismatches=5/24
+FAIL growth_cards: root decision independent of hidden state
+PASS growth_cards: source unchanged
+FAIL bonusBlock: public draw bag independent of true order
+FAIL retainThisTurn: public draw bag independent of true order
+DETAIL orb_rng same_sample_outputs=702922,102179
+FAIL orb_rng: replaced independently of real stream
+DETAIL orb_rng unique_next_orbs_across_100_samples=1
+FAIL orb_rng: simulations sample alternative orb outcomes
+PASS orb_rng: same public root and legal choices
+DETAIL orb_rng mismatch search_seed=17 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL orb_rng mismatch search_seed=21 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL orb_rng mismatch search_seed=22 left_type=0 left_hand=1 right_type=0 right_hand=0
+DETAIL orb_rng action_mismatches=3/24
+FAIL orb_rng: root decision independent of hidden state
+PASS orb_rng: source unchanged
+PASS known_top: preserves legitimately visible top
+SUMMARY checks=15 failures=7

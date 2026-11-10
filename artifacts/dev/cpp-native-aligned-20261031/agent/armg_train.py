@@ -125,11 +125,11 @@ def collect_episode(seed: int, model: ArmGScorer | None, *, deterministic: bool 
                     legal = [tuple(action) for action in rc.battle.legal_actions()]
                     if not combat_plan or combat_plan[0] not in legal:
                         if combat_budget_by_context is not None:
-                            # v13 observe.cpp still writes inBattle/elite/boss
+                            # v15 observe.cpp still writes inBattle/elite/boss
                             # directly from RunContext at slots 8/9/10. Elite
                             # is not separately exported by this binding; use
                             # the public native flag, never the map room type.
-                            if PUBLIC_OBS_VERSION != 13:
+                            if PUBLIC_OBS_VERSION != 15:
                                 raise RuntimeError('unsupported combat classification observation version')
                             public = rc.observe_public()
                             boss = bool(rc.combat_is_boss)

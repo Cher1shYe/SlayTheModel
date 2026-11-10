@@ -1,0 +1,8 @@
+{
+  "source_commit": "50d72a6cae6e03a9d6fa07baa8eee28c1a67b9ab",
+  "simulator_tracked_files_compared": 240,
+  "simulator_mismatches": [],
+  "excluded_paths_diff_from_base": [],
+  "spire_rl_present": false,
+  "training_handoff_present": false
+}

@@ -155,7 +155,7 @@ def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
     context = SimpleNamespace(
         screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
         legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
-        deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+        deck_enchantments=[(0, 0, False), (3, 2, False)], potion_belt=[],
         card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
     _, actual, rows = armg.build_candidates(context)
     assert actual == actions

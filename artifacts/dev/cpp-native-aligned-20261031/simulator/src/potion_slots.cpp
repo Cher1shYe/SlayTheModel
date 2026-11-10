@@ -43,7 +43,7 @@ void potion_alchemical_coffer_on_obtain(RunContext &rc) {
     if (oldSlots > MAX_POTIONS - 4) throw std::overflow_error("Alchemical Coffer exceeds physical potion slot storage");
     rc.potionSlots += 4;
     PotionId generated[4];
-    const int count = random_potions_out_of_combat(rc.runRng[RNG_COMBAT_POTION_GENERATION], generated, 4);
+    const int count = random_potions_out_of_combat(rc.runRng[RNG_COMBAT_POTION_GENERATION], generated, 4, rc.nativeProgress.revealedEpochs);
     if (count != 4) throw std::logic_error("Native four-potion batch cannot be generated");
     for (int i = 0; i < count; ++i) run_try_procure_potion(rc, generated[i], oldSlots + i);
 }
@@ -51,7 +51,7 @@ void potion_delicate_frond_before_combat(BattleContext &bc) {
     while (potion_first_empty_slot(bc.potions, bc.potionSlots) >= 0) {
         // Repeated one-potion factory calls intentionally allow duplicates.
         // Generation precedes Sozu rejection, so failure still consumes RNG.
-        const auto id = random_potion_out_of_combat(bc.potionRng);
+        const auto id = random_potion_out_of_combat(bc.potionRng, bc.revealedEpochs);
         if (!battle_try_procure_potion(bc, id)) break;
     }
 }

@@ -1,0 +1,396 @@
+........................................................................ [ 73%]
+...........FFFFFFF...F....                                               [100%]
+=================================== FAILURES ===================================
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[6] _______
+
+grid_kind = 6
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...tments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=6, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[7] _______
+
+grid_kind = 7
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...tments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=7, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[8] _______
+
+grid_kind = 8
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...tments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=8, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[9] _______
+
+grid_kind = 9
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...tments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=9, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[10] ______
+
+grid_kind = 10
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...ments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=10, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[11] ______
+
+grid_kind = 11
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...ments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=11, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+______ test_new_deck_grids_preserve_action_order_card_and_enchantment[12] ______
+
+grid_kind = 12
+
+    @pytest.mark.parametrize("grid_kind", [6, 7, 8, 9, 10, 11, 12])
+    def test_new_deck_grids_preserve_action_order_card_and_enchantment(grid_kind):
+        actions = [(int(RACT.SELECT_GRID_CARD), 1), (int(RACT.SELECT_GRID_CARD), 0)]
+        context = SimpleNamespace(
+            screen=SCREEN.EVENT, observe_public=lambda: [0.0] * int(sim.PUBLIC_OBS_DIM),
+            legal_actions=lambda: actions, deck=[(6, False, 1, 2), (7, True, 2, 1)],
+            deck_enchantments=[(0, 0, False), (3, 2, False)], potions=[],
+            card_grid_kind=grid_kind, card_grid_selected=[False, True], event_relics=[])
+>       _, actual, rows = armg.build_candidates(context)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_engine_checkpoint_identity.py:160: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.EVENT: 5>, observe_public=<function test_new_deck_grids_preserve_action_order_card_and_enc...ments=[(0, 0, False), (3, 2, False)], potions=[], card_grid_kind=12, card_grid_selected=[False, True], event_relics=[])
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+___________ test_shop_candidates_are_public_legal_and_item_specific ____________
+
+    def test_shop_candidates_are_public_legal_and_item_specific():
+>       obs, actions, features = armg.build_candidates(_shop_context())
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_armg_features.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+rc = namespace(screen=<RunScreen.SHOP: 4>, observe_public=<function _shop_context.<locals>.<lambda> at 0x11449be20>, legal_...lics=[(1, 120, False), (2, 140, False)], shop_potions=[(1, 30, False)], potions=[], card_grid_kind=0, removal_price=75)
+
+    def build_candidates(rc):
+        """Return public run observation, legal actions, and their feature rows.
+    
+        The action list is taken directly from the engine; it is not filtered or
+        reordered, so selection/confirmation/cancellation remain legal choices.
+        """
+        if rc.screen in (SCREEN.COMBAT, SCREEN.RUN_OVER):
+            raise ValueError("ArmG requires a non-combat decision screen")
+        actions = legal_run_actions(rc)
+        observation = public_observation(rc)[:ARMG_OBS_DIM].copy()
+        rows = np.zeros((len(actions), ARMG_ACTION_DIM), dtype=np.float32)
+        if not actions:
+            return observation, actions, rows
+    
+        # Read each binding once; most screens do not need all of these.
+        deck = rc.deck
+        deck_enchants = rc.deck_enchantments
+        offers = rc.offered if rc.screen == SCREEN.CARD_REWARD else []
+        shop = rc.shop if rc.screen == SCREEN.SHOP else []
+        shop_relics = rc.shop_relics if rc.screen == SCREEN.SHOP else []
+        shop_potions = rc.shop_potions if rc.screen == SCREEN.SHOP else []
+        relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
+        potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
+        stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
+>       potions = rc.potion_belt  # action indices are physical slots
+                  ^^^^^^^^^^^^^^
+E       AttributeError: 'types.SimpleNamespace' object has no attribute 'potion_belt'
+
+agent/armg.py:102: AttributeError
+=========================== short test summary info ============================
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[6]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[7]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[8]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[9]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[10]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[11]
+FAILED tests/test_engine_checkpoint_identity.py::test_new_deck_grids_preserve_action_order_card_and_enchantment[12]
+FAILED tests/test_armg_features.py::test_shop_candidates_are_public_legal_and_item_specific
+8 failed, 90 passed in 16.11s

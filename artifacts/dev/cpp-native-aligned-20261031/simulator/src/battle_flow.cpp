@@ -1,8 +1,10 @@
 #include "sts2/battle.h"
+#include "sts2/monsters.h"
 #include "sts2/relics.h"
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 
 namespace sts2 {
 
@@ -82,8 +84,24 @@ void BattleContext::discard_cards(const Card *cards,int count,int drawAfter) {
     if(slyCount)auto_play_cards(sly,slyCount);
 }
 
-void BattleContext::notify_card_generated(const Card &card) {
-    defect_after_card_generated(*this,card);
-    necrobinder_card_generated(*this,card);
+void BattleContext::notify_card_generated(const Card &card, bool byPlayer) {
+    // CardPileCmd.Add -> Hook.AfterCardEnteredCombat mutates the pile instance.
+    Card *piles[]={hand,draw,discard,exhaust,playPile,returnNextTurn};
+    const int counts[]={handCount,drawCount,discardCount,exhaustCount,playCount,returnNextTurnCount};
+    Card *entered=nullptr;
+    for(int p=0;p<6 && !entered;++p)for(int i=0;i<counts[p];++i)
+        if(piles[p][i].uid==card.uid){entered=&piles[p][i];break;}
+    // Aeonglass.AfterCardGeneratedForCombat: a new Wither gets one FakeUpgrade
+    // (+3 damage) per WitherUpgradeCount.
+    if(entered&&entered->id==CardId::WITHER)entered->bonusDamage+=3*aeonglass_wither_upgrades(*this);
+    if(entered) {
+        silent_card_entered_combat(*this,*entered,false);
+        necrobinder_card_entered_combat(*this,*entered,false);
+        regent_card_entered_combat(*this,*entered,false);
+    }
+    const Card generated=entered?*entered:card;
+    defect_after_card_generated(*this,generated);
+    necrobinder_card_generated(*this,generated);
+    if(byPlayer)regent_card_generated(*this,generated);
 }
 }

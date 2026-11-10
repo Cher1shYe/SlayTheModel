@@ -449,12 +449,20 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             if (bc.exhaustCount >= card_var(card, VarId::CARDS)) hit_all(bc, card, dmg);
             return true;
         case CardId::PRIMAL_FORCE: {
-            for (int i = 0; i < bc.handCount; ++i) {
-                if (card_is_attack(bc.hand[i])) {
-                    const std::uint16_t uid = bc.hand[i].uid;
-                    bc.hand[i] = make_card(CardId::GIANT_ROCK, card.upgraded, uid);
+            // CardCmd.Transform per hand Attack (all hand cards are transformable
+            // in combat): a new Giant Rock entity in the same slot, then
+            // CardGenerated / AfterCardEnteredCombat.
+            std::uint16_t attacks[MAX_HAND];
+            int n = 0;
+            for (int i = 0; i < bc.handCount; ++i)
+                if (card_is_attack(bc.hand[i])) attacks[n++] = bc.hand[i].uid;
+            for (int k = 0; k < n; ++k)
+                for (int i = 0; i < bc.handCount; ++i) {
+                    if (bc.hand[i].uid != attacks[k]) continue;
+                    bc.hand[i] = make_card(CardId::GIANT_ROCK, card.upgraded, bc.require_card_uid());
+                    bc.notify_card_generated(bc.hand[i], true);
+                    break;
                 }
-            }
             return true;
         }
         case CardId::PYRE:

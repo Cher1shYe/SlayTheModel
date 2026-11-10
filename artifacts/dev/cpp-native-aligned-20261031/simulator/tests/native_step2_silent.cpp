@@ -1,4 +1,5 @@
 #include "sts2/silent.h"
+#include "port_root.h"
 #include <nlohmann/json.hpp>
 #include <algorithm>
 #include <array>
@@ -98,7 +99,7 @@ void selections(BattleContext &b,const json &rows,int &index){
 bool turn_followup(const std::string &id){static const std::set<std::string> ids={"NOXIOUS_FUMES","INFINITE_BLADES","NIGHTMARE","TOOLS_OF_THE_TRADE","WRAITH_FORM","BLUR","WELL_LAID_PLANS","SHADOW_STEP","ANTICIPATE","DODGE_AND_ROLL","PREDATOR","SIDESTEP"};return ids.count(id)>0;}
 }
 int main(){
-    const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixtures;std::ifstream(root/"native-round4-step2-silent-fixtures/results.json")>>fixtures;
+    const auto root=port_root();json fixtures;std::ifstream(root/"native-round4-step2-silent-fixtures/results.json")>>fixtures;
     check(fixtures["status"]=="completed","DLL fixtures completed");check(fixtures["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4","target DLL identity");
     for(const auto &f:fixtures["results"]){
         const std::string id=f["id"],mode=f["mode"];label=id+(f["upgraded"].get<bool>()?"+":"")+" "+mode;

@@ -1,4 +1,5 @@
 #include "sts2/relic_card_rewards.h"
+#include "port_root.h"
 #include "sts2/relics.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
@@ -47,7 +48,7 @@ CardPool sea_pool(const std::string &kind) {
 }
 }
 int main() {
-    const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixture;
+    const auto root=port_root();json fixture;
     std::ifstream(root/"native-round4-step2-card-reward-fixtures/results.json")>>fixture;
     check("native fixture completed",fixture["status"]=="completed");
     check("target DLL",fixture["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4");

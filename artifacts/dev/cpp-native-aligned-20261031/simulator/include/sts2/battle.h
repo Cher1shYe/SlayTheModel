@@ -104,6 +104,9 @@ struct Monster {
     int shellHpLostThisTurn = 0;
     bool nemesisIntangible = false;
     bool skittishTriggeredThisTurn = false;
+    // RitualPower.WasJustAppliedByEnemy: a newly created Ritual instance on an
+    // enemy skips its first AfterSideTurnEnd.
+    bool ritualJustApplied = false;
     int grappleCount = 0;
     int grappleAmounts[MAX_PILE]{};
 };
@@ -196,6 +199,7 @@ struct BattleContext {
     Rng orbRng;
     CardPool characterPool = CardPool::IRONCLAD;
     std::uint8_t unlockedCharacterMask = 31;
+    std::uint64_t revealedEpochs = ~std::uint64_t{0};  // copied from the run's progress
     SilentState silent;
     DefectState defect;
     NecrobinderState necro;
@@ -238,6 +242,7 @@ struct BattleContext {
     AutoPlayRequest autoPlayQueue[MAX_PILE]{};
     int autoPlayQueueCount = 0;
     bool runningPlayLoop = false;
+    bool turnFlowRunning = false;  // re-entrancy guard for resume_turn_flow
     bool nextPlayIsDupe = false;  // HistoryCourse: the copy is not history
     std::uint16_t nextUid = 1;
     // Reservations protect locally constructed offers until the next action
@@ -273,6 +278,8 @@ struct BattleContext {
     int recoveredStolenGold = 0;
     bool vitalSparkTriggeredThisEnemyTurn = false;
     bool lavaLampTookQualifyingDamage = false;
+    // BattlewornDummyEventEncounter.RanOutOfTime (the dummy escaped).
+    bool battlewornRanOutOfTime = false;
     Card returnNextTurn[MAX_HAND]{};
     int returnNextTurnCount = 0;
     bool gainedBlockFromCardThisTurn = false;
@@ -367,6 +374,8 @@ struct BattleContext {
 
     [[nodiscard]] std::vector<Action> legal_actions() const;
     bool step(const Action &action);
+    bool step_action(const Action &action);
+    void settle_forced_choices();
 
     // Determinization for player-usable search: shuffle zones whose order the
     // player cannot see (draw/discard) and replace the hidden future-RNG stream.
@@ -375,6 +384,8 @@ struct BattleContext {
     void start_player_turn();
     void end_player_turn();
     void resume_turn_flow();
+    void continue_pre_draw();
+    void after_hand_drawn();
     void monster_turn();
     void end_turn_triggers();
 
@@ -406,7 +417,8 @@ struct BattleContext {
     void kill_monster(int index);
     void resolve_monster_death(int index);
     void kill_player();
-    void notify_card_generated(const Card &card);
+    // byPlayer: the generation's creator is the player (CardPileCmd creator).
+    void notify_card_generated(const Card &card, bool byPlayer = true);
     bool start_queued_auto_play();
     void restore_suspended_play();
 
@@ -415,6 +427,10 @@ struct BattleContext {
     void after_card_played(const Card &card);
     [[nodiscard]] bool card_will_exhaust(const Card &c) const;
 
+    // Hook.ModifyDamage's first step for a card source: the card's enchantment
+    // EnchantDamageAdditive then EnchantDamageMultiplicative on the card's own
+    // base, before Vigor/Strength (Vigorous, Sharp, Corrupted).
+    double enchant_card_damage(const Card &card, double base) const;
     int calc_player_damage(double base, int monsterIdx, bool powered = true,
                            const Card *card = nullptr) const;
     // Native Thrash evaluates the selected card before exhausting it, with no
@@ -491,7 +507,7 @@ struct BattleContext {
 
     // Unified play lifecycle (CardModel.OnPlayWrapper).
     void begin_play(const Card &card, int target, bool autoPlay, bool forceExhaust,
-                    int energySpent = 0);
+                    int energySpent = 0, int starsSpent = 0);
     void run_active_play();
     void finish_active_play();
 
@@ -510,6 +526,8 @@ struct BattleContext {
     void maybe_finish_pending();
 
     void check_outcome();
+    void clear_player_powers_after_death();
+    int energy_cost_in_combat(const Card &card) const;
 
     bool can_use_potion(int idx) const;
     void use_potion(int idx, int target);

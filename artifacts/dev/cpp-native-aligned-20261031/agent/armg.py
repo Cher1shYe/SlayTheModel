@@ -16,7 +16,7 @@ from .common import (
 )
 
 ARMG_OBS_DIM = PUBLIC_OBS_DIM - PUBLIC_COMBAT_OBS_DIM
-ARMG_FEATURE_VERSION = 4
+ARMG_FEATURE_VERSION = 6
 _ACTIONS = max(int(x) for x in RACT.__members__.values()) + 1
 _RELICS = max(int(x) for x in sim.RelicId.__members__.values()) + 1
 _POTIONS = max(int(x) for x in sim.PotionId.__members__.values()) + 1
@@ -99,7 +99,7 @@ def build_candidates(rc):
     relic_rewards = rc.reward_relics if rc.screen == SCREEN.REWARDS else []
     potion_rewards = rc.reward_potions if rc.screen == SCREEN.REWARDS else []
     stolen = {x[0]: x for x in rc.reward_stolen_cards} if rc.screen == SCREEN.REWARDS else {}
-    potions = rc.potions
+    potions = rc.potion_belt  # action indices are physical slots
     grid_kind = int(rc.card_grid_kind)
     grid_cards = rc.card_grid_cards if grid_kind in (1, 2, 5) else []
     selected = rc.card_grid_selected if grid_kind else []

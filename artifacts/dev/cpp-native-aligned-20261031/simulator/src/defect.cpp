@@ -155,7 +155,11 @@ Card defect_random_power(BattleContext &bc) {
     CardId choices[static_cast<int>(CardId::COUNT)]; int n = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const auto &d = card_def(static_cast<CardId>(i));
+        // CardFactory.FilterForCombat also drops Basic/Ancient/Event rarities
+        // (e.g. Ironclad's Ancient Corruption).
+        const bool rarityOk = d.rarity == Rarity::COMMON || d.rarity == Rarity::UNCOMMON || d.rarity == Rarity::RARE;
         if (d.pool == bc.characterPool && d.type == CardType::POWER && card_native_available(d.id) &&
+            card_epoch_unlocked(bc.revealedEpochs, d.id) && rarityOk &&
             !(d.flags & (CF_MULTIPLAYER_ONLY | CF_CANNOT_GENERATE_IN_COMBAT))) choices[n++] = d.id;
     }
     std::stable_sort(choices, choices + n, [](CardId a, CardId b) {
@@ -254,11 +258,11 @@ void defect_after_card_drawn(BattleContext &bc, const Card &card) {
         if (s.drawnCount >= 160) throw std::overflow_error("Scrape draw history exceeds storage");
         s.drawnUids[s.drawnCount++] = card.uid;
     }
-    if (card_def(card.id).type == CardType::STATUS && ++bc.defect.statusesDrawnThisTurn == 1)
+    if (card_type(card) == CardType::STATUS && ++bc.defect.statusesDrawnThisTurn == 1)
         bc.draw_cards(bc.player_power(PowerId::ITERATION));
 }
 void defect_after_card_generated(BattleContext &bc, const Card &card) {
-    if (card_def(card.id).type != CardType::STATUS) return;
+    if (card_type(card) != CardType::STATUS) return;
     ordered_powers(bc, [&](PowerId id, int amount) {
         if (id == PowerId::SMOKESTACK) damage_all(bc, amount);
         if (id == PowerId::TRASH_TO_TREASURE)

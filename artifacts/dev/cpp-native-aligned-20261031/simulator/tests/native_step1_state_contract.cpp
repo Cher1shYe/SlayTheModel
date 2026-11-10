@@ -31,9 +31,11 @@ int main() {
     b.player.infernoBeforeCrimsonMantle = true;
     const auto observation = public_combat_observation(b);
     assert(observation.size() == PUBLIC_COMBAT_OBS_DIM);
-    assert(observation[observation.size()-3] == 0.2f);
-    assert(observation[observation.size()-2] == 0.3f);
-    assert(observation.back() == 1.0f);
+    // v14 appends the character-state block after the v13 self-damage tail.
+    const std::size_t tail = observation.size() - PUB_CHARACTER_FEAT;
+    assert(observation[tail-3] == 0.2f);
+    assert(observation[tail-2] == 0.3f);
+    assert(observation[tail-1] == 1.0f);
     const auto runObservation = public_observation(*source);
     assert(runObservation.size() == PUBLIC_OBS_DIM);
     assert(std::equal(observation.begin(), observation.end(),
@@ -46,7 +48,10 @@ int main() {
         if (field == 2) distinct.player.infernoBeforeCrimsonMantle = false;
         const auto different = public_combat_observation(distinct);
         assert(different != observation);
-        assert(std::equal(observation.begin(), observation.end()-3, different.begin()));
+        // Only the three self-damage features may change; the v14 character
+        // block after them stays identical.
+        assert(std::equal(observation.begin(), observation.begin()+(tail-3), different.begin()));
+        assert(std::equal(observation.begin()+tail, observation.end(), different.begin()+tail));
     }
     for (unsigned seed = 0; seed < 32; ++seed) {
         BattleContext sampled = b;
@@ -56,7 +61,7 @@ int main() {
 
     auto restored = std::make_unique<RunContext>();
     const auto blob = source->serialize();
-    assert(static_cast<unsigned char>(blob[4]) == 8);
+    assert(static_cast<unsigned char>(blob[4]) == 10);
     assert(RunContext::restore(blob, *restored));
     assert(restored->serialize() == blob);
     assert(public_observation(*restored) == runObservation);
@@ -67,7 +72,7 @@ int main() {
     assert(public_combat_observation(source->battle) == public_combat_observation(restored->battle));
     assert(public_combat_observation(source->battle) == public_combat_observation(copied->battle));
 
-    auto old = blob; old[4] = 7;
+    auto old = blob; old[4] = 8;
     rejects_atomically(old, *restored);
     const auto playerOffset = 12 + reinterpret_cast<const char *>(&source->battle.player)
                                 - reinterpret_cast<const char *>(source.get());

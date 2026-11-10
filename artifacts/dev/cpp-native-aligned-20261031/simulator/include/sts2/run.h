@@ -20,8 +20,11 @@ enum class RunActionType : std::uint8_t {
     TAKE_GOLD_REWARD, TAKE_POTION_REWARD, TAKE_RELIC_REWARD, OPEN_CARD_REWARD,
     LEAVE_REWARDS, DISCARD_POTION, SACRIFICE_CARD_REWARD, EVENT_SELECT_CARD,
     TAKE_STOLEN_CARD_REWARD, SKIP_STOLEN_CARD_REWARD,
-    SELECT_GRID_CARD, CONFIRM_GRID_CARDS, CANCEL_GRID_PREVIEW, REST_CLONE, REST_HATCH
+    SELECT_GRID_CARD, CONFIRM_GRID_CARDS, CANCEL_GRID_PREVIEW, REST_CLONE, REST_HATCH,
+    // Crystal Sphere minigame: index = x * 11 + y of a still-hidden cell.
+    CRYSTAL_SPHERE_SMALL, CRYSTAL_SPHERE_BIG
 };
+constexpr RunActionType RUN_ACTION_LAST = RunActionType::CRYSTAL_SPHERE_BIG;
 
 struct RunAction {
     RunActionType type = RunActionType::MOVE;
@@ -43,10 +46,12 @@ constexpr int MAX_SHOP_CARDS = 7;      // 5 character + 2 colorless
 constexpr int MAX_SHOP_RELICS = 3;
 constexpr int MAX_SHOP_POTIONS = 3;
 constexpr int MAX_ACTS = 3;
-constexpr int MAX_EVENT_CHOICES = 4;
+constexpr int MAX_EVENT_CHOICES = 8;  // Fake Merchant: 6 relics + leave
 constexpr int MAX_REWARD_RELICS = 8;
 constexpr int MAX_REWARD_POTIONS = 12;
 constexpr int MAX_CARD_REWARDS = 8;
+// Three options, plus Lasting Candy's extra Power on every second combat reward.
+constexpr int MAX_REWARD_CARD_CHOICES = 4;
 constexpr int RELIC_BAG_SLOTS = 4;  // common, uncommon, rare, shop
 constexpr int RELIC_BAG_CAPACITY = static_cast<int>(RelicId::COUNT);
 
@@ -68,7 +73,17 @@ struct NativeProgressContext {
     bool darvUnlocked = true;
     bool underdocksUnlocked = false;
     bool underdocksDiscovered = true;
-    bool aeonglassSeen = true; // Not represented by the legacy encounter enum.
+    bool aeonglassSeen = true; // also required for SETUP_AEONGLASS_BOSS to count as seen
+    // ActModel.GenerateRooms removes TrashHeap / Reflections / ColorfulPhilosophers
+    // from the event list until Event1/2/3Epoch is revealed.
+    bool event1EpochRevealed = true;
+    bool event2EpochRevealed = true;
+    bool event3EpochRevealed = true;
+    // SaveManager.Progress.WongoPoints before this run (badge every 2000).
+    int wongoPoints = 0;
+    // UnlockState revealed epochs (bit = native_epoch_name index): gates card,
+    // relic and potion pool content. Default: everything revealed.
+    std::uint64_t revealedEpochs = ~std::uint64_t{0};
     std::uint64_t seenEncounters[SEEN_ENCOUNTER_WORDS]{};
 
     NativeProgressContext() {
@@ -82,6 +97,28 @@ struct NativeProgressContext {
 };
 
 // A visible card grid can suspend any run screen (e.g. Claws obtained in a shop).
+constexpr int CRYSTAL_SPHERE_SIZE = 11;
+constexpr int CRYSTAL_SPHERE_CELLS = CRYSTAL_SPHERE_SIZE * CRYSTAL_SPHERE_SIZE;
+constexpr int CRYSTAL_SPHERE_MAX_ITEMS = 150;  // 10 placement attempts x 15 items
+constexpr int CRYSTAL_SPHERE_ITEM_TYPES = 9;
+// CrystalSphereMinigame. Item types: 0 relic 4x4, 1 common potion 1x3,
+// 2 rare potion 2x2, 3/4/5 common/uncommon/rare card reward 2x2, 6 curse 2x2,
+// 7 small gold 1x1, 8 big gold 2x1.
+struct CrystalSphereState {
+    bool active = false;
+    int divinations = 0;
+    std::uint64_t hidden[2]{};                       // bit x * 11 + y
+    std::int16_t cellItem[CRYSTAL_SPHERE_CELLS]{};   // item index + 1 (0 = empty)
+    std::uint8_t itemType[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    std::int8_t itemX[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    std::int8_t itemY[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    bool itemPlaced[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    int itemCount = 0;
+    std::int16_t revealed[CRYSTAL_SPHERE_MAX_ITEMS]{};  // item indices in reveal order
+    int revealedCount = 0;
+};
+constexpr int MAX_EXTRA_GOLD_REWARDS = 8;
+
 struct RunCardGrid {
     std::uint8_t kind = 0; // 1 Brain Leech, 2 Cheese, 3 Claws, 4 Pael's Growth, 5 Scroll Boxes;
                            // 6 remove, 7 transform, 8 transform+upgrade, 9 upgrade,
@@ -99,6 +136,11 @@ struct RunCardGrid {
     int freeHead = -1;
     int damageAfterSelection = 0;
     CardId curseAfterSelection = CardId::INVALID;
+    // Kind 7/8 only: events call CardCmd.TransformToRandom(card, event.Rng)
+    // instead of the relics' niche stream.
+    bool eventRng = false;
+    // Kind 6-12 only: extra eligibility filter (DeckChoiceFilter).
+    std::uint8_t filter = 0;
 };
 
 struct RunContext {
@@ -108,6 +150,10 @@ struct RunContext {
     ActType actTypes[MAX_ACTS]{ActType::OVERGROWTH, ActType::HIVE, ActType::GLORY};
     NativeProgressContext nativeProgress;
     int goldenPathAct = -1;
+    // SpoilsMap.SpoilsCoord: the act-2 Treasure carrying the Spoils Map quest
+    // (row/col), or -1 when no quest is on this act's map.
+    std::int8_t spoilsQuestRow = -1;
+    std::int8_t spoilsQuestCol = -1;
     int unknownMapPointsVisited = 0;
 
     // --- progression --------------------------------------------------------
@@ -149,11 +195,14 @@ struct RunContext {
 
     // --- screens ------------------------------------------------------------
     RunScreen screen = RunScreen::MAP;
-    Card offered[3]{};
+    Card offered[MAX_REWARD_CARD_CHOICES]{};
     int offeredCount = 0;
     bool rewardIsBoss = false;
     int pendingGoldReward = 0;
     int pendingRecoveredGold = 0;
+    // Additional custom GoldRewards (Crystal Sphere): TAKE_GOLD_REWARD index 2+i.
+    int extraGoldRewards[MAX_EXTRA_GOLD_REWARDS]{};
+    CrystalSphereState crystalSphere;
     int pendingPotionReward = 0;  // PotionId::INVALID means none
     int pendingPotions[MAX_REWARD_POTIONS]{};
     int pendingPotionCount = 0;
@@ -162,7 +211,7 @@ struct RunContext {
     bool pendingRelicClaimed[MAX_REWARD_RELICS]{};
     bool pendingRelicWax[MAX_REWARD_RELICS]{};
     bool pendingCardReward = false;
-    Card rewardCards[MAX_CARD_REWARDS][3]{};
+    Card rewardCards[MAX_CARD_REWARDS][MAX_REWARD_CARD_CHOICES]{};
     int rewardCardCounts[MAX_CARD_REWARDS]{};
     bool rewardCardPending[MAX_CARD_REWARDS]{};
     int activeCardReward = -1;
@@ -207,7 +256,9 @@ struct RunContext {
     bool pendingRelicObtainWax[MAX_RELICS]{};
     int pendingRelicObtainCount = 0;
     std::int8_t eventChoiceCount = 0;
-    int eventData[4]{};
+    int eventData[MAX_EVENT_CHOICES]{};
+    // Per-event deck-index set (Slippery Bridge's SkippedRemovals).
+    std::uint64_t eventDeckMask[2]{};
     int eventRelics[MAX_EVENT_CHOICES]{};
     CardPool preparedSeaGlassPool = CardPool::IRONCLAD;
     CardId preparedDustyTomeCard = CardId::INVALID;
@@ -251,7 +302,7 @@ struct RunContext {
     std::uint16_t eventBag[64]{};
     int eventBagN = 0;
     int eventBagPos = 0;
-    std::uint64_t visitedEvents = 0;  // persists across acts
+    std::uint64_t visitedEvents[2]{};  // RunState.VisitedEventIds; persists across acts
 
     // --- event/ancient relic bookkeeping (pre-existing hooks) ---------------
     bool teaSetPending = false;
@@ -283,6 +334,9 @@ struct RunContext {
     void init_relic_bags();
 
     bool add_card_to_deck(Card c);
+    int spoils_map_count() const;
+    void refresh_spoils_quest();
+    bool spoils_quest_active() const;
     std::uint16_t allocate_card_uid();
     Card make_run_card(CardId id, bool upgraded);
     void add_potion(PotionId id);
@@ -307,8 +361,13 @@ struct RunContext {
     bool queue_potion_rewards(int count);
     void queue_rest_site_rewards();
     bool queue_card_reward(Rarity fixedRarity, bool useBaseOdds, CardPool pool = CardPool::IRONCLAD);
+    // RewardsCmd.OfferCustom with an already populated CardReward (1..3 cards).
+    bool queue_prepared_card_reward(const Card *cards, int count);
+    int free_card_reward_slots() const;
+    // shopOnly: front pull with the IsAllowedInShops filter (back pulls are
+    // always shop pulls). Filtered-out relics stay in the bag.
     RelicId pull_relic(Rarity rarity, bool fromBack = false, bool shared = false,
-                       const int *blacklist = nullptr, int blacklistCount = 0);
+                       const int *blacklist = nullptr, int blacklistCount = 0, bool shopOnly = false);
     void roll_shop();
     void roll_treasure();
     int roll_unknown_room_type();
@@ -333,7 +392,7 @@ struct RunContext {
 const char *room_name(RoomType r);
 
 // --- events (events.cpp) ----------------------------------------------------
-constexpr int MAX_EVENTS = 64;
+constexpr int MAX_EVENTS = 128;  // visitedEvents bit capacity
 enum class EventStatus : std::uint8_t { IMPLEMENTED, APPROXIMATE, UNSUPPORTED };
 struct EventInfo {
     const char *name;
@@ -341,7 +400,10 @@ struct EventInfo {
     int act;  // -1 shared, 0..2 act-specific, 3 ancient
 };
 const EventInfo *event_info(int id);
-int event_pool_for_act_type(ActType actType, int *out, int maxOut);
+// Native GenerateRooms order: act events then shared events, minus unrevealed
+// epoch events (progress may be null: all revealed) and unsupported ports.
+int event_pool_for_act_type(ActType actType, int *out, int maxOut,
+                            const NativeProgressContext *progress = nullptr);
 int event_count();
 bool event_is_allowed(const RunContext &rc, int id);
 int event_pool_for_act(int act, int *out, int maxOut);  // implemented-only ids
@@ -359,5 +421,25 @@ bool event_select_card(RunContext &rc, int index);
 bool event_can_remove_potions(const RunContext &rc);
 void event_finish_card_grid(RunContext &rc);
 void event_resume_after_combat(RunContext &rc);
+// Rewards offered mid-event (RewardsCmd.OfferCustom is awaited) were closed.
+void event_resume_after_rewards(RunContext &rc);
+// Event combats (EnterCombatWithoutExitingEvent): whether the encounter gives
+// the normal Monster-room rewards, its gold override (-1 default) and the
+// event's extra rewards, appended after the room rewards.
+bool event_fight_room_rewards(const RunContext &rc);
+int event_fight_gold(const RunContext &rc);
+void event_fight_extra_rewards(RunContext &rc);
+// LanternKey (quest card in the deck): in act index 2, "?" rooms are events and
+// the next event becomes War Historian Repy.
+bool run_lantern_key_active(const RunContext &rc);
+int event_modify_next(const RunContext &rc, int eventId);
+// FoulPotion.IsUsable out of combat: a merchant room, or the Fake Merchant.
+bool foul_potion_usable_out_of_combat(const RunContext &rc);
+// FakeMerchant.FoulPotionThrown: start the merchant fight.
+void event_fake_merchant_foul_potion(RunContext &rc);
+// Crystal Sphere minigame (events.cpp).
+bool crystal_sphere_cell_clickable(const RunContext &rc, int cell);
+bool crystal_sphere_click(RunContext &rc, bool big, int cell);
+bool crystal_sphere_snapshot_valid(const RunContext &rc);
 
 }  // namespace sts2

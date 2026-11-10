@@ -4,6 +4,7 @@
 #include "sts2/silent.h"
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
+#include "sts2/regent.h"
 namespace sts2 {
 int &power_ref(Player &,PowerId);
 int &power_ref(Monster &,PowerId);
@@ -39,6 +40,9 @@ static bool power_is_debuff(PowerId id,int amount) {
         case PowerId::ENFEEBLING_TOUCH:
         case PowerId::FLANKING:
         case PowerId::FRAIL:
+        // Legacy GrapplePower (no native model; the Grapple card is excluded)
+        // keeps its step1 Debuff behaviour.
+        case PowerId::GRAPPLE:
         case PowerId::HANG:
         case PowerId::HEX:
         case PowerId::HYPERBEAM_FOCUS_DOWN:
@@ -107,7 +111,7 @@ void BattleContext::add_player_power(PowerId id, int amount) {
         if (id == PowerId::FRAIL) frailSkipTick = true;
         if (id == PowerId::VULNERABLE) vulnerableSkipTick = true;
     }
-    if (id == PowerId::STRENGTH && amount > 0) relics_strength_gain(*this, amount);
+    if (id == PowerId::STRENGTH && amount > 0) amount += relics_strength_gain(*this, amount);
     if (id == PowerId::AUTOMATION && amount > 0 && automationCount < MAX_AUTOMATION) {
         // AutomationPower.IsInstanced: each application counts its own ten
         // drawn cards (Data.cardsLeft), never a shared per-turn total.
@@ -128,6 +132,7 @@ void BattleContext::add_player_power(PowerId id, int amount) {
     const int accepted=player_power(id)-previousAmount;
     defect_power_changed(*this,id,accepted);
     necrobinder_after_power_changed(*this,-1,id,accepted,!inMonsterTurn);
+    regent_power_changed(*this,id,accepted);
     // Native stores these values on the PowerModel, independently of Amount.
     // Only the card's successful OnPlay increments SelfDamage; raw Apply does
     // not. Removing and later reapplying a power creates a fresh instance.
@@ -155,6 +160,7 @@ void BattleContext::add_monster_power(int idx, PowerId id, int amount) {
         --monsters[idx].power[static_cast<int>(PowerId::ARTIFACT)];
         return;
     }
+    if (id == PowerId::RITUAL && amount > 0 && previousAmount == 0) monsters[idx].ritualJustApplied = true;
     if (id == PowerId::GRAPPLE && amount > 0 && monsters[idx].grappleCount < MAX_PILE) {
         Monster &monster = monsters[idx];
         monster.grappleAmounts[monster.grappleCount++] = amount;

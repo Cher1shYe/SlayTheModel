@@ -353,6 +353,11 @@ void setup_encounter(BattleContext &bc, Encounter enc) {
         }
     }
 
+    // Aeonglass.AfterAddedToRoom: Withering Presence (6 cards left) on the
+    // player, then Artifact 3 on itself (innate above).
+    for (int i = 0; i < bc.monsterCount; ++i)
+        if (bc.monsters[i].id == MonsterId::AEONGLASS) bc.add_player_power(PowerId::WITHERING_PRESENCE, 6);
+
     if (enc == Encounter::SETUP_CUBEX_CONSTRUCT_NORMAL) {
         for (int i = 0; i < bc.monsterCount; ++i) {
             if (bc.monsters[i].id == MonsterId::CUBEX_CONSTRUCT) {
@@ -379,7 +384,24 @@ int random_encounter_for_act(int act, Rng &rng, int kind) {
     return pool[rng.next_int(0, n - 1)];
 }
 
+int aeonglass_wither_upgrades(const BattleContext &bc) {
+    for (int i = 0; i < bc.monsterCount; ++i)
+        if (bc.monsters[i].alive && bc.monsters[i].id == MonsterId::AEONGLASS) return bc.monsters[i].aux[0];
+    return 0;
+}
+
+void add_withers(BattleContext &bc, int count, bool toHand) {
+    for (int k = 0; k < count && bc.outcome == Outcome::UNDECIDED; ++k) {
+        Card c = make_card(CardId::WITHER, false, bc.require_card_uid());
+        if (toHand) bc.add_card_to_hand(c);
+        else bc.add_card_to_discard(c);
+        bc.notify_card_generated(c, false);
+    }
+}
+
 static void apply_monster_power(Monster &m, PowerId id, int amount) {
+    // RitualPower.AfterApplied runs only for a new instance, not when stacking.
+    if (id == PowerId::RITUAL && amount > 0 && power_ref(m, id) == 0) m.ritualJustApplied = true;
     if (id == PowerId::MINION && amount > 0) {
         power_ref(m, id) = std::max(power_ref(m, id), amount);
     } else {
@@ -493,12 +515,15 @@ static void steal_hopper_card(BattleContext &bc, Monster &m) {
             if (bc.theftUids[i] == card.uid) return;
         const CardDef &d = card_def(card.id);
         int rank = 4;
-        if (d.rarity == Rarity::UNCOMMON) rank = 0;
+        if (card.enchantment == EnchantmentId::IMBUED) rank = 3;  // only the Ancient/Imbued tier
+        else if (d.rarity == Rarity::UNCOMMON) rank = 0;
         else if (d.rarity == Rarity::COMMON || d.rarity == Rarity::RARE ||
                  d.rarity == Rarity::EVENT) {
             rank = 1;
-        } else if (d.rarity == Rarity::BASIC) {
+        } else if (d.rarity == Rarity::BASIC || d.rarity == Rarity::QUEST) {
             rank = 2;
+        } else if (d.rarity == Rarity::ANCIENT) {
+            rank = 3;  // ThievingHopper._stealPriorities[3]: Ancient or Imbued
         }
         if (rank < bestRank) {
             bestRank = rank;
@@ -632,6 +657,21 @@ void monster_act(BattleContext &bc, Monster &m) {
         }
         if (m.alive && m.id == MonsterId::WATERFALL_GIANT && local == 4)
             m.aux[2] += 5;
+        if (m.alive && m.id == MonsterId::AEONGLASS && local == 2) {
+            // IncreasingIntensityMove: FakeUpgrade every Wither (+3 damage),
+            // WitherUpgradeCount++ (aux0), add 1/2 Withers to discard, then
+            // Strength 3/4 + AdditionalStrength (aux1), AdditionalStrength++.
+            Card *piles[] = {bc.hand, bc.draw, bc.discard, bc.exhaust, bc.playPile, bc.returnNextTurn};
+            const int counts[] = {bc.handCount, bc.drawCount, bc.discardCount, bc.exhaustCount, bc.playCount,
+                                  bc.returnNextTurnCount};
+            for (int p = 0; p < 6; ++p)
+                for (int i = 0; i < counts[p]; ++i)
+                    if (piles[p][i].id == CardId::WITHER) piles[p][i].bonusDamage += 3;
+            ++m.aux[0];
+            add_withers(bc, bc.ascension >= 9 ? 2 : 1, false);
+            bc.add_monster_power(selfIdx, PowerId::STRENGTH, (bc.ascension >= 9 ? 4 : 3) + m.aux[1]);
+            ++m.aux[1];
+        }
         if (m.alive && m.id == MonsterId::TEST_SUBJECT && local == 8 && bc.ascension >= 9) {
             // BurningGrowl creates five Burns at A9; the sampled A8 move table
             // already contains the first three.
@@ -738,7 +778,10 @@ void monster_act(BattleContext &bc, Monster &m) {
     m.move = static_cast<std::uint8_t>(resolve_state(bc, m, selfIdx, next));
 
     // end-of-turn monster powers
-    if (power_ref(m, PowerId::RITUAL) > 0) m.strength += power_ref(m, PowerId::RITUAL);
+    if (power_ref(m, PowerId::RITUAL) > 0) {
+        if (m.ritualJustApplied) m.ritualJustApplied = false;
+        else m.strength += power_ref(m, PowerId::RITUAL);
+    }
     if (m.alive && power_ref(m, PowerId::TERRITORIAL) > 0) {
         m.strength += power_ref(m, PowerId::TERRITORIAL);
     }
@@ -768,6 +811,17 @@ void monster_act(BattleContext &bc, Monster &m) {
     }
     if (m.alive && power_ref(m, PowerId::ESCAPE_ARTIST) > 1) {
         --power_ref(m, PowerId::ESCAPE_ARTIST);
+    }
+    // BattlewornDummyTimeLimitPower.AfterSideTurnEnd: count down, then the
+    // dummy escapes and the encounter records RanOutOfTime.
+    if (m.alive && power_ref(m, PowerId::BATTLEWORN_DUMMY_TIME_LIMIT) > 0) {
+        if (power_ref(m, PowerId::BATTLEWORN_DUMMY_TIME_LIMIT) > 1) {
+            --power_ref(m, PowerId::BATTLEWORN_DUMMY_TIME_LIMIT);
+        } else {
+            bc.battlewornRanOutOfTime = true;
+            m.alive = false;
+            m.combatEndBlocker = false;
+        }
     }
 
     if (m.vulnerable > 0) --m.vulnerable;

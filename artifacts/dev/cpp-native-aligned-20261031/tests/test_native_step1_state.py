@@ -23,7 +23,11 @@ def test_played_power_counts_and_order_reach_public_binding(inferno_first):
     assert battle.crimson_mantle_self_damage == 2
     assert battle.inferno_self_damage == 1
     assert battle.inferno_before_crimson_mantle is inferno_first
-    assert battle.observation_public()[-3:] == pytest.approx([0.2, 0.1, int(inferno_first)])
+    # v14 appends the public character state (PUB_CHARACTER_FEAT = 111 values)
+    # after these three scalars, so they sit just before that tail.
+    tail = 111
+    obs = battle.observation_public()
+    assert obs[-tail - 3:-tail] == pytest.approx([0.2, 0.1, int(inferno_first)])
     assert len(battle.observation_public()) == int(sim.PUBLIC_COMBAT_OBS_DIM)
 
 
@@ -31,7 +35,7 @@ def test_previous_snapshot_version_is_rejected():
     run = sim.RunContext()
     run.init(123, 0)
     snapshot = run.snapshot()
-    assert snapshot[4:6] == b"\x08\x00"
-    stale = snapshot[:4] + b"\x07\x00" + snapshot[6:]
+    assert snapshot[4:6] == b"\x0a\x00"
+    stale = snapshot[:4] + b"\x09\x00" + snapshot[6:]
     assert not run.restore(stale)
     assert run.snapshot() == snapshot

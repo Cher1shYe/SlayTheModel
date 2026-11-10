@@ -14,6 +14,7 @@
 #include "sts2/observe.h"
 #include "sts2/relics.h"
 #include "sts2/run.h"
+#include "sts2/relic_card_rewards.h"
 
 using namespace sts2;
 
@@ -1425,8 +1426,24 @@ int main() {
         auto b = base();
         Card head = make_card(CardId::HEADBUTT, false, b.nextUid++);
         b.discard[b.discardCount++] = make_card(CardId::STRIKE_IRONCLAD, false, 700);
+        b.discard[b.discardCount++] = make_card(CardId::DEFEND_IRONCLAD, false, 702);
         b.auto_play_random(head, false);
+        // CardCmd.AutoPlay passes the player's choice context to OnPlay: the
+        // auto-played selector is a real player choice (step2), not auto-picked.
+        check("r01_autoplay_choice_is_player_choice", b.pending.op == ChoiceOp::RETURN_DISCARD_TOP, 1);
+        choose_all(b);
         check("r01_autoplay_choice_source_once", copies(b, head.uid), 1);
+    }
+    {
+        // FromCombatPile with MinSelect 1 and a single candidate takes it
+        // without opening a selection.
+        auto b = base();
+        Card head = make_card(CardId::HEADBUTT, false, b.nextUid++);
+        b.discard[b.discardCount++] = make_card(CardId::STRIKE_IRONCLAD, false, 703);
+        b.auto_play_random(head, false);
+        check("r01_single_candidate_auto_selected", b.pending.op == ChoiceOp::NONE, 1);
+        check("r01_single_candidate_on_draw_top", b.drawCount > 0 && b.draw[b.drawCount - 1].uid == 703, 1);
+        check("r01_single_candidate_source_once", copies(b, head.uid), 1);
     }
     {
         // BeatDown's captured cards leave the discard before AutoPlay; nested
@@ -2408,6 +2425,8 @@ int main() {
         RunContext r;
         r.add_relic(RelicId::SILVER_CRUCIBLE);
         r.roll_card_reward(false);
+        // finish_combat applies the reward-option hooks right after rolling.
+        r.offeredCount = apply_card_reward_hooks(r, r.offered, r.offeredCount, MAX_REWARD_CARD_CHOICES, 0);
         int upgraded = 0;
         for (int i = 0; i < r.offeredCount; ++i) upgraded += r.offered[i].upgraded ? 1 : 0;
         check("r7_silver_crucible_upgrades_offer", upgraded, 3);
@@ -2700,7 +2719,7 @@ int main() {
         for (std::uint32_t seed = 1; seed <= 500; ++seed) {
             Rng rng(seed);
             PotionId picks[3];
-            const int n = random_potions_out_of_combat(rng, picks, 3);
+            const int n = random_potions_out_of_combat(rng, picks, 3, ~std::uint64_t{0});
             valid &= n == 3 && picks[0] != picks[1] && picks[0] != picks[2] &&
                      picks[1] != picks[2];
             for (int i = 0; i < n; ++i) {
@@ -2997,10 +3016,19 @@ int main() {
         hand(b, CardId::DUAL_WIELD, true);
         hand(b, CardId::STRIKE_IRONCLAD);
         hand(b, CardId::DEFEND_IRONCLAD);
-        const int originalUid = b.hand[1].uid;
+        hand(b, CardId::BASH);
         audit_play(b);
-        check("dual_wield_offers_only_attack_or_power", b.pending.count, 1);
-        b.resolve_choice(static_cast<std::uint16_t>(originalUid));
+        check("dual_wield_offers_only_attack_or_power", b.pending.count, 2);
+    }
+    {
+        auto b = audit_base();
+        hand(b, CardId::DUAL_WIELD, true);
+        hand(b, CardId::STRIKE_IRONCLAD);
+        hand(b, CardId::DEFEND_IRONCLAD);
+        audit_play(b);
+        // Defend is filtered out, so the lone Strike is taken without a prompt
+        // (FromHand MinSelect 1 with one candidate).
+        check("dual_wield_single_candidate_auto_selected", b.pending.op == ChoiceOp::NONE, 1);
         check("dual_wield_keeps_original_and_copies", b.handCount, 4);
         std::set<int> uids;
         int strikes = 0;
@@ -3171,8 +3199,9 @@ int main() {
         const int maxHp = b.player.maxHp;
         hand(b, CardId::HAND_OF_GREED);
         play(b);
-        check("hand_of_greed_immediate_gold_with_bowler", b.gold, 35);
-        check("hand_of_greed_dragon_fruit_each_gold_gain", b.player.maxHp - maxHp, 2);
+        // v0.111.0: Bowler Hat is a x1.25 ModifyGoldGained hook on one gain.
+        check("hand_of_greed_immediate_gold_with_bowler", b.gold, 36);
+        check("hand_of_greed_dragon_fruit_each_gold_gain", b.player.maxHp - maxHp, 1);
     }
     {
         auto b = audit_base();
