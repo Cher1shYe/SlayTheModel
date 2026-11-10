@@ -3,6 +3,8 @@
 #include "sts2/map.h"
 
 #include <algorithm>
+#include <map>
+#include <string>
 #include <functional>
 #include <string>
 #include <unordered_map>
@@ -12,13 +14,50 @@ namespace sts2 {
 
 namespace {
 
+// MapPoint.Children / parents are .NET HashSet<MapPoint>: enumeration follows
+// entry slots; Remove frees a slot and the next Add reuses the most recently
+// freed one. Path finding and pruning depend on that order.
+class SlotSet {
+public:
+    struct It {
+        const std::vector<int> *slots;
+        std::size_t i;
+        void skip() { while (i < slots->size() && (*slots)[i] < 0) ++i; }
+        int operator*() const { return (*slots)[i]; }
+        It &operator++() { ++i; skip(); return *this; }
+        bool operator!=(const It &o) const { return i != o.i; }
+    };
+    It begin() const { It it{&slots_, 0}; it.skip(); return it; }
+    It end() const { return It{&slots_, slots_.size()}; }
+    bool contains(int v) const { return std::find(slots_.begin(), slots_.end(), v) != slots_.end(); }
+    void add(int v) {
+        if (v < 0 || contains(v)) return;
+        if (!free_.empty()) { slots_[free_.back()] = v; free_.pop_back(); }
+        else slots_.push_back(v);
+        ++count_;
+    }
+    void remove(int v) {
+        for (std::size_t i = 0; i < slots_.size(); ++i)
+            if (slots_[i] == v) { slots_[i] = -1; free_.push_back(static_cast<int>(i)); --count_; return; }
+    }
+    std::size_t size() const { return count_; }
+    bool empty() const { return count_ == 0; }
+    int front() const { return *begin(); }
+    std::vector<int> to_vector() const { std::vector<int> out; for (int v : *this) out.push_back(v); return out; }
+private:
+    std::vector<int> slots_;
+    std::vector<int> free_;
+    std::size_t count_ = 0;
+};
+
 struct GNode {
     int col = 0;
     int row = 0;
     MapPointType type = MapPointType::UNASSIGNED;
-    std::vector<int> children;
-    std::vector<int> parents;
+    SlotSet children;
+    SlotSet parents;
     bool alive = true;
+    bool fixedType = false;  // MapPoint.CanBeModified == false
 };
 
 struct Gen {
@@ -53,18 +92,13 @@ int get_or_create(Gen &g, int col, int row) {
 
 void add_child(Gen &g, int parent, int child) {
     if (parent < 0 || child < 0 || parent == child) return;
-    auto &pc = g.nodes[parent].children;
-    if (std::find(pc.begin(), pc.end(), child) != pc.end()) return;
-    pc.push_back(child);
-    auto &cc = g.nodes[child].parents;
-    if (std::find(cc.begin(), cc.end(), parent) == cc.end()) cc.push_back(parent);
+    g.nodes[parent].children.add(child);   // MapPoint.AddChildPoint
+    g.nodes[child].parents.add(parent);
 }
 
 void remove_child(Gen &g, int parent, int child) {
-    auto &pc = g.nodes[parent].children;
-    pc.erase(std::remove(pc.begin(), pc.end(), child), pc.end());
-    auto &cc = g.nodes[child].parents;
-    cc.erase(std::remove(cc.begin(), cc.end(), parent), cc.end());
+    g.nodes[parent].children.remove(child);  // MapPoint.RemoveChildPoint
+    g.nodes[child].parents.remove(parent);
 }
 
 bool has_invalid_crossover(Gen &g, int current, int targetCol) {
@@ -123,7 +157,8 @@ std::vector<int> all_map_points(Gen &g) {
 }
 
 bool is_valid_for_lower(MapPointType type, int row) {
-    if (row < 5) {
+    // StandardActMap.IsValidForLower: coord.row < 6.
+    if (row < 6) {
         return type != MapPointType::REST && type != MapPointType::ELITE;
     }
     return true;
@@ -179,20 +214,9 @@ MapPointType next_valid_type(Gen &g, std::vector<MapPointType> &queue, int idx) 
     return MapPointType::UNASSIGNED;
 }
 
-void assign_point_types(Gen &g, Rng &rng, int numElites, int numShops, int numUnknowns,
-                        int numRests) {
-    for_each_row(g, g.mapLength - 1, [&](int idx) { g.nodes[idx].type = MapPointType::REST; });
-    for_each_row(g, g.mapLength - 7, [&](int idx) { g.nodes[idx].type = MapPointType::TREASURE; });
-    for_each_row(g, 1, [&](int idx) { g.nodes[idx].type = MapPointType::MONSTER; });
-
-    std::vector<MapPointType> queue;
-    for (int i = 0; i < numRests; ++i) queue.push_back(MapPointType::REST);
-    for (int i = 0; i < numShops; ++i) queue.push_back(MapPointType::SHOP);
-    for (int i = 0; i < numElites; ++i) queue.push_back(MapPointType::ELITE);
-    for (int i = 0; i < numUnknowns; ++i) queue.push_back(MapPointType::UNKNOWN);
-
-    std::vector<int> points = all_map_points(g);
-    // StableShuffle: sort by (col,row) then unstable shuffle.
+// MapPoint.CompareTo orders by (col, row); StableShuffle sorts, then
+// UnstableShuffle (Fisher-Yates from the end).
+void stable_shuffle_points(Gen &g, Rng &rng, std::vector<int> &points) {
     std::sort(points.begin(), points.end(), [&](int a, int b) {
         if (g.nodes[a].col != g.nodes[b].col) return g.nodes[a].col < g.nodes[b].col;
         return g.nodes[a].row < g.nodes[b].row;
@@ -201,13 +225,38 @@ void assign_point_types(Gen &g, Rng &rng, int numElites, int numShops, int numUn
         const int j = rng.next_int(0, i);
         std::swap(points[i], points[j]);
     }
-    for (const int idx : points) {
-        if (g.nodes[idx].type != MapPointType::UNASSIGNED) continue;
-        g.nodes[idx].type = next_valid_type(g, queue, idx);
+}
+
+// AssignRemainingTypesToRandomPoints: up to three passes, each shuffling the
+// points that are still Unassigned.
+void assign_remaining_types(Gen &g, Rng &rng, std::vector<MapPointType> &queue) {
+    for (int pass = 0; pass < 3 && !queue.empty(); ++pass) {
+        std::vector<int> points;
+        for (const int idx : all_map_points(g))
+            if (g.nodes[idx].type == MapPointType::UNASSIGNED) points.push_back(idx);
+        stable_shuffle_points(g, rng, points);
+        for (const int idx : points) {
+            if (queue.empty()) break;
+            g.nodes[idx].type = next_valid_type(g, queue, idx);
+        }
     }
-    for (const int idx : points) {
+}
+
+void assign_point_types(Gen &g, Rng &rng, int numElites, int numShops, int numUnknowns,
+                        int numRests) {
+    auto fix = [&](int idx, MapPointType type) { g.nodes[idx].type = type; g.nodes[idx].fixedType = true; };
+    for_each_row(g, g.mapLength - 1, [&](int idx) { fix(idx, MapPointType::REST); });
+    for_each_row(g, g.mapLength - 7, [&](int idx) { fix(idx, MapPointType::TREASURE); });
+    for_each_row(g, 1, [&](int idx) { fix(idx, MapPointType::MONSTER); });
+
+    std::vector<MapPointType> queue;
+    for (int i = 0; i < numRests; ++i) queue.push_back(MapPointType::REST);
+    for (int i = 0; i < numShops; ++i) queue.push_back(MapPointType::SHOP);
+    for (int i = 0; i < numElites; ++i) queue.push_back(MapPointType::ELITE);
+    for (int i = 0; i < numUnknowns; ++i) queue.push_back(MapPointType::UNKNOWN);
+    assign_remaining_types(g, rng, queue);
+    for (const int idx : all_map_points(g))
         if (g.nodes[idx].type == MapPointType::UNASSIGNED) g.nodes[idx].type = MapPointType::MONSTER;
-    }
     g.nodes[g.bossIdx].type = MapPointType::BOSS;
     g.nodes[g.startIdx].type = MapPointType::ANCIENT;
 }
@@ -235,8 +284,8 @@ void remove_point(Gen &g, int idx) {
     }
     g.startPoints.erase(std::remove(g.startPoints.begin(), g.startPoints.end(), idx),
                         g.startPoints.end());
-    const std::vector<int> kids = n.children;
-    const std::vector<int> pars = n.parents;
+    const std::vector<int> kids = n.children.to_vector();
+    const std::vector<int> pars = n.parents.to_vector();
     for (const int c : kids) remove_child(g, idx, c);
     for (const int p : pars) remove_child(g, p, idx);
     n.alive = false;
@@ -305,11 +354,26 @@ struct SegmentKeyEq {
     }
 };
 
+// GenerateSegmentKey: "row-endCol,endRow-" for row-0 starts, otherwise
+// "col,row-endCol,endRow-", then the point types joined by ','.
+std::string segment_key_string(const SegmentKey &k) {
+    std::string key = k.row0 == 0 ? std::to_string(k.row0) + "-"
+                                  : std::to_string(k.col0) + "," + std::to_string(k.row0) + "-";
+    key += std::to_string(k.col1) + "," + std::to_string(k.row1) + "-";
+    for (int i = 0; i < k.len; ++i) {
+        if (i) key += ",";
+        key += std::to_string(k.types[i]);
+    }
+    return key;
+}
+
 std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
     const auto paths = find_all_paths(g, g.startIdx);
-    // Buckets stay in first-occurrence order (matches .NET Dictionary order);
-    // a compact key avoids one heap string per candidate segment.
+    // MapPathPruning.FindMatchingSegments keeps a SortedDictionary<string, ...>
+    // (StringComparer.Ordinal): duplicate groups are returned in ordinal key
+    // order. Group with a compact key; build the string only for duplicates.
     std::unordered_map<SegmentKey, int, SegmentKeyHash, SegmentKeyEq> index;
+    std::vector<SegmentKey> keys;
     std::vector<std::vector<std::vector<int>>> buckets;
     for (const auto &path : paths) {
         for (int i = 0; i + 1 < static_cast<int>(path.size()); ++i) {
@@ -326,12 +390,13 @@ std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
                 key.col1 = static_cast<std::uint8_t>(b.col);
                 key.row1 = static_cast<std::uint8_t>(b.row);
                 key.len = static_cast<std::uint8_t>(len);
-                for (int k = 0; k < len; ++k) {
-                    key.types[k] = static_cast<std::uint8_t>(g.nodes[path[i + k]].type);
-                }
+                for (int k = 0; k < len; ++k) key.types[k] = static_cast<std::uint8_t>(g.nodes[path[i + k]].type);
+                // Row-0 keys omit the start column (always the same point).
+                if (key.row0 == 0) key.col0 = 0;
                 auto it = index.find(key);
                 if (it == index.end()) {
                     index.emplace(key, static_cast<int>(buckets.size()));
+                    keys.push_back(key);
                     buckets.emplace_back();
                     buckets.back().emplace_back(path.begin() + i, path.begin() + i + len);
                     continue;
@@ -339,22 +404,19 @@ std::vector<std::vector<std::vector<int>>> find_matching_segments(Gen &g) {
                 auto &bucket = buckets[it->second];
                 bool overlap = false;
                 for (const auto &existing : bucket) {
-                    for (int k = 1; k + 1 < len; ++k) {
-                        if (existing[k] == path[i + k]) {
-                            overlap = true;
-                            break;
-                        }
-                    }
+                    for (int k = 1; k + 1 < len && !overlap; ++k) overlap = existing[k] == path[i + k];
                     if (overlap) break;
                 }
                 if (!overlap) bucket.emplace_back(path.begin() + i, path.begin() + i + len);
             }
         }
     }
+    std::vector<std::pair<std::string, int>> duplicates;
+    for (int b = 0; b < static_cast<int>(buckets.size()); ++b)
+        if (buckets[b].size() > 1) duplicates.emplace_back(segment_key_string(keys[b]), b);
+    std::sort(duplicates.begin(), duplicates.end());
     std::vector<std::vector<std::vector<int>>> out;
-    for (auto &bucket : buckets) {
-        if (bucket.size() > 1) out.push_back(bucket);
-    }
+    for (const auto &d : duplicates) out.push_back(std::move(buckets[d.second]));
     return out;
 }
 
@@ -400,25 +462,32 @@ bool prune_segment(Gen &g, const std::vector<int> &seg) {
 
 int prune_all_but_last(Gen &g, std::vector<std::vector<int>> &matches) {
     int num = 0;
+    // The reference stops once all but one segment have been PRUNED (num), not
+    // at the last index: if an earlier segment cannot be pruned, the last one
+    // is still tried.
     for (int i = 0; i < static_cast<int>(matches.size()); ++i) {
-        if (i == static_cast<int>(matches.size()) - 1) return num;
+        if (num == static_cast<int>(matches.size()) - 1) return num;
         if (prune_segment(g, matches[i])) ++num;
     }
     return num;
 }
 
+// BreakAParentChildRelationshipInAnySegment: the first segment with any
+// breakable link has all of its breakable links removed.
 bool break_relationship(Gen &g, std::vector<std::vector<int>> &matches) {
     for (auto &seg : matches) {
+        bool broke = false;
         for (int i = 0; i + 1 < static_cast<int>(seg.size()); ++i) {
             const int p = seg[i];
             if (g.nodes[p].children.size() >= 2) {
                 const int child = seg[i + 1];
                 if (g.nodes[child].parents.size() != 1) {
                     remove_child(g, p, child);
-                    return true;
+                    broke = true;
                 }
             }
         }
+        if (broke) return true;
     }
     return false;
 }
@@ -441,6 +510,41 @@ void prune_duplicate_segments(Gen &g, Rng &rng) {
     while (prune_paths(g, rng, groups)) {
         if (++iterations > 50) break;  // reference throws; we stop pruning
         groups = find_matching_segments(g);
+    }
+}
+
+// MapPathPruning.RepairPointType: replace modifiable Monsters until the type
+// reaches its target count again.
+bool repair_point_type(Gen &g, Rng &rng, MapPointType type, int target) {
+    int have = 0;
+    for (const int idx : all_map_points(g)) have += g.nodes[idx].type == type;
+    int missing = target - have;
+    if (missing <= 0) return false;
+    std::vector<int> monsters;
+    for (const int idx : all_map_points(g))
+        if (g.nodes[idx].type == MapPointType::MONSTER && !g.nodes[idx].fixedType) monsters.push_back(idx);
+    stable_shuffle_points(g, rng, monsters);
+    bool changed = false;
+    for (const int idx : monsters) {
+        if (missing == 0) break;
+        if (is_valid_point_type(g, type, idx)) {
+            g.nodes[idx].type = type;
+            --missing;
+            changed = true;
+        }
+    }
+    return changed;
+}
+
+// MapPathPruning.PruneAndRepair.
+void prune_and_repair(Gen &g, Rng &rng, int numElites, int numShops, int numUnknowns, int numRests) {
+    for (int i = 0; i < 3; ++i) {
+        prune_duplicate_segments(g, rng);
+        bool changed = repair_point_type(g, rng, MapPointType::SHOP, numShops);
+        changed |= repair_point_type(g, rng, MapPointType::ELITE, numElites);
+        changed |= repair_point_type(g, rng, MapPointType::REST, numRests);
+        changed |= repair_point_type(g, rng, MapPointType::UNKNOWN, numUnknowns);
+        if (!changed) break;
     }
 }
 
@@ -564,12 +668,12 @@ void straighten_paths(Gen &g) {
                 g.nodes[idx].col = col + 1;
                 g.grid[row][col] = -1;
                 g.grid[row][col + 1] = idx;
-                ++col;  // mirror the reference loop moving past the new cell
+                // The reference loop's next column is the moved node itself,
+                // which is examined again.
             } else if (right && col > 0 && g.grid[row][col - 1] < 0) {
                 g.nodes[idx].col = col - 1;
                 g.grid[row][col] = -1;
                 g.grid[row][col - 1] = idx;
-                --col;
             }
         }
     }
@@ -622,21 +726,11 @@ void bake(Gen &g, ActMap &map) {
     }
 }
 
-}  // namespace
-
-void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
-    const int rooms = actIndex == 0 ? 15 : (actIndex == 1 ? 14 : 13);
-    Gen g;
-    g.mapLength = rooms + 1;
-    for (auto &rowArr : g.grid) {
-        for (int &v : rowArr) v = -1;
-    }
-
-    // Room type counts (per-act RNG consumption order from the reference).
-    int numElites = ascension >= 1 ? 8 : 5;
-    int numShops = 3;
-    int numUnknowns = 0;
-    int numRests = 0;
+// ActModel.GetMapPointTypes (Underdocks uses Overgrowth's values).
+void map_point_type_counts(Rng &mapRng, int actIndex, int ascension, int &numElites, int &numShops,
+                           int &numUnknowns, int &numRests) {
+    numElites = ascension >= 1 ? 8 : 5;
+    numShops = 3;
     if (actIndex == 0) {
         numRests = mapRng.next_gaussian_int(7, 1, 6, 7);
         numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14);
@@ -648,6 +742,144 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
         numUnknowns = mapRng.next_gaussian_int(12, 1, 10, 14) - 1;
     }
     if (ascension >= 6) --numRests;
+}
+
+// ---- SpoilsActMap ------------------------------------------------------------
+
+struct SpoilsGen {
+    Gen &g;
+    int treasureRow;
+};
+
+std::pair<int, int> spoils_allowed_columns(const Gen &g, int treasureRow, int row) {
+    const int center = MAP_WIDTH / 2;
+    const int toTreasure = std::abs(row - treasureRow);
+    const int toEnd = g.mapLength - 1 - row;
+    const int endWidth = std::min(center, std::max(0, toEnd) + 1);
+    const int half = std::min(center, std::min(toTreasure, endWidth));
+    return {std::max(0, center - half), std::min(MAP_WIDTH - 1, center + half)};
+}
+
+bool spoils_invalid_crossover(Gen &g, int current, int targetCol) {
+    const int direction = targetCol - g.nodes[current].col;
+    if (direction == 0) return false;
+    const int blocker = get_point(g, targetCol, g.nodes[current].row);
+    if (blocker < 0) return false;
+    for (const int child : g.nodes[blocker].children)
+        if (g.nodes[child].col - g.nodes[blocker].col == -direction) return true;
+    return false;
+}
+
+int spoils_next_col(Gen &g, Rng &rng, int current, int treasureRow) {
+    const int row = g.nodes[current].row + 1;
+    const int col = g.nodes[current].col;
+    const auto [minCol, maxCol] = spoils_allowed_columns(g, treasureRow, row);
+    const int center = MAP_WIDTH / 2;
+    std::vector<int> dirs = {-1, 0, 1};
+    const int distance = treasureRow - g.nodes[current].row;
+    if (distance > 3 || distance <= 0) {
+        rng.shuffle(dirs.data(), 3);  // StableShuffle of an already sorted list
+    } else {
+        // BuildCenteredPriorityList
+        dirs.clear();
+        const int toward = center > col ? 1 : center < col ? -1 : 0;
+        if (toward != 0) dirs.push_back(toward);
+        dirs.push_back(0);
+        if (toward != 0) dirs.push_back(-toward);
+        if (std::find(dirs.begin(), dirs.end(), -1) == dirs.end()) dirs.push_back(-1);
+        if (std::find(dirs.begin(), dirs.end(), 1) == dirs.end()) dirs.push_back(1);
+    }
+    for (const int d : dirs) {
+        const int next = d < 0 ? std::max(0, col - 1) : d > 0 ? std::min(MAP_WIDTH - 1, col + 1) : col;
+        if (next < minCol || next > maxCol || spoils_invalid_crossover(g, current, next)) continue;
+        const int point = get_point(g, next, row);
+        const bool pointOk = point < 0 || g.nodes[point].parents.contains(current) || g.nodes[point].parents.size() < 3;
+        const bool currentOk = current == g.startIdx || g.nodes[current].children.size() < 3 ||
+                               (point >= 0 && g.nodes[current].children.contains(point));
+        if (pointOk && currentOk) return next;
+    }
+    int fallback = std::clamp(center, minCol, maxCol);
+    if (std::abs(fallback - col) > 1)
+        fallback = std::clamp(col + (fallback > col ? 1 : -1), minCol, maxCol);
+    if (spoils_invalid_crossover(g, current, fallback)) fallback = std::clamp(col, minCol, maxCol);
+    return fallback;
+}
+
+}  // namespace
+
+void generate_spoils_act_map(ActMap &map, std::uint64_t runSeed, int actIndex, int ascension) {
+    const int rooms = actIndex == 0 ? 15 : (actIndex == 1 ? 14 : 13);
+    Rng rng(runSeed, "spoils_map");
+    Gen g;
+    g.mapLength = rooms + 1;
+    for (auto &rowArr : g.grid) for (int &v : rowArr) v = -1;
+    int numElites, numShops, numUnknowns, numRests;
+    map_point_type_counts(rng, actIndex, ascension, numElites, numShops, numUnknowns, numRests);
+    const int treasureRow = g.mapLength - 7;
+    GNode startNode; startNode.col = MAP_WIDTH / 2; startNode.row = 0;
+    g.nodes.push_back(startNode); g.startIdx = 0;
+    GNode bossNode; bossNode.col = MAP_WIDTH / 2; bossNode.row = g.mapLength;
+    g.nodes.push_back(bossNode); g.bossIdx = 1;
+
+    // GenerateHourglassMap.
+    std::vector<int> startPoints;
+    for (int i = 0; i < 7; ++i) {
+        int start = get_or_create(g, rng.next_int_exclusive(MAP_WIDTH), 1);
+        if (i == 1)
+            while (std::find(startPoints.begin(), startPoints.end(), start) != startPoints.end())
+                start = get_or_create(g, rng.next_int_exclusive(MAP_WIDTH), 1);
+        startPoints.push_back(start);
+        int current = start;
+        while (g.nodes[current].row < g.mapLength - 1) {
+            const int next = get_or_create(g, spoils_next_col(g, rng, current, treasureRow), g.nodes[current].row + 1);
+            add_child(g, current, next);
+            current = next;
+        }
+    }
+    g.startPoints = startPoints;
+    const int treasure = get_or_create(g, MAP_WIDTH / 2, treasureRow);
+    g.nodes[treasure].type = MapPointType::TREASURE;
+    g.nodes[treasure].fixedType = true;
+    std::vector<int> rowPoints;
+    for (int col = 0; col < MAP_WIDTH; ++col) if (g.grid[treasureRow][col] >= 0) rowPoints.push_back(g.grid[treasureRow][col]);
+    for (const int stray : rowPoints) {
+        if (stray == treasure) continue;
+        for (const int parent : g.nodes[stray].parents.to_vector()) { remove_child(g, parent, stray); add_child(g, parent, treasure); }
+        for (const int child : g.nodes[stray].children.to_vector()) { remove_child(g, stray, child); add_child(g, treasure, child); }
+        g.grid[treasureRow][g.nodes[stray].col] = -1;
+        g.nodes[stray].alive = false;
+    }
+    for_each_row(g, g.mapLength - 1, [&](int idx) { add_child(g, idx, g.bossIdx); });
+    for_each_row(g, 1, [&](int idx) { add_child(g, g.startIdx, idx); });
+
+    // AssignPointTypes (no treasure row; the hourglass Treasure is fixed).
+    for_each_row(g, g.mapLength - 1, [&](int idx) { g.nodes[idx].type = MapPointType::REST; g.nodes[idx].fixedType = true; });
+    for_each_row(g, 1, [&](int idx) { g.nodes[idx].type = MapPointType::MONSTER; g.nodes[idx].fixedType = true; });
+    std::vector<MapPointType> queue;
+    for (int i = 0; i < numRests; ++i) queue.push_back(MapPointType::REST);
+    for (int i = 0; i < numShops; ++i) queue.push_back(MapPointType::SHOP);
+    for (int i = 0; i < numElites; ++i) queue.push_back(MapPointType::ELITE);
+    for (int i = 0; i < numUnknowns; ++i) queue.push_back(MapPointType::UNKNOWN);
+    assign_remaining_types(g, rng, queue);
+    for (const int idx : all_map_points(g))
+        if (g.nodes[idx].type == MapPointType::UNASSIGNED) g.nodes[idx].type = MapPointType::MONSTER;
+    g.nodes[g.bossIdx].type = MapPointType::BOSS;
+    g.nodes[g.startIdx].type = MapPointType::ANCIENT;
+    prune_and_repair(g, rng, numElites, numShops, numUnknowns, numRests);  // no post-processing
+    bake(g, map);
+}
+
+void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
+    const int rooms = actIndex == 0 ? 15 : (actIndex == 1 ? 14 : 13);
+    Gen g;
+    g.mapLength = rooms + 1;
+    for (auto &rowArr : g.grid) {
+        for (int &v : rowArr) v = -1;
+    }
+
+    // Room type counts (per-act RNG consumption order from the reference).
+    int numElites, numShops, numUnknowns, numRests;
+    map_point_type_counts(mapRng, actIndex, ascension, numElites, numShops, numUnknowns, numRests);
 
     GNode startNode;
     startNode.col = MAP_WIDTH / 2;
@@ -677,7 +909,7 @@ void generate_act_map(ActMap &map, Rng &mapRng, int actIndex, int ascension) {
     for_each_row(g, 1, [&](int idx) { add_child(g, g.startIdx, idx); });
 
     assign_point_types(g, mapRng, numElites, numShops, numUnknowns, numRests);
-    prune_duplicate_segments(g, mapRng);
+    prune_and_repair(g, mapRng, numElites, numShops, numUnknowns, numRests);
     center_grid(g);
     spread_adjacent_map_points(g);
     straighten_paths(g);

@@ -127,8 +127,13 @@ int main() {
         check("PreservedFog capacity rejected before curse overflow",!r.add_relic(RelicId::PRESERVED_FOG)&&!r.cardGrid.kind&&!run_has_relic(r,RelicId::PRESERVED_FOG));
     }
     {
-        auto r=base(); r.deckCount=2; r.add_relic(RelicId::ASTROLABE);
-        r.cardGrid.minSelect=r.cardGrid.maxSelect=3;
+        // CardSelectorPrefs(prompt, 3) auto-selects when <= 3 cards qualify.
+        auto a=base(); a.deckCount=2; const std::uint16_t u0=a.deck[0].uid,u1=a.deck[1].uid;
+        check("Astrolabe auto-transforms when no choice exists",a.add_relic(RelicId::ASTROLABE)&&!a.cardGrid.kind&&
+              a.deckCount==2&&a.deck[0].uid!=u0&&a.deck[1].uid!=u1);
+        auto r=base(); r.deckCount=4; r.add_relic(RelicId::ASTROLABE);
+        check("Astrolabe opens a choice for four candidates",r.cardGrid.kind==8&&r.cardGrid.maxSelect==3);
+        r.cardGrid.minSelect=r.cardGrid.maxSelect=5;
         RunContext out;
         check("Impossible pending selection rejected on restore",!RunContext::restore(r.serialize(),out));
     }

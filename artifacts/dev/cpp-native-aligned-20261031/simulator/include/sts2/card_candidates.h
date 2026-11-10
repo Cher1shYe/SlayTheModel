@@ -7,7 +7,9 @@ namespace sts2 {
 int make_noncombat_card_candidates(RunContext &rc, Card *out, int count,
                                    CardPool pool, bool commonOnly);
 bool card_can_transform_from_deck(const Card &card);
-bool card_eligible_for_deck_choice(const Card &card, int kind);
+// filter: 0 none, 1 basic removable Strike, 2 basic removable Defend
+// (Amalgamator's IsValid). Transforms also exclude Quest cards.
+bool card_eligible_for_deck_choice(const Card &card, int kind, int filter = 0);
 void native_sort_card_indices(const RunContext &rc, int *indices, int count);
 void native_sort_card_indices(const Card *cards, int *indices, int count);
 bool transform_basic_strikes_and_defends(RunContext &rc);
@@ -18,9 +20,10 @@ bool native_card_pool_unlocked(const RunContext &rc, CardPool pool);
 Card make_maul_transformation(RunContext &rc, const Card &original);
 bool begin_card_grid(RunContext &rc, int kind);
 bool begin_deck_relic_choice(RunContext &rc, int kind, int count,
-                             int damageAfter = 0, CardId curseAfter = CardId::INVALID);
+                             int damageAfter = 0, CardId curseAfter = CardId::INVALID,
+                             bool eventRng = false, int filter = 0);
 bool can_begin_deck_relic_choice(const RunContext &rc, int kind, int count,
-                                CardId curseAfter = CardId::INVALID);
+                                CardId curseAfter = CardId::INVALID, int filter = 0);
 bool can_generate_scroll_boxes(const RunContext &rc);
 bool card_grid_can_select(const RunContext &rc, int index);
 bool select_card_grid(RunContext &rc, int index);

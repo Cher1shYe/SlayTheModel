@@ -1,6 +1,7 @@
 // Source-exact fixtures extracted from the target native 41cef1ea decompile.
 // This is an act/routing contract, not a full-run native parity claim.
 #include "sts2/run.h"
+#include "port_root.h"
 #include "sts2/monsters.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
@@ -38,7 +39,7 @@ void mark_seen(NativeProgressContext &p, Encounter encounter) {
 }
 int main() {
     static_assert(MAP_MAX_POINTS == 119, "Golden Path must not resize network node slots");
-    std::ifstream input(std::filesystem::path(__FILE__).parent_path() / "fixtures/native_act_41cef1ea.json");
+    std::ifstream input((port_root() / "simulator" / "tests") / "fixtures/native_act_41cef1ea.json");
     json fixture; input >> fixture;
     assert(fixture["golden_path_rooms"].size() == 16);
     RunContext golden; golden.init(42, 0); golden.start_act(1);
@@ -151,15 +152,16 @@ int main() {
     assert(first.roll_unknown_room_type() == static_cast<int>(RoomType::MONSTER));
     assert(first.runRng[RNG_UNKNOWN_MAP_POINT].counter == startCounter);
     first.roll_unknown_room_type(); assert(first.runRng[RNG_UNKNOWN_MAP_POINT].counter == startCounter + 1);
-    bool rejected = false;
-    try { RunContext invalid; invalid.init_with_context(17, 0, 0, progress); }
-    catch (const std::invalid_argument &) { rejected = true; }
-    assert(rejected); // Explicit boundary: mandatory ByrdonisNest is not ported.
+    // First-run Overgrowth forces ByrdonisNest to the front of the event bag
+    // (ported in step 3; previously refused).
+    RunContext firstOvergrowth; firstOvergrowth.init_with_context(17, 0, 0, progress);
+    assert(firstOvergrowth.eventBagN > 0 &&
+           std::string(event_info(firstOvergrowth.eventBag[0])->name) == "BYRDONIS_NEST");
     progress.numberOfRuns = 1; progress.aeonglassSeen = false;
     mark_seen(progress, Encounter::SETUP_QUEEN_BOSS); mark_seen(progress, Encounter::SETUP_TEST_SUBJECT_BOSS);
-    rejected = false;
-    try { RunContext invalid; invalid.init_with_context(17, 0, 3, progress); }
-    catch (const std::invalid_argument &) { rejected = true; }
-    assert(rejected);
+    // Aeonglass is ported (step 3): its first discovery is forced, not refused.
+    RunContext glory; glory.init_with_context(17, 0, 3, progress);
+    glory.start_act(2);
+    assert(glory.bossEncounter == static_cast<int>(Encounter::SETUP_AEONGLASS_BOSS));
     std::cout << "native act source fixtures: GoldenCompass/Underdocks/progress/snapshot v6 passed\n";
 }

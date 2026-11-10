@@ -1,4 +1,5 @@
 #include <algorithm>
+#include "port_root.h"
 #include <cmath>
 #include <filesystem>
 #include <fstream>
@@ -20,7 +21,7 @@ void cards(const std::string &label,const Card *pile,int count,const json &want,
 }
 }
 int main(){
- const auto root=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();json fixtures;std::ifstream(root/"native-round4-step2-persistent-fixtures/results.json")>>fixtures;
+ const auto root=port_root();json fixtures;std::ifstream(root/"native-round4-step2-persistent-fixtures/results.json")>>fixtures;
  check("native completed",fixtures["status"]=="completed",true);check("target DLL",fixtures["gameAssemblySha256"]=="9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",true);
  for(const auto &f:fixtures["results"]){const std::string t=f["test"];
   if(t=="bone_tea"){

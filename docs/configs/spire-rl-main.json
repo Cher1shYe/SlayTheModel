@@ -1,0 +1,107 @@
+{
+  "config": {
+    "preset": "main",
+    "model": {
+      "set_dim": 512,
+      "set_heads": 8,
+      "set_layers": 2,
+      "inducing_points": 32,
+      "map_message_rounds": 2,
+      "hist_dim": 1024,
+      "hist_heads": 16,
+      "hist_layers": 14,
+      "ff_mult": 4,
+      "window": 32,
+      "max_step_index": 512,
+      "action_dim": 512,
+      "action_heads": 8,
+      "dropout": 0.0
+    },
+    "combat": {
+      "normal_simulations": 128,
+      "boss_simulations": 512,
+      "exploration": 4.242640687,
+      "rollout_epsilon": 0.05,
+      "potion_weight": 4.0
+    },
+    "reward": {
+      "win": 5.0,
+      "floor": 0.05,
+      "act_entry": 0.5,
+      "scale": 5.0,
+      "stages": [
+        {
+          "until_episode": 2000,
+          "alpha": 1.0,
+          "entropy_coef": 0.02
+        },
+        {
+          "until_episode": 4000,
+          "alpha": 0.5,
+          "entropy_coef": 0.015
+        },
+        {
+          "until_episode": 6000,
+          "alpha": 0.2,
+          "entropy_coef": 0.01
+        },
+        {
+          "until_episode": 1000000000,
+          "alpha": 0.0,
+          "entropy_coef": 0.005
+        }
+      ],
+      "gate_act2_episodes": 1,
+      "gate_win_seed_families": 10,
+      "gate_policy": "stop"
+    },
+    "ppo": {
+      "num_envs": 8,
+      "min_transitions": 2048,
+      "epochs": 4,
+      "clip": 0.2,
+      "target_kl": 0.01,
+      "gamma": 1.0,
+      "gae_lambda": 0.99,
+      "batch_targets": 128,
+      "microbatch": 4,
+      "lr": 0.0001,
+      "betas": [
+        0.9,
+        0.999
+      ],
+      "eps": 1e-08,
+      "weight_decay": 0.0,
+      "max_grad_norm": 0.5,
+      "value_coef": 0.5,
+      "value_huber_delta": 1.0,
+      "aux_survival_coef": 0.05,
+      "aux_hp_coef": 0.02,
+      "aux_hp_huber_delta": 0.1,
+      "aux_act_coef": 0.05,
+      "bf16": true,
+      "activation_checkpointing": true,
+      "recompute_tolerance": 0.05
+    },
+    "total_episodes": 10000,
+    "ascension": 0,
+    "seed": 1,
+    "train_seed_base": 1000000,
+    "val_seeds": [
+      9000000,
+      200
+    ],
+    "test_seeds": [
+      8000000,
+      1000
+    ],
+    "eval_every": 2000,
+    "max_macro_steps": 3000,
+    "sweet_spot": [
+      8000,
+      20000
+    ],
+    "archive_trajectories": true
+  },
+  "fingerprint": "2dfaadf011cdbdd8"
+}

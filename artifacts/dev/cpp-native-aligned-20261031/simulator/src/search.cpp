@@ -13,7 +13,7 @@ static int card_score(const BattleContext &bc, const Action &a) {
     const Card &c = bc.hand[a.hand];
     const CardDef &d = card_def(c.id);
     int score = 0;
-    if (d.type == CardType::ATTACK) {
+    if (card_type(c) == CardType::ATTACK) {
         int dmg = card_damage(c) + bc.player.strength;
         if (bc.player.weak > 0) dmg = static_cast<int>(dmg * 0.75f);
         int hits = 1;
@@ -32,11 +32,11 @@ static int card_score(const BattleContext &bc, const Action &a) {
             score += dmg * hits;
         }
     }
-    if (d.type == CardType::SKILL) {
+    if (card_type(c) == CardType::SKILL) {
         score += card_block(c) + bc.player.dexterity + 2;
         score += card_var(c, VarId::POWER);
     }
-    if (d.type == CardType::POWER) score += 60;
+    if (card_type(c) == CardType::POWER) score += 60;
     if (c.id == CardId::OFFERING || c.id == CardId::BATTLE_TRANCE ||
         c.id == CardId::BLOODLETTING) score += 20;
     if (c.id == CardId::BLOOD_WALL || c.id == CardId::BREAKTHROUGH) score -= 8;
@@ -58,7 +58,7 @@ Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon) {
         if (a.type != ActionType::PLAY_CARD || a.target >= bc.monsterCount) continue;
         const Card &c = bc.hand[a.hand];
         if (!card_is_attack(c)) continue;
-        if (card_def(c.id).target == TargetType::ENEMY) {
+        if (card_target(c) == TargetType::ENEMY) {
             int dmg = bc.calc_player_damage(card_damage(c), a.target);
             const Monster &m = bc.monsters[a.target];
             if (m.alive && dmg >= m.hp + m.block) return a;

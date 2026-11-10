@@ -158,10 +158,10 @@ int main() {
     events.eventBag[0] = wongo;
     events.eventBag[1] = seen;
     events.eventBag[2] = allowed;
-    events.visitedEvents = std::uint64_t{1} << seen;
+    events.visitedEvents[seen / 64] = std::uint64_t{1} << (seen % 64);
     events.enter_map_point(node);
     assert(events.eventId == allowed && events.eventBagPos == 3);
-    assert((events.visitedEvents & (std::uint64_t{1} << allowed)) != 0);
+    assert((events.visitedEvents[allowed / 64] & (std::uint64_t{1} << (allowed % 64))) != 0);
     events.eventBagN = 1;
     events.eventBagPos = 0;
     events.eventBag[0] = wongo;
@@ -211,7 +211,7 @@ int main() {
     int rare_potions = 0, uncommon_potions = 0;
     Rng potion_rng(517);
     for (int i = 0; i < 20000; ++i) {
-        const auto potion = random_potion_out_of_combat(potion_rng);
+        const auto potion = random_potion_out_of_combat(potion_rng, ~std::uint64_t{0});
         const auto rarity = potion_def(potion).rarity;
         assert(potion != PotionId::INVALID && potion_def(potion).ironclad);
         assert(rarity == Rarity::COMMON || rarity == Rarity::UNCOMMON || rarity == Rarity::RARE);

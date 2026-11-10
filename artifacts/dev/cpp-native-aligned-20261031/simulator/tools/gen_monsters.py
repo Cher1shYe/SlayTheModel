@@ -91,7 +91,33 @@ def main() -> None:
     if len(tag_names) > 16:
         raise ValueError("encounter tag mask exceeds 16 bits")
     tag_bits = {name: 1 << i for i, name in enumerate(tag_names)}
-    ids = sorted(monsters)
+    # Current native 41cef1ea replaced Doormaker with Aeonglass in Glory
+    # (Models/Monsters/Aeonglass.cs). The historical extracted table lacks it;
+    # append so every existing MonsterId/Encounter keeps its value. Moves are
+    # transcribed from the native source; INCREASING_INTENSITY's Wither
+    # upgrades and growing Strength are handled in monsters.cpp.
+    late_monsters = {
+        "AEONGLASS": {
+            "hp": {"A0": [512, 512], "A8": [535, 535]},
+            "states": {
+                "EBB_MOVE": {"kind": "move", "follow": "EYE_LASERS_MOVE", "once": False, "intents": [
+                    {"type": "ATTACK", "damage": 22, "hits": 1}, {"type": "DEFEND", "damage": 0, "hits": 1}]},
+                "EYE_LASERS_MOVE": {"kind": "move", "follow": "INCREASING_INTENSITY_MOVE", "once": False,
+                                    "intents": [{"type": "MULTI_ATTACK", "damage": 11, "hits": 2}]},
+                "INCREASING_INTENSITY_MOVE": {"kind": "move", "follow": "EBB_MOVE", "once": False, "intents": [
+                    {"type": "STATUS_CARD", "damage": 0, "hits": 1}, {"type": "BUFF", "damage": 0, "hits": 1}]},
+            },
+            "initial": [["EBB_MOVE", 1]],
+            "moves": {"EBB_MOVE@A0": [["block", 33]], "EBB_MOVE@A8": [["block", 33]]},
+            "powers": {"A0": [["ARTIFACT", 3]], "A8": [["ARTIFACT", 3]]},
+        },
+    }
+    for name, entry in late_monsters.items():
+        if name in monsters:
+            raise SystemExit(f"{name} already extracted; drop the late entry")
+        monsters[name] = entry
+    deadly_damage.setdefault("AEONGLASS", {}).update({"EBB_MOVE": 26, "EYE_LASERS_MOVE": 12})
+    ids = sorted(m for m in monsters if m not in late_monsters) + list(late_monsters)
     index = {name: i + 1 for i, name in enumerate(ids)}
 
     # encounters: merge the A0/A8 probes, keeping distinct roster patterns
@@ -109,6 +135,9 @@ def main() -> None:
     }
     encounter_tags["setup_seapunk_normal"] = ["Seapunk"]
     enc_order.append("setup_seapunk_normal")
+    encs["setup_aeonglass_boss"] = {"act": "act3", "rosters": [[["AEONGLASS"], 1]]}
+    encounter_tags["setup_aeonglass_boss"] = []
+    enc_order.append("setup_aeonglass_boss")
     enc_index = {n: i + 1 for i, n in enumerate(enc_order)}
 
     intents = []

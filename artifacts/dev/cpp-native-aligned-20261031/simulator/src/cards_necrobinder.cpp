@@ -6,6 +6,14 @@
 namespace sts2 {
 namespace {
 int v(const Card &c, VarId id) { return card_var(c,id); }
+// TemporaryStrengthPower (IsPositive=false): Artifact gates the wrapper power;
+// BeforeApplied / AfterPowerAmountChanged then apply the matching Strength loss.
+void apply_temporary_strength_down(BattleContext &b,int target,PowerId id,int amount) {
+    const int before=b.monster_power(target,id);
+    b.add_monster_power(target,id,amount);
+    const int applied=b.monster_power(target,id)-before;
+    if(applied)b.add_monster_power(target,PowerId::STRENGTH,-applied);
+}
 void doom_all(BattleContext &b,int amount) {
     for (int i=0;i<b.monsterCount;++i) if(b.monsters[i].alive) b.add_monster_power(i,PowerId::DOOM,amount);
 }
@@ -83,7 +91,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::DEFY:
         b.gain_block(card_block(c),true);b.apply_weak(target,v(c,VarId::WEAK_POWER));return true;
     case CardId::DELAY:
-        b.gain_block(card_block(c),true);b.nextTurnEnergy+=v(c,VarId::ENERGY);return true;
+        b.gain_block(card_block(c),true);b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(c,VarId::ENERGY));return true;
     case CardId::DEMESNE: b.add_player_power(PowerId::DEMESNE,1);return true;
     case CardId::DEVOUR_LIFE:b.add_player_power(PowerId::DEVOUR_LIFE,v(c,VarId::DEVOUR_LIFE_POWER));return true;
     case CardId::DIRGE:
@@ -107,7 +115,8 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::END_OF_DAYS:
         doom_all(b,v(c,VarId::DOOM_POWER));necrobinder_doom_kill(b);return true;
     case CardId::ENFEEBLING_TOUCH:
-        b.apply_strength_loss(target,v(c,VarId::STRENGTH_LOSS));return true;
+        if(target>=0&&target<b.monsterCount)apply_temporary_strength_down(b,target,PowerId::ENFEEBLING_TOUCH,v(c,VarId::STRENGTH_LOSS));
+        return true;
     case CardId::ERADICATE:b.attack_from_card(c,target,damage,b.xCost);return true;
     case CardId::FEAR:
         b.attack_from_card(c,target,damage);b.apply_vulnerable(target,v(c,VarId::VULNERABLE_POWER));return true;
@@ -132,7 +141,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
         if(b.necro.ostyHp>0){necrobinder_attack_osty(b,c,target,v(c,VarId::OSTY_DAMAGE),1,true);
         for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.apply_vulnerable(i,v(c,VarId::VULNERABLE_POWER));}return true;
     case CardId::INVOKE:
-        b.add_player_power(PowerId::SUMMON_NEXT_TURN,v(c,VarId::SUMMON));b.nextTurnEnergy+=v(c,VarId::ENERGY);return true;
+        b.add_player_power(PowerId::SUMMON_NEXT_TURN,v(c,VarId::SUMMON));b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(c,VarId::ENERGY));return true;
     case CardId::LETHALITY:b.add_player_power(PowerId::LETHALITY,v(c,VarId::LETHALITY_POWER));return true;
     case CardId::MELANCHOLY:b.gain_block(card_block(c),true);return true;
     case CardId::MISERY:misery(b,c,target);return true;
@@ -283,12 +292,21 @@ void misery(BattleContext &b,Card &card,int target) {
         // only the permanent remainder for the independent StrengthPower.
         if(source.weak>0)b.apply_weak(i,source.weak);
         if(source.vulnerable>0)b.apply_vulnerable(i,source.vulnerable);
-        const int permanent=source.strength+source.tempStrengthLoss;
-        if(permanent<0)b.add_monster_power(i,PowerId::STRENGTH,permanent);
+        // Misery adds each ITemporaryPower amount back onto the copied Strength
+        // debuff, then re-applies the wrapper, which applies its own loss.
+        const int wrapped=source.power[static_cast<int>(PowerId::ENFEEBLING_TOUCH)]+
+                          source.power[static_cast<int>(PowerId::PIERCING_WAIL)];
+        const int permanent=source.strength+source.tempStrengthLoss+(source.strength<0?wrapped:0);
+        if(source.strength<0&&permanent!=0)b.add_monster_power(i,PowerId::STRENGTH,permanent);
         if(source.tempStrengthLoss>0)b.apply_strength_loss(i,source.tempStrengthLoss);
+        for(const PowerId id:{PowerId::ENFEEBLING_TOUCH,PowerId::PIERCING_WAIL}){
+            const int amount=source.power[static_cast<int>(id)];
+            if(amount>0)apply_temporary_strength_down(b,i,id,amount);
+        }
         for(int p=0;p<static_cast<int>(PowerId::COUNT);++p){
             const auto id=static_cast<PowerId>(p);
-            if(id==PowerId::WEAK||id==PowerId::VULNERABLE||id==PowerId::STRENGTH)continue;
+            if(id==PowerId::WEAK||id==PowerId::VULNERABLE||id==PowerId::STRENGTH||
+               id==PowerId::ENFEEBLING_TOUCH||id==PowerId::PIERCING_WAIL)continue;
             if(is_debuff(id,source.power[p]))b.add_monster_power(i,id,source.power[p]);
         }
         // Native clones preserve debuffs' own accumulated state.

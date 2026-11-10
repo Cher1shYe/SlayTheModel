@@ -1,5 +1,6 @@
 // Full-run flow: StandardActMap traversal, rooms, rewards, shops, events.
 #include "sts2/run.h"
+#include "sts2/potion_slots.h"
 
 #include <cstring>
 #include <stdexcept>
@@ -22,8 +23,8 @@ const char *RUN_RNG_NAMES[RNG_COUNT] = {
     "treasure_room_relics"};
 const char *PLAYER_RNG_NAMES[PRNG_COUNT] = {"rewards", "shops", "transformations"};
 
-bool in_reward_pool(CardId id) {
-    if (!card_native_available(id)) return false;
+bool in_reward_pool(CardId id, std::uint64_t epochs) {
+    if (!card_native_available(id) || !card_epoch_unlocked(epochs, id)) return false;
     const CardDef &d = card_def(id);
     if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) return false;
     if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON && d.rarity != Rarity::RARE) {
@@ -32,8 +33,8 @@ bool in_reward_pool(CardId id) {
     return d.pool == CardPool::IRONCLAD;
 }
 
-bool in_colorless_pool(CardId id) {
-    if (!card_native_available(id)) return false;
+bool in_colorless_pool(CardId id, std::uint64_t epochs) {
+    if (!card_native_available(id) || !card_epoch_unlocked(epochs, id)) return false;
     const CardDef &d = card_def(id);
     if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY)) return false;
     if (d.rarity != Rarity::COMMON && d.rarity != Rarity::UNCOMMON && d.rarity != Rarity::RARE) {
@@ -42,11 +43,11 @@ bool in_colorless_pool(CardId id) {
     return d.pool == CardPool::COLORLESS;
 }
 
-bool pool_accepts(CardId id, bool colorless) {
-    return colorless ? in_colorless_pool(id) : in_reward_pool(id);
+bool pool_accepts(CardId id, bool colorless, std::uint64_t epochs) {
+    return colorless ? in_colorless_pool(id, epochs) : in_reward_pool(id, epochs);
 }
 
-CardId random_card_of_rarity(Rng &rng, Rarity want, bool colorless,
+CardId random_card_of_rarity(Rng &rng, Rarity want, bool colorless, std::uint64_t epochs,
                              const CardId *excluded = nullptr, int excludedCount = 0) {
     CardId pool[static_cast<int>(CardId::COUNT)];
     int n = 0;
@@ -54,12 +55,25 @@ CardId random_card_of_rarity(Rng &rng, Rarity want, bool colorless,
         const CardId id = static_cast<CardId>(i);
         bool alreadyPicked = false;
         for (int j = 0; j < excludedCount; ++j) alreadyPicked |= excluded[j] == id;
-        if (!alreadyPicked && pool_accepts(id, colorless) && card_def(id).rarity == want)
+        if (!alreadyPicked && pool_accepts(id, colorless, epochs) && card_def(id).rarity == want)
             pool[n++] = id;
     }
     if (n == 0) return CardId::INVALID;
     native_sort_card_ids(pool, n);
     return pool[rng.next_int(0, n - 1)];
+}
+
+// Same pick over an explicit native-ordered pool (already sorted per pool).
+CardId random_card_from_pool(Rng &rng, Rarity want, const CardId *source, int sourceCount,
+                             const CardId *excluded, int excludedCount) {
+    CardId pool[static_cast<int>(CardId::COUNT)];
+    int n = 0;
+    for (int i = 0; i < sourceCount; ++i) {
+        bool alreadyPicked = false;
+        for (int j = 0; j < excludedCount; ++j) alreadyPicked |= excluded[j] == source[i];
+        if (!alreadyPicked && card_def(source[i]).rarity == want) pool[n++] = source[i];
+    }
+    return n ? pool[rng.next_int(0, n - 1)] : CardId::INVALID;
 }
 
 int shop_price_value(CardId id, bool colorless, Rng &rng) {
@@ -97,7 +111,7 @@ int apply_merchant_discount(const RunContext &rc, int price) {
 }
 
 bool acquire_card(RunContext &rc, Card card) {
-    const CardType type = card_def(card.id).type;
+    const CardType type = card_type(card);
     if (!card.upgraded &&
         ((type == CardType::ATTACK && run_has_relic(rc, RelicId::MOLTEN_EGG)) ||
          (type == CardType::SKILL && run_has_relic(rc, RelicId::TOXIC_EGG)) ||
@@ -154,7 +168,7 @@ void refill_shop_card(RunContext &rc, int index) {
     if (index < 0 || index >= rc.shopCount) return;
     Rng &shops = rc.playerRng[PRNG_SHOPS];
     const CardDef old = card_def(rc.shopCards[index].id);
-    const bool colorless = !in_reward_pool(rc.shopCards[index].id);
+    const bool colorless = !in_reward_pool(rc.shopCards[index].id, ~std::uint64_t{0});
     Rng &rewards = rc.playerRng[PRNG_REWARDS];
     Rarity rarity = old.rarity;
     if (!colorless) {
@@ -169,7 +183,7 @@ void refill_shop_card(RunContext &rc, int index) {
         int n = 0;
         for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
             const CardId candidate = static_cast<CardId>(i);
-            if (!pool_accepts(candidate, colorless) || card_def(candidate).rarity != rarity ||
+            if (!pool_accepts(candidate, colorless, rc.nativeProgress.revealedEpochs) || card_def(candidate).rarity != rarity ||
                 (!colorless && card_def(candidate).type != old.type)) continue;
             bool stocked = false;
             for (int j = 0; j < rc.shopCount; ++j)
@@ -219,7 +233,8 @@ void refill_shop_potion(RunContext &rc, int index) {
     int n = 0;
     for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
         const PotionDef &def = potion_def(static_cast<PotionId>(i));
-        if (!def.ironclad || def.rarity != want) continue;
+        if (!def.ironclad || def.rarity != want ||
+            !potion_epoch_unlocked(rc.nativeProgress.revealedEpochs, static_cast<PotionId>(i))) continue;
         bool stocked = false;
         for (int j = 0; j < rc.shopPotionCount; ++j)
             if (j != index && !rc.shopPotionSold[j] && rc.shopPotions[j] == i) stocked = true;
@@ -426,6 +441,7 @@ void clear_custom_rewards(RunContext &r) {
     r.activeCardReward = -1;
     r.rewardResumeScreen = RunScreen::MAP;
     r.deferredCustomRewards = false;
+    for (int &g : r.extraGoldRewards) g = 0;
 }
 
 struct ActionRewardGuard {
@@ -476,10 +492,10 @@ std::uint16_t RunContext::allocate_card_uid() {
         for (int i = 0; i < shopCount && !used; ++i) used = shopCards[i].uid == uid;
         for (int i = 0; i < stolenSyncCount && !used; ++i)
             used = stolenOriginalPresent[i] && stolenOriginals[i].uid == uid;
-        if (cardGrid.kind == 1 || cardGrid.kind == 2 || cardGrid.kind == 5 || cardGrid.kind >= 13)
+        if (cardGrid.kind == 1 || cardGrid.kind == 2 || cardGrid.kind == 5 || cardGrid.kind == 13 || cardGrid.kind == 14)
             for (int i = 0; i < cardGrid.count && !used; ++i) used = cardGrid.cards[i].uid == uid;
         for (int i = 0; i < MAX_CARD_REWARDS && !used; ++i)
-            for (int j = 0; j < 3 && !used; ++j)
+            for (int j = 0; j < MAX_REWARD_CARD_CHOICES && !used; ++j)
                 used = rewardCards[i][j].id != CardId::INVALID && rewardCards[i][j].uid == uid;
         if (!used) return uid;
     }
@@ -493,7 +509,7 @@ Card RunContext::make_run_card(CardId id, bool upgraded) {
 }
 
 bool RunContext::add_card_to_deck(Card c) {
-    const auto type=card_def(c.id).type;
+    const auto type=card_type(c);
     if(card_upgradable(c) && ((type==CardType::ATTACK && run_has_relic(*this,RelicId::MOLTEN_EGG)) ||
         (type==CardType::SKILL && run_has_relic(*this,RelicId::TOXIC_EGG)) ||
         (type==CardType::POWER && run_has_relic(*this,RelicId::FROZEN_EGG)))) card_apply_upgrade(c);
@@ -510,7 +526,7 @@ bool RunContext::add_card_to_deck(Card c) {
             ++cardsAdded;
             if (cardsAdded % 5 == 0) hp = std::min(maxHp, hp + 20);
         }
-        if (card_def(card.id).type == CardType::CURSE &&
+        if (card_type(card) == CardType::CURSE &&
             run_has_relic(*this, RelicId::DARKSTONE_PERIAPT)) {
             maxHp += 6;
             hp = std::min(maxHp, hp + 6);
@@ -535,6 +551,7 @@ void RunContext::init_relic_bags() {
         const RelicDef &def = relic_def(id);
         const int slot = relic_raw_rarity(id) - 1;
         if (slot < 0 || slot >= RELIC_BAG_SLOTS || !relic_implemented(id) ||
+            !relic_epoch_unlocked(nativeProgress.revealedEpochs, id) ||  // GetUnlockedRelics
             (def.pool != RelicPool::SHARED && def.pool != RelicPool::IRONCLAD)) continue;
         playerRelicBag.entries[slot][playerRelicBag.counts[slot]++] = static_cast<std::uint16_t>(i);
         if (def.pool == RelicPool::SHARED)
@@ -549,7 +566,7 @@ void RunContext::init_relic_bags() {
 }
 
 RelicId RunContext::pull_relic(Rarity rarity, bool fromBack, bool shared,
-                               const int *blacklist, int blacklistCount) {
+                               const int *blacklist, int blacklistCount, bool shopOnly) {
     if (!relicBagsInitialized || blacklistCount < 0 || (blacklistCount > 0 && !blacklist))
         return RelicId::INVALID;
     RelicBagState &bag = shared ? sharedRelicBag : playerRelicBag;
@@ -560,6 +577,7 @@ RelicId RunContext::pull_relic(Rarity rarity, bool fromBack, bool shared,
             for (int i = 1; i < static_cast<int>(RelicId::COUNT); ++i) {
                 const RelicId id = static_cast<RelicId>(i);
                 if (relic_def(id).pool == RelicPool::SHARED && relic_implemented(id) &&
+                    relic_epoch_unlocked(nativeProgress.revealedEpochs, id) &&
                     relic_raw_rarity(id) == slot + 1 && !run_has_relic(*this, id))
                     bag.entries[slot][bag.counts[slot]++] = static_cast<std::uint16_t>(i);
             }
@@ -567,10 +585,14 @@ RelicId RunContext::pull_relic(Rarity rarity, bool fromBack, bool shared,
         int pos = fromBack ? bag.counts[slot] - 1 : 0;
         while (pos >= 0 && pos < bag.counts[slot]) {
             const RelicId id = static_cast<RelicId>(bag.entries[slot][pos]);
-            bool excluded = fromBack && (id == RelicId::THE_COURIER || id == RelicId::OLD_COIN);
+            const bool shopFiltered = (fromBack || shopOnly) && !relic_allowed_in_shops(id);
+            bool excluded = shopFiltered;
             for (int i = 0; i < blacklistCount; ++i)
                 excluded |= blacklist[i] == static_cast<int>(id);
             const bool allowed = !excluded && !run_has_relic(*this, id) && run_relic_allowed(*this, id);
+            // A front pull drops disallowed entries (RemoveDisallowedRelicsFromDeques)
+            // but leaves relics that only fail the shop filter in place.
+            if (shopFiltered && !fromBack) { ++pos; continue; }
             if (allowed || !fromBack) {
                 for (int i = pos + 1; i < bag.counts[slot]; ++i)
                     bag.entries[slot][i - 1] = bag.entries[slot][i];
@@ -614,9 +636,6 @@ void RunContext::init_with_context(std::uint64_t seedValue, int ascensionLevel,
         throw std::invalid_argument("Invalid ascension, first act or native progress context");
     if (firstAct == static_cast<int>(ActType::UNDERDOCKS) && !progress.underdocksUnlocked)
         throw std::invalid_argument("Underdocks must be unlocked in the supplied context");
-    if (progress.applyDiscoveryOrder && !progress.aeonglassSeen &&
-        progress.has_seen(Encounter::SETUP_QUEEN_BOSS) && progress.has_seen(Encounter::SETUP_TEST_SUBJECT_BOSS))
-        throw std::invalid_argument("Glory discovery requires the unsupported Aeonglass boss");
     // Copy before resetting: callers may pass this->nativeProgress.
     const NativeProgressContext context = progress;
     *this = RunContext();
@@ -676,7 +695,7 @@ void RunContext::roll_act_rooms() {
     // Events are shuffled first in ActModel.GenerateRooms.
     Rng &rng = runRng[RNG_UP_FRONT];
     int ev[128];
-    const int n = event_pool_for_act_type(actTypes[act], ev, 128);
+    const int n = event_pool_for_act_type(actTypes[act], ev, 128, &nativeProgress);
     for (int i = 0; i < n && eventBagN < 64; ++i)
         eventBag[eventBagN++] = static_cast<std::uint16_t>(ev[i]);
     for (int i = eventBagN - 1; i > 0; --i) {
@@ -706,7 +725,12 @@ void RunContext::roll_act_rooms() {
     const bool underdocks = actTypes[act] == ActType::UNDERDOCKS;
     const int encounterCount = underdocks ? 20 : static_cast<int>(Encounter::COUNT) - 1;
     for (int candidate = 0; candidate < encounterCount; ++candidate) {
-        const int i = underdocks ? static_cast<int>(underdocksEncounters[candidate]) : candidate + 1;
+        int i = underdocks ? static_cast<int>(underdocksEncounters[candidate]) : candidate + 1;
+        // Glory.GenerateAllEncounters lists AeonglassBoss where the legacy
+        // table's Doormaker sorts (after DevotedSculptorWeak); the appended
+        // Aeonglass entry takes that slot and is not visited again.
+        if (i == static_cast<int>(Encounter::SETUP_DOORMAKER_BOSS)) i = static_cast<int>(Encounter::SETUP_AEONGLASS_BOSS);
+        else if (i == static_cast<int>(Encounter::SETUP_AEONGLASS_BOSS)) continue;
         const EncounterDef &d = encounter_def(i);
         const int contentAct = actTypes[act] == ActType::UNDERDOCKS ? 4 : act + 1;
         if (d.act != contentAct || d.key == nullptr) continue;
@@ -751,12 +775,14 @@ void RunContext::roll_act_rooms() {
         const Encounter bossOrder[4][3] = {
             {Encounter::SETUP_VANTOM_BOSS, Encounter::SETUP_CEREMONIAL_BEAST_BOSS, Encounter::SETUP_THE_KIN_BOSS},
             {Encounter::SETUP_THE_INSATIABLE_BOSS, Encounter::SETUP_KNOWLEDGE_DEMON_BOSS, Encounter::SETUP_KAISER_CRAB_BOSS},
-            {Encounter::SETUP_QUEEN_BOSS, Encounter::SETUP_TEST_SUBJECT_BOSS, Encounter::INVALID},
+            {Encounter::SETUP_QUEEN_BOSS, Encounter::SETUP_TEST_SUBJECT_BOSS, Encounter::SETUP_AEONGLASS_BOSS},
             {Encounter::SETUP_WATERFALL_GIANT_BOSS, Encounter::SETUP_SOUL_FYSH_BOSS, Encounter::SETUP_LAGAVULIN_MATRIARCH_BOSS}
         };
         for (Encounter encounter : bossOrder[static_cast<int>(actTypes[act])]) {
             if (encounter == Encounter::INVALID) continue;
-            if (!nativeProgress.has_seen(encounter)) {
+            const bool seen = nativeProgress.has_seen(encounter) &&
+                              (encounter != Encounter::SETUP_AEONGLASS_BOSS || nativeProgress.aeonglassSeen);
+            if (!seen) {
                 bossEncounter = static_cast<int>(encounter);
                 break;
             }
@@ -810,8 +836,13 @@ void RunContext::start_act(int actIndex) {
     std::snprintf(mapName, sizeof(mapName), "act_%d_map", actIndex + 1);
     Rng mapRng(seed, mapName);
     generate_act_map(map, mapRng, actIndex, ascension);
+    // Hook.ModifyGeneratedMap visits deck cards before relics: a Spoils Map
+    // replaces act 2's map, then Golden Compass may replace that in turn.
+    if (actIndex == 1 && spoils_map_count() > 0) generate_spoils_act_map(map, seed, actIndex, ascension);
     roll_act_rooms();
     if (goldenPathAct == act) generate_golden_path_map(map);
+    spoilsQuestRow = spoilsQuestCol = -1;
+    refresh_spoils_quest();
     if (act == 0 && !nativeProgress.neowUnlocked)
         map.nodes[map.startIdx].type = static_cast<std::int8_t>(MapPointType::MONSTER);
     screen = RunScreen::MAP;
@@ -826,6 +857,7 @@ void RunContext::apply_golden_compass() {
     const auto previousLo = visitedLo;
     const auto previousHi = visitedHi;
     generate_golden_path_map(map);
+    refresh_spoils_quest();
     if (act == 0 && !nativeProgress.neowUnlocked)
         map.nodes[map.startIdx].type = static_cast<std::int8_t>(MapPointType::MONSTER);
     // Native regenerates the map and retains only visited coordinates present
@@ -841,14 +873,13 @@ void RunContext::apply_golden_compass() {
 }
 
 void RunContext::add_potion(PotionId id) {
-    if (id == PotionId::INVALID || potionCount >= potionSlots) return;
-    if (run_has_relic(*this, RelicId::SOZU)) return;
-    potions[potionCount++] = static_cast<int>(id);
+    // First empty physical slot; Sozu rejects (run_try_procure_potion).
+    run_try_procure_potion(*this, id);
 }
 
 void RunContext::sync_potions_from_battle() {
-    potionCount = std::min(battle.potionCount, potionSlots);
-    for (int i = 0; i < potionCount; ++i) potions[i] = battle.potions[i];
+    for (int i = 0; i < MAX_POTIONS; ++i) potions[i] = i < potionSlots ? battle.potions[i] : 0;
+    potionCount = potion_occupied_count(potions, potionSlots);
 }
 
 bool RunContext::add_relic(RelicId id, bool wax) {
@@ -941,7 +972,7 @@ bool RunContext::queue_potion_rewards(int count) {
         int slot = 0;
         while (slot < pendingPotionCount && pendingPotions[slot] != 0) ++slot;
         if (slot == pendingPotionCount) ++pendingPotionCount;
-        pendingPotions[slot] = static_cast<int>(random_potion_out_of_combat(playerRng[PRNG_REWARDS]));
+        pendingPotions[slot] = static_cast<int>(random_potion_out_of_combat(playerRng[PRNG_REWARDS], nativeProgress.revealedEpochs));
     }
     pendingPotionReward = pendingPotionCount > 0 ? pendingPotions[0] : 0;
     if (count > 0) deferredCustomRewards = true;
@@ -969,7 +1000,7 @@ bool RunContext::queue_card_reward(Rarity fixedRarity, bool useBaseOdds, CardPoo
     int available = 0;
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardId id = static_cast<CardId>(i);
-        if (pool_accepts(id, colorless) && (useBaseOdds || card_def(id).rarity == fixedRarity)) ++available;
+        if (pool_accepts(id, colorless, nativeProgress.revealedEpochs) && (useBaseOdds || card_def(id).rarity == fixedRarity)) ++available;
     }
     if (available < 3) return false;
     int slot = 0;
@@ -981,12 +1012,20 @@ bool RunContext::queue_card_reward(Rarity fixedRarity, bool useBaseOdds, CardPoo
     CardId picked[3]{};
     Card generated[3]{};
     int made = 0;
+    CardId widePool[static_cast<int>(CardId::COUNT)];
+    const int wideCount = !colorless && card_reward_pool_widened(*this)
+        ? native_card_reward_pool(*this, CardPool::IRONCLAD, widePool) : -1;
+    auto random_card_of_rarity = [&](Rng &r, Rarity want, bool c, const CardId *ex, int exN) {
+        return wideCount < 0 ? sts2::random_card_of_rarity(r, want, c, nativeProgress.revealedEpochs, ex, exN)
+                             : random_card_from_pool(r, want, widePool, wideCount, ex, exN);
+    };
     for (int i = 0; i < 3; ++i) {
         Rarity rarity = fixedRarity;
         if (useBaseOdds) {
             const float roll = rng.next_float();
             const float rare = ascension >= 7 ? 0.0149f : 0.03f;
-            rarity = roll < rare ? Rarity::RARE : (roll < 0.37f ? Rarity::UNCOMMON : Rarity::COMMON);
+            // CardRarityOdds.RollWithBaseOdds: uncommon when roll < uncommon + rare.
+            rarity = roll < rare ? Rarity::RARE : (roll < rare + 0.37f ? Rarity::UNCOMMON : Rarity::COMMON);
         }
         CardId id = random_card_of_rarity(rng, rarity, colorless, picked, made);
         // RollForRarity promotes an unavailable rarity; it does not reroll.
@@ -1003,12 +1042,32 @@ bool RunContext::queue_card_reward(Rarity fixedRarity, bool useBaseOdds, CardPoo
                 : act * (ascension >= 7 ? 0.125f : 0.25f);
             if (card_upgradable(card) && upgradeRoll <= odds) card_apply_upgrade(card);
         }
-        if (run_has_relic(*this, RelicId::FRESNEL_LENS))
-            card_apply_enchantment(card, EnchantmentId::NIMBLE, 2);
         generated[made++] = card;
     }
+    // CardReward options get the IsCardReward modify hooks (not from combat).
+    apply_card_reward_hooks(*this, generated, made, 3, -1, false);
     for (int i = 0; i < made; ++i) rewardCards[slot][i] = generated[i];
     rewardCardCounts[slot] = made;
+    rewardCardPending[slot] = true;
+    pendingCardReward = true;
+    deferredCustomRewards = true;
+    return true;
+}
+
+int RunContext::free_card_reward_slots() const {
+    int free = 0;
+    for (int slot = 0; slot < MAX_CARD_REWARDS; ++slot)
+        free += !rewardCardPending[slot] && slot != activeCardReward;
+    return free;
+}
+
+bool RunContext::queue_prepared_card_reward(const Card *cards, int count) {
+    if (count < 1 || count > 3) return false;
+    int slot = 0;
+    while (slot < MAX_CARD_REWARDS && (rewardCardPending[slot] || slot == activeCardReward)) ++slot;
+    if (slot >= MAX_CARD_REWARDS) return false;
+    for (int i = 0; i < count; ++i) rewardCards[slot][i] = cards[i];
+    rewardCardCounts[slot] = count;
     rewardCardPending[slot] = true;
     pendingCardReward = true;
     deferredCustomRewards = true;
@@ -1055,8 +1114,10 @@ void RunContext::begin_combat(Encounter enc) {
         hp = std::min(maxHp, hp + 25);
     }
     battle.init(enc, combatSeed, deck, deckCount, ascension, hp, maxHp, relics, relicCount,
-                potions, potionCount, potionSlots, run_turn1_energy(*this),
+                potions, potionSlots, potionSlots, run_turn1_energy(*this),
                 3 + run_energy_bonus(*this), gold, potionSeed, relicAux, runRng, relicWax, relicMelted);
+    battle.unlockedCharacterMask = nativeProgress.unlockedCharacterMask;  // UnlockState.CharacterCardPools
+    battle.revealedEpochs = nativeProgress.revealedEpochs;
     teaSetPending = false;
     nextCombatEnergy = 0;
     for (int i = 0; i < relicCount; ++i) {
@@ -1100,6 +1161,7 @@ void RunContext::begin_combat(Encounter enc) {
             }
         }
     }
+    battle.settle_forced_choices();
     battle.clear_card_uid_reservations();
     inBattle = true;
     screen = RunScreen::COMBAT;
@@ -1115,11 +1177,16 @@ void RunContext::roll_card_reward(bool boss) {
     rewardIsBoss = boss;
     Rng &rng = playerRng[PRNG_REWARDS];
     CardId picked[3]{};
+    // Prismatic Gem / Dingy Rug widen the whole reward pool (native
+    // ModifyCardRewardCreationOptions); otherwise the Ironclad pool.
+    CardId widePool[static_cast<int>(CardId::COUNT)];
+    const int wideCount = card_reward_pool_widened(*this) ? native_card_reward_pool(*this, CardPool::IRONCLAD, widePool) : -1;
+    auto pick = [&](Rarity r) {
+        return wideCount < 0 ? random_card_of_rarity(rng, r, false, nativeProgress.revealedEpochs, picked, offeredCount)
+                             : random_card_from_pool(rng, r, widePool, wideCount, picked, offeredCount);
+    };
     int guard = 0;
     while (offeredCount < 3 && guard++ < 200) {
-        const bool colorlessSlot = offeredCount == 2 &&
-                                   (run_has_relic(*this, RelicId::DINGY_RUG) ||
-                                    run_has_relic(*this, RelicId::PRISMATIC_GEM));
         // Boss rolls consume the rarity RNG too, with 100% rare and no offset.
         const float u = rng.next_float();
         Rarity want = Rarity::RARE;
@@ -1142,11 +1209,9 @@ void RunContext::roll_card_reward(bool boss) {
         } else {
             cardRarityOdds = -0.05f;
         }
-        CardId id = random_card_of_rarity(rng, want, colorlessSlot, picked, offeredCount);
-        if (id == CardId::INVALID && want == Rarity::COMMON)
-            id = random_card_of_rarity(rng, Rarity::UNCOMMON, colorlessSlot, picked, offeredCount);
-        if (id == CardId::INVALID && want != Rarity::RARE)
-            id = random_card_of_rarity(rng, Rarity::RARE, colorlessSlot, picked, offeredCount);
+        CardId id = pick(want);
+        if (id == CardId::INVALID && want == Rarity::COMMON) id = pick(Rarity::UNCOMMON);
+        if (id == CardId::INVALID && want != Rarity::RARE) id = pick(Rarity::RARE);
         if (id == CardId::INVALID) continue;
         picked[offeredCount] = id;
         Card card = make_run_card(id, false);
@@ -1156,18 +1221,10 @@ void RunContext::roll_card_reward(bool boss) {
                                  : static_cast<float>(act) * (ascension >= 7 ? 0.125f : 0.25f);
         const float upgradeRoll = rng.next_float();
         if (card_upgradable(card) && upgradeRoll <= upOdds) card_apply_upgrade(card);
-        if (run_has_relic(*this, RelicId::FRESNEL_LENS))
-            card_apply_enchantment(card, EnchantmentId::NIMBLE, 2);
         offered[offeredCount++] = card;
     }
     if (boss) {
         cardRarityOdds = -0.05f;
-    }
-    if (run_has_relic(*this, RelicId::SILVER_CRUCIBLE) && silverCrucibleUses > 0) {
-        for (int i = 0; i < offeredCount; ++i) {
-            if (card_upgradable(offered[i])) card_apply_upgrade(offered[i]);
-        }
-        --silverCrucibleUses;
     }
 }
 
@@ -1197,7 +1254,7 @@ void RunContext::roll_shop() {
             int n = 0;
             for (int c = 1; c < static_cast<int>(CardId::COUNT); ++c) {
                 const CardId cid = static_cast<CardId>(c);
-                if (!in_reward_pool(cid)) continue;
+                if (!in_reward_pool(cid, nativeProgress.revealedEpochs)) continue;
                 if (card_def(cid).rarity != target || card_def(cid).type != types[i]) continue;
                 bool dup = false;
                 for (int j = 0; j < usedN; ++j) dup = dup || used[j] == cid;
@@ -1231,7 +1288,7 @@ void RunContext::roll_shop() {
         int n = 0;
         for (int c = 1; c < static_cast<int>(CardId::COUNT); ++c) {
             const CardId cid = static_cast<CardId>(c);
-            if (!in_colorless_pool(cid)) continue;
+            if (!in_colorless_pool(cid, nativeProgress.revealedEpochs)) continue;
             if (card_def(cid).rarity != colorlessRarities[i]) continue;
             bool dup = false;
             for (int j = 0; j < usedN; ++j) dup = dup || used[j] == cid;
@@ -1277,7 +1334,7 @@ void RunContext::roll_shop() {
 
     // Potions: one distinct batch from the out-of-combat factory.
     PotionId potion_ids[3];
-    const int potion_n = random_potions_out_of_combat(shops, potion_ids, 3);
+    const int potion_n = random_potions_out_of_combat(shops, potion_ids, 3, nativeProgress.revealedEpochs);
     for (int i = 0; i < potion_n; ++i) {
         const PotionId pid = potion_ids[i];
         if (pid == PotionId::INVALID) continue;
@@ -1295,11 +1352,50 @@ void RunContext::roll_shop() {
     (void)rewards;
 }
 
+int RunContext::spoils_map_count() const {
+    int n = 0;
+    for (int i = 0; i < deckCount; ++i) n += deck[i].id == CardId::SPOILS_MAP;
+    return n;
+}
+
+// SpoilsMap.ModifyGeneratedMapLate/AfterMapGenerated (SpoilsActIndex is 1): the
+// quest goes on the first Treasure in GetAllMapPoints (column-major) order of
+// the final map. With no Treasure the card keeps its earlier coordinate.
+void RunContext::refresh_spoils_quest() {
+    if (act != 1 || spoils_map_count() == 0) return;
+    for (int col = 0; col < MAP_WIDTH; ++col)
+        for (int row = 1; row < map.mapLength; ++row) {
+            const int idx = map.index[row][col];
+            if (idx >= 0 && map.nodes[idx].type == static_cast<std::int8_t>(MapPointType::TREASURE)) {
+                spoilsQuestRow = static_cast<std::int8_t>(row);
+                spoilsQuestCol = static_cast<std::int8_t>(col);
+                return;
+            }
+        }
+}
+
+// Removing every Spoils Map (BeforeCardRemoved) takes the quest off the map.
+bool RunContext::spoils_quest_active() const {
+    return act == 1 && spoilsQuestRow >= 0 && map.at(spoilsQuestRow, spoilsQuestCol) >= 0 &&
+           spoils_map_count() > 0;
+}
+
 void RunContext::roll_treasure() {
     clear_custom_rewards(*this);
     Rng &rewards = playerRng[PRNG_REWARDS];
     const int rawGold = rewards.next_int(42, 52);
     run_gain_gold(*this, ascension >= 3 ? rawGold * 3 / 4 : rawGold);
+    // OneOffSynchronizer.TryHandleSpoilsMap: on the quest point every Spoils
+    // Map in the deck pays 600 gold, completes and leaves the deck.
+    if (spoils_quest_active() && curRow == spoilsQuestRow && curCol == spoilsQuestCol) {
+        for (int i = 0; i < deckCount;) {
+            if (deck[i].id != CardId::SPOILS_MAP) { ++i; continue; }
+            run_gain_gold(*this, card_var(deck[i], VarId::GOLD));
+            for (int j = i; j + 1 < deckCount; ++j) deck[j] = deck[j + 1];
+            deck[--deckCount] = Card{};
+        }
+        spoilsQuestRow = spoilsQuestCol = -1;
+    }
     pendingGoldReward = pendingRecoveredGold = pendingPotionReward = 0;
     pendingRelicCount = 0;
     pendingCardReward = rewardReturnToRewards = pendingReturnToEvent = rewardIsBoss = false;
@@ -1330,7 +1426,7 @@ int RunContext::roll_unknown_room_type() {
     }
     Rng &rng = runRng[RNG_UNKNOWN_MAP_POINT];
     const float roll = rng.next_float();
-    if (goldenPathAct == act && run_has_relic(*this, RelicId::GOLDEN_COMPASS)) {
+    if ((goldenPathAct == act && run_has_relic(*this, RelicId::GOLDEN_COMPASS)) || run_lantern_key_active(*this)) {
         // The allowed set is {Event}; the native roll still consumes NextFloat
         // and does not grow any non-event odds.
         return static_cast<int>(RoomType::EVENT);
@@ -1462,14 +1558,16 @@ void RunContext::enter_map_point(int nodeIdx) {
                 // cycle; if exhausted, the reference allows repetition.
                 for (int i = 0; i < eventBagN; ++i) {
                     const int candidate = eventBag[eventBagPos % eventBagN];
-                    const bool seen = candidate < 64 &&
-                        ((visitedEvents >> candidate) & 1u) != 0;
+                    const bool seen = candidate < MAX_EVENTS &&
+                        ((visitedEvents[candidate / 64] >> (candidate % 64)) & 1u) != 0;
                     if (!seen && event_is_allowed(*this, candidate)) break;
                     ++eventBagPos;
                 }
                 evt = eventBag[eventBagPos % eventBagN];
                 ++eventBagPos;
-                if (evt >= 0 && evt < 64) visitedEvents |= (std::uint64_t{1} << evt);
+                evt = event_modify_next(*this, evt);  // Hook.ModifyNextEvent (Lantern Key)
+                if (evt >= 0 && evt < MAX_EVENTS)
+                    visitedEvents[evt / 64] |= std::uint64_t{1} << (evt % 64);
             }
             event_begin(*this, evt, false);
             break;
@@ -1542,6 +1640,18 @@ void RunContext::finish_combat() {
         }
         hp = battle.player.hp;
         maxHp = battle.player.maxHp;
+        // ImprovementPower.AfterCombatEnd: upgrade Amount random upgradable deck
+        // cards (CombatCardSelection NextItem, without replacement).
+        if (battle.player_power(PowerId::IMPROVEMENT) > 0) {
+            int candidates[MAX_DECK], n = 0;
+            for (int i = 0; i < deckCount; ++i) if (card_upgradable(deck[i])) candidates[n++] = i;
+            for (int k = 0; k < battle.player_power(PowerId::IMPROVEMENT) && n > 0; ++k) {
+                const int pick = runRng[RNG_COMBAT_CARD_SELECTION].next_int_range(0, n);
+                card_apply_upgrade(deck[candidates[pick]]);
+                for (int i = pick; i + 1 < n; ++i) candidates[i] = candidates[i + 1];
+                --n;
+            }
+        }
         pendingGoldReward = 0;
         pendingRecoveredGold = battle.recoveredStolenGold;
         pendingPotionReward = 0;
@@ -1564,16 +1674,19 @@ void RunContext::finish_combat() {
                 ++i;
             }
         }
-        const int wongoBefore = wongoCombats;
         relics_combat_end(*this, true, combatIsBoss);
         relics_after_combat_end_lifecycle(*this);
-        const bool wongoDue = run_has_relic(*this, RelicId::WONGOS_MYSTERY_TICKET) &&
-                               wongoBefore < 5 && wongoCombats == 5;
+        // WongosMysteryTicket.TryModifyRewards: once five combats are done, the
+        // next combat-room reward set gets three relics (GaveRelic: counter 6).
+        // Encounters with ShouldGiveRewards == false skip reward generation.
+        const bool wongoDue = run_has_relic(*this, RelicId::WONGOS_MYSTERY_TICKET) && wongoCombats == 5;
         Rng &rewards = playerRng[PRNG_REWARDS];
-        if (eventFight) {
+        auto grantWongo = [&] {
+            for (int i = 0; i < 3; ++i) queue_random_relic_reward(rewards);
+            wongoCombats = 6;
+        };
+        if (eventFight && !event_fight_room_rewards(*this)) {
             eventCombat = false;
-            if (wongoDue)
-                for (int i = 0; i < 3; ++i) queue_random_relic_reward(rewards);
             if (pendingRelicCount > 0 || pendingRecoveredGold > 0 || hasStolenRewards) {
                 pendingReturnToEvent = true;
                 screen = RunScreen::REWARDS;
@@ -1589,8 +1702,7 @@ void RunContext::finish_combat() {
             const bool anotherBoss = map.secondBossIdx >= 0 &&
                                      map.at(curRow, curCol) != map.secondBossIdx;
             rewardIsBoss = !anotherBoss;
-            if (wongoDue)
-                for (int i = 0; i < 3; ++i) queue_random_relic_reward(rewards);
+            if (wongoDue) grantWongo();
             if (pendingRelicCount > 0 || pendingRecoveredGold > 0) {
                 screen = RunScreen::REWARDS;
             } else if (anotherBoss) {
@@ -1614,6 +1726,9 @@ void RunContext::finish_combat() {
             minGold = minGold * 3 / 4;
             maxGold = maxGold * 3 / 4;
         }
+        // Event encounters are Monster rooms; FakeMerchantEventEncounter
+        // overrides Min/MaxGoldReward (without the Poverty multiplier).
+        if (eventFight && event_fight_gold(*this) >= 0) minGold = maxGold = event_fight_gold(*this);
         // Potion reward odds (0.4 base, +/-0.1 per roll, elite bonus).
         const bool forcePotion = run_has_relic(*this, RelicId::WHITE_BEAST_STATUE);
         const float before = potionRewardOdds;
@@ -1626,21 +1741,22 @@ void RunContext::finish_combat() {
         // populates gold, potion, cards and relics in that order.
         pendingGoldReward = rewards.next_int(minGold, maxGold);
         if (potionDropped) {
-            pendingPotionReward = static_cast<int>(random_potion_out_of_combat(rewards));
+            pendingPotionReward = static_cast<int>(random_potion_out_of_combat(rewards, nativeProgress.revealedEpochs));
             pendingPotions[0] = pendingPotionReward;
             pendingPotionCount = 1;
         }
         roll_card_reward(combatIsBoss);
+        // CardFactory.CreateForReward -> Hook.TryModifyCardRewardOptions(+Late):
+        // Lasting Candy, then eggs / Silver Crucible / Lava Lamp / ... in order.
+        offeredCount = apply_card_reward_hooks(*this, offered, offeredCount, MAX_REWARD_CARD_CHOICES,
+                                               combatIsBoss ? 2 : combatIsElite ? 1 : 0,
+                                               !battle.lavaLampTookQualifyingDamage);
         pendingCardReward = offeredCount > 0;
+        // LastingCandy.BeforeCombatRewardOffered counts reward sets with a CardReward.
+        if (pendingCardReward)
+            for (int i = 0; i < relicCount; ++i)
+                if (relics[i] == static_cast<int>(RelicId::LASTING_CANDY) && run_relic_active_at(*this, i)) ++relicAux[i];
         if (combatIsElite) queue_random_relic_reward(rewards);
-        // LavaLamp.TryModifyCardRewardOptionsLate: if no qualifying damage was
-        // taken this combat, upgrade every upgradable card reward.
-        if (run_has_relic(*this, RelicId::LAVA_LAMP) &&
-            !battle.lavaLampTookQualifyingDamage) {
-            for (int i = 0; i < offeredCount; ++i) {
-                if (card_upgradable(offered[i])) card_apply_upgrade(offered[i]);
-            }
-        }
         if (pendingCardReward) {
             rewardCardCounts[0] = offeredCount;
             rewardCardPending[0] = true;
@@ -1653,8 +1769,20 @@ void RunContext::finish_combat() {
             queue_random_relic_reward(rewards);
             lavaRockTriggered = true;
         }
-        if (wongoDue)
-            for (int i = 0; i < 3; ++i) queue_random_relic_reward(rewards);
+        if (wongoDue) grantWongo();
+        if (eventFight) {
+            // CombatRoom.ExtraRewards follow the room rewards; afterwards the
+            // event resumes or (shouldResumeAfterCombat false) the room ends.
+            eventCombat = false;
+            event_fight_extra_rewards(*this);
+            pendingReturnToEvent = true;
+        }
+        // RoyaltiesPower.AfterCombatEnd -> CombatRoom.AddExtraReward(GoldReward),
+        // after any extras the event attached when the fight began.
+        if (const int royalties = battle.player_power(PowerId::ROYALTIES); royalties > 0) {
+            for (int &g : extraGoldRewards)
+                if (g == 0) { g = royalties; break; }
+        }
         screen = RunScreen::REWARDS;
     } else {
         hp = 0;
@@ -1757,7 +1885,13 @@ std::vector<RunAction> RunContext::legal_actions() const {
             out.push_back({RunActionType::LEAVE_SHOP, 0});
             break;
         case RunScreen::EVENT:
-            if (eventCardSelection) {
+            if (crystalSphere.active) {
+                for (int cell = 0; cell < CRYSTAL_SPHERE_CELLS; ++cell)
+                    if (crystal_sphere_cell_clickable(*this, cell)) {
+                        out.push_back({RunActionType::CRYSTAL_SPHERE_SMALL, cell});
+                        out.push_back({RunActionType::CRYSTAL_SPHERE_BIG, cell});
+                    }
+            } else if (eventCardSelection) {
                 for (int i = 0; i < deckCount; ++i)
                     if (event_card_selectable(*this, i)) out.push_back({RunActionType::EVENT_SELECT_CARD, i});
             } else {
@@ -1771,12 +1905,14 @@ std::vector<RunAction> RunContext::legal_actions() const {
         case RunScreen::REWARDS:
             if (pendingGoldReward > 0) out.push_back({RunActionType::TAKE_GOLD_REWARD, 0});
             if (pendingRecoveredGold > 0) out.push_back({RunActionType::TAKE_GOLD_REWARD, 1});
+            for (int i = 0; i < MAX_EXTRA_GOLD_REWARDS; ++i)
+                if (extraGoldRewards[i] > 0) out.push_back({RunActionType::TAKE_GOLD_REWARD, 2 + i});
             if (pendingPotionCount > 0) {
                 for (int i = 0; i < pendingPotionCount; ++i)
                     if (pendingPotions[i] && (potionCount < potionSlots || run_has_relic(*this, RelicId::SOZU)))
                         out.push_back({RunActionType::TAKE_POTION_REWARD, i});
-                for (int i = 0; i < potionCount; ++i)
-                    out.push_back({RunActionType::DISCARD_POTION, i});
+                for (int i = 0; i < potionSlots; ++i)
+                    if (potions[i]) out.push_back({RunActionType::DISCARD_POTION, i});
             }
             for (int i = 0; i < pendingRelicCount; ++i) {
                 const RelicId id = static_cast<RelicId>(pendingRelics[i]);
@@ -1798,8 +1934,11 @@ std::vector<RunAction> RunContext::legal_actions() const {
             break;
     }
     if (screen != RunScreen::COMBAT && screen != RunScreen::RUN_OVER && event_can_remove_potions(*this)) {
-        for (int i = 0; i < potionCount; ++i) {
+        for (int i = 0; i < potionSlots; ++i) {
+            if (!potions[i]) continue;
             const PotionDef &d = potion_def(static_cast<PotionId>(potions[i]));
+            if (static_cast<PotionId>(potions[i]) == PotionId::FOUL_POTION &&
+                !foul_potion_usable_out_of_combat(*this)) continue;
             if (d.usage == PotionUsage::ANY_TIME) {
                 out.push_back({RunActionType::USE_POTION, i});
             }
@@ -1810,11 +1949,15 @@ std::vector<RunAction> RunContext::legal_actions() const {
 
 bool RunContext::use_potion_out_of_combat(int idx) {
     if (!event_can_remove_potions(*this)) return false;
-    if (idx < 0 || idx >= potionCount) return false;
+    if (idx < 0 || idx >= potionSlots || !potions[idx]) return false;
     const PotionId id = static_cast<PotionId>(potions[idx]);
     if (potion_def(id).usage != PotionUsage::ANY_TIME) return false;
-    for (int j = idx; j + 1 < potionCount; ++j) potions[j] = potions[j + 1];
-    --potionCount;
+    if (id == PotionId::FOUL_POTION && !foul_potion_usable_out_of_combat(*this)) return false;
+    potion_remove_at(potions, potionSlots, potionCount, idx);
+    if (id == PotionId::FOUL_POTION && screen == RunScreen::EVENT) {
+        event_fake_merchant_foul_potion(*this);
+        return true;
+    }
     switch (id) {
         case PotionId::BLOOD_POTION:
             hp = std::min(maxHp, hp + maxHp * 20 / 100);
@@ -1837,7 +1980,8 @@ bool RunContext::use_potion_out_of_combat(int idx) {
                 int n = 0;
                 for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
                     const PotionDef &d = potion_def(static_cast<PotionId>(i));
-                    if (!d.ironclad || d.rarity != want) continue;
+                    if (!d.ironclad || d.rarity != want ||
+                        !potion_epoch_unlocked(nativeProgress.revealedEpochs, static_cast<PotionId>(i))) continue;
                     pool[n++] = i;
                 }
                 if (n == 0) break;
@@ -1949,6 +2093,9 @@ bool RunContext::step(const RunAction &action) {
                 finish_room();
             }
             return true;
+        case RunActionType::CRYSTAL_SPHERE_SMALL:
+        case RunActionType::CRYSTAL_SPHERE_BIG:
+            return crystal_sphere_click(*this, action.type == RunActionType::CRYSTAL_SPHERE_BIG, action.index);
         case RunActionType::REST_HATCH:
             if (screen!=RunScreen::REST || !relic_persistent_hatch(*this)) return false;
             finish_room(); return true;
@@ -2080,8 +2227,10 @@ bool RunContext::step(const RunAction &action) {
             if (screen == RunScreen::COMBAT || screen == RunScreen::RUN_OVER) return false;
             return use_potion_out_of_combat(action.index);
         case RunActionType::TAKE_GOLD_REWARD: {
-            if (screen != RunScreen::REWARDS || (action.index != 0 && action.index != 1)) return false;
-            int &amount = action.index == 0 ? pendingGoldReward : pendingRecoveredGold;
+            if (screen != RunScreen::REWARDS || action.index < 0 || action.index >= 2 + MAX_EXTRA_GOLD_REWARDS)
+                return false;
+            int &amount = action.index == 0 ? pendingGoldReward : action.index == 1 ? pendingRecoveredGold
+                                                                                    : extraGoldRewards[action.index - 2];
             if (amount <= 0) return false;
             run_gain_gold(*this, amount);
             amount = 0;
@@ -2119,11 +2268,8 @@ bool RunContext::step(const RunAction &action) {
             screen = RunScreen::CARD_REWARD;
             return true;
         case RunActionType::DISCARD_POTION:
-            if (screen != RunScreen::REWARDS || pendingPotionCount == 0 ||
-                action.index < 0 || action.index >= potionCount) return false;
-            for (int i = action.index; i + 1 < potionCount; ++i) potions[i] = potions[i + 1];
-            --potionCount;
-            return true;
+            if (screen != RunScreen::REWARDS || pendingPotionCount == 0) return false;
+            return potion_remove_at(potions, potionSlots, potionCount, action.index);
         case RunActionType::TAKE_STOLEN_CARD_REWARD:
         case RunActionType::SKIP_STOLEN_CARD_REWARD:
             if (screen != RunScreen::REWARDS || action.index < 0 || action.index >= stolenSyncCount ||
@@ -2137,6 +2283,7 @@ bool RunContext::step(const RunAction &action) {
             {
             const RunScreen resume = rewardResumeScreen;
             pendingGoldReward = pendingRecoveredGold = pendingPotionReward = 0;
+            for (int &g : extraGoldRewards) g = 0;
             pendingRelicCount = 0;
             pendingCardReward = rewardReturnToRewards = false;
             for (bool &pending : stolenRewardPending) pending = false;
@@ -2148,6 +2295,7 @@ bool RunContext::step(const RunAction &action) {
                 event_resume_after_combat(*this);
             } else if (resume != RunScreen::MAP) {
                 screen = resume;
+                if (resume == RunScreen::EVENT) event_resume_after_rewards(*this);
             } else if (rewardIsBoss) {
                 rewardIsBoss = false;
                 if (act + 1 < MAX_ACTS) start_act(act + 1);
@@ -2188,7 +2336,7 @@ bool snapshot_card(const Card &card, bool active) {
     if (active && (card.uid == 0 || card.uid == 65535 || !card_native_available(card.id))) return false;
     const int id = static_cast<int>(card.id);
     if (id < (active ? 1 : 0) || id >= static_cast<int>(CardId::COUNT) ||
-        static_cast<int>(card.enchantment) > static_cast<int>(EnchantmentId::NIMBLE) ||
+        static_cast<int>(card.enchantment) > static_cast<int>(ENCHANTMENT_LAST) ||
         !snapshot_bool(card.enchantmentDisabled) ||
         !std::isfinite(card.bonusDamage) ||
         card.bonusDamage < -SNAPSHOT_VALUE_LIMIT || card.bonusDamage > SNAPSHOT_VALUE_LIMIT) return false;
@@ -2197,17 +2345,23 @@ bool snapshot_card(const Card &card, bool active) {
     } else {
         if (card.enchantmentAmount <= 0) return false;
         if (active && (card.enchantment == EnchantmentId::SPIRAL ||
-                       card.enchantment == EnchantmentId::NIMBLE)) {
+                       card.enchantment == EnchantmentId::NIMBLE ||
+                       card.enchantment == EnchantmentId::SLITHER ||
+                       card.enchantment == EnchantmentId::CORRUPTED ||
+                       card.enchantment == EnchantmentId::SHARP ||
+                       card.enchantment == EnchantmentId::IMBUED)) {
             Card clear = card; clear.enchantment = EnchantmentId::NONE;
             if (!card_can_enchant(clear, card.enchantment)) return false;
         }
-        if (active && (!card_is_playable(card) || card_def(card.id).type == CardType::CURSE ||
-                       card_def(card.id).type == CardType::STATUS ||
+        if (active && (!card_is_playable(card) || card_type(card) == CardType::CURSE ||
+                       card_type(card) == CardType::STATUS ||
                        (card.enchantment == EnchantmentId::VIGOROUS && !card_is_attack(card))))
             return false;
     }
     return
            (!active || card.id != CardId::GUILTY || card.guiltyCombatsSeen < 5) &&
+           card.tinkerType <= 3 && card.tinkerRider <= 9 &&
+           (card.id == CardId::MAD_SCIENCE || (!card.tinkerType && !card.tinkerRider)) &&
            snapshot_bool(card.upgraded) && snapshot_bool(card.freeCombat) &&
            snapshot_bool(card.costThisTurn) && snapshot_bool(card.etherealThisCombat) &&
            snapshot_bool(card.retainThisCombat);
@@ -2254,6 +2408,39 @@ bool snapshot_relic_bag(const RelicBagState &bag, bool shared) {
     return true;
 }
 
+// Step-2 character, play-frame and turn-flow state: counts must stay inside
+// their fixed arrays so a malformed blob cannot index out of bounds.
+bool snapshot_character_state(const BattleContext &b) {
+    auto count = [](int n, int cap) { return n >= 0 && n <= cap; };
+    const int pool = static_cast<int>(b.characterPool);
+    if (pool > static_cast<int>(CardPool::QUEST)) return false;
+    if (b.turnFlow.stage < TURN_FLOW_IDLE || b.turnFlow.stage > TURN_FLOW_SIDE_START ||
+        !count(b.suspendedPlayCount, MAX_PLAY_DEPTH) ||
+        !count(b.autoPlayQueueCount, MAX_PILE) || !snapshot_nonnegative(b.pendingDrawRemainder) ||
+        !snapshot_bool(b.runningPlayLoop) || b.runningPlayLoop) return false;
+    const DefectState &d = b.defect;
+    if (!count(d.orbCount, MAX_ORBS) || !count(d.orbCapacity, MAX_ORBS) ||
+        !count(d.powerOrderCount, 32) || !count(d.geneticCount, 160) || d.drawDepth != 0) return false;
+    for (const OrbState &orb : d.orbs)
+        if (static_cast<int>(orb.id) > static_cast<int>(OrbId::GLASS)) return false;
+    const NecrobinderState &n = b.necro;
+    if (!snapshot_bool(n.ostyPresent) || !snapshot_bool(n.doomAppliedThisTurn) ||
+        !snapshot_bool(n.dealingOstyDamage) || !snapshot_bool(n.generatingSoulbound) ||
+        !snapshot_nonnegative(n.ostyHp) || !snapshot_nonnegative(n.ostyMaxHp) || n.ostyHp > n.ostyMaxHp ||
+        !count(n.cacophonyCount, 160) || !count(n.finishedUidCount, 160) || !count(n.scytheCount, 160))
+        return false;
+    const RegentState &r = b.regent;
+    if (!snapshot_nonnegative(r.stars) || !snapshot_bool(r.paleBlueActivated) ||
+        !snapshot_bool(r.endTurnRequested) || !count(r.monologueCount, 160) || !count(r.orbitCount, 160))
+        return false;
+    const SilentState &si = b.silent;
+    if (!count(si.nightmareCount, 160) || !count(si.turnStartSelectedCount, 10)) return false;
+    const ActivePlay &a = b.activePlay;
+    if (!count(a.silent.selectedCount, 10) || !count(a.defect.drawnCount, 160) ||
+        !count(a.regent.monologueCount, 160) || !count(a.regent.selectedCount, 10)) return false;
+    return true;
+}
+
 bool snapshot_battle(const BattleContext &b) {
     for (auto word : b.uidReservations) if (word != 0) return false;
     if (!snapshot_bool(b.player.surroundedFacingRight) ||
@@ -2261,7 +2448,7 @@ bool snapshot_battle(const BattleContext &b) {
         !snapshot_bool(b.player.tookUnblockedDamageThisTurn) ||
         !snapshot_bool(b.player.tookUnblockedAttackDamageThisCombat) ||
         !snapshot_bool(b.nextPlayIsDupe) || !snapshot_bool(b.vitalSparkTriggeredThisEnemyTurn) ||
-        !snapshot_bool(b.lavaLampTookQualifyingDamage) ||
+        !snapshot_bool(b.lavaLampTookQualifyingDamage) || !snapshot_bool(b.battlewornRanOutOfTime) ||
         !snapshot_bool(b.gainedBlockFromCardThisTurn) ||
         !snapshot_bool(b.playedAttackOrSkillThisTurn) || !snapshot_bool(b.jugglingTriggeredThisTurn) ||
         !snapshot_bool(b.returnToHand) || !snapshot_bool(b.reboundPending) ||
@@ -2283,8 +2470,8 @@ bool snapshot_battle(const BattleContext &b) {
         !b.targetRng.valid_snapshot_state() || !b.monsterAiRng.valid_snapshot_state() ||
         !b.nicheRng.valid_snapshot_state()) return false;
     if (b.monsterCount < 0 || b.monsterCount > MAX_MONSTERS ||
-        b.potionSlots < 0 || b.potionSlots > MAX_POTIONS || b.potionCount > b.potionSlots ||
-        !snapshot_ids(b.potions, b.potionCount, static_cast<int>(PotionId::COUNT)) ||
+        // Physical belt slots keep holes (potion_slots.h); count is occupancy.
+        !potion_slots_valid(b.potions, b.potionSlots, b.potionCount) ||
         !snapshot_ids(b.relics, b.relicCount, static_cast<int>(RelicId::COUNT)) ||
         !snapshot_cards(b.hand, b.handCount) || !snapshot_cards(b.draw, b.drawCount) ||
         !snapshot_cards(b.discard, b.discardCount) || !snapshot_cards(b.exhaust, b.exhaustCount) ||
@@ -2368,7 +2555,7 @@ bool snapshot_battle(const BattleContext &b) {
                 if (m.stateLog[j] >= def.stateCount) return false;
         }
     }
-    return true;
+    return snapshot_character_state(b);
 }
 
 bool snapshot_run(const RunContext &r) {
@@ -2391,7 +2578,8 @@ bool snapshot_run(const RunContext &r) {
     if (!snapshot_bool(progress.applyDiscoveryOrder) || !snapshot_bool(progress.neowUnlocked) ||
         !snapshot_bool(progress.orobasUnlocked) || !snapshot_bool(progress.darvUnlocked) ||
         !snapshot_bool(progress.underdocksUnlocked) || !snapshot_bool(progress.underdocksDiscovered) ||
-        !snapshot_bool(progress.aeonglassSeen) ||
+        !snapshot_bool(progress.aeonglassSeen) || !snapshot_bool(progress.event1EpochRevealed) ||
+        !snapshot_bool(progress.event2EpochRevealed) || !snapshot_bool(progress.event3EpochRevealed) ||
         progress.numberOfRuns < 0 || r.unknownMapPointsVisited < 0 || r.unknownMapPointsVisited > 1000 ||
         (r.actTypes[0] != ActType::OVERGROWTH && r.actTypes[0] != ActType::UNDERDOCKS) ||
         r.actTypes[1] != ActType::HIVE || r.actTypes[2] != ActType::GLORY ||
@@ -2408,6 +2596,7 @@ bool snapshot_run(const RunContext &r) {
         r.actFloor < 0 || r.actFloor > MAP_MAX_ROWS ||
         static_cast<int>(r.screen) > static_cast<int>(RunScreen::REWARDS) ||
         !snapshot_nonnegative(r.pendingGoldReward) || !snapshot_nonnegative(r.pendingRecoveredGold) ||
+        !crystal_sphere_snapshot_valid(r) ||
         r.pendingPotionReward < 0 || r.pendingPotionReward >= static_cast<int>(PotionId::COUNT) ||
         r.pendingPotionCount < 0 || r.pendingPotionCount > MAX_REWARD_POTIONS ||
         r.stolenSyncCount < 0 || r.stolenSyncCount > MAX_PILE ||
@@ -2419,8 +2608,7 @@ bool snapshot_run(const RunContext &r) {
         !snapshot_cards(r.shopCards, r.shopCount) ||
         !snapshot_ids(r.shopRelics, r.shopRelicCount, static_cast<int>(RelicId::COUNT)) ||
         !snapshot_ids(r.shopPotions, r.shopPotionCount, static_cast<int>(PotionId::COUNT)) ||
-        r.potionSlots < 0 || r.potionSlots > MAX_POTIONS || r.potionCount > r.potionSlots ||
-        !snapshot_ids(r.potions, r.potionCount, static_cast<int>(PotionId::COUNT)) ||
+        !potion_slots_valid(r.potions, r.potionSlots, r.potionCount) ||
         !snapshot_ids(r.relics, r.relicCount, static_cast<int>(RelicId::COUNT)) ||
         r.paelsToothCount<0 || r.paelsToothCount>5 ||
         !snapshot_cards(r.paelsToothCards,r.paelsToothCount) ||
@@ -2432,7 +2620,7 @@ bool snapshot_run(const RunContext &r) {
         r.eliteBagN < 0 || r.eliteBagN > 16 || r.eliteBagPos < 0 || r.eliteBagPos > 1000000 ||
         r.eventBagN < 0 || r.eventBagN > 64 || r.eventBagPos < 0 || r.eventBagPos > 1000000 ||
         r.eventId < -1 || r.eventId >= event_count() || r.eventPage < 0 ||
-        r.eventCardSelection > 6 ||
+        r.eventCardSelection > 15 ||
         (r.eventCardSelection && r.screen != RunScreen::EVENT &&
          !(r.screen == RunScreen::REWARDS && r.rewardResumeScreen == RunScreen::EVENT)) ||
         r.ancientId < -1 || r.ancientId >= event_count() ||
@@ -2491,6 +2679,9 @@ bool snapshot_run(const RunContext &r) {
     for (int i = 0; i < r.shopPotionCount; ++i)
         if (!snapshot_nonnegative(r.shopPotionPrices[i]) || !snapshot_nonnegative(r.shopPotionBasePrices[i])) return false;
     for (int value : r.eventData) if (!snapshot_nonnegative(value)) return false;
+    for (int i = r.deckCount; i < MAX_DECK; ++i)
+        if ((r.eventDeckMask[i / 64] >> (i % 64)) & 1u) return false;
+    if ((r.eventDeckMask[0] || r.eventDeckMask[1]) && r.eventId < 0) return false;
     for (int i = 0; i < r.relicCount; ++i) if (!snapshot_signed(r.relicAux[i])) return false;
     for (int i = 0; i < MAX_EVENT_CHOICES; ++i)
         if (r.eventRelics[i] < 0 || r.eventRelics[i] >= static_cast<int>(RelicId::COUNT)) return false;
@@ -2508,6 +2699,12 @@ bool snapshot_run(const RunContext &r) {
         map.secondBossIdx < -1 || map.secondBossIdx >= map.pointCount ||
         r.curRow < -1 || r.curRow >= MAP_MAX_ROWS || r.curCol < -1 || r.curCol >= MAP_WIDTH ||
         ((r.curRow == -1) != (r.curCol == -1))) return false;
+    // The battle copies the run's unlock state at combat start.
+    if (r.inBattle && (r.battle.revealedEpochs != r.nativeProgress.revealedEpochs ||
+                       r.battle.unlockedCharacterMask != r.nativeProgress.unlockedCharacterMask)) return false;
+    if (r.spoilsQuestRow < -1 || r.spoilsQuestRow >= MAP_MAX_ROWS || r.spoilsQuestCol < -1 ||
+        r.spoilsQuestCol >= MAP_WIDTH || ((r.spoilsQuestRow == -1) != (r.spoilsQuestCol == -1)))
+        return false;
     if (map.secondBossIdx >= 0) {
         if (r.ascension < 10 || r.act != MAX_ACTS - 1 || map.mapLength + 1 >= MAP_MAX_ROWS ||
             r.secondBossEncounter <= 0 || r.secondBossEncounter == r.bossEncounter ||
@@ -2569,7 +2766,7 @@ std::string RunContext::serialize() const {
         std::uint16_t version;
         std::uint16_t reserved;
         std::uint32_t size;
-    } header{0x53545332u, 8u, 0u, static_cast<std::uint32_t>(sizeof(RunContext))};
+    } header{0x53545332u, 10u, 0u, static_cast<std::uint32_t>(sizeof(RunContext))};
     std::string out(sizeof(Header), '\0');
     std::memcpy(&out[0], &header, sizeof(Header));
     const char *bytes = reinterpret_cast<const char *>(this);
@@ -2585,7 +2782,7 @@ bool RunContext::restore(const std::string &blob, RunContext &out) {
     std::memcpy(&magic, blob.data(), 4);
     std::memcpy(&version, blob.data() + 4, 2);
     std::memcpy(&size, blob.data() + 8, 4);
-    if (magic != 0x53545332u || version != 8u) return false;
+    if (magic != 0x53545332u || version != 10u) return false;
     if (size != sizeof(RunContext) || blob.size() != 12 + sizeof(RunContext)) return false;
     // Validate a temporary object and do not mutate the destination on error.
     RunContext candidate;

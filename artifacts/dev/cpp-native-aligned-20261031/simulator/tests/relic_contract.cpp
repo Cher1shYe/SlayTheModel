@@ -61,14 +61,15 @@ int main() {
         check(r.add_relic(RelicId::BOWLER_HAT), "obtain bowler");
         const int before = r.gold;
         run_gain_gold(r, 19);
-        check(r.gold == before + 22, "bowler rounds bonus down");
+        // v0.111.0 BowlerHat.ModifyGoldGained: amount * 1.25, then (int).
+        check(r.gold == before + 23, "bowler multiplies by 1.25 and truncates");
         check(r.add_relic(RelicId::DRAGON_FRUIT), "obtain dragon fruit");
         const int hp = r.maxHp;
         run_gain_gold(r, 10);
-        check(r.maxHp == hp + 2, "bonus gain triggers dragon fruit separately");
+        check(r.maxHp == hp + 1, "one gold gain triggers dragon fruit once");
         const int hp2 = r.maxHp;
         run_gain_gold(r, 4);
-        check(r.maxHp == hp2 + 1, "zero bonus does not trigger second gain");
+        check(r.maxHp == hp2 + 1, "small gain also triggers once");
     }
     {
         RunContext r; r.init(123u, 0); r.act = 1;

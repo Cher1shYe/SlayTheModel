@@ -1,0 +1,82 @@
+........................................................................ [ 94%]
+FFF.                                                                     [100%]
+=================================== FAILURES ===================================
+________ test_played_power_counts_and_order_reach_public_binding[False] ________
+
+inferno_first = False
+
+    @pytest.mark.parametrize("inferno_first", [False, True])
+    def test_played_power_counts_and_order_reach_public_binding(inferno_first):
+        mantle, inferno = card_id("Crimson Mantle"), card_id("Inferno")
+        battle = sim.BattleContext()
+        battle.init(int(sim.Encounter.SETUP_CEREMONIAL_BEAST_BOSS), 123,
+                    [mantle, mantle, inferno], [False, True, True], 0, 80, 80)
+        ids = [inferno, mantle, mantle] if inferno_first else [mantle, mantle, inferno]
+        for ident in ids:
+            index = next(i for i, card in enumerate(battle.hand) if card[0] == ident)
+            action = next(a for a in battle.legal_actions()
+                          if a[0] == int(sim.ActionType.PLAY_CARD) and a[1] == index)
+            assert battle.step(*action)
+        assert battle.crimson_mantle_self_damage == 2
+        assert battle.inferno_self_damage == 1
+        assert battle.inferno_before_crimson_mantle is inferno_first
+>       assert battle.observation_public()[-3:] == pytest.approx([0.2, 0.1, int(inferno_first)])
+E       assert [0.0, 0.0, 0.0] == approx([0.2 ±... 0 ± 1.0e-12])
+E         
+E         comparison failed. Mismatched elements: 2 / 3:
+E         Max absolute difference: 0.2
+E         Max relative difference: inf
+E         Index | Obtained | Expected     
+E         0     | 0.0      | 0.2 ± 2.0e-07
+E         1     | 0.0      | 0.1 ± 1.0e-07
+
+tests/test_native_step1_state.py:26: AssertionError
+________ test_played_power_counts_and_order_reach_public_binding[True] _________
+
+inferno_first = True
+
+    @pytest.mark.parametrize("inferno_first", [False, True])
+    def test_played_power_counts_and_order_reach_public_binding(inferno_first):
+        mantle, inferno = card_id("Crimson Mantle"), card_id("Inferno")
+        battle = sim.BattleContext()
+        battle.init(int(sim.Encounter.SETUP_CEREMONIAL_BEAST_BOSS), 123,
+                    [mantle, mantle, inferno], [False, True, True], 0, 80, 80)
+        ids = [inferno, mantle, mantle] if inferno_first else [mantle, mantle, inferno]
+        for ident in ids:
+            index = next(i for i, card in enumerate(battle.hand) if card[0] == ident)
+            action = next(a for a in battle.legal_actions()
+                          if a[0] == int(sim.ActionType.PLAY_CARD) and a[1] == index)
+            assert battle.step(*action)
+        assert battle.crimson_mantle_self_damage == 2
+        assert battle.inferno_self_damage == 1
+        assert battle.inferno_before_crimson_mantle is inferno_first
+>       assert battle.observation_public()[-3:] == pytest.approx([0.2, 0.1, int(inferno_first)])
+E       assert [0.0, 0.0, 0.0] == approx([0.2 ±... 1 ± 1.0e-06])
+E         
+E         comparison failed. Mismatched elements: 3 / 3:
+E         Max absolute difference: 1.0
+E         Max relative difference: inf
+E         Index | Obtained | Expected     
+E         0     | 0.0      | 0.2 ± 2.0e-07
+E         1     | 0.0      | 0.1 ± 1.0e-07
+E         2     | 0.0      | 1 ± 1.0e-06
+
+tests/test_native_step1_state.py:26: AssertionError
+__________________ test_previous_snapshot_version_is_rejected __________________
+
+    def test_previous_snapshot_version_is_rejected():
+        run = sim.RunContext()
+        run.init(123, 0)
+        snapshot = run.snapshot()
+>       assert snapshot[4:6] == b"\x08\x00"
+E       AssertionError: assert b'\t\x00' == b'\x08\x00'
+E         
+E         At index 0 diff: b'\t' != b'\x08'
+E         Use -v to get more diff
+
+tests/test_native_step1_state.py:34: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_native_step1_state.py::test_played_power_counts_and_order_reach_public_binding[False]
+FAILED tests/test_native_step1_state.py::test_played_power_counts_and_order_reach_public_binding[True]
+FAILED tests/test_native_step1_state.py::test_previous_snapshot_version_is_rejected
+3 failed, 73 passed in 3.53s

@@ -1,5 +1,6 @@
 // Math oracle: actual native v0.111.0/41cef1ea DLL, not simulator-generated goldens.
 #include "sts2/common.h"
+#include "port_root.h"
 #include "../json/include/nlohmann/json.hpp"
 #include <filesystem>
 #include <fstream>
@@ -44,7 +45,7 @@ static json execute(Rng &rng, const json &step) {
 }
 int main(int argc, char **argv) {
     const auto fixture = argc > 1 ? std::filesystem::path(argv[1]) :
-        std::filesystem::path(__FILE__).parent_path() / "fixtures/native_rng_41cef1ea.json";
+        (port_root() / "simulator" / "tests") / "fixtures/native_rng_41cef1ea.json";
     std::ifstream input(fixture);
     require(bool(input), "Missing native RNG fixture: " + fixture.string());
     const json data = json::parse(input);

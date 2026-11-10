@@ -22,15 +22,27 @@ static BattleContext battle(int ascension = 0) {
 
 int main() {
     {
+        // CardCmd.AutoPlay queues the nested play; it runs while the outer
+        // Havoc frame is suspended (step2 auto-play queue).  The nested Anger
+        // clone must not reuse the suspended outer card's identity, and the
+        // outer frame must still finish exactly once afterwards.  (The step1
+        // form drove a hand-made activePlay frame synchronously.)
         BattleContext b = battle();
         spawn_monster(b, MonsterId::CEREMONIAL_BEAST, 0);
         b.monsterCount = 1;
-        b.activePlay.active = true;
-        b.activePlay.card = make_card(CardId::DEFEND_IRONCLAD, false, 1000);
+        b.player.energy = 10;
         b.nextUid = 1000;
-        b.auto_play_random(make_card(CardId::ANGER, false, 1001), false);
-        check("Nested play reserves outer card UID", b.discard[0].uid, 1002);
-        check("Nested play restores outer frame", b.activePlay.card.uid, 1000);
+        b.hand[b.handCount++] = make_card(CardId::HAVOC, false, 1000);
+        b.draw[b.drawCount++] = make_card(CardId::ANGER, false, 1001);
+        b.play_card(0, 0);
+        int angerClone = 0, havocCopies = 0;
+        for (int i = 0; i < b.discardCount; ++i) {
+            if (b.discard[i].id == CardId::ANGER && b.discard[i].uid != 1001) angerClone = b.discard[i].uid;
+            havocCopies += b.discard[i].uid == 1000;
+        }
+        check("Nested play reserves outer card UID", angerClone, 1002);
+        check("Nested play finishes outer frame once", havocCopies, 1);
+        check("Nested play leaves no active frame", b.activePlay.active, 0);
         b.clear_card_uid_reservations();
     }
     {

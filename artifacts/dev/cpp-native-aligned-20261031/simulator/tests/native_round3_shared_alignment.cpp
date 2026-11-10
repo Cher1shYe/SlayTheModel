@@ -1,5 +1,6 @@
 // Cross-effect boundaries for the round3 native rules audit.
 #include "sts2/run.h"
+#include "port_root.h"
 #include "sts2/relics.h"
 #include <nlohmann/json.hpp>
 #include <cassert>
@@ -23,7 +24,7 @@ static void relic(BattleContext &b,RelicId id) {
     b.relics[b.relicCount]=static_cast<int>(id);b.relicAux[b.relicCount++]=0;
 }
 int main() {
-    auto path=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path()
+    auto path=port_root()
         / "native-round3-relic-fixtures/results.json";
     std::ifstream input(path);json fixtures;input>>fixtures;
     assert(fixtures["status"]=="completed" && fixtures["gameSceneLoaded"]==false);

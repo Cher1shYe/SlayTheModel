@@ -30,10 +30,10 @@ enum class CardPath { IRONCLAD, COLORLESS };
 
 // Potion card generation uses Character.CardPool for the typed potions and the
 // whole ColorlessCardPool for ColorlessPotion (no type restriction there).
-void collect_cards(CardPath pool_kind, CardType type, GeneratedCardPool &pool) {
+void collect_cards(CardPath pool_kind, CardType type, GeneratedCardPool &pool, std::uint64_t epochs) {
     for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
         const CardDef &d = CARD_DEFS[i];
-        if (!card_native_available(static_cast<CardId>(i))) continue;
+        if (!card_native_available(static_cast<CardId>(i)) || !card_epoch_unlocked(epochs, static_cast<CardId>(i))) continue;
         const bool wanted_pool =
             pool_kind == CardPath::IRONCLAD ? d.pool == CardPool::IRONCLAD
                                             : d.pool == CardPool::COLORLESS;
@@ -53,7 +53,7 @@ void collect_cards(CardPath pool_kind, CardType type, GeneratedCardPool &pool) {
 
 int deal_cards(BattleContext &bc, Card *out, int want, CardType type, CardPath pool_kind) {
     GeneratedCardPool pool;
-    collect_cards(pool_kind, type, pool);
+    collect_cards(pool_kind, type, pool, bc.revealedEpochs);
     int n = 0;
     for (int k = 0; k < want && pool.n > 0; ++k) {
         const int idx = bc.cardGenerationRng.next_int(0, pool.n - 1);
@@ -111,7 +111,7 @@ void BattleContext::add_potion(PotionId id) {
 
 // PotionFactory.CreateRandomPotionOutOfCombat: 10% rare / 25% uncommon / 65%
 // common over the character + shared pools, without the combat-only filter.
-PotionId random_potion_out_of_combat(Rng &rng) {
+PotionId random_potion_out_of_combat(Rng &rng, std::uint64_t epochs) {
     const float roll = rng.next_float();
     const Rarity want = roll <= 0.1f ? Rarity::RARE
                         : roll <= 0.35f ? Rarity::UNCOMMON
@@ -121,14 +121,14 @@ PotionId random_potion_out_of_combat(Rng &rng) {
     for (PotionId id : NATIVE_IRONCLAD_POTIONS) {
         const int i = static_cast<int>(id);
         const PotionDef &d = POTION_DEFS[i];
-        if (!d.ironclad || d.rarity != want) continue;
+        if (!d.ironclad || d.rarity != want || !potion_epoch_unlocked(epochs, id)) continue;
         pool[n++] = i;
     }
     if (n == 0) return PotionId::INVALID;
     return static_cast<PotionId>(pool[rng.next_int(0, n - 1)]);
 }
 
-int random_potions_out_of_combat(Rng &rng, PotionId *out, int count) {
+int random_potions_out_of_combat(Rng &rng, PotionId *out, int count, std::uint64_t epochs) {
     if (out == nullptr || count <= 0) return 0;
     bool used[static_cast<int>(PotionId::COUNT)]{};
     int made = 0;
@@ -142,7 +142,7 @@ int random_potions_out_of_combat(Rng &rng, PotionId *out, int count) {
         for (PotionId id : NATIVE_IRONCLAD_POTIONS) {
             const int i = static_cast<int>(id);
             const PotionDef &d = POTION_DEFS[i];
-            if (!d.ironclad || d.rarity != want || used[i]) continue;
+            if (!d.ironclad || d.rarity != want || used[i] || !potion_epoch_unlocked(epochs, id)) continue;
             pool[n++] = i;
         }
         if (n == 0) break;
@@ -166,7 +166,8 @@ PotionId BattleContext::gain_random_combat_potion() {
     int n = 0;
     for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
         const PotionDef &d = POTION_DEFS[i];
-        if (!d.ironclad || !d.combatGen || d.rarity != want) continue;
+        if (!d.ironclad || !d.combatGen || d.rarity != want ||
+            !potion_epoch_unlocked(revealedEpochs, static_cast<PotionId>(i))) continue;
         pool[n++] = i;
     }
     if (n == 0) return PotionId::INVALID;
@@ -367,7 +368,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
             // Generation RNG, no CanBeGeneratedInCombat filter) and stops when
             // TryToProcure fails (Sozu, full belt).
             while (potionCount < std::min(potionSlots, MAX_POTIONS)) {
-                const PotionId next = random_potion_out_of_combat(potionRng);
+                const PotionId next = random_potion_out_of_combat(potionRng, revealedEpochs);
                 if (next == PotionId::INVALID) break;
                 const int before = potionCount;
                 add_potion(next);
@@ -407,7 +408,7 @@ void BattleContext::apply_potion(PotionId id, int target) {
             const CardType types[3] = {CardType::ATTACK, CardType::SKILL, CardType::POWER};
             for (CardType t : types) {
                 Card c = random_card_of_type(t, false);
-                card_set_turn_cost(c, 0);
+                card_modify_cost(c, 0, true, 2 | 4);  // SetToFreeThisTurn
                 add_card_to_hand(c);
             }
             break;
@@ -430,7 +431,8 @@ void BattleContext::apply_potion(PotionId id, int target) {
                 // SneckoOil excludes EnergyCost.CostsX cards: they stay X-cost.
                 const CardDef &d = card_def(hand[i].id);
                 if ((hand[i].upgraded ? d.costUp : d.cost) < 0) continue;
-                card_set_turn_cost(hand[i], energyCostRng.next_int(0, 3));
+                // EnergyCost.SetThisTurnOrUntilPlayed: expires at turn end or on play.
+                card_modify_cost(hand[i], energyCostRng.next_int(0, 3), true, 2 | 4);
             }
             break;
         case PotionId::SOLDIERS_STEW:

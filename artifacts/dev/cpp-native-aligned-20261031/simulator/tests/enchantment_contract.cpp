@@ -33,7 +33,9 @@ int main() {
     b.monsters[0].hp = b.monsters[0].maxHp = 10000;
     b.monsters[0].block = 0;
     b.player.weak = 1;
-    check(b.calc_player_damage(6, 0, true, &strike) == 10, "vigorous before weak multiplier");
+    // Callers apply the card's enchantment to its base first (Hook.ModifyDamage order).
+    check(b.calc_player_damage(b.enchant_card_damage(strike, 6), 0, true, &strike) == 10,
+          "vigorous before weak multiplier");
     check(b.calc_player_damage(6, 0, false, &strike) == 6, "vigorous excludes unpowered damage");
     strike.replay = 1;
     b.hand[b.handCount++] = strike;
@@ -55,6 +57,8 @@ int main() {
     check(card_apply_enchantment(pact, EnchantmentId::SOWN, 1), "sown on selection card");
     b.hand[b.handCount++] = pact;
     b.hand[b.handCount++] = make_card(CardId::DEFEND_IRONCLAD, false, 501);
+    // Two candidates: a single one would be taken without a selection.
+    b.hand[b.handCount++] = make_card(CardId::STRIKE_IRONCLAD, false, 502);
     energy = b.player.energy;
     check(b.play_card(0, 0) && b.pending.op != ChoiceOp::NONE,
           "card play suspends for selection");

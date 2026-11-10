@@ -111,6 +111,7 @@ enum class MonsterId : std::uint16_t {
     WATERFALL_GIANT,
     WRIGGLER,
     ZAPBOT,
+    AEONGLASS,
     COUNT
 };
 
@@ -206,6 +207,7 @@ enum class Encounter : std::uint16_t {
     SETUP_TWO_TAILED_RATS_NORMAL,
     SETUP_WATERFALL_GIANT_BOSS,
     SETUP_SEAPUNK_NORMAL,
+    SETUP_AEONGLASS_BOSS,
     COUNT
 };
 #else
@@ -1023,6 +1025,16 @@ constexpr MonIntentDef MON_INTENTS[] = {
     {4, 0, 1, -1, -1},
     {0, 14, 1, 15, -1},
     {0, 14, 1, 15, -1},
+    {0, 22, 1, 26, -1},
+    {1, 0, 1, -1, -1},
+    {0, 22, 1, 26, -1},
+    {1, 0, 1, -1, -1},
+    {0, 11, 2, 12, -1},
+    {0, 11, 2, 12, -1},
+    {4, 0, 1, -1, -1},
+    {2, 0, 1, -1, -1},
+    {4, 0, 1, -1, -1},
+    {2, 0, 1, -1, -1},
 };
 constexpr MonOpDef MON_OPS[] = {
     {1, 10, 0, -1},
@@ -1485,6 +1497,8 @@ constexpr MonOpDef MON_OPS[] = {
     {2, static_cast<int>(PowerId::STRENGTH), 2, -1},
     {4, static_cast<int>(CardId::INFECTION), 1, -1},
     {2, static_cast<int>(PowerId::STRENGTH), 2, -1},
+    {1, 33, 0, -1},
+    {1, 33, 0, -1},
 };
 constexpr MonBranchDef MON_BRANCHES[] = {
     {2, 0, 1, 0, 20},
@@ -1959,6 +1973,9 @@ constexpr MonStateDef MON_STATES[] = {
     {0, 0, 3, {804, 805}, {1, 1}, {456, 456}, {0, 0}, 0, 0, 0},
     {0, 0, 2, {806, 808}, {2, 2}, {456, 458}, {2, 2}, 0, 0, 0},
     {0, 0, 0, {810, 811}, {1, 1}, {460, 460}, {0, 0}, 0, 0, 0},
+    {0, 0, 1, {812, 814}, {2, 2}, {460, 461}, {1, 1}, 0, 0, 0},
+    {0, 0, 2, {816, 817}, {1, 1}, {462, 462}, {0, 0}, 0, 0, 0},
+    {0, 0, 0, {818, 820}, {2, 2}, {462, 462}, {0, 0}, 0, 0, 0},
 };
 constexpr MonPowerDef MON_INNATE[] = {
     {PowerId::STOCK, 2, -1},
@@ -2077,6 +2094,8 @@ constexpr MonPowerDef MON_INNATE[] = {
     {PowerId::SLIPPERY, 9, -1},
     {PowerId::HIGH_VOLTAGE, 2, -1},
     {PowerId::HIGH_VOLTAGE, 2, -1},
+    {PowerId::ARTIFACT, 3, -1},
+    {PowerId::ARTIFACT, 3, -1},
 };
 constexpr MonInitialDef MON_INITIALS[] = {
     {0, 512},
@@ -2207,6 +2226,7 @@ constexpr MonInitialDef MON_INITIALS[] = {
     {0, 512},
     {2, 4},
     {0, 4},
+    {0, 1},
 };
 constexpr MonsterDef MONSTER_DEFS[] = {
     {nullptr, {0, 0}, {0, 0}, {0, 0}, {0, 0}, 0, 0, 0, 0, 255, 255},
@@ -2318,6 +2338,7 @@ constexpr MonsterDef MONSTER_DEFS[] = {
     {"WATERFALL_GIANT", {250, 260}, {250, 260}, {114, 114}, {0, 0}, 354, 8, 125, 1, 255, 255},
     {"WRIGGLER", {18, 19}, {20, 21}, {114, 114}, {0, 0}, 362, 4, 126, 1, 255, 255},
     {"ZAPBOT", {24, 25}, {27, 28}, {114, 115}, {1, 1}, 366, 1, 127, 1, 255, 255},
+    {"AEONGLASS", {512, 535}, {512, 535}, {116, 117}, {1, 1}, 367, 3, 128, 1, 255, 255},
 };
 constexpr EncounterPattern ENC_PATTERNS[] = {
     {1, {5, 0, 0, 0}, 512},
@@ -2481,6 +2502,7 @@ constexpr EncounterPattern ENC_PATTERNS[] = {
     {3, {103, 103, 103, 0}, 512},
     {1, {106, 0, 0, 0}, 512},
     {2, {15, 73, 0, 0}, 1},
+    {1, {109, 0, 0, 0}, 1},
 };
 constexpr EncounterDef ENCOUNTER_DEFS[] = {
     {nullptr, 0, 0, 0, 0},
@@ -2574,6 +2596,7 @@ constexpr EncounterDef ENCOUNTER_DEFS[] = {
     {"SETUP_TWO_TAILED_RATS_NORMAL", 4, 158, 1, 0},
     {"SETUP_WATERFALL_GIANT_BOSS", 4, 159, 1, 0},
     {"SETUP_SEAPUNK_NORMAL", 4, 160, 1, 256},
+    {"SETUP_AEONGLASS_BOSS", 3, 161, 1, 0},
 };
 static_assert(sizeof(MONSTER_DEFS) / sizeof(MONSTER_DEFS[0]) == static_cast<int>(MonsterId::COUNT), "monster table size");
 static_assert(sizeof(ENCOUNTER_DEFS) / sizeof(ENCOUNTER_DEFS[0]) == static_cast<int>(Encounter::COUNT), "encounter table size");

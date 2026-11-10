@@ -53,7 +53,8 @@ auto visible_choice_key(const Card &c) {
                            c.bonusDamage, c.etherealThisCombat, c.retainThisCombat,
                            c.galvanized, c.guiltyCombatsSeen,
                            static_cast<int>(c.enchantment), c.enchantmentAmount,
-                           c.enchantmentDisabled, c.costThisTurn ? c.storedCost : 0);
+                           c.enchantmentDisabled, c.costThisTurn ? c.storedCost : 0,
+                           c.tinkerType, c.tinkerRider);
 }
 
 // Compact public card state, shared by unordered piles, known top and choices.
@@ -76,7 +77,13 @@ void push_card_instance(std::vector<float> &v, const Card *c) {
     v.push_back(static_cast<int>(c->enchantment) / 5.0f);
     v.push_back(c->enchantmentAmount / 10.0f);
     v.push_back(c->enchantmentDisabled ? 1.0f : 0.0f);
+    v.push_back(c->tinkerType / 3.0f);
+    v.push_back(c->tinkerRider / 9.0f);
     v.push_back(c->costThisTurn ? c->storedCost / 3.0f : 0.0f);
+    v.push_back(c->bonusBlock / 30.0f);
+    v.push_back(c->retainThisTurn ? 1.0f : 0.0f);
+    v.push_back(c->slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c->slyThisCombat ? 1.0f : 0.0f);
 }
 
 }  // namespace
@@ -115,7 +122,7 @@ std::vector<float> card_features(const Card &c, int price) {
     const CardDef &d = card_def(c.id);
     const int cost = card_cost(c);
     v.push_back(cost < 0 ? 1.0f : cost / 3.0f);
-    for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.type) == i ? 1.0f : 0.0f);
+    for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(card_type(c)) == i ? 1.0f : 0.0f);
     for (int i = 0; i < 5; ++i) v.push_back(static_cast<int>(d.rarity) == i ? 1.0f : 0.0f);
     v.push_back(c.upgraded ? 1.0f : 0.0f);
     v.push_back(price >= 0 ? price / 200.0f : 0.0f);
@@ -137,6 +144,12 @@ std::vector<float> card_features(const Card &c, int price) {
     v.push_back(static_cast<int>(c.enchantment) / 5.0f);
     v.push_back(c.enchantmentAmount / 10.0f);
     v.push_back(c.enchantmentDisabled ? 1.0f : 0.0f);
+    v.push_back(c.bonusBlock / 30.0f);
+    v.push_back(c.retainThisTurn ? 1.0f : 0.0f);
+    v.push_back(c.slyThisTurn ? 1.0f : 0.0f);
+    v.push_back(c.slyThisCombat ? 1.0f : 0.0f);
+    v.push_back(c.tinkerType / 3.0f);
+    v.push_back(c.tinkerRider / 9.0f);
     return v;
 }
 
@@ -385,13 +398,13 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicCounts[i]);
         for (int i = 0; i < RELIC_COUNT; ++i) v.push_back(relicAux[i] / 10.0f);
         float potionCounts[POTION_COUNT]{};
-        for (int i = 0; i < bc.potionCount; ++i) {
+        for (int i = 0; i < bc.potionSlots; ++i) {
             const int id = bc.potions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < bc.potionCount ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < bc.potionSlots ? bc.potions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // Monsters: identity, live stats, full power list, intent.
@@ -485,6 +498,56 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
     v.push_back(p.crimsonMantleSelfDamage / 10.0f);
     v.push_back(p.infernoSelfDamage / 10.0f);
     v.push_back(p.infernoBeforeCrimsonMantle ? 1.0f : 0.0f);
+
+    // v14: public character state (all visible in the combat UI or derivable
+    // from visible history; no RNG or hidden order).
+    {
+        const CardPool characters[PUB_CHARACTER_N] = {CardPool::IRONCLAD, CardPool::SILENT,
+            CardPool::DEFECT, CardPool::NECROBINDER, CardPool::REGENT};
+        for (const CardPool pool : characters) v.push_back(bc.characterPool == pool ? 1.0f : 0.0f);
+        const DefectState &d = bc.defect;
+        v.push_back(d.orbCapacity / static_cast<float>(MAX_ORBS));
+        v.push_back(d.orbCount / static_cast<float>(MAX_ORBS));
+        for (int i = 0; i < MAX_ORBS; ++i) {
+            const bool exists = i < d.orbCount;
+            push_one_hot(v, exists ? static_cast<int>(d.orbs[i].id) : 0, PUB_ORB_FEAT - 1);
+            v.push_back(exists ? d.orbs[i].value / 10.0f : 0.0f);
+        }
+        v.push_back(d.lightningChanneled / 10.0f);
+        v.push_back(d.energySpentThisTurn / 10.0f);
+        v.push_back(d.statusesDrawnThisTurn / 10.0f);
+        v.push_back(d.zeroEnergyAttacksStartedThisTurn / 10.0f);
+        v.push_back(d.finishedThisTurn / 10.0f);
+        const NecrobinderState &n = bc.necro;
+        v.push_back(n.ostyPresent ? 1.0f : 0.0f);
+        v.push_back(n.ostyHp / 50.0f);
+        v.push_back(n.ostyMaxHp / 50.0f);
+        v.push_back(n.ostyStrength / 10.0f);
+        v.push_back(n.ostyWeak / 10.0f);
+        v.push_back(n.ostyVulnerable / 10.0f);
+        v.push_back(n.ostyAttacksThisTurn / 10.0f);
+        v.push_back(n.etherealPlayedThisCombat / 10.0f);
+        v.push_back(n.extraDrawsThisTurn / 10.0f);
+        v.push_back(n.deathsThisCombat / 10.0f);
+        v.push_back(n.doomAppliedThisTurn ? 1.0f : 0.0f);
+        v.push_back(n.summonAtTurnStart / 10.0f);
+        const RegentState &r = bc.regent;
+        v.push_back(r.stars / 10.0f);
+        v.push_back(r.starsGainedThisTurn / 10.0f);
+        v.push_back(r.generatedThisCombat / 10.0f);
+        v.push_back(r.cardsFinishedThisTurn / 10.0f);
+        v.push_back(r.skillsFinishedThisTurn / 10.0f);
+        v.push_back(r.voidFormManualPlays / 10.0f);
+        v.push_back(r.paleBlueActivated ? 1.0f : 0.0f);
+        for (int i = 0; i < 4; ++i) v.push_back(r.hitsGivenThisTurn[i] / 10.0f);
+        const SilentState &si = bc.silent;
+        v.push_back(si.discardedThisTurn / 10.0f);
+        v.push_back(si.drawnThisCombat / 50.0f);
+        v.push_back(si.attacksFinishedThisTurn / 10.0f);
+        v.push_back(si.skillsFinishedThisTurn / 10.0f);
+        v.push_back(si.shivsFinishedThisTurn / 10.0f);
+        v.push_back(si.nightmareCount / 10.0f);
+    }
     assert(static_cast<int>(v.size()) == PUBLIC_COMBAT_OBS_DIM);
     return v;
 }
@@ -604,13 +667,13 @@ std::vector<float> public_observation(const RunContext &rc) {
     {
         float potionCounts[POTION_COUNT]{};
         const int *livePotions = inCombat ? rc.battle.potions : rc.potions;
-        for (int i = 0; i < livePotionCount; ++i) {
+        for (int i = 0; i < livePotionSlots; ++i) {
             const int id = livePotions[i];
             if (id > 0 && id < POTION_COUNT) potionCounts[id] += 1.0f;
         }
         for (int i = 0; i < POTION_COUNT; ++i) v.push_back(potionCounts[i]);
         for (int i = 0; i < MAX_POTIONS; ++i)
-            v.push_back(i < livePotionCount ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
+            v.push_back(i < livePotionSlots ? livePotions[i] / static_cast<float>(POTION_COUNT) : 0.0f);
     }
 
     // --- map ----------------------------------------------------------------
@@ -651,7 +714,7 @@ std::vector<float> public_observation(const RunContext &rc) {
         // Relic offers (Ancients): identity is part of the visible choice.
         push_one_hot(v, rc.eventRelics[i], RELIC_COUNT);
     }
-    for (int i = 0; i < 4; ++i) v.push_back(rc.eventData[i] / 100.0f);
+    for (int i = 0; i < MAX_EVENT_CHOICES; ++i) v.push_back(rc.eventData[i] / 100.0f);
 
     // --- reward overview ----------------------------------------------------
     const bool rewardsVisible = rc.screen == RunScreen::REWARDS ||
@@ -745,6 +808,9 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(progress.underdocksUnlocked ? 1.0f : 0.0f);
     v.push_back(progress.underdocksDiscovered ? 1.0f : 0.0f);
     v.push_back(progress.aeonglassSeen ? 1.0f : 0.0f);
+    v.push_back(progress.event1EpochRevealed ? 1.0f : 0.0f);
+    v.push_back(progress.event2EpochRevealed ? 1.0f : 0.0f);
+    v.push_back(progress.event3EpochRevealed ? 1.0f : 0.0f);
     for (int i = 0; i < static_cast<int>(Encounter::COUNT); ++i)
         v.push_back(progress.has_seen(static_cast<Encounter>(i)) ? 1.0f : 0.0f);
     v.push_back(rc.paelsToothCount / 5.0f);
@@ -757,6 +823,26 @@ std::vector<float> public_observation(const RunContext &rc) {
     for (int i = 0; i < MAX_PILE; ++i)
         v.push_back(theftVisible && i < rc.stolenSyncCount && rc.stolenOriginalPresent[i] &&
                     rc.stolenOriginals[i].costThisTurn ? rc.stolenOriginals[i].storedCost / 3.0f : 0.0f);
+    // Crystal Sphere: remaining divinations, hidden cells, and the item type
+    // showing on each cleared cell (hidden cells reveal nothing).
+    {
+        const CrystalSphereState &g = rc.crystalSphere;
+        v.push_back(g.active ? 1.0f : 0.0f);
+        v.push_back(g.divinations / 6.0f);
+        for (int c = 0; c < CRYSTAL_SPHERE_CELLS; ++c) {
+            const bool hidden = g.active && ((g.hidden[c / 64] >> (c % 64)) & 1u);
+            v.push_back(hidden ? 1.0f : 0.0f);
+            const int item = g.active && !hidden ? g.cellItem[c] - 1 : -1;
+            push_one_hot(v, item >= 0 ? g.itemType[item] : -1, CRYSTAL_SPHERE_ITEM_TYPES);
+        }
+    }
+    for (int i = 0; i < MAX_EXTRA_GOLD_REWARDS; ++i)
+        v.push_back(rewardsVisible ? rc.extraGoldRewards[i] / 300.0f : 0.0f);
+    // The quest marker is drawn on the native map.
+    const bool spoilsQuest = rc.spoils_quest_active();
+    v.push_back(spoilsQuest ? 1.0f : 0.0f);
+    v.push_back(spoilsQuest ? rc.spoilsQuestRow / static_cast<float>(MAP_MAX_ROWS) : 0.0f);
+    v.push_back(spoilsQuest ? rc.spoilsQuestCol / static_cast<float>(MAP_WIDTH - 1) : 0.0f);
     assert(static_cast<int>(v.size()) == PUBLIC_RUN_DIM);
 
     // --- combat -------------------------------------------------------------

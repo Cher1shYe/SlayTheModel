@@ -1,0 +1,53 @@
+Setup Strike native damage actual=7 expected=7 PASS
+Setup Strike native temporary strength actual=3 expected=3 PASS
+Setup Strike strengthens following Strike actual=9 expected=9 PASS
+Setup Strike strength expires after turn actual=0 expected=0 PASS
+Setup Strike native damage actual=9 expected=9 PASS
+Setup Strike native temporary strength actual=4 expected=4 PASS
+Setup Strike strengthens following Strike actual=10 expected=10 PASS
+Setup Strike strength expires after turn actual=0 expected=0 PASS
+Cinder damage actual=18 expected=18 PASS
+Cinder exhausts remaining hand actual=0 expected=0 PASS
+Cinder preserves draw actual=1 expected=1 PASS
+Cinder exhausted Defend actual=25 expected=25 PASS
+Cinder+ damage actual=24 expected=24 PASS
+Cinder exhausts remaining hand actual=0 expected=0 PASS
+Cinder preserves draw actual=1 expected=1 PASS
+Cinder exhausted Defend actual=25 expected=25 PASS
+Cinder empty hand consumes no selection RNG actual=0 expected=0 PASS
+Cinder empty hand does not shuffle actual=0 expected=0 PASS
+Cinder empty hand exhausts nothing actual=0 expected=0 PASS
+Cinder exhaust hooks draw actual=1 expected=1 PASS
+Cinder hook-drawn card stays actual=73 expected=73 PASS
+Anger clone enchantment actual=1 expected=1 PASS
+Anger clone amount actual=8 expected=8 PASS
+Anger clone has independent active enchantment actual=0 expected=0 PASS
+Anger clone fractional damage actual=4.5 expected=4.5 PASS
+Anger clone combat cost actual=1 expected=1 PASS
+Anger clone temporary cost actual=1 expected=1 PASS
+Anger clone stored cost actual=2 expected=2 PASS
+Anger clone retain actual=1 expected=1 PASS
+Anger original enchantment used actual=1 expected=1 PASS
+Anger original count actual=1 expected=1 PASS
+Anger unique clone actual=1 expected=1 PASS
+Thrash with Strength initial attack actual=18 expected=18 PASS
+Thrash with Strength growth actual=11 expected=11 PASS
+Thrash Body Slam growth actual=10 expected=10 PASS
+Thrash Weak fractional growth actual=4.5 expected=4.5 PASS
+Thrash fractional base used in next attack actual=12 expected=12 PASS
+Thrash fractional growth accumulates actual=9 expected=9 PASS
+Thrash growth has no enemy modifiers actual=6 expected=6 PASS
+Thrash Bully has null target actual=4 expected=4 PASS
+Thrash Ashen counts before exhaustion actual=9 expected=9 PASS
+Thrash Perfected includes selected card actual=8 expected=8 PASS
+Thrash Gold Axe counts completed plays actual=3 expected=3 PASS
+Thrash increments finished history afterwards actual=4 expected=4 PASS
+Thrash ninth attack hand-preview Pen Nib actual=12 expected=12 PASS
+Thrash tenth attack does not double selected card actual=6 expected=6 PASS
+Thrash growth sees Gigantification after attack actual=6 expected=6 PASS
+Thrash growth sees Gigantification after attack actual=18 expected=18 PASS
+Thrash no attacks consumes no RNG actual=0 expected=0 PASS
+Thrash no attacks grows zero actual=0 expected=0 PASS
+Thrash consumes one native selection draw actual=1 expected=1 PASS
+Thrash picks randomized candidate actual=6 expected=6 PASS
+52 checks, 0 failures

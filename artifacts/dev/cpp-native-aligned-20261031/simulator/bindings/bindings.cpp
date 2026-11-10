@@ -9,6 +9,7 @@
 #include <tuple>
 
 #include "sts2/battle.h"
+#include "sts2/macro_obs.h"
 #include "sts2/map.h"
 #include "sts2/monsters.h"
 #include "sts2/observe.h"
@@ -66,7 +67,7 @@ static py::list card_enchantments(const Card *cards, int n) {
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
     // Identity of this port, not a claim of complete native-game parity.
-    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v4";
+    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v6";
     m.attr("TARGET_GAME_DLL_SHA256") = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4";
     m.attr("NATIVE_PARITY_COMPLETE") = false;
 
@@ -155,7 +156,10 @@ PYBIND11_MODULE(sts2_sim, m) {
         .value("SELECT_GRID_CARD", RunActionType::SELECT_GRID_CARD)
         .value("CONFIRM_GRID_CARDS", RunActionType::CONFIRM_GRID_CARDS)
         .value("CANCEL_GRID_PREVIEW", RunActionType::CANCEL_GRID_PREVIEW)
-        .value("REST_CLONE", RunActionType::REST_CLONE);
+        .value("REST_CLONE", RunActionType::REST_CLONE)
+        .value("REST_HATCH", RunActionType::REST_HATCH)
+        .value("CRYSTAL_SPHERE_SMALL", RunActionType::CRYSTAL_SPHERE_SMALL)
+        .value("CRYSTAL_SPHERE_BIG", RunActionType::CRYSTAL_SPHERE_BIG);
     py::enum_<EventStatus>(m, "EventStatus")
         .value("IMPLEMENTED", EventStatus::IMPLEMENTED)
         .value("APPROXIMATE", EventStatus::APPROXIMATE)
@@ -169,6 +173,11 @@ PYBIND11_MODULE(sts2_sim, m) {
             pe.value(potion_def(id).key, id);
         }
     }
+    m.def("native_epoch_names", [] {
+        std::vector<std::string> names;
+        for (int i = 0; i < native_epoch_count(); ++i) names.emplace_back(native_epoch_name(i));
+        return names;
+    }, "UnlockState epoch names; index = bit in NativeProgressContext.revealed_epochs");
     m.def("potion_name", [](int id) {
         return std::string(potion_name(static_cast<PotionId>(id)));
     });
@@ -254,6 +263,17 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("PUB_RUN_EXTENSION") = PUB_RUN_EXTENSION;
     m.attr("PUBLIC_COMBAT_OBS_DIM") = PUBLIC_COMBAT_OBS_DIM;
     m.attr("PUBLIC_OBS_VERSION") = PUBLIC_OBS_VERSION;
+    m.attr("MACRO_OBS_VERSION") = MACRO_OBS_VERSION;
+    m.attr("MACRO_ENTITY_NUM") = MACRO_ENTITY_NUM;
+    m.attr("MACRO_CAND_NUM") = MACRO_CAND_NUM;
+    m.attr("MACRO_PHASES") = MACRO_PHASES;
+    m.attr("RUN_ACTION_TYPES") = static_cast<int>(RUN_ACTION_LAST) + 1;
+    m.def("macro_vocab", [] {
+        std::vector<int> sizes;
+        for (int k = 0; k < static_cast<int>(MacroEntity::COUNT); ++k)
+            sizes.push_back(macro_id_vocab(static_cast<MacroEntity>(k)));
+        return sizes;
+    }, "id vocabulary size per macro entity kind (index = kind)");
     m.attr("ACTION_SCHEMA_VERSION") = ACTION_SCHEMA_VERSION;
     m.attr("CARD_COUNT") = static_cast<int>(CardId::COUNT);
     m.attr("MAX_DECK") = MAX_DECK;
@@ -529,9 +549,16 @@ PYBIND11_MODULE(sts2_sim, m) {
                                   static_cast<int>(bc.pending.pile),
                                   bc.pending.remaining, bc.pending.count);
         })
+        // Occupied potions in slot order; potion_belt keeps physical holes (0),
+        // which is what USE_POTION action indices refer to.
         .def_property_readonly("potions", [](const BattleContext &bc) {
             py::list out;
-            for (int i = 0; i < bc.potionCount; ++i) out.append(bc.potions[i]);
+            for (int i = 0; i < bc.potionSlots; ++i) if (bc.potions[i]) out.append(bc.potions[i]);
+            return out;
+        })
+        .def_property_readonly("potion_belt", [](const BattleContext &bc) {
+            py::list out;
+            for (int i = 0; i < bc.potionSlots; ++i) out.append(bc.potions[i]);
             return out;
         })
         .def("add_potion", [](BattleContext &bc, int id) {
@@ -559,6 +586,11 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_readwrite("underdocks_unlocked", &NativeProgressContext::underdocksUnlocked)
         .def_readwrite("underdocks_discovered", &NativeProgressContext::underdocksDiscovered)
         .def_readwrite("aeonglass_seen", &NativeProgressContext::aeonglassSeen)
+        .def_readwrite("wongo_points", &NativeProgressContext::wongoPoints)
+        .def_readwrite("revealed_epochs", &NativeProgressContext::revealedEpochs)
+        .def_readwrite("event1_epoch_revealed", &NativeProgressContext::event1EpochRevealed)
+        .def_readwrite("event2_epoch_revealed", &NativeProgressContext::event2EpochRevealed)
+        .def_readwrite("event3_epoch_revealed", &NativeProgressContext::event3EpochRevealed)
         .def_property("seen_encounters", [](const NativeProgressContext &context) {
             std::vector<int> seen;
             for (int i = 1; i < static_cast<int>(Encounter::COUNT); ++i)
@@ -604,7 +636,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def("step", [](RunContext &rc, int type, int index) {
             if (type < static_cast<int>(RunActionType::MOVE) ||
-                type > static_cast<int>(RunActionType::REST_CLONE)) {
+                type > static_cast<int>(RUN_ACTION_LAST)) {
                 throw std::invalid_argument("type is not a valid run action type");
             }
             RunAction a;
@@ -620,6 +652,50 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def("observation", [](const RunContext &rc) { return run_observation(rc); })
         .def("observe_public", [](const RunContext &rc) { return public_observation(rc); })
+        .def("macro_observation", [](const RunContext &rc) {
+            MacroObservation o;
+            {
+                py::gil_scoped_release release;
+                o = macro_observation(rc);
+            }
+            auto ints = [](const std::vector<std::int32_t> &v, std::vector<py::ssize_t> shape) {
+                py::array_t<std::int32_t> a(shape);
+                std::copy(v.begin(), v.end(), a.mutable_data());
+                return a;
+            };
+            auto floats = [](const std::vector<float> &v, std::vector<py::ssize_t> shape) {
+                py::array_t<float> a(shape);
+                std::copy(v.begin(), v.end(), a.mutable_data());
+                return a;
+            };
+            const auto n = static_cast<py::ssize_t>(o.kind.size());
+            const auto c = static_cast<py::ssize_t>(o.candType.size());
+            py::dict d;
+            d["kind"] = ints(o.kind, {n});
+            d["id"] = ints(o.id, {n});
+            d["num"] = floats(o.num, {n, MACRO_ENTITY_NUM});
+            d["edges"] = ints(o.edges, {static_cast<py::ssize_t>(o.edges.size() / 2), 2});
+            d["cand_type"] = ints(o.candType, {c});
+            d["cand_index"] = ints(o.candIndex, {c});
+            d["cand_target"] = ints(o.candTarget, {c});
+            d["cand_target2"] = ints(o.candTarget2, {c});
+            d["cand_num"] = floats(o.candNum, {c, MACRO_CAND_NUM});
+            d["phase"] = o.phase;
+            return d;
+        }, "entity-structured public observation for the out-of-combat policy")
+        .def("play_combat_mcts", [](RunContext &rc, int normal, int boss, double c, std::uint32_t seed,
+                                    int decision_start, double epsilon, double potion_weight, int max_steps) {
+            CombatDriveResult r;
+            {
+                py::gil_scoped_release release;
+                r = play_combat_mcts(rc, normal, boss, c, seed, decision_start, epsilon, potion_weight, max_steps);
+            }
+            return py::make_tuple(r.decisions, r.forced, r.simulations, r.ok);
+        }, py::arg("normal_simulations"), py::arg("boss_simulations"), py::arg("c") = 4.242640687,
+           py::arg("seed") = 0, py::arg("decision_start") = 0, py::arg("epsilon") = 0.05,
+           py::arg("potion_weight") = 4.0, py::arg("max_steps") = 20000,
+           "play the current combat to its end with fixed hidden-state MCTS; returns "
+           "(decisions, forced_steps, simulations, ok)")
         .def("observe_public_combat", [](const RunContext &rc) {
             return public_combat_observation(rc.battle);
         })
@@ -647,6 +723,10 @@ PYBIND11_MODULE(sts2_sim, m) {
         })
         .def_property_readonly("native_progress", [](const RunContext &rc) { return rc.nativeProgress; })
         .def_property_readonly("golden_path_act", [](const RunContext &rc) { return rc.goldenPathAct; })
+        .def_property_readonly("spoils_quest", [](const RunContext &rc) {
+            return rc.spoils_quest_active() ? py::make_tuple(int(rc.spoilsQuestRow), int(rc.spoilsQuestCol))
+                                            : py::make_tuple();
+        })
         .def_property_readonly("unknown_map_points_visited", [](const RunContext &rc) { return rc.unknownMapPointsVisited; })
         .def_property_readonly("screen", [](const RunContext &rc) { return rc.screen; })
         .def_property_readonly("won", [](const RunContext &rc) { return rc.won; })
@@ -687,7 +767,12 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("second_boss_encounter", [](const RunContext &rc) { return rc.secondBossEncounter; })
         .def_property_readonly("potions", [](const RunContext &rc) {
             py::list out;
-            for (int i = 0; i < rc.potionCount; ++i) out.append(rc.potions[i]);
+            for (int i = 0; i < rc.potionSlots; ++i) if (rc.potions[i]) out.append(rc.potions[i]);
+            return out;
+        })
+        .def_property_readonly("potion_belt", [](const RunContext &rc) {
+            py::list out;
+            for (int i = 0; i < rc.potionSlots; ++i) out.append(rc.potions[i]);
             return out;
         })
         .def_property_readonly("potion_slots", [](const RunContext &rc) { return rc.potionSlots; })

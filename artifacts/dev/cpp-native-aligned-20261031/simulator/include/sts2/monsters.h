@@ -84,6 +84,10 @@ void setup_encounter(BattleContext &bc, Encounter enc);
 void spawn_monster(BattleContext &bc, MonsterId id, int slot = -1);
 void roll_intent(BattleContext &bc, Monster &m);
 void monster_act(BattleContext &bc, Monster &m);
+// Aeonglass: Wither status cards generated for combat (each matched to the
+// boss's WitherUpgradeCount via AfterCardGeneratedForCombat).
+void add_withers(BattleContext &bc, int count, bool toHand);
+int aeonglass_wither_upgrades(const BattleContext &bc);
 int random_encounter_for_act(int act, Rng &rng, int kind = 0);
 const MonsterDef &monster_def(MonsterId id);
 const char *monster_name(MonsterId id);

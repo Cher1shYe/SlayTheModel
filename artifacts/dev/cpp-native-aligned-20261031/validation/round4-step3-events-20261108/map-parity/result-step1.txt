@@ -1,0 +1,7 @@
+STM-PP0-1DV3-EVAL-A-20261028 act0 asc0: 2 differing points; e.g. (11, 0) native=('UNKNOWN', [(12, 0), (12, 1)]) cpp=('MONSTER', [(12, 0), (12, 1)])
+STM-PP0-1DV3-EVAL-B-20261028 act0 asc0: 14 differing points; e.g. (0, 3) native=('ANCIENT', [(1, 1), (1, 3), (1, 6)]) cpp=('ANCIENT', [(1, 0), (1, 1), (1, 3), (1, 6)])
+STM-PP0-1DV3-EVAL-D-20261028 act0 asc0: 2 differing points; e.g. (2, 6) native=('UNKNOWN', [(3, 5)]) cpp=('UNKNOWN', [(3, 6)])
+STM-RANDOM-A84EE33A act0 (trace): 2 differing points; e.g. (4, 5) native=('SHOP', [(5, 6)]) cpp=('SHOP', [(5, 5)])
+STM-RANDOM-A84EE33A act1 (trace): 7 differing points; e.g. (4, 4) native=('MONSTER', [(5, 3)]) cpp=('MONSTER', [(5, 3), (5, 5)])
+STM-RANDOM-A84EE33A act2 (trace): MATCH
+1/6 act maps identical

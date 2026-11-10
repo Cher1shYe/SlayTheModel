@@ -75,7 +75,7 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         while(pending>0&&b.outcome==Outcome::UNDECIDED&&b.alive_monster_count()>0){
             --pending;
             for(int i=0;i<b.monsterCount&&b.outcome==Outcome::UNDECIDED;++i)if(alive(b,i)){
-                const auto result=b.damage_monster(i,b.calc_player_damage(damage+vigor,i,true,&c),true,true);
+                const auto result=b.damage_monster(i,b.calc_player_damage(b.enchant_card_damage(c,damage)+vigor,i,true,&c),true,true);
                 if(!firstSeen[i])firstUnblocked[i]=result.unblocked>0;
                 firstSeen[i]=true;if(result.wasKilled)++pending;
             }

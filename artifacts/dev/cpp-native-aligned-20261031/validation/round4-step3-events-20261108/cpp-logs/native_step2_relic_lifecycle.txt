@@ -1,0 +1,1 @@
+native step2 relic lifecycle: 24 DLL fixtures plus melted-hook, snapshot and parent-reward checks passed

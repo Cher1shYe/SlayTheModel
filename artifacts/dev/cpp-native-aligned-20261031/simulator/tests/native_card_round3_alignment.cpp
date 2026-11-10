@@ -2,6 +2,7 @@
 // Metadata comes from all canonical DLL models; effect outcomes from controlled
 // DLL executions. This is targeted evidence, not full-run equivalence.
 #include <cmath>
+#include "port_root.h"
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -41,7 +42,7 @@ std::string norm(std::string s) {std::string r;for(char c:s)if(std::isalnum(c))r
 #include "native_card_round3_vars.inc"
 }
 int main() {
-    const auto repo=std::filesystem::path(__FILE__).parent_path().parent_path().parent_path();
+    const auto repo=port_root();
     json metadata,effects,content;
     std::ifstream(repo/"native-round3-card-fixtures/metadata-results.json")>>metadata;
     std::ifstream(repo/"native-round3-card-fixtures/results.json")>>effects;
@@ -56,8 +57,8 @@ int main() {
         check(key(id)+" native model exists",models.count(key(id)),1);
         if(!models.count(key(id))||id==CardId::MAD_SCIENCE)continue;
         const auto &n=models.at(key(id));const auto &d=card_def(id);const auto &local=content[i-1];
-        const std::map<std::string,CardType> types={{"Attack",CardType::ATTACK},{"Skill",CardType::SKILL},{"Power",CardType::POWER},{"Status",CardType::STATUS},{"Curse",CardType::CURSE}};
-        const std::map<std::string,Rarity> rarities={{"Basic",Rarity::BASIC},{"Common",Rarity::COMMON},{"Uncommon",Rarity::UNCOMMON},{"Rare",Rarity::RARE},{"Ancient",Rarity::ANCIENT},{"Event",Rarity::EVENT},{"Token",Rarity::TOKEN},{"Status",Rarity::STATUS},{"Curse",Rarity::CURSE}};
+        const std::map<std::string,CardType> types={{"Attack",CardType::ATTACK},{"Skill",CardType::SKILL},{"Power",CardType::POWER},{"Status",CardType::STATUS},{"Curse",CardType::CURSE},{"Quest",CardType::QUEST}};
+        const std::map<std::string,Rarity> rarities={{"Basic",Rarity::BASIC},{"Common",Rarity::COMMON},{"Uncommon",Rarity::UNCOMMON},{"Rare",Rarity::RARE},{"Ancient",Rarity::ANCIENT},{"Event",Rarity::EVENT},{"Token",Rarity::TOKEN},{"Status",Rarity::STATUS},{"Curse",Rarity::CURSE},{"Quest",Rarity::QUEST}};
         check(key(id)+" type",int(d.type),int(types.at(n["type"])));
         check(key(id)+" rarity",int(d.rarity),int(rarities.at(n["rarity"])));
         check(key(id)+" combat generation",!(d.flags&CF_CANNOT_GENERATE_IN_COMBAT),bool(n["generated"]));
@@ -76,6 +77,10 @@ int main() {
                 for(auto nativeVar=vars.begin();nativeVar!=vars.end();++nativeVar) {
                     auto nn=norm(nativeVar.key());
                     if(nn!=normalized&&nn!=normalized+"power"&&normalized!=nn+"power")continue;
+                    // Integer VarIds cannot hold decimal native vars; the only
+                    // such card (Tank) is multiplayer-only and never in play.
+                    if((d.flags&CF_MULTIPLAYER_ONLY)&&nativeVar.value().is_number_float()&&
+                       nativeVar.value().get<double>()!=static_cast<int>(nativeVar.value().get<double>()))break;
                     check(label+" "+it.key(),card_var(c,varIds.at(it.key())),nativeVar.value());break;
                 }
             }

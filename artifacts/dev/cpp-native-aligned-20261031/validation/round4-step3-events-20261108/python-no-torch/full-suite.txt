@@ -1,0 +1,687 @@
+...................F....FF.............................................. [ 40%]
+........................................................................ [ 81%]
+...........FFFFFFF...............                                        [100%]
+==================================== ERRORS ====================================
+_________________ ERROR collecting tests/test_armg_cycle_rl.py _________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_cycle_rl.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_cycle_rl.py:7: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+________________ ERROR collecting tests/test_armg_evaluation.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_evaluation.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_evaluation.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_________________ ERROR collecting tests/test_armg_features.py _________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_features.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_features.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+________________ ERROR collecting tests/test_armg_fixed_mcts.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_fixed_mcts.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_fixed_mcts.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_____________ ERROR collecting tests/test_armg_floor_final_boss.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_floor_final_boss.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_floor_final_boss.py:6: in <module>
+    from agent.armg_floor_schedule import FloorMctsController, is_final_boss
+agent/armg_floor_schedule.py:6: in <module>
+    from .armg_site_prior_loss import CardSkipPrior
+agent/armg_site_prior_loss.py:16: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+______________ ERROR collecting tests/test_armg_floor_schedule.py ______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_floor_schedule.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_floor_schedule.py:8: in <module>
+    from agent.armg import ARMG_ACTION_DIM, ARMG_OBS_DIM, _CARD_OFF
+agent/armg.py:9: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+______________ ERROR collecting tests/test_armg_native_bridge.py _______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_native_bridge.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_native_bridge.py:6: in <module>
+    from agent import armg
+agent/armg.py:9: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+___________________ ERROR collecting tests/test_armg_need.py ___________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_need.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_need.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+__________________ ERROR collecting tests/test_armg_prior.py ___________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_prior.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_prior.py:7: in <module>
+    from agent.armg_prior import LocalPrior
+agent/armg_prior.py:17: in <module>
+    from .armg_need import need_overlay
+agent/armg_need.py:15: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_______________ ERROR collecting tests/test_armg_prior_cycle.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_prior_cycle.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_prior_cycle.py:4: in <module>
+    from agent.armg_prior_train import SEED_BASE, _behavior_distribution, _split_records
+agent/armg_prior_train.py:24: in <module>
+    from deployment import evaluate_battle_root_prior as isolated
+deployment/evaluate_battle_root_prior.py:42: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_______________ ERROR collecting tests/test_armg_prior_cycles.py _______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_prior_cycles.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_prior_cycles.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_______________ ERROR collecting tests/test_armg_prior_guard.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_prior_guard.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_prior_guard.py:7: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+______________ ERROR collecting tests/test_armg_puct_prior_rl.py _______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_puct_prior_rl.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_puct_prior_rl.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+____________ ERROR collecting tests/test_armg_rules_integration.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_rules_integration.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_rules_integration.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+______________ ERROR collecting tests/test_armg_site_prior_rl.py _______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_site_prior_rl.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_site_prior_rl.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_________________ ERROR collecting tests/test_armg_training.py _________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_armg_training.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_armg_training.py:7: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+____________ ERROR collecting tests/test_battle_depth_prior_eval.py ____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_battle_depth_prior_eval.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_battle_depth_prior_eval.py:5: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+____________ ERROR collecting tests/test_battle_root_prior_eval.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_battle_root_prior_eval.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_battle_root_prior_eval.py:5: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_____________ ERROR collecting tests/test_combat_dagger_collect.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_combat_dagger_collect.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_combat_dagger_collect.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+____________ ERROR collecting tests/test_combat_dagger_training.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_combat_dagger_training.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_combat_dagger_training.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+__________ ERROR collecting tests/test_engine_checkpoint_identity.py ___________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_engine_checkpoint_identity.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_engine_checkpoint_identity.py:8: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+___________ ERROR collecting tests/test_evaluate_armg_checkpoints.py ___________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_evaluate_armg_checkpoints.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_evaluate_armg_checkpoints.py:3: in <module>
+    from deployment.evaluate_armg_checkpoints import paired_summary
+deployment/evaluate_armg_checkpoints.py:22: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_________ ERROR collecting tests/test_evaluate_armg_floor_root_puct.py _________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_evaluate_armg_floor_root_puct.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_evaluate_armg_floor_root_puct.py:3: in <module>
+    from deployment import evaluate_armg_floor_root_puct as e
+deployment/evaluate_armg_floor_root_puct.py:14: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+____________ ERROR collecting tests/test_evaluate_combat_dagger.py _____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_evaluate_combat_dagger.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_evaluate_combat_dagger.py:5: in <module>
+    from deployment.evaluate_combat_dagger import paired_summary, summarize
+deployment/evaluate_combat_dagger.py:20: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+___________ ERROR collecting tests/test_evaluate_latest_puct_100.py ____________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_evaluate_latest_puct_100.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_evaluate_latest_puct_100.py:5: in <module>
+    from deployment.evaluate_latest_puct_100 import (
+deployment/evaluate_latest_puct_100.py:25: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_________ ERROR collecting tests/test_evaluate_latest_puct_threads.py __________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_evaluate_latest_puct_threads.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_evaluate_latest_puct_threads.py:4: in <module>
+    from deployment import evaluate_latest_puct_threads as threaded
+deployment/evaluate_latest_puct_threads.py:16: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+______________ ERROR collecting tests/test_finetune_armg_prior.py ______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_finetune_armg_prior.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_finetune_armg_prior.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_______________ ERROR collecting tests/test_hidden_puct_eval.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_hidden_puct_eval.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_hidden_puct_eval.py:3: in <module>
+    from deployment import evaluate_hidden_puct as hidden
+deployment/evaluate_hidden_puct.py:20: in <module>
+    from deployment import evaluate_battle_depth_prior as depth_eval
+deployment/evaluate_battle_depth_prior.py:20: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+________________ ERROR collecting tests/test_puct_fresh_init.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_puct_fresh_init.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_puct_fresh_init.py:5: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+________________ ERROR collecting tests/test_puct_value_eval.py ________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_puct_value_eval.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_puct_value_eval.py:3: in <module>
+    from deployment import evaluate_puct_value as evaluation
+deployment/evaluate_puct_value.py:22: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_______________ ERROR collecting tests/test_replay_final_boss.py _______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_replay_final_boss.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_replay_final_boss.py:2: in <module>
+    from deployment import replay_final_boss as replay
+deployment/replay_final_boss.py:21: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_____________________ ERROR collecting tests/test_smoke.py _____________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_smoke.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_smoke.py:8: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+___________________ ERROR collecting tests/test_training.py ____________________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_training.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_training.py:6: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+_____________ ERROR collecting tests/test_truncation_semantics.py ______________
+ImportError while importing test module '/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/tests/test_truncation_semantics.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/Users/yebohou/micromamba/envs/sts2/lib/python3.11/importlib/__init__.py:126: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests/test_truncation_semantics.py:4: in <module>
+    import torch
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: in <module>
+    raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+=================================== FAILURES ===================================
+_________________________ test_native_rule_regressions _________________________
+
+    def test_native_rule_regressions():
+        """D01-D24 rule pins; the binary exits non-zero on any failure."""
+        if not RULES_TEST.exists():
+>           pytest.fail(f"{RULES_TEST} missing; build the simulator target sts2_rules_test")
+E           Failed: /Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/rules_test missing; build the simulator target sts2_rules_test
+
+tests/test_audit_regressions.py:38: Failed
+________________ test_oracle_strategies_are_never_player_usable ________________
+
+    def test_oracle_strategies_are_never_player_usable():
+        """D21: only player-information-compliant strategies may be quoted."""
+>       from deployment.evaluate import strategy_player_usable
+
+tests/test_audit_regressions.py:137: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+deployment/evaluate.py:22: in <module>
+    import torch
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+_________________ test_benchmark_counts_real_terminal_outcomes _________________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107ca5bd0>
+
+    def test_benchmark_counts_real_terminal_outcomes(monkeypatch):
+        """D23: completed_runs counts terminated episodes, not requested runs."""
+>       import agent.selfplay as selfplay
+
+tests/test_audit_regressions.py:149: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+agent/selfplay.py:14: in <module>
+    import torch
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+_______________ test_pipeline_passes_mode_to_both_stages[oracle] _______________
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_pipeline_passes_mode_to_b0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c6f6d0>
+mode = 'oracle'
+
+    @pytest.mark.parametrize("mode", ["oracle", "hidden"])
+    def test_pipeline_passes_mode_to_both_stages(tmp_path, monkeypatch, mode):
+        """Mock both child processes so no sampling, training, or extension loads occur."""
+>       import torch
+
+tests/test_oracle_mcts_controller.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+_______________ test_pipeline_passes_mode_to_both_stages[hidden] _______________
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_pipeline_passes_mode_to_b1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c2cbd0>
+mode = 'hidden'
+
+    @pytest.mark.parametrize("mode", ["oracle", "hidden"])
+    def test_pipeline_passes_mode_to_both_stages(tmp_path, monkeypatch, mode):
+        """Mock both child processes so no sampling, training, or extension loads occur."""
+>       import torch
+
+tests/test_oracle_mcts_controller.py:64: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+____ test_rl_rejects_incompatible_prior_before_training[information-hidden] ____
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_rl_rejects_incompatible_p0')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c6e850>
+field = 'information', wrong = 'hidden'
+
+    @pytest.mark.parametrize("field,wrong", [
+        ("information", "hidden"),
+        ("simulations_per_decision", 1999),
+        ("boss_simulations_per_decision", 9999),
+        ("path_cache", "legacy"),
+        ("simulator_sha256", "wrong"),
+    ])
+    def test_rl_rejects_incompatible_prior_before_training(tmp_path, monkeypatch, field, wrong):
+>       import torch
+
+tests/test_oracle_mcts_controller.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+_ test_rl_rejects_incompatible_prior_before_training[simulations_per_decision-1999] _
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_rl_rejects_incompatible_p1')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c43990>
+field = 'simulations_per_decision', wrong = 1999
+
+    @pytest.mark.parametrize("field,wrong", [
+        ("information", "hidden"),
+        ("simulations_per_decision", 1999),
+        ("boss_simulations_per_decision", 9999),
+        ("path_cache", "legacy"),
+        ("simulator_sha256", "wrong"),
+    ])
+    def test_rl_rejects_incompatible_prior_before_training(tmp_path, monkeypatch, field, wrong):
+>       import torch
+
+tests/test_oracle_mcts_controller.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+_ test_rl_rejects_incompatible_prior_before_training[boss_simulations_per_decision-9999] _
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_rl_rejects_incompatible_p2')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c6f390>
+field = 'boss_simulations_per_decision', wrong = 9999
+
+    @pytest.mark.parametrize("field,wrong", [
+        ("information", "hidden"),
+        ("simulations_per_decision", 1999),
+        ("boss_simulations_per_decision", 9999),
+        ("path_cache", "legacy"),
+        ("simulator_sha256", "wrong"),
+    ])
+    def test_rl_rejects_incompatible_prior_before_training(tmp_path, monkeypatch, field, wrong):
+>       import torch
+
+tests/test_oracle_mcts_controller.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+____ test_rl_rejects_incompatible_prior_before_training[path_cache-legacy] _____
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_rl_rejects_incompatible_p3')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c2fd90>
+field = 'path_cache', wrong = 'legacy'
+
+    @pytest.mark.parametrize("field,wrong", [
+        ("information", "hidden"),
+        ("simulations_per_decision", 1999),
+        ("boss_simulations_per_decision", 9999),
+        ("path_cache", "legacy"),
+        ("simulator_sha256", "wrong"),
+    ])
+    def test_rl_rejects_incompatible_prior_before_training(tmp_path, monkeypatch, field, wrong):
+>       import torch
+
+tests/test_oracle_mcts_controller.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+__ test_rl_rejects_incompatible_prior_before_training[simulator_sha256-wrong] __
+
+tmp_path = PosixPath('/private/var/folders/b3/r9qb3b916db3svbf2pm9lx380000gn/T/pytest-of-yebohou/pytest-23/test_rl_rejects_incompatible_p4')
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x107c4ff90>
+field = 'simulator_sha256', wrong = 'wrong'
+
+    @pytest.mark.parametrize("field,wrong", [
+        ("information", "hidden"),
+        ("simulations_per_decision", 1999),
+        ("boss_simulations_per_decision", 9999),
+        ("path_cache", "legacy"),
+        ("simulator_sha256", "wrong"),
+    ])
+    def test_rl_rejects_incompatible_prior_before_training(tmp_path, monkeypatch, field, wrong):
+>       import torch
+
+tests/test_oracle_mcts_controller.py:124: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+>   raise ImportError("No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)")
+E   ImportError: No module named 'torch' (torch disabled for this run: duplicate libomp aborts the process)
+
+validation/round4-step3-events-20261108/python-no-torch/torch-stub/torch/__init__.py:1: ImportError
+=========================== short test summary info ============================
+FAILED tests/test_audit_regressions.py::test_native_rule_regressions - Failed...
+FAILED tests/test_audit_regressions.py::test_oracle_strategies_are_never_player_usable
+FAILED tests/test_audit_regressions.py::test_benchmark_counts_real_terminal_outcomes
+FAILED tests/test_oracle_mcts_controller.py::test_pipeline_passes_mode_to_both_stages[oracle]
+FAILED tests/test_oracle_mcts_controller.py::test_pipeline_passes_mode_to_both_stages[hidden]
+FAILED tests/test_oracle_mcts_controller.py::test_rl_rejects_incompatible_prior_before_training[information-hidden]
+FAILED tests/test_oracle_mcts_controller.py::test_rl_rejects_incompatible_prior_before_training[simulations_per_decision-1999]
+FAILED tests/test_oracle_mcts_controller.py::test_rl_rejects_incompatible_prior_before_training[boss_simulations_per_decision-9999]
+FAILED tests/test_oracle_mcts_controller.py::test_rl_rejects_incompatible_prior_before_training[path_cache-legacy]
+FAILED tests/test_oracle_mcts_controller.py::test_rl_rejects_incompatible_prior_before_training[simulator_sha256-wrong]
+ERROR tests/test_armg_cycle_rl.py
+ERROR tests/test_armg_evaluation.py
+ERROR tests/test_armg_features.py
+ERROR tests/test_armg_fixed_mcts.py
+ERROR tests/test_armg_floor_final_boss.py
+ERROR tests/test_armg_floor_schedule.py
+ERROR tests/test_armg_native_bridge.py
+ERROR tests/test_armg_need.py
+ERROR tests/test_armg_prior.py
+ERROR tests/test_armg_prior_cycle.py
+ERROR tests/test_armg_prior_cycles.py
+ERROR tests/test_armg_prior_guard.py
+ERROR tests/test_armg_puct_prior_rl.py
+ERROR tests/test_armg_rules_integration.py
+ERROR tests/test_armg_site_prior_rl.py
+ERROR tests/test_armg_training.py
+ERROR tests/test_battle_depth_prior_eval.py
+ERROR tests/test_battle_root_prior_eval.py
+ERROR tests/test_combat_dagger_collect.py
+ERROR tests/test_combat_dagger_training.py
+ERROR tests/test_engine_checkpoint_identity.py
+ERROR tests/test_evaluate_armg_checkpoints.py
+ERROR tests/test_evaluate_armg_floor_root_puct.py
+ERROR tests/test_evaluate_combat_dagger.py
+ERROR tests/test_evaluate_latest_puct_100.py
+ERROR tests/test_evaluate_latest_puct_threads.py
+ERROR tests/test_finetune_armg_prior.py
+ERROR tests/test_hidden_puct_eval.py
+ERROR tests/test_puct_fresh_init.py
+ERROR tests/test_puct_value_eval.py
+ERROR tests/test_replay_final_boss.py
+ERROR tests/test_smoke.py
+ERROR tests/test_training.py
+ERROR tests/test_truncation_semantics.py
+10 failed, 167 passed, 34 errors in 8.73s

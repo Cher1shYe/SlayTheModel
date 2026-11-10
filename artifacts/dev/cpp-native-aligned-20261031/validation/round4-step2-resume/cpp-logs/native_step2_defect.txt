@@ -1,0 +1,5 @@
+GO_FOR_THE_EYES: enemy 0 power 3
+GO_FOR_THE_EYES+: enemy 0 power 3
+MULTI_CAST: discard[2] cost expected=0 actual=-1
+MULTI_CAST+: discard[2] cost expected=0 actual=-1
+libc++abi: terminating due to uncaught exception of type std::runtime_error: Unknown fixture card NULL

@@ -43,12 +43,12 @@ def test_native_rule_regressions():
 
 def test_observation_schema_versions_are_bumped():
     """Layout changes must bump versions and expose one exact dimension."""
-    assert int(sim.PUBLIC_OBS_VERSION) == 13
-    assert int(sim.ACTION_SCHEMA_VERSION) == 12
-    assert int(sim.PUBLIC_OBS_DIM) == 46082
-    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == 29691
-    assert int(sim.CARD_FEAT_DIM) == 251
-    assert int(sim.ACTION_FEAT_DIM) == 343
+    assert int(sim.PUBLIC_OBS_VERSION) == 15
+    assert int(sim.ACTION_SCHEMA_VERSION) == 14
+    assert int(sim.PUBLIC_OBS_DIM) == 75988
+    assert int(sim.PUBLIC_COMBAT_OBS_DIM) == 49252
+    assert int(sim.CARD_FEAT_DIM) == 631
+    assert int(sim.ACTION_FEAT_DIM) == 727
 
 
 def test_binding_rejects_out_of_range_action_components():
