@@ -1,6 +1,7 @@
 """Synchronous PPO loop: rollout -> GAE -> update -> log -> (validate) -> checkpoint."""
 from __future__ import annotations
 
+import collections
 import json
 import random
 import time
@@ -12,7 +13,7 @@ from . import checkpoint as ckpt
 from .archive import write_rollout
 from .config import RunConfig
 from .metrics import MetricsLogger, wilson
-from .model import EnvSpec, SpireNet, count_parameters
+from .model import VALUE_SCALE, EnvSpec, SpireNet, count_parameters, value_weights
 from .ppo import critic_quality, ppo_update, prepare, recompute_check
 from .rollout import Collector, Job, summarize
 from .sim import identity
@@ -89,14 +90,45 @@ def evaluate(model: SpireNet, cfg: RunConfig, device: torch.device, split: str, 
             "per_seed": per_seed}
 
 
+def load_initial_weights(model: SpireNet, critic: SpireNet | None, init_checkpoint: Path | None,
+                         critic_prior: Path | None, log=print) -> dict:
+    """Weights-only warm start (new optimizer, new run). Returns provenance for config.json."""
+    info = {}
+    if init_checkpoint:
+        payload = ckpt.load(Path(init_checkpoint))
+        model.load_state_dict(payload["model"])
+        info["init_checkpoint"] = {"path": str(init_checkpoint), "fingerprint": payload.get("fingerprint"),
+                                   "progress": {k: payload.get("progress", {}).get(k) for k in
+                                                ("episodes_started", "updates", "best_val", "last_eval_episodes")}}
+        if critic is not None and payload.get("critic") is not None:
+            critic.load_state_dict(payload["critic"])
+            info["critic_from"] = "init_checkpoint"
+        log(f"warm start: policy{' + critic' if 'critic_from' in info else ''} from {init_checkpoint}")
+    if critic_prior:
+        if critic is None:
+            raise ValueError("--critic-prior needs a separate critic (cfg.critic)")
+        prior = torch.load(Path(critic_prior), map_location="cpu", weights_only=False)
+        if prior.get("identity") != identity():
+            raise ckpt.IncompatibleCheckpoint(f"{critic_prior}: simulator identity differs")
+        critic.load_state_dict(prior["critic"])
+        info["critic_from"] = "critic_prior"
+        info["critic_prior"] = {"path": str(critic_prior), "heldout_ev": prior.get("heldout_ev")}
+        log(f"critic prior from {critic_prior}: held-out EV {prior.get('heldout_ev')}")
+    return info
+
+
 def train(cfg: RunConfig, run_dir: Path, device: torch.device,
-          stop_after_updates: int | None = None, log=print) -> dict:
+          stop_after_updates: int | None = None, log=print, init_checkpoint: Path | None = None,
+          critic_prior: Path | None = None) -> dict:
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(cfg.seed)
     rng_py = random.Random(cfg.seed + 1)
     model = build_model(cfg, device)
     critic = build_critic(cfg, device)
+    if (run_dir / "metrics.jsonl").exists():
+        raise FileExistsError(f"{run_dir} already holds a run; use a new run directory")
+    provenance = load_initial_weights(model, critic, init_checkpoint, critic_prior, log)
     p = cfg.ppo
     optimizer = torch.optim.AdamW(model.parameters(), lr=p.lr, betas=p.betas, eps=p.eps,
                                   weight_decay=p.weight_decay)
@@ -105,18 +137,18 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
     progress = {"episodes_started": 0, "updates": 0, "transitions": 0, "stage": 0,
                 "act2_episodes": 0, "winning_seeds": [], "alpha0_episodes": 0, "best_val": None,
                 "stage_boundaries": [], "failures": 0, "stopped": None}
-    if (run_dir / "metrics.jsonl").exists():
-        raise FileExistsError(f"{run_dir} already holds a run; use a new run directory")
     disk = check_disk(run_dir, count_parameters(model) + (count_parameters(critic) if critic is not None else 0))
     log(f"checkpoint disk plan: {disk}")
     (run_dir / "config.json").write_text(json.dumps(
         {"config": cfg.to_dict(), "fingerprint": cfg.fingerprint(), "identity": identity(),
          "sim_binary": sim_binary(), "parameters": count_parameters(model),
-         "critic_parameters": count_parameters(critic) if critic is not None else 0, "device": str(device)},
+         "critic_parameters": count_parameters(critic) if critic is not None else 0, "device": str(device),
+         **provenance},
         indent=2, default=str))
     logger = MetricsLogger(run_dir, cfg.sweet_spot, cfg.total_episodes,
                            f"SpireNet {cfg.preset} ({count_parameters(model) / 1e9:.3f}B params)")
     collector = Collector(cfg, model, device, critic=critic)
+    replay = collections.deque(maxlen=max(1, p.critic_replay_rollouts))   # earlier rollouts' targets for the critic
 
     def run_eval(at: int) -> None:
         res = evaluate(model, cfg, device, "val", critic=critic)
@@ -158,15 +190,22 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
             cycle_start = time.perf_counter()
             if device.type == "cuda":
                 torch.cuda.reset_peak_memory_stats(device)
-            res = collector.collect(jobs, stage, st.alpha, p.min_transitions, sample_seed=cfg.seed)
+            res = collector.collect(jobs, stage, st.alpha, p.min_transitions, sample_seed=cfg.seed, forks=True)
             progress["episodes_started"] += res.started
             archive_bytes = 0
             if cfg.archive_trajectories and res.episodes:
                 archive_bytes = write_rollout(
                     run_dir / "archive" / f"rollout_{progress['updates'] + 1:05d}.npz", res.episodes,
                     {"behaviour_updates": progress["updates"], "stage": stage, "alpha": st.alpha,
-                     "fingerprint": cfg.fingerprint(), "identity": identity(), "sample_seed": cfg.seed})
-            targets = prepare(res.episodes, p)
+                     "fingerprint": cfg.fingerprint(), "identity": identity(), "sample_seed": cfg.seed,
+                     "fork_config": cfg.to_dict()["fork"], "value_scale": VALUE_SCALE,
+                     "value_weights": value_weights(st.alpha, cfg.reward)})
+            targets = prepare(res.episodes, p, cfg.fork.seeds if cfg.fork.enabled else 0)
+            critic_targets = targets
+            if critic is not None and p.critic_replay_rollouts > 0 and replay:
+                pool = [x for chunk in replay for x in chunk]
+                k = min(len(pool), int(p.critic_replay_ratio * len(targets)))
+                critic_targets = targets + rng_py.sample(pool, k)
             quality = critic_quality(targets)
             failures = res.stats.get("failures", 0)
             progress["failures"] += failures
@@ -177,7 +216,12 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
             if recompute > p.recompute_tolerance:
                 raise RuntimeError(f"log-probability recompute mismatch {recompute:.4g} > {p.recompute_tolerance}")
             upd = ppo_update(model, optimizer, targets, p, st.entropy_coef, cfg.model.window, device, rng_py,
-                             critic, critic_optimizer).values if targets else {}
+                             critic, critic_optimizer, cfg.fork.coef if cfg.fork.enabled else 0.0,
+                             critic_targets).values if targets else {}
+            if critic is not None and p.critic_replay_rollouts > 0 and targets:
+                for ep in res.episodes:          # replay keeps only what the critic needs
+                    ep.info.pop("forks", None)
+                replay.append(targets)
             progress["updates"] += 1
             progress["transitions"] += res.transitions
             for ep in res.episodes:

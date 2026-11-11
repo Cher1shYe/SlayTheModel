@@ -29,9 +29,30 @@ def _config(args):
         ppo["microbatch"] = args.microbatch
     if ppo:
         overrides["ppo"] = ppo
+    reward = {}
     if getattr(args, "gate_policy", None):
-        overrides["reward"] = {"gate_policy": args.gate_policy}
-    return make_config(args.preset, **overrides)
+        reward["gate_policy"] = args.gate_policy
+    if getattr(args, "alpha", None) is not None:
+        from .config import RewardStage
+        reward["stages"] = (RewardStage(10 ** 9, float(args.alpha), float(args.entropy_coef)),)
+    if reward:
+        overrides["reward"] = reward
+    fork = {k: getattr(args, "fork_" + k) for k in ("rest_prob", "map_prob", "card_prob", "seeds", "coef")
+            if getattr(args, "fork_" + k, None) is not None}
+    if fork:
+        overrides["fork"] = fork
+    if getattr(args, "critic_replay", None) is not None:
+        ppo["critic_replay_rollouts"] = args.critic_replay
+        overrides["ppo"] = ppo
+    cfg = make_config(args.preset, **overrides)
+    if getattr(args, "init_checkpoint", None):
+        # The network shapes come from the checkpoint being continued.
+        import dataclasses
+        from . import checkpoint as ckpt
+        from .config import RunConfig
+        saved = RunConfig.from_dict(ckpt.load(Path(args.init_checkpoint))["config"])
+        cfg = dataclasses.replace(cfg, preset=saved.preset, model=saved.model, critic=saved.critic)
+    return cfg
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -48,6 +69,27 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--gate-policy", choices=("stop", "hold"))
     t.add_argument("--device", default="auto")
     t.add_argument("--stop-after-updates", type=int, help="short profiling run (M3)")
+    t.add_argument("--init-checkpoint", help="continue from these weights (best.pt/last.pt); new optimizer, new run")
+    t.add_argument("--critic-prior", help="critic weights from `pretrain-critic` (overrides the checkpoint's critic)")
+    t.add_argument("--alpha", type=float, help="one fixed progress weight for the whole run (no reward stages)")
+    t.add_argument("--entropy-coef", type=float, default=0.01, help="entropy weight used with --alpha")
+    t.add_argument("--fork-rest", dest="fork_rest_prob", type=float, help="paired-fork probability at campfires")
+    t.add_argument("--fork-map", dest="fork_map_prob", type=float, help="paired-fork probability at map choices")
+    t.add_argument("--fork-card", dest="fork_card_prob", type=float, help="paired-fork probability at card rewards")
+    t.add_argument("--fork-seeds", dest="fork_seeds", type=int, help="paired seed sets per fork")
+    t.add_argument("--fork-coef", dest="fork_coef", type=float, help="weight of the fork policy loss")
+    t.add_argument("--critic-replay", type=int, help="earlier rollouts kept for critic training (0 = off)")
+
+    pc = sub.add_parser("pretrain-critic", help="offline critic prior from trajectory archives")
+    pc.add_argument("--archive", nargs="+", required=True, help="archive directories (rollout_*.npz)")
+    pc.add_argument("--out", required=True, help="output file, e.g. runs/critic-prior.pt")
+    pc.add_argument("--init-checkpoint", help="take the critic shape (and starting weights) from this checkpoint")
+    pc.add_argument("--preset", default="main")
+    pc.add_argument("--epochs", type=int, default=2)
+    pc.add_argument("--holdout-files", type=int, default=8)
+    pc.add_argument("--files-per-chunk", type=int, default=16)
+    pc.add_argument("--microbatch", type=int, default=32)
+    pc.add_argument("--device", default="auto")
 
     e = sub.add_parser("eval", help="evaluate a checkpoint on the validation or test seeds")
     e.add_argument("--checkpoint", required=True)
@@ -120,6 +162,21 @@ def main(argv: list[str] | None = None) -> int:
             Path(args.out).write_text(json.dumps(res, indent=1, default=str))
         print(json.dumps({k: v for k, v in res.items() if k != "per_seed"}, indent=2, default=str))
         return 0
+    if args.cmd == "pretrain-critic":
+        import dataclasses
+        from .config import RunConfig, make_config
+        from .pretrain import pretrain_critic
+        cfg = make_config(args.preset)
+        if args.init_checkpoint:
+            from . import checkpoint as ckpt
+            saved = RunConfig.from_dict(ckpt.load(Path(args.init_checkpoint))["config"])
+            cfg = dataclasses.replace(cfg, critic=saved.critic)
+        rep = pretrain_critic(cfg, [Path(a) for a in args.archive], Path(args.out), _device(args.device),
+                              init_checkpoint=args.init_checkpoint, epochs=args.epochs,
+                              files_per_chunk=args.files_per_chunk, holdout_files=args.holdout_files,
+                              microbatch=args.microbatch)
+        print(json.dumps(rep, indent=2, default=str))
+        return 0
     if args.cmd == "compare":
         from .tools import paired_compare
         a, b = (json.loads(Path(x).read_text()) for x in (args.a, args.b))
@@ -152,7 +209,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     from .train import train
     cfg = _config(args)
-    summary = train(cfg, Path(args.run_dir), _device(args.device), stop_after_updates=args.stop_after_updates)
+    summary = train(cfg, Path(args.run_dir), _device(args.device), stop_after_updates=args.stop_after_updates,
+                    init_checkpoint=args.init_checkpoint, critic_prior=args.critic_prior)
     print(json.dumps(summary, indent=2, default=str))
     return 0
 

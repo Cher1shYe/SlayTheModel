@@ -35,6 +35,17 @@
       "dropout": 0.0,
       "type_factorized": true
     },
+    "fork": {
+      "rest_prob": 0.0,
+      "map_prob": 0.0,
+      "card_prob": 0.0,
+      "seeds": 2,
+      "max_options": 4,
+      "max_combats": 2,
+      "max_decisions": 40,
+      "max_active_branches": 48,
+      "coef": 1.0
+    },
     "combat": {
       "normal_simulations": 128,
       "boss_simulations": 512,
@@ -96,7 +107,9 @@
       "max_grad_norm": 0.5,
       "value_coef": 0.5,
       "critic_lr": 0.0001,
-      "value_epochs": 4,
+      "value_epochs": 2,
+      "critic_replay_rollouts": 12,
+      "critic_replay_ratio": 1.0,
       "value_huber_delta": 1.0,
       "aux_survival_coef": 0.05,
       "aux_hp_coef": 0.02,
@@ -128,5 +141,5 @@
     ],
     "archive_trajectories": true
   },
-  "fingerprint": "9e6b9bfd5a415233"
+  "fingerprint": "3deee305c1bbc568"
 }

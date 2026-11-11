@@ -3,7 +3,7 @@
 Separate from the PPO buffer (never fed back into PPO). Each decision keeps
 its public entities, candidates, chosen action, behaviour log-probability and
 value, and reward components; windows are rebuilt by index, not stored.
-One compressed ``.npz`` per rollout.
+One compressed ``.npz`` per rollout, including compact paired-fork audit records.
 """
 from __future__ import annotations
 
@@ -15,8 +15,8 @@ import numpy as np
 from .data import Episode
 from .env import Observation, Outcome
 
-FORMAT = "spire_rl.archive/2"          # 2 adds value_comps (3-component critic)
-READABLE = ("spire_rl.archive/1", FORMAT)
+FORMAT = "spire_rl.archive/3"          # 3 adds forks_json; public observation layout is unchanged
+READABLE = ("spire_rl.archive/1", "spire_rl.archive/2", FORMAT)
 _OBS_ARRAYS = ("kind", "id", "num", "edges", "cand_type", "cand_index", "cand_target", "cand_target2", "cand_num")
 
 
@@ -47,6 +47,16 @@ def write_rollout(path: Path, episodes: list[Episode], meta: dict) -> int:
         parts = [getattr(e.obs[t], name) for e, t in steps]
         out[name] = np.concatenate(parts) if parts else np.zeros(0)
         out[name + "_len"] = np.array([p.shape[0] for p in parts], np.int32)
+    forks = []
+    for i, ep in enumerate(ep_rows):
+        for f in ep.info.get("forks", []):
+            forks.append({"ep_index": i, "fork_id": f.fork_id, "t": f.t,
+                          "options": f.options, "groups": f.groups, "group_level": f.group_level,
+                          "screen": f.screen, "failed": f.failed,
+                          "branches": [{**f.details.get((k, s), {}), "option": k, "seed_set": s,
+                                        "return": f.returns.get((k, s))}
+                                       for k, s in sorted(f.returns.keys() | f.details.keys())]})
+    out["forks_json"] = np.frombuffer(json.dumps(forks).encode(), np.uint8)
     meta = {**meta, "format": FORMAT,
             "failure_reasons": {str(e.episode_id): e.failure_reason for e in ep_rows if e.failure_reason}}
     out["meta"] = np.frombuffer(json.dumps(meta, default=str).encode(), np.uint8)
@@ -83,4 +93,19 @@ def read_rollout(path: Path) -> tuple[dict, list[Episode]]:
             ep.reward.append(z["reward"][k])
             k += 1
         episodes.append(ep)
+    if "forks_json" in z.files:
+        from .rollout import Fork
+        for row in json.loads(bytes(z["forks_json"]).decode()):
+            ep = episodes[row["ep_index"]]
+            f = Fork(row["fork_id"], ep, row["t"], row["options"], row["groups"],
+                     row["group_level"], row["screen"], failed=row["failed"])
+            for branch in row["branches"]:
+                branch = dict(branch)
+                key = (branch.pop("option"), branch.pop("seed_set"))
+                value = branch.pop("return")
+                if value is not None:
+                    f.returns[key] = value
+                f.details[key] = branch
+            ep.info.setdefault("forks", []).append(f)
+    z.close()
     return meta, episodes

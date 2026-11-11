@@ -144,6 +144,22 @@ class MacroEnv:
         return StepResult(raw_reward(components, alpha, self.reward), components, outcome, next_obs,
                           final_obs, reason)
 
+    def fork(self, search_seed: int) -> "MacroEnv":
+        """Independent copy at the current decision (run state cloned, fresh log).
+
+        ``search_seed`` replaces the combat-search seed base; branches of one paired
+        fork share it, so their fights use the same search random numbers.
+        """
+        env = MacroEnv(self.combat, self.reward, self.ascension, self.max_macro_steps, self.max_grid_steps)
+        env.rc = self.rc.clone()
+        env.game_seed = self.game_seed
+        env.search_seed = int(search_seed) & 0xFFFFFFFF
+        for name in ("decisions", "macro_steps", "combat_index", "mcts_decision_counter", "credited_floor",
+                     "max_act", "grid_phase", "grid_steps"):
+            setattr(env, name, getattr(self, name))
+        env.log = EpisodeLog(max_act=self.max_act)
+        return env
+
     # -- internals ---------------------------------------------------------
     def _completed_floor(self) -> int:
         rc = self.rc

@@ -5,6 +5,15 @@ release the GIL in C++); every pending decision is scored in one batched
 forward on the device. A rollout stops starting new episodes once it holds
 ``min_transitions`` decisions (or the job list ends) and then finishes every
 in-flight episode, so collected episodes are always complete.
+
+Paired forks (``RunConfig.fork``): at some decisions of a training episode the
+environment is copied once per (option, seed set). Branches of one seed set
+share the combat-search seed and the policy sampling stream, so the difference
+between options is not drowned in luck. A branch runs with the current policy
+until the horizon (act change, ``max_combats`` fights, ``max_decisions``
+decisions or the end of the run); the remainder is estimated by the critic.
+Branch steps are never added to the PPO data; only the per-option returns are
+attached to the forked decision (``Episode.info["forks"]``).
 """
 from __future__ import annotations
 
@@ -18,10 +27,13 @@ import numpy as np
 import torch
 
 from .config import RunConfig
-from .data import Episode, collate
+from .data import Episode, candidate_groups, collate
 from .env import MacroEnv, Outcome
-from .model import SpireNet, combine_value, value_weights
+from .model import VALUE_SCALE, SpireNet, combine_value, value_weights
 from .ppo import _autocast
+
+REST_HEAL, REST_UPGRADE, MOVE = 3, 4, 0
+SCREEN_MAP, SCREEN_CARD_REWARD, SCREEN_REST = 0, 2, 3
 
 
 @dataclass
@@ -43,12 +55,33 @@ class RolloutResult:
     stats: dict = field(default_factory=dict)
 
 
+@dataclass
+class Fork:
+    """One paired fork of decision ``t`` of ``episode``."""
+    fork_id: int
+    episode: Episode
+    t: int
+    options: list[int]           # candidate indices executed in the branches
+    groups: list[int]            # action group of each option
+    group_level: bool            # options represent whole action groups (else single candidates)
+    screen: int
+    returns: dict = field(default_factory=dict)    # (option, seed) -> r_train-unit return
+    failed: bool = False
+    details: dict = field(default_factory=dict)    # (option, seed) -> compact audit record
+
+
 class _Slot:
     def __init__(self, env: MacroEnv):
         self.env = env
         self.episode: Episode | None = None
         self.obs = None
         self.rng: np.random.Generator | None = None
+        # branch state (fork slots only)
+        self.fork: Fork | None = None
+        self.option = self.seed = 0
+        self.start_act = 0
+        self.events = np.zeros(3, np.float64)
+        self.branch_decisions = 0
 
 
 def _episode_summary(ep: Episode) -> dict:
@@ -86,13 +119,61 @@ class Collector:
         self.critic.eval()
         return self.critic(collate(targets, self.critic.cfg.window).to(self.device)).value.float().cpu().numpy()
 
+    def _bootstrap(self, items) -> np.ndarray:
+        """Critic components at the state after the last action of each (episode, final_obs)."""
+        override = {(ep.episode_id, len(ep)): obs for ep, obs in items}
+        tg = [(ep, len(ep)) for ep, _ in items]
+        out = []
+        with torch.no_grad(), _autocast(self.device, self.cfg.ppo.bf16):
+            for i in range(0, len(tg), 64):
+                part = tg[i:i + 64]
+                if self.critic is None:
+                    o = self.model(collate(part, self.cfg.model.window, obs_override=override).to(self.device))
+                else:
+                    self.critic.eval()
+                    o = self.critic(collate(part, self.critic.cfg.window, obs_override=override).to(self.device))
+                out.append(o.value.float().cpu().numpy())
+        return np.concatenate(out) if out else np.zeros((0, 3), np.float32)
+
+    # -- forks ---------------------------------------------------------------
+    def _fork_options(self, obs, taken: int, lp: np.ndarray, rng: np.random.Generator):
+        """(screen, options, groups, group_level) if this decision is fork-eligible, else None."""
+        fc = self.cfg.fork
+        screen = obs.phase // 2 if obs.phase % 2 == 0 else -1
+        groups = candidate_groups(obs)
+        if screen == SCREEN_MAP and fc.map_prob > 0:
+            moves = [i for i in range(obs.num_candidates) if obs.cand_type[i] == MOVE]
+            if len(moves) < 2 or rng.random() >= fc.map_prob:
+                return None
+            others = [m for m in moves if m != taken]
+            rng.shuffle(others)
+            opts = ([taken] if taken in moves else []) + others
+            opts = opts[:fc.max_options]
+            return screen, opts, [int(groups[o]) for o in opts], False
+        prob = {SCREEN_REST: fc.rest_prob, SCREEN_CARD_REWARD: fc.card_prob}.get(screen, 0.0)
+        present = sorted(set(int(g) for g in groups))
+        if prob <= 0 or len(present) < 2 or rng.random() >= prob:
+            return None
+        opts, ogroups = [], []
+        taken_group = int(groups[taken])
+        for g in [taken_group] + [g for g in present if g != taken_group]:
+            if g == taken_group:
+                o = taken
+            else:   # representative: sampled from the policy within the group
+                members = np.flatnonzero(groups == g)
+                p = np.exp(lp[members] - lp[members].max())
+                o = int(rng.choice(members, p=p / p.sum()))
+            opts.append(o); ogroups.append(g)
+        return screen, opts[:fc.max_options], ogroups[:fc.max_options], True
+
     # -- one rollout ---------------------------------------------------------
     def collect(self, jobs: Iterator[Job], stage: int, alpha: float, min_transitions: int | None,
-                sample_seed: int, greedy: bool = False) -> RolloutResult:
+                sample_seed: int, greedy: bool = False, forks: bool = False) -> RolloutResult:
         """Run episodes until ``min_transitions`` (None = all jobs), then finish those in flight.
 
         ``stage`` only labels the episodes; it is not a network input. ``alpha``
-        sets the reward and the critic combination weights.
+        sets the reward and the critic combination weights. ``forks`` enables the
+        paired forks of ``cfg.fork`` (training only).
 
         Each episode samples from its own stream seeded by (sample_seed,
         episode_id), so results do not depend on thread completion order.
@@ -105,6 +186,12 @@ class Collector:
         infer_s = 0.0
         scale = self.cfg.reward.scale
         weights = value_weights(alpha, self.cfg.reward)
+        wvec = np.asarray(weights, np.float64)
+        fc = self.cfg.fork
+        use_forks = forks and fc.enabled and not greedy
+        all_forks: list[Fork] = []
+        branch_boot: list[tuple[_Slot, Episode, object]] = []
+        active_branches = 0
         jobs = iter(jobs)
         exhausted = False
 
@@ -124,6 +211,51 @@ class Collector:
             started += 1
             return True
 
+        def finish_branch(slot: _Slot, res, reason: str, bootstrap_obs=None) -> None:
+            nonlocal active_branches
+            active_branches -= 1
+            slot.fork.details[(slot.option, slot.seed)].update(
+                events=slot.events.tolist(), bootstrap_comps=[0.0, 0.0, 0.0],
+                bootstrapped=bootstrap_obs is not None, stop_reason=reason,
+                outcome=res.outcome.name, failure_reason=res.failure_reason,
+                decisions=slot.branch_decisions, combats=len(slot.env.log.combats))
+            if bootstrap_obs is not None:
+                branch_boot.append((slot, slot.episode, bootstrap_obs))
+            else:
+                slot.fork.returns[(slot.option, slot.seed)] = float(slot.events @ wvec)
+
+        def spawn_forks(slot: _Slot, t: int, taken: int, lp: np.ndarray) -> None:
+            nonlocal active_branches
+            ep = slot.episode
+            frng = np.random.default_rng([sample_seed & 0xFFFFFFFF, ep.episode_id, t, 0xF0])
+            found = self._fork_options(slot.obs, taken, lp, frng)
+            if found is None:
+                return
+            screen, opts, groups, group_level = found
+            n_branches = len(opts) * fc.seeds
+            if active_branches + n_branches > fc.max_active_branches:
+                return
+            fork = Fork(len(all_forks), ep, t, opts, groups, group_level, screen)
+            all_forks.append(fork)
+            ep.info.setdefault("forks", []).append(fork)
+            for s in range(fc.seeds):
+                search_seed = int(frng.integers(0, 2 ** 32))
+                sample = int(frng.integers(0, 2 ** 32))
+                for k, opt in enumerate(opts):
+                    b = _Slot(slot.env.fork(search_seed))
+                    b.fork, b.option, b.seed = fork, k, s
+                    fork.details[(k, s)] = {"search_seed": search_seed, "sample_seed": [sample, 0xB4]}
+                    b.start_act = int(slot.env.rc.act)
+                    b.rng = np.random.default_rng([sample, 0xB4])          # same stream for every option
+                    bid = -(1 + (fork.fork_id * 64 + k * 8 + s))           # unique key for collate
+                    be = Episode(bid, ep.game_seed, stage)
+                    be.obs = ep.obs[:t + 1]
+                    be.actions = ep.actions[:t] + [opt]
+                    be.reward = ep.reward[:t]
+                    b.episode = be
+                    active_branches += 1
+                    futures[self.pool.submit(b.env.step, opt, slot.obs, alpha)] = b
+
         for slot in self.slots:
             if want_more():
                 start(slot)
@@ -136,6 +268,28 @@ class Collector:
                     slot = futures.pop(fut)
                     res = fut.result()
                     ep = slot.episode
+                    if slot.fork is not None:                   # --- branch result
+                        ep.reward.append(np.array([res.reward_raw / scale, *res.components], np.float32))
+                        slot.events += res.components
+                        slot.branch_decisions += 1
+                        if res.outcome == Outcome.FAILURE:
+                            slot.fork.failed = True
+                            finish_branch(slot, res, "failure")
+                        elif res.outcome in (Outcome.WIN, Outcome.DEATH):
+                            finish_branch(slot, res, res.outcome.name.lower())
+                        elif res.outcome == Outcome.TRUNCATED:
+                            finish_branch(slot, res, "truncated", res.final_obs)
+                        elif (int(slot.env.rc.act) != slot.start_act or res.components[1] > 0
+                              or len(slot.env.log.combats) >= fc.max_combats
+                              or slot.branch_decisions >= fc.max_decisions):
+                            reason = ("act_change" if int(slot.env.rc.act) != slot.start_act or res.components[1] > 0
+                                      else "max_combats" if len(slot.env.log.combats) >= fc.max_combats
+                                      else "max_decisions")
+                            finish_branch(slot, res, reason, res.next_obs)
+                        else:
+                            slot.obs = res.next_obs
+                            ready.append(slot)
+                        continue
                     if len(ep.actions) > len(ep.reward):        # result of a step
                         ep.reward.append(np.array([res.reward_raw / scale, *res.components], np.float32))
                         ep.info["reward_raw"] += res.reward_raw
@@ -154,7 +308,7 @@ class Collector:
                         start(slot)
             if not ready:
                 continue
-            # Batch every pending decision into one forward.
+            # Batch every pending decision (episodes and branches) into one forward.
             batch_slots, ready = ready, []
             targets = []
             for slot in batch_slots:
@@ -164,7 +318,11 @@ class Collector:
             self.model.eval()
             with torch.no_grad(), _autocast(self.device, self.cfg.ppo.bf16):
                 out = self.model(collate(targets, self.cfg.model.window).to(self.device))
-                comps = self._critic_values(targets, out)
+                main_rows = [i for i, s in enumerate(batch_slots) if s.fork is None]
+                comps = np.zeros((len(batch_slots), 3), np.float32)
+                if main_rows:
+                    comps[main_rows] = self._critic_values([targets[i] for i in main_rows], None) \
+                        if self.critic is not None else out.value.float().cpu().numpy()[main_rows]
             logp_all = torch.log_softmax(out.logits.float(), -1).cpu().numpy()
             values = combine_value(comps, alpha, self.cfg.reward)
             infer_s += time.perf_counter() - t0
@@ -179,30 +337,84 @@ class Collector:
                     p = np.exp(lp - lp.max())
                     a = int(slot.rng.choice(legal, p=p / p.sum()))
                 ep.actions.append(a)
-                ep.logp.append(float(lp[a]))
-                ep.value.append(float(values[i]))
-                ep.value_comps.append(comps[i].copy())
+                if slot.fork is None:
+                    ep.logp.append(float(lp[a]))
+                    ep.value.append(float(values[i]))
+                    ep.value_comps.append(comps[i].copy())
+                    if use_forks:
+                        spawn_forks(slot, len(ep.obs) - 1, a, lp)
                 futures[self.pool.submit(slot.env.step, a, slot.obs, alpha)] = slot
 
-        # Bootstrap values for truncated episodes (state after the last action).
+        # Bootstrap values: truncated episodes and branches stopped at the horizon.
         trunc = [ep for ep in finished if ep.outcome == Outcome.TRUNCATED and ep.final_obs is not None and len(ep)]
-        if trunc:
-            override = {(ep.episode_id, len(ep)): ep.final_obs for ep in trunc}
-            with torch.no_grad(), _autocast(self.device, self.cfg.ppo.bf16):
-                tg = [(ep, len(ep)) for ep in trunc]
-                if self.critic is None:
-                    out = self.model(collate(tg, self.cfg.model.window, obs_override=override).to(self.device))
-                    comps = out.value.float().cpu().numpy()
-                else:
-                    self.critic.eval()
-                    comps = self.critic(collate(tg, self.critic.cfg.window, obs_override=override)
-                                        .to(self.device)).value.float().cpu().numpy()
-            for ep, c in zip(trunc, comps):
-                ep.bootstrap_comps = c.copy()
-                ep.bootstrap_value = float(combine_value(c, alpha, self.cfg.reward))
+        items = [(ep, ep.final_obs) for ep in trunc] + [(be, obs) for _, be, obs in branch_boot]
+        comps = self._bootstrap(items) if items else np.zeros((0, 3), np.float32)
+        for ep, c in zip(trunc, comps[:len(trunc)]):
+            ep.bootstrap_comps = c.copy()
+            ep.bootstrap_value = float(combine_value(c, alpha, self.cfg.reward))
+        scale_vec = np.asarray(VALUE_SCALE, np.float64)
+        for (slot, _, _), c in zip(branch_boot, comps[len(trunc):]):
+            slot.fork.details[(slot.option, slot.seed)]["bootstrap_comps"] = c.tolist()
+            slot.fork.returns[(slot.option, slot.seed)] = float((slot.events + c.astype(np.float64) * scale_vec) @ wvec)
         wall = time.perf_counter() - started_at
-        return RolloutResult(finished, transitions, started, wall, infer_s, wall - infer_s, forward_calls,
-                             summarize(finished))
+        stats = summarize(finished)
+        stats.update(fork_stats(all_forks, fc.seeds))
+        return RolloutResult(finished, transitions, started, wall, infer_s, wall - infer_s, forward_calls, stats)
+
+
+def fork_option_returns(fork: Fork, seeds: int) -> np.ndarray | None:
+    """Mean return of each option over seed sets, or None if incomplete/failed."""
+    if fork.failed:
+        return None
+    vals = np.full((len(fork.options), seeds), np.nan)
+    for (k, s), v in fork.returns.items():
+        vals[k, s] = v
+    if np.isnan(vals).any():
+        return None
+    return vals.mean(1)
+
+
+def fork_stats(forks: list[Fork], seeds: int) -> dict:
+    if not forks:
+        return {"forks": 0}
+    ok = [(f, fork_option_returns(f, seeds)) for f in forks]
+    ok = [(f, r) for f, r in ok if r is not None]
+    spread = [float(r.max() - r.min()) for _, r in ok]
+    # Only unique best options provide evidence of choosing better; report ties separately.
+    best = [np.isclose(r, r.max(), rtol=1e-6, atol=1e-8) for _, r in ok]
+    taken_best = [float(mask[0]) for mask in best if mask.sum() == 1]
+    by_screen = collections.Counter(f.screen for f, _ in ok)
+    rest = [(f, r) for f, r in ok if f.screen == SCREEN_REST and REST_HEAL in f.groups and REST_UPGRADE in f.groups]
+    heal_better = [float(r[f.groups.index(REST_HEAL)] > r[f.groups.index(REST_UPGRADE)]) for f, r in rest]
+    return {"forks": len(forks), "forks_complete": len(ok),
+            "fork_branches": sum(len(f.options) * seeds for f in forks),
+            "fork_rest": by_screen.get(SCREEN_REST, 0), "fork_map": by_screen.get(SCREEN_MAP, 0),
+            "fork_card": by_screen.get(SCREEN_CARD_REWARD, 0),
+            "fork_return_spread": float(np.mean(spread)) if spread else float("nan"),
+            "fork_taken_was_best": float(np.mean(taken_best)) if taken_best else float("nan"),
+            "fork_decisive": len(taken_best),
+            "fork_tie_rate": float(np.mean([mask.sum() > 1 for mask in best])) if best else float("nan"),
+            "fork_rest_heal_better": float(np.mean(heal_better)) if heal_better else float("nan")}
+
+
+def rest_behaviour(episodes: list[Episode]) -> dict:
+    """Campfire choice when both heal and upgrade are legal, split by HP (behaviour check)."""
+    low, full = [], []
+    for ep in episodes:
+        for o, a in zip(ep.obs, ep.actions):
+            if o.phase // 2 != SCREEN_REST or o.phase % 2:
+                continue
+            types = o.cand_type
+            if not ((types == REST_HEAL).any() and (types == REST_UPGRADE).any()):
+                continue
+            hp = float(o.num[0][0]); heal = float(types[a] == REST_HEAL)
+            if hp < 0.5:
+                low.append(heal)
+            elif hp > 0.999:
+                full.append(heal)
+    return {"rest_heal_rate_hp_below_50": float(np.mean(low)) if low else float("nan"),
+            "rest_heal_rate_full_hp": float(np.mean(full)) if full else float("nan"),
+            "rest_choices_hp_below_50": len(low), "rest_choices_full_hp": len(full)}
 
 
 def summarize(episodes: list[Episode]) -> dict:
@@ -234,4 +446,5 @@ def summarize(episodes: list[Episode]) -> dict:
         "truncation_reasons": dict(sorted(collections.Counter(
             r["truncation_reason"] for r in rows if r["outcome"] == "TRUNCATED").items())),
         "failure_reasons": sorted({ep.failure_reason for ep in episodes if ep.outcome == Outcome.FAILURE}),
+        **rest_behaviour(episodes),
     }

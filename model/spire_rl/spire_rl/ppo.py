@@ -68,18 +68,36 @@ def compute_gae(ep: Episode, gamma: float, lam: float, weights: tuple[float, flo
     ep.comp_returns = (ret_k / scale).astype(np.float32)
 
 
-def prepare(episodes: list[Episode], cfg: PPOConfig) -> list[tuple[Episode, int]]:
+def prepare(episodes: list[Episode], cfg: PPOConfig, fork_seeds: int = 0) -> list[tuple[Episode, int]]:
     """Labels, GAE and the flat target list of one rollout (failures excluded).
 
     Each episode carries ``info["value_weights"]`` from its collection alpha.
+    Completed paired forks become ``ep.fork_targets[t] = (options, groups,
+    group_level, advantages)``: option returns minus their mean, divided by the
+    standard deviation of all such centred returns in this rollout.
     """
-    targets = []
+    from .rollout import fork_option_returns
+    targets, centred = [], []
     for ep in episodes:
         if ep.outcome == Outcome.FAILURE or len(ep) == 0:
             continue
         ep.aux = aux_labels(ep.info["log"], len(ep), ep.outcome)
         compute_gae(ep, cfg.gamma, cfg.gae_lambda, ep.info.get("value_weights"))
         targets.extend((ep, t) for t in range(len(ep)))
+        ep.fork_targets = {}
+        for fork in ep.info.get("forks", []):
+            r = fork_option_returns(fork, fork_seeds) if fork_seeds else None
+            if r is None or len(r) < 2:
+                continue
+            c = r - r.mean()
+            ep.fork_targets[fork.t] = (fork.options, fork.groups, fork.group_level, c)
+            centred.append(c)
+    if centred:
+        scale = float(np.concatenate(centred).std()) + 1e-8
+        for ep, t in targets:
+            if t in getattr(ep, "fork_targets", {}):
+                o, g, gl, c = ep.fork_targets[t]
+                ep.fork_targets[t] = (o, g, gl, c / scale)
     return targets
 
 
@@ -193,7 +211,8 @@ def critic_update(critic: SpireNet, optimizer: torch.optim.Optimizer, targets, c
 
 def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: PPOConfig,
                entropy_coef: float, window: int, device: torch.device, rng: random.Random,
-               critic: SpireNet | None = None, critic_optimizer: torch.optim.Optimizer | None = None) -> UpdateStats:
+               critic: SpireNet | None = None, critic_optimizer: torch.optim.Optimizer | None = None,
+               fork_coef: float = 0.0, critic_targets=None) -> UpdateStats:
     """Clipped PPO on the policy. With a separate ``critic`` the policy loss has no value term
     and the critic gets its own value-only passes afterwards (``critic_update``).
 
@@ -203,10 +222,11 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
     """
     started = time.perf_counter()
     stats = {k: [] for k in ("policy_loss", "value_loss", "entropy", "entropy_group", "approx_kl", "clip_frac",
-                             "aux_survival_loss", "aux_hp_loss", "aux_act_loss", "grad_norm")}
+                             "aux_survival_loss", "aux_hp_loss", "aux_act_loss", "grad_norm", "fork_loss")}
     adv_all = _gather(targets, "advantages")
     adv_mean, adv_std = float(adv_all.mean()), float(adv_all.std() + 1e-8)
     epochs_done, steps, stopped, stop_reason, processed = 0, 0, False, "", 0
+    fork_n = 0
     kl_sample = rng.sample(targets, min(len(targets), cfg.kl_check_targets)) if targets else []
     kl_checks: list[float] = []
     shared_value = critic is None
@@ -220,7 +240,7 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
             aux_all = np.stack([ep.aux[t] for ep, t in batch])
             aux_counts = np.maximum(aux_all[:, 3:].sum(0), 1.0)
             optimizer.zero_grad(set_to_none=True)
-            kl_sum = clip_sum = ent_sum = gent_sum = pl_sum = vl_sum = 0.0
+            kl_sum = clip_sum = ent_sum = gent_sum = pl_sum = vl_sum = fl_sum = 0.0
             aux_sums = np.zeros(3)
             for m0 in range(0, n, cfg.microbatch):
                 micro = batch[m0:m0 + cfg.microbatch]
@@ -246,8 +266,22 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
                 hp = F.huber_loss(torch.sigmoid(out.aux[:, 1]), aux[:, 1], delta=cfg.aux_hp_huber_delta,
                                   reduction="none") * aux[:, 4]
                 act = F.binary_cross_entropy_with_logits(out.aux[:, 2], aux[:, 2], reduction="none") * aux[:, 5]
+                fork_terms = []
+                for i, (ep, t) in enumerate(micro):
+                    ft = getattr(ep, "fork_targets", {}).get(t)
+                    if ft is None:
+                        continue
+                    opts, groups, group_level, adv_f = ft
+                    if group_level and out.group_logp is not None:
+                        lps = out.group_logp[i, torch.tensor(groups, device=device)]
+                    else:
+                        lps = logp_all[i, torch.tensor(opts, device=device)]
+                    fork_terms.append(-(torch.tensor(adv_f, device=device, dtype=lps.dtype) * lps).sum())
+                fork_loss = torch.stack(fork_terms).sum() if fork_terms else torch.zeros((), device=device)
+                fork_n += len(fork_terms)
                 loss = ((pg + cfg.value_coef * vloss - entropy_coef * entropy
                          - cfg.type_entropy_coef * group_entropy).sum() / n
+                        + fork_coef * fork_loss / n
                         + cfg.aux_survival_coef * surv.sum() / aux_counts[0]
                         + cfg.aux_hp_coef * hp.sum() / aux_counts[1]
                         + cfg.aux_act_coef * act.sum() / aux_counts[2])
@@ -260,6 +294,7 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
                     gent_sum += float(group_entropy.sum())
                     pl_sum += float(pg.sum())
                     vl_sum += float(vloss.sum())
+                    fl_sum += float(fork_loss)
                     aux_sums += [float(surv.sum()), float(hp.sum()), float(act.sum())]
             grad_norm = torch.nn.utils.clip_grad_norm_(model.parameters(), cfg.max_grad_norm)
             optimizer.step()
@@ -276,6 +311,7 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
             stats["aux_hp_loss"].append(aux_sums[1] / aux_counts[1])
             stats["aux_act_loss"].append(aux_sums[2] / aux_counts[2])
             stats["grad_norm"].append(float(grad_norm))
+            stats["fork_loss"].append(fl_sum / n)
             if approx_kl > cfg.kl_hard_mult * cfg.target_kl:
                 stopped, stop_reason = True, "minibatch_kl"
                 break
@@ -296,8 +332,10 @@ def ppo_update(model: SpireNet, optimizer: torch.optim.Optimizer, targets, cfg: 
                    targets=len(targets), adv_mean=adv_mean, adv_std=adv_std,
                    approx_kl_max=float(max(stats["approx_kl"])) if stats["approx_kl"] else math.nan,
                    sampled_kl_last=kl_checks[-1] if kl_checks else math.nan,
-                   target_passes=processed / max(1, len(targets)))
+                   target_passes=processed / max(1, len(targets)), fork_targets_seen=fork_n)
     if critic is not None and critic_optimizer is not None and targets:
-        summary.update(critic_update(critic, critic_optimizer, targets, cfg, critic.cfg.window, device, rng))
+        ct = critic_targets if critic_targets is not None else targets
+        summary.update(critic_update(critic, critic_optimizer, ct, cfg, critic.cfg.window, device, rng))
+        summary["critic_targets"] = len(ct)
     summary["update_seconds"] = time.perf_counter() - started
     return UpdateStats(summary)

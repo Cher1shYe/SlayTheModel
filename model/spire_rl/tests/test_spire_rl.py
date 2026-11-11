@@ -276,6 +276,23 @@ def test_archive_round_trip(tmp_path, episodes, model):
                           model(collate(targets_of(back), WINDOW)).logits)
 
 
+@pytest.mark.parametrize("version", [1, 2])
+def test_archive_reads_older_formats(tmp_path, episodes, version):
+    import json
+    from spire_rl.archive import read_rollout, write_rollout
+    path = tmp_path / "old.npz"
+    write_rollout(path, episodes, {})
+    with np.load(path) as z:
+        arrays = {k: z[k] for k in z.files if k != "forks_json" and (version != 1 or k != "value_comps")}
+    meta = json.loads(bytes(arrays["meta"]).decode())
+    meta["format"] = f"spire_rl.archive/{version}"
+    arrays["meta"] = np.frombuffer(json.dumps(meta).encode(), np.uint8)
+    np.savez_compressed(path, **arrays)
+    _, back = read_rollout(path)
+    assert [e.actions for e in back] == [e.actions for e in episodes]
+    assert all(not e.info.get("forks") for e in back)
+
+
 def test_paired_compare():
     from spire_rl.tools import paired_compare
     a = {"per_seed": [{"seed": s, "won": s < 6} for s in range(20)]}
@@ -288,15 +305,25 @@ def test_paired_compare():
 
 
 def test_bf16_autocast_forward_and_backward(episodes):
-    """The CUDA default runs under BF16 autocast; CPU autocast exercises the same dtype mixing."""
+    """Training runs under CUDA BF16 autocast: test there when a GPU exists, else on CPU.
+
+    Some CPUs' oneDNN builds cannot run BF16 backward ("DNNL does not support
+    bf16/f16 backward", seen on avx2_vnni_2); training never uses that path, so skip.
+    """
     torch.manual_seed(0)
-    m = build_model(CFG, torch.device("cpu"))
-    b = collate(targets_of(episodes), WINDOW)
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    m = build_model(CFG, dev)
+    b = collate(targets_of(episodes), WINDOW).to(dev)
     assert b.edge_src.numel() > 0                       # the map message passing is exercised
-    with torch.autocast("cpu", dtype=torch.bfloat16):
-        out = m(b)
-    loss = torch.log_softmax(out.logits.float(), -1)[:, 0].sum() + out.value.float().sum() + out.aux.float().sum()
-    loss.backward()
+    try:
+        with torch.autocast(dev.type, dtype=torch.bfloat16):
+            out = m(b)
+        loss = torch.log_softmax(out.logits.float(), -1)[:, 0].sum() + out.value.float().sum() + out.aux.float().sum()
+        loss.backward()
+    except RuntimeError as exc:
+        if dev.type == "cpu" and "does not support bf16" in str(exc):
+            pytest.skip(f"CPU BF16 backward unsupported here: {exc}")
+        raise
     assert torch.isfinite(loss)
     assert all(p.grad is None or torch.isfinite(p.grad).all() for p in m.parameters())
 
@@ -463,3 +490,161 @@ def test_policy_update_with_critic_has_no_value_term_and_kl_stops(episodes):
     assert out["kl_early_stop"] and out["kl_stop_reason"] in ("minibatch_kl", "sampled_kl")
     assert out["optimizer_steps"] < 4 * len(tg) / 4
     assert "value_loss" in out and out["critic_steps"] > 0               # critic still trained
+
+
+# --- run 3: paired forks, warm start, critic prior ------------------------------------
+
+def _fork_cfg():
+    return make_config("tiny", combat={"normal_simulations": 4, "boss_simulations": 8},
+                       fork={"rest_prob": 1.0, "map_prob": 1.0, "card_prob": 1.0, "seeds": 2, "max_combats": 1,
+                             "max_decisions": 6, "max_active_branches": 64})
+
+
+def _collect_with_forks(cfg, model, critic, n_jobs=3):
+    from spire_rl.rollout import Collector, Job
+    col = Collector(cfg, model, torch.device("cpu"), num_envs=2, critic=critic)
+    try:
+        return col.collect((Job(i, 4000 + i, 77 + i) for i in range(n_jobs)), 0, 1.0, None, sample_seed=5, forks=True)
+    finally:
+        col.close()
+
+
+def test_paired_forks_are_complete_deterministic_and_centred(tmp_path):
+    from spire_rl.archive import read_rollout, write_rollout
+    from spire_rl.model import VALUE_SCALE
+    from spire_rl.ppo import prepare
+    from spire_rl.rollout import fork_option_returns
+    from spire_rl.train import build_critic
+    cfg = _fork_cfg()
+    torch.manual_seed(0)
+    m, c = build_model(cfg, torch.device("cpu")).eval(), build_critic(cfg, torch.device("cpu")).eval()
+    a = _collect_with_forks(cfg, m, c)
+    b = _collect_with_forks(cfg, m, c)
+    fa = [f for ep in a.episodes for f in ep.info.get("forks", [])]
+    fb = [f for ep in b.episodes for f in ep.info.get("forks", [])]
+    assert len(fa) > 0 and a.stats["forks_complete"] > 0
+    ra = [fork_option_returns(f, 2) for f in fa]
+    assert all(r is not None for r in ra)                              # every branch reported
+    # Episodes finish in thread-dependent order; compare the same decision, not list positions.
+    roots_a = {(f.episode.episode_id, f.t): f for f in fa}
+    roots_b = {(f.episode.episode_id, f.t): f for f in fb}
+    assert roots_a.keys() == roots_b.keys()
+    for key, f in roots_a.items():
+        other = roots_b[key]
+        assert f.options == other.options
+        np.testing.assert_allclose(fork_option_returns(f, 2), fork_option_returns(other, 2), rtol=1e-5, atol=1e-8)
+    assert all(f.options[0] == f.episode.actions[f.t] for f in fa)     # the taken action is option 0
+    # Audit records retain the evidence, without storing branch trajectories as episodes.
+    weights = np.asarray(value_weights(1.0, cfg.reward))
+    for f in fa:
+        for (k, s), d in f.details.items():
+            assert d["search_seed"] == f.details[(0, s)]["search_seed"]
+            assert d["sample_seed"] == f.details[(0, s)]["sample_seed"]
+            reconstructed = (np.asarray(d["events"]) + np.asarray(d["bootstrap_comps"]) * VALUE_SCALE) @ weights
+            assert f.returns[k, s] == pytest.approx(reconstructed)
+            assert d["stop_reason"] and d["decisions"] > 0
+    path = tmp_path / "forks.npz"
+    write_rollout(path, a.episodes, {"behaviour_updates": 7})
+    meta, back = read_rollout(path)
+    assert meta["format"] == "spire_rl.archive/3" and meta["behaviour_updates"] == 7
+    assert sum(map(len, back)) == a.transitions
+    restored = [f for ep in back for f in ep.info.get("forks", [])]
+    assert len(restored) == len(fa)
+    for old, new in zip(fa, restored):
+        assert (old.t, old.options, old.groups, old.group_level, old.screen, old.failed) == (
+            new.t, new.options, new.groups, new.group_level, new.screen, new.failed)
+        assert old.returns == new.returns and old.details == new.details
+        np.testing.assert_array_equal(fork_option_returns(old, 2), fork_option_returns(new, 2))
+    # branches never become PPO data
+    assert sum(len(ep) for ep in a.episodes) == a.transitions
+    targets = prepare(a.episodes, cfg.ppo, cfg.fork.seeds)
+    fts = [v for ep in a.episodes for v in ep.fork_targets.values()]
+    assert fts and all(abs(float(v[3].sum())) < 1e-6 for v in fts)    # centred advantages
+    m.train()
+    opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+    copt = torch.optim.AdamW(c.parameters(), lr=1e-4)
+    out = ppo_update(m, opt, targets, dataclasses.replace(cfg.ppo, epochs=1), 0.01, cfg.model.window,
+                     torch.device("cpu"), random.Random(0), c, copt, fork_coef=1.0).values
+    assert out["fork_targets_seen"] > 0 and np.isfinite(out["fork_loss"])
+
+
+def test_fork_stats_separate_ties_and_count_all_attempted_branches():
+    from spire_rl.rollout import Fork, fork_stats
+    ep = Episode(0, 42, 0)
+
+    def fork(values, failed=False):
+        return Fork(0, ep, 0, list(range(len(values))), list(range(len(values))), False, 0,
+                    returns={(k, s): v for k, v in enumerate(values) for s in range(2)}, failed=failed)
+
+    tied = fork_stats([fork([1, 1])], 2)
+    assert np.isnan(tied["fork_taken_was_best"])
+    assert tied["fork_decisive"] == 0 and tied["fork_tie_rate"] == 1
+    # Top ties are excluded, even when a third option is worse; failed branches still cost work.
+    stats = fork_stats([fork([1, 1, 0]), fork([2, 1]), fork([1, 2]), fork([9, 0], failed=True)], 2)
+    assert stats["fork_taken_was_best"] == 0.5
+    assert stats["fork_decisive"] == 2 and stats["fork_tie_rate"] == pytest.approx(1 / 3)
+    assert stats["fork_branches"] == 18 and stats["forks_complete"] == 3
+
+
+@pytest.mark.parametrize("floor_evs,best_epoch", [([0.3, 0.2], 0), ([0.5, 0.5], 0),
+                                                 ([float("nan"), 0.4], 0), ([0.8, 0.6], 1)])
+def test_critic_prior_selection_includes_initial_weights(tmp_path, episodes, monkeypatch, floor_evs, best_epoch):
+    from spire_rl import pretrain
+    from spire_rl.archive import write_rollout
+    from spire_rl.train import build_critic
+    device = torch.device("cpu")
+    critic = build_critic(CFG, device)
+    ckpt.save(tmp_path / "last.pt", CFG, build_model(CFG, device), {}, critic)
+    snapshots = [{k: v.clone() for k, v in critic.state_dict().items()}]
+    for i in range(3):
+        ep = copy.deepcopy(episodes[0])
+        ep.episode_id, ep.outcome = i, Outcome.DEATH
+        write_rollout(tmp_path / "archive" / f"rollout_{i:05d}.npz", [ep], {})
+    evs = iter({"floors": v, "acts": 0.2, "win": None} for v in [0.5, *floor_evs])
+    monkeypatch.setattr(pretrain, "evaluate_critic", lambda *a, **kw: next(evs))
+
+    def update(model, *args, **kwargs):
+        with torch.no_grad():
+            next(model.parameters()).add_(1.0)
+        snapshots.append({k: v.clone() for k, v in model.state_dict().items()})
+        return {"value_loss": 0.0}
+
+    monkeypatch.setattr(pretrain, "critic_update", update)
+    out = tmp_path / "prior.pt"
+    report = pretrain.pretrain_critic(CFG, [tmp_path / "archive"], out, device,
+                                      init_checkpoint=tmp_path / "last.pt", epochs=2, holdout_files=1,
+                                      log=lambda *_: None)
+    saved = torch.load(out, weights_only=False)
+    assert report["best_epoch"] == saved["epoch"] == best_epoch
+    assert report["improved"] == (best_epoch > 0)
+    assert all(torch.equal(v, snapshots[best_epoch][k]) for k, v in saved["critic"].items())
+
+
+def test_warm_start_and_critic_prior(tmp_path):
+    import json
+    from spire_rl.pretrain import pretrain_critic
+    from spire_rl.train import train
+    cfg = make_config("tiny", total_episodes=8, eval_every=100, val_seeds=(9_000_000, 2),
+                      combat={"normal_simulations": 4, "boss_simulations": 8}, ppo={"min_transitions": 4})
+    train(cfg, tmp_path / "a", torch.device("cpu"), stop_after_updates=3, log=lambda *_: None)
+    assert len(list((tmp_path / "a" / "archive").glob("rollout_*.npz"))) >= 2
+    src = ckpt.load(tmp_path / "a" / "last.pt")
+    rep = pretrain_critic(cfg, [tmp_path / "a" / "archive"], tmp_path / "prior.pt", torch.device("cpu"),
+                          init_checkpoint=tmp_path / "a" / "last.pt", epochs=1, holdout_files=1, microbatch=8,
+                          log=lambda *_: None)
+    assert (tmp_path / "prior.pt").exists() and "floors" in rep["epochs"][0]["heldout_ev"]
+    cfg2 = dataclasses.replace(cfg, total_episodes=2, fork=dataclasses.replace(cfg.fork, rest_prob=1.0, map_prob=1.0))
+    train(cfg2, tmp_path / "b", torch.device("cpu"), stop_after_updates=1, log=lambda *_: None,
+          init_checkpoint=tmp_path / "a" / "last.pt", critic_prior=tmp_path / "prior.pt")
+    meta = json.loads((tmp_path / "b" / "config.json").read_text())
+    assert meta["init_checkpoint"]["path"].endswith("last.pt") and meta["critic_from"] == "critic_prior"
+    from spire_rl.archive import read_rollout
+    archive_meta, eps = read_rollout(next((tmp_path / "b" / "archive").glob("rollout_*.npz")))
+    assert archive_meta["fork_config"]["seeds"] == cfg2.fork.seeds
+    assert archive_meta["value_weights"] == list(value_weights(1.0, cfg2.reward))
+    assert any(e.info.get("forks") for e in eps)
+    # the warm-started policy starts from exactly the saved weights
+    from spire_rl.train import load_initial_weights
+    m = build_model(cfg, torch.device("cpu"))
+    load_initial_weights(m, None, tmp_path / "a" / "last.pt", None, log=lambda *_: None)
+    assert all(torch.equal(v, src["model"][k]) for k, v in m.state_dict().items())

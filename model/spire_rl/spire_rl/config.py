@@ -73,6 +73,31 @@ class CombatConfig:
 
 
 @dataclass(frozen=True)
+class ForkConfig:
+    """Paired forks (run 3): at some decisions the state is copied and each option is
+    played forward with the SAME search seeds and sampling streams (common random
+    numbers), so outcome differences between options are mostly due to the option.
+    The horizon ends at an act change, after ``max_combats`` fights, after
+    ``max_decisions`` decisions or at the end of the run; the rest is estimated by
+    the critic. The centred, normalized option returns drive an extra policy loss.
+    Probabilities are per eligible decision; 0 disables that screen.
+    """
+    rest_prob: float = 0.0       # campfire with >= 2 action groups (heal / upgrade / ...)
+    map_prob: float = 0.0        # map with >= 2 moves
+    card_prob: float = 0.0       # card reward: take vs skip groups
+    seeds: int = 2               # paired seed sets per fork
+    max_options: int = 4
+    max_combats: int = 2
+    max_decisions: int = 40
+    max_active_branches: int = 48
+    coef: float = 1.0            # weight of the fork policy loss
+
+    @property
+    def enabled(self) -> bool:
+        return max(self.rest_prob, self.map_prob, self.card_prob) > 0
+
+
+@dataclass(frozen=True)
 class RewardStage:
     until_episode: int     # inclusive upper bound of training starts in this stage
     alpha: float           # weight of floor / act progress shaping
@@ -122,7 +147,12 @@ class PPOConfig:
     max_grad_norm: float = 0.5
     value_coef: float = 0.5            # shared value head only (critic = None)
     critic_lr: float = 1e-4
-    value_epochs: int = 4              # value-only passes of the separate critic per update
+    value_epochs: int = 2              # value-only passes of the separate critic per update (over current + replay)
+    # Critic replay: each update also trains on a sample of up to this many earlier
+    # rollouts (run 2's critic fitted each batch and forgot it: on-policy EV ~0.05,
+    # while the same network trained offline on many rollouts reached ~0.29).
+    critic_replay_rollouts: int = 12
+    critic_replay_ratio: float = 1.0   # replay targets per current target in each critic update
     value_huber_delta: float = 1.0
     aux_survival_coef: float = 0.05
     aux_hp_coef: float = 0.02
@@ -142,6 +172,7 @@ class RunConfig:
     preset: str = "main"
     model: ModelConfig = field(default_factory=ModelConfig)
     critic: ModelConfig | None = CRITIC_SMALL   # None = value head of the policy network
+    fork: ForkConfig = field(default_factory=ForkConfig)
     combat: CombatConfig = field(default_factory=CombatConfig)
     reward: RewardConfig = field(default_factory=RewardConfig)
     ppo: PPOConfig = field(default_factory=PPOConfig)
@@ -185,8 +216,9 @@ class RunConfig:
             preset=d["preset"], model=ModelConfig(**d["model"]), combat=CombatConfig(**d["combat"]),
             reward=RewardConfig(**reward), ppo=PPOConfig(**ppo),
             critic=ModelConfig(**d["critic"]) if d.get("critic") else None,
+            fork=ForkConfig(**d["fork"]) if d.get("fork") else ForkConfig(),
             **{k: (tuple(v) if isinstance(v, list) else v) for k, v in d.items()
-               if k not in ("preset", "model", "combat", "reward", "ppo", "critic")})
+               if k not in ("preset", "model", "combat", "reward", "ppo", "critic", "fork")})
 
 
 def make_config(preset: str = "main", **overrides: Any) -> RunConfig:
@@ -207,7 +239,7 @@ def make_config(preset: str = "main", **overrides: Any) -> RunConfig:
     if "critic" in overrides and overrides["critic"] is None:
         cfg = dataclasses.replace(cfg, critic=None)
         overrides = {k: v for k, v in overrides.items() if k != "critic"}
-    nested = {"model", "combat", "reward", "ppo", "critic"}
+    nested = {"model", "combat", "reward", "ppo", "critic", "fork"}
     top = {k: v for k, v in overrides.items() if k not in nested}
     cfg = dataclasses.replace(cfg, **top)
     for name in nested & overrides.keys():

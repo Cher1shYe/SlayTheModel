@@ -25,7 +25,8 @@
 | `spire_rl/metrics.py`、`dashboard.py` | 按步记录（JSONL、可选 TensorBoard）与静态 HTML 仪表盘 |
 | `spire_rl/archive.py` | 轨迹归档（与 PPO buffer 分开，供以后离线/DT 实验） |
 | `spire_rl/tools.py` | 环境检查、GPU 显存/耗时检查、磁盘规划、两档成对比较 |
-| `tests/` | 文档第 9 节要求的验证 + 2026-11-10 P0 与第二批回归（26 项） |
+| `tests/` | 文档第 9 节要求的验证 + 2026-11-10/11 各批回归（28 项） |
+| `spire_rl/pretrain.py` | 从归档离线预训练 critic（价值先验） |
 
 C++ 侧新增（在 `artifacts/dev/cpp-native-aligned-20261031/simulator/`）：
 `include/sts2/macro_obs.h`、`src/macro_obs.cpp`，以及 `bindings.cpp` 里的 `RunContext.macro_observation()`、`RunContext.play_combat_mcts()`、`sts2_sim.macro_vocab()`。没有改任何游戏规则。
@@ -203,6 +204,23 @@ h_t ─► 线性价值头，3 个输出：未来层数/50、未来进幕数/2�
 3. 若 KL 每次都在第一轮就提前停止，或熵很快塌缩，记录下来再调，不要只增加更新次数（文档 5.3）。
 
 ## 8. 修订记录
+
+**第三轮启动前补充（Codex，小范围修复）**
+- 本轮离线训练只读取 `runs/main-a0-s2/archive`；跨 run 合并的局编号问题未在本次处理。
+- 归档升级为 `spire_rl.archive/3`，仍可读 /1、/2。每个 `archive/rollout_*.npz` 内的 `forks_json`（UTF-8 JSON 的 uint8 数组）保存根局索引/决策、候选索引与动作组、每组搜索/采样种子、分支累计事件、critic 的 `bootstrap_comps`、总回报、停止/失败原因和步数/战斗数；不保存分支完整轨迹。`read_rollout()` 恢复到 `ep.info["forks"]`，仍不作为额外 PPO 对局。
+- 归档 meta 保留行为更新编号，并补入 `fork_config`、`value_scale`、`value_weights`。单个分支回报可由 `(events + bootstrap_comps * value_scale) @ value_weights` 重算；终局分支不 bootstrap。PPO 分叉标签仍按原来的回报去均值、整批标准差归一，不改训练算法。
+- 离线 critic 把训练前权重作为 epoch 0 纳入选择，按原有“留出层数 EV + 进幕 EV”合计严格提高才替换（零方差项省略，非有限候选不选）。报告增加 `best_epoch`、`best_heldout_ev`、`improved`；若未改善，输出 prior 保留初始权重。
+- `fork_branches` 统计实际启动的选项数 × 种子数，含失败分叉；`fork_taken_was_best` 只统计有唯一最优选项的完整分叉，无有效样本时为 NaN。新增 `fork_decisive` 和 `fork_tie_rate`；并列最优按 `rtol=1e-6, atol=1e-8` 判断，监控时一起看样本量和平局率。
+- 本机 CPU：35 项测试通过，含分叉归档及回报重算、旧格式兼容、critic 退步/持平/非有限/先升后降时的权重选择、分支计数和平局统计。修正旧确定性测试按线程完成顺序错配对局的问题，改按局编号与决策位置比较。未验证 GPU，未启动正式训练。
+
+**2026-11-11（第三轮：接着第二轮训练 + 价值先验 + 成对分叉）**
+- `train --init-checkpoint <best/last.pt>`：从已有权重继续（只载权重，优化器重建，新 run 目录；网络形状取自该检查点）。`--critic-prior` 载入离线预训练的 critic。来源写入 run 的 `config.json`。
+- `pretrain-critic`：用归档的真实后续事件（层数、进幕、通关）离线训练 critic；按文件分块读取，最后若干文件留出评估，保存留出 EV 最好的一轮及 `.json` 报告。
+- critic 回放：每次更新的 critic 训练还抽取最近 `critic_replay_rollouts=12` 轮的数据（比例 `critic_replay_ratio=1.0`），`value_epochs` 4→2，总量与之前相近。
+- 成对分叉（`RunConfig.fork`，默认关闭；`--fork-rest/--fork-map/--fork-card/--fork-seeds/--fork-coef`）：在火堆、地图（、卡牌奖励）按概率复制状态，各选项在相同搜索种子与采样流下前进到幕变化、2 场战斗或 40 个决策，剩余部分用 critic 估计；选项回报去均值并按本轮标准差归一，作为额外策略损失（火堆/卡牌按动作组，地图按具体路线）。分叉步不进入 PPO 数据；被选动作始终是选项 0。
+- `--alpha`：整轮固定一个进度权重（单档，无档位切换）。
+- 新监控：`forks`、`forks_complete`、`fork_rest/map/card`、`fork_return_spread`、`fork_taken_was_best`、`fork_rest_heal_better`、`fork_loss`、`fork_targets_seen`、`critic_targets`，以及火堆按血量的行为 `rest_heal_rate_hp_below_50`、`rest_heal_rate_full_hp`。
+- 测试 28 项。
 
 **2026-11-10（第二批，第二轮训练用）**
 - 独立 critic（`CRITIC_SMALL`，约 19.6M，`critic=None` 退回共享价值头），每次更新后 `value_epochs=4` 遍纯价值训练（`critic_lr=1e-4`）。
