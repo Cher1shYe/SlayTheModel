@@ -22,6 +22,8 @@ from .config import CombatConfig, RewardConfig
 from .sim import sim
 
 SCREEN = sim.RunScreen
+# What pybind11 raises for C++ exceptions thrown inside the simulator.
+SIM_ERRORS = (RuntimeError, ValueError, IndexError, OverflowError)
 
 
 class Outcome(enum.IntEnum):
@@ -113,7 +115,10 @@ class MacroEnv:
         self.max_act = 0
         self.grid_phase = -1      # phase of the open grid being counted (-1 = none)
         self.grid_steps = 0       # consecutive decisions inside it
-        result = self._advance()
+        try:
+            result = self._advance()
+        except SIM_ERRORS as ex:
+            return StepResult(0.0, np.zeros(3, np.float32), Outcome.FAILURE, None, None, f"simulator exception: {ex}")
         # Progress made before the first decision is not credited later.
         self.credited_floor = self._completed_floor()
         self.max_act = int(self.rc.act)
@@ -131,11 +136,18 @@ class MacroEnv:
             self.grid_phase = obs.phase
         else:
             self.grid_phase, self.grid_steps = -1, 0
-        ok = self.rc.step(int(obs.cand_type[candidate]), int(obs.cand_index[candidate]))
-        if not ok:
+        # A C++ exception (e.g. an event that cannot build its reward) is an engineering
+        # failure of this episode, not of the whole run: the episode is dropped and
+        # reported, and the training loop still aborts when failures pile up.
+        try:
+            ok = self.rc.step(int(obs.cand_type[candidate]), int(obs.cand_index[candidate]))
+            if not ok:
+                return StepResult(0.0, np.zeros(3, np.float32), Outcome.FAILURE, None, None,
+                                  "legal candidate rejected by the simulator")
+            outcome, next_obs, final_obs, reason = self._advance()
+        except SIM_ERRORS as ex:
             return StepResult(0.0, np.zeros(3, np.float32), Outcome.FAILURE, None, None,
-                              "legal candidate rejected by the simulator")
-        outcome, next_obs, final_obs, reason = self._advance()
+                              f"simulator exception: {ex}")
         if (outcome == Outcome.RUNNING and next_obs.phase == self.grid_phase
                 and self.grid_steps >= self.max_grid_steps):
             self.log.menu_loops += 1

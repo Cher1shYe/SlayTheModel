@@ -6,7 +6,7 @@ everything that used to be written here. Detailed per-step records:
 `validation/round4-step2-resume-20261108/README.md` and
 `validation/round4-step3-events-20261108/README.md`.
 
-Current identity: ruleset `native-41cef1ea-port-v7` (2026-11-10 NoSL fix, see `validation/nosl-fix-20261110/README.md`; macro observation v2), public observation v15,
+Current identity: ruleset `native-41cef1ea-port-v8` (2026-11-11 The Future of Potions fix, see `validation/future-potions-fix-20261111/README.md`; 2026-11-10 NoSL fix, see `validation/nosl-fix-20261110/README.md`; macro observation v2), public observation v15,
 action schema v14, snapshot v10, ArmG feature 6. Full native parity is not
 established; changes from step 3 onward are source ports without DLL runs.
 This directory owns the native rule port and C++ interfaces used by the new

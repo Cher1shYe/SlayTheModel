@@ -74,10 +74,11 @@ def prepare(episodes: list[Episode], cfg: PPOConfig, fork_seeds: int = 0) -> lis
     Each episode carries ``info["value_weights"]`` from its collection alpha.
     Completed paired forks become ``ep.fork_targets[t] = (options, groups,
     group_level, advantages)``: option returns minus their mean, divided by the
-    standard deviation of all such centred returns in this rollout.
+    standard deviation of all such centred returns of the same screen in this
+    rollout (campfire, map and card forks have different horizons and spreads).
     """
     from .rollout import fork_option_returns
-    targets, centred = [], []
+    targets, centred, screens = [], {}, {}
     for ep in episodes:
         if ep.outcome == Outcome.FAILURE or len(ep) == 0:
             continue
@@ -91,13 +92,13 @@ def prepare(episodes: list[Episode], cfg: PPOConfig, fork_seeds: int = 0) -> lis
                 continue
             c = r - r.mean()
             ep.fork_targets[fork.t] = (fork.options, fork.groups, fork.group_level, c)
-            centred.append(c)
-    if centred:
-        scale = float(np.concatenate(centred).std()) + 1e-8
-        for ep, t in targets:
-            if t in getattr(ep, "fork_targets", {}):
-                o, g, gl, c = ep.fork_targets[t]
-                ep.fork_targets[t] = (o, g, gl, c / scale)
+            centred.setdefault(fork.screen, []).append(c)
+            screens[(ep.episode_id, fork.t)] = fork.screen
+    scale = {screen: float(np.concatenate(cs).std()) + 1e-8 for screen, cs in centred.items()}
+    for ep, t in targets:
+        if t in ep.fork_targets:
+            o, g, gl, c = ep.fork_targets[t]
+            ep.fork_targets[t] = (o, g, gl, c / scale[screens[(ep.episode_id, t)]])
     return targets
 
 

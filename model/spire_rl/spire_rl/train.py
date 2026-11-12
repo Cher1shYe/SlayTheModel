@@ -117,9 +117,20 @@ def load_initial_weights(model: SpireNet, critic: SpireNet | None, init_checkpoi
     return info
 
 
+def _check_seed_ranges(cfg: RunConfig) -> None:
+    """Training game seeds must stay clear of the validation and test families."""
+    lo, hi = cfg.train_seed_base, cfg.train_seed_base + cfg.total_episodes
+    for name, (first, count) in (("validation", cfg.val_seeds), ("test", cfg.test_seeds)):
+        if lo < first + count and first < hi:
+            raise ValueError(f"training seeds {lo}..{hi - 1} overlap the {name} seeds {first}..{first + count - 1}")
+
+
 def train(cfg: RunConfig, run_dir: Path, device: torch.device,
           stop_after_updates: int | None = None, log=print, init_checkpoint: Path | None = None,
-          critic_prior: Path | None = None) -> dict:
+          critic_prior: Path | None = None, max_hours: float | None = None) -> dict:
+    """``max_hours``: stop before the next rollout once this much wall time has passed
+    (weights are saved to last.pt as at a normal end; continue with ``init_checkpoint``)."""
+    _check_seed_ranges(cfg)
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(cfg.seed)
@@ -136,7 +147,9 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                                           weight_decay=p.weight_decay) if critic is not None else None)
     progress = {"episodes_started": 0, "updates": 0, "transitions": 0, "stage": 0,
                 "act2_episodes": 0, "winning_seeds": [], "alpha0_episodes": 0, "best_val": None,
-                "stage_boundaries": [], "failures": 0, "stopped": None}
+                "stage_boundaries": [], "failures": 0, "stopped": None, "optimizer_steps": 0,
+                # first unused training game seed: a run continued from this checkpoint starts here
+                "next_train_seed": cfg.train_seed_base}
     disk = check_disk(run_dir, count_parameters(model) + (count_parameters(critic) if critic is not None else 0))
     log(f"checkpoint disk plan: {disk}")
     (run_dir / "config.json").write_text(json.dumps(
@@ -148,6 +161,8 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
     logger = MetricsLogger(run_dir, cfg.sweet_spot, cfg.total_episodes,
                            f"SpireNet {cfg.preset} ({count_parameters(model) / 1e9:.3f}B params)")
     collector = Collector(cfg, model, device, critic=critic)
+    log(f"training game seeds from {cfg.train_seed_base}; {len(collector.slots)} environments, "
+        f"{collector.workers} worker threads")
     replay = collections.deque(maxlen=max(1, p.critic_replay_rollouts))   # earlier rollouts' targets for the critic
 
     def run_eval(at: int) -> None:
@@ -158,8 +173,10 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
         res = {k: v for k, v in res.items() if k not in ("per_seed", "conditions", "truncation_reasons")}
         logger.log_eval({"episodes": at, "updates": progress["updates"], **res})
         best = progress["best_val"]
-        if best is None or res["win_rate"] > best["win_rate"]:   # ties keep the earlier checkpoint
-            progress["best_val"] = {"episodes": at, "win_rate": res["win_rate"]}
+        # Win rate first; with equal win rates (usually 0 or 1 of 200) the mean floor decides.
+        score = (res["win_rate"], res["floor_mean"])
+        if best is None or score > (best["win_rate"], best.get("floor_mean", float("-inf"))):
+            progress["best_val"] = {"episodes": at, "win_rate": res["win_rate"], "floor_mean": res["floor_mean"]}
             ckpt.save(run_dir / "best.pt", cfg, model, progress, critic)
         ckpt.save(run_dir / "last.pt", cfg, model, {**progress, "last_eval_episodes": at}, critic)
         log(f"[val @{at}] win {res['win_rate']:.3f} ({res['wins']}/{res['episodes_evaluated']}) "
@@ -169,6 +186,10 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
     run_eval(0)
     try:
         while progress["episodes_started"] < cfg.total_episodes:
+            if max_hours is not None and time.perf_counter() - loop_start >= max_hours * 3600:
+                progress["stopped"] = f"max_hours={max_hours}"
+                log(f"STOP: {progress['stopped']} after {progress['episodes_started']} episodes")
+                break
             started = progress["episodes_started"]
             stage = scheduled_stage(cfg, started)
             if stage > progress["stage"]:
@@ -192,6 +213,7 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                 torch.cuda.reset_peak_memory_stats(device)
             res = collector.collect(jobs, stage, st.alpha, p.min_transitions, sample_seed=cfg.seed, forks=True)
             progress["episodes_started"] += res.started
+            progress["next_train_seed"] = cfg.train_seed_base + progress["episodes_started"]
             archive_bytes = 0
             if cfg.archive_trajectories and res.episodes:
                 archive_bytes = write_rollout(
@@ -215,6 +237,12 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
             recompute = recompute_check(model, targets, cfg.model.window, device, p.bf16) if targets else 0.0
             if recompute > p.recompute_tolerance:
                 raise RuntimeError(f"log-probability recompute mismatch {recompute:.4g} > {p.recompute_tolerance}")
+            lr_scale = (min(1.0, 0.1 + 0.9 * progress["optimizer_steps"] / p.lr_warmup_steps)
+                        if p.lr_warmup_steps > 0 else 1.0)
+            for opt, base in ((optimizer, p.lr), (critic_optimizer, p.critic_lr)):
+                if opt is not None:
+                    for group in opt.param_groups:
+                        group["lr"] = base * lr_scale
             upd = ppo_update(model, optimizer, targets, p, st.entropy_coef, cfg.model.window, device, rng_py,
                              critic, critic_optimizer, cfg.fork.coef if cfg.fork.enabled else 0.0,
                              critic_targets).values if targets else {}
@@ -223,6 +251,7 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                     ep.info.pop("forks", None)
                 replay.append(targets)
             progress["updates"] += 1
+            progress["optimizer_steps"] += int(upd.get("optimizer_steps", 0))
             progress["transitions"] += res.transitions
             for ep in res.episodes:
                 if ep.info.get("act", 0) >= 1:
@@ -241,7 +270,7 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                    # The rollout's own episode count must not overwrite the cumulative x axis.
                    **{("rollout_episodes" if k == "episodes" else k): v for k, v in res.stats.items()
                       if k not in ("winning_seeds", "failure_reasons", "truncation_reasons")},
-                   **upd, **quality, "recompute_max_abs": recompute,
+                   **upd, **quality, "recompute_max_abs": recompute, "lr": p.lr * lr_scale,
                    "rollout_transitions": res.transitions, "archive_mb": archive_bytes / 1e6, "env_seconds": res.env_seconds,
                    "inference_seconds": res.inference_seconds, "forward_calls": res.forward_calls,
                    "cycle_seconds": cycle, "seconds_per_episode": spe, "episodes_per_hour": 3600 / spe,

@@ -1,215 +1,7 @@
 {
   "commands": [
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/battle.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/battle_damage.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle_damage.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/battle_flow.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle_flow.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/battle_powers.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle_powers.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/battle_turns.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle_turns.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/card_candidates.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/card_candidates.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_colorless.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_colorless.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_defect.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_defect.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_ironclad.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_ironclad.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_necrobinder.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_necrobinder.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_regent.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_regent.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_silent.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_silent.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_status.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_status.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/defect.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/defect.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/epoch_unlocks.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/epoch_unlocks.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-DNDEBUG",
@@ -222,215 +14,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/events.o"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/macro_obs.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/macro_obs.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/map.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/map.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/mcts.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/mcts.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/monsters.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/monsters.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/necrobinder.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/necrobinder.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/observe.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/observe.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/potion_slots.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/potion_slots.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/potions.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/potions.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/regent.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/regent.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/relic_card_rewards.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/relic_card_rewards.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/relic_lifecycle.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/relic_lifecycle.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/relic_persistent.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/relic_persistent.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/relics.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/relics.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/run.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/run.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/search.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/search.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
-      "-std=c++17",
-      "-O3",
-      "-DNDEBUG",
-      "-fPIC",
-      "-Wno-shift-count-overflow",
-      "-I/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
-      "-c",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/src/silent.cpp",
-      "-o",
-      "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/silent.o"
-    ],
-    [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -474,7 +58,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/enchantment_contract"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -518,7 +102,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/hidden_resampling"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -562,7 +146,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/map_event_audit_regression"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -606,7 +190,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/mcts_regression"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -650,7 +234,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/monster_audit_regression"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -694,7 +278,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_act_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -738,7 +322,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_card_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -782,7 +366,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_card_round3_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -826,7 +410,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_event_oracle_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -870,7 +454,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_event_round3_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -914,7 +498,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_relic_round2_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -958,7 +542,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_relic_round3_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1002,7 +586,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_rng_contract"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1046,7 +630,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_round3_shared_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1090,7 +674,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_run_alignment"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1134,7 +718,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_seed_integration"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1178,7 +762,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_downgrade"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1222,7 +806,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_relic_replace"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1266,7 +850,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_self_damage"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1310,7 +894,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_state_contract"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1354,7 +938,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_card_rewards"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1398,7 +982,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_defect"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1442,7 +1026,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_necrobinder"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1486,7 +1070,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_persistent"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1530,7 +1114,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_relic_lifecycle"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1574,7 +1158,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step2_silent"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1618,7 +1202,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step3_events"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1662,7 +1246,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_underdocks_events"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1706,7 +1290,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/observation_contract"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1750,7 +1334,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/observation_v14_character"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1794,7 +1378,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/relic_contract"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1838,7 +1422,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/relic_raw_rarity"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1882,7 +1466,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/rules_regression"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1926,7 +1510,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/scroll_boxes_regression"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -1970,7 +1554,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/snapshot_v9_character"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -2014,7 +1598,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/snapshot_validation"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-UNDEBUG",
@@ -2058,7 +1642,7 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/bench"
     ],
     [
-      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/9ca97d36-d2cf-4559-a2c4-ea23ae472ecf/scratchpad/clangxx",
+      "/private/tmp/claude-501/-Users-yebohou-Workspace-SlayTheModel/6c15a9c8-7a65-4c72-bbc8-58264f23df01/scratchpad/clangxx",
       "-std=c++17",
       "-O3",
       "-DNDEBUG",
@@ -2107,9 +1691,9 @@
       "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/sts2_sim.cpython-311-darwin.so"
     ]
   ],
-  "wall_seconds": 99.48883533399999,
+  "wall_seconds": 72.56870470900003,
   "module": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/sts2_sim.cpython-311-darwin.so",
-  "module_sha256": "1499c6c9db0dcd231c8ac0114a6c7fe4fbe028f07a73913339e6f6f7913b19ec",
+  "module_sha256": "fa3041fbea51ece6757f1f66c0dc9991e036b746bab06d8f4b3e0ffe5471de60",
   "tests_assertions_enabled": true,
   "python": "/Users/yebohou/micromamba/envs/sts2/bin/python"
 }

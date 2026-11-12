@@ -1,6 +1,6 @@
 """Weights-only checkpoints bound to the simulator identity.
 
-``best.pt`` (best validation win rate, ties keep the earlier one) and
+``best.pt`` (best validation win rate; equal win rates: higher mean floor) and
 ``last.pt`` (rewritten after every validation and at the end of training).
 There is no optimizer or RNG state, so an interrupted run cannot be resumed
 exactly. The separate critic, when configured, is stored under "critic".

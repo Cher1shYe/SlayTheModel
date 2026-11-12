@@ -3,7 +3,7 @@
   "target_release": "v0.111.0",
   "target_commit": "41cef1ea",
   "target_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
-  "engine_ruleset": "native-41cef1ea-port-v7",
+  "engine_ruleset": "native-41cef1ea-port-v8",
   "native_parity_complete": false,
   "purpose": "Retain C++ execution speed while porting actual native rules and checking against the native worker.",
   "public_observation_version": 15,
@@ -11,7 +11,7 @@
   "armg_feature_version": 6,
   "snapshot_version": 10,
   "workspace_status": "step3-complete-source-ported-not-dll-verified",
-  "identity_fields_describe": "2026-11-10 NoSL fix: full canonical card key in hidden resampling, public pile/choice key covers every emitted card field, CombatOrbs run RNG stream wired into combat (init/persist/resample/snapshot check). Public observation layout unchanged (v15); macro observation v2 adds the deselect candidate flag. Not DLL-verified.",
-  "handoff": "validation/nosl-fix-20261110/README.md",
+  "identity_fields_describe": "2026-11-11 v8: The Future of Potions restores native Event/Token potion rarity (Foul/Glowwater -> Rare card, Potion Shaped Rock -> Common Attack/Skill only); v7 threw 'reward pool is too small' on a Power roll. 2026-11-10 v7 NoSL fix: full canonical card key in hidden resampling, public pile/choice key covers every emitted card field, CombatOrbs run RNG stream wired into combat (init/persist/resample/snapshot check). Public observation layout unchanged (v15); macro observation v2 adds the deselect candidate flag. Not DLL-verified.",
+  "handoff": "validation/future-potions-fix-20261111/README.md",
   "macro_observation_version": 2
 }

@@ -10,8 +10,11 @@ Paired forks (``RunConfig.fork``): at some decisions of a training episode the
 environment is copied once per (option, seed set). Branches of one seed set
 share the combat-search seed and the policy sampling stream, so the difference
 between options is not drowned in luck. A branch runs with the current policy
-until the horizon (act change, ``max_combats`` fights, ``max_decisions``
-decisions or the end of the run); the remainder is estimated by the critic.
+until its horizon. Campfire and map forks: act change, ``max_combats`` fights,
+``max_decisions`` decisions or the end of the run, the remainder estimated by
+the critic (without its win output unless ``bootstrap_win``). Card-reward forks
+compare every offered card and skip and run to the end of the act, counting
+only real events (``card_to_act_end`` / ``card_bootstrap``).
 Branch steps are never added to the PPO data; only the per-option returns are
 attached to the forked decision (``Episode.info["forks"]``).
 """
@@ -19,6 +22,7 @@ from __future__ import annotations
 
 import collections
 import concurrent.futures as cf
+import os
 import time
 from dataclasses import dataclass, field
 from typing import Iterator
@@ -32,7 +36,8 @@ from .env import MacroEnv, Outcome
 from .model import VALUE_SCALE, SpireNet, combine_value, value_weights
 from .ppo import _autocast
 
-REST_HEAL, REST_UPGRADE, MOVE = 3, 4, 0
+REST_HEAL, REST_UPGRADE, MOVE = 3, 4, 0        # sim.RunActionType values
+TAKE_CARD, SKIP_CARD = 1, 2
 SCREEN_MAP, SCREEN_CARD_REWARD, SCREEN_REST = 0, 2, 3
 
 
@@ -68,6 +73,9 @@ class Fork:
     returns: dict = field(default_factory=dict)    # (option, seed) -> r_train-unit return
     failed: bool = False
     details: dict = field(default_factory=dict)    # (option, seed) -> compact audit record
+    max_combats: int = 0         # branch horizon: fights (0 = no limit)
+    max_decisions: int = 40      # branch horizon: decisions
+    bootstrap_act_end: bool = True   # critic estimate at an act change (else real events only)
 
 
 class _Slot:
@@ -107,7 +115,10 @@ class Collector:
         n = num_envs or cfg.ppo.num_envs
         self.slots = [_Slot(MacroEnv(cfg.combat, cfg.reward, cfg.ascension, cfg.max_macro_steps,
                                      cfg.max_grid_steps)) for _ in range(n)]
-        self.pool = cf.ThreadPoolExecutor(max_workers=n, thread_name_prefix="macro-env")
+        # Fork branches are extra simulator work next to the n episodes: give them the
+        # spare cores (at most twice n). Results do not depend on the number of workers.
+        self.workers = max(n, min(os.cpu_count() or n, 2 * n)) if cfg.fork.enabled else n
+        self.pool = cf.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix="macro-env")
 
     def close(self) -> None:
         self.pool.shutdown(wait=True)
@@ -143,14 +154,23 @@ class Collector:
         groups = candidate_groups(obs)
         if screen == SCREEN_MAP and fc.map_prob > 0:
             moves = [i for i in range(obs.num_candidates) if obs.cand_type[i] == MOVE]
-            if len(moves) < 2 or rng.random() >= fc.map_prob:
+            # A potion used on the map screen is not a route choice: option 0 must be the taken move.
+            if len(moves) < 2 or taken not in moves or rng.random() >= fc.map_prob:
                 return None
             others = [m for m in moves if m != taken]
             rng.shuffle(others)
-            opts = ([taken] if taken in moves else []) + others
-            opts = opts[:fc.max_options]
+            opts = ([taken] + others)[:fc.max_options]
             return screen, opts, [int(groups[o]) for o in opts], False
-        prob = {SCREEN_REST: fc.rest_prob, SCREEN_CARD_REWARD: fc.card_prob}.get(screen, 0.0)
+        if screen == SCREEN_CARD_REWARD and fc.card_prob > 0:
+            # Every offered card and skip, as single candidates (which card, not only whether).
+            picks = [i for i in range(obs.num_candidates) if obs.cand_type[i] in (TAKE_CARD, SKIP_CARD)]
+            if len(picks) < 2 or taken not in picks or rng.random() >= fc.card_prob:
+                return None
+            others = [c for c in picks if c != taken]
+            rng.shuffle(others)
+            opts = ([taken] + others)[:fc.max_options]
+            return screen, opts, [int(groups[o]) for o in opts], False
+        prob = fc.rest_prob if screen == SCREEN_REST else 0.0
         present = sorted(set(int(g) for g in groups))
         if prob <= 0 or len(present) < 2 or rng.random() >= prob:
             return None
@@ -236,6 +256,12 @@ class Collector:
             if active_branches + n_branches > fc.max_active_branches:
                 return
             fork = Fork(len(all_forks), ep, t, opts, groups, group_level, screen)
+            if screen == SCREEN_CARD_REWARD:
+                fork.max_combats = 0 if fc.card_to_act_end else fc.max_combats
+                fork.max_decisions = fc.card_max_decisions if fc.card_to_act_end else fc.max_decisions
+                fork.bootstrap_act_end = fc.card_bootstrap or not fc.card_to_act_end
+            else:
+                fork.max_combats, fork.max_decisions = fc.max_combats, fc.max_decisions
             all_forks.append(fork)
             ep.info.setdefault("forks", []).append(fork)
             for s in range(fc.seeds):
@@ -279,13 +305,13 @@ class Collector:
                             finish_branch(slot, res, res.outcome.name.lower())
                         elif res.outcome == Outcome.TRUNCATED:
                             finish_branch(slot, res, "truncated", res.final_obs)
-                        elif (int(slot.env.rc.act) != slot.start_act or res.components[1] > 0
-                              or len(slot.env.log.combats) >= fc.max_combats
-                              or slot.branch_decisions >= fc.max_decisions):
-                            reason = ("act_change" if int(slot.env.rc.act) != slot.start_act or res.components[1] > 0
-                                      else "max_combats" if len(slot.env.log.combats) >= fc.max_combats
-                                      else "max_decisions")
-                            finish_branch(slot, res, reason, res.next_obs)
+                        elif int(slot.env.rc.act) != slot.start_act or res.components[1] > 0:
+                            finish_branch(slot, res, "act_change",
+                                          res.next_obs if slot.fork.bootstrap_act_end else None)
+                        elif slot.fork.max_combats and len(slot.env.log.combats) >= slot.fork.max_combats:
+                            finish_branch(slot, res, "max_combats", res.next_obs)
+                        elif slot.branch_decisions >= slot.fork.max_decisions:
+                            finish_branch(slot, res, "max_decisions", res.next_obs)
                         else:
                             slot.obs = res.next_obs
                             ready.append(slot)
@@ -354,8 +380,11 @@ class Collector:
             ep.bootstrap_value = float(combine_value(c, alpha, self.cfg.reward))
         scale_vec = np.asarray(VALUE_SCALE, np.float64)
         for (slot, _, _), c in zip(branch_boot, comps[len(trunc):]):
-            slot.fork.details[(slot.option, slot.seed)]["bootstrap_comps"] = c.tolist()
-            slot.fork.returns[(slot.option, slot.seed)] = float((slot.events + c.astype(np.float64) * scale_vec) @ wvec)
+            c = c.astype(np.float64)
+            if not fc.bootstrap_win:
+                c[2] = 0.0          # real wins are in slot.events; the critic's guess is not used
+            slot.fork.details[(slot.option, slot.seed)]["bootstrap_comps"] = c.tolist()   # as used in the return
+            slot.fork.returns[(slot.option, slot.seed)] = float((slot.events + c * scale_vec) @ wvec)
         wall = time.perf_counter() - started_at
         stats = summarize(finished)
         stats.update(fork_stats(all_forks, fc.seeds))
@@ -384,15 +413,26 @@ def fork_stats(forks: list[Fork], seeds: int) -> dict:
     best = [np.isclose(r, r.max(), rtol=1e-6, atol=1e-8) for _, r in ok]
     taken_best = [float(mask[0]) for mask in best if mask.sum() == 1]
     by_screen = collections.Counter(f.screen for f, _ in ok)
+
+    def taken_best_on(screen: int) -> float:   # same rule as fork_taken_was_best, one screen
+        vals = [float(mask[0]) for (f, _), mask in zip(ok, best) if f.screen == screen and mask.sum() == 1]
+        return float(np.mean(vals)) if vals else float("nan")
+
     rest = [(f, r) for f, r in ok if f.screen == SCREEN_REST and REST_HEAL in f.groups and REST_UPGRADE in f.groups]
     heal_better = [float(r[f.groups.index(REST_HEAL)] > r[f.groups.index(REST_UPGRADE)]) for f, r in rest]
     return {"forks": len(forks), "forks_complete": len(ok),
             "fork_branches": sum(len(f.options) * seeds for f in forks),
+            # simulator and inference work spent in branches (cost of the forks)
+            "fork_branch_decisions": sum(d.get("decisions", 0) for f in forks for d in f.details.values()),
+            "fork_branch_combats": sum(d.get("combats", 0) for f in forks for d in f.details.values()),
             "fork_rest": by_screen.get(SCREEN_REST, 0), "fork_map": by_screen.get(SCREEN_MAP, 0),
             "fork_card": by_screen.get(SCREEN_CARD_REWARD, 0),
             "fork_return_spread": float(np.mean(spread)) if spread else float("nan"),
             "fork_taken_was_best": float(np.mean(taken_best)) if taken_best else float("nan"),
             "fork_decisive": len(taken_best),
+            "fork_rest_taken_was_best": taken_best_on(SCREEN_REST),
+            "fork_map_taken_was_best": taken_best_on(SCREEN_MAP),
+            "fork_card_taken_was_best": taken_best_on(SCREEN_CARD_REWARD),
             "fork_tie_rate": float(np.mean([mask.sum() > 1 for mask in best])) if best else float("nan"),
             "fork_rest_heal_better": float(np.mean(heal_better)) if heal_better else float("nan")}
 

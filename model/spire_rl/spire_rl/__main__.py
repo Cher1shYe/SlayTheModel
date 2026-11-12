@@ -1,4 +1,4 @@
-"""Command line: python -m spire_rl {train,eval,compare,check,params,config,dashboard,smoke}."""
+"""Command line: python -m spire_rl {train,distill,pretrain-critic,eval,compare,check,params,config,dashboard,smoke}."""
 from __future__ import annotations
 
 import argparse
@@ -15,14 +15,31 @@ def _device(name: str) -> torch.device:
     return torch.device(name)
 
 
-def _config(args):
-    from .config import make_config
+def _config(args, log=print):
+    from .config import PRESETS, make_config
     overrides = {}
+    preset, saved, saved_progress = args.preset, None, {}
+    if getattr(args, "init_checkpoint", None):
+        # The network shapes (and the per-size training defaults) come from the checkpoint being continued.
+        from . import checkpoint as ckpt
+        from .config import RunConfig
+        payload = ckpt.load(Path(args.init_checkpoint))
+        saved, saved_progress = RunConfig.from_dict(payload["config"]), payload.get("progress") or {}
+        if saved.preset in PRESETS:
+            preset = saved.preset
     if args.episodes:
         overrides["total_episodes"] = args.episodes
     if getattr(args, "seed", None) is not None:
         overrides["seed"] = args.seed
+    if getattr(args, "train_seed_base", None) is not None:
+        overrides["train_seed_base"] = args.train_seed_base
+    elif saved_progress.get("next_train_seed") is not None:
+        # Never replay game seeds the continued weights (or their critic) were trained on.
+        overrides["train_seed_base"] = int(saved_progress["next_train_seed"])
+        log(f"training game seeds continue at {overrides['train_seed_base']} (from {args.init_checkpoint})")
     ppo = {}
+    if getattr(args, "lr", None) is not None:
+        ppo["lr"] = args.lr
     if args.num_envs:
         ppo["num_envs"] = args.num_envs
     if getattr(args, "microbatch", None):
@@ -44,13 +61,9 @@ def _config(args):
     if getattr(args, "critic_replay", None) is not None:
         ppo["critic_replay_rollouts"] = args.critic_replay
         overrides["ppo"] = ppo
-    cfg = make_config(args.preset, **overrides)
-    if getattr(args, "init_checkpoint", None):
-        # The network shapes come from the checkpoint being continued.
+    cfg = make_config(preset, **overrides)
+    if saved is not None:
         import dataclasses
-        from . import checkpoint as ckpt
-        from .config import RunConfig
-        saved = RunConfig.from_dict(ckpt.load(Path(args.init_checkpoint))["config"])
         cfg = dataclasses.replace(cfg, preset=saved.preset, model=saved.model, critic=saved.critic)
     return cfg
 
@@ -60,7 +73,9 @@ def main(argv: list[str] | None = None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     t = sub.add_parser("train", help="train one run (a new run directory each time)")
-    t.add_argument("--preset", default="main", help="main (~0.2B), large-1b (~0.93B), large-0.7b, tiny")
+    t.add_argument("--preset", default="main",
+                   help="small (~0.02B, 8-step history), main (~0.2B), large-1b (~0.93B), large-0.7b, tiny; "
+                        "ignored with --init-checkpoint (the checkpoint's preset is used)")
     t.add_argument("--run-dir", required=True)
     t.add_argument("--episodes", type=int, help="training starts budget (default 10000)")
     t.add_argument("--num-envs", type=int)
@@ -79,6 +94,24 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--fork-seeds", dest="fork_seeds", type=int, help="paired seed sets per fork")
     t.add_argument("--fork-coef", dest="fork_coef", type=float, help="weight of the fork policy loss")
     t.add_argument("--critic-replay", type=int, help="earlier rollouts kept for critic training (0 = off)")
+    t.add_argument("--train-seed-base", type=int,
+                   help="first training game seed (default: continue after the checkpoint's seeds, else 1000000)")
+    t.add_argument("--max-hours", type=float,
+                   help="stop before the next rollout after this many hours and save last.pt (continue with "
+                        "--init-checkpoint <run>/last.pt in a new run directory)")
+    t.add_argument("--lr", type=float, help="policy learning rate (default per preset)")
+
+    ds = sub.add_parser("distill", help="distill an archived policy (and a critic) into a preset, offline")
+    ds.add_argument("--archive", nargs="+", required=True, help="archive directories (rollout_*.npz)")
+    ds.add_argument("--out", required=True, help="output checkpoint, e.g. runs/distill-small.pt")
+    ds.add_argument("--preset", default="small")
+    ds.add_argument("--files", type=int, default=60, help="use the last N rollout files (the policy drifts)")
+    ds.add_argument("--holdout-files", type=int, default=6)
+    ds.add_argument("--epochs", type=int, default=4)
+    ds.add_argument("--files-per-chunk", type=int, default=12)
+    ds.add_argument("--lr", type=float, default=2e-4)
+    ds.add_argument("--microbatch", type=int, default=32)
+    ds.add_argument("--device", default="auto")
 
     pc = sub.add_parser("pretrain-critic", help="offline critic prior from trajectory archives")
     pc.add_argument("--archive", nargs="+", required=True, help="archive directories (rollout_*.npz)")
@@ -177,6 +210,14 @@ def main(argv: list[str] | None = None) -> int:
                               microbatch=args.microbatch)
         print(json.dumps(rep, indent=2, default=str))
         return 0
+    if args.cmd == "distill":
+        from .config import make_config
+        from .distill import distill
+        rep = distill(make_config(args.preset), [Path(a) for a in args.archive], Path(args.out), _device(args.device),
+                      files=args.files, holdout_files=args.holdout_files, epochs=args.epochs,
+                      files_per_chunk=args.files_per_chunk, lr=args.lr, microbatch=args.microbatch)
+        print(json.dumps(rep, indent=2, default=str))
+        return 0
     if args.cmd == "compare":
         from .tools import paired_compare
         a, b = (json.loads(Path(x).read_text()) for x in (args.a, args.b))
@@ -210,7 +251,7 @@ def main(argv: list[str] | None = None) -> int:
     from .train import train
     cfg = _config(args)
     summary = train(cfg, Path(args.run_dir), _device(args.device), stop_after_updates=args.stop_after_updates,
-                    init_checkpoint=args.init_checkpoint, critic_prior=args.critic_prior)
+                    init_checkpoint=args.init_checkpoint, critic_prior=args.critic_prior, max_hours=args.max_hours)
     print(json.dumps(summary, indent=2, default=str))
     return 0
 

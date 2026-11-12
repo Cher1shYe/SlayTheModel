@@ -44,6 +44,11 @@ PRESETS: dict[str, ModelConfig] = {
     "large-0.7b": ModelConfig(hist_dim=1536, hist_heads=24, hist_layers=24),
     # ~0.93-1.0B: preferred large comparison.
     "large-1b": ModelConfig(hist_dim=1536, hist_heads=24, hist_layers=32),
+    # ~0.02B, 8-step history (run 4). Run 2 spent ~90% of its wall clock in the 0.2B
+    # network; an imitation test found no measurable use of the 32-step history.
+    "small": ModelConfig(set_dim=256, set_heads=8, set_layers=2, inducing_points=16,
+                         hist_dim=512, hist_heads=8, hist_layers=4, window=8,
+                         action_dim=256, action_heads=8),
     # Tiny shape for CPU tests and smoke runs only.
     "tiny": ModelConfig(set_dim=64, set_heads=4, set_layers=1, inducing_points=8,
                         hist_dim=64, hist_heads=4, hist_layers=2, window=8,
@@ -57,6 +62,12 @@ PRESETS: dict[str, ModelConfig] = {
 CRITIC_SMALL = ModelConfig(set_dim=256, set_heads=8, set_layers=2, inducing_points=16,
                            hist_dim=512, hist_heads=8, hist_layers=4, window=32,
                            action_dim=256, action_heads=8)
+# Critic of the "small" preset (~1.9M, dropout). Run 2's 19.6M critic explained >0.95 of
+# the variance of the batch it was just trained on and 0.06-0.17 of the next one; a
+# three-feature linear fit (floor, HP, act) reached 0.23-0.34 on held-out data.
+CRITIC_LITE = ModelConfig(set_dim=128, set_heads=4, set_layers=1, inducing_points=8,
+                          hist_dim=128, hist_heads=4, hist_layers=2, window=4,
+                          action_dim=128, action_heads=4, dropout=0.1)
 CRITIC_TINY = ModelConfig(set_dim=32, set_heads=4, set_layers=1, inducing_points=4,
                           hist_dim=32, hist_heads=4, hist_layers=1, window=8,
                           action_dim=32, action_heads=4)
@@ -77,20 +88,30 @@ class ForkConfig:
     """Paired forks (run 3): at some decisions the state is copied and each option is
     played forward with the SAME search seeds and sampling streams (common random
     numbers), so outcome differences between options are mostly due to the option.
-    The horizon ends at an act change, after ``max_combats`` fights, after
+    Campfire and map forks end at an act change, after ``max_combats`` fights, after
     ``max_decisions`` decisions or at the end of the run; the rest is estimated by
-    the critic. The centred, normalized option returns drive an extra policy loss.
+    the critic. Card-reward forks compare every offered card and skip, and by default
+    run to the end of the act (through its boss) and count only what really happened.
+    The centred option returns, normalized per screen, drive an extra policy loss.
     Probabilities are per eligible decision; 0 disables that screen.
     """
     rest_prob: float = 0.0       # campfire with >= 2 action groups (heal / upgrade / ...)
     map_prob: float = 0.0        # map with >= 2 moves
-    card_prob: float = 0.0       # card reward: take vs skip groups
-    seeds: int = 2               # paired seed sets per fork
-    max_options: int = 4
+    card_prob: float = 0.0       # card reward: each card and skip
+    seeds: int = 2               # paired seed sets per fork (at most 8)
+    max_options: int = 4         # at most 8
     max_combats: int = 2
     max_decisions: int = 40
-    max_active_branches: int = 48
+    max_active_branches: int = 96   # forks beyond this are skipped (which ones depends on timing)
     coef: float = 1.0            # weight of the fork policy loss
+    # Card forks: a pick pays off many floors later, so two fights say little.
+    card_to_act_end: bool = True     # no fight limit; stop at the act change or the end of the run
+    card_max_decisions: int = 400    # safety cap (then the critic estimates the rest)
+    card_bootstrap: bool = False     # add the critic's estimate of later acts at the act change
+    # The critic's win output has seen 23 wins in 16,001 episodes (EV -0.04, values
+    # between -0.04 and 0.35) and carries the largest weight; real wins inside a
+    # branch always count, the critic's guess of later wins only if this is set.
+    bootstrap_win: bool = False
 
     @property
     def enabled(self) -> bool:
@@ -141,6 +162,11 @@ class PPOConfig:
     batch_targets: int = 128           # targets per optimizer step
     microbatch: int = 4                # targets per forward (memory knob only)
     lr: float = 3e-5                   # policy (run 1: 1e-4, KL stop after ~10 steps / 0.65 passes)
+    # Every run starts with a fresh Adam (weights-only checkpoints), whose first steps move
+    # each weight by about lr regardless of the gradient. With warm-started weights and
+    # daily restarts both learning rates therefore ramp from 10% to 100% over this many
+    # policy optimizer steps (0 = off).
+    lr_warmup_steps: int = 0
     betas: tuple[float, float] = (0.9, 0.999)
     eps: float = 1e-8
     weight_decay: float = 0.0
@@ -230,6 +256,9 @@ def make_config(preset: str = "main", **overrides: Any) -> RunConfig:
     if preset.startswith("large"):
         ppo = dataclasses.replace(ppo, lr=3e-5, microbatch=1)
     critic = CRITIC_SMALL
+    if preset == "small":
+        ppo = dataclasses.replace(ppo, lr=1e-4, microbatch=32, activation_checkpointing=False, lr_warmup_steps=150)
+        critic = CRITIC_LITE
     if preset == "tiny":
         ppo = dataclasses.replace(ppo, num_envs=2, min_transitions=32, batch_targets=16,
                                   microbatch=8, bf16=False, activation_checkpointing=False,

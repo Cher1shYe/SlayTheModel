@@ -1,0 +1,13 @@
+ruleset native-41cef1ea-port-v8 | seeds per potion 300
+FoulPotion         table=('FoulPotion', 'Foul Potion', 4, 1, 0, True, True) ok=300 raised=0 
+   offered (rarity, type): {('RARE', 'ATTACK'): 309, ('RARE', 'POWER'): 288, ('RARE', 'SKILL'): 303} | upgraded 900 of 900
+GlowwaterPotion    table=('GlowwaterPotion', 'Glowwater Potion', 4, 0, 0, True, True) ok=300 raised=0 
+   offered (rarity, type): {('RARE', 'ATTACK'): 309, ('RARE', 'POWER'): 288, ('RARE', 'SKILL'): 303} | upgraded 900 of 900
+PotionShapedRock   table=('PotionShapedRock', 'Potion Shaped Rock', 4, 0, 1, True, True) ok=300 raised=0 
+   offered (rarity, type): {('COMMON', 'ATTACK'): 456, ('COMMON', 'SKILL'): 444} | upgraded 900 of 900
+BlockPotion        table=('BlockPotion', 'Block Potion', 1, 0, 3, True, True) ok=300 raised=0 
+   offered (rarity, type): {('COMMON', 'ATTACK'): 456, ('COMMON', 'SKILL'): 444} | upgraded 900 of 900
+Clarity            table=('Clarity', 'Clarity', 2, 0, 3, True, True) ok=300 raised=0 
+   offered (rarity, type): {('UNCOMMON', 'ATTACK'): 309, ('UNCOMMON', 'POWER'): 288, ('UNCOMMON', 'SKILL'): 303} | upgraded 900 of 900
+CosmicConcoction   table=('CosmicConcoction', 'Cosmic Concoction', 3, 0, 0, False, True) ok=300 raised=0 
+   offered (rarity, type): {('RARE', 'ATTACK'): 309, ('RARE', 'POWER'): 288, ('RARE', 'SKILL'): 303} | upgraded 900 of 900

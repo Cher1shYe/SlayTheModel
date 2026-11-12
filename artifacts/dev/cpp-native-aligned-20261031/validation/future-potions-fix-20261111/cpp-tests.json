@@ -1,0 +1,223 @@
+{
+  "programs": 36,
+  "failures": 0,
+  "assertions_enabled": true,
+  "results": [
+    {
+      "name": "enchantment_contract",
+      "returncode": 0,
+      "seconds": 2.6490174589998787,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/enchantment_contract.txt"
+    },
+    {
+      "name": "hidden_resampling",
+      "returncode": 0,
+      "seconds": 3.1461239999998725,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/hidden_resampling.txt"
+    },
+    {
+      "name": "map_event_audit_regression",
+      "returncode": 0,
+      "seconds": 5.025771249999707,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/map_event_audit_regression.txt"
+    },
+    {
+      "name": "mcts_regression",
+      "returncode": 0,
+      "seconds": 0.46992866700020386,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/mcts_regression.txt"
+    },
+    {
+      "name": "monster_audit_regression",
+      "returncode": 0,
+      "seconds": 1.3559033750002527,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/monster_audit_regression.txt"
+    },
+    {
+      "name": "native_act_alignment",
+      "returncode": 0,
+      "seconds": 0.802507291999973,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_act_alignment.txt"
+    },
+    {
+      "name": "native_card_alignment",
+      "returncode": 0,
+      "seconds": 0.37010416700013593,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_card_alignment.txt"
+    },
+    {
+      "name": "native_card_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.42119170800015127,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_card_round3_alignment.txt"
+    },
+    {
+      "name": "native_event_oracle_alignment",
+      "returncode": 0,
+      "seconds": 0.6084448750002593,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_event_oracle_alignment.txt"
+    },
+    {
+      "name": "native_event_round3_alignment",
+      "returncode": 0,
+      "seconds": 1.6977916669998194,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_event_round3_alignment.txt"
+    },
+    {
+      "name": "native_relic_round2_alignment",
+      "returncode": 0,
+      "seconds": 0.6090419170000132,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_relic_round2_alignment.txt"
+    },
+    {
+      "name": "native_relic_round3_alignment",
+      "returncode": 0,
+      "seconds": 0.4550400420002916,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_relic_round3_alignment.txt"
+    },
+    {
+      "name": "native_rng_contract",
+      "returncode": 0,
+      "seconds": 0.45118054200020197,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_rng_contract.txt"
+    },
+    {
+      "name": "native_round3_shared_alignment",
+      "returncode": 0,
+      "seconds": 0.4485308329999498,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_round3_shared_alignment.txt"
+    },
+    {
+      "name": "native_run_alignment",
+      "returncode": 0,
+      "seconds": 0.5249165840000387,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_run_alignment.txt"
+    },
+    {
+      "name": "native_seed_integration",
+      "returncode": 0,
+      "seconds": 0.40104991699990933,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_seed_integration.txt"
+    },
+    {
+      "name": "native_step1_downgrade",
+      "returncode": 0,
+      "seconds": 0.5302932919998966,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step1_downgrade.txt"
+    },
+    {
+      "name": "native_step1_relic_replace",
+      "returncode": 0,
+      "seconds": 0.47499466599992957,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step1_relic_replace.txt"
+    },
+    {
+      "name": "native_step1_self_damage",
+      "returncode": 0,
+      "seconds": 0.4038716250001926,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step1_self_damage.txt"
+    },
+    {
+      "name": "native_step1_state_contract",
+      "returncode": 0,
+      "seconds": 0.40651158399987253,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step1_state_contract.txt"
+    },
+    {
+      "name": "native_step2_card_rewards",
+      "returncode": 0,
+      "seconds": 1.6855068340000798,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_card_rewards.txt"
+    },
+    {
+      "name": "native_step2_defect",
+      "returncode": 0,
+      "seconds": 0.44704937500000597,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_defect.txt"
+    },
+    {
+      "name": "native_step2_necrobinder",
+      "returncode": 0,
+      "seconds": 0.4679865420002898,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_necrobinder.txt"
+    },
+    {
+      "name": "native_step2_persistent",
+      "returncode": 0,
+      "seconds": 1.7143773749999127,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_persistent.txt"
+    },
+    {
+      "name": "native_step2_relic_lifecycle",
+      "returncode": 0,
+      "seconds": 1.1677753330000087,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_relic_lifecycle.txt"
+    },
+    {
+      "name": "native_step2_silent",
+      "returncode": 0,
+      "seconds": 0.4476797910001551,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step2_silent.txt"
+    },
+    {
+      "name": "native_step3_events",
+      "returncode": 0,
+      "seconds": 9.488498083000195,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_step3_events.txt"
+    },
+    {
+      "name": "native_underdocks_events",
+      "returncode": 0,
+      "seconds": 0.8856252079999649,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/native_underdocks_events.txt"
+    },
+    {
+      "name": "observation_contract",
+      "returncode": 0,
+      "seconds": 1.166688083000281,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/observation_contract.txt"
+    },
+    {
+      "name": "observation_v14_character",
+      "returncode": 0,
+      "seconds": 0.47342220900009124,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/observation_v14_character.txt"
+    },
+    {
+      "name": "relic_contract",
+      "returncode": 0,
+      "seconds": 0.6482114999998885,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/relic_contract.txt"
+    },
+    {
+      "name": "relic_raw_rarity",
+      "returncode": 0,
+      "seconds": 0.45567329100003917,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/relic_raw_rarity.txt"
+    },
+    {
+      "name": "rules_regression",
+      "returncode": 0,
+      "seconds": 2.40962033400001,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/rules_regression.txt"
+    },
+    {
+      "name": "scroll_boxes_regression",
+      "returncode": 0,
+      "seconds": 0.4578297500002009,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/scroll_boxes_regression.txt"
+    },
+    {
+      "name": "snapshot_v9_character",
+      "returncode": 0,
+      "seconds": 0.4165883339996981,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/snapshot_v9_character.txt"
+    },
+    {
+      "name": "snapshot_validation",
+      "returncode": 0,
+      "seconds": 7.474849875000018,
+      "log": "/Users/yebohou/Workspace/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/future-potions-fix-20261111/cpp-logs/snapshot_validation.txt"
+    }
+  ]
+}

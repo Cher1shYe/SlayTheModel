@@ -498,9 +498,21 @@ int occupied_potion_slot(const RunContext &rc, int ordinal) {
     return -1;
 }
 
+// PotionModel.Rarity as the native event sees it. The generated potion table
+// folds native Event, Token and None into Rarity::SPECIAL (gen_potions.py), so
+// the distinction is restored here from the v0.111.0 potion models:
+// FoulPotion and GlowwaterPotion are Event, PotionShapedRock is Token.
+// DeprecatedPotion (None) is never generated; native GetCardRarity would throw
+// for it, here it is handled like Token so the event cannot fail.
+Rarity future_potion_native_rarity(PotionId id) {
+    const Rarity r = potion_def(id).rarity;
+    if (r != Rarity::SPECIAL) return r;
+    return (id == PotionId::FOUL_POTION || id == PotionId::GLOWWATER_POTION) ? Rarity::EVENT : Rarity::TOKEN;
+}
+
 // TheFutureOfPotions.GetCardRarity.
 Rarity future_potion_card_rarity(PotionId id) {
-    const Rarity r = potion_def(id).rarity;
+    const Rarity r = future_potion_native_rarity(id);
     if (r == Rarity::RARE || r == Rarity::EVENT) return Rarity::RARE;
     if (r == Rarity::UNCOMMON) return Rarity::UNCOMMON;
     return Rarity::COMMON;
@@ -1229,7 +1241,7 @@ void event_begin(RunContext &rc, int eventId, bool ancient) {
             int option = 0;
             for (int slot = 0; slot < rc.potionSlots; ++slot) {
                 if (!rc.potions[slot]) continue;
-                const Rarity r = potion_def(static_cast<PotionId>(rc.potions[slot])).rarity;
+                const Rarity r = future_potion_native_rarity(static_cast<PotionId>(rc.potions[slot]));
                 const int types = (r == Rarity::COMMON || r == Rarity::TOKEN) ? 2 : 3;
                 const int type = rc.eventRng.next_int_range(0, types);  // Attack, Skill, Power
                 if (option < 3) rc.eventData[option] = type;

@@ -497,7 +497,7 @@ def test_policy_update_with_critic_has_no_value_term_and_kl_stops(episodes):
 def _fork_cfg():
     return make_config("tiny", combat={"normal_simulations": 4, "boss_simulations": 8},
                        fork={"rest_prob": 1.0, "map_prob": 1.0, "card_prob": 1.0, "seeds": 2, "max_combats": 1,
-                             "max_decisions": 6, "max_active_branches": 64})
+                             "max_decisions": 6, "card_max_decisions": 10, "max_active_branches": 100_000})
 
 
 def _collect_with_forks(cfg, model, critic, n_jobs=3):
@@ -584,6 +584,7 @@ def test_fork_stats_separate_ties_and_count_all_attempted_branches():
     assert stats["fork_taken_was_best"] == 0.5
     assert stats["fork_decisive"] == 2 and stats["fork_tie_rate"] == pytest.approx(1 / 3)
     assert stats["fork_branches"] == 18 and stats["forks_complete"] == 3
+    assert stats["fork_map_taken_was_best"] == 0.5 and np.isnan(stats["fork_card_taken_was_best"])   # all on screen 0
 
 
 @pytest.mark.parametrize("floor_evs,best_epoch", [([0.3, 0.2], 0), ([0.5, 0.5], 0),
@@ -648,3 +649,247 @@ def test_warm_start_and_critic_prior(tmp_path):
     m = build_model(cfg, torch.device("cpu"))
     load_initial_weights(m, None, tmp_path / "a" / "last.pt", None, log=lambda *_: None)
     assert all(torch.equal(v, src["model"][k]) for k, v in m.state_dict().items())
+
+
+# --- run 4: small preset, per-card forks, distillation, time budget ---------------------
+
+def test_small_preset_and_lite_critic():
+    from spire_rl.config import CRITIC_LITE
+    spec = env_spec(CFG)
+    with torch.device("meta"):
+        policy = count_parameters(SpireNet(PRESETS["small"], spec))
+        critic = count_parameters(SpireNet(CRITIC_LITE, spec))
+    assert 10e6 < policy < 30e6 and PRESETS["small"].window == 8
+    assert critic < 4e6 and CRITIC_LITE.dropout > 0
+    cfg = make_config("small")
+    assert cfg.critic == CRITIC_LITE and cfg.ppo.microbatch == 32 and not cfg.ppo.activation_checkpointing
+    assert cfg.ppo.lr_warmup_steps > 0 and make_config("main").ppo.lr_warmup_steps == 0
+
+
+def test_learning_rate_warms_up_after_a_fresh_optimizer(tmp_path):
+    import json
+    from spire_rl.train import train
+    cfg = make_config("tiny", total_episodes=40, eval_every=1000, val_seeds=(9_000_000, 2),
+                      combat={"normal_simulations": 4, "boss_simulations": 8},
+                      ppo={"min_transitions": 8, "lr_warmup_steps": 4, "lr": 1e-4})
+    train(cfg, tmp_path / "a", torch.device("cpu"), stop_after_updates=4, log=lambda *_: None)
+    rows = [json.loads(line) for line in (tmp_path / "a" / "metrics.jsonl").read_text().splitlines()]
+    lrs = [r["lr"] for r in rows]
+    assert lrs[0] == pytest.approx(1e-5) and lrs[-1] == pytest.approx(1e-4)       # 10% -> 100%
+    assert all(a <= b for a, b in zip(lrs, lrs[1:]))
+
+
+def test_card_forks_compare_every_card_and_ignore_the_critics_win_guess():
+    from spire_rl.model import VALUE_SCALE
+    from spire_rl.rollout import SCREEN_CARD_REWARD, SKIP_CARD, TAKE_CARD
+    from spire_rl.sim import sim
+    from spire_rl.train import build_critic
+    assert (TAKE_CARD, SKIP_CARD) == (int(sim.RunActionType.TAKE_CARD), int(sim.RunActionType.SKIP_CARD))
+    cfg = _fork_cfg()
+    # One decision per branch: the random tiny policy dies in its next fight, long before a
+    # real act end, so the decision cap is what exercises the bootstrap here.
+    cfg = dataclasses.replace(cfg, fork=dataclasses.replace(cfg.fork, rest_prob=0.0, map_prob=0.0,
+                                                            card_max_decisions=1))
+    torch.manual_seed(0)
+    m, c = build_model(cfg, torch.device("cpu")).eval(), build_critic(cfg, torch.device("cpu")).eval()
+    with torch.no_grad():
+        c.value_head.bias.fill_(0.3)                                    # a critic that "expects" wins
+    res = _collect_with_forks(cfg, m, c, n_jobs=6)
+    forks = [f for ep in res.episodes for f in ep.info.get("forks", [])]
+    assert forks and all(f.screen == SCREEN_CARD_REWARD for f in forks)
+    weights = np.asarray(value_weights(1.0, cfg.reward))
+    reasons = set()
+    for f in forks:
+        obs = f.episode.obs[f.t]
+        picks = [i for i in range(obs.num_candidates) if int(obs.cand_type[i]) in (TAKE_CARD, SKIP_CARD)]
+        assert not f.group_level and f.options[0] == f.episode.actions[f.t]
+        assert set(f.options) <= set(picks)
+        assert len(f.options) == min(len(picks), cfg.fork.max_options) and len(set(f.options)) == len(f.options)
+        for (k, s), d in f.details.items():
+            reasons.add(d["stop_reason"])
+            assert d["stop_reason"] != "max_combats"                    # no fight limit: to the end of the act
+            assert d["bootstrap_comps"][2] == 0.0                       # win guess never enters the return
+            if d["stop_reason"] == "act_change":
+                assert not d["bootstrapped"]                            # only what really happened
+            assert f.returns[k, s] == pytest.approx(
+                (np.asarray(d["events"]) + np.asarray(d["bootstrap_comps"]) * VALUE_SCALE) @ weights)
+    assert "max_decisions" in reasons                                   # some branches were bootstrapped
+    assert res.stats["fork_card"] > 0 and res.stats["fork_branch_decisions"] > 0
+    # with bootstrap_win the critic's (here constant 0.3) win output is added
+    cfg_w = dataclasses.replace(cfg, fork=dataclasses.replace(cfg.fork, bootstrap_win=True))
+    res_w = _collect_with_forks(cfg_w, m, c, n_jobs=6)
+    boot = [d for ep in res_w.episodes for f in ep.info.get("forks", []) for d in f.details.values() if d["bootstrapped"]]
+    assert boot and all(d["bootstrap_comps"][2] != 0.0 for d in boot)
+
+
+def test_fork_advantages_are_normalized_per_screen(episodes):
+    from spire_rl.ppo import prepare
+    from spire_rl.rollout import Fork
+    eps = copy.deepcopy(episodes[:2])
+    for ep, (screen, values) in zip(eps, ((3, [0.0, 2.0]), (2, [0.0, 0.02, 0.04]))):
+        ep.outcome = Outcome.DEATH
+        ep.info["forks"] = [Fork(0, ep, 0, list(range(len(values))), list(range(len(values))), False, screen,
+                                 returns={(k, s): v for k, v in enumerate(values) for s in range(2)})]
+    prepare(eps, CFG.ppo, 2)
+    np.testing.assert_allclose(eps[0].fork_targets[0][3], [-1.0, 1.0], atol=1e-6)
+    np.testing.assert_allclose(eps[1].fork_targets[0][3], [-1.2247449, 0.0, 1.2247449], atol=1e-5)
+
+
+def test_simulator_exception_fails_the_episode_not_the_run():
+    env = MacroEnv(CombatConfig(normal_simulations=4, boss_simulations=8), RewardConfig())
+    res = env.reset(123, 1)
+    real = env.rc
+
+    class Boom:
+        def __getattr__(self, name):
+            return getattr(real, name)
+
+        def step(self, *args):
+            raise RuntimeError("The Future of Potions reward pool is too small")
+
+    env.rc = Boom()
+    out = env.step(0, res.next_obs, 1.0)
+    assert out.outcome == Outcome.FAILURE and "reward pool is too small" in out.failure_reason
+
+
+def test_future_of_potions_accepts_event_and_token_potions():
+    """Ruleset v8: Foul/Glowwater (native Event) and Potion Shaped Rock (Token) no longer throw."""
+    from spire_rl.sim import sim
+    event = next(e for e in range(sim.event_count()) if sim.event_info(e)[0] == "THE_FUTURE_OF_POTIONS")
+    for name in ("FoulPotion", "GlowwaterPotion", "PotionShapedRock"):
+        for seed in range(1, 31):
+            rc = sim.RunContext()
+            rc.init(seed, 0)
+            rc.add_potion(int(getattr(sim.PotionId, name)))
+            rc.add_potion(int(getattr(sim.PotionId, name)))
+            assert rc.begin_event(event)
+            assert rc.step(int(sim.RunActionType.EVENT_CHOICE), 0)
+            assert rc.step(int(sim.RunActionType.OPEN_CARD_REWARD), 0) and len(rc.offered) == 3
+
+
+def _cli_args(**kw):
+    import argparse
+    base = dict(preset="main", init_checkpoint=None, episodes=None, seed=None, train_seed_base=None, num_envs=None,
+                microbatch=None, lr=None, gate_policy=None, alpha=None, entropy_coef=0.01, fork_rest_prob=None,
+                fork_map_prob=None, fork_card_prob=None, fork_seeds=None, fork_coef=None, critic_replay=None)
+    return argparse.Namespace(**{**base, **kw})
+
+
+def test_time_budget_stop_and_seed_continuation(tmp_path):
+    from spire_rl.__main__ import _config
+    from spire_rl.train import train
+    cfg = make_config("tiny", total_episodes=8, eval_every=100, val_seeds=(9_000_000, 2), train_seed_base=3_000_000,
+                      combat={"normal_simulations": 4, "boss_simulations": 8}, ppo={"min_transitions": 4})
+    quiet = lambda *_: None
+    s = train(cfg, tmp_path / "a", torch.device("cpu"), max_hours=0.0, log=quiet)
+    assert s["stopped"] == "max_hours=0.0" and s["updates"] == 0 and (tmp_path / "a" / "last.pt").exists()
+    s = train(cfg, tmp_path / "b", torch.device("cpu"), stop_after_updates=1, log=quiet)
+    progress = ckpt.load(tmp_path / "b" / "last.pt")["progress"]
+    assert progress["next_train_seed"] == 3_000_000 + s["episodes_started"] > 3_000_000
+    nxt = _config(_cli_args(init_checkpoint=str(tmp_path / "b" / "last.pt")), log=quiet)
+    assert nxt.train_seed_base == progress["next_train_seed"] and nxt.preset == "tiny"
+    assert nxt.ppo.min_transitions == make_config("tiny").ppo.min_transitions      # per-preset defaults follow
+    assert _config(_cli_args(init_checkpoint=str(tmp_path / "b" / "last.pt"), train_seed_base=5_000_000),
+                   log=quiet).train_seed_base == 5_000_000
+    with pytest.raises(ValueError, match="overlap the validation seeds"):
+        train(dataclasses.replace(cfg, train_seed_base=9_000_000 - 3), tmp_path / "c", torch.device("cpu"), log=quiet)
+
+
+def test_distill_produces_a_checkpoint_that_training_continues(tmp_path):
+    from spire_rl.distill import distill
+    from spire_rl.train import train
+    quiet = lambda *_: None
+    cfg = make_config("tiny", total_episodes=12, eval_every=100, val_seeds=(9_000_000, 2),
+                      combat={"normal_simulations": 4, "boss_simulations": 8}, ppo={"min_transitions": 4})
+    train(cfg, tmp_path / "a", torch.device("cpu"), stop_after_updates=4, log=quiet)
+    rep = distill(make_config("tiny"), [tmp_path / "a" / "archive"], tmp_path / "d.pt", torch.device("cpu"),
+                  files=4, holdout_files=1, epochs=2, files_per_chunk=2, microbatch=8, log=quiet)
+    held = rep["heldout"]
+    assert rep["best_epoch"] in (1, 2) and np.isfinite(held["nll"]) and 0 <= held["top1"] <= 1
+    assert held["kl_estimate"] == pytest.approx(held["nll"] - held["teacher_nll"])
+    payload = ckpt.load(tmp_path / "d.pt")
+    assert payload["critic"] is not None and payload["progress"]["next_train_seed"] == 2_000_000
+    cfg2 = dataclasses.replace(cfg, total_episodes=2, train_seed_base=payload["progress"]["next_train_seed"])
+    s = train(cfg2, tmp_path / "b", torch.device("cpu"), stop_after_updates=1, log=quiet,
+              init_checkpoint=tmp_path / "d.pt")
+    assert s["updates"] == 1
+
+
+def _card_reward_observation():
+    """A real card-reward screen (three cards and skip), reached through an event."""
+    from spire_rl.sim import sim
+    rc = sim.RunContext()
+    rc.init(7, 0)
+    rc.add_potion(int(sim.PotionId.BlockPotion))
+    rc.add_potion(int(sim.PotionId.BlockPotion))
+    assert rc.begin_event(next(e for e in range(sim.event_count())
+                               if sim.event_info(e)[0] == "THE_FUTURE_OF_POTIONS"))
+    assert rc.step(int(sim.RunActionType.EVENT_CHOICE), 0) and rc.step(int(sim.RunActionType.OPEN_CARD_REWARD), 0)
+    return Observation.capture(rc)
+
+
+class _ScriptedEnv:
+    """Stands in for MacroEnv: one floor per decision, the third decision enters the next act,
+    the fifth ends the run. Lets the collector's branch horizon be checked without a strong policy."""
+
+    def __init__(self, first, later):
+        import types
+        self.first, self.later = first, later
+        self.rc = types.SimpleNamespace(act=0, floor=0)
+        self.log, self.n = EpisodeLog(), 0
+
+    def reset(self, game_seed, search_seed):
+        self.rc.act = self.rc.floor = self.n = 0
+        self.log = EpisodeLog()
+        return type("R", (), dict(reward_raw=0.0, components=np.zeros(3, np.float32), outcome=Outcome.RUNNING,
+                                  next_obs=self.first, final_obs=None, failure_reason=""))()
+
+    def step(self, candidate, obs, alpha):
+        self.n += 1
+        self.rc.floor += 1
+        comps = np.array([1, 1 if self.n == 3 else 0, 0], np.float32)
+        if self.n == 3:
+            self.rc.act = 1
+        done = self.n >= 5
+        return type("R", (), dict(reward_raw=raw_reward(comps, alpha, RewardConfig()), components=comps,
+                                  outcome=Outcome.DEATH if done else Outcome.RUNNING,
+                                  next_obs=None if done else self.later, final_obs=None, failure_reason=""))()
+
+    def fork(self, search_seed):
+        env = _ScriptedEnv(self.first, self.later)
+        env.rc.act, env.rc.floor, env.n = self.rc.act, self.rc.floor, self.n
+        return env
+
+
+@pytest.mark.parametrize("card_bootstrap", [False, True])
+def test_card_fork_branches_stop_at_the_act_end_with_real_events_only(episodes, card_bootstrap):
+    from spire_rl.model import VALUE_SCALE
+    from spire_rl.rollout import SCREEN_CARD_REWARD, Collector, Job
+    from spire_rl.train import build_critic
+    card = _card_reward_observation()
+    assert card.phase == 2 * SCREEN_CARD_REWARD and card.num_candidates == 4
+    later = next(o for ep in episodes for o in ep.obs if o.phase != card.phase)
+    cfg = make_config("tiny", fork={"card_prob": 1.0, "seeds": 2, "card_bootstrap": card_bootstrap})
+    torch.manual_seed(0)
+    m, c = build_model(cfg, torch.device("cpu")).eval(), build_critic(cfg, torch.device("cpu")).eval()
+    with torch.no_grad():
+        c.value_head.bias.copy_(torch.tensor([0.1, 0.2, 0.3]))
+    col = Collector(cfg, m, torch.device("cpu"), num_envs=1, critic=c)
+    col.slots[0].env = _ScriptedEnv(card, later)
+    try:
+        res = col.collect(iter([Job(0, 1, 1)]), 0, 1.0, None, sample_seed=3, forks=True)
+    finally:
+        col.close()
+    (fork,) = res.episodes[0].info["forks"]
+    assert fork.t == 0 and len(fork.options) == 4 and len(fork.details) == 8
+    w = np.asarray(value_weights(1.0, cfg.reward))
+    for key, d in fork.details.items():
+        # 3 decisions: three floors and the act entry; never the run's later floors or death
+        assert d["stop_reason"] == "act_change" and d["decisions"] == 3 and d["events"] == [3.0, 1.0, 0.0]
+        assert d["bootstrapped"] == card_bootstrap and d["bootstrap_comps"][2] == 0.0
+        expected = np.asarray(d["events"]) @ w
+        if card_bootstrap:
+            assert all(abs(v) > 1e-4 for v in d["bootstrap_comps"][:2])     # floors and acts estimates are used
+            expected += (np.asarray(d["bootstrap_comps"]) * VALUE_SCALE) @ w
+        assert fork.returns[key] == pytest.approx(expected)
+    assert len(res.episodes[0]) == 5 and res.transitions == 5       # the main line is untouched

@@ -42,13 +42,19 @@ def archive_files(dirs: list[Path]) -> list[Path]:
 
 
 def load_targets(files: list[Path], cand_num: int) -> list:
-    """Episodes with ``comp_returns`` = future events / scale; normal endings only."""
+    """Episodes with ``comp_returns`` = future events / scale; normal endings only.
+
+    Episode ids are renumbered within the returned list (the original is kept in
+    ``info["archive_episode_id"]``): ``collate`` keys states by episode id, and
+    archives of different runs reuse the same ids.
+    """
     eps = []
     for f in files:
         _, episodes = read_rollout(f)
         for ep in episodes:
             if ep.outcome.name not in ("WIN", "DEATH") or len(ep) == 0:
                 continue
+            ep.info["archive_episode_id"], ep.episode_id = ep.episode_id, len(eps)
             events = np.stack([r[1:4] for r in ep.reward]).astype(np.float64)
             ep.comp_returns = (np.cumsum(events[::-1], 0)[::-1] / SCALE).astype(np.float32)
             for o in ep.obs:
