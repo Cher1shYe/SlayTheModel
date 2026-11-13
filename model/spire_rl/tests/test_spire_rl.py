@@ -664,6 +664,7 @@ def test_small_preset_and_lite_critic():
     cfg = make_config("small")
     assert cfg.critic == CRITIC_LITE and cfg.ppo.microbatch == 32 and not cfg.ppo.activation_checkpointing
     assert cfg.ppo.lr_warmup_steps > 0 and make_config("main").ppo.lr_warmup_steps == 0
+    assert not cfg.ppo.bf16 and make_config("main").ppo.bf16        # the small network runs in FP32
 
 
 def test_learning_rate_warms_up_after_a_fresh_optimizer(tmp_path):
@@ -893,3 +894,189 @@ def test_card_fork_branches_stop_at_the_act_end_with_real_events_only(episodes, 
             expected += (np.asarray(d["bootstrap_comps"]) * VALUE_SCALE) @ w
         assert fork.returns[key] == pytest.approx(expected)
     assert len(res.episodes[0]) == 5 and res.transitions == 5       # the main line is untouched
+
+
+def _sharpened(model, std=0.5):
+    """A fresh policy is near-uniform whatever its inputs; give the heads a visible spread."""
+    with torch.no_grad():
+        torch.nn.init.normal_(model.policy_query.weight, std=std)
+        torch.nn.init.normal_(model.policy_mlp[-1].weight, std=std)
+        torch.nn.init.normal_(model.group_mlp[-1].weight, std=std)
+    return model
+
+
+def test_rollout_log_probabilities_recompute_exactly_with_forks():
+    """What the update recomputes is what the rollout saved, also with branches in the batches (FP32)."""
+    from spire_rl.ppo import prepare
+    from spire_rl.train import build_critic
+    cfg = _fork_cfg()
+    torch.manual_seed(0)
+    m = _sharpened(build_model(cfg, torch.device("cpu")), std=2.0).eval()
+    c = build_critic(cfg, torch.device("cpu")).eval()
+    res = _collect_with_forks(cfg, m, c)
+    assert res.stats["forks_complete"] > 0
+    targets = prepare(res.episodes, cfg.ppo, cfg.fork.seeds)
+    assert np.std([ep.logp[t] for ep, t in targets]) > 0.1            # the policy is not uniform
+    exact = recompute_check(m, targets, cfg.model.window, torch.device("cpu"), False, limit=len(targets))
+    assert exact < 1e-3                                               # ~1e-5 here; BF16 gave 0.02-0.08
+    ep = max((e for e in res.episodes if e.obs[0].num_candidates > 1), key=len)   # sanity: a wrong history shows
+    wrong = copy.copy(ep)
+    wrong.actions = [(ep.actions[0] + 1) % ep.obs[0].num_candidates] + ep.actions[1:]
+    later = [(wrong, t) for t in range(1, min(len(ep), cfg.model.window))]
+    wrong_history = recompute_check(m, later, cfg.model.window, torch.device("cpu"), False, limit=len(later))
+    assert wrong_history > 100 * max(exact, 1e-6)
+
+
+def test_heads_run_in_fp32_under_bf16_autocast(episodes):
+    """BF16 keeps 8 significant bits; scores rounded to it made saved and recomputed log P differ."""
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(0)
+    m = _sharpened(build_model(CFG, dev)).eval()
+    seen = {}
+    hooks = [layer.register_forward_hook(lambda _m, _i, out, name=name: seen.__setitem__(name, out.dtype))
+             for name, layer in (("policy", m.policy_mlp[-1]), ("group", m.group_mlp[-1]),
+                                 ("value", m.value_head), ("trunk", m.blocks[0].out))]
+    b = collate(targets_of(episodes), WINDOW).to(dev)
+    try:
+        with torch.no_grad(), torch.autocast(dev.type, dtype=torch.bfloat16):
+            out = m(b)
+    except RuntimeError as exc:
+        if dev.type == "cpu" and "does not support bf16" in str(exc):
+            pytest.skip(f"CPU BF16 unsupported here: {exc}")
+        raise
+    finally:
+        for h in hooks:
+            h.remove()
+    assert seen["trunk"] == torch.bfloat16                           # autocast was really on
+    assert seen["policy"] == seen["group"] == seen["value"] == torch.float32
+    assert out.logits.dtype == out.value.dtype == out.aux.dtype == out.group_logp.dtype == torch.float32
+    with torch.no_grad():
+        ref = m(b)
+    legal = b.cand_mask
+    assert torch.allclose(out.logits[legal], ref.logits[legal], atol=0.2)   # same function as FP32
+
+
+def test_recompute_limit_depends_on_precision_and_bf16_flag():
+    from spire_rl.__main__ import _config
+    p = make_config("main").ppo
+    assert p.recompute_tolerance == 0.05 and p.recompute_tolerance_bf16 > p.recompute_tolerance
+    import argparse
+    base = dict(preset="small", episodes=None, num_envs=None)
+    assert _config(argparse.Namespace(**base)).ppo.bf16 is False
+    assert _config(argparse.Namespace(**base, bf16=True)).ppo.bf16 is True
+    assert _config(argparse.Namespace(**{**base, "preset": "main"}, bf16=False)).ppo.bf16 is False
+
+
+@pytest.mark.parametrize("error", [RuntimeError("log-probability recompute mismatch"), KeyboardInterrupt()])
+def test_an_error_or_ctrl_c_still_saves_the_weights(tmp_path, monkeypatch, error):
+    """A run that stops on an error keeps what it learned (last.pt), and still reports the error."""
+    import json
+    from spire_rl import train as train_module
+    cfg = make_config("tiny", total_episodes=1000, eval_every=1000, val_seeds=(9_000_000, 2), train_seed_base=3_000_000,
+                      combat={"normal_simulations": 4, "boss_simulations": 8}, ppo={"min_transitions": 8})
+    real, calls = train_module.recompute_check, []
+
+    def failing(*args, **kwargs):
+        calls.append(1)
+        if len(calls) == 3:                     # two updates are done, the third never starts
+            raise error
+        return real(*args, **kwargs)
+
+    monkeypatch.setattr(train_module, "recompute_check", failing)
+    lines = []
+    with pytest.raises(type(error)):
+        train_module.train(cfg, tmp_path, torch.device("cpu"), log=lambda *a: lines.append(" ".join(map(str, a))))
+    payload = ckpt.load(tmp_path / "last.pt")
+    progress = payload["progress"]
+    assert progress["updates"] == 2 and progress["final"] is False and type(error).__name__ in progress["stopped"]
+    assert progress["next_train_seed"] == 3_000_000 + progress["episodes_started"]
+    assert json.loads((tmp_path / "summary.json").read_text())["updates"] == 2
+    assert any("saved to" in line for line in lines)
+    torch.manual_seed(cfg.seed)                                          # same seed: the starting weights
+    initial = build_model(cfg, torch.device("cpu")).state_dict()
+    assert any(not torch.equal(payload["model"][k], v) for k, v in initial.items())   # the trained ones
+
+
+def test_an_error_does_not_overwrite_last_pt_with_broken_weights(tmp_path, monkeypatch):
+    from spire_rl import train as train_module
+    cfg = make_config("tiny", total_episodes=1000, eval_every=1000, val_seeds=(9_000_000, 2),
+                      combat={"normal_simulations": 4, "boss_simulations": 8}, ppo={"min_transitions": 8})
+    real, calls = train_module.recompute_check, []
+
+    def failing(model, *args, **kwargs):
+        calls.append(1)
+        if len(calls) == 2:
+            with torch.no_grad():
+                next(model.parameters()).fill_(float("nan"))
+            raise RuntimeError("diverged")
+        return real(model, *args, **kwargs)
+
+    monkeypatch.setattr(train_module, "recompute_check", failing)
+    lines = []
+    with pytest.raises(RuntimeError, match="diverged"):
+        train_module.train(cfg, tmp_path, torch.device("cpu"), log=lambda *a: lines.append(" ".join(map(str, a))))
+    payload = ckpt.load(tmp_path / "last.pt")                          # still the one written at validation 0
+    assert payload["progress"]["updates"] == 0
+    assert all(bool(torch.isfinite(v).all()) for v in payload["model"].values())
+    assert any("left as it was" in line for line in lines)
+
+
+def test_greedy_evaluation_takes_the_most_probable_action(tmp_path, capsys, monkeypatch):
+    import json
+    from spire_rl.__main__ import main
+    from spire_rl.rollout import Collector, Job
+    from spire_rl.tools import paired_compare
+    from spire_rl.train import evaluate
+    cfg = make_config("tiny", val_seeds=(9_000_000, 4), combat={"normal_simulations": 4, "boss_simulations": 8})
+    torch.manual_seed(0)
+    m = _sharpened(build_model(cfg, torch.device("cpu")), std=2.0).eval()
+    col = Collector(cfg, m, torch.device("cpu"), num_envs=2)
+    try:
+        res = col.collect((Job(i, 9_000_000 + i, 7 + i) for i in range(3)), -1, 0.0, None, sample_seed=1, greedy=True)
+    finally:
+        col.close()
+    tg = [(ep, t) for ep in res.episodes for t in range(len(ep))]
+    with torch.no_grad():
+        logits = m(collate(tg, cfg.model.window)).logits
+    taken = logits.gather(1, torch.tensor([[ep.actions[t]] for ep, t in tg]))[:, 0]
+    assert len(tg) >= 3 and bool((taken >= logits.max(-1).values - 1e-4).all())    # ties between equal cards aside
+    assert float(logits.exp().max(-1).values.mean()) < 0.99                         # there was something to choose
+    # evaluate(): reproducible, labelled, and a different run from the sampled one
+    passed, real = [], Collector.collect
+    monkeypatch.setattr(Collector, "collect",
+                        lambda self, *a, **kw: (passed.append(kw.get("greedy", False)), real(self, *a, **kw))[1])
+    g1 = evaluate(m, cfg, torch.device("cpu"), "val", num_envs=3, greedy=True)
+    g2 = evaluate(m, cfg, torch.device("cpu"), "val", num_envs=2, greedy=True)
+    sampled = evaluate(m, cfg, torch.device("cpu"), "val")
+    assert passed == [True, True, False]
+    assert g1["per_seed"] == g2["per_seed"] and g1["greedy"] is True and sampled["greedy"] is False
+    assert "greedy" in g1["conditions"]["sampling"] and "stochastic" in sampled["conditions"]["sampling"]
+    # CLI: eval --greedy --out, then compare against the sampled result of the same seeds
+    ckpt.save(tmp_path / "m.pt", cfg, m, {})
+    assert main(["eval", "--checkpoint", str(tmp_path / "m.pt"), "--device", "cpu", "--greedy",
+                 "--out", str(tmp_path / "greedy.json")]) == 0
+    assert main(["eval", "--checkpoint", str(tmp_path / "m.pt"), "--device", "cpu",
+                 "--out", str(tmp_path / "sampled.json")]) == 0
+    saved = json.loads((tmp_path / "greedy.json").read_text())
+    assert saved["greedy"] is True and saved["per_seed"] == g1["per_seed"] and passed[-2:] == [True, False]
+    capsys.readouterr()
+    assert main(["compare", str(tmp_path / "greedy.json"), str(tmp_path / "sampled.json")]) == 0
+    shown = json.loads(capsys.readouterr().out)
+    assert shown["a_greedy"] is True and shown["b_greedy"] is False and shown["seeds"] == 4
+    assert shown["floor_diff_a_minus_b"] == pytest.approx(g1["floor_mean"] - sampled["floor_mean"])
+    assert shown["a_higher_floor"] + shown["b_higher_floor"] + shown["same_floor"] == 4
+
+
+def test_paired_compare_reports_floor_differences():
+    from spire_rl.tools import paired_compare
+    a = {"greedy": True, "per_seed": [{"seed": s, "won": False, "floor": f, "act": f // 17, "outcome": "DEATH"}
+                                      for s, f in enumerate((10, 20, 30, 40))]}
+    b = {"per_seed": [{"seed": s, "won": False, "floor": f, "act": f // 17, "outcome": o}
+                      for s, (f, o) in enumerate(((10, "DEATH"), (16, "DEATH"), (34, "TRUNCATED"), (30, "DEATH")))]}
+    r = paired_compare(a, b)
+    assert r["floor_diff_a_minus_b"] == pytest.approx(2.5) and r["a_floor_mean"] == 25 and r["b_floor_mean"] == 22.5
+    d = np.array([0, 4, -4, 10])
+    assert r["floor_diff_standard_error"] == pytest.approx(d.std(ddof=1) / 2)
+    assert (r["a_higher_floor"], r["b_higher_floor"], r["same_floor"]) == (2, 1, 1)
+    assert (r["a_reach_act2"], r["b_reach_act2"], r["a_truncations"], r["b_truncations"]) == (0.75, 0.5, 0, 1)
+    assert r["a_greedy"] is True and "b_greedy" not in r

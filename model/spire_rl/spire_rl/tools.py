@@ -232,6 +232,26 @@ def paired_compare(a: dict, b: dict) -> dict:
     n = len(wa)
     k, m = min(only_a, only_b), only_a + only_b
     p = min(1.0, 2 * sum(math.comb(m, i) for i in range(k + 1)) / 2 ** m) if m else 1.0
-    return {"seeds": n, "a_wins": both + only_a, "b_wins": both + only_b, "both": both,
-            "only_a": only_a, "only_b": only_b, "neither": n - both - only_a - only_b,
-            "win_rate_diff_a_minus_b": (only_a - only_b) / n, "mcnemar_exact_p": p}
+    out = {"seeds": n, "a_wins": both + only_a, "b_wins": both + only_b, "both": both,
+           "only_a": only_a, "only_b": only_b, "neither": n - both - only_a - only_b,
+           "win_rate_diff_a_minus_b": (only_a - only_b) / n, "mcnemar_exact_p": p}
+    # Wins are 0-1 of 200 so far; the final floor of the same seed is the usable paired measure.
+    fa = {r["seed"]: r.get("floor") for r in a["per_seed"]}
+    fb = {r["seed"]: r.get("floor") for r in b["per_seed"]}
+    if all(v is not None for v in (*fa.values(), *fb.values())):
+        d = [fa[s] - fb[s] for s in fa]
+        mean = sum(d) / n
+        sd = math.sqrt(sum((x - mean) ** 2 for x in d) / (n - 1)) if n > 1 else 0.0
+        aa = {r["seed"]: (r.get("act") or 0) for r in a["per_seed"]}
+        ab = {r["seed"]: (r.get("act") or 0) for r in b["per_seed"]}
+        out.update(a_floor_mean=sum(fa.values()) / n, b_floor_mean=sum(fb.values()) / n,
+                   floor_diff_a_minus_b=mean, floor_diff_standard_error=sd / math.sqrt(n) if n else 0.0,
+                   a_higher_floor=sum(x > 0 for x in d), b_higher_floor=sum(x < 0 for x in d),
+                   same_floor=sum(x == 0 for x in d),
+                   a_reach_act2=sum(v >= 1 for v in aa.values()) / n, b_reach_act2=sum(v >= 1 for v in ab.values()) / n,
+                   a_truncations=sum(r.get("outcome") == "TRUNCATED" for r in a["per_seed"]),
+                   b_truncations=sum(r.get("outcome") == "TRUNCATED" for r in b["per_seed"]))
+    for name, src in (("a", a), ("b", b)):
+        if "greedy" in src:
+            out[f"{name}_greedy"] = src["greedy"]
+    return out

@@ -62,7 +62,12 @@ def scheduled_stage(cfg: RunConfig, episodes_started: int) -> int:
 
 
 def evaluate(model: SpireNet, cfg: RunConfig, device: torch.device, split: str, num_envs: int | None = None,
-             limit: int | None = None, critic: SpireNet | None = None) -> dict:
+             limit: int | None = None, critic: SpireNet | None = None, greedy: bool = False) -> dict:
+    """Fixed seeds and combat-search seeds. Default: actions sampled from the policy (fixed
+    streams), as during training. ``greedy``: always the most probable action, which shows
+    the level without the sampled slips (a 10-20% "leave" next to free gold is never taken).
+    A greedy policy that keeps repeating one menu action ends as a truncation (menu_loop or
+    macro step cap), reported in ``truncations`` / ``truncation_reasons``."""
     first, count = cfg.val_seeds if split == "val" else cfg.test_seeds
     if limit:
         count = min(count, limit)
@@ -71,7 +76,8 @@ def evaluate(model: SpireNet, cfg: RunConfig, device: torch.device, split: str, 
     try:
         # alpha=0 only scores true wins and weights the critic; it is not a network input.
         res = collector.collect(jobs, stage=-1, alpha=0.0, min_transitions=None,
-                                sample_seed=0xE7A1)   # fixed evaluation sampling streams
+                                sample_seed=0xE7A1,   # fixed evaluation sampling streams
+                                greedy=greedy)
     finally:
         collector.close()
     s = res.stats
@@ -79,13 +85,14 @@ def evaluate(model: SpireNet, cfg: RunConfig, device: torch.device, split: str, 
     per_seed = sorted(({"seed": ep.game_seed, "won": ep.outcome.name == "WIN", "outcome": ep.outcome.name,
                         "floor": ep.info.get("floor"), "act": ep.info.get("act"), "decisions": len(ep),
                         "reward_raw": ep.info.get("reward_raw")} for ep in res.episodes), key=lambda r: r["seed"])
-    return {"split": split, "episodes_evaluated": count, "win_rate": s["wins"] / count,
+    return {"split": split, "greedy": greedy, "episodes_evaluated": count, "win_rate": s["wins"] / count,
             "win_rate_ci_low": lo, "win_rate_ci_high": hi, "win_rate_normal_end": s["win_rate_normal_end"],
             "wins": s["wins"], "failures": s["failures"], "truncations": s["truncations"],
             "floor_mean": s["floor_mean"], "reach_act2": s["reach_act2"], "reach_act3": s["reach_act3"],
             "decisions_mean": s.get("decisions_mean"), "menu_loops": s.get("menu_loops", 0),
             "truncation_reasons": s.get("truncation_reasons", {}), "eval_seconds": res.wall_seconds,
-            "conditions": {"policy_inputs": POLICY_INPUTS, "sampling": "stochastic, fixed streams",
+            "conditions": {"policy_inputs": POLICY_INPUTS,
+                           "sampling": "greedy (most probable action)" if greedy else "stochastic, fixed streams",
                            "combat": cfg.combat.__dict__, "model": {"type_factorized": cfg.model.type_factorized}},
             "per_seed": per_seed}
 
@@ -184,6 +191,7 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
 
     loop_start = time.perf_counter()   # wall clock for the ETA: includes validation and saving
     run_eval(0)
+    error: BaseException | None = None
     try:
         while progress["episodes_started"] < cfg.total_episodes:
             if max_hours is not None and time.perf_counter() - loop_start >= max_hours * 3600:
@@ -231,12 +239,17 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
             quality = critic_quality(targets)
             failures = res.stats.get("failures", 0)
             progress["failures"] += failures
+            if failures:
+                log(f"episodes dropped as failures this rollout: {failures} ({res.stats.get('failure_reasons')})")
             if failures > max(2, 0.02 * len(res.episodes)):
                 raise RuntimeError(f"too many engineering failures this rollout: {failures} "
                                    f"({res.stats.get('failure_reasons')}); fix before continuing")
             recompute = recompute_check(model, targets, cfg.model.window, device, p.bf16) if targets else 0.0
-            if recompute > p.recompute_tolerance:
-                raise RuntimeError(f"log-probability recompute mismatch {recompute:.4g} > {p.recompute_tolerance}")
+            tolerance = p.recompute_tolerance_bf16 if p.bf16 and device.type == "cuda" else p.recompute_tolerance
+            if recompute > tolerance:
+                raise RuntimeError(f"log-probability recompute mismatch {recompute:.4g} > {tolerance} "
+                                   f"({'BF16' if tolerance == p.recompute_tolerance_bf16 else 'FP32'}): the update "
+                                   "would not see the inputs the rollout saw")
             lr_scale = (min(1.0, 0.1 + 0.9 * progress["optimizer_steps"] / p.lr_warmup_steps)
                         if p.lr_warmup_steps > 0 else 1.0)
             for opt, base in ((optimizer, p.lr), (critic_optimizer, p.critic_lr)):
@@ -287,14 +300,31 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
             if stop_after_updates and progress["updates"] >= stop_after_updates:
                 progress["stopped"] = f"stop_after_updates={stop_after_updates}"
                 break
+    except BaseException as exc:   # an error or Ctrl+C: what was learned so far is still saved below
+        error = exc
+        progress["stopped"] = f"{type(exc).__name__}: {exc}"[:500]
     finally:
         collector.close()
-    ckpt.save(run_dir / "last.pt", cfg, model, {**progress, "final": True}, critic)
+    # After an error the weights are those of the last update (or part-way through one). They
+    # replace last.pt unless nothing was learned yet or they are not finite numbers.
+    if error is None or (progress["updates"] > 0 and _finite(model) and _finite(critic)):
+        ckpt.save(run_dir / "last.pt", cfg, model, {**progress, "final": error is None}, critic)
+        if error is not None:
+            log(f"STOP on {progress['stopped']}\nweights after {progress['updates']} updates "
+                f"({progress['episodes_started']} episodes) saved to {run_dir / 'last.pt'}")
+    elif error is not None:
+        log(f"STOP on {progress['stopped']}\nlast.pt left as it was (written at the last validation)")
     summary = {**progress, "alpha0_requirement_met": progress["alpha0_episodes"] >= 2000,
                "parameters": count_parameters(model)}
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, default=str))
     logger.export_tables()
+    if error is not None:
+        raise error
     return summary
+
+
+def _finite(net) -> bool:
+    return net is None or all(bool(torch.isfinite(p).all()) for p in net.parameters())
 
 
 def _gate(cfg: RunConfig, progress: dict, stage: int) -> tuple[bool, str]:

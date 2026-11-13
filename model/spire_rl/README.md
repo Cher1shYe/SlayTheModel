@@ -6,9 +6,11 @@
 **当前状态（2026-11-12）**
 
 - 已完成两轮训练：第一轮 `main-a0-s1`（6,001 局）、第二轮 `main-a0-s2`（10,000 局，验证约 22–23 层、约一半到第二幕）。第三轮（0.2B 接着第二轮）启动后在第 7 次更新因 C++ 事件异常崩溃，未继续。
-- **下一轮（第四轮）的代码已写好，尚未在 GPU 上运行**：`small` 预设（约 0.02B、8 步历史）、离线蒸馏 `distill`、逐张卡牌分叉、按工作日分段训练（`--max-hours`）。**启动命令见第 2.5 节**，改动与依据见第 8 节第一条。
-- C++ 模拟器当前是 ruleset **v8**（修复 The Future of Potions 崩溃）。**训练机必须重新编译**；v7 的检查点（第二轮权重）在 v8 上不能加载，第二轮的归档仍可读。
-- 本机 CPU 45 项测试通过。GPU 上的速度、显存、蒸馏质量和训练效果均未验证。
+- **第四轮**（`small` 预设约 0.02B、8 步历史；离线蒸馏 `distill`；逐张卡牌分叉；按工作日分段 `--max-hours`）：训练机上已编译 ruleset v8、已蒸馏出 `runs/distill-small.pt`。2026-11-12 首次启动：`[val @0]` 22.1 层、0.46 到第二幕（蒸馏接上了第二轮），跑了 7 次更新，第 8 次更新前被“概率重算检查”拦停（0.053 > 0.05）。原因是 BF16 舍入，不是数据错位，已修（`small` 改用 FP32，输出头固定 FP32），并改为报错或 Ctrl+C 退出时也保存 `last.pt`。**修复后尚未在 GPU 上重跑。**
+- **接下来怎么跑见第 2.5 节“现在要做的”**：原指令不变，不用重新编译，不用重新蒸馏。改动与依据见第 8 节第一条。
+- C++ 模拟器是 ruleset **v8**（修复 The Future of Potions 崩溃）。v7 的检查点（第二轮权重）在 v8 上不能加载，第二轮的归档仍可读。
+- 新增 `eval --greedy`：验证时每步取概率最高的动作（训练和训练中的验证仍按概率采样），配合 `compare` 看同一批种子上的层数差。用法见第 2.5 节末尾。
+- 本机 CPU 53 项测试通过。GPU 上的速度、显存和长期训练效果均未验证。
 
 第 2.2–2.4 节的命令和说明最初为第一轮（0.2B、从零训练）而写，仍然可用；第四轮按第 2.5 节操作。
 
@@ -28,7 +30,7 @@
 | `spire_rl/metrics.py`、`dashboard.py` | 按步记录（JSONL、可选 TensorBoard）与静态 HTML 仪表盘 |
 | `spire_rl/archive.py` | 轨迹归档（与 PPO buffer 分开，供以后离线/DT 实验） |
 | `spire_rl/tools.py` | 环境检查、GPU 显存/耗时检查、磁盘规划、两档成对比较 |
-| `tests/` | 文档第 9 节要求的验证 + 2026-11-10/11 各批回归（45 项） |
+| `tests/` | 文档第 9 节要求的验证 + 2026-11-10/11/12 各批回归（53 项） |
 | `spire_rl/pretrain.py` | 从归档离线预训练 critic（价值先验） |
 | `spire_rl/distill.py` | 从归档把已有策略离线蒸馏进另一个预设（同时训练 critic），输出普通检查点 |
 
@@ -53,7 +55,7 @@ C++ 侧新增（在 `artifacts/dev/cpp-native-aligned-20261031/simulator/`）：
 下列命令是第一轮（`main`，从零训练）的写法，保留作参考；**第四轮按第 2.5 节**。所有 `runs/...` 均相对于执行命令时的工作目录。
 
 ```sh
-python -m pytest -q model/spire_rl/tests              # 45 项测试，CPU 即可
+python -m pytest -q model/spire_rl/tests              # 53 项测试，CPU 即可
 python -m spire_rl params --preset large-1b           # 参数量与 16 字节/参数 估算
 python -m spire_rl check --preset main --device cuda --out check-main.json
 python -m spire_rl check --preset large-1b --device cuda --out check-1b.json
@@ -70,6 +72,8 @@ python -m spire_rl eval --checkpoint runs/main-a0-s1/best.pt --split test --devi
 python -m spire_rl eval --checkpoint runs/1b-s1/best.pt --split test --device cuda --out test-1b.json
 python -m spire_rl compare test-main.json test-1b.json
 ```
+
+`eval` 默认和训练一样按概率采样；加 `--greedy` 则每步取概率最高的动作。`compare` 输出同种子配对的通关差（McNemar）和**层数差**（`floor_diff_a_minus_b`、它的标准误、各自到第二幕的比例和截断数）。
 
 常用参数：`--num-envs`（并行环境数，默认 8，按 CPU 核数调）、`--microbatch`（只影响显存）、`--seed`（训练随机性：初始化、采样、搜索种子；**不决定游戏种子**，游戏种子由 `--train-seed-base` 或检查点接续决定）、`--init-checkpoint`（载入权重继续，优化器重建，必须用新 run 目录）、`--max-hours`、`--alpha`（整轮固定一个进度权重）、`--fork-rest/--fork-map/--fork-card/--fork-seeds/--fork-coef`（成对分叉）、`--lr`。完整列表：`python -m spire_rl train --help`。
 
@@ -113,9 +117,50 @@ tensorboard --logdir /mnt/c/Users/yebohou/SlayTheModel/runs/<run>/tensorboard --
 
 每个 run 目录只有这两个模型文件，不会随训练变多。训练结束后，学习曲线全部在 `metrics.jsonl`/`metrics.csv`/`eval.csv`/`dashboard.html` 里，不依赖任何模型文件。启动时检查检查点所需磁盘（不含归档），不够就拒绝；同一目录已有训练记录时拒绝启动，避免混写。归档可以在 `RunConfig.archive_trajectories` 关掉（会失去离线分析和蒸馏的数据）。
 
-`best.pt` 不是最后模型：验证胜率更高时更新，胜率相同时比平均层数（2026-11-11 起）。`last.pt` 在每次验证后和训练正常结束（含 `--max-hours` 到点）时写入；进程被强行中断时不会保存。可用 `train --init-checkpoint` 载入权重、新建优化器继续训练。
+`best.pt` 不是最后模型：验证胜率更高时更新，胜率相同时比平均层数（2026-11-11 起）。`last.pt` 在每次验证后和训练结束时写入（正常结束、`--max-hours` 到点、报错退出、按一次 Ctrl+C）；直接关窗口或 `kill` 时不会保存。可用 `train --init-checkpoint` 载入权重、新建优化器继续训练。
 
-### 2.5 第四轮：小网络、按工作日分段（2026-11-11，尚未在 GPU 上运行）
+### 2.5 第四轮：小网络、按工作日分段（2026-11-11；11-12 首次启动后修了精度问题）
+
+#### 现在要做的（2026-11-12 起，训练机上已经编译过 v8、已经蒸馏出 `runs/distill-small.pt`）
+
+训练指令和首次启动时相同，**不用重新编译 C++，不用重新蒸馏**。首次启动的 `runs/small-a0-d1/` 在第 8 次更新前被拦停，里面的 `last.pt` 是第 0 局验证时存的，内容等于蒸馏结果，所以仍从 `runs/distill-small.pt` 开始。
+
+```sh
+conda activate slay
+cd /mnt/c/Users/yebohou/SlayTheModel
+
+# 1) 同步代码后跑一次测试，确认文件没漏（应显示 53 passed）
+#    要同步的文件：model/spire_rl/spire_rl/ 下的 model.py config.py train.py rollout.py tools.py __main__.py，
+#    以及 model/spire_rl/tests/test_spire_rl.py
+python -m pytest -q model/spire_rl/tests
+
+# 2) 把首次启动的目录挪开（训练不往已有记录的目录里写；不要删，里面 7 次更新的 metrics.jsonl 要带回来看）
+mv runs/small-a0-d1 runs/small-a0-d1-crashed
+
+# 3) 第一天。--max-hours 填“当天能挂的小时数减去约 20 分钟”
+python -u -m spire_rl train --device cuda --num-envs 8 --seed 4 --episodes 100000 --max-hours 7 \
+  --run-dir runs/small-a0-d1 --init-checkpoint runs/distill-small.pt \
+  --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0.05 --fork-seeds 2 --fork-coef 2
+
+# 4) 第二天起只改两处（第三天是 d3 接 d2/last.pt，依此类推）
+#    --run-dir runs/small-a0-d2 --init-checkpoint runs/small-a0-d1/last.pt
+```
+
+启动后看三样：
+
+- `[val @0]` 应在 22 层左右、接近一半到第二幕（首次启动是 22.1 层 / 0.46）。
+- 第 8 次更新能过去（首次启动停在这里）。
+- 速度：首次启动第 7 次更新时是 4.66 秒/局。这次 `small` 改成了 FP32，明显变慢的话，下次启动在指令末尾加 `--bf16`。
+
+结束与中断：
+
+- 到点自己停，保存 `<run 目录>/last.pt`。
+- 提前停：按**一次** Ctrl+C，等它打印 `saved to .../last.pt` 再关窗口。直接关窗口或 `kill` 不会保存。
+- 中途报错：退出前同样会保存 `last.pt` 并打印 `saved to ...`。把报错内容带回来；修好后从那个 `last.pt` 用一个新的 `--run-dir` 接着跑。
+
+每天带回：当天 run 目录下的 `metrics.jsonl`、`eval.jsonl` 和终端输出；第一次顺便带上 `runs/small-a0-d1-crashed/metrics.jsonl`。
+
+#### 从头做一遍（换机器、C++ 又改了、或需要重新蒸馏时）
 
 ```sh
 conda activate slay
@@ -123,7 +168,7 @@ cd /mnt/c/Users/yebohou/SlayTheModel
 # C++ 改了（ruleset v8），必须重新编译，然后确认版本
 CXX=g++ python artifacts/dev/cpp-native-aligned-20261031/validation/build_local.py
 python -c "from spire_rl.sim import sim; print(sim.ENGINE_RULESET_ID)"     # native-41cef1ea-port-v8
-python -m pytest -q model/spire_rl/tests                                    # 45 项
+python -m pytest -q model/spire_rl/tests                                    # 53 项
 
 # 1) 一次性：把第二轮末尾的策略蒸馏进 small 预设（只读归档，不需要第二轮的权重）
 python -m spire_rl distill --archive runs/main-a0-s2/archive --out runs/distill-small.pt --preset small --device cuda
@@ -140,7 +185,23 @@ python -u -m spire_rl train --device cuda --num-envs 8 --seed 4 --episodes 10000
 - 用 `--init-checkpoint` 时网络形状和每档默认超参取自检查点，`--preset` 被忽略；训练种子从检查点记录的 `next_train_seed` 接着用（蒸馏检查点从 2,000,000 起），不会重复第一、二轮的 1,000,000–1,009,999。
 - `--max-hours` 到点后不再开始新一轮采样，保存 `last.pt` 后正常退出；实际会多出当前这一轮采样和更新的时间。`--episodes` 设大，让时间而不是局数决定何时停。
 - 每段的 run 目录约占：两个检查点共约 0.2 GB，归档每 1 万局约 0.3 GB。不需要的旧 run（包括崩溃的 `runs/main-a0-s3`，约 1.8 GB）可以手动删除。
+- **中途要停**：按一次 Ctrl+C，等它打印 `saved to .../last.pt` 再关窗口（要等正在跑的几场战斗结束，通常几秒到几十秒）。报错退出时也会同样保存。直接关窗口或 `kill` 不会保存，只剩上次验证时的 `last.pt`。
+- 每天结束后最好带回该 run 目录下的 `metrics.jsonl`、`eval.jsonl` 和终端输出（都是小文本文件），判断要用的数字都在里面。
+- `small` 预设在 GPU 上用 FP32（`--bf16` 可改回 BF16）。改 FP32 后的速度没有实测：对照第一次启动的 `s/ep`（第 7 次更新时 4.66 秒/局），明显变慢再考虑 `--bf16`。`metrics.jsonl` 的 `recompute_max_abs` 在 FP32 下应在 1e-4 以下。
 - 分叉的开销看 `metrics.jsonl` 的 `fork_branch_combats`（分支里的战斗数）与 `combats_mean × rollout_episodes`（主线战斗数）之比；太慢就调低 `--fork-card`。
+
+#### 取最大评估（可选，训练之外单独跑）
+
+```sh
+# 同一个检查点、同一批 200 个验证种子：取最大 vs 按概率采样。单独跑时每次几分钟；不要和训练同时跑（抢 CPU）
+python -m spire_rl eval --checkpoint runs/small-a0-d1/last.pt --device cuda --greedy --out runs/eval-d1-greedy.json
+python -m spire_rl eval --checkpoint runs/small-a0-d1/last.pt --device cuda          --out runs/eval-d1-sampled.json
+python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
+```
+
+- 看 `compare` 输出的 `floor_diff_a_minus_b`（取最大减采样的平均层数差）和 `floor_diff_standard_error`：差超过两倍标准误才算有差别。`a_reach_act2 / b_reach_act2` 是各自到第二幕的比例。通关数现在只有 0–1 个，`mcnemar_exact_p` 暂时没有参考价值。
+- 先看 `a_truncations`（取最大那一侧被截断的局数）。取最大的策略没有随机性，可能在某个菜单里反复点同一个动作，这种局会以 `menu_loop` 或 `macro step cap` 截断，层数被低估。截断多于几局时，层数差不能直接用，把 `eval` 输出里的 `truncation_reasons` 带回来。
+- 用途：区分“策略本身的水平”和“按概率采样时乱点造成的损失”（第二轮末尾奖励界面有 11.9% 的次数没拿完就走）。取最大明显更高，说明损失主要来自采样；差不多，说明问题在策略本身。它只是测量，不改变训练。
 
 ## 3. 网络
 
@@ -237,6 +298,33 @@ h_t ─► 线性价值头，3 个输出：未来层数/50、未来进幕数/2�
 3. 若 KL 每次都在第一轮就提前停止，或熵很快塌缩，记录下来再调，不要只增加更新次数（文档 5.3）。
 
 ## 8. 修订记录
+
+**2026-11-12（第四轮首次启动：概率重算检查被 BF16 舍入触发；加固；`eval --greedy`）**
+
+现象：训练机上 `small` + 分叉跑到第 7 次更新（240 局）后报 `log-probability recompute mismatch 0.05343 > 0.05` 退出。这项检查在每次更新前，用没改过的权重把 64 个决策的对数概率重算一遍，和采样时存下的值比较，用来发现“更新时看到的输入和采样时不一样”。
+
+原因（已确认是数值舍入，不是数据错位）：
+
+- BF16 只有 8 位有效数字，分数在 8–16 之间时只能按 1/16 一档存。同一个决策，采样时和别的决策拼成一批（平均约 1.5 个），重算时是 64 个一批，中间结果的舍入不同，最后的对数概率就差出一到两档。
+- 这个差一直存在：第一轮 137 次更新、第二轮 233 次更新的 `recompute_max_abs` 平均约 0.009–0.010，最大 0.023 和 0.031；限值 0.05 当时只是没被碰到。这一次策略在 7 次更新里变尖得很快（熵 0.82 → 0.51），分数变大，舍入的档也跟着变大，就越过了 0.05。
+- 本机复现（`small` 随机初始化、把输出头调尖、CPU 上的 BF16，第二轮归档里的真实局面，同一批决策分别按 1–3 个一批和 64 个一批前向）：FP32 下两者完全相同；BF16 下被选动作的差平均 0.002–0.008，每 64 个里的最大值 0.02–0.08，随策略变尖而变大。
+- 分叉路径没有错位：新增测试在 FP32 下带分叉采样后逐个重算，误差 < 1e-4；故意改掉一步历史动作则能测出差别。
+
+改动：
+
+- **输出头固定用 FP32**（`model.py`：候选打分、动作组打分、价值头、辅助头；主干仍按配置用 BF16）。同样的复现里，被选动作的差平均降到 0.001–0.002（原来的 1/3 左右），但每 64 个里的最大值仍有 0.01–0.07（主干的 BF16 舍入还在）。
+- **`small` 预设默认 FP32**（`PPOConfig.bf16=False`）：差别归零，检查保持原来的 0.05。0.02B 的网络用 FP32 预计不会明显变慢，**但没有在 GPU 上实测**；`train --bf16 / --no-bf16` 可以按次覆盖。
+- **BF16 下的限值单独设为 0.25**（`recompute_tolerance_bf16`），FP32 仍是 0.05。依据：BF16 的舍入差在 0.03–0.08 是正常水平，对 PPO 的影响很小（比率误差几个百分点，裁剪范围是 20%）；真正的输入错位应由 FP32 下的测试精确发现。
+- **同日加固（为了减少来回）**：
+  - 报错或 Ctrl+C 退出时也保存 `last.pt`（最后一次更新后的权重，`progress.final=false`、`progress.stopped` 记原因），然后照常报错。权重里有非有限数、或一次更新都没做完时不覆盖。之前异常退出最多丢掉上次验证以来的约 2,000 局。
+  - 有对局被记为失败时，终端打印数量和原因（之前只写进归档）。
+  - 本机长跑检查：`tiny` 网络带分叉连续 40 次更新（510 局，critic 回放队列滚动过 12 轮，9 次验证，40 个归档）无异常；按正式命令的配置（`small`、同样的分叉和 α 参数，只缩小每轮决策数和战斗搜索量）跑两次更新 → 第三轮采样中途 Ctrl+C → 保存 → 第二段从 `last.pt` 接续，种子接续正确。
+  - 复查过的其他项：第一、二轮 16,001 局里记为失败的对局是 0；回放队列 12 轮约占 0.8 GB 内存；一个局面的实体数平均 88、最多 200，FP32 下显存估计够用（未实测，看 `gpu_peak_gib`）。
+  - 仍然防不住的情况：C++ 里的死循环或段错误（两轮训练没出现过）；FP32 在 GPU 上的速度。
+- **同日新增 `eval --greedy`**（之前提过、当时未定的做法之一）：`evaluate(greedy=True)` 每步取概率最高的动作，游戏种子和战斗搜索种子与采样评估相同；结果里记 `greedy` 和 `conditions.sampling`。`compare` 增加同种子配对的层数差及标准误、到第二幕比例、截断数（通关只有 0–1 个时 McNemar 没有分辨力）。训练和训练中的验证不变，仍按概率采样。**没有在训练好的策略上跑过**：本机没有权重，只在随机初始化的小网络上验证了“取的确实是概率最高的动作”和命令行流程；训练好的策略取最大时会不会卡在菜单里，要看第一次的 `truncations`。
+- 这次崩溃没有保存进度（当时异常退出不保存，`small-a0-d1/last.pt` 是第 0 局验证时存的，等于蒸馏结果），损失约 240 局。重新启动：原命令不变，换一个新的 `--run-dir`（或先删掉旧目录），仍从 `runs/distill-small.pt` 开始。**不需要重新编译 C++，不需要重新蒸馏。**
+- 本机 CPU：53 项测试通过（新增 8 项：带分叉的采样重算一致、BF16 下输出头为 FP32（旧代码上该测试失败）、限值与 `--bf16` 开关、报错与 Ctrl+C 时保存、坏权重不覆盖、取最大评估与命令行、配对层数差）；`smoke` 通过。
+- 这次启动里看到的其他数字：`[val @0]` 22.1 层、0.46 到第二幕、1/200 通关（蒸馏接上了第二轮末尾的水平）；7 次更新里每轮约 30–39 局的平均层数从 20.5 到 27–30（每轮局数少，波动大，还不能当结论）；熵下降很快，下一次启动要看 `entropy_group` 和火堆回血率有没有被推到 0 或 1。
 
 **2026-11-11（第四轮准备：小网络、蒸馏、逐张卡牌分叉；尚未在 GPU 上运行）**
 

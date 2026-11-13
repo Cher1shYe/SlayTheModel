@@ -364,17 +364,22 @@ class SpireNet(nn.Module):
         # Pointer scoring of the target's legal candidates.
         cands = self.encode_candidates(entities, b.ent_mask, b.tgt_state, b.cand_type, b.cand_t1,
                                        b.cand_t2, b.cand_num)
-        c = self.cand_proj(cands)                                     # [B, C, Da]
-        qh = self.policy_query(h)
-        q = qh[:, None].expand_as(c)
-        scores = (q * c).sum(-1) / math.sqrt(c.shape[-1]) + self.policy_mlp(torch.cat((q, c, q * c), -1))[..., 0]
-        scores = scores.float()
-        group_logp = None
-        if self.cfg.type_factorized:
-            logits, group_logp = self._factorized(qh, scores, b.cand_group, b.cand_mask)
-        else:
-            logits = torch.log_softmax(scores.masked_fill(~b.cand_mask, float("-inf")), -1)
-        return ModelOutput(logits, self.value_head(h).float(), self.aux_head(h).float(), group_logp)
+        # The heads always run in FP32, also under BF16 autocast. BF16 keeps 8 significant
+        # bits: a score of 8..16 is stored in steps of 1/16, so the same decision scored in
+        # two different batches (rollout, then update) differed by whole steps in log P.
+        with torch.autocast(h.device.type, enabled=False):
+            h, cands = h.float(), cands.float()
+            c = self.cand_proj(cands)                                 # [B, C, Da]
+            qh = self.policy_query(h)
+            q = qh[:, None].expand_as(c)
+            scores = ((q * c).sum(-1) / math.sqrt(c.shape[-1])
+                      + self.policy_mlp(torch.cat((q, c, q * c), -1))[..., 0])
+            group_logp = None
+            if self.cfg.type_factorized:
+                logits, group_logp = self._factorized(qh, scores, b.cand_group, b.cand_mask)
+            else:
+                logits = torch.log_softmax(scores.masked_fill(~b.cand_mask, float("-inf")), -1)
+            return ModelOutput(logits, self.value_head(h), self.aux_head(h), group_logp)
 
     def _factorized(self, qh: Tensor, scores: Tensor, group: Tensor, mask: Tensor) -> tuple[Tensor, Tensor]:
         """log P(c) = log P(group(c)) + log P(c | group(c)); exact, so PPO ratios stay valid.

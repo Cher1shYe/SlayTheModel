@@ -44,6 +44,8 @@ def _config(args, log=print):
         ppo["num_envs"] = args.num_envs
     if getattr(args, "microbatch", None):
         ppo["microbatch"] = args.microbatch
+    if getattr(args, "bf16", None) is not None:
+        ppo["bf16"] = args.bf16
     if ppo:
         overrides["ppo"] = ppo
     reward = {}
@@ -100,6 +102,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="stop before the next rollout after this many hours and save last.pt (continue with "
                         "--init-checkpoint <run>/last.pt in a new run directory)")
     t.add_argument("--lr", type=float, help="policy learning rate (default per preset)")
+    t.add_argument("--bf16", action=argparse.BooleanOptionalAction,
+                   help="BF16 autocast on CUDA (default per preset: off for small, on otherwise)")
 
     ds = sub.add_parser("distill", help="distill an archived policy (and a critic) into a preset, offline")
     ds.add_argument("--archive", nargs="+", required=True, help="archive directories (rollout_*.npz)")
@@ -130,6 +134,9 @@ def main(argv: list[str] | None = None) -> int:
     e.add_argument("--limit", type=int)
     e.add_argument("--num-envs", type=int)
     e.add_argument("--device", default="auto")
+    e.add_argument("--greedy", action="store_true",
+                   help="always take the most probable action instead of sampling (training and its "
+                        "validation sample); compare two --out files with `compare`")
     e.add_argument("--out", help="write the full result (incl. per-seed outcomes) to this JSON file")
 
     cmp_ = sub.add_parser("compare", help="paired comparison of two `eval --out` results on the same seeds")
@@ -188,7 +195,8 @@ def main(argv: list[str] | None = None) -> int:
         critic = build_critic(cfg, device)
         if critic is not None and payload.get("critic") is not None:
             critic.load_state_dict(payload["critic"])
-        res = evaluate(model, cfg, device, args.split, args.num_envs, args.limit, critic=critic)
+        res = evaluate(model, cfg, device, args.split, args.num_envs, args.limit, critic=critic,
+                       greedy=args.greedy)
         res["checkpoint"] = str(args.checkpoint)
         res["checkpoint_progress"] = payload.get("progress", {})
         if args.out:

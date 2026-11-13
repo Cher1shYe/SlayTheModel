@@ -121,7 +121,9 @@ class Collector:
         self.pool = cf.ThreadPoolExecutor(max_workers=self.workers, thread_name_prefix="macro-env")
 
     def close(self) -> None:
-        self.pool.shutdown(wait=True)
+        # After an error or Ctrl+C in the middle of a rollout: queued steps are dropped,
+        # the ones already running finish.
+        self.pool.shutdown(wait=True, cancel_futures=True)
 
     def _critic_values(self, targets, policy_out) -> np.ndarray:
         """[B, 3] value components for the batch (separate critic if configured)."""

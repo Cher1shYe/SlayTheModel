@@ -188,9 +188,16 @@ class PPOConfig:
     # so spreading mass over many targets of one group cannot hide that a whole
     # group (rest, skip, confirm, leave) went to zero.
     type_entropy_coef: float = 0.01
-    bf16: bool = True                  # CUDA only; CPU always runs FP32
+    bf16: bool = True                  # CUDA only; CPU always runs FP32 ("small" preset: off)
     activation_checkpointing: bool = True
-    recompute_tolerance: float = 0.05  # max |logp_saved - logp_recomputed| before update
+    # Before every update the saved log-probabilities of 64 decisions are recomputed with
+    # the unchanged weights; a larger difference stops the run (the update would train on
+    # inputs that differ from what the rollout saw). FP32 reproduces them to ~1e-5. Under
+    # BF16 the same decision scored in another batch differs by rounding: 0.005-0.03 in
+    # runs 1-2, 0.053 in the first "small" run once the policy had sharpened, which the
+    # 0.05 limit then treated as an error. BF16 runs therefore use the wider limit.
+    recompute_tolerance: float = 0.05
+    recompute_tolerance_bf16: float = 0.25
 
 
 @dataclass(frozen=True)
@@ -257,7 +264,11 @@ def make_config(preset: str = "main", **overrides: Any) -> RunConfig:
         ppo = dataclasses.replace(ppo, lr=3e-5, microbatch=1)
     critic = CRITIC_SMALL
     if preset == "small":
-        ppo = dataclasses.replace(ppo, lr=1e-4, microbatch=32, activation_checkpointing=False, lr_warmup_steps=150)
+        # FP32: at ~0.02B the network is a small part of the time, and BF16 rounding made the
+        # rollout's and the update's log-probabilities of the same decision differ (see
+        # recompute_tolerance). `train --bf16` turns it back on.
+        ppo = dataclasses.replace(ppo, lr=1e-4, microbatch=32, activation_checkpointing=False, lr_warmup_steps=150,
+                                  bf16=False)
         critic = CRITIC_LITE
     if preset == "tiny":
         ppo = dataclasses.replace(ppo, num_envs=2, min_transitions=32, batch_targets=16,
