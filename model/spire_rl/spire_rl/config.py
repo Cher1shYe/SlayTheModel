@@ -94,6 +94,17 @@ class ForkConfig:
     run to the end of the act (through its boss) and count only what really happened.
     The centred option returns, normalized per screen, drive an extra policy loss.
     Probabilities are per eligible decision; 0 disables that screen.
+
+    Fork loss (2026-11-14). Round 4 used ``-sum(advantage * log P(option))``. Its pull on
+    an option does not shrink as the option's probability goes to zero, so it never stops:
+    log P(upgrade at a campfire) went -19 -> -38 -> -168 -> -539 over three daily segments,
+    map and card options reached about -5000, the term's gradient was ~70x the PPO term
+    and every update ended at the KL check after ~7 of 57 steps. The loss is now the KL
+    divergence from a target to the policy over the compared options, where
+        target ~ max(P_now, prob_floor) * exp(target_scale * clip(advantage, +-adv_clip))
+    and P_now is the policy at the start of the update. The pull is proportional to the
+    option's probability (as in a policy gradient over all compared options), is zero once
+    the target is met, and ``prob_floor`` pulls an option that fell below it back up.
     """
     rest_prob: float = 0.0       # campfire with >= 2 action groups (heal / upgrade / ...)
     map_prob: float = 0.0        # map with >= 2 moves
@@ -103,7 +114,15 @@ class ForkConfig:
     max_combats: int = 2
     max_decisions: int = 40
     max_active_branches: int = 96   # forks beyond this are skipped (which ones depends on timing)
-    coef: float = 1.0            # weight of the fork policy loss
+    coef: float = 1.0            # weight of the fork policy loss (one fork decision counts as `coef` PPO targets)
+    target_scale: float = 1.0    # change of an option's log-odds per unit of normalized advantage
+    adv_clip: float = 3.0        # normalized advantages beyond this count as this
+    prob_floor: float = 0.01     # compared options are treated as at least this probable in the target
+    # Each update also uses the fork decisions of this many earlier rollouts (0 = only the
+    # current one). Round 4: forks were ~70% of the simulator's fights, under half of them
+    # ever reached a gradient step, each at most once, and two seed sets leave most of an
+    # option's measured advantage as noise (reliability: card 0.28, campfire 0.37, map 0.76).
+    replay_rollouts: int = 4
     # Card forks: a pick pays off many floors later, so two fights say little.
     card_to_act_end: bool = True     # no fight limit; stop at the act change or the end of the run
     card_max_decisions: int = 400    # safety cap (then the critic estimates the rest)
@@ -112,6 +131,12 @@ class ForkConfig:
     # between -0.04 and 0.35) and carries the largest weight; real wins inside a
     # branch always count, the critic's guess of later wins only if this is set.
     bootstrap_win: bool = False
+
+    def __post_init__(self):
+        # Branch episode ids are -(1 + fork_id * 64 + option * 8 + seed set): beyond 8 options
+        # or seed sets two branches would share an id and collate would mix their histories.
+        if not (1 <= self.seeds <= 8 and 2 <= self.max_options <= 8):
+            raise ValueError(f"fork seeds must be 1..8 and max_options 2..8 (got {self.seeds}, {self.max_options})")
 
     @property
     def enabled(self) -> bool:
@@ -157,6 +182,16 @@ class PPOConfig:
     kl_check_every: int = 8            # optimizer steps between checks
     kl_check_targets: int = 512
     kl_hard_mult: float = 4.0          # a single minibatch above mult * target still stops
+    # A KL stop restores parameters AND optimizer state from the latest passing fixed-
+    # sample check (possibly several steps ago), not merely from the previous step.
+    kl_rollback: bool = True
+    # Policy learning rate follows the KL stop: an update stopped before one pass over its
+    # targets multiplies the rate of the following updates by ``lr_adapt_down`` (not below
+    # ``lr_adapt_min`` of the base rate); an update that finishes all epochs multiplies it
+    # by ``lr_adapt_up`` (not above the base rate). 1.0 / 1.0 turns this off.
+    lr_adapt_down: float = 0.7
+    lr_adapt_up: float = 1.1
+    lr_adapt_min: float = 0.1
     gamma: float = 1.0
     gae_lambda: float = 0.99
     batch_targets: int = 128           # targets per optimizer step
@@ -218,6 +253,12 @@ class RunConfig:
     eval_every: int = 2000             # training starts between validation runs
     max_macro_steps: int = 600         # per episode safety cap (truncation); legit p99 was 136
     max_grid_steps: int = 64           # decisions inside one open card grid before a menu_loop truncation
+    # A menu_loop truncation ends the episode with nothing more to come (like a death at that
+    # floor). With the critic's estimate of the rest of the run added instead (the rule for the
+    # other truncations), looping cost the policy nothing in training while validation scored
+    # the run as ended there: round 4 had 1, 24 and 21 such episodes in its three segments,
+    # ending at floor 9-17 on average, with "cancel the grid preview" at ~95%.
+    menu_loop_bootstrap: bool = False
     sweet_spot: tuple[int, int] = (8000, 20000)       # marked on the dashboard
     archive_trajectories: bool = True  # keep every collected episode (separate from the PPO buffer)
 
@@ -267,7 +308,9 @@ def make_config(preset: str = "main", **overrides: Any) -> RunConfig:
         # FP32: at ~0.02B the network is a small part of the time, and BF16 rounding made the
         # rollout's and the update's log-probabilities of the same decision differ (see
         # recompute_tolerance). `train --bf16` turns it back on.
-        ppo = dataclasses.replace(ppo, lr=1e-4, microbatch=32, activation_checkpointing=False, lr_warmup_steps=150,
+        # lr: 1e-4 in round 4 stopped every update at the KL check after ~7 steps (0.4 passes
+        # over the targets); run 2 at 3e-5 averaged 1.5 passes.
+        ppo = dataclasses.replace(ppo, lr=3e-5, microbatch=32, activation_checkpointing=False, lr_warmup_steps=150,
                                   bf16=False)
         critic = CRITIC_LITE
     if preset == "tiny":

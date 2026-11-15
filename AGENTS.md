@@ -1,6 +1,8 @@
 # SlayTheModel：交接说明
 
-更新：2026-11-12（Claude：第四轮首次启动被精度检查拦停、已修复之后）。本文件是**接手的唯一入口**：先读第 0–2 节了解现状，再按需查后面的约定、路径和命令。源码、日志与本文不一致时，以源码和原始日志为准，并更新本文。
+更新：2026-11-15（Claude：缺口 1 离线测试与审计；Codex：补齐 KL 回滚与优化器恢复）。本文件是**接手的唯一入口**：先读第 0–2 节了解现状，再按需查后面的约定、路径和命令。源码、日志与本文不一致时，以源码和原始日志为准，并更新本文。
+
+研究讨论（含 2026-11-15 的论文阅读和“战斗里试牌”的想法）见第 2.4 节及[训练缺口文档第 2.1 节](docs/claude-training-gaps-and-mcts-plan-20261110.md#21-四个训练缺口论文思路与后续实验)
 
 ---
 
@@ -16,9 +18,13 @@
 | P0 修复 + 第二批改动 | 已实施、已用于第二轮：NoSL 信息隔离（C++ ruleset v7）、网络去掉训练条件输入、按动作组的策略头、菜单循环保护、独立 critic、KL 早停改法、`last.pt` |
 | 第二轮 `main-a0-s2` | 已完成（10,000 局，11.7 小时）。诊断：[docs/claude-run2-diagnosis-20261111.md](docs/claude-run2-diagnosis-20261111.md)；同学的交接：[docs/claude-run2-review.md](docs/claude-run2-review.md) |
 | 第三轮（0.2B 接着第二轮 + 价值先验 + 分叉） | 代码已提交（`44ac1bc`）。用户在训练机启动过一次，**第 7 次更新（223 局）时因 C++ 事件异常崩溃，未继续**。已知：`[val @0]` 22.0 层 / 0.49 到第二幕（接续成功）；价值先验留出 EV 层数 0.17、进幕 0.08；带分叉约 6 秒/局；前 6 次更新在线 `vEV` 在 −0.22–0.17 之间。已被第四轮方案取代 |
-| **第四轮** | 代码**尚未提交**：C++ 崩溃修复（ruleset v8）、`small` 预设（约 0.02B、8 步历史）、离线蒸馏、逐张卡牌分叉、按工作日分段训练。见第 2.3 节和模块 README 第 2.5、8 节 |
-| 第四轮首次启动（2026-11-12，`runs/small-a0-d1`） | 蒸馏成功：`[val @0]` 22.1 层 / 0.46 到第二幕 / 1 通关。跑了 7 次更新（240 局，约 4.7 秒/局；每轮平均层数 20.5 → 27–30，样本少、不算结论；熵 0.82 → 0.51），第 8 次更新前被概率重算检查拦停（0.053 > 0.05）。**原因是 BF16 舍入，已修**（`small` 改 FP32、输出头固定 FP32、BF16 限值 0.25），同时加固：报错或 Ctrl+C 退出也保存 `last.pt`；新增 `eval --greedy`。本机 53 项测试通过，**修复后尚未在 GPU 上重跑**。见 2.1 最后一条和模块 README 第 8 节第一条 |
-| 下一步 | 用户把修复同步到训练机，按第 2.3 节“现在要做的”重新启动第一段（原指令不变，先把旧的 `runs/small-a0-d1` 改名；不用重编、不用重新蒸馏）。**未经用户指示不要启动、停止或修改远端训练** |
+| **第四轮** | 代码已提交（`e4f87ed`、`574b997`）：C++ 崩溃修复（ruleset v8）、`small` 预设（约 0.02B、8 步历史）、离线蒸馏、逐张卡牌分叉、按工作日分段训练。见第 2.3 节和模块 README 第 2.5、8 节 |
+| 第四轮首次启动（2026-11-12，`runs/small-a0-d1`） | 蒸馏成功：`[val @0]` 22.1 层 / 0.46 到第二幕 / 1 通关。跑了 7 次更新（240 局，约 4.7 秒/局；每轮平均层数 20.5 → 27–30，样本少、不算结论；熵 0.82 → 0.51），第 8 次更新前被概率重算检查拦停（0.053 > 0.05）。**原因是 BF16 舍入，已修**（`small` 改 FP32、输出头固定 FP32、BF16 限值 0.25），同时加固：报错或 Ctrl+C 退出也保存 `last.pt`；新增 `eval --greedy`。修复后重跑即下一行的三段。见 2.1 和模块 README 第 8 节 2026-11-12 条 |
+| 第四轮三段（2026-11-12/13，`small-a0-d1` 至 `d3`，共 7,769 局，约 9.7 小时） | 已完成，数据在本机 `runs/training-review/small-a0-d{1,2,3}/`。验证 22.2 → 29.2 层（3,039 局），之后停在 28.5–29.3；训练数据里涨幅在前约 300 局就完成（不再丢下金币遗物、不再丢药水、火堆一律回血），d3 训练平均层数比 d2 低 1.15 层。**原因：旧的分叉损失没有上限，把策略推成几乎完全确定**（火堆 log P(升级) −19 → −539，所有血量相同），每次更新约 7 步就被 KL 拦停。诊断：[docs/claude-run4-diagnosis-20261114.md](docs/claude-run4-diagnosis-20261114.md) |
+| 2026-11-14 的修复 | 代码**尚未提交**、**尚未在 GPU 上运行**：分叉损失改为有上限的形式、每次更新复用最近 4 轮的分叉、KL 超限时回滚、`small` 学习率 1e-4 → 3e-5 并随拦停自动调整。原回滚仅撤销最后一步，已由下述 11-15 修复补齐。见第 2.3 节和模块 README 第 8 节 |
+| 2026-11-15 缺口 1 与审计 | 用户要求做缺口 1（按选项打分的价值头）并检查潜在 bug。离线测试结论**否定、不接入**：在第四轮 18,597 个分叉上，打分头对没见过的局的预测与真实值的相关，火堆 0.27、选牌 0.04、地图 0.23，都远低于现在用的两套种子平均（0.61 / 0.53 / 0.87）；选牌连“只用卡牌 ID”也只有 0.04。选牌分叉约占全部模拟器战斗的 40%，所以下一轮**关掉选牌分叉**（`--fork-card 0`）。审计改了两处：menu_loop 截断不再加 critic 对后续的估计；分叉的种子数、选项数加范围检查。代码**尚未提交**，本机 63 项测试通过。见诊断文档第 7 节、模块 README 第 8 节 2026-11-15 条 |
+| 2026-11-15 KL 回滚补齐（Codex） | 默认每 8 步检查时，原实现退一步仍可能超限；现改为恢复最近一次固定样本 KL 检查合格的**权重和完整优化器状态**，同步恢复保留步数与样本计数，最后重新测量。新增默认检查间隔、末尾不足周期、Adam 状态及非有限值回归。**本机 CPU 72 项测试通过**，尚未在 GPU 上验证，见模块 README 第 8 节首条 |
+| 下一步 | 用户说回头把修复同步到训练机再跑（这几天可能没空盯）。按第 2.3 节“现在要做的”**从 `runs/distill-small.pt` 重新开始**：新目录 `runs/small-b-d1`，命令里 `--fork-card 0`；不用重编、不用重新蒸馏；不要接着 `small-a0-*` 的检查点，它们已经饱和。数据带回来后先按诊断文档第 6 节判断。用户的想法：这一轮如果还不行，就推翻现在的网络；那时的候选方向见第 2.4 节（网络直接打战斗加无历史小网络、战斗里试牌）。**未经用户指示不要启动、停止或修改远端训练** |
 
 **验证成绩**（固定 200 个验证种子，随机采样评估）：
 
@@ -28,16 +34,19 @@
 | 第一轮 6,001 局 | 20.81 | 34% | 3% | 0/200 |
 | 第二轮 8,021 局（`best.pt`） | 23.36 | 53% | 8.5% | 1/200 |
 | 第二轮 10,000 局（`last.pt`） | 22.03 | 49.5% | 7% | 0/200 |
+| 第四轮 0 局（从第二轮蒸馏出的 `small`） | 22.25 | 46.5% | 8% | 1/200 |
+| 第四轮 3,039 局（d1 `last.pt`） | 29.16 | 72% | 22.5% | 5/200 |
+| 第四轮 7,360 局（d3 `best.pt`） | 29.28 | 75% | 26.5% | 4/200 |
 
-两轮之间模拟器和训练配置都变了，不是单因素对照；0/200 与 1/200 的差别不显著。
+各轮之间模拟器和训练配置都变了，不是单因素对照；0/200 与 1/200 的差别不显著。第四轮平均层数的标准误约 0.85，3,039 局之后的几次验证（28.5–29.3）之间没有可分辨的差别。
 
 ---
 
 ## 1. 接手第一步
 
-1. 先看用户最新的话；本文件第 0–2 节；然后 [第二轮诊断](docs/claude-run2-diagnosis-20261111.md) 第 3–5 节和 `model/spire_rl/README.md` 第 8 节（修订记录）。
-2. `git status`：远端与本地最后的提交都是 `44ac1bc`（第三轮代码，分支 `v111_SF1`）。**第四轮准备的全部改动在工作区里未提交**，见第 7 节。`ForkConfig` 增加了字段，所以用当前代码重算的配置指纹与第二轮 `config.json` 里的 `6f7cdf5dc22aa79b` 不再相同。
-3. 训练机上可能有崩溃的第三轮目录 `runs/main-a0-s3/`（约 1.8 GB 检查点，可删）和 `runs/critic-prior-s2.pt`；还有第四轮的 `runs/distill-small.pt`（蒸馏结果，继续用）和被拦停的 `runs/small-a0-d1/`（其中 `last.pt` 等于蒸馏结果；重新启动前改名为 `runs/small-a0-d1-crashed`，其中的 `metrics.jsonl` 还没带回本机）。训练机上的权重**不在这台 Mac 上**；第二轮的 `best.pt`/`last.pt` 是 ruleset v7 的，v8 构建会拒绝加载。
+1. 先看用户最新的话；本文件第 0–2 节；然后 [第四轮诊断](docs/claude-run4-diagnosis-20261114.md)、[第二轮诊断](docs/claude-run2-diagnosis-20261111.md) 第 3–5 节和 `model/spire_rl/README.md` 第 8 节（修订记录）。
+2. `git status`：最后的提交是 `574b997`（第四轮代码，分支 `v111_SF1`）。**2026-11-14、11-15 的修复和文档在工作区里未提交**，见第 7 节。`ForkConfig`、`PPOConfig` 又增加了字段，旧检查点可以照常加载（新字段取默认值），但用当前代码重算的配置指纹与以前各轮 `config.json` 里的不再相同。
+3. 训练机上可能有崩溃的第三轮目录 `runs/main-a0-s3/`（约 1.8 GB 检查点，可删）和 `runs/critic-prior-s2.pt`；第四轮的 `runs/distill-small.pt`（蒸馏结果，**下一轮从它开始，本机没有这个文件**）和 `runs/small-a0-d1` 至 `d3`（已带回本机，含归档和 `best.pt`/`last.pt`；这些检查点已饱和，只用于分析）。第二轮的 `best.pt`/`last.pt` 是 ruleset v7 的，v8 构建会拒绝加载。
 4. 第一、二轮的原始数据已拷到本机：`runs/training-review/main-a0-s1/`、`runs/training-review/main-a0-s2/`（含完整 `archive/`）。训练机上第二轮目录预计是 `runs/main-a0-s2/`。
 
 ---
@@ -61,48 +70,63 @@
 - **战斗里的出牌没有逐手审计**。总体证据只有搜索量对照（见“后期战斗上限”）：普通战斗 16 倍搜索比现配置少掉约三分之一的血，说明现在的搜索会吃一部分可避免的战损；“有斩杀却没斩杀”的回合数没有统计。
 - **第四轮首次启动被拦停的原因**：BF16 只有 8 位有效数字，同一个决策在采样时（约 1.5 个一批）和更新前重算时（64 个一批）算出的对数概率会差出一到两档舍入。第一、二轮这个差最大 0.023 / 0.031，一直在 0.05 的限值以内；这次策略变尖得快，到了 0.053。本机用 CPU BF16 复现了同样的量级，FP32 下为 0；带分叉采样的重算在 FP32 下精确一致（不是数据错位）。已改：`small` 预设用 FP32，输出头在所有预设下固定 FP32，BF16 的限值单独设为 0.25。
 - **第三轮崩溃的原因**：C++ 的 The Future of Potions 事件对原生 Event / Token 稀有度的药水处理错误，抽到 Power 类型时抛异常（本机可复现：这三种药水各 68/200）。已修（ruleset v8）。
+- **第四轮停在 29 层左右的原因**（三段 7,769 局；详见 [诊断文档](docs/claude-run4-diagnosis-20261114.md)）：
+  - 已确认：旧的分叉损失 `−优势 × log P(选项)` 对分数的推力是常数，不随概率变小而减弱。检查点上量到的火堆 log P(升级)：−19（2,002 局）→ −38 → −168 → −539（7,769 局），所有血量下相同；选牌、地图分叉里被比下去的选项到约 −5,000。d3 末分叉项的梯度约是 PPO 项的 70 倍。
+  - 较强怀疑：饱和后（88% 的多选决策概率 >0.99，动作组的熵 0.0001）主线样本的梯度趋近于零、不再探索，只剩分叉项偶尔把个别决策整个翻掉（单个小批 KL 到过 28）；每次更新约 7 步（满额 57）被拦停，每批样本用 0.4 遍，分叉只有 47% 进过梯度（分叉占模拟器战斗量约 70%）。
+  - 已确认是因素之一：学习率 1e-4 偏大（预热到 1e-5–4e-5 时能走满 3 遍；第二轮 3e-5 平均 1.5 遍）。饱和以后 1e-5 也会被拦停。
+  - 已确认：分叉标签噪声大。两套种子均值的可靠度：地图 0.76、火堆 0.37、选牌 0.28（选牌分叉近一半是“有的分支死了有的没死”）。策略的选择与分叉结果的吻合程度三段都没上升（选牌等于随机）。
+  - 已确认：火堆分叉本身说血量 90% 以下回血明显更好（分支死亡率低 6–22 个百分点），满血时升级略好（低 1.7 个百分点）；策略满血也 100% 回血。火堆分支只跑两场战斗，对升级不利（较强怀疑，未改）。
+  - 已确认：通关项占回报方差约 70%，critic 预测不了；有通关的批里，通关局占 7% 的样本、78% 的优势方差。critic 对层数的解释方差已到 0.25–0.36（接近离线上限）。通关奖励权重是用户定的，未改。
+  - 第四轮解决了的：白拿的东西不再放弃（离开 9.3% → 0、丢药 19% → 0）。新出现的：打开卡牌奖励后从不跳过、从不升级；d2、d3 各有约 1% 的局因反复取消网格预览被 `menu_loop` 截断。
+  - 战斗这堵墙没变：到第一幕 Boss 的约 25% 死在那，第二幕 Boss 约 45%，第三幕 Boss 约 70%，三处合计约一半的死亡。
+- **缺口 1（按选项打分的价值头）离线测试**（2026-11-15；[诊断文档第 7 节](docs/claude-run4-diagnosis-20261114.md#7-缺口-1按选项打分的价值头的离线测试2026-11-15)）：已确认在第四轮数据上它不能代替分叉结果；选牌在本幕之内的影响小到四千多个分叉也测不出规律（只用卡牌 ID 的相关 0.04，40% 的选牌分叉所有选项结果相同），而选牌分叉约占全部模拟器战斗的 40%。火堆的规律主要是血量（只用血量 0.35）。
 
 ### 2.2 当前训练框架要点（`model/spire_rl/`，细节见模块 README）
 
 - **网络 SpireNet**：实体 Set Transformer（地图连边消息传递）→ 因果历史 Transformer（最近 N 个决策，每步 g/z/a/r 四个 token；g 不含奖励档位，r 只含事件计数：新完成层数、新进幕、通关）→ 候选指针打分。策略 = P(动作组) × P(组内目标)，“取消已选网格牌”单独成组。预设 `main` 约 0.202B、32 步历史（其中历史 Transformer 约 176M），配 critic `CRITIC_SMALL` 约 19.6M；预设 `small` 约 0.02B、8 步历史，配 `CRITIC_LITE` 约 1.9M。critic 输出未来层数/50、未来进幕/2、通关概率三分量，任意 α 下线性组合成标量价值。
-- **环境**：一次转移 = 一次真实局外选择；只有一个合法动作的界面自动执行；战斗由 `RunContext.play_combat_mcts()` 跑完；观察来自 `RunContext.macro_observation()`（宏观观察 v2，候选 5 维）。同一网格连续 64 个决策以 `menu_loop` 截断，单局上限 600 个决策；不代选、不代确认。
+- **环境**：一次转移 = 一次真实局外选择；只有一个合法动作的界面自动执行；战斗由 `RunContext.play_combat_mcts()` 跑完；观察来自 `RunContext.macro_observation()`（宏观观察 v2，候选 5 维）。同一网格连续 64 个决策以 `menu_loop` 截断，单局上限 600 个决策；不代选、不代确认。`menu_loop` 截断按“到此结束”计，不加 critic 对后续的估计（2026-11-15 起，`RunConfig.menu_loop_bootstrap=False`；其他截断仍加）。
 - **奖励**：`r_raw = 5×通关 + α×(0.05×新完成层 + 0.5×新进第二/三幕)`，训练值除以 5，γ=1、GAE λ=0.99。默认按 2k/4k/6k 局 α 从 1/0.5/0.2 降到 0，门槛不满足时默认 `hold`（继续训练）；第三轮可用 `--alpha` 固定单档。
-- **PPO**：策略 lr 3e-5（`small` 预设 1e-4，另有 150 步学习率预热），最多 3 遍；KL 早停每 8 步在固定 512 个样本上测（>0.015 停），单小批 >0.04 也停；组熵额外奖励 0.01。critic lr 1e-4，每次更新 2 遍（当前批 + 最近 12 轮的回放各一份）。
+- **PPO**：策略 lr 3e-5（`small` 预设也是 3e-5，另有 150 步学习率预热），最多 3 遍；KL 检查：每步前向时量当前小批（>0.04 停），每 8 步和更新结束时在固定 512 个样本上量（>0.015 停）；非有限值也停。`kl_rollback` 恢复最近一次固定样本检查合格的权重和优化器状态，可能撤销多步；更新开始也先验证，回滚后重新实测，不能确认合格则报错。限制针对固定样本估计，不是全部状态的精确 KL。一次更新不到一遍就被拦停，之后策略学习率乘 0.7（下限为基础值的 0.1 倍），走满全部遍数乘 1.1（上限为基础值），系数存在检查点的 `progress.lr_adapt` 里跨段接续。组熵额外奖励 0.01。critic lr 1e-4，每次更新 2 遍（当前批 + 最近 12 轮的回放各一份）。
+- **分叉损失**（2026-11-14 起）：每次更新开始时按当前策略给每个分叉决策算目标分布，目标 ∝ max(当前概率, 0.01) × exp(归一后的优势，限幅 ±3)，损失是目标到策略的 KL（只在被比较的选项之间）；每次更新同时用最近 4 轮的分叉决策（`ForkConfig.replay_rollouts`，`--fork-replay`）。同一个测量连续重复时，选项的对数概率停在约 −10.6。
 - **保存**：`best.pt`（验证胜率更高，或胜率相同而平均层数更高时）和 `last.pt`（每次验证后、训练正常结束或 `--max-hours` 到点时），都含 critic，只存权重（不能精确断点续跑）。报错或按一次 Ctrl+C 退出时也保存 `last.pt`（`progress.final=false`；权重含非有限数或还没做过更新时不覆盖）；直接关窗口或 `kill` 不保存。检查点格式 `spire_rl/3`，`progress.next_train_seed` 记录下一个未用的训练种子；归档格式 `spire_rl.archive/3`（增加分叉审计记录，仍可读 /1、/2）。
-- **监控**：每个 run 目录有 `metrics.jsonl`（每次更新一行）、`eval.jsonl`、`eval/val_ep*.json`、`dashboard.html`、`archive/rollout_*.npz`、可选 TensorBoard。重点字段：`value_ev_floors`、`rest_heal_rate_full_hp`、`rest_heal_rate_hp_below_50`、`entropy_group`、`target_passes`、`kl_stop_reason`、`menu_loops`，第三轮再加分叉相关字段（见 2.3）。
+- **监控**：每个 run 目录有 `metrics.jsonl`（每次更新一行）、`eval.jsonl`、`eval/val_ep*.json`、`dashboard.html`、`archive/rollout_*.npz`、可选 TensorBoard。重点字段：`value_ev_floors`、`rest_heal_rate_full_hp`、`rest_heal_rate_hp_below_50`、`entropy_group`、`target_passes`、`kl_stop_reason`、`menu_loops`，第三轮再加分叉相关字段（见 2.3）；2026-11-14 再加 `fork_option_logp_min`（策略有没有被推死的直接读数）、`fork_pool`、`kl_rollback`、`sampled_kl_final`、`lr_adapt_next`。`fork_loss` 的含义变成每个分叉决策的 KL（≥ 0），与第四轮的数值不可比。
 
-### 2.3 第四轮方案（已实现；2026-11-12 首次启动跑了 7 次更新，精度问题修复后尚未重跑）
+### 2.3 第四轮方案与 2026-11-14、11-15 的修复（第四轮跑了三段；修复后尚未在 GPU 上运行）
 
 用户 2026-11-11/12 的决定：GPU 只能在用户工作时间分段使用，所以**换小网络**；历史**保留 8 步**（用户直接拍板，不做“截短历史”的对照评估）；保持端到端；分叉是主要的信号来源；通关奖励的权重保持最大，只是分叉里不使用 critic 对通关的估计；训练中途丢进度可以接受；检查点不要多存。
 
+用户 2026-11-14/15 的决定：试 11-14 的修复；加大 Boss 战搜索量“没什么用”，不做；做缺口 1 并检查潜在 bug（已做，缺口 1 否定）；然后再跑一轮，不行就推翻现在的网络。
+
 | 功能 | 入口 | 说明 |
 | --- | --- | --- |
-| 小网络 | 预设 `small` | Set Transformer 256 × 2 ISAB，历史 512 × 4 层、8 步，约 0.02B；`lr=1e-4`（未验证的初值）、`microbatch=32`、学习率预热 150 步、**FP32**（`--bf16` 可改回，FP32 的速度未实测）。critic `CRITIC_LITE` 约 1.9M、dropout 0.1 |
+| 小网络 | 预设 `small` | Set Transformer 256 × 2 ISAB，历史 512 × 4 层、8 步，约 0.02B；`lr=3e-5`（第四轮是 1e-4；会随 KL 拦停自动下调）、`microbatch=32`、学习率预热 150 步、**FP32**（`--bf16` 可改回，FP32 的速度未实测）。critic `CRITIC_LITE` 约 1.9M、dropout 0.1 |
 | 离线蒸馏 | `distill --archive <归档> --out <ckpt> --preset small` | 对归档里策略采样的动作做最大似然，同时从随机初始化训练 critic；默认最后 60 个文件、留出 6 个；输出普通检查点。报告 `kl_estimate`（与教师策略的差距）、`top1`、`critic_ev` |
-| 逐张卡牌分叉 | `--fork-card <概率>` | 选项 = 每张可拿的牌 + 跳过；分支跑到本幕结束（或本局结束），回报只计真实事件，不加 critic 估计 |
-| 火堆/地图分叉 | `--fork-rest/--fork-map` | 与第三轮相同（2 场战斗 / 40 个决策 / 换幕，其余由 critic 估计），但不再使用 critic 的通关分量；各界面的优势分别归一 |
+| 逐张卡牌分叉 | `--fork-card <概率>` | 选项 = 每张可拿的牌 + 跳过；分支跑到本幕结束（或本局结束），回报只计真实事件，不加 critic 估计。**下一轮关闭**（`--fork-card 0`）：约占全部模拟器战斗的 40%，而结果学不出规律（诊断文档第 7 节） |
+| 火堆/地图分叉 | `--fork-rest/--fork-map` | 与第三轮相同（2 场战斗 / 40 个决策 / 换幕，其余由 critic 估计），但不再使用 critic 的通关分量；各界面的优势分别归一。`--fork-seeds` 只能是 1–8（超出会报错） |
 | 分段训练 | `--max-hours H` + `--init-checkpoint <上一段>/last.pt` | 到点后不再开始新一轮采样，保存 `last.pt` 正常退出。训练种子按检查点的 `next_train_seed` 接续（蒸馏检查点从 2,000,000 起） |
 | 异常不再终止整轮 | `env.py` | C++ 异常记为该局 `FAILURE`（终端会打印数量和原因）；单轮失败超过 `max(2, 2%)` 仍会停，停之前保存 `last.pt` |
 | 取最大评估 | `eval --greedy`，再用 `compare` | 每步取概率最高的动作，种子与采样评估相同；`compare` 给同种子配对的层数差和标准误。只是测量，训练和训练中的验证仍按概率采样。**未在训练好的策略上跑过** |
 | 其他 | | `--lr`、`--bf16/--no-bf16`、`--train-seed-base`；`best.pt` 胜率相同时比平均层数；第三轮的 `--init-checkpoint`、`pretrain-critic`、critic 回放、`--alpha` 仍可用 |
 
-**现在要做的（2026-11-12 起）**：训练机上已经编译过 v8、已经蒸馏出 `runs/distill-small.pt`，所以**不用重新编译，不用重新蒸馏**，训练指令和首次启动时相同。首次启动的 `runs/small-a0-d1/last.pt` 是第 0 局验证时存的，等于蒸馏结果，仍从 `runs/distill-small.pt` 开始。
+**现在要做的（2026-11-15 起）**：从蒸馏结果重新开始，目录名换成 `small-b-*`。训练机上已经编译过 v8、已经有 `runs/distill-small.pt`，所以**不用重新编译，不用重新蒸馏**。`small-a0-d1` 至 `d3` 的检查点（包括 d1 的 `best.pt`）已饱和，不要接着它们训练。
 
 ```sh
 conda activate slay
 cd /mnt/c/Users/yebohou/SlayTheModel
-python -m pytest -q model/spire_rl/tests            # 同步代码后确认：53 passed
-mv runs/small-a0-d1 runs/small-a0-d1-crashed        # 挪开首次启动的目录（不要删，metrics.jsonl 要带回来）
+python -m pytest -q model/spire_rl/tests            # 同步代码后确认：72 passed
 python -u -m spire_rl train --device cuda --num-envs 8 --seed 4 --episodes 100000 --max-hours 7 \
-  --run-dir runs/small-a0-d1 --init-checkpoint runs/distill-small.pt \
-  --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0.05 --fork-seeds 2 --fork-coef 2
-# 第二天起只改：--run-dir runs/small-a0-d2 --init-checkpoint runs/small-a0-d1/last.pt（第三天 d3 接 d2，依此类推）
+  --run-dir runs/small-b-d1 --init-checkpoint runs/distill-small.pt \
+  --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0 --fork-seeds 2 --fork-coef 2
+# 第二天起只改：--run-dir runs/small-b-d2 --init-checkpoint runs/small-b-d1/last.pt（第三天 d3 接 d2，依此类推）
 ```
 
-- 要同步到训练机的文件：`model/spire_rl/spire_rl/` 下的 `model.py`、`config.py`、`train.py`、`rollout.py`、`tools.py`、`__main__.py`，以及 `model/spire_rl/tests/test_spire_rl.py`。
-- 启动后看：`[val @0]` 约 22 层、接近一半到第二幕；第 8 次更新能过去；速度对照首次启动的 4.66 秒/局，明显变慢则下次加 `--bf16`。
+- 要同步到训练机的文件：`model/spire_rl/spire_rl/` 下的 `config.py`、`ppo.py`、`rollout.py`、`train.py`、`__main__.py`，以及 `model/spire_rl/tests/test_spire_rl.py`。
+- 指令与第四轮相比只改了 `--fork-card 0`（选牌分叉关闭，原因见诊断文档第 7 节）；其余变化在代码默认值里（学习率、分叉损失、分叉复用、KL 退回、menu_loop 截断按“到此结束”计）。训练种子仍从 2,000,000 起，和第四轮 d1 是同一批游戏种子，曲线可直接对照。
+- 启动后看：`[val @0]` 约 22 层；`target_passes` 多数在 1 以上（第四轮 0.4）；`fork_option_logp_min` 保持在约 −12 以上（第四轮 −19 到 −5,000）；`rest_heal_rate_full_hp` 不钉在 1.000 而 `rest_heal_rate_hp_below_50` 保持较高；`fork_card` 为 0，`seconds_per_episode` 明显低于第四轮的 4.4–4.7 秒。
+- 成绩：第四轮约 300 局就到 26–28 层（靠把策略变尖）；这次学习率低，会慢一些。到 2,000–3,000 局应回到 28–29 层，之后看能否超过 29.3。训练过程正常而成绩仍停在 29 层左右时，按诊断文档第 6 节转向战斗网络和网络结构本身（按选项打分的价值头已离线测过，否定，见诊断文档第 7 节）。
 - 到点自己停并保存 `last.pt`。提前停按一次 Ctrl+C，等打印 `saved to .../last.pt`；直接关窗口不保存。中途报错也会先保存 `last.pt`，修好后从它用新的 `--run-dir` 接着跑。
-- 每天带回当天 run 目录的 `metrics.jsonl`、`eval.jsonl` 和终端输出；第一次带上 `runs/small-a0-d1-crashed/metrics.jsonl`。
+- 每天带回当天 run 目录的 `metrics.jsonl`、`eval.jsonl` 和终端输出；归档 `archive/` 能带就带（这次的诊断主要靠它）。
+- 2026-11-15 在本机用第四轮 d1 的检查点核对过这条命令解析出的配置：学习率 3e-5、选牌分叉概率 0、FP32、`menu_loop_bootstrap=False`。
 - 详细步骤见模块 README 第 2.5 节。
 
 从头做一遍的命令（换机器、C++ 又改了、或需要重新蒸馏时；**C++ 改过就必须先重新编译**）：
@@ -112,16 +136,16 @@ conda activate slay
 cd /mnt/c/Users/yebohou/SlayTheModel
 CXX=g++ python artifacts/dev/cpp-native-aligned-20261031/validation/build_local.py
 python -c "from spire_rl.sim import sim; print(sim.ENGINE_RULESET_ID)"      # native-41cef1ea-port-v8
-python -m pytest -q model/spire_rl/tests                                     # 53 项
+python -m pytest -q model/spire_rl/tests                                     # 72 项
 
 # 1) 一次性蒸馏（只读第二轮归档）
 python -m spire_rl distill --archive runs/main-a0-s2/archive --out runs/distill-small.pt --preset small --device cuda
 
 # 2) 每个工作日一段；--max-hours 设为能挂的小时数减去约 20 分钟
 python -u -m spire_rl train --device cuda --num-envs 8 --seed 4 --episodes 100000 --max-hours 7 \
-  --run-dir runs/small-a0-d1 --init-checkpoint runs/distill-small.pt \
-  --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0.05 --fork-seeds 2 --fork-coef 2
-# 第二天起只改：--run-dir runs/small-a0-d2 --init-checkpoint runs/small-a0-d1/last.pt
+  --run-dir runs/small-b-d1 --init-checkpoint runs/distill-small.pt \
+  --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0 --fork-seeds 2 --fork-coef 2
+# 第二天起只改：--run-dir runs/small-b-d2 --init-checkpoint runs/small-b-d1/last.pt
 ```
 
 取最大评估（可选，单独跑，不要和训练同时）：
@@ -137,13 +161,13 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 启动后先确认：
 
 - `distill` 输出的留出 `kl_estimate` 随轮数下降；第一段的 `[val @0]` 应接近第二轮末尾（约 22 层、约一半到第二幕）。明显偏低说明蒸馏损失大，先停下来看。
-- 前几次更新 `forks_complete > 0`、`fork_card > 0`；`target_passes` 不应长期低于 0.5（否则 `--lr` 调低）。
+- 前几次更新 `forks_complete > 0`、`fork_card` 为 0；`target_passes` 多数应在 1 以上（低于 1 时学习率会自动下调，看 `lr`；第四轮长期 0.4）。
 - `recompute_max_abs`（`metrics.jsonl`）：FP32 下应在 1e-4 以下；明显更大说明更新看到的输入和采样时不一样，是真问题。
-- 速度：`seconds_per_episode`（首次启动、BF16 时第 7 次更新为 4.66 秒/局，改 FP32 后明显变慢再考虑 `--bf16`），以及分叉开销 `fork_branch_combats` 对主线战斗数（`combats_mean × rollout_episodes`）的比例。粗估 `--fork-card 0.05` 时模拟器工作量约为无分叉的 3 倍、0.1 时约 5 倍（**未实测**）；太慢就调低 `--fork-card`。
+- 速度：`seconds_per_episode`（第四轮 FP32 实测约 4.4–4.7 秒/局），以及分叉开销 `fork_branch_combats` 对主线战斗数（`combats_mean × rollout_episodes`）的比例（第四轮带选牌分叉实测约 2.3 倍；关掉后按第四轮的构成估计约 1 倍，未实测）；太慢就调低 `--fork-rest`。
 
-验收（与第二轮最后 2,000 局、以及第一段的 `[val @0]` 比较）：验证集平均层数、到第二/三幕率、通关数；`rest_heal_rate_full_hp` 下降且 `rest_heal_rate_hp_below_50` 保持较高；`fork_card_taken_was_best`、`fork_rest_taken_was_best` 结合 `fork_decisive` 与 `fork_tie_rate` 看是否上升。多项同时改动，结果不能归因到单项。
+验收（与第二轮最后 2,000 局、以及第一段的 `[val @0]` 比较）：验证集平均层数、到第二/三幕率、通关数；`rest_heal_rate_full_hp` 下降且 `rest_heal_rate_hp_below_50` 保持较高；`fork_rest_taken_was_best`、`fork_map_taken_was_best` 结合 `fork_decisive` 与 `fork_tie_rate` 看是否上升。多项同时改动，结果不能归因到单项。
 
-已知局限（已向用户说明）：逐张卡牌分叉针对的是**幕内**的选牌（第 3 层选的牌对上本幕 Boss）；跨幕的长程影响只能随着到后期的局变多而逐步改善。分叉损失没有 PPO 那样的裁剪，只靠 KL 早停限幅，要看 `entropy_group` 和火堆回血率是否被推到 0 或 1。每段重建优化器（已加学习率预热）。
+已知局限（已向用户说明）：选牌分叉关闭后，选牌只靠 PPO 的整局回报学，信号弱而且慢（第四轮的选牌分叉也没有带来可测的改进）；跨幕的长程影响只能随着到后期的局变多而逐步改善。第四轮的分叉损失没有上限，把策略推到了几乎完全确定（见 2.1），2026-11-14 已改；新损失的三个参数（`target_scale=1`、`adv_clip=3`、`prob_floor=0.01`）和学习率 3e-5 是按分析定的初值，没有在 GPU 上验证；11-15 的改动（menu_loop 截断的计法、关闭选牌分叉后的速度）同样没有在 GPU 上验证。火堆分叉只跑两场战斗，对升级不利，未改。每段重建优化器（已加学习率预热）。
 
 **后期战斗上限（本机实验，`artifacts/analysis/claude-combat-ceiling-20261111/`）**：重放第二轮后期（rollout 170–233）到过第二幕的对局，在第二幕及以后的战斗开打前复制状态，同一场分别用 1 倍（现配置）、4 倍、16 倍搜索各打 2 个搜索种子。
 
@@ -153,9 +177,11 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 | 普通（含被迫进入的，`results_v2.jsonl` 前 30 局） | 65 | 12.3% / 3.8% / 6.2% | 17.6% / 13.9% / 12.4% | 死亡率 −6.2（3.4），掉血 −5.3（1.2） |
 | **第二幕 Boss**（`results_v2.jsonl`） | 19 | 81.6% / 78.9% / 73.7% | 68.0% / 66.8% / 64.1% | 死亡率 −7.9（8.8），不显著 |
 
-读法：普通战斗里加搜索量有稳定的小幅收益（一幕约 8 场，会累积）；**第二幕 Boss 在现有牌组下八成打不过，16 倍搜索也基本不变**（满血进场的也多数失败）。所以第二幕的墙主要不在搜索次数上，而在牌组强度或搜索对局面的评估（随机模拟）上，这个实验分不开后两者。对后续的含义：选牌这条线（逐张卡牌分叉对上本幕 Boss）是对症的；战斗网络如果只做根先验（等效于更多搜索），对 Boss 的帮助预计有限，叶子价值更值得先试。局限：Boss 只有 19 场、全部来自第二轮策略的牌组；每个文件里约 10% 的对局在本机重放中途分叉而被截断；精英样本只有 5–6 场。v1 脚本只在地图决策处取样，抓不到 Boss（Boss 房是唯一出口，不是决策），v2 改为在战斗开始处取样。
+读法：普通战斗里增加搜索量有明确的小幅收益（一幕约 8 场，会累积）；第二幕 Boss 在现有牌组下死亡率很高，但只有 19 场，16 倍搜索的收益仍不确定，不能据此认定更多搜索无用，也不能区分牌组强度、搜索评估和预算的影响。逐张卡牌分叉与战斗策略／价值网络都值得验证；根先验会改变搜索分配，不等同于增加模拟次数，叶子价值更有效也只是待验证假设。局限：样本全部来自第二轮策略的牌组；每个文件里约 10% 的对局在本机重放中途分叉而被截断；精英样本只有 5–6 场。v1 脚本只在地图决策处取样，抓不到 Boss（Boss 房是唯一出口，不是决策），v2 改为在战斗开始处取样。
 
 ### 2.4 讨论过、但未采用或未实现
+
+**讨论备忘：**四个缺口为对手与候选牌的条件价值、幕内与跨幕信用分配、后期样本覆盖、选牌与战斗能力衔接。论文思路、来源及候选实验集中在[训练缺口文档第 2.1 节](docs/claude-training-gaps-and-mcts-plan-20261110.md#21-四个训练缺口论文思路与后续实验)。建议保留 PPO，先分析带回的数据，再比较“当前 MCTS／纯战斗网络／同网络＋小预算搜索”；抓牌分叉与实际执行使用同一战斗器。此处只记录方向，没有实施新训练方案。
 
 | 方向 | 状态 |
 | --- | --- |
@@ -167,8 +193,13 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 | 验证时取概率最高的动作（`eval --greedy`） | **2026-11-12 已实现**（用户同意），见 2.3。只是单独的测量命令；训练中的验证和 `best.pt` 的选择仍按概率采样，没有改。结果出来后再决定要不要让训练中的验证也报一份取最大的成绩 |
 | 奖励界面去掉或减小熵奖励 | 已向用户提出，**待定、未实现**。目的是不让没有信号的“白拿”决策被推向随机。不违反“不代选”的约定，选择仍由模型做 |
 | 战斗出牌审计（有斩杀机会却没斩杀的回合数） | 未做；建议和战斗网络一起做 |
+| 按选项打分的价值头（缺口 1，用分叉结果监督） | **2026-11-15 离线测过，否定，不接入**（诊断文档第 7 节）。局限：用的是冻结的、已饱和策略的特征；选牌上不经过网络的“只用卡牌 ID”也学不出规律，所以不像是特征的问题 |
 | Decision Transformer（回报条件监督） | 骨架（因果历史 Transformer）还在，但去掉了目标回报输入与监督训练。因结果高度依赖运气、通关样本只有 23 个，**不建议作主方法**；可做“筛选后模仿”初始化 |
-| 战斗网络（先验或叶子价值）+ MCTS | 未实现，**用户希望做**（最初 ST+DT 思路的来源：Transformer 给先验，MCTS 辅助搜索；打牌与选牌的模型衔接）。C++ 搜索已有先验接口（`search.h` 的 `mcts_priors` 根先验、`MctsPriorFn` 按深度的节点先验），但训练用的 `play_combat_mcts` 没接，叶子仍是随机模拟。建议顺序：先跑通第四轮；“后期战斗上限”实验（2.3 末尾）显示普通战斗加搜索量有小幅稳定收益、第二幕 Boss 几乎没有，所以只做根先验预计不够，叶子价值更值得先试；战斗网络与选牌网络共用实体编码器，战斗价值可作为牌组评估信号。只能看公开信息（NoSL） |
+| 战斗网络（策略＋价值）与可选 MCTS | 未实现，**用户希望打通战斗与选牌，并保留网络直接出牌的目标**。`search.h` 已有 `mcts_priors` 根先验、`MctsPriorFn` 节点先验和 `MctsValueFn` 叶子价值回调，但当前 `play_combat_mcts` 未接入。先对照纯网络与搜索增强，再决定在线搜索预算；固定一版战斗器采集局外与抓牌分叉数据，升级后重新适应。共享实体编码器可另作对照。仅用公开信息（NoSL），注意统一搜索评分并验证吞吐；详见上述讨论备忘 |
+| 加大 Boss 战的搜索量（512 → 2048） | 2026-11-14 提过先做一次成对评估；用户认为没什么用，**不做** |
+| 战斗里试牌（选牌的另一种训练办法，不走 PPO） | 2026-11-15 和用户讨论过，**用户还没有决定做，没有实现也没有验证**。做法：选牌时把每张候选牌加进牌组，各自去打一批战斗（本幕 Boss、精英、普通怪），用掉血和死亡率作标签，监督训练选牌的打分头。长程分三层：测试里加后面几幕的敌人（牌组冻结，测不出与以后的牌的配合）；让分支先正常打一段，再对那时的牌组做同样的测试；训练“牌组对某个敌人掉多少血”的预测器，把价值一步步往回传。局限：偏向眼前有用的牌；测的是牌在现有战斗器手里的表现。建议先在本机离线检验（同一张牌测两批战斗结果是否一致、近处和远处的战斗给出的排名差多少），前提是确认模拟器能直接开指定的战斗。与已否定的缺口 1 不同：那次的标签是“走了几层”，这里是战斗掉血 |
+| 降低通关奖励在学习信号里的占比 | 2026-11-15 作为选项提过（通关项占回报方差约 70%）。权重是用户定的，**未改** |
+| Zero-Search STS2 预印本（arXiv 2611.12088v1，PDF 在仓库根目录，未跟踪，**不要提交**） | 2026-11-15 读了全文，只是讨论，没有改动。做法：一个 6.6M 的实体 Transformer（6 层、宽 256、无历史窗口）同时打战斗和做局外选择，不搜索；普通 PPO（每次 65,536 个样本、2 遍）；奖励每层 0.01、精英 0.02、Boss 0.1、通关 1、死亡 −0.1，加血量势函数；一半的局从自己到过的状态重启。铁甲 A0 89.8%、A10 15.6%。**强在训练量**：铁甲 16.6 亿个决策；它自己从头训 5,000 万个决策的对照组在 A0 只有 3–13%（Regent、Silent）。吞吐约 6 万局/小时（256 个模拟器进程，战斗不搜索），我们约 800 局/小时。重启课程在它自己的对照里只对一个角色有效（Regent +3.6 个百分点，Silent 无差别）。互换实验：局外策略与自己的战斗器配套，换成别人的战斗器胜率大跌；“它的局外 + 别人的搜索战斗”是 Regent 上最强的组合。条件不同（v0.107.1、自动拿金币、观察含敌人下一招的内部 ID），不能直接比。可参考：战斗也由网络直接打以换取吞吐（与已列的战斗网络方向一致）、EMA 权重加取最大评估、无历史的单网络结构、死亡惩罚与 Boss／精英奖励（奖励由用户定） |
 | 接入真实游戏 | 未实现。仓库有 10 月的旧 ArmG 实机接入（`src/SlayTheModel.Sts2.ModAdapter`、`scripts/armg_live_worker.py`，近似观察，只覆盖选牌/选路，未整局验收）。新网络需要模组导出完整公开状态、在 C++ 中重建 `RunContext` 再调用同一 `macro_observation`，并覆盖全部界面的动作映射。建议先做只显示建议的影子模式 |
 | A10、自动升阶课程、精确断点续跑 | 未实现；CLI 没有 `--ascension` |
 
@@ -182,13 +213,14 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 | 训练包说明与修订记录 | `model/spire_rl/README.md`（第 8 节按日期记录每批改动） |
 | 导出配置（仅说明用，CLI 不读） | `docs/configs/spire-rl-{main,large-1b,large-0.7b}.json` |
 | C++ 模拟器（唯一可编辑副本） | `artifacts/dev/cpp-native-aligned-20261031/`；宏观观察与战斗驱动 `simulator/src/macro_obs.cpp`；MCTS `simulator/src/mcts.cpp`；隐藏信息重采样 `simulator/src/battle.cpp` 的 `resample_hidden`；卡牌公开键 `simulator/include/sts2/common.h` 的 `card_public_key`/`card_canonical_less` |
-| 训练原始数据 | `runs/training-review/main-a0-s{1,2}/`（未被 git 忽略，**不要提交**） |
+| 训练原始数据 | `runs/training-review/main-a0-s{1,2}/`、`runs/training-review/small-a0-d{1,2,3}/`（未被 git 忽略，**不要提交**） |
 | 第一轮分析（Codex） | `artifacts/analysis/main-a0-s1-20261110/`（`trajectory_decisions.npz` 等） |
 | 第一轮分析（Claude） | `artifacts/analysis/claude-run1-20261110/`：`a1–a14.py` 统计、`boss_exp.py` 受控分叉、`bc_test.py` 模仿测试、`seaglass/` G3 快照检查 |
 | 第二轮分析（同学） | `artifacts/analysis/main-a0-s2-review/`。注意其 `component_rtg` 列不是原始层数单位 |
 | 第二轮分析（Claude） | `artifacts/analysis/claude-run2-20261111/`：`rest_pass.py`/`rest_an.py` 火堆、`critic_an2.py` critic、`value_test.py` 离线价值测试 |
 | NoSL 修复证据 | 副本内 `validation/nosl-fix-20261110/README.md`（修复前审计 `validation/nosl-audit-20261110/` 保留未动） |
 | The Future of Potions 修复证据（v8） | 副本内 `validation/future-potions-fix-20261111/README.md` |
+| 第四轮分析（Claude） | `artifacts/analysis/claude-run4-20261114/`：`extract.py`（从归档抽表）、`an1–an3.py`（优势与回报方差、分叉可靠度、行为与死亡楼层）、`grad_exp.py`（检查点上的对数概率和各损失项梯度）、`grad_*.log`；缺口 1 离线测试 `optval_extract.py`（抽冻结特征）、`optval_fit.py`（打分头与噪声上限对比）、`optval_cardid.py`（只用卡牌 ID 的对照），结果在 `optval/`（`feat_*.pkl` 约 160 MB） |
 | 后期战斗上限实验（Claude） | `artifacts/analysis/claude-combat-ceiling-20261111/`：`ceiling.py`（重放第二轮后期对局，在第二幕及以后的战斗前复制状态，用 1/4/16 倍搜索各打一遍）、`report.py`、`results*.jsonl`、`report*.txt` |
 
 `artifacts/` 整体被 git 忽略（见第 7 节）。
@@ -243,7 +275,7 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 ### 6.2 用户的训练机（Windows `LegionB` + WSL2）
 
 - RTX 5090（用户报 24 GB），Conda `slay`，Python 3.12.0，仓库 `/mnt/c/Users/yebohou/SlayTheModel`；`spire_rl` 以 `pip install -e` 安装（拉代码即生效）。第二轮 GPU 峰值约 5.8 GiB。
-- C++ 改动后需在训练机重编：`CXX=g++ python artifacts/dev/cpp-native-aligned-20261031/validation/build_local.py`，然后确认 `sts2_sim.ENGINE_RULESET_ID` 与 `MACRO_OBS_VERSION`。**当前需要重编到 v8**（训练机上还是 v7）。
+- C++ 改动后需在训练机重编：`CXX=g++ python artifacts/dev/cpp-native-aligned-20261031/validation/build_local.py`，然后确认 `sts2_sim.ENGINE_RULESET_ID` 与 `MACRO_OBS_VERSION`。训练机已是 v8（第四轮 `config.json` 记录的 ruleset 为 `native-41cef1ea-port-v8`）；2026-11-14、11-15 的修复不涉及 C++，不用重编。
 - 该机 CPU 不支持 BF16 反向（oneDNN `avx2_vnni_2`），BF16 测试有 GPU 时在 GPU 上跑，否则跳过；训练不受影响。
 - 训练命令见 2.3；TensorBoard：`tensorboard --logdir runs/<run>/tensorboard --host 127.0.0.1 --port 6006`。
 - Windows 原生（非 WSL）训练未适配（`tools.py` 依赖 Unix `resource`）。
@@ -254,15 +286,13 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 
 - 根 `.gitignore` 忽略 `artifacts/`：已提交文件的改动 git 能看到，**新建文件看不到**，要按清单强制添加。清单 `docs/native-port-upload-paths-20261109.txt`（1864 条，含 NoSL 修复证据文本；不含编译产物、可执行文件、`obj/`）。**不要 `git add -f artifacts/` 整目录**，不要把原生安装备份、训练输出、权重、分析目录加入源码提交。
 - **`runs/` 没有被忽略**，提交前必须排除；不要用 `git add -A`。
-- `44ac1bc` 已包含第三轮及之前的全部工作。此后未提交的内容（第四轮准备）：`AGENTS.md`；`docs/native-port-upload-paths-20261109.txt`（新增 44 条，共 1908 条）；`model/spire_rl/`（含新文件 `spire_rl/distill.py`）；C++ 副本中已跟踪文件的修改（`simulator/src/events.cpp`、`simulator/bindings/bindings.cpp`、`PORT_SOURCE.json`、`agent/engine_identity.py`、副本 `AGENTS.md`、`validation/build.json`）以及清单中的新证据目录 `validation/future-potions-fix-20261111/`。`artifacts/analysis/` 下的实验脚本与结果不在清单里（不提交）。
+- `574b997` 已包含第四轮及之前的全部工作。此后未提交的内容（2026-11-14、11-15）：`AGENTS.md`；`docs/claude-run4-diagnosis-20261114.md`（新文件）；`docs/claude-training-gaps-and-mcts-plan-20261110.md`（同学补充的第 2.1 节）；`model/spire_rl/`（`README.md`、`spire_rl/config.py`、`ppo.py`、`rollout.py`、`train.py`、`__main__.py`、`tests/test_spire_rl.py`）。C++ 副本没有改动。`artifacts/analysis/` 下的实验脚本与结果不在清单里（不提交）；`runs/` 不提交；根目录的 `2611.12088v1.pdf`（同学发来的论文）不提交。
 - 参考命令（由用户执行）：
 
   ```sh
-  git add AGENTS.md docs/native-port-upload-paths-20261109.txt model/spire_rl
-  git add -u artifacts/dev/cpp-native-aligned-20261031
-  git --literal-pathspecs add -f --pathspec-from-file=docs/native-port-upload-paths-20261109.txt
+  git add AGENTS.md docs/claude-run4-diagnosis-20261114.md docs/claude-training-gaps-and-mcts-plan-20261110.md model/spire_rl
   git diff --cached --stat        # 确认没有 runs/、权重、归档
-  git commit -m "Round 4 prep: Future of Potions fix (ruleset v8), small preset, offline distillation, per-card forks to act end, time-budgeted segments"
+  git commit -m "Run 4 diagnosis: bounded fork loss, fork replay, KL rollback, adaptive policy lr; gap-1 test, menu-loop fix"
   ```
 
 ---
@@ -306,10 +336,11 @@ C++ 测试通过 `simulator/tests/port_root.h` 定位样例（先看 `STS2_PORT_
 
 | 文档 | 内容 |
 | --- | --- |
-| [docs/claude-run2-diagnosis-20261111.md](docs/claude-run2-diagnosis-20261111.md) | **最新**：第二轮诊断、方向判断、第三轮实现与验收 |
+| [docs/claude-run4-diagnosis-20261114.md](docs/claude-run4-diagnosis-20261114.md) | **最新**：第四轮三段的诊断、2026-11-14 的修复、下一轮的判断标准（第 6 节）、缺口 1 的离线测试（第 7 节） |
+| [docs/claude-run2-diagnosis-20261111.md](docs/claude-run2-diagnosis-20261111.md) | 第二轮诊断、方向判断、第三轮实现与验收 |
 | [docs/claude-run2-review.md](docs/claude-run2-review.md) | 同学（Codex）对第二轮的交接 |
 | [docs/claude-run1-diagnosis-and-fix-plan-20261110.md](docs/claude-run1-diagnosis-and-fix-plan-20261110.md) | 第一轮诊断、P0 修复、受控 Boss 分叉、模仿测试（第 11 节） |
-| [docs/claude-training-gaps-and-mcts-plan-20261110.md](docs/claude-training-gaps-and-mcts-plan-20261110.md) | Codex 对第一轮的分析与建议（G1–G11） |
+| [docs/claude-training-gaps-and-mcts-plan-20261110.md](docs/claude-training-gaps-and-mcts-plan-20261110.md) | 第一轮分析与建议（G1–G11）；第 2.1 节为 2026-11-15 补充的四个训练缺口、论文思路与候选实验 |
 | [docs/mcts-nosl-audit-20261110.md](docs/mcts-nosl-audit-20261110.md) | NoSL 修复前的审计 |
 | `model/spire_rl/README.md` | 训练包实现、与设计的差异、命令、逐批修订记录 |
 | [docs/st-dt-training-handoff-20261110.md](docs/st-dt-training-handoff-20261110.md) | 最初的 ST-DT（v3）设计；设计不等于实现 |

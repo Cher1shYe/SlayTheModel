@@ -14,7 +14,7 @@ from .archive import write_rollout
 from .config import RunConfig
 from .metrics import MetricsLogger, wilson
 from .model import VALUE_SCALE, EnvSpec, SpireNet, count_parameters, value_weights
-from .ppo import critic_quality, ppo_update, prepare, recompute_check
+from .ppo import critic_quality, fork_targets_of, ppo_update, prepare, recompute_check
 from .rollout import Collector, Job, summarize
 from .sim import identity
 from .tools import check_disk, sim_binary
@@ -106,7 +106,8 @@ def load_initial_weights(model: SpireNet, critic: SpireNet | None, init_checkpoi
         model.load_state_dict(payload["model"])
         info["init_checkpoint"] = {"path": str(init_checkpoint), "fingerprint": payload.get("fingerprint"),
                                    "progress": {k: payload.get("progress", {}).get(k) for k in
-                                                ("episodes_started", "updates", "best_val", "last_eval_episodes")}}
+                                                ("episodes_started", "updates", "best_val", "last_eval_episodes",
+                                                 "lr_adapt")}}
         if critic is not None and payload.get("critic") is not None:
             critic.load_state_dict(payload["critic"])
             info["critic_from"] = "init_checkpoint"
@@ -122,6 +123,21 @@ def load_initial_weights(model: SpireNet, critic: SpireNet | None, init_checkpoi
         info["critic_prior"] = {"path": str(critic_prior), "heldout_ev": prior.get("heldout_ev")}
         log(f"critic prior from {critic_prior}: held-out EV {prior.get('heldout_ev')}")
     return info
+
+
+def adapt_lr(scale: float, update: dict, ppo) -> float:
+    """Next policy learning-rate factor from how the last update ended (see PPOConfig.lr_adapt_*).
+
+    Stopped by the KL limit before one pass over its targets: the steps are too large for the
+    limit, most of the rollout was not used -> smaller. All epochs finished -> larger again.
+    """
+    if not update:
+        return scale
+    if update.get("kl_early_stop") and update.get("target_passes", 0.0) < 1.0:
+        return max(ppo.lr_adapt_min, scale * ppo.lr_adapt_down)
+    if not update.get("kl_early_stop"):
+        return min(1.0, scale * ppo.lr_adapt_up)
+    return scale
 
 
 def _check_seed_ranges(cfg: RunConfig) -> None:
@@ -156,7 +172,9 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                 "act2_episodes": 0, "winning_seeds": [], "alpha0_episodes": 0, "best_val": None,
                 "stage_boundaries": [], "failures": 0, "stopped": None, "optimizer_steps": 0,
                 # first unused training game seed: a run continued from this checkpoint starts here
-                "next_train_seed": cfg.train_seed_base}
+                "next_train_seed": cfg.train_seed_base,
+                # policy learning-rate factor found by the KL stops (adapt_lr); continued by the next segment
+                "lr_adapt": float((provenance.get("init_checkpoint", {}).get("progress") or {}).get("lr_adapt") or 1.0)}
     disk = check_disk(run_dir, count_parameters(model) + (count_parameters(critic) if critic is not None else 0))
     log(f"checkpoint disk plan: {disk}")
     (run_dir / "config.json").write_text(json.dumps(
@@ -171,6 +189,9 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
     log(f"training game seeds from {cfg.train_seed_base}; {len(collector.slots)} environments, "
         f"{collector.workers} worker threads")
     replay = collections.deque(maxlen=max(1, p.critic_replay_rollouts))   # earlier rollouts' targets for the critic
+    # earlier rollouts' fork decisions for the fork loss (their advantages are kept, the
+    # target is rebuilt from the current policy at every update)
+    fork_replay = collections.deque(maxlen=max(1, cfg.fork.replay_rollouts))
 
     def run_eval(at: int) -> None:
         res = evaluate(model, cfg, device, "val", critic=critic)
@@ -252,13 +273,19 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                                    "would not see the inputs the rollout saw")
             lr_scale = (min(1.0, 0.1 + 0.9 * progress["optimizer_steps"] / p.lr_warmup_steps)
                         if p.lr_warmup_steps > 0 else 1.0)
-            for opt, base in ((optimizer, p.lr), (critic_optimizer, p.critic_lr)):
+            policy_lr = p.lr * lr_scale * progress["lr_adapt"]
+            for opt, rate in ((optimizer, policy_lr), (critic_optimizer, p.critic_lr * lr_scale)):
                 if opt is not None:
                     for group in opt.param_groups:
-                        group["lr"] = base * lr_scale
+                        group["lr"] = rate
+            fork_now = fork_targets_of(targets) if cfg.fork.enabled else []
+            fork_pool = fork_now + [x for chunk in fork_replay for x in chunk]
             upd = ppo_update(model, optimizer, targets, p, st.entropy_coef, cfg.model.window, device, rng_py,
-                             critic, critic_optimizer, cfg.fork.coef if cfg.fork.enabled else 0.0,
-                             critic_targets).values if targets else {}
+                             critic, critic_optimizer, cfg.fork if cfg.fork.enabled else None,
+                             critic_targets, fork_pool).values if targets else {}
+            if cfg.fork.enabled and cfg.fork.replay_rollouts > 0 and fork_now:
+                fork_replay.append(fork_now)
+            progress["lr_adapt"] = adapt_lr(progress["lr_adapt"], upd, p)
             if critic is not None and p.critic_replay_rollouts > 0 and targets:
                 for ep in res.episodes:          # replay keeps only what the critic needs
                     ep.info.pop("forks", None)
@@ -283,7 +310,8 @@ def train(cfg: RunConfig, run_dir: Path, device: torch.device,
                    # The rollout's own episode count must not overwrite the cumulative x axis.
                    **{("rollout_episodes" if k == "episodes" else k): v for k, v in res.stats.items()
                       if k not in ("winning_seeds", "failure_reasons", "truncation_reasons")},
-                   **upd, **quality, "recompute_max_abs": recompute, "lr": p.lr * lr_scale,
+                   **upd, **quality, "recompute_max_abs": recompute, "lr": policy_lr,
+                   "lr_adapt_next": progress["lr_adapt"],
                    "rollout_transitions": res.transitions, "archive_mb": archive_bytes / 1e6, "env_seconds": res.env_seconds,
                    "inference_seconds": res.inference_seconds, "forward_calls": res.forward_calls,
                    "cycle_seconds": cycle, "seconds_per_episode": spe, "episodes_per_hour": 3600 / spe,

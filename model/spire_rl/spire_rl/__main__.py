@@ -56,7 +56,8 @@ def _config(args, log=print):
         reward["stages"] = (RewardStage(10 ** 9, float(args.alpha), float(args.entropy_coef)),)
     if reward:
         overrides["reward"] = reward
-    fork = {k: getattr(args, "fork_" + k) for k in ("rest_prob", "map_prob", "card_prob", "seeds", "coef")
+    fork = {k: getattr(args, "fork_" + k) for k in ("rest_prob", "map_prob", "card_prob", "seeds", "coef",
+                                                    "replay_rollouts")
             if getattr(args, "fork_" + k, None) is not None}
     if fork:
         overrides["fork"] = fork
@@ -95,6 +96,8 @@ def main(argv: list[str] | None = None) -> int:
     t.add_argument("--fork-card", dest="fork_card_prob", type=float, help="paired-fork probability at card rewards")
     t.add_argument("--fork-seeds", dest="fork_seeds", type=int, help="paired seed sets per fork")
     t.add_argument("--fork-coef", dest="fork_coef", type=float, help="weight of the fork policy loss")
+    t.add_argument("--fork-replay", dest="fork_replay_rollouts", type=int,
+                   help="earlier rollouts whose fork decisions each update also trains on (default 4, 0 = off)")
     t.add_argument("--critic-replay", type=int, help="earlier rollouts kept for critic training (0 = off)")
     t.add_argument("--train-seed-base", type=int,
                    help="first training game seed (default: continue after the checkpoint's seeds, else 1000000)")

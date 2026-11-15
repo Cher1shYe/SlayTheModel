@@ -306,7 +306,9 @@ class Collector:
                         elif res.outcome in (Outcome.WIN, Outcome.DEATH):
                             finish_branch(slot, res, res.outcome.name.lower())
                         elif res.outcome == Outcome.TRUNCATED:
-                            finish_branch(slot, res, "truncated", res.final_obs)
+                            loop = res.failure_reason == "menu_loop" and not self.cfg.menu_loop_bootstrap
+                            finish_branch(slot, res, "menu_loop" if loop else "truncated",
+                                          None if loop else res.final_obs)
                         elif int(slot.env.rc.act) != slot.start_act or res.components[1] > 0:
                             finish_branch(slot, res, "act_change",
                                           res.next_obs if slot.fork.bootstrap_act_end else None)
@@ -374,7 +376,9 @@ class Collector:
                 futures[self.pool.submit(slot.env.step, a, slot.obs, alpha)] = slot
 
         # Bootstrap values: truncated episodes and branches stopped at the horizon.
-        trunc = [ep for ep in finished if ep.outcome == Outcome.TRUNCATED and ep.final_obs is not None and len(ep)]
+        # (a menu loop gets no estimate of the rest of the run: see RunConfig.menu_loop_bootstrap)
+        trunc = [ep for ep in finished if ep.outcome == Outcome.TRUNCATED and ep.final_obs is not None and len(ep)
+                 and (self.cfg.menu_loop_bootstrap or ep.failure_reason != "menu_loop")]
         items = [(ep, ep.final_obs) for ep in trunc] + [(be, obs) for _, be, obs in branch_boot]
         comps = self._bootstrap(items) if items else np.zeros((0, 3), np.float32)
         for ep, c in zip(trunc, comps[:len(trunc)]):

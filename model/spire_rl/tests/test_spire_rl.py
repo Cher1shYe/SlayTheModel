@@ -564,8 +564,8 @@ def test_paired_forks_are_complete_deterministic_and_centred(tmp_path):
     opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
     copt = torch.optim.AdamW(c.parameters(), lr=1e-4)
     out = ppo_update(m, opt, targets, dataclasses.replace(cfg.ppo, epochs=1), 0.01, cfg.model.window,
-                     torch.device("cpu"), random.Random(0), c, copt, fork_coef=1.0).values
-    assert out["fork_targets_seen"] > 0 and np.isfinite(out["fork_loss"])
+                     torch.device("cpu"), random.Random(0), c, copt, fork=cfg.fork).values
+    assert out["fork_targets_seen"] == out["fork_pool"] == len(fts) and out["fork_loss"] >= 0
 
 
 def test_fork_stats_separate_ties_and_count_all_attempted_branches():
@@ -896,6 +896,60 @@ def test_card_fork_branches_stop_at_the_act_end_with_real_events_only(episodes, 
     assert len(res.episodes[0]) == 5 and res.transitions == 5       # the main line is untouched
 
 
+class _LoopEnv(_ScriptedEnv):
+    """The second decision ends in a menu_loop truncation (main line and every branch)."""
+
+    def step(self, candidate, obs, alpha):
+        r = super().step(candidate, obs, alpha)
+        if self.n == 2:
+            r.outcome, r.final_obs, r.next_obs, r.failure_reason = Outcome.TRUNCATED, self.later, None, "menu_loop"
+        return r
+
+    def fork(self, search_seed):
+        env = _LoopEnv(self.first, self.later)
+        env.rc.act, env.rc.floor, env.n = self.rc.act, self.rc.floor, self.n
+        return env
+
+
+@pytest.mark.parametrize("bootstrap", [False, True])
+def test_menu_loop_ends_the_run_without_an_estimate_of_the_rest(episodes, bootstrap):
+    """Round 4: looping in a grid preview was scored as 'critic estimate of the rest of the run'
+    in training but as ended at that floor in validation. Now it counts as ended (default)."""
+    from spire_rl.ppo import prepare
+    from spire_rl.rollout import Collector, Job
+    from spire_rl.train import build_critic
+    card = _card_reward_observation()
+    later = next(o for ep in episodes for o in ep.obs if o.phase != card.phase)
+    cfg = make_config("tiny", fork={"card_prob": 1.0, "seeds": 1}, menu_loop_bootstrap=bootstrap)
+    torch.manual_seed(0)
+    m, c = build_model(cfg, torch.device("cpu")).eval(), build_critic(cfg, torch.device("cpu")).eval()
+    with torch.no_grad():
+        c.value_head.bias.copy_(torch.tensor([0.1, 0.2, 0.3]))
+    col = Collector(cfg, m, torch.device("cpu"), num_envs=1, critic=c)
+    col.slots[0].env = _LoopEnv(card, later)
+    try:
+        res = col.collect(iter([Job(0, 1, 1)]), 0, 1.0, None, sample_seed=3, forks=True)
+    finally:
+        col.close()
+    (ep,) = res.episodes
+    assert ep.outcome == Outcome.TRUNCATED and ep.failure_reason == "menu_loop" and len(ep) == 2
+    if bootstrap:
+        assert ep.bootstrap_comps is not None and ep.bootstrap_value != 0.0
+    else:
+        assert ep.bootstrap_comps is None and ep.bootstrap_value == 0.0
+    (fork,) = ep.info["forks"]
+    for key, d in fork.details.items():
+        assert d["stop_reason"] == ("truncated" if bootstrap else "menu_loop")
+        assert d["bootstrapped"] == bootstrap
+        if not bootstrap:
+            assert fork.returns[key] == pytest.approx(np.asarray(d["events"]) @ np.asarray(value_weights(1.0, cfg.reward)))
+    targets = prepare(res.episodes, cfg.ppo, cfg.fork.seeds)
+    # the last decision's return is only what happened at it (no continuation)
+    if not bootstrap:
+        assert ep.returns[-1] == pytest.approx(float(ep.reward[-1][1:4] @ np.asarray(value_weights(1.0, cfg.reward))))
+    assert len(targets) == 2
+
+
 def _sharpened(model, std=0.5):
     """A fresh policy is near-uniform whatever its inputs; give the heads a visible spread."""
     with torch.no_grad():
@@ -1080,3 +1134,300 @@ def test_paired_compare_reports_floor_differences():
     assert (r["a_higher_floor"], r["b_higher_floor"], r["same_floor"]) == (2, 1, 1)
     assert (r["a_reach_act2"], r["b_reach_act2"], r["a_truncations"], r["b_truncations"]) == (0.75, 0.5, 0, 1)
     assert r["a_greedy"] is True and "b_greedy" not in r
+
+
+# --- 2026-11-14 (after round 4): bounded fork loss, fork replay, KL rollback, adaptive lr ---
+
+def test_fork_target_follows_the_policy_is_floored_and_clipped():
+    from spire_rl.config import ForkConfig
+    from spire_rl.ppo import fork_target
+    fc = ForkConfig(target_scale=1.0, adv_clip=3.0, prob_floor=0.01)
+    ref = torch.log(torch.tensor([0.7, 0.2, 0.1]))
+    zero = torch.zeros(3)
+    np.testing.assert_allclose(fork_target(ref, zero, fc).numpy(), [0.7, 0.2, 0.1], atol=1e-6)   # no evidence: no pull
+    q = fork_target(ref, torch.tensor([-1.0, 0.0, 1.0]), fc)
+    assert float(q.sum()) == pytest.approx(1.0) and q[2] > 0.1 and q[0] < 0.7
+    # log-odds between two options move by target_scale * advantage difference
+    assert float(torch.log(q[2] / q[0]) - torch.log(torch.tensor(0.1 / 0.7))) == pytest.approx(2.0, abs=1e-5)
+    # an option the policy has pushed to (almost) zero is treated as being at the floor ...
+    saturated = torch.log_softmax(torch.tensor([0.0, -500.0]), -1)
+    q = fork_target(saturated, torch.zeros(2), fc)
+    assert float(q[1]) == pytest.approx(0.01 / 1.01, rel=1e-4)
+    # ... and one extreme measurement cannot ask for more than the clip
+    np.testing.assert_allclose(fork_target(ref, torch.tensor([1000.0, 0.0, -1000.0]), fc).numpy(),
+                               fork_target(ref, torch.tensor([3.0, 0.0, -3.0]), fc).numpy(), atol=1e-7)
+    assert float(fork_target(saturated, torch.tensor([-1000.0, 1000.0]), fc)[0]) > 1e-3
+
+
+def _with_fake_fork(episodes, advantages=(3.0, -3.0), n=3):
+    """Copies of the fixture episodes with one two-option candidate-level fork at decision 0."""
+    eps = copy.deepcopy(episodes[:n])
+    for ep in eps:
+        ep.outcome = Outcome.DEATH
+        assert ep.obs[0].num_candidates >= 2
+        ep.fork_targets = {0: ([0, 1], [0, 0], False, np.asarray(advantages, np.float32))}
+    tg = _prepared(eps)
+    for ep in eps:                       # no PPO signal: only the fork loss moves the policy
+        ep.advantages = np.zeros(len(ep), np.float32)
+    return eps, tg
+
+
+def test_fork_loss_stops_pulling_instead_of_running_away(episodes):
+    from spire_rl.ppo import fork_reference, fork_targets_of
+    torch.manual_seed(0)
+    eps, tg = _with_fake_fork(episodes)
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    opt = torch.optim.AdamW(m.parameters(), lr=3e-4)
+    fc = dataclasses.replace(CFG.fork, rest_prob=1.0, coef=4.0, replay_rollouts=0)
+    cfg = dataclasses.replace(CFG.ppo, epochs=2, target_kl=1e9, kl_rollback=False)       # no KL brake at all
+    pool = fork_targets_of(tg)
+    assert len(pool) == len(eps)
+    lowest = []
+    for _ in range(60):
+        out = ppo_update(m, opt, tg, cfg, 0.0, WINDOW, torch.device("cpu"), random.Random(0), fork=fc).values
+        lowest.append(out["fork_option_logp_min"])
+    # The same measurement (option 1 worse by the maximum) 60 updates in a row. The old loss
+    # (-advantage * log P) lowered log P(option 1) by a constant amount per step for ever; the
+    # target settles at log(floor) - 2 * scale * clip = -10.6 (a larger step size overshoots
+    # and comes back to the same value).
+    assert lowest[0] > -3 and min(lowest) > -13
+    assert lowest[-1] == pytest.approx(np.log(0.01) - 6.0, abs=1.0) and abs(lowest[-1] - lowest[-10]) < 1.0
+    q, low = fork_reference(m, pool, WINDOW, torch.device("cpu"), False, fc, 8)
+    assert all(float(x[1]) > 1e-6 for x in q)
+    assert out["fork_loss"] >= 0 and out["fork_pool"] == len(pool) and out["fork_targets_seen"] == 2 * len(pool)
+
+
+def test_fork_pool_adds_earlier_rollouts(episodes):
+    torch.manual_seed(0)
+    eps, tg = _with_fake_fork(episodes)
+    old_eps, old_tg = _with_fake_fork(episodes, advantages=(-1.0, 1.0), n=2)
+    m = build_model(CFG, torch.device("cpu"))
+    opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+    from spire_rl.ppo import fork_targets_of
+    pool = fork_targets_of(tg) + fork_targets_of(old_tg)
+    fc = dataclasses.replace(CFG.fork, rest_prob=1.0)
+    out = ppo_update(m, opt, tg, dataclasses.replace(CFG.ppo, epochs=1, target_kl=1e9), 0.0, WINDOW,
+                     torch.device("cpu"), random.Random(0), fork=fc, fork_pool=pool).values
+    assert out["fork_pool"] == 5 and out["fork_targets_seen"] == 5 and out["targets"] == len(tg)
+    # Start the next update from a valid behavior-policy reference, as a fresh rollout would.
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    off = ppo_update(m, opt, tg, dataclasses.replace(CFG.ppo, epochs=1), 0.0, WINDOW,
+                     torch.device("cpu"), random.Random(0), fork=None, fork_pool=pool).values
+    assert off["fork_pool"] == 0 and off["fork_targets_seen"] == 0 and np.isnan(off["fork_loss"])
+
+
+@pytest.mark.parametrize("rollback", [True, False])
+def test_kl_stop_takes_back_the_step_that_crossed_the_limit(episodes, rollback):
+    torch.manual_seed(0)
+    tg = _prepared(copy.deepcopy(episodes))
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    before = [p.detach().clone() for p in m.parameters()]
+    opt = torch.optim.SGD(m.parameters(), lr=50.0)      # absurd step: the first one already breaks the limit
+    cfg = dataclasses.replace(CFG.ppo, epochs=4, batch_targets=4, target_kl=1e-6, kl_check_every=1,
+                              kl_rollback=rollback)
+    out = ppo_update(m, opt, tg, cfg, 0.01, WINDOW, torch.device("cpu"), random.Random(0)).values
+    same = all(torch.equal(a, b) for a, b in zip(before, m.parameters()))
+    assert out["kl_early_stop"] and out["kl_rollback"] == rollback
+    if rollback:
+        assert same and out["optimizer_steps"] == 0 and out["target_passes"] == 0
+        assert out["sampled_kl_final"] == pytest.approx(0.0, abs=1e-7)
+    else:
+        assert not same and out["optimizer_steps"] == 1 and out["sampled_kl_final"] > 1.5 * cfg.target_kl
+
+
+@pytest.mark.parametrize("check_every", [1, 8])
+def test_kept_policy_is_within_the_sampled_kl_limit(episodes, check_every):
+    torch.manual_seed(0)
+    tg = _prepared(copy.deepcopy(episodes))
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    opt = torch.optim.SGD(m.parameters(), lr=0.5)
+    # minibatch limit out of the way: only the check on the fixed sample (here: all targets) stops
+    cfg = dataclasses.replace(CFG.ppo, epochs=6, batch_targets=4, target_kl=2e-4, kl_check_every=check_every,
+                              kl_check_targets=len(tg), kl_hard_mult=1e9)
+    out = ppo_update(m, opt, tg, cfg, 0.01, WINDOW, torch.device("cpu"), random.Random(0)).values
+    assert out["kl_early_stop"] and out["kl_stop_reason"] == "sampled_kl" and out["kl_rollback"]
+    assert out["optimizer_steps"] >= 1
+    assert out["sampled_kl_last"] > 1.5 * cfg.target_kl >= out["sampled_kl_final"]      # crossed, then taken back
+
+
+@pytest.mark.parametrize("stop_at_end", [False, True])
+def test_kl_rollback_covers_minibatch_and_incomplete_check_interval(episodes, stop_at_end):
+    """Neither a minibatch stop nor the final partial interval may keep an unsafe policy."""
+    torch.manual_seed(0)
+    tg = _prepared(copy.deepcopy(episodes))
+    if stop_at_end:
+        tg = tg[:12]                     # three optimizer steps: no periodic check at step eight
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    opt = torch.optim.SGD(m.parameters(), lr=10.0 if stop_at_end else 0.5)
+    cfg = dataclasses.replace(CFG.ppo, epochs=1 if stop_at_end else 6, batch_targets=4,
+                              target_kl=2e-4, kl_check_every=8, kl_check_targets=len(tg),
+                              kl_hard_mult=1e9 if stop_at_end else 4.0)
+    out = ppo_update(m, opt, tg, cfg, 0.01, WINDOW, torch.device("cpu"), random.Random(0)).values
+    assert out["kl_early_stop"] and out["kl_rollback"]
+    assert out["kl_stop_reason"] == ("sampled_kl" if stop_at_end else "minibatch_kl")
+    from spire_rl.ppo import sampled_kl
+    actual = sampled_kl(m, tg, WINDOW, torch.device("cpu"), False, cfg.microbatch)
+    assert actual == pytest.approx(out["sampled_kl_final"], abs=1e-7)
+    assert actual <= 1.5 * cfg.target_kl
+    assert out["optimizer_steps"] % cfg.kl_check_every == 0
+    if stop_at_end:
+        assert out["optimizer_steps"] == out["target_passes"] == 0
+
+
+def _assert_nested_equal(actual, expected):
+    if isinstance(expected, torch.Tensor):
+        assert torch.equal(actual, expected)
+    elif isinstance(expected, dict):
+        assert actual.keys() == expected.keys()
+        for key in expected:
+            _assert_nested_equal(actual[key], expected[key])
+    elif isinstance(expected, (list, tuple)):
+        assert len(actual) == len(expected)
+        for value, other in zip(actual, expected):
+            _assert_nested_equal(value, other)
+    else:
+        assert actual == expected
+
+
+@pytest.mark.parametrize("accepted_steps,rejected_kl", [(0, 2.0), (8, 2.0), (8, float("nan")),
+                                                       (8, float("inf"))])
+def test_kl_rollback_restores_adam_and_continues_like_the_safe_state(episodes, monkeypatch,
+                                                                 accepted_steps, rejected_kl):
+    """Rejected updates must not leak Adam moments or its step counter into the next update."""
+    import spire_rl.ppo as ppo_module
+    torch.manual_seed(0)
+    tg = _prepared(copy.deepcopy(episodes))[:32]
+    m = build_model(CFG, torch.device("cpu"))
+    opt = torch.optim.AdamW(m.parameters(), lr=1e-4, amsgrad=True)
+    # Start with nonempty moments, including AMSGrad's extra tensor, as in later PPO updates.
+    for p in m.parameters():
+        p.grad = torch.full_like(p, 0.01)
+    opt.step()
+    opt.zero_grad(set_to_none=True)
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]])
+    expected = {"model": copy.deepcopy(m.state_dict()), "optimizer": copy.deepcopy(opt.state_dict())}
+    calls = 0
+    original_step = opt.step
+
+    def tracking_step(*args, **kwargs):
+        nonlocal calls
+        result = original_step(*args, **kwargs)
+        calls += 1
+        if calls == accepted_steps:
+            expected["model"] = copy.deepcopy(m.state_dict())
+            expected["optimizer"] = copy.deepcopy(opt.state_dict())
+        return result
+
+    def controlled_kl(*args, **kwargs):
+        # This isolates rollback state handling from the particular optimizer trajectory.
+        # Real KL and the default eight-step interval are covered in the tests above.
+        safe = all(torch.equal(v, expected["model"][k]) for k, v in m.state_dict().items())
+        return 0.0 if safe else rejected_kl
+
+    monkeypatch.setattr(opt, "step", tracking_step)
+    monkeypatch.setattr(ppo_module, "sampled_kl", controlled_kl)
+    cfg = dataclasses.replace(CFG.ppo, epochs=1, batch_targets=1, target_kl=1.0,
+                              kl_check_every=8, kl_hard_mult=1e9)
+    out = ppo_update(m, opt, tg, cfg, 0.01, WINDOW, torch.device("cpu"), random.Random(0)).values
+    assert calls == accepted_steps + 8 and out["kl_rollback"]
+    assert out["kl_rollback_steps"] == 8
+    assert out["optimizer_steps"] == accepted_steps
+    assert out["target_passes"] == pytest.approx(accepted_steps * cfg.batch_targets / len(tg))
+    assert out["sampled_kl_final"] == 0.0
+    _assert_nested_equal(m.state_dict(), expected["model"])
+    _assert_nested_equal(opt.state_dict(), expected["optimizer"])
+
+    # The next identical gradient must produce the same weights as uninterrupted execution
+    # starting at the saved state; checking only weights immediately after rollback is weaker.
+    reference = build_model(CFG, torch.device("cpu"))
+    reference.load_state_dict(expected["model"])
+    reference_opt = torch.optim.AdamW(reference.parameters(), lr=1e-4, amsgrad=True)
+    reference_opt.load_state_dict(expected["optimizer"])
+    monkeypatch.setattr(opt, "step", original_step)
+    for actual_p, reference_p in zip(m.parameters(), reference.parameters()):
+        actual_p.grad = torch.full_like(actual_p, 0.02)
+        reference_p.grad = torch.full_like(reference_p, 0.02)
+    opt.step()
+    reference_opt.step()
+    _assert_nested_equal(m.state_dict(), reference.state_dict())
+    _assert_nested_equal(opt.state_dict(), reference_opt.state_dict())
+
+
+@pytest.mark.parametrize("old_logp_shift", [1.0, float("nan")])
+def test_kl_rollback_rejects_an_unsafe_initial_reference(episodes, old_logp_shift):
+    torch.manual_seed(0)
+    tg = _prepared(copy.deepcopy(episodes))[:4]
+    m = build_model(CFG, torch.device("cpu"))
+    with torch.no_grad():
+        lp = torch.log_softmax(m(collate(tg, WINDOW)).logits, -1)
+    for i, (ep, t) in enumerate(tg):
+        ep.logp[t] = float(lp[i, ep.actions[t]]) - old_logp_shift
+    before = copy.deepcopy(m.state_dict())
+    opt = torch.optim.AdamW(m.parameters(), lr=1e-4)
+    with pytest.raises(RuntimeError, match="KL|kl"):
+        ppo_update(m, opt, tg, CFG.ppo, 0.01, WINDOW, torch.device("cpu"), random.Random(0))
+    _assert_nested_equal(m.state_dict(), before)
+    assert not opt.state
+
+
+def test_learning_rate_follows_the_kl_stops(tmp_path):
+    import json
+    from spire_rl.train import adapt_lr, train
+    p = make_config("small").ppo
+    assert p.lr == pytest.approx(3e-5) and p.kl_rollback
+    early = {"kl_early_stop": True, "target_passes": 0.4}
+    assert adapt_lr(1.0, early, p) == pytest.approx(p.lr_adapt_down)
+    assert adapt_lr(p.lr_adapt_min, early, p) == p.lr_adapt_min                       # floor
+    assert adapt_lr(0.5, {"kl_early_stop": True, "target_passes": 1.5}, p) == 0.5       # used its data: keep
+    assert adapt_lr(0.5, {"kl_early_stop": False, "target_passes": 3.0}, p) == pytest.approx(0.5 * p.lr_adapt_up)
+    assert adapt_lr(1.0, {"kl_early_stop": False, "target_passes": 3.0}, p) == 1.0      # never above the base rate
+    assert adapt_lr(0.7, {}, p) == 0.7
+    # in the loop: a KL limit no update can meet lowers the rate update by update, and the
+    # next segment starts from the factor stored in the checkpoint
+    cfg = make_config("tiny", total_episodes=40, eval_every=1000, val_seeds=(9_000_000, 2),
+                      combat={"normal_simulations": 4, "boss_simulations": 8},
+                      ppo={"min_transitions": 8, "lr": 1e-2, "target_kl": 1e-9, "batch_targets": 4},
+                      fork={"rest_prob": 1.0, "map_prob": 1.0, "max_combats": 1, "max_decisions": 4})
+    quiet = lambda *_: None
+    train(cfg, tmp_path / "a", torch.device("cpu"), stop_after_updates=3, log=quiet)
+    rows = [json.loads(line) for line in (tmp_path / "a" / "metrics.jsonl").read_text().splitlines()]
+    assert [r["lr"] for r in rows] == pytest.approx([1e-2, 0.7e-2, 0.49e-2])
+    assert rows[-1]["lr_adapt_next"] == pytest.approx(0.343) and all(r["kl_rollback"] for r in rows)
+    # fork decisions of earlier rollouts are trained on again
+    assert rows[0]["fork_pool"] == rows[0]["forks_complete"] > 0
+    assert rows[2]["fork_pool"] == sum(r["forks_complete"] for r in rows)
+    assert ckpt.load(tmp_path / "a" / "last.pt")["progress"]["lr_adapt"] == pytest.approx(0.343)
+    train(dataclasses.replace(cfg, total_episodes=4, train_seed_base=3_000_000), tmp_path / "b", torch.device("cpu"),
+          stop_after_updates=1, log=quiet, init_checkpoint=tmp_path / "a" / "last.pt")
+    row = json.loads((tmp_path / "b" / "metrics.jsonl").read_text().splitlines()[0])
+    assert row["lr"] == pytest.approx(0.343e-2)
+
+
+def test_fork_settings_beyond_the_branch_id_space_are_rejected():
+    """Branch ids reserve 8 options x 8 seed sets per fork; more would collide in collate."""
+    make_config("tiny", fork={"card_prob": 0.1, "seeds": 8, "max_options": 8})
+    for bad in ({"seeds": 9}, {"seeds": 0}, {"max_options": 9}, {"max_options": 1}):
+        with pytest.raises(ValueError):
+            make_config("tiny", fork={"card_prob": 0.1, **bad})
