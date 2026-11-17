@@ -190,12 +190,14 @@ class Collector:
 
     # -- one rollout ---------------------------------------------------------
     def collect(self, jobs: Iterator[Job], stage: int, alpha: float, min_transitions: int | None,
-                sample_seed: int, greedy: bool = False, forks: bool = False) -> RolloutResult:
+                sample_seed: int, greedy: bool = False, forks: bool = False,
+                on_episode=None) -> RolloutResult:
         """Run episodes until ``min_transitions`` (None = all jobs), then finish those in flight.
 
         ``stage`` only labels the episodes; it is not a network input. ``alpha``
         sets the reward and the critic combination weights. ``forks`` enables the
-        paired forks of ``cfg.fork`` (training only).
+        paired forks of ``cfg.fork`` (training only). ``on_episode(ep)``, if given, is called
+        in this thread as soon as each main episode ends.
 
         Each episode samples from its own stream seeded by (sample_seed,
         episode_id), so results do not depend on thread completion order.
@@ -333,6 +335,8 @@ class Collector:
                     ep.final_obs = res.final_obs
                     ep.info.update(log=slot.env.log, floor=int(slot.env.rc.floor), act=int(slot.env.rc.act))
                     finished.append(ep)
+                    if on_episode is not None:
+                        on_episode(ep)
                     slot.episode = None
                     if want_more():
                         start(slot)

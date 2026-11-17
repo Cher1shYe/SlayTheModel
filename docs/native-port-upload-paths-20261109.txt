@@ -395,6 +395,7 @@ artifacts/dev/cpp-native-aligned-20261031/simulator/content/relics.json
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/battle.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/card_candidates.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/cards_generated.inc
+artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/combat_obs.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/common.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/defect_state.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/defect.h
@@ -407,6 +408,7 @@ artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/native_block_ca
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/native_potion_pool.inc
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/necrobinder_state.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/necrobinder.h
+artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/net_search.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/observe.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/potion_slots.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/include/sts2/potions_generated.inc
@@ -542,6 +544,7 @@ artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_regent.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_silent.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards_status.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/cards.cpp
+artifacts/dev/cpp-native-aligned-20261031/simulator/src/combat_obs.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/defect.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/epoch_unlocks.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/events.cpp
@@ -550,6 +553,7 @@ artifacts/dev/cpp-native-aligned-20261031/simulator/src/mcts_internal.h
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/mcts.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/monsters.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/necrobinder.cpp
+artifacts/dev/cpp-native-aligned-20261031/simulator/src/net_search.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/observe.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/potion_slots.cpp
 artifacts/dev/cpp-native-aligned-20261031/simulator/src/potions.cpp

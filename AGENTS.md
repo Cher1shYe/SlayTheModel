@@ -1,6 +1,6 @@
 # SlayTheModel：交接说明
 
-更新：2026-11-15（Claude：缺口 1 离线测试与审计；Codex：补齐 KL 回滚与优化器恢复）。本文件是**接手的唯一入口**：先读第 0–2 节了解现状，再按需查后面的约定、路径和命令。源码、日志与本文不一致时，以源码和原始日志为准，并更新本文。
+更新：2026-11-16 晚（Claude：战斗网络实验续跑和第一批对照；“本幕 Boss 价值头”设计讨论；每次结果拉回后的固定检查。早些时候：small-b-d1 诊断，策略不看血量；原生对照未完成）。本文件是**接手的唯一入口**：先读第 0–2 节了解现状，再按需查后面的约定、路径和命令。源码、日志与本文不一致时，以源码和原始日志为准，并更新本文。
 
 研究讨论（含 2026-11-15 的论文阅读和“战斗里试牌”的想法）见第 2.4 节及[训练缺口文档第 2.1 节](docs/claude-training-gaps-and-mcts-plan-20261110.md#21-四个训练缺口论文思路与后续实验)
 
@@ -24,7 +24,12 @@
 | 2026-11-14 的修复 | 代码**尚未提交**、**尚未在 GPU 上运行**：分叉损失改为有上限的形式、每次更新复用最近 4 轮的分叉、KL 超限时回滚、`small` 学习率 1e-4 → 3e-5 并随拦停自动调整。原回滚仅撤销最后一步，已由下述 11-15 修复补齐。见第 2.3 节和模块 README 第 8 节 |
 | 2026-11-15 缺口 1 与审计 | 用户要求做缺口 1（按选项打分的价值头）并检查潜在 bug。离线测试结论**否定、不接入**：在第四轮 18,597 个分叉上，打分头对没见过的局的预测与真实值的相关，火堆 0.27、选牌 0.04、地图 0.23，都远低于现在用的两套种子平均（0.61 / 0.53 / 0.87）；选牌连“只用卡牌 ID”也只有 0.04。选牌分叉约占全部模拟器战斗的 40%，所以下一轮**关掉选牌分叉**（`--fork-card 0`）。审计改了两处：menu_loop 截断不再加 critic 对后续的估计；分叉的种子数、选项数加范围检查。代码**尚未提交**，本机 63 项测试通过。见诊断文档第 7 节、模块 README 第 8 节 2026-11-15 条 |
 | 2026-11-15 KL 回滚补齐（Codex） | 默认每 8 步检查时，原实现退一步仍可能超限；现改为恢复最近一次固定样本 KL 检查合格的**权重和完整优化器状态**，同步恢复保留步数与样本计数，最后重新测量。新增默认检查间隔、末尾不足周期、Adam 状态及非有限值回归。**本机 CPU 72 项测试通过**，尚未在 GPU 上验证，见模块 README 第 8 节首条 |
-| 下一步 | 用户说回头把修复同步到训练机再跑（这几天可能没空盯）。按第 2.3 节“现在要做的”**从 `runs/distill-small.pt` 重新开始**：新目录 `runs/small-b-d1`，命令里 `--fork-card 0`；不用重编、不用重新蒸馏；不要接着 `small-a0-*` 的检查点，它们已经饱和。数据带回来后先按诊断文档第 6 节判断。用户的想法：这一轮如果还不行，就推翻现在的网络；那时的候选方向见第 2.4 节（网络直接打战斗加无历史小网络、战斗里试牌）。**未经用户指示不要启动、停止或修改远端训练** |
+| 修复后一轮 `small-b-d1`（同学在训练机上跑，11,148 局，10 小时） | 已带回本机 `runs/training-review/small-b-d1/`。**训练过程正常、成绩不行**：验证 22.2 → 25.6 层（约 4,000 局后不再涨），低于第四轮 29 层。最重要的发现：**策略网络不看血量**（窗口内血量改 20%/100%，选择概率平均只变 0.03%；全局行清零只变 0.1–0.2%；决策向量里血量线性可读 R² 约 0.12），12,787 个火堆分叉明确说低血该回血，策略回血率在各血量下都一样。PPO 只学到整体偏好。Boss 死亡率（到达者中）：第 17 层 31%、第 33 层 51%、第 48 层 90%。`config.json` 里选牌分叉概率实际是 0.01。诊断：[docs/claude-runb-diagnosis-20261116.md](docs/claude-runb-diagnosis-20261116.md) |
+| 原生 DLL 对照（2026-11-16 开了个头） | 上一任在本机装了 .NET SDK 9.0.321（`artifacts/tools/dotnet-sdk`，约 600 MB），用保留的 v0.111.0 DLL 编译并启动过无界面宿主（`artifacts/dev/cpp-native-aligned-20261031/validation/native-whole-run-20261115/`，`run_host.sh`，存档目录 `~/Library/Application Support/SlayTheModelParity`）。开局状态读取时 JSON 解析失败，**还没有任何对照结果**；正在核对的是种子 `PARITY0001` 下模拟器给的先古遗物选项（PreciseScissors / BoomingConch / SilverCrucible）。用户决定先做训练分析，这条暂停 |
+| 战斗网络实验（2026-11-16，本机） | 上一任写了按实体的战斗观察、批量网络搜索 `NetSearch`、约 1.4M 的战斗网络（C++ 只加接口，ruleset 不变，本机已重编）。续跑完成：第 0 代数据 300 局（48,642 个决策，MCTS 256/512/1024）、188 场固定对照集。**临时网络**（3 万个决策）的成对对照：普通、精英与 MCTS 相近；Boss 死亡率 网络单独 61.6%、网络 + 搜索 64/128/256 47.9%、MCTS 128 档 38.4%、256 档 43.8%（MCTS 翻倍搜索在 Boss 上没有改善）。**完整数据的第 0 代训练、256/512/1024 档网络搜索、自我对弈都还没做**，用户要求先暂停。见模块 README 第 8 节 2026-11-16 条 |
+| 设计讨论：本幕 Boss 价值头（2026-11-16） | 用户认同：从每个局面（含普通战斗中）加一个价值输出，预测本幕 Boss 能否打过，局内出牌、留药与局外选择都按它打分；整局价值约等于各幕通过率相乘，用下一幕开头的预测往回接。已向用户说明的问题：离 Boss 远的地方信号弱，标签宜用时序差分与最终 0/1 混合；搜索里数值差太小，建议用它算血量和药水的“汇率”再给本场结果加权；**战斗观察目前没有幕、层、本幕 Boss、地图**，统一网络必须加；后期样本少；换幕回血已核对：A0 下每幕第一个房间（先古事件）把血回满，打完 Boss 剩多少血对下一幕没有影响。**离线测试已做**（`artifacts/analysis/claude-bossval-20261116/README.md`）：44.8 万个样本，按种子留出；小 MLP 在 Boss 前最后一层 AUC 0.86（第一幕）/ 0.83（第二幕），能解释约三分之一的不确定性；到幕开头 AUC 0.68 / 0.74，只解释约一成。牌组是主要预测因素（只用数值 AUC 0.72）。血量 +10% 使通过率高 4.2 个百分点（Boss 前），到幕开头为 1.3，与第一轮受控实验同一量级（约 7）。第三幕样本少，结果不稳。结论：可以做，但幕开头要靠时序差分往回接。**网络结构尚未实现** |
+| 统一网络设计（2026-11-16） | 写成 [docs/claude-unified-net-design-20261116.md](docs/claude-unified-net-design-20261116.md)。用户已定：一个网络、实体集合、无历史、本幕 Boss 价值、跨幕打折只在决策时用（w₁ = 0.2、w₂ = 0.5 起步，按门槛升到 1）、先做 A0。第 7 节已由用户拍板（r₃ = 3；搜索尺度两种都做后比较；局外先 PPO、火堆和拿牌再试往前看一步；局外从零、价值头先在归档上预训练；预算 256/512/1024）。**第 1、2 步已完成**：`unified_obs.py`、`unified_net.py`（约 2.5M）。**第 3–5 步的代码已完成并适配 GPU**（11-16 深夜）：价值头在本机归档上预训练一遍（`artifacts/analysis/claude-unified-20261116/value_pretrain.pt`；Boss 前一层 AUC 0.77 / 0.71，血量 ±10% 使预测通过率变 2–5 个百分点）；本机 300 局 MCTS 教师数据；C++ 加了树内归一化和“赢局交给网络估值”两个选项（ruleset 不变，本机已重编）；训练机一条命令 `bash model/spire_rl/unified_gpu.sh`（教师数据 → 第 0 代 → 188 场评估，可续跑；模块 README 第 2.6 节）。本机 98 passed，脚本小规模跑通，**CUDA 未实测**。下一步：用户把代码和 `to_gpu/` 两个文件带到训练机跑，结果带回后比较 |
+| 下一步 | 用户认为现在“MCTS 全权负责战斗”对 NoSL 不行、选牌与打牌解耦也不对，**最终要换网络结构**，并借鉴前几轮的失败。诊断文档第 5 节列了换结构的要求，第 6 节是建议的步骤（先单独训练战斗网络并与 MCTS 成对比较，再做局内外统一的无历史单网络，最后把网络接进 MCTS）。**待用户决定**。`small-b`/`small-a0` 的检查点只用于分析。**未经用户指示不要启动、停止或修改远端训练** |
 
 **验证成绩**（固定 200 个验证种子，随机采样评估）：
 
@@ -37,6 +42,7 @@
 | 第四轮 0 局（从第二轮蒸馏出的 `small`） | 22.25 | 46.5% | 8% | 1/200 |
 | 第四轮 3,039 局（d1 `last.pt`） | 29.16 | 72% | 22.5% | 5/200 |
 | 第四轮 7,360 局（d3 `best.pt`） | 29.28 | 75% | 26.5% | 4/200 |
+| 修复后一轮 10,022 局（small-b-d1 `last.pt` 前的最后一次验证） | 25.56 | 59% | 14.5% | 2/200 |
 
 各轮之间模拟器和训练配置都变了，不是单因素对照；0/200 与 1/200 的差别不显著。第四轮平均层数的标准误约 0.85，3,039 局之后的几次验证（28.5–29.3）之间没有可分辨的差别。
 
@@ -89,6 +95,7 @@
 - **PPO**：策略 lr 3e-5（`small` 预设也是 3e-5，另有 150 步学习率预热），最多 3 遍；KL 检查：每步前向时量当前小批（>0.04 停），每 8 步和更新结束时在固定 512 个样本上量（>0.015 停）；非有限值也停。`kl_rollback` 恢复最近一次固定样本检查合格的权重和优化器状态，可能撤销多步；更新开始也先验证，回滚后重新实测，不能确认合格则报错。限制针对固定样本估计，不是全部状态的精确 KL。一次更新不到一遍就被拦停，之后策略学习率乘 0.7（下限为基础值的 0.1 倍），走满全部遍数乘 1.1（上限为基础值），系数存在检查点的 `progress.lr_adapt` 里跨段接续。组熵额外奖励 0.01。critic lr 1e-4，每次更新 2 遍（当前批 + 最近 12 轮的回放各一份）。
 - **分叉损失**（2026-11-14 起）：每次更新开始时按当前策略给每个分叉决策算目标分布，目标 ∝ max(当前概率, 0.01) × exp(归一后的优势，限幅 ±3)，损失是目标到策略的 KL（只在被比较的选项之间）；每次更新同时用最近 4 轮的分叉决策（`ForkConfig.replay_rollouts`，`--fork-replay`）。同一个测量连续重复时，选项的对数概率停在约 −10.6。
 - **保存**：`best.pt`（验证胜率更高，或胜率相同而平均层数更高时）和 `last.pt`（每次验证后、训练正常结束或 `--max-hours` 到点时），都含 critic，只存权重（不能精确断点续跑）。报错或按一次 Ctrl+C 退出时也保存 `last.pt`（`progress.final=false`；权重含非有限数或还没做过更新时不覆盖）；直接关窗口或 `kill` 不保存。检查点格式 `spire_rl/3`，`progress.next_train_seed` 记录下一个未用的训练种子；归档格式 `spire_rl.archive/3`（增加分叉审计记录，仍可读 /1、/2）。
+- **每次结果拉回后的固定检查**（2026-11-16 起，用户要求）：只改血量的反事实敏感度、决策向量的血量探针、与火堆分叉方向对照。见模块 README 第 7.1 节。
 - **监控**：每个 run 目录有 `metrics.jsonl`（每次更新一行）、`eval.jsonl`、`eval/val_ep*.json`、`dashboard.html`、`archive/rollout_*.npz`、可选 TensorBoard。重点字段：`value_ev_floors`、`rest_heal_rate_full_hp`、`rest_heal_rate_hp_below_50`、`entropy_group`、`target_passes`、`kl_stop_reason`、`menu_loops`，第三轮再加分叉相关字段（见 2.3）；2026-11-14 再加 `fork_option_logp_min`（策略有没有被推死的直接读数）、`fork_pool`、`kl_rollback`、`sampled_kl_final`、`lr_adapt_next`。`fork_loss` 的含义变成每个分叉决策的 KL（≥ 0），与第四轮的数值不可比。
 
 ### 2.3 第四轮方案与 2026-11-14、11-15 的修复（第四轮跑了三段；修复后尚未在 GPU 上运行）
@@ -113,7 +120,7 @@
 ```sh
 conda activate slay
 cd /mnt/c/Users/yebohou/SlayTheModel
-python -m pytest -q model/spire_rl/tests            # 同步代码后确认：72 passed
+python -m pytest -q model/spire_rl/tests            # 同步代码后确认：72 passed（本机另有战斗网络与统一网络的测试，共 98；训练机未重编 C++ 前不要同步 test_combat_net.py、test_unified*.py）
 python -u -m spire_rl train --device cuda --num-envs 8 --seed 4 --episodes 100000 --max-hours 7 \
   --run-dir runs/small-b-d1 --init-checkpoint runs/distill-small.pt \
   --alpha 0.5 --fork-rest 0.3 --fork-map 0.05 --fork-card 0 --fork-seeds 2 --fork-coef 2
@@ -221,6 +228,7 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 | NoSL 修复证据 | 副本内 `validation/nosl-fix-20261110/README.md`（修复前审计 `validation/nosl-audit-20261110/` 保留未动） |
 | The Future of Potions 修复证据（v8） | 副本内 `validation/future-potions-fix-20261111/README.md` |
 | 第四轮分析（Claude） | `artifacts/analysis/claude-run4-20261114/`：`extract.py`（从归档抽表）、`an1–an3.py`（优势与回报方差、分叉可靠度、行为与死亡楼层）、`grad_exp.py`（检查点上的对数概率和各损失项梯度）、`grad_*.log`；缺口 1 离线测试 `optval_extract.py`（抽冻结特征）、`optval_fit.py`（打分头与噪声上限对比）、`optval_cardid.py`（只用卡牌 ID 的对照），结果在 `optval/`（`feat_*.pkl` 约 160 MB） |
+| 修复后一轮分析（Claude） | `artifacts/analysis/claude-runb-20261115/`：`extract.py`（第四轮脚本加了运行名参数）、`behav.py` 行为与死亡楼层对照、`rest.py` 火堆分叉标签、`cf_probe.py`/`cf_critic.py` 反事实敏感度、`rest_probe.py`+`linprobe.py` 决策向量探针、`rest_baseline.py`、`fit_rest.py` 只用火堆分叉的监督训练测试 |
 | 后期战斗上限实验（Claude） | `artifacts/analysis/claude-combat-ceiling-20261111/`：`ceiling.py`（重放第二轮后期对局，在第二幕及以后的战斗前复制状态，用 1/4/16 倍搜索各打一遍）、`report.py`、`results*.jsonl`、`report*.txt` |
 
 `artifacts/` 整体被 git 忽略（见第 7 节）。
@@ -284,9 +292,9 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 
 ## 7. 提交与上传
 
-- 根 `.gitignore` 忽略 `artifacts/`：已提交文件的改动 git 能看到，**新建文件看不到**，要按清单强制添加。清单 `docs/native-port-upload-paths-20261109.txt`（1864 条，含 NoSL 修复证据文本；不含编译产物、可执行文件、`obj/`）。**不要 `git add -f artifacts/` 整目录**，不要把原生安装备份、训练输出、权重、分析目录加入源码提交。
+- 根 `.gitignore` 忽略 `artifacts/`：已提交文件的改动 git 能看到，**新建文件看不到**，要按清单强制添加。清单 `docs/native-port-upload-paths-20261109.txt`（1912 条，含 NoSL 修复证据文本，2026-11-16 补了战斗观察与 NetSearch 的 4 个新文件；不含编译产物、可执行文件、`obj/`）。**不要 `git add -f artifacts/` 整目录**，不要把原生安装备份、训练输出、权重、分析目录加入源码提交。
 - **`runs/` 没有被忽略**，提交前必须排除；不要用 `git add -A`。
-- `574b997` 已包含第四轮及之前的全部工作。此后未提交的内容（2026-11-14、11-15）：`AGENTS.md`；`docs/claude-run4-diagnosis-20261114.md`（新文件）；`docs/claude-training-gaps-and-mcts-plan-20261110.md`（同学补充的第 2.1 节）；`model/spire_rl/`（`README.md`、`spire_rl/config.py`、`ppo.py`、`rollout.py`、`train.py`、`__main__.py`、`tests/test_spire_rl.py`）。C++ 副本没有改动。`artifacts/analysis/` 下的实验脚本与结果不在清单里（不提交）；`runs/` 不提交；根目录的 `2611.12088v1.pdf`（同学发来的论文）不提交。
+- `574b997` 已包含第四轮及之前的全部工作。此后未提交的内容（2026-11-14、11-15）：`AGENTS.md`；`docs/claude-run4-diagnosis-20261114.md`（新文件）；`docs/claude-training-gaps-and-mcts-plan-20261110.md`（同学补充的第 2.1 节）；`model/spire_rl/`（`README.md`、`spire_rl/config.py`、`ppo.py`、`rollout.py`、`train.py`、`__main__.py`、`tests/test_spire_rl.py`）。C++ 副本没有改动。**2026-11-16 又增加**：`docs/claude-runb-diagnosis-20261116.md`（新文件）；`model/spire_rl/spire_rl/combat_net.py`、`combat_play.py`、`unified_obs.py`、`unified_net.py`、`unified_data.py`、`unified_pretrain.py`、`unified_train.py`、`unified_play.py`、`unified_run.py`、`model/spire_rl/unified_gpu.sh`、`tests/test_combat_net.py`、`tests/test_unified.py`、`tests/test_unified_play.py`（新文件）、`docs/claude-unified-net-design-20261116.md`（新文件）和 `env.py`、`rollout.py`；C++ 副本的 `simulator/bindings/bindings.cpp`、`include/sts2/search.h`、`src/mcts.cpp`、`validation/build.json`（已跟踪，git 能看到），以及**新文件** `include/sts2/combat_obs.h`、`src/combat_obs.cpp`、`include/sts2/net_search.h`、`src/net_search.cpp`。后四个在被忽略的 `artifacts/` 下，提交时要逐个 `git add -f`，并补进上传清单。`artifacts/analysis/` 下的实验脚本与结果不在清单里（不提交）；`runs/` 不提交；根目录的 `2611.12088v1.pdf`（同学发来的论文）不提交。
 - 参考命令（由用户执行）：
 
   ```sh
@@ -336,7 +344,9 @@ C++ 测试通过 `simulator/tests/port_root.h` 定位样例（先看 `STS2_PORT_
 
 | 文档 | 内容 |
 | --- | --- |
-| [docs/claude-run4-diagnosis-20261114.md](docs/claude-run4-diagnosis-20261114.md) | **最新**：第四轮三段的诊断、2026-11-14 的修复、下一轮的判断标准（第 6 节）、缺口 1 的离线测试（第 7 节） |
+| [docs/claude-unified-net-design-20261116.md](docs/claude-unified-net-design-20261116.md) | **最新**：统一网络设计（局内局外一个网络、本幕 Boss 价值、跨幕权重 w、检查与验收、开工前待拍板的 5 件事、分步实施） |
+| [docs/claude-runb-diagnosis-20261116.md](docs/claude-runb-diagnosis-20261116.md) | 修复后一轮的诊断、策略不看血量的证据、换结构的要求与建议步骤 |
+| [docs/claude-run4-diagnosis-20261114.md](docs/claude-run4-diagnosis-20261114.md) | 第四轮三段的诊断、2026-11-14 的修复、下一轮的判断标准（第 6 节）、缺口 1 的离线测试（第 7 节） |
 | [docs/claude-run2-diagnosis-20261111.md](docs/claude-run2-diagnosis-20261111.md) | 第二轮诊断、方向判断、第三轮实现与验收 |
 | [docs/claude-run2-review.md](docs/claude-run2-review.md) | 同学（Codex）对第二轮的交接 |
 | [docs/claude-run1-diagnosis-and-fix-plan-20261110.md](docs/claude-run1-diagnosis-and-fix-plan-20261110.md) | 第一轮诊断、P0 修复、受控 Boss 分叉、模仿测试（第 11 节） |

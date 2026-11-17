@@ -16,6 +16,11 @@
 #include "sts2/relics.h"
 #include "sts2/run.h"
 #include "sts2/search.h"
+#include "sts2/combat_obs.h"
+#include "sts2/net_search.h"
+
+#include <pthread.h>
+#include <vector>
 
 namespace py = pybind11;
 using namespace sts2;
@@ -45,6 +50,101 @@ static Action make_action(int type, int hand, int target, int uid) {
     a.target = static_cast<std::uint8_t>(target);
     a.uid = static_cast<std::uint16_t>(uid);
     return a;
+}
+
+
+static py::dict combat_obs_dict(const CombatObservation &o) {
+    auto ints = [](const std::vector<std::int32_t> &v, std::vector<py::ssize_t> shape) {
+        py::array_t<std::int32_t> a(shape);
+        std::copy(v.begin(), v.end(), a.mutable_data());
+        return a;
+    };
+    auto floats = [](const std::vector<float> &v, std::vector<py::ssize_t> shape) {
+        py::array_t<float> a(shape);
+        std::copy(v.begin(), v.end(), a.mutable_data());
+        return a;
+    };
+    const auto n = static_cast<py::ssize_t>(o.kind.size());
+    const auto c = static_cast<py::ssize_t>(o.candType.size());
+    py::dict d;
+    d["kind"] = ints(o.kind, {n});
+    d["id"] = ints(o.id, {n});
+    d["num"] = floats(o.num, {n, COMBAT_ENTITY_NUM});
+    d["cand_type"] = ints(o.candType, {c});
+    d["cand_target"] = ints(o.candTarget, {c});
+    d["cand_target2"] = ints(o.candTarget2, {c});
+    d["cand_num"] = floats(o.candNum, {c, COMBAT_CAND_NUM});
+    return d;
+}
+
+// Packs several combat observations into flat arrays plus per-sample lengths.
+static py::dict pack_combat_obs(const std::vector<CombatObservation> &obs) {
+    std::size_t n = 0, c = 0;
+    for (const auto &o : obs) { n += o.kind.size(); c += o.candType.size(); }
+    py::array_t<std::int32_t> kind(static_cast<py::ssize_t>(n)), id(static_cast<py::ssize_t>(n));
+    py::array_t<float> num({static_cast<py::ssize_t>(n), static_cast<py::ssize_t>(COMBAT_ENTITY_NUM)});
+    py::array_t<std::int32_t> ent_len(static_cast<py::ssize_t>(obs.size())), cand_len(static_cast<py::ssize_t>(obs.size()));
+    py::array_t<std::int32_t> ctype(static_cast<py::ssize_t>(c)), ct1(static_cast<py::ssize_t>(c)), ct2(static_cast<py::ssize_t>(c));
+    py::array_t<float> cnum({static_cast<py::ssize_t>(c), static_cast<py::ssize_t>(COMBAT_CAND_NUM)});
+    auto *pk = kind.mutable_data(); auto *pi = id.mutable_data(); auto *pn = num.mutable_data();
+    auto *pel = ent_len.mutable_data(); auto *pcl = cand_len.mutable_data();
+    auto *pct = ctype.mutable_data(); auto *p1 = ct1.mutable_data(); auto *p2 = ct2.mutable_data(); auto *pcn = cnum.mutable_data();
+    for (std::size_t k = 0; k < obs.size(); ++k) {
+        const auto &o = obs[k];
+        pk = std::copy(o.kind.begin(), o.kind.end(), pk);
+        pi = std::copy(o.id.begin(), o.id.end(), pi);
+        pn = std::copy(o.num.begin(), o.num.end(), pn);
+        pct = std::copy(o.candType.begin(), o.candType.end(), pct);
+        p1 = std::copy(o.candTarget.begin(), o.candTarget.end(), p1);
+        p2 = std::copy(o.candTarget2.begin(), o.candTarget2.end(), p2);
+        pcn = std::copy(o.candNum.begin(), o.candNum.end(), pcn);
+        pel[k] = static_cast<std::int32_t>(o.kind.size());
+        pcl[k] = static_cast<std::int32_t>(o.candType.size());
+    }
+    py::dict d;
+    d["kind"] = kind; d["id"] = id; d["num"] = num; d["ent_len"] = ent_len;
+    d["cand_type"] = ctype; d["cand_target"] = ct1; d["cand_target2"] = ct2; d["cand_num"] = cnum;
+    d["cand_len"] = cand_len;
+    return d;
+}
+
+static std::vector<NetSearch *> search_ptrs(const py::list &searches) {
+    std::vector<NetSearch *> out;
+    out.reserve(searches.size());
+    for (const auto &h : searches) out.push_back(h.cast<NetSearch *>());
+    return out;
+}
+
+struct ParallelJob {
+    const std::function<void(std::size_t)> *fn;
+    std::size_t n, t, threads;
+    std::exception_ptr error;
+};
+static void *parallel_job(void *arg) {
+    auto *job = static_cast<ParallelJob *>(arg);
+    try { for (std::size_t i = job->t; i < job->n; i += job->threads) (*job->fn)(i); }
+    catch (...) { job->error = std::current_exception(); }
+    return nullptr;
+}
+// Worker threads get a 64 MiB stack: BattleContext copies are several hundred KiB.
+static void parallel_for(std::size_t n, int threads, const std::function<void(std::size_t)> &fn) {
+    threads = std::max(1, std::min<int>(threads, static_cast<int>(n)));
+    if (threads <= 1) { for (std::size_t i = 0; i < n; ++i) fn(i); return; }
+    std::vector<ParallelJob> jobs(static_cast<std::size_t>(threads));
+    std::vector<pthread_t> ids(static_cast<std::size_t>(threads));
+    pthread_attr_t attr;
+    pthread_attr_init(&attr);
+    pthread_attr_setstacksize(&attr, 64u << 20);
+    for (int t = 0; t < threads; ++t) {
+        jobs[t] = {&fn, n, static_cast<std::size_t>(t), static_cast<std::size_t>(threads), nullptr};
+        if (pthread_create(&ids[t], &attr, parallel_job, &jobs[t]) != 0) {
+            pthread_attr_destroy(&attr);
+            throw std::runtime_error("pthread_create failed");
+        }
+    }
+    pthread_attr_destroy(&attr);
+    for (int t = 0; t < threads; ++t) pthread_join(ids[t], nullptr);
+    for (auto &j : jobs) if (j.error) std::rethrow_exception(j.error);
 }
 
 static py::list card_list(const Card *cards, int n) {
@@ -264,6 +364,16 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.attr("PUBLIC_COMBAT_OBS_DIM") = PUBLIC_COMBAT_OBS_DIM;
     m.attr("PUBLIC_OBS_VERSION") = PUBLIC_OBS_VERSION;
     m.attr("MACRO_OBS_VERSION") = MACRO_OBS_VERSION;
+    m.attr("COMBAT_OBS_VERSION") = COMBAT_OBS_VERSION;
+    m.attr("COMBAT_ENTITY_NUM") = COMBAT_ENTITY_NUM;
+    m.attr("COMBAT_CAND_NUM") = COMBAT_CAND_NUM;
+    m.attr("COMBAT_ENTITY_KINDS") = static_cast<int>(CombatEntity::COUNT);
+    m.def("combat_id_vocab", []() {
+        py::list out;
+        for (int k = 0; k < static_cast<int>(CombatEntity::COUNT); ++k)
+            out.append(combat_id_vocab(static_cast<CombatEntity>(k)));
+        return out;
+    }, "id vocabulary size of each CombatEntity kind");
     m.attr("MACRO_ENTITY_NUM") = MACRO_ENTITY_NUM;
     m.attr("MACRO_CAND_NUM") = MACRO_CAND_NUM;
     m.attr("MACRO_PHASES") = MACRO_PHASES;
@@ -302,6 +412,74 @@ PYBIND11_MODULE(sts2_sim, m) {
     m.def("card_features", [](int id, bool upgraded, int price) {
         return card_features(make_card(static_cast<CardId>(id), upgraded, 0), price);
     }, py::arg("card_id"), py::arg("upgraded") = false, py::arg("price") = -1);
+
+    py::class_<NetSearch>(m, "NetSearch", "resumable PUCT search with batched external priors/values")
+        .def(py::init([](const BattleContext &root, int simulations, std::uint32_t seed, double c_puct,
+                         double fpu_reduction, double dirichlet_alpha, double dirichlet_frac,
+                         double potion_weight, double win_base, bool resample, bool normalize_q,
+                         bool eval_terminal_wins) {
+            NetSearchConfig cfg;
+            cfg.cPuct = c_puct; cfg.fpuReduction = fpu_reduction; cfg.dirichletAlpha = dirichlet_alpha;
+            cfg.dirichletFrac = dirichlet_frac; cfg.potionWeight = potion_weight; cfg.winBase = win_base;
+            cfg.resampleHidden = resample; cfg.normalizeQ = normalize_q; cfg.evalTerminalWins = eval_terminal_wins;
+            return new NetSearch(root, simulations, seed, cfg);
+        }), py::arg("root"), py::arg("simulations"), py::arg("seed") = 0, py::arg("c_puct") = 1.5,
+           py::arg("fpu_reduction") = 0.2, py::arg("dirichlet_alpha") = 0.3, py::arg("dirichlet_frac") = 0.0,
+           py::arg("potion_weight") = 4.0, py::arg("win_base") = 0.4, py::arg("resample") = true,
+           py::arg("normalize_q") = false, py::arg("eval_terminal_wins") = false)
+        .def("advance", &NetSearch::advance, py::call_guard<py::gil_scoped_release>())
+        .def_property_readonly("waiting", &NetSearch::waiting)
+        .def("pending_observation", [](const NetSearch &s) { return combat_obs_dict(combat_entity_observation(s.pending_state())); })
+        .def("provide", &NetSearch::provide, py::arg("priors"), py::arg("value"))
+        .def_property_readonly("simulations_done", &NetSearch::simulations_done)
+        .def("root_actions", [](const NetSearch &s) {
+            py::list out;
+            for (const Action &a : s.root_actions()) out.append(action_tuple(a));
+            return out;
+        })
+        .def("root_visits", &NetSearch::root_visits)
+        .def("root_q", &NetSearch::root_q)
+        .def("root_priors", &NetSearch::root_priors)
+        .def_property_readonly("root_value", &NetSearch::root_value)
+        .def("best_action", [](const NetSearch &s) { return action_tuple(s.best_action()); });
+    m.def("net_search_advance", [](const py::list &searches, int threads) {
+        auto ptrs = search_ptrs(searches);
+        std::vector<char> waiting(ptrs.size(), 0);
+        std::vector<CombatObservation> obs(ptrs.size());
+        {
+            py::gil_scoped_release release;
+            parallel_for(ptrs.size(), threads, [&](std::size_t i) {
+                if (ptrs[i]->advance()) {
+                    waiting[i] = 1;
+                    obs[i] = combat_entity_observation(ptrs[i]->pending_state());
+                }
+            });
+        }
+        std::vector<CombatObservation> packed;
+        py::list idx;
+        for (std::size_t i = 0; i < ptrs.size(); ++i)
+            if (waiting[i]) { idx.append(static_cast<int>(i)); packed.push_back(std::move(obs[i])); }
+        py::dict d = pack_combat_obs(packed);
+        d["index"] = idx;
+        return d;
+    }, py::arg("searches"), py::arg("threads") = 1,
+       "advance every search to its next pending leaf; returns packed observations of the waiting ones");
+    m.def("net_search_provide", [](const py::list &searches, const std::vector<int> &index,
+                                   const std::vector<double> &priors, const std::vector<int> &cand_len,
+                                   const std::vector<double> &values) {
+        auto ptrs = search_ptrs(searches);
+        if (index.size() != cand_len.size() || index.size() != values.size())
+            throw std::invalid_argument("index, cand_len and values must have the same length");
+        std::size_t off = 0;
+        for (std::size_t k = 0; k < index.size(); ++k) {
+            const auto n = static_cast<std::size_t>(cand_len[k]);
+            if (off + n > priors.size()) throw std::invalid_argument("priors shorter than cand_len total");
+            std::vector<double> p(priors.begin() + static_cast<std::ptrdiff_t>(off),
+                                  priors.begin() + static_cast<std::ptrdiff_t>(off + n));
+            ptrs.at(static_cast<std::size_t>(index[k]))->provide(p, values[k]);
+            off += n;
+        }
+    }, py::arg("searches"), py::arg("index"), py::arg("priors"), py::arg("cand_len"), py::arg("values"));
 
     py::class_<BattleContext>(m, "BattleContext")
         .def(py::init<>())
@@ -378,6 +556,31 @@ PYBIND11_MODULE(sts2_sim, m) {
            py::arg("seed") = 0, py::arg("resample") = false,
            py::arg("greedy_rollout") = false, py::arg("epsilon") = 0.05,
            py::arg("potion_weight") = 4.0)
+        .def("mcts_root", [](const BattleContext &bc, int simulations, double c,
+                              std::uint32_t seed, bool resample, double epsilon, double potion_weight) {
+            if (simulations < 0 || !std::isfinite(c) || c < 0 ||
+                !std::isfinite(epsilon) || epsilon < 0 || epsilon > 1)
+                throw std::invalid_argument("invalid MCTS budget, exploration or epsilon");
+            MctsResult r;
+            {
+                py::gil_scoped_release release;
+                r = mcts(bc, simulations, c, seed, resample, false, epsilon, potion_weight);
+            }
+            py::list actions;
+            for (const Action &a : r.actions) actions.append(action_tuple(a));
+            return py::make_tuple(actions, r.simulations, r.rootVisits);
+        }, py::arg("simulations"), py::arg("c") = 4.242640687, py::arg("seed") = 0,
+           py::arg("resample") = true, py::arg("epsilon") = 0.05, py::arg("potion_weight") = 4.0,
+           "same search as mcts(); also returns the root visit count of each legal action "
+           "(legal_actions() order): (actions, simulations, root_visits)")
+        .def("entity_observation", [](const BattleContext &bc) {
+            CombatObservation o;
+            {
+                py::gil_scoped_release release;
+                o = combat_entity_observation(bc);
+            }
+            return combat_obs_dict(o);
+        }, "entity-structured public combat observation (candidates = legal_actions() order)")
         .def("mcts_priors", [](const BattleContext &bc, int simulations,
                                 const std::vector<std::tuple<int, int, int, int>> &actions_in,
                                 const std::vector<double> &priors, double c,
@@ -478,6 +681,11 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("turn", [](const BattleContext &bc) { return bc.turn; })
         .def_property_readonly("player_hp", [](const BattleContext &bc) { return bc.player.hp; })
         .def_property_readonly("player_max_hp", [](const BattleContext &bc) { return bc.player.maxHp; })
+        .def_property_readonly("potion_count", [](const BattleContext &bc) { return bc.potionCount; })
+        .def("combat_value", [](const BattleContext &bc, double win_base, double potion_weight) {
+            return combat_terminal_value(bc, win_base, potion_weight);
+        }, py::arg("win_base") = 0.4, py::arg("potion_weight") = 4.0,
+           "value of a finished battle as used by NetSearch (0 if not won)")
         .def_property_readonly("player_block", [](const BattleContext &bc) { return bc.player.block; })
         .def_property_readonly("player_weak", [](const BattleContext &bc) { return bc.player.weak; })
         .def_property_readonly("player_frail", [](const BattleContext &bc) { return bc.player.frail; })
@@ -710,6 +918,7 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def_property_readonly("battle", [](RunContext &rc) -> BattleContext & { return rc.battle; },
                                py::return_value_policy::reference_internal)
         .def_property_readonly("combat_is_boss", [](const RunContext &rc) { return rc.combatIsBoss; })
+        .def_property_readonly("combat_is_elite", [](const RunContext &rc) { return rc.combatIsElite; })
         .def_property_readonly("hp", [](const RunContext &rc) { return rc.hp; })
         .def_property_readonly("max_hp", [](const RunContext &rc) { return rc.maxHp; })
         .def_property_readonly("gold", [](const RunContext &rc) { return rc.gold; })

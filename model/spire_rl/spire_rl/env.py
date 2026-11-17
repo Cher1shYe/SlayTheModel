@@ -98,6 +98,10 @@ class MacroEnv:
         self.max_macro_steps = max_macro_steps
         self.max_grid_steps = max_grid_steps
         self.rc = None
+        # Optional replacement combat driver: hook(env, combat_seed) plays the current combat to
+        # its end and returns (decisions, forced, simulations, ok) like rc.play_combat_mcts.
+        # None (default) = the fixed MCTS of ``combat``. Used by the combat-network experiments.
+        self.combat_hook = None
 
     # -- episode lifecycle -------------------------------------------------
     def reset(self, game_seed: int, search_seed: int) -> StepResult:
@@ -164,6 +168,7 @@ class MacroEnv:
         """
         env = MacroEnv(self.combat, self.reward, self.ascension, self.max_macro_steps, self.max_grid_steps)
         env.rc = self.rc.clone()
+        env.combat_hook = self.combat_hook
         env.game_seed = self.game_seed
         env.search_seed = int(search_seed) & 0xFFFFFFFF
         for name in ("decisions", "macro_steps", "combat_index", "mcts_decision_counter", "credited_floor",
@@ -211,10 +216,13 @@ class MacroEnv:
                 act = int(rc.act)
                 started = time.perf_counter()
                 seed = (self.search_seed + 104729 * self.combat_index) & 0xFFFFFFFF
-                decisions, forced, sims, ok = rc.play_combat_mcts(
-                    c.normal_simulations, c.boss_simulations, c=c.exploration, seed=seed,
-                    decision_start=self.mcts_decision_counter, epsilon=c.rollout_epsilon,
-                    potion_weight=c.potion_weight)
+                if self.combat_hook is not None:
+                    decisions, forced, sims, ok = self.combat_hook(self, seed)
+                else:
+                    decisions, forced, sims, ok = rc.play_combat_mcts(
+                        c.normal_simulations, c.boss_simulations, c=c.exploration, seed=seed,
+                        decision_start=self.mcts_decision_counter, epsilon=c.rollout_epsilon,
+                        potion_weight=c.potion_weight)
                 self.combat_index += 1
                 self.mcts_decision_counter += decisions
                 self.log.mcts_decisions += decisions

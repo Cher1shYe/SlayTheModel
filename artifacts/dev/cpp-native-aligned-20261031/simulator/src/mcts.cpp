@@ -285,6 +285,25 @@ static MctsResult mcts_impl(const BattleContext &root, int simulations, double c
         }
         ++result.simulations;
     }
+    {
+        // Export root visit counts in root legal-action order (no effect on the choice below).
+        result.rootVisits.assign(rootActions.size(), 0);
+        std::vector<std::vector<float>> seen;
+        for (std::size_t i = 0; i < rootActions.size(); ++i) {
+            const Action &a = rootActions[i];
+            if (resample_hidden) {
+                const auto visible = combat_action_features(root, a);
+                const int duplicate = static_cast<int>(std::count(seen.begin(), seen.end(), visible));
+                seen.push_back(visible);
+                for (const Edge &e : nodes[0].edges)
+                    if (e.duplicate == duplicate && e.visibleAction == visible) { result.rootVisits[i] = e.visits; break; }
+            } else {
+                const Action key = action_key(root, a);
+                for (const Edge &e : nodes[0].edges)
+                    if (e.key == key) { result.rootVisits[i] = e.child < 0 ? 0 : nodes[e.child].visits; break; }
+            }
+        }
+    }
     if (resample_hidden || value_fn) {
         // Never select the best lucky determinization or reuse its future line.
         // Aggregate all sampled outcomes and execute only the root action.

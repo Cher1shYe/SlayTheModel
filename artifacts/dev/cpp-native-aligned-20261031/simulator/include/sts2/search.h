@@ -16,6 +16,10 @@ struct MctsResult {
     std::vector<Action> actions;
     int simulations = 0;
     bool victory = false;
+    // Visits of each root legal action (root.legal_actions() order); empty when
+    // the root had a single legal action or no simulations ran. Read-only export
+    // for training a network on the search's choices; it does not affect play.
+    std::vector<int> rootVisits;
 };
 
 Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon = 0.0);

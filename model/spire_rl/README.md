@@ -216,6 +216,36 @@ python -m spire_rl compare runs/eval-d1-greedy.json runs/eval-d1-sampled.json
 - 先看 `a_truncations`（取最大那一侧被截断的局数）。取最大的策略没有随机性，可能在某个菜单里反复点同一个动作，这种局会以 `menu_loop` 或 `macro step cap` 截断，层数被低估。截断多于几局时，层数差不能直接用，把 `eval` 输出里的 `truncation_reasons` 带回来。
 - 用途：区分“策略本身的水平”和“按概率采样时乱点造成的损失”（第二轮末尾奖励界面有 11.9% 的次数没拿完就走）。取最大明显更高，说明损失主要来自采样；差不多，说明问题在策略本身。它只是测量，不改变训练。
 
+### 2.6 统一网络（2026-11-16 起，[设计文档](../../docs/claude-unified-net-design-20261116.md)）
+
+和上面的 PPO 训练是两条独立的线，输出都在 `runs/unified/`，不碰 `small-b-*`。**C++ 加了接口，必须先重新编译**（ruleset 不变，仍是 v8，旧检查点照常可用）。
+
+**要带到训练机上的东西**
+- 代码：`model/spire_rl/` 整个目录（含 `unified_gpu.sh` 和 `tests/`），以及 C++ 副本 `artifacts/dev/cpp-native-aligned-20261031/simulator/` 下的 `bindings/bindings.cpp`、`include/sts2/search.h`、`src/mcts.cpp`、`include/sts2/combat_obs.h`、`src/combat_obs.cpp`、`include/sts2/net_search.h`、`src/net_search.cpp`。
+- 两个数据文件（不进 git），放到训练机的 `runs/unified/`：`value_pretrain.pt`（本机在归档上预训练的价值头，10 MB）和 `evalset.pkl.gz`（188 场固定战斗，1 MB）。本机打包在 `artifacts/analysis/claude-unified-20261116/to_gpu/`。
+- 训练机上应已有：`runs/small-b-d1/last.pt`（局外选择用）和 `runs/small-b-d1/archive`、`runs/small-a0-d{1,2,3}/archive`（训练时保持局外价值）。缺哪个归档就用 `MACRO_RUNS=small-b-d1` 只列有的。
+
+```sh
+conda activate slay
+cd /mnt/c/Users/yebohou/SlayTheModel
+CXX=g++ python artifacts/dev/cpp-native-aligned-20261031/validation/build_local.py
+python -c "from spire_rl.sim import sim; print(sim.ENGINE_RULESET_ID, sim.NetSearch)"     # native-41cef1ea-port-v8
+python -m pytest -q model/spire_rl/tests                                                # 全部应通过
+nvidia-smi                                                                              # 确认没有别的训练在占 GPU
+bash model/spire_rl/unified_gpu.sh 2>&1 | tee -a runs/unified/all.log
+```
+
+`unified_gpu.sh` 按顺序做三步，每一步做完就跳过，所以**中途停了（Ctrl+C 或关窗口）再跑同一条命令就接着做**：
+1. **教师数据**：MCTS 按 256/512/1024 打完整局（局外选择由 `small-b-d1` 做），默认 2,000 局，并行数默认等于 CPU 线程数（`ENVS=16` 可改）。主要吃 CPU。进度在 `runs/unified/teacher/progress.json`。
+2. **训练第 0 代**（GPU）：从 `value_pretrain.pt` 出发，模仿教师的出牌、学每幕结果，4 遍。输出 `runs/unified/gen0.pt`。
+3. **成对评估**：188 场上比 MCTS 两档、网络单独出牌、网络 + 搜索的两种数值尺度（`norm256`、`rate256`，预算 256/512/1024）。结果 `runs/unified/eval/summary_gen0.json` 和 `runs/unified/eval_gen0.log`。
+
+`GENS=1`（或更大）会在第 3 步后接着做自我对弈：上一代网络 + 搜索打完整局（`SP_MODE=norm` 或 `rate`，看第 3 步谁好），新一代在教师数据 + 自我对弈数据上从上一代接着训练，然后再评估。第一次先不开，等第 3 步的结果带回来再定。`MAX_HOURS=6` 可以让长步骤到点停下（停下的步骤以退出码 3 结束，脚本不会往下走；再跑同一条命令就接着做）。
+
+带回来：`runs/unified/*.log`、`runs/unified/eval/summary_gen*.json`、`gen0.pt` 和 `gen0.pt.json`（10 MB）。数据目录 `teacher/` 能带就带（2,000 局约 50 MB）。
+
+可单独用的命令（都在 `model/spire_rl` 下，`--device cuda`）：`python -m spire_rl.unified_run gen|eval ...`、`python -m spire_rl.unified_train ...`、`python -m spire_rl.unified_pretrain ...`（可用 `--init` 在 GPU 上接着预训练），参数见各文件开头。数据解码在后台进程里做（`--workers`，Linux 默认 CPU 数减 2，最多 8）；WSL 里如果报共享内存不足（`bus error` / `shm`），加 `--workers 0`。
+
 ## 3. 网络
 
 ```
@@ -324,7 +354,89 @@ h_t ─► 线性价值头，3 个输出：未来层数/50、未来进幕数/2�
 2. 短训练 10 个周期后看仪表盘的"每局秒数"与 ETA（已含更新、验证、保存）。文档的一天目标需要 ≤ 8.64 秒/局。10 个周期里只有开头一次验证，之后每 2000 局还有一次 200 局验证，正式训练的平均值会略高。本机（4 核 Mac CPU、tiny 模型）随机策略约 2 秒/局，但后期局更长、Boss 搜索更贵，必须实测。环境数应接近 CPU 核数。
 3. 若 KL 每次都在第一轮就提前停止，或熵很快塌缩，记录下来再调，不要只增加更新次数（文档 5.3）。
 
+### 7.1 每次训练结果拉回后的固定检查（2026-11-16 起）
+
+`small-b-d1` 的诊断发现：训练过程一切正常，但局外策略完全不看血量。这个问题只看训练曲线发现不了，所以每次结果拉回后都要单独测（[诊断文档](../../docs/claude-runb-diagnosis-20261116.md) 第 3 节；脚本在 `artifacts/analysis/claude-runb-20261115/`）：
+
+1. **反事实敏感度**（`cf_probe.py`、`cf_critic.py`）：同一个决策，只把血量改成 20% 或 100%，其余不变，比较策略的选择概率和价值头的输出。火堆决策的回血概率在低血时必须明显变高；价值头的输出也必须随血量变。`small-b-d1` 的结果：概率平均只变 0.03%，回血概率 0.828 → 0.828，这就算不合格。
+2. **线性探针**（`rest_probe.py` + `linprobe.py`）：从决策向量线性读出血量比例，按文件留出算 R²。`small-b-d1` 只有 0.10–0.12，说明血量在到达决策头之前就丢了。
+3. **对照分叉标签**（`rest.py`）：各血量档的回血率与火堆分叉给出的“该不该回血”是否同方向。
+
+以后的价值头（包括设计中的“本幕 Boss 价值”）照此测：只改血量（以及药水数），看预测是否单调变化、变化量是否和分叉或成对实验的结论量级相当。战斗网络把玩家数值直接送进两个头，同样要测。
+
+不看血量的原因目前是**较强怀疑，没有逐项分开验证**：(a) 整局回报里，血量带来的那点好处被运气淹没，梯度只推整体偏好；(b) 结构上血量只是约 80 个实体中的一行，经过汇聚和历史 Transformer 后到决策头时已基本读不出（探针 R² 0.12）。两者互相加强。要分开，可以做两件事：把 `fit_rest.py` 跑满 4 遍；再做一个血量直接送进决策头的对照。
+
 ## 8. 修订记录
+
+**2026-11-16 深夜（Claude：统一网络第 3–5 步的代码与训练机适配，用户要求当天带到训练机）**
+
+- **价值头预训练**（`unified_pretrain.py`，本机 CPU，用户要求跑完 1 遍就停）：4 段归档（small-b-d1、small-a0-d1–d3）约 1.9 万局，每个决策抽 30%，2,660 步。结果在 `artifacts/analysis/claude-unified-20261116/value_pretrain.pt(.json)`。按种子留出：
+  - q₀ 的 AUC：第一幕 Boss 前一层 0.77、2–4 层 0.76、幕开头 0.65；第二幕 0.71 / 0.72 / 0.67；第三幕 0.86 / 0.81 / 0.81（样本少）。比离线小 MLP（0.86 / 0.83）低，只训了一遍。
+  - **血量起作用**：血量 +10% 使预测的通过率高 2–4.5 个百分点（第一幕 Boss 前 +2.1，第二幕 +4.5），−10% 低 2.8–5.2 个百分点，与离线测试（+4.2）同一量级。对照：第 0 遍随机初始化时约为 0。
+- **教师数据**（本机）：300 局，种子从 7,100,000 起，MCTS 256/512/1024，50 个 part 文件（10 MB），平均 19 秒一局，峰值内存 0.58 GB。
+- **C++ 本机重编**：`normalize_q`、`eval_terminal_wins` 两个选项进入构建（ruleset 不变）。扩展 SHA-256 `c6697ca5…`（`validation/build.json`）。编译时先链接到临时文件再改名替换，正在运行的进程不受影响。默认参数下与旧构建逐项一致（`test_net_search_defaults_reproduce_the_previous_build`）。
+- **GPU 适配**：
+  - `unified_play.py` 重写成 `CombatBatch`：所有在打的战斗每轮各推进一次模拟，叶子攒成一批送网络（GPU 或 CPU）；`play_batch`（固定快照评估）和 `CombatServer`（自我对弈：各局在自己的线程里进战斗后交给一个服务线程，所有战斗共享一批网络调用）都用它。记录的根访问次数按合法动作顺序对齐。
+  - `unified_pretrain.py`、`unified_train.py`：`--device`、`--workers`（数据解码在 DataLoader 后台进程里做）、`--max-hours`、`--init`；`unified_train` 改为按 part 文件流式读取，数据不必全部放进内存。CUDA 上开 TF32。到点停下以退出码 3 结束。归档路径两台机器都能找到（`runs/training-review/<run>` 或 `runs/<run>`）。
+  - `unified_run.py`（新）：`gen`（教师 MCTS 或网络 + 搜索自我对弈，整局，每 8 局写一个 part，`progress.json` 记录进度，`--episodes` 是目录的总目标，同一命令可续跑）、`eval`（188 场成对评估，MCTS 结果跨代共用）。
+  - `unified_gpu.sh`（新）：训练机一条命令跑完 教师数据 → 第 0 代训练 → 评估（可选自我对弈若干代），每步做完就跳过。见第 2.6 节。
+  - `rollout.Collector.collect` 加了 `on_episode` 回调（默认不用，PPO 训练不受影响）。
+- **修了一个错**：`unified_obs.combat_obs` 遇到“已经打赢”的搜索叶子（没有候选）会报错；之前的冒烟测试没有走到。
+- 测试：`tests/test_unified_play.py`（6 项：批量与逐场一致、两种数值尺度下记录的访问次数与动作对齐并能打包读回、训练数据按种子留出不重不漏、教师和自我对弈两种 `gen` 写出数据并能续跑）；`test_unified.py` 的“赢局交给调用方”测试改为从 MCTS 打赢的局面前两步开始（原来的局面随机搜索打不赢，测不到），并更正了期望（根节点展开占一次模拟，48 次模拟的根访问合计 47，旧构建也是如此）。本机完整测试 **98 passed**。
+- 本机用小规模参数把 `unified_gpu.sh` 从头跑通一遍（CPU，2 局教师、1 代自我对弈、4 场评估），再跑一次确认各步都跳过。**CUDA 没有实测**：本机没有可用 GPU，设备相关的代码是逐处检查的。
+- 局外选择在这一步仍由 `small-b-d1` 的局外策略做（只为了产生真实的牌组和遭遇），统一网络的局外策略（PPO）是后面的步骤。
+
+**2026-11-16 晚（Claude：统一网络第 1、2 步，[设计文档](../../docs/claude-unified-net-design-20261116.md)）**
+
+- `spire_rl/unified_obs.py`：局内局外同一套实体观察，在 Python 里由现有两个 C++ 观察拼成，**不改 C++、不改规则**。
+  - 局外：原样使用 `macro_observation()`，所以训练归档里存的宏观观察可以直接转换。
+  - 战斗中：`macro_observation()` 的局外部分（全局行、牌组、遗物、地图及连边、Boss 等；局外的药水实体去掉，战斗有自己的），后面接 `entity_observation()`。
+  - 实体类型：局外 0–12、战斗 13–25；数值行补齐到 96 维。候选类型：局外动作 0–31、战斗动作 32–36。
+  - 战斗中，局外部分在整场战斗里保持不变：全局实体里随战斗变化的列（血量比例、血量、最大血量、药水数）清零；直接送进输出头的全局行用战斗中玩家的当前值补上。
+- `spire_rl/unified_net.py`：约 2.5M 参数。
+  - 两部分：局外上下文编码器（地图连边上做一次消息传递，再接 3 层 Transformer），战斗部分 2 层解码器（战斗实体之间互相注意，并注意局外上下文；外加一个摘要位）。没有位置编码。
+  - 全局行和战斗玩家行直接送进输出头。
+  - 输出头：候选打分；q（本幕、下一幕、再下一幕的通过概率，不打折）；战斗辅助输出。
+  - `combine()` 按 r = (1, 1, 3)、w = (0.2, 0.5) 合成决策价值 U。
+  - 局外上下文在一场战斗里只算一次，供所有搜索叶子复用（`encode_context` + `forward(ctx=...)`，测试确认与完整计算一致）。本机单核每个叶子的耗时约是纯战斗网络的 1.4–1.7 倍；不复用时是 5–6 倍。
+- `tests/test_unified.py`（9 项），覆盖：
+  - 局外与宏观观察一致；
+  - 战斗中的布局、补上的全局行，以及候选与合法动作对应；
+  - 重抽隐藏状态后观察不变；
+  - 搜索叶子与直接观察一致；
+  - 实体打乱后输出不变（局内局外都测）；
+  - 批量与逐个一致，全局行的梯度能直达输出头；
+  - `combine` 的数值；
+  - 复用上下文与完整计算一致。
+- 本机完整测试 89 passed。
+- 策略头第一版是所有候选一起做 softmax，没有沿用局外网络“先选动作组再选目标”的分解，有问题再加。
+
+**2026-11-16（Claude：战斗网络实验的基础设施；C++ 只新增接口，规则与 ruleset 不变）**
+
+- 背景：修复后一轮 `small-b-d1` 成绩 25.6 层，诊断发现局外策略不看血量（[诊断文档](../../docs/claude-runb-diagnosis-20261116.md)）。用户决定换结构，先试“战斗网络 + 少量搜索”能否胜过现在的随机走子 MCTS，预算按用户给的普通 256 / 精英 512 / Boss 1024。
+- C++（`artifacts/dev/cpp-native-aligned-20261031/simulator/`，新增文件 `include/sts2/combat_obs.h`、`src/combat_obs.cpp`、`include/sts2/net_search.h`、`src/net_search.cpp`）：
+  - **按实体组织的公开战斗观察** `BattleContext.entity_observation()`（`COMBAT_OBS_VERSION=1`，每个实体 96 维）：玩家、遭遇、双方能力、手牌、抽牌堆（已知顶部带位置，其余按 `card_canonical_less` 排序）、弃牌堆、消耗堆、待选牌、正在打出的牌、怪物、药水、遗物；候选与 `legal_actions()` 顺序一致，指向牌/药水/待选牌实体和目标怪物。是 `public_combat_observation` 的子集，不含 UID 与隐藏顺序；只覆盖铁甲（其他角色的球、Osty、星不编码）。
+  - **可续跑的 PUCT 搜索** `NetSearch`：每次模拟在根重抽隐藏状态，节点按公开观察和可见动作特征区分（与现有 MCTS 相同）；先验和叶子估值由调用方提供，`net_search_advance` / `net_search_provide` 一次处理多场战斗、批量送网络。没有随机走子；终局值 `combat_value()` = 输 0、赢 0.4 + 0.6 ×（血量 + 4 × 药水）/ 最大血量。只有一个合法动作的非根节点直接展开、不调用网络。多线程推进时每个线程 64 MiB 栈（`BattleContext` 有几百 KB）。
+  - `MctsResult.rootVisits` 与 `BattleContext.mcts_root()`：现有 MCTS 的根访问次数（只导出，不影响选择；测试确认与 `mcts()` 选同一动作）。`RunContext.combat_is_elite`、`BattleContext.potion_count` / `combat_value()`。
+- Python：`spire_rl/combat_net.py`（战斗网络：实体 Transformer 3 层、宽 128，约 1.4M 参数；玩家数值行直接进两个头）；`spire_rl/combat_play.py`（随机走子 MCTS 带记录、批量网络搜索、只用网络三种打法，从 `RunContext.snapshot()` 成对评估）；`env.py` 增加可选的 `MacroEnv.combat_hook`（默认 None，行为不变）。实验脚本在 `artifacts/analysis/claude-combat-net-20261116/`。
+- 新测试 `tests/test_combat_net.py`（8 项）：观察形状与候选对应、**重抽隐藏状态后观察完全不变**、`mcts_root` 与 `mcts` 一致、搜索的批量与逐个结果一致、网络前向与三种打法可复现。
+- 观察到：现有 MCTS 在第一幕普通战斗 256 次模拟时，根的 12 个动作访问次数为 20–22，几乎平均；它的访问分布不适合当策略标签，第 0 代改为学它实际选的动作。
+- **续（2026-11-16 下午，Claude 接手）**：
+  - 上一任的后台任务在会话结束时全部停了，续跑：第 0 代数据补到 300 局（游戏种子 7,000,000 起；局外由 `small-b-d1/last.pt` 按概率选；战斗用随机走子 MCTS，普通 256、精英 512、Boss 1024），共 50 个文件、48,642 个决策、4,038 场战斗（普通 3,173、精英 464、Boss 401）。另采了自我对弈用的存档集 `spset.pkl.gz`（种子 9,000,000 起，350 场，与评估集分开）。
+  - **内存 bug（已修）**：`train_net.py` 读数据时直接对 `np.load` 的结果切片，每次都解压整个数组，切片还拖住整份数组，每个决策约占 5 MB；两个训练进程并行时本机 8 GB 内存耗尽。改为每个文件只解压一次、每个决策复制自己的一段：3 万个决策加载 532 MB、2 秒。
+  - 测试文件：本机的 `tests/test_spire_rl.py` 早于 Codex 11-15 的改动，缺他加的回归测试；已换成训练机上的版本（只多不少）。**本机完整测试 80 passed**（72 + 战斗网络 8 项）。注意 `test_combat_net.py` 需要重新编译的 C++（新接口 `entity_observation`、`NetSearch` 等）；训练机没重编之前不要同步这个文件，否则会失败，训练框架本身仍是 72 项。
+  - 临时网络（只用前 31 个文件、约 3 万个决策，3 遍）：“学实际选的动作”和“动作与访问分布各一半”两种标签，选择命中率 43.7% / 44.3%，价值解释方差全部 0.77 / 0.79、Boss 0.42 / 0.49，差别不大，后续用“各一半”。
+  - **188 场固定战斗的成对对照**（评估集 `evalset.pkl.gz`，所有打法从同一个存档开始；死亡率，括号里是胜局掉血占最大生命的比例；对照用的是临时网络）：
+
+    | 打法 | 普通（73） | 精英（42） | Boss（73） |
+    | --- | --- | --- | --- |
+    | MCTS 128/128/512（训练用） | 0%（14.9%） | 11.9%（39.8%） | 38.4%（60.2%） |
+    | MCTS 256/512/1024 | 0%（12.9%） | 7.1%（33.4%） | 43.8%（55.8%） |
+    | 网络直接出牌 | 1.4%（17.8%） | 9.5%（40.4%） | 61.6%（67.6%） |
+    | 网络 + 搜索 64/128/256 | 0%（16.3%） | 7.1%（37.3%） | 47.9%（56.2%） |
+
+    成对差（± 标准误）：MCTS 翻倍搜索在 Boss 上死亡率 +5.5 ± 4.3 个百分点，没有改善；网络加搜索比网络单独 Boss 死亡率 −13.7 ± 4.1；网络加搜索比 MCTS 128 档 Boss 死亡率 +9.6 ± 4.4（更差），比 256 档 +4.1 ± 4.1（不显著）。网络单独 188 场 6 秒，网络加搜索 806 秒（单核），两档 MCTS 各约 436 秒（2 线程）。
+  - 还没做：用完整 300 局数据训练第 0 代网络、256/512/1024 档的网络加搜索、自我对弈迭代。用户 2026-11-16 决定这批跑完后暂停，先讨论“本幕 Boss 价值头”的设计。
 
 **2026-11-15（Codex：KL 回滚恢复已验证状态及 Adam，补默认 8 步检查的回归）**
 
