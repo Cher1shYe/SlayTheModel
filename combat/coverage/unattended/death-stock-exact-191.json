@@ -1,8 +1,0 @@
-[
-  {
-    "monsterId": "Axebot",
-    "useCurrentMove": true,
-    "killMonsterAfterMove": true,
-    "expectedSimulatedDynamicResolution": false
-  }
-]

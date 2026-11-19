@@ -1,10 +1,16 @@
+# Local-only material: native source, game backup, .NET tools, reference data
+artifacts/
+# Training output (never committed)
+runs/
+# Build outputs
+sim/build/
+parity/stage/
 bin/
 obj/
 .godot/
-.DS_Store
-artifacts/
-*.user
-*.suo
-
+*.egg-info/
 __pycache__/
 *.pyc
+*.user
+*.suo
+.DS_Store

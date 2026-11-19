@@ -1,0 +1,340 @@
+{
+  "url": "http://127.0.0.1:18779",
+  "seed": "PARITY0001",
+  "ascension": 10,
+  "new_native_run": true,
+  "steps": 24,
+  "diagnostic_policy": null,
+  "actions": [
+    {
+      "kind": "neow_relic",
+      "args": [
+        "GOLDEN_PEARL"
+      ]
+    },
+    {
+      "kind": "neow_proceed",
+      "args": []
+    },
+    {
+      "kind": "move",
+      "args": [
+        0,
+        1
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          25,
+          25,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          19,
+          25,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          1,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          13,
+          25,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "args": []
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          1,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          7,
+          25,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          1,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "args": []
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          1,
+          25,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "args": []
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          26,
+          26,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          20,
+          26,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "args": []
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "DEFEND_IRONCLAD",
+          0,
+          1
+        ],
+        null
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          14,
+          26,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          1,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          8,
+          26,
+          0
+        ]
+      ]
+    },
+    {
+      "kind": "end_turn",
+      "args": []
+    },
+    {
+      "kind": "play",
+      "args": [
+        [
+          0,
+          "STRIKE_IRONCLAD",
+          0,
+          1
+        ],
+        [
+          0,
+          null,
+          "TOADPOLE",
+          2,
+          26,
+          0
+        ]
+      ]
+    }
+  ],
+  "simulator_initialization": {
+    "profile": "fresh-unlocked-host",
+    "first_act": -1,
+    "effective_progress": {
+      "apply_discovery_order": true,
+      "number_of_runs": 0,
+      "neow_unlocked": true,
+      "orobas_unlocked": true,
+      "darv_unlocked": true,
+      "underdocks_unlocked": true,
+      "underdocks_discovered": false,
+      "aeonglass_seen": false,
+      "wongo_points": 0,
+      "revealed_epochs": 18446744073709551615,
+      "event1_epoch_revealed": true,
+      "event2_epoch_revealed": true,
+      "event3_epoch_revealed": true,
+      "seen_encounters": []
+    }
+  },
+  "ruleset": "native-41cef1ea-port-v11",
+  "target_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "trained_policy": false,
+  "coverage": "semantic.py supported public-state subset only",
+  "uncovered_state": [
+    "full card modifiers, enchantments and afflictions",
+    "player/enemy powers and structured intent effects",
+    "relic counters and activation state",
+    "draw/discard/exhaust card instances beyond public pile counts",
+    "other event screens, rewards, shops, card selections and potion decisions"
+  ]
+}

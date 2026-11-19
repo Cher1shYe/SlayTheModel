@@ -1,0 +1,1762 @@
+{
+  "schema": "sts2.monster-source-audit/1",
+  "group": "boss",
+  "evidence": "decompiled source; HP corroborated by frozen v13 DLL registry; no newly executed native moves",
+  "ascensions": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10
+  ],
+  "findings_before_fix": [
+    {
+      "id": "boss-crusher-adapt-a9",
+      "monster": "CRUSHER",
+      "field": "ADAPT_MOVE strength",
+      "levels": [
+        9,
+        10
+      ],
+      "simulator": 2,
+      "native": 3,
+      "source": "Models/Monsters/Crusher.cs:87",
+      "fix": {
+        "file": "sim/content/monsters_a9_effects.json",
+        "path": [
+          "moves",
+          "CRUSHER",
+          "ADAPT_MOVE",
+          "0"
+        ],
+        "value": 3
+      }
+    },
+    {
+      "id": "boss-rocket-charge-a9",
+      "monster": "ROCKET",
+      "field": "CHARGE_UP_MOVE strength",
+      "levels": [
+        9,
+        10
+      ],
+      "simulator": 2,
+      "native": 3,
+      "source": "Models/Monsters/Rocket.cs:64",
+      "fix": {
+        "file": "sim/content/monsters_a9_effects.json",
+        "path": [
+          "moves",
+          "ROCKET",
+          "CHARGE_UP_MOVE",
+          "0"
+        ],
+        "value": 3
+      }
+    },
+    {
+      "id": "boss-waterfall-heal-a0",
+      "monster": "WATERFALL_GIANT",
+      "field": "SIPHON_MOVE heal",
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "simulator": 15,
+      "native": 10,
+      "source": "Models/Monsters/WaterfallGiant.cs:73",
+      "fix": {
+        "file": "sim/content/monsters.json",
+        "path": [
+          "monsters",
+          "WATERFALL_GIANT",
+          "moves",
+          "SIPHON_MOVE@A0",
+          0,
+          1
+        ],
+        "value": 10
+      }
+    },
+    {
+      "id": "boss-crab-rage",
+      "monster": [
+        "CRUSHER",
+        "ROCKET"
+      ],
+      "field": "CrabRage strength on ally death",
+      "levels": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "simulator": 5,
+      "native": 6,
+      "source": "Models/Powers/CrabRagePower.cs:27",
+      "fix": {
+        "file": "sim/src/battle_damage.cpp",
+        "change": "CrabRage branch ally.strength += 5 -> += 6; block 99 unchanged"
+      }
+    }
+  ],
+  "monsters": [
+    {
+      "id": "AEONGLASS",
+      "class": "Aeonglass",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Aeonglass.cs",
+      "source_sha256": "35e1b7eef1f178c740073770d7492e3275fa25715d7f93e43af0a3441501995a",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 34,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 535,
+            "base": 512
+          },
+          "A0": 512,
+          "A8": 535,
+          "A9": 535
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 36,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "EbbDamage",
+          "line": 40,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 26,
+            "base": 22
+          },
+          "A0": 22,
+          "A8": 22,
+          "A9": 26
+        },
+        {
+          "name": "EbbBlock",
+          "line": 42,
+          "declaration": {
+            "level": null,
+            "asc": 33,
+            "base": 33
+          },
+          "A0": 33,
+          "A8": 33,
+          "A9": 33
+        },
+        {
+          "name": "EyeLasersDamage",
+          "line": 44,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 12,
+            "base": 11
+          },
+          "A0": 11,
+          "A8": 11,
+          "A9": 12
+        },
+        {
+          "name": "EyeLasersRepeat",
+          "line": 46,
+          "declaration": {
+            "level": null,
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        },
+        {
+          "name": "IncreasingIntensityBaseStrength",
+          "line": 48,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 4,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 4
+        },
+        {
+          "name": "WitherAmount",
+          "line": 50,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 2,
+            "base": 1
+          },
+          "A0": 1,
+          "A8": 1,
+          "A9": 2
+        },
+        {
+          "name": "IncreasingIntensityTotalStrength",
+          "line": 78,
+          "declaration": {
+            "expr": "IncreasingIntensityBaseStrength + AdditionalStrength"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        }
+      ],
+      "dynamic_evidence": [
+        "Wither: base damage3; each FakeUpgrade+3; all existing piles upgraded, newly generated card matches upgrade count. IncreasingIntensity strength3/4 + number of earlier uses; count1/2 at A9; WitheringPresence six-card period. Source numbers match dynamic C++ branches, but power owner/display mapping differs and is reported separately."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 3
+    },
+    {
+      "id": "CEREMONIAL_BEAST",
+      "class": "CeremonialBeast",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/CeremonialBeast.cs",
+      "source_sha256": "92983d05e83715e135d4495321c23fc5d3003368c9b6db9d9f92c6de7ad30a2f",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 55,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 262,
+            "base": 252
+          },
+          "A0": 252,
+          "A8": 262,
+          "A9": 262
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 57,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "PlowAmount",
+          "line": 59,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 160,
+            "base": 150
+          },
+          "A0": 150,
+          "A8": 150,
+          "A9": 160
+        },
+        {
+          "name": "PlowDamage",
+          "line": 61,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 20,
+            "base": 18
+          },
+          "A0": 18,
+          "A8": 18,
+          "A9": 20
+        },
+        {
+          "name": "PlowStrength",
+          "line": 63,
+          "declaration": {
+            "level": null,
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        },
+        {
+          "name": "StompDamage",
+          "line": 65,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 17,
+            "base": 15
+          },
+          "A0": 15,
+          "A8": 15,
+          "A9": 17
+        },
+        {
+          "name": "CrushDamage",
+          "line": 67,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 19,
+            "base": 17
+          },
+          "A0": 17,
+          "A8": 17,
+          "A9": 19
+        },
+        {
+          "name": "CrushStrength",
+          "line": 69,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 4,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 4
+        }
+      ],
+      "dynamic_evidence": [
+        "Plow threshold150/160(A9), loses all Strength and temporary-strength effects on unblocked hit reaching threshold; Plow hit18/20 then Strength+2."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 6
+    },
+    {
+      "id": "CRUSHER",
+      "class": "Crusher",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Crusher.cs",
+      "source_sha256": "99160ec96611c2164470767cc2421897b90ffe8d382552d9d81c7eb46a7562f4",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 75,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 219,
+            "base": 209
+          },
+          "A0": 209,
+          "A8": 219,
+          "A9": 219
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 77,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "ThrashDamage",
+          "line": 79,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 14,
+            "base": 12
+          },
+          "A0": 12,
+          "A8": 12,
+          "A9": 14
+        },
+        {
+          "name": "EnlargingStrikeDamage",
+          "line": 81,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 4,
+            "base": 4
+          },
+          "A0": 4,
+          "A8": 4,
+          "A9": 4
+        },
+        {
+          "name": "BugStingDamage",
+          "line": 83,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 7,
+            "base": 6
+          },
+          "A0": 6,
+          "A8": 6,
+          "A9": 7
+        },
+        {
+          "name": "BugStingTimes",
+          "line": 85,
+          "declaration": {
+            "level": null,
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        },
+        {
+          "name": "AdaptStrengthGain",
+          "line": 87,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        },
+        {
+          "name": "GuardedStrikeDamage",
+          "line": 89,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 14,
+            "base": 12
+          },
+          "A0": 12,
+          "A8": 12,
+          "A9": 14
+        }
+      ],
+      "dynamic_evidence": [
+        "BugSting hits2; Weak2/Frail2, GuardedStrike block18; CrabRage source gives Strength6+Block99 on ally death."
+      ],
+      "findings": [
+        "boss-crusher-adapt-a9",
+        "boss-crab-rage"
+      ],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "KIN_FOLLOWER",
+      "class": "KinFollower",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KinFollower.cs",
+      "source_sha256": "3c3c5bc519687ff5f90aa1cc8e44d33037d0c91a3ef9feed7c50ad885471012a",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 63,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 62,
+            "base": 58
+          },
+          "A0": 58,
+          "A8": 62,
+          "A9": 62
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 65,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 63,
+            "base": 59
+          },
+          "A0": 59,
+          "A8": 63,
+          "A9": 63
+        },
+        {
+          "name": "QuickSlashDamage",
+          "line": 67,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 5,
+            "base": 5
+          },
+          "A0": 5,
+          "A8": 5,
+          "A9": 5
+        },
+        {
+          "name": "BoomerangDamage",
+          "line": 69,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        },
+        {
+          "name": "DanceStrength",
+          "line": 71,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "QuickSlash5 and Boomerang2x2 unchanged by A9; DanceStrength2/3; Minion1."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 3
+    },
+    {
+      "id": "KIN_PRIEST",
+      "class": "KinPriest",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KinPriest.cs",
+      "source_sha256": "ecb5a6cc76623981b23497d87acf2974f5cc679f91f0598b6d9db73d59bf4910",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 55,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 199,
+            "base": 190
+          },
+          "A0": 190,
+          "A8": 199,
+          "A9": 199
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 57,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "OrbOfFrailtyDamage",
+          "line": 59,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 9,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 8,
+          "A9": 9
+        },
+        {
+          "name": "OrbOfWeaknessDamage",
+          "line": 61,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 9,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 8,
+          "A9": 9
+        },
+        {
+          "name": "BeamDamage",
+          "line": 63,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 3
+        },
+        {
+          "name": "RitualStrength",
+          "line": 65,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "Orbs8/9 each apply one debuff; Beam3x3; RitualStrength2/3."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 4
+    },
+    {
+      "id": "KNOWLEDGE_DEMON",
+      "class": "KnowledgeDemon",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KnowledgeDemon.cs",
+      "source_sha256": "09b0f4b67dce8878b526db6dc9780da703a334cba975b540eccacc64231ad321",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 97,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 399,
+            "base": 379
+          },
+          "A0": 379,
+          "A8": 399,
+          "A9": 399
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 99,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "SlapDamage",
+          "line": 101,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 18,
+            "base": 17
+          },
+          "A0": 17,
+          "A8": 17,
+          "A9": 18
+        },
+        {
+          "name": "PonderDamage",
+          "line": 103,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 13,
+            "base": 11
+          },
+          "A0": 11,
+          "A8": 11,
+          "A9": 13
+        },
+        {
+          "name": "KnowledgeOverwhelmingDamage",
+          "line": 105,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 9,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 8,
+          "A9": 9
+        },
+        {
+          "name": "PonderStrength",
+          "line": 107,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "Curse stages0..2: Disintegration6/7/8 vs MindRot/Sloth/WasteAway, two offered cards and one selection. Ponder heal30 per player =30 singleplayer."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 4
+    },
+    {
+      "id": "LAGAVULIN_MATRIARCH",
+      "class": "LagavulinMatriarch",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/LagavulinMatriarch.cs",
+      "source_sha256": "760df06168aab29b83fb9c0faf89cab7784adaf57d02be22b4c76649c199de41",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 49,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 233,
+            "base": 222
+          },
+          "A0": 222,
+          "A8": 233,
+          "A9": 233
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 51,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "SlashDamage",
+          "line": 53,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 21,
+            "base": 19
+          },
+          "A0": 19,
+          "A8": 19,
+          "A9": 21
+        },
+        {
+          "name": "Slash2Damage",
+          "line": 55,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 14,
+            "base": 12
+          },
+          "A0": 12,
+          "A8": 12,
+          "A9": 14
+        },
+        {
+          "name": "Slash2Block",
+          "line": 57,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 14,
+            "base": 12
+          },
+          "A0": 12,
+          "A8": 14,
+          "A9": 14
+        },
+        {
+          "name": "DisembowelDamage",
+          "line": 59,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 10,
+            "base": 9
+          },
+          "A0": 9,
+          "A8": 9,
+          "A9": 10
+        },
+        {
+          "name": "DisembowelRepeat",
+          "line": 61,
+          "declaration": {
+            "level": null,
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        }
+      ],
+      "dynamic_evidence": [
+        "Initial Plating12 and Asleep3; Slash2 block12 at A0\u20137 /14 at A8+; Siphon player Strength-2,Dexterity-2,selfStrength+2."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "QUEEN",
+      "class": "Queen",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Queen.cs",
+      "source_sha256": "7eabd128144544d0567b15c005b770024a07a44de4a1763ce4095be10705f527",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 50,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 419,
+            "base": 400
+          },
+          "A0": 400,
+          "A8": 419,
+          "A9": 419
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 52,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "OffWithYourHeadDamage",
+          "line": 56,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 4,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 4
+        },
+        {
+          "name": "ExecutionDamage",
+          "line": 58,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 18,
+            "base": 15
+          },
+          "A0": 15,
+          "A8": 15,
+          "A9": 18
+        }
+      ],
+      "dynamic_evidence": [
+        "ChainsOfBinding3; Weak/Frail/Vulnerable99 each; allyStrength1 and selfBlock20; OffWithYourHead5 hits; EnrageStrength2."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 6
+    },
+    {
+      "id": "ROCKET",
+      "class": "Rocket",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Rocket.cs",
+      "source_sha256": "ecf4cb6338adf04b0c97c9ec3849a79fe564f51e8025fdff5514abc16b0fcbff",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 54,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 209,
+            "base": 199
+          },
+          "A0": 199,
+          "A8": 209,
+          "A9": 209
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 56,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "TargetingReticleDamage",
+          "line": 58,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 4,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 4
+        },
+        {
+          "name": "PrecisionBeamDamage",
+          "line": 60,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 20,
+            "base": 18
+          },
+          "A0": 18,
+          "A8": 18,
+          "A9": 20
+        },
+        {
+          "name": "LaserDamage",
+          "line": 62,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 35,
+            "base": 31
+          },
+          "A0": 31,
+          "A8": 31,
+          "A9": 35
+        },
+        {
+          "name": "ChargeUpStrengthGain",
+          "line": 64,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "Surrounded1 on player; BackAttackRight1 and CrabRage1 on self; back-attack multiplier1.5. CrabRageStrength6 and Block99."
+      ],
+      "findings": [
+        "boss-rocket-charge-a9",
+        "boss-crab-rage"
+      ],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "SOUL_FYSH",
+      "class": "SoulFysh",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/SoulFysh.cs",
+      "source_sha256": "516bb6d26332ef4e151eed9464fafff8ac501b52b54b8a6d328d7006d9ad9b94",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 50,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 221,
+            "base": 211
+          },
+          "A0": 211,
+          "A8": 221,
+          "A9": 221
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 52,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "DeGasDamage",
+          "line": 54,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 18,
+            "base": 16
+          },
+          "A0": 16,
+          "A8": 16,
+          "A9": 18
+        },
+        {
+          "name": "ScreamDamage",
+          "line": 56,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 15,
+            "base": 13
+          },
+          "A0": 13,
+          "A8": 13,
+          "A9": 15
+        },
+        {
+          "name": "GazeDamage",
+          "line": 58,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 8,
+            "base": 7
+          },
+          "A0": 7,
+          "A8": 7,
+          "A9": 8
+        },
+        {
+          "name": "BeckonMoveAmount",
+          "line": 60,
+          "declaration": {
+            "level": null,
+            "asc": 2,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 2
+        },
+        {
+          "name": "GazeMoveAmount",
+          "line": 62,
+          "declaration": {
+            "level": null,
+            "asc": 1,
+            "base": 1
+          },
+          "A0": 1,
+          "A8": 1,
+          "A9": 1
+        },
+        {
+          "name": "ScreamMoveAmount",
+          "line": 64,
+          "declaration": {
+            "level": null,
+            "asc": 3,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "BeckonMove creates one card in draw and one in discard; Gaze creates one discard; Fade applies Intangible2 (then owner-side turn decrement); Scream Vulnerable3."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "TEST_SUBJECT",
+      "class": "TestSubject",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TestSubject.cs",
+      "source_sha256": "73375eba65bc85c3db7ae61dfee6e9cd929fb4691df0d4b89471cec20610a6ae",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 77,
+          "declaration": {
+            "expr": "FirstFormHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 79,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "FirstFormHp",
+          "line": 77,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 111,
+            "base": 100
+          },
+          "A0": 100,
+          "A8": 111,
+          "A9": 111
+        },
+        {
+          "name": "SecondFormHp",
+          "line": 83,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 212,
+            "base": 200
+          },
+          "A0": 200,
+          "A8": 212,
+          "A9": 212
+        },
+        {
+          "name": "ThirdFormHp",
+          "line": 85,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 313,
+            "base": 300
+          },
+          "A0": 300,
+          "A8": 313,
+          "A9": 313
+        },
+        {
+          "name": "EnrageAmount",
+          "line": 87,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        },
+        {
+          "name": "BiteDamage",
+          "line": 89,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 22,
+            "base": 20
+          },
+          "A0": 20,
+          "A8": 20,
+          "A9": 22
+        },
+        {
+          "name": "SkullBashDamage",
+          "line": 91,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 16,
+            "base": 14
+          },
+          "A0": 14,
+          "A8": 14,
+          "A9": 16
+        },
+        {
+          "name": "MultiClawDamage",
+          "line": 93,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 11,
+            "base": 10
+          },
+          "A0": 10,
+          "A8": 10,
+          "A9": 11
+        },
+        {
+          "name": "BaseMultiClawCount",
+          "line": 95,
+          "declaration": {
+            "level": null,
+            "asc": 3,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 3
+        },
+        {
+          "name": "Phase3LacerateDamage",
+          "line": 97,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 11,
+            "base": 10
+          },
+          "A0": 10,
+          "A8": 10,
+          "A9": 11
+        },
+        {
+          "name": "BigPounceDamage",
+          "line": 99,
+          "declaration": {
+            "level": null,
+            "asc": 45,
+            "base": 45
+          },
+          "A0": 45,
+          "A8": 45,
+          "A9": 45
+        },
+        {
+          "name": "BurningGrowlBurnCount",
+          "line": 101,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 5,
+            "base": 3
+          },
+          "A0": 3,
+          "A8": 3,
+          "A9": 5
+        },
+        {
+          "name": "BurningGrowlStrengthGain",
+          "line": 103,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        },
+        {
+          "name": "MultiClawTotalCount",
+          "line": 162,
+          "declaration": {
+            "expr": "BaseMultiClawCount + ExtraMultiClawCount"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        }
+      ],
+      "dynamic_evidence": [
+        "HP stages100/200/300 at A0\u20137,111/212/313 at A8+; two revivals. MultiClaw3+previous uses, increment1; Phase3Lacerate fixed3. BurningGrowl3/5 Burns(A9), Strength2/3. Second form PainfulStabs1; third Nemesis1 and no Adaptable/PainfulStabs. Legacy unreachable POUNCE_MOVE remains only to preserve state indices, not a native active move."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 7
+    },
+    {
+      "id": "THE_INSATIABLE",
+      "class": "TheInsatiable",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TheInsatiable.cs",
+      "source_sha256": "66c6ad48b3544056e8f8057bea38376c919e70dfc153b79cf9525737eb68660f",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 58,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 341,
+            "base": 321
+          },
+          "A0": 321,
+          "A8": 341,
+          "A9": 341
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 60,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "ThrashDamage",
+          "line": 62,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 9,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 8,
+          "A9": 9
+        },
+        {
+          "name": "BiteDamage",
+          "line": 64,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 31,
+            "base": 28
+          },
+          "A0": 28,
+          "A8": 28,
+          "A9": 31
+        },
+        {
+          "name": "SalivateStrength",
+          "line": 66,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 3,
+            "base": 2
+          },
+          "A0": 2,
+          "A8": 2,
+          "A9": 3
+        }
+      ],
+      "dynamic_evidence": [
+        "Liquify Sandpit4 plus3 FranticEscape in draw and3 discard; countdown1 per enemy turn, reaching0 forces death; FranticEscape raises Sandpit1. Thrash two hits."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "TORCH_HEAD_AMALGAM",
+      "class": "TorchHeadAmalgam",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TorchHeadAmalgam.cs",
+      "source_sha256": "f9d78b745ba63d04fae388e1ce2b0618651df3368ee02c40a6ce0c786f5ebfec",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 28,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 211,
+            "base": 199
+          },
+          "A0": 199,
+          "A8": 211,
+          "A9": 211
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 30,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "StrongTackleDamage",
+          "line": 32,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 32,
+            "base": 26
+          },
+          "A0": 26,
+          "A8": 26,
+          "A9": 32
+        },
+        {
+          "name": "TackleDamage",
+          "line": 32,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 22,
+            "base": 18
+          },
+          "A0": 18,
+          "A8": 18,
+          "A9": 22
+        },
+        {
+          "name": "WeakTackleDamage",
+          "line": 36,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 16,
+            "base": 14
+          },
+          "A0": 14,
+          "A8": 14,
+          "A9": 16
+        },
+        {
+          "name": "SoulBeamDamage",
+          "line": 38,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 8,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 8,
+          "A9": 8
+        }
+      ],
+      "dynamic_evidence": [
+        "Tackle variants26/32,18/22,14/16; SoulBeam8x3; Minion1."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 5
+    },
+    {
+      "id": "VANTOM",
+      "class": "Vantom",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Vantom.cs",
+      "source_sha256": "ada9810348ccd6259f9ca82d41ce33106af796f124004d668cf2f511502d5d67",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 62,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 183,
+            "base": 173
+          },
+          "A0": 173,
+          "A8": 183,
+          "A9": 183
+        },
+        {
+          "name": "SlipperyAmt",
+          "line": 64,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 9,
+            "base": 8
+          },
+          "A0": 8,
+          "A8": 9,
+          "A9": 9
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 66,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "InkBlotDamage",
+          "line": 68,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 8,
+            "base": 7
+          },
+          "A0": 7,
+          "A8": 7,
+          "A9": 8
+        },
+        {
+          "name": "InkyLanceDamage",
+          "line": 70,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 7,
+            "base": 6
+          },
+          "A0": 6,
+          "A8": 6,
+          "A9": 7
+        },
+        {
+          "name": "DismemberDamage",
+          "line": 72,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 30,
+            "base": 26
+          },
+          "A0": 26,
+          "A8": 26,
+          "A9": 30
+        }
+      ],
+      "dynamic_evidence": [
+        "Slippery8/9(A8), maxHP173/183; Dismember three Wounds; PrepareStrength2; Slippery loses one stack per unblocked hit."
+      ],
+      "findings": [],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 4
+    },
+    {
+      "id": "WATERFALL_GIANT",
+      "class": "WaterfallGiant",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/WaterfallGiant.cs",
+      "source_sha256": "49b2deb519346504e311adaa846e782552801f2317bcd4e02baf14e306febf4c",
+      "checked_fields": [
+        "initial HP A0\u2013A10",
+        "each active move base damage and hit count",
+        "each active move direct block/power/card/heal amount",
+        "initial power amounts",
+        "dynamic numeric branches listed below"
+      ],
+      "numeric_properties": [
+        {
+          "name": "MinInitialHp",
+          "line": 69,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 250,
+            "base": 240
+          },
+          "A0": 240,
+          "A8": 250,
+          "A9": 250
+        },
+        {
+          "name": "MaxInitialHp",
+          "line": 71,
+          "declaration": {
+            "expr": "MinInitialHp"
+          },
+          "A0": null,
+          "A8": null,
+          "A9": null
+        },
+        {
+          "name": "SiphonHeal",
+          "line": 73,
+          "declaration": {
+            "level": "ToughEnemies",
+            "asc": 15,
+            "base": 10
+          },
+          "A0": 10,
+          "A8": 15,
+          "A9": 15
+        },
+        {
+          "name": "PressurizeAmount",
+          "line": 75,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 20,
+            "base": 15
+          },
+          "A0": 15,
+          "A8": 15,
+          "A9": 20
+        },
+        {
+          "name": "StompDamage",
+          "line": 77,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 16,
+            "base": 15
+          },
+          "A0": 15,
+          "A8": 15,
+          "A9": 16
+        },
+        {
+          "name": "RamDamage",
+          "line": 79,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 11,
+            "base": 10
+          },
+          "A0": 10,
+          "A8": 10,
+          "A9": 11
+        },
+        {
+          "name": "PressureUpDamage",
+          "line": 81,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 14,
+            "base": 13
+          },
+          "A0": 13,
+          "A8": 13,
+          "A9": 14
+        },
+        {
+          "name": "BasePressureGunDamage",
+          "line": 83,
+          "declaration": {
+            "level": "DeadlyEnemies",
+            "asc": 23,
+            "base": 20
+          },
+          "A0": 20,
+          "A8": 20,
+          "A9": 23
+        },
+        {
+          "name": "PressureGunIncrease",
+          "line": 87,
+          "declaration": {
+            "level": null,
+            "asc": 5,
+            "base": 5
+          },
+          "A0": 5,
+          "A8": 5,
+          "A9": 5
+        }
+      ],
+      "dynamic_evidence": [
+        "PressureGun base20/23(A9), grows+5 each use; SteamEruption starts15/20(A9), every normal move adds3; death replaces HP999999999, captures SteamEruption as one explosion then kills itself. Siphon10/15(A8) per player."
+      ],
+      "findings": [
+        "boss-waterfall-heal-a0"
+      ],
+      "not_executed_against_dll": [
+        "all move bodies and power hooks"
+      ],
+      "move_count": 8
+    }
+  ],
+  "unverified": [
+    "whole-run execution equivalence",
+    "multiplayer scaling",
+    "animation and audiovisual timing",
+    "all interactions with player powers/relics"
+  ],
+  "summary": {
+    "monsters": 15,
+    "active_moves": 75,
+    "confirmed_numeric_findings_before_fix": 4,
+    "public_observation_findings": [
+      {
+        "monster": "AEONGLASS",
+        "field": "WitheringPresence ownership/Amount/DisplayAmount",
+        "native": "on Aeonglass, Amount6, display CardsLeft6..1",
+        "simulator_before_fix": "on player, public Amount1, countdown in power amount",
+        "source": [
+          "Models/Monsters/Aeonglass.cs:86",
+          "Models/Powers/WitheringPresencePower.cs:23"
+        ]
+      }
+    ]
+  }
+}

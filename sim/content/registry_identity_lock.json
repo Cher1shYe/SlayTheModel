@@ -1,0 +1,8615 @@
+{
+  "version": 1,
+  "base_ruleset": "native-41cef1ea-port-v13",
+  "native_registry_sha256": "2fff4579c9fcb9c8eba920a6316ca711267529e041a858d49c9100773caa2969",
+  "policy": "existing numeric IDs, keys, and native mappings are immutable; only append new entries",
+  "categories": {
+    "CARD": [
+      {
+        "id": 0,
+        "key": "INVALID",
+        "native_ids": []
+      },
+      {
+        "id": 1,
+        "key": "AGGRESSION_CARD",
+        "native_ids": [
+          "CARD.AGGRESSION"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "ANGER",
+        "native_ids": [
+          "CARD.ANGER"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "ARMAMENTS",
+        "native_ids": [
+          "CARD.ARMAMENTS"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "ASHEN_STRIKE",
+        "native_ids": [
+          "CARD.ASHEN_STRIKE"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "BARRICADE_CARD",
+        "native_ids": [
+          "CARD.BARRICADE"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "BASH",
+        "native_ids": [
+          "CARD.BASH"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "BATTLE_TRANCE",
+        "native_ids": [
+          "CARD.BATTLE_TRANCE"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "BLOOD_WALL",
+        "native_ids": [
+          "CARD.BLOOD_WALL"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "BLOODLETTING",
+        "native_ids": [
+          "CARD.BLOODLETTING"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "BLUDGEON",
+        "native_ids": [
+          "CARD.BLUDGEON"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "BODY_SLAM",
+        "native_ids": [
+          "CARD.BODY_SLAM"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "BRAND",
+        "native_ids": [
+          "CARD.BRAND"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "BREAK",
+        "native_ids": [
+          "CARD.BREAK"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "BREAKTHROUGH",
+        "native_ids": [
+          "CARD.BREAKTHROUGH"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "BULLY",
+        "native_ids": [
+          "CARD.BULLY"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "BURNING_PACT",
+        "native_ids": [
+          "CARD.BURNING_PACT"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "CASCADE",
+        "native_ids": [
+          "CARD.CASCADE"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "CINDER",
+        "native_ids": [
+          "CARD.CINDER"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "COLOSSUS_CARD",
+        "native_ids": [
+          "CARD.COLOSSUS"
+        ]
+      },
+      {
+        "id": 20,
+        "key": "CONFLAGRATION",
+        "native_ids": [
+          "CARD.CONFLAGRATION"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "CORRUPTION_CARD",
+        "native_ids": [
+          "CARD.CORRUPTION"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "CRIMSON_MANTLE",
+        "native_ids": [
+          "CARD.CRIMSON_MANTLE"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "CRUELTY_CARD",
+        "native_ids": [
+          "CARD.CRUELTY"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "DARK_EMBRACE_CARD",
+        "native_ids": [
+          "CARD.DARK_EMBRACE"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "DEFEND_IRONCLAD",
+        "native_ids": [
+          "CARD.DEFEND_IRONCLAD"
+        ]
+      },
+      {
+        "id": 26,
+        "key": "DEMON_FORM_CARD",
+        "native_ids": [
+          "CARD.DEMON_FORM"
+        ]
+      },
+      {
+        "id": 27,
+        "key": "DEMONIC_SHIELD",
+        "native_ids": [
+          "CARD.DEMONIC_SHIELD"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "DISMANTLE",
+        "native_ids": [
+          "CARD.DISMANTLE"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "DOMINATE",
+        "native_ids": [
+          "CARD.DOMINATE"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "DRUM_OF_BATTLE_CARD",
+        "native_ids": [
+          "CARD.DRUM_OF_BATTLE"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "EVIL_EYE",
+        "native_ids": [
+          "CARD.EVIL_EYE"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "EXPECT_A_FIGHT",
+        "native_ids": [
+          "CARD.EXPECT_A_FIGHT"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "FEED",
+        "native_ids": [
+          "CARD.FEED"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "FEEL_NO_PAIN_CARD",
+        "native_ids": [
+          "CARD.FEEL_NO_PAIN"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "FIEND_FIRE",
+        "native_ids": [
+          "CARD.FIEND_FIRE"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "FIGHT_ME",
+        "native_ids": [
+          "CARD.FIGHT_ME"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "FLAME_BARRIER_CARD",
+        "native_ids": [
+          "CARD.FLAME_BARRIER"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "FORGOTTEN_RITUAL",
+        "native_ids": [
+          "CARD.FORGOTTEN_RITUAL"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "GRAPPLE",
+        "native_ids": []
+      },
+      {
+        "id": 40,
+        "key": "HAVOC",
+        "native_ids": [
+          "CARD.HAVOC"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "HEADBUTT",
+        "native_ids": [
+          "CARD.HEADBUTT"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "HELLRAISER_CARD",
+        "native_ids": [
+          "CARD.HELLRAISER"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "HEMOKINESIS",
+        "native_ids": [
+          "CARD.HEMOKINESIS"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "HOWL_FROM_BEYOND",
+        "native_ids": [
+          "CARD.HOWL_FROM_BEYOND"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "IMPERVIOUS",
+        "native_ids": [
+          "CARD.IMPERVIOUS"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "INFERNAL_BLADE",
+        "native_ids": [
+          "CARD.INFERNAL_BLADE"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "INFERNO_CARD",
+        "native_ids": [
+          "CARD.INFERNO"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "INFLAME",
+        "native_ids": [
+          "CARD.INFLAME"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "IRON_WAVE",
+        "native_ids": [
+          "CARD.IRON_WAVE"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "JUGGERNAUT_CARD",
+        "native_ids": [
+          "CARD.JUGGERNAUT"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "JUGGLING_CARD",
+        "native_ids": [
+          "CARD.JUGGLING"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "MANGLE",
+        "native_ids": [
+          "CARD.MANGLE"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "MOLTEN_FIST",
+        "native_ids": [
+          "CARD.MOLTEN_FIST"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "OFFERING",
+        "native_ids": [
+          "CARD.OFFERING"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "ONE_TWO_PUNCH_CARD",
+        "native_ids": [
+          "CARD.ONE_TWO_PUNCH"
+        ]
+      },
+      {
+        "id": 56,
+        "key": "PACTS_END",
+        "native_ids": [
+          "CARD.PACTS_END"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "PERFECTED_STRIKE",
+        "native_ids": [
+          "CARD.PERFECTED_STRIKE"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "PILLAGE",
+        "native_ids": [
+          "CARD.PILLAGE"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "POMMEL_STRIKE",
+        "native_ids": [
+          "CARD.POMMEL_STRIKE"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "PRIMAL_FORCE",
+        "native_ids": [
+          "CARD.PRIMAL_FORCE"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "PYRE",
+        "native_ids": [
+          "CARD.PYRE"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "RAGE_CARD",
+        "native_ids": [
+          "CARD.RAGE"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "RAMPAGE",
+        "native_ids": [
+          "CARD.RAMPAGE"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "RUPTURE_CARD",
+        "native_ids": [
+          "CARD.RUPTURE"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "SECOND_WIND",
+        "native_ids": [
+          "CARD.SECOND_WIND"
+        ]
+      },
+      {
+        "id": 66,
+        "key": "SETUP_STRIKE_CARD",
+        "native_ids": [
+          "CARD.SETUP_STRIKE"
+        ]
+      },
+      {
+        "id": 67,
+        "key": "SHRUG_IT_OFF",
+        "native_ids": [
+          "CARD.SHRUG_IT_OFF"
+        ]
+      },
+      {
+        "id": 68,
+        "key": "SPITE",
+        "native_ids": [
+          "CARD.SPITE"
+        ]
+      },
+      {
+        "id": 69,
+        "key": "STAMPEDE_CARD",
+        "native_ids": [
+          "CARD.STAMPEDE"
+        ]
+      },
+      {
+        "id": 70,
+        "key": "STOKE",
+        "native_ids": [
+          "CARD.STOKE"
+        ]
+      },
+      {
+        "id": 71,
+        "key": "STOMP",
+        "native_ids": [
+          "CARD.STOMP"
+        ]
+      },
+      {
+        "id": 72,
+        "key": "STONE_ARMOR",
+        "native_ids": [
+          "CARD.STONE_ARMOR"
+        ]
+      },
+      {
+        "id": 73,
+        "key": "STRIKE_IRONCLAD",
+        "native_ids": [
+          "CARD.STRIKE_IRONCLAD"
+        ]
+      },
+      {
+        "id": 74,
+        "key": "SWORD_BOOMERANG",
+        "native_ids": [
+          "CARD.SWORD_BOOMERANG"
+        ]
+      },
+      {
+        "id": 75,
+        "key": "TANK_CARD",
+        "native_ids": [
+          "CARD.TANK"
+        ]
+      },
+      {
+        "id": 76,
+        "key": "TAUNT",
+        "native_ids": [
+          "CARD.TAUNT"
+        ]
+      },
+      {
+        "id": 77,
+        "key": "TEAR_ASUNDER",
+        "native_ids": [
+          "CARD.TEAR_ASUNDER"
+        ]
+      },
+      {
+        "id": 78,
+        "key": "THRASH",
+        "native_ids": [
+          "CARD.THRASH"
+        ]
+      },
+      {
+        "id": 79,
+        "key": "THUNDERCLAP",
+        "native_ids": [
+          "CARD.THUNDERCLAP"
+        ]
+      },
+      {
+        "id": 80,
+        "key": "TREMBLE",
+        "native_ids": [
+          "CARD.TREMBLE"
+        ]
+      },
+      {
+        "id": 81,
+        "key": "TRUE_GRIT",
+        "native_ids": [
+          "CARD.TRUE_GRIT"
+        ]
+      },
+      {
+        "id": 82,
+        "key": "TWIN_STRIKE",
+        "native_ids": [
+          "CARD.TWIN_STRIKE"
+        ]
+      },
+      {
+        "id": 83,
+        "key": "UNMOVABLE",
+        "native_ids": [
+          "CARD.UNMOVABLE"
+        ]
+      },
+      {
+        "id": 84,
+        "key": "UNRELENTING",
+        "native_ids": [
+          "CARD.UNRELENTING"
+        ]
+      },
+      {
+        "id": 85,
+        "key": "UPPERCUT",
+        "native_ids": [
+          "CARD.UPPERCUT"
+        ]
+      },
+      {
+        "id": 86,
+        "key": "VICIOUS_CARD",
+        "native_ids": [
+          "CARD.VICIOUS"
+        ]
+      },
+      {
+        "id": 87,
+        "key": "WHIRLWIND",
+        "native_ids": [
+          "CARD.WHIRLWIND"
+        ]
+      },
+      {
+        "id": 88,
+        "key": "ALCHEMIZE",
+        "native_ids": [
+          "CARD.ALCHEMIZE"
+        ]
+      },
+      {
+        "id": 89,
+        "key": "ANOINTED",
+        "native_ids": [
+          "CARD.ANOINTED"
+        ]
+      },
+      {
+        "id": 90,
+        "key": "AUTOMATION",
+        "native_ids": [
+          "CARD.AUTOMATION"
+        ]
+      },
+      {
+        "id": 91,
+        "key": "BEACON_OF_HOPE",
+        "native_ids": [
+          "CARD.BEACON_OF_HOPE"
+        ]
+      },
+      {
+        "id": 92,
+        "key": "BEAT_DOWN",
+        "native_ids": [
+          "CARD.BEAT_DOWN"
+        ]
+      },
+      {
+        "id": 93,
+        "key": "BELIEVE_IN_YOU",
+        "native_ids": [
+          "CARD.BELIEVE_IN_YOU"
+        ]
+      },
+      {
+        "id": 94,
+        "key": "BOLAS",
+        "native_ids": [
+          "CARD.BOLAS"
+        ]
+      },
+      {
+        "id": 95,
+        "key": "CALAMITY_CARD",
+        "native_ids": [
+          "CARD.CALAMITY"
+        ]
+      },
+      {
+        "id": 96,
+        "key": "CATASTROPHE",
+        "native_ids": [
+          "CARD.CATASTROPHE"
+        ]
+      },
+      {
+        "id": 97,
+        "key": "COORDINATE_CARD",
+        "native_ids": [
+          "CARD.COORDINATE"
+        ]
+      },
+      {
+        "id": 98,
+        "key": "DARK_SHACKLES",
+        "native_ids": [
+          "CARD.DARK_SHACKLES"
+        ]
+      },
+      {
+        "id": 99,
+        "key": "DISCOVERY",
+        "native_ids": [
+          "CARD.DISCOVERY"
+        ]
+      },
+      {
+        "id": 100,
+        "key": "DRAMATIC_ENTRANCE",
+        "native_ids": [
+          "CARD.DRAMATIC_ENTRANCE"
+        ]
+      },
+      {
+        "id": 101,
+        "key": "ENTROPY",
+        "native_ids": [
+          "CARD.ENTROPY"
+        ]
+      },
+      {
+        "id": 102,
+        "key": "EQUILIBRIUM",
+        "native_ids": [
+          "CARD.EQUILIBRIUM"
+        ]
+      },
+      {
+        "id": 103,
+        "key": "ETERNAL_ARMOR",
+        "native_ids": [
+          "CARD.ETERNAL_ARMOR"
+        ]
+      },
+      {
+        "id": 104,
+        "key": "FASTEN",
+        "native_ids": [
+          "CARD.FASTEN"
+        ]
+      },
+      {
+        "id": 105,
+        "key": "FINESSE",
+        "native_ids": [
+          "CARD.FINESSE"
+        ]
+      },
+      {
+        "id": 106,
+        "key": "FISTICUFFS",
+        "native_ids": [
+          "CARD.FISTICUFFS"
+        ]
+      },
+      {
+        "id": 107,
+        "key": "FLASH_OF_STEEL",
+        "native_ids": [
+          "CARD.FLASH_OF_STEEL"
+        ]
+      },
+      {
+        "id": 108,
+        "key": "GANG_UP",
+        "native_ids": [
+          "CARD.GANG_UP"
+        ]
+      },
+      {
+        "id": 109,
+        "key": "GOLD_AXE",
+        "native_ids": [
+          "CARD.GOLD_AXE"
+        ]
+      },
+      {
+        "id": 110,
+        "key": "HAND_OF_GREED",
+        "native_ids": [
+          "CARD.HAND_OF_GREED"
+        ]
+      },
+      {
+        "id": 111,
+        "key": "HIDDEN_GEM",
+        "native_ids": [
+          "CARD.HIDDEN_GEM"
+        ]
+      },
+      {
+        "id": 112,
+        "key": "HUDDLE_UP",
+        "native_ids": [
+          "CARD.HUDDLE_UP"
+        ]
+      },
+      {
+        "id": 113,
+        "key": "IMPATIENCE",
+        "native_ids": [
+          "CARD.IMPATIENCE"
+        ]
+      },
+      {
+        "id": 114,
+        "key": "INTERCEPT_CARD",
+        "native_ids": [
+          "CARD.INTERCEPT"
+        ]
+      },
+      {
+        "id": 115,
+        "key": "JACK_OF_ALL_TRADES",
+        "native_ids": [
+          "CARD.JACK_OF_ALL_TRADES"
+        ]
+      },
+      {
+        "id": 116,
+        "key": "JACKPOT",
+        "native_ids": [
+          "CARD.JACKPOT"
+        ]
+      },
+      {
+        "id": 117,
+        "key": "KNOCKDOWN",
+        "native_ids": [
+          "CARD.KNOCKDOWN"
+        ]
+      },
+      {
+        "id": 118,
+        "key": "LIFT",
+        "native_ids": [
+          "CARD.LIFT"
+        ]
+      },
+      {
+        "id": 119,
+        "key": "MASTER_OF_STRATEGY",
+        "native_ids": [
+          "CARD.MASTER_OF_STRATEGY"
+        ]
+      },
+      {
+        "id": 120,
+        "key": "MAYHEM_CARD",
+        "native_ids": [
+          "CARD.MAYHEM"
+        ]
+      },
+      {
+        "id": 121,
+        "key": "MIMIC",
+        "native_ids": [
+          "CARD.MIMIC"
+        ]
+      },
+      {
+        "id": 122,
+        "key": "MIND_BLAST",
+        "native_ids": [
+          "CARD.MIND_BLAST"
+        ]
+      },
+      {
+        "id": 123,
+        "key": "NOSTALGIA_CARD",
+        "native_ids": [
+          "CARD.NOSTALGIA"
+        ]
+      },
+      {
+        "id": 124,
+        "key": "OMNISLICE",
+        "native_ids": [
+          "CARD.OMNISLICE"
+        ]
+      },
+      {
+        "id": 125,
+        "key": "PANACHE_CARD",
+        "native_ids": [
+          "CARD.PANACHE"
+        ]
+      },
+      {
+        "id": 126,
+        "key": "PANIC_BUTTON",
+        "native_ids": [
+          "CARD.PANIC_BUTTON"
+        ]
+      },
+      {
+        "id": 127,
+        "key": "PREP_TIME",
+        "native_ids": [
+          "CARD.PREP_TIME"
+        ]
+      },
+      {
+        "id": 128,
+        "key": "PRODUCTION",
+        "native_ids": [
+          "CARD.PRODUCTION"
+        ]
+      },
+      {
+        "id": 129,
+        "key": "PROLONG",
+        "native_ids": [
+          "CARD.PROLONG"
+        ]
+      },
+      {
+        "id": 130,
+        "key": "PROWESS",
+        "native_ids": [
+          "CARD.PROWESS"
+        ]
+      },
+      {
+        "id": 131,
+        "key": "PURITY",
+        "native_ids": [
+          "CARD.PURITY"
+        ]
+      },
+      {
+        "id": 132,
+        "key": "RALLY",
+        "native_ids": [
+          "CARD.RALLY"
+        ]
+      },
+      {
+        "id": 133,
+        "key": "REND",
+        "native_ids": [
+          "CARD.REND"
+        ]
+      },
+      {
+        "id": 134,
+        "key": "RESTLESSNESS",
+        "native_ids": [
+          "CARD.RESTLESSNESS"
+        ]
+      },
+      {
+        "id": 135,
+        "key": "ROLLING_BOULDER",
+        "native_ids": [
+          "CARD.ROLLING_BOULDER"
+        ]
+      },
+      {
+        "id": 136,
+        "key": "SALVO",
+        "native_ids": [
+          "CARD.SALVO"
+        ]
+      },
+      {
+        "id": 137,
+        "key": "SCRAWL",
+        "native_ids": [
+          "CARD.SCRAWL"
+        ]
+      },
+      {
+        "id": 138,
+        "key": "SECRET_TECHNIQUE",
+        "native_ids": [
+          "CARD.SECRET_TECHNIQUE"
+        ]
+      },
+      {
+        "id": 139,
+        "key": "SECRET_WEAPON",
+        "native_ids": [
+          "CARD.SECRET_WEAPON"
+        ]
+      },
+      {
+        "id": 140,
+        "key": "SEEKER_STRIKE",
+        "native_ids": [
+          "CARD.SEEKER_STRIKE"
+        ]
+      },
+      {
+        "id": 141,
+        "key": "SHOCKWAVE",
+        "native_ids": [
+          "CARD.SHOCKWAVE"
+        ]
+      },
+      {
+        "id": 142,
+        "key": "SPLASH",
+        "native_ids": [
+          "CARD.SPLASH"
+        ]
+      },
+      {
+        "id": 143,
+        "key": "STRATAGEM",
+        "native_ids": [
+          "CARD.STRATAGEM"
+        ]
+      },
+      {
+        "id": 144,
+        "key": "TAG_TEAM",
+        "native_ids": [
+          "CARD.TAG_TEAM"
+        ]
+      },
+      {
+        "id": 145,
+        "key": "THE_BOMB_CARD",
+        "native_ids": [
+          "CARD.THE_BOMB"
+        ]
+      },
+      {
+        "id": 146,
+        "key": "THE_GAMBIT",
+        "native_ids": [
+          "CARD.THE_GAMBIT"
+        ]
+      },
+      {
+        "id": 147,
+        "key": "THINKING_AHEAD",
+        "native_ids": [
+          "CARD.THINKING_AHEAD"
+        ]
+      },
+      {
+        "id": 148,
+        "key": "THRUMMING_HATCHET",
+        "native_ids": [
+          "CARD.THRUMMING_HATCHET"
+        ]
+      },
+      {
+        "id": 149,
+        "key": "ULTIMATE_DEFEND",
+        "native_ids": [
+          "CARD.ULTIMATE_DEFEND"
+        ]
+      },
+      {
+        "id": 150,
+        "key": "ULTIMATE_STRIKE",
+        "native_ids": [
+          "CARD.ULTIMATE_STRIKE"
+        ]
+      },
+      {
+        "id": 151,
+        "key": "VOLLEY",
+        "native_ids": [
+          "CARD.VOLLEY"
+        ]
+      },
+      {
+        "id": 152,
+        "key": "BECKON",
+        "native_ids": [
+          "CARD.BECKON"
+        ]
+      },
+      {
+        "id": 153,
+        "key": "BURN",
+        "native_ids": [
+          "CARD.BURN"
+        ]
+      },
+      {
+        "id": 154,
+        "key": "DAZED",
+        "native_ids": [
+          "CARD.DAZED"
+        ]
+      },
+      {
+        "id": 155,
+        "key": "DEBRIS",
+        "native_ids": [
+          "CARD.DEBRIS"
+        ]
+      },
+      {
+        "id": 156,
+        "key": "FRANTIC_ESCAPE",
+        "native_ids": [
+          "CARD.FRANTIC_ESCAPE"
+        ]
+      },
+      {
+        "id": 157,
+        "key": "INFECTION",
+        "native_ids": [
+          "CARD.INFECTION"
+        ]
+      },
+      {
+        "id": 158,
+        "key": "SLIMED",
+        "native_ids": [
+          "CARD.SLIMED"
+        ]
+      },
+      {
+        "id": 159,
+        "key": "SOOT",
+        "native_ids": [
+          "CARD.SOOT"
+        ]
+      },
+      {
+        "id": 160,
+        "key": "TOXIC",
+        "native_ids": [
+          "CARD.TOXIC"
+        ]
+      },
+      {
+        "id": 161,
+        "key": "VOID",
+        "native_ids": [
+          "CARD.VOID"
+        ]
+      },
+      {
+        "id": 162,
+        "key": "WOUND",
+        "native_ids": [
+          "CARD.WOUND"
+        ]
+      },
+      {
+        "id": 163,
+        "key": "ASCENDERS_BANE",
+        "native_ids": [
+          "CARD.ASCENDERS_BANE"
+        ]
+      },
+      {
+        "id": 164,
+        "key": "BAD_LUCK",
+        "native_ids": [
+          "CARD.BAD_LUCK"
+        ]
+      },
+      {
+        "id": 165,
+        "key": "CLUMSY",
+        "native_ids": [
+          "CARD.CLUMSY"
+        ]
+      },
+      {
+        "id": 166,
+        "key": "CURSE_OF_THE_BELL",
+        "native_ids": [
+          "CARD.CURSE_OF_THE_BELL"
+        ]
+      },
+      {
+        "id": 167,
+        "key": "DEBT",
+        "native_ids": [
+          "CARD.DEBT"
+        ]
+      },
+      {
+        "id": 168,
+        "key": "DECAY",
+        "native_ids": [
+          "CARD.DECAY"
+        ]
+      },
+      {
+        "id": 169,
+        "key": "DOUBT",
+        "native_ids": [
+          "CARD.DOUBT"
+        ]
+      },
+      {
+        "id": 170,
+        "key": "ENTHRALLED",
+        "native_ids": [
+          "CARD.ENTHRALLED"
+        ]
+      },
+      {
+        "id": 171,
+        "key": "FOLLY",
+        "native_ids": [
+          "CARD.FOLLY"
+        ]
+      },
+      {
+        "id": 172,
+        "key": "GREED",
+        "native_ids": [
+          "CARD.GREED"
+        ]
+      },
+      {
+        "id": 173,
+        "key": "GUILTY",
+        "native_ids": [
+          "CARD.GUILTY"
+        ]
+      },
+      {
+        "id": 174,
+        "key": "INJURY",
+        "native_ids": [
+          "CARD.INJURY"
+        ]
+      },
+      {
+        "id": 175,
+        "key": "NORMALITY",
+        "native_ids": [
+          "CARD.NORMALITY"
+        ]
+      },
+      {
+        "id": 176,
+        "key": "POOR_SLEEP",
+        "native_ids": [
+          "CARD.POOR_SLEEP"
+        ]
+      },
+      {
+        "id": 177,
+        "key": "REGRET",
+        "native_ids": [
+          "CARD.REGRET"
+        ]
+      },
+      {
+        "id": 178,
+        "key": "SHAME",
+        "native_ids": [
+          "CARD.SHAME"
+        ]
+      },
+      {
+        "id": 179,
+        "key": "SPORE_MIND",
+        "native_ids": [
+          "CARD.SPORE_MIND"
+        ]
+      },
+      {
+        "id": 180,
+        "key": "WRITHE",
+        "native_ids": [
+          "CARD.WRITHE"
+        ]
+      },
+      {
+        "id": 181,
+        "key": "APOTHEOSIS",
+        "native_ids": [
+          "CARD.APOTHEOSIS"
+        ]
+      },
+      {
+        "id": 182,
+        "key": "APPARITION",
+        "native_ids": [
+          "CARD.APPARITION"
+        ]
+      },
+      {
+        "id": 183,
+        "key": "BRIGHTEST_FLAME",
+        "native_ids": [
+          "CARD.BRIGHTEST_FLAME"
+        ]
+      },
+      {
+        "id": 184,
+        "key": "BYRD_SWOOP",
+        "native_ids": [
+          "CARD.BYRD_SWOOP"
+        ]
+      },
+      {
+        "id": 185,
+        "key": "CALTROPS",
+        "native_ids": [
+          "CARD.CALTROPS"
+        ]
+      },
+      {
+        "id": 186,
+        "key": "CLASH",
+        "native_ids": [
+          "CARD.CLASH"
+        ]
+      },
+      {
+        "id": 187,
+        "key": "DISTRACTION",
+        "native_ids": [
+          "CARD.DISTRACTION"
+        ]
+      },
+      {
+        "id": 188,
+        "key": "DUAL_WIELD",
+        "native_ids": [
+          "CARD.DUAL_WIELD"
+        ]
+      },
+      {
+        "id": 189,
+        "key": "ENLIGHTENMENT",
+        "native_ids": [
+          "CARD.ENLIGHTENMENT"
+        ]
+      },
+      {
+        "id": 190,
+        "key": "ENTRENCH",
+        "native_ids": [
+          "CARD.ENTRENCH"
+        ]
+      },
+      {
+        "id": 191,
+        "key": "EXTERMINATE",
+        "native_ids": [
+          "CARD.EXTERMINATE"
+        ]
+      },
+      {
+        "id": 192,
+        "key": "FEEDING_FRENZY_CARD",
+        "native_ids": [
+          "CARD.FEEDING_FRENZY"
+        ]
+      },
+      {
+        "id": 193,
+        "key": "HELLO_WORLD_CARD",
+        "native_ids": [
+          "CARD.HELLO_WORLD"
+        ]
+      },
+      {
+        "id": 194,
+        "key": "MAD_SCIENCE",
+        "native_ids": [
+          "CARD.MAD_SCIENCE"
+        ]
+      },
+      {
+        "id": 195,
+        "key": "MAUL",
+        "native_ids": [
+          "CARD.MAUL"
+        ]
+      },
+      {
+        "id": 196,
+        "key": "METAMORPHOSIS",
+        "native_ids": [
+          "CARD.METAMORPHOSIS"
+        ]
+      },
+      {
+        "id": 197,
+        "key": "NEOWS_FURY",
+        "native_ids": [
+          "CARD.NEOWS_FURY"
+        ]
+      },
+      {
+        "id": 198,
+        "key": "OUTMANEUVER",
+        "native_ids": [
+          "CARD.OUTMANEUVER"
+        ]
+      },
+      {
+        "id": 199,
+        "key": "PECK",
+        "native_ids": [
+          "CARD.PECK"
+        ]
+      },
+      {
+        "id": 200,
+        "key": "REBOUND",
+        "native_ids": [
+          "CARD.REBOUND"
+        ]
+      },
+      {
+        "id": 201,
+        "key": "RELAX",
+        "native_ids": [
+          "CARD.RELAX"
+        ]
+      },
+      {
+        "id": 202,
+        "key": "RIP_AND_TEAR",
+        "native_ids": [
+          "CARD.RIP_AND_TEAR"
+        ]
+      },
+      {
+        "id": 203,
+        "key": "SQUASH",
+        "native_ids": [
+          "CARD.SQUASH"
+        ]
+      },
+      {
+        "id": 204,
+        "key": "STACK",
+        "native_ids": [
+          "CARD.STACK"
+        ]
+      },
+      {
+        "id": 205,
+        "key": "TORIC_TOUGHNESS",
+        "native_ids": [
+          "CARD.TORIC_TOUGHNESS"
+        ]
+      },
+      {
+        "id": 206,
+        "key": "WISH",
+        "native_ids": [
+          "CARD.WISH"
+        ]
+      },
+      {
+        "id": 207,
+        "key": "WHISTLE",
+        "native_ids": [
+          "CARD.WHISTLE"
+        ]
+      },
+      {
+        "id": 208,
+        "key": "DISINTEGRATION",
+        "native_ids": [
+          "CARD.DISINTEGRATION"
+        ]
+      },
+      {
+        "id": 209,
+        "key": "FUEL",
+        "native_ids": [
+          "CARD.FUEL"
+        ]
+      },
+      {
+        "id": 210,
+        "key": "GIANT_ROCK",
+        "native_ids": [
+          "CARD.GIANT_ROCK"
+        ]
+      },
+      {
+        "id": 211,
+        "key": "LUMINESCE",
+        "native_ids": [
+          "CARD.LUMINESCE"
+        ]
+      },
+      {
+        "id": 212,
+        "key": "MIND_ROT",
+        "native_ids": [
+          "CARD.MIND_ROT"
+        ]
+      },
+      {
+        "id": 213,
+        "key": "MINION_DIVE_BOMB",
+        "native_ids": [
+          "CARD.MINION_DIVE_BOMB"
+        ]
+      },
+      {
+        "id": 214,
+        "key": "MINION_SACRIFICE",
+        "native_ids": [
+          "CARD.MINION_SACRIFICE"
+        ]
+      },
+      {
+        "id": 215,
+        "key": "MINION_STRIKE",
+        "native_ids": [
+          "CARD.MINION_STRIKE"
+        ]
+      },
+      {
+        "id": 216,
+        "key": "SHIV",
+        "native_ids": [
+          "CARD.SHIV"
+        ]
+      },
+      {
+        "id": 217,
+        "key": "SLOTH_STATUS",
+        "native_ids": [
+          "CARD.SLOTH"
+        ]
+      },
+      {
+        "id": 218,
+        "key": "SOUL",
+        "native_ids": [
+          "CARD.SOUL"
+        ]
+      },
+      {
+        "id": 219,
+        "key": "SOVEREIGN_BLADE",
+        "native_ids": [
+          "CARD.SOVEREIGN_BLADE"
+        ]
+      },
+      {
+        "id": 220,
+        "key": "SWEEPING_GAZE",
+        "native_ids": [
+          "CARD.SWEEPING_GAZE"
+        ]
+      },
+      {
+        "id": 221,
+        "key": "WASTE_AWAY",
+        "native_ids": [
+          "CARD.WASTE_AWAY"
+        ]
+      },
+      {
+        "id": 222,
+        "key": "NOT_YET",
+        "native_ids": [
+          "CARD.NOT_YET"
+        ]
+      },
+      {
+        "id": 223,
+        "key": "ABRASIVE",
+        "native_ids": [
+          "CARD.ABRASIVE"
+        ]
+      },
+      {
+        "id": 224,
+        "key": "ABUNDANCE",
+        "native_ids": [
+          "CARD.ABUNDANCE"
+        ]
+      },
+      {
+        "id": 225,
+        "key": "ACCELERANT",
+        "native_ids": [
+          "CARD.ACCELERANT"
+        ]
+      },
+      {
+        "id": 226,
+        "key": "ACCURACY",
+        "native_ids": [
+          "CARD.ACCURACY"
+        ]
+      },
+      {
+        "id": 227,
+        "key": "ACROBATICS",
+        "native_ids": [
+          "CARD.ACROBATICS"
+        ]
+      },
+      {
+        "id": 228,
+        "key": "ADAPTIVE_STRIKE",
+        "native_ids": [
+          "CARD.ADAPTIVE_STRIKE"
+        ]
+      },
+      {
+        "id": 229,
+        "key": "ADRENALINE",
+        "native_ids": [
+          "CARD.ADRENALINE"
+        ]
+      },
+      {
+        "id": 230,
+        "key": "AFTERIMAGE",
+        "native_ids": [
+          "CARD.AFTERIMAGE"
+        ]
+      },
+      {
+        "id": 231,
+        "key": "AFTERLIFE",
+        "native_ids": [
+          "CARD.AFTERLIFE"
+        ]
+      },
+      {
+        "id": 232,
+        "key": "ALIGNMENT",
+        "native_ids": [
+          "CARD.ALIGNMENT"
+        ]
+      },
+      {
+        "id": 233,
+        "key": "ALL_FOR_ONE",
+        "native_ids": [
+          "CARD.ALL_FOR_ONE"
+        ]
+      },
+      {
+        "id": 234,
+        "key": "ANTICIPATE",
+        "native_ids": [
+          "CARD.ANTICIPATE"
+        ]
+      },
+      {
+        "id": 235,
+        "key": "ARSENAL",
+        "native_ids": [
+          "CARD.ARSENAL"
+        ]
+      },
+      {
+        "id": 236,
+        "key": "ASSASSINATE",
+        "native_ids": [
+          "CARD.ASSASSINATE"
+        ]
+      },
+      {
+        "id": 237,
+        "key": "ASTRAL_PULSE",
+        "native_ids": [
+          "CARD.ASTRAL_PULSE"
+        ]
+      },
+      {
+        "id": 238,
+        "key": "BACKFLIP",
+        "native_ids": [
+          "CARD.BACKFLIP"
+        ]
+      },
+      {
+        "id": 239,
+        "key": "BACKSTAB",
+        "native_ids": [
+          "CARD.BACKSTAB"
+        ]
+      },
+      {
+        "id": 240,
+        "key": "BALL_LIGHTNING",
+        "native_ids": [
+          "CARD.BALL_LIGHTNING"
+        ]
+      },
+      {
+        "id": 241,
+        "key": "BANSHEES_CRY",
+        "native_ids": [
+          "CARD.BANSHEES_CRY"
+        ]
+      },
+      {
+        "id": 242,
+        "key": "BARRAGE",
+        "native_ids": [
+          "CARD.BARRAGE"
+        ]
+      },
+      {
+        "id": 243,
+        "key": "BEAM_CELL",
+        "native_ids": [
+          "CARD.BEAM_CELL"
+        ]
+      },
+      {
+        "id": 244,
+        "key": "BEAT_INTO_SHAPE",
+        "native_ids": [
+          "CARD.BEAT_INTO_SHAPE"
+        ]
+      },
+      {
+        "id": 245,
+        "key": "BEGONE",
+        "native_ids": [
+          "CARD.BEGONE"
+        ]
+      },
+      {
+        "id": 246,
+        "key": "BIASED_COGNITION",
+        "native_ids": [
+          "CARD.BIASED_COGNITION"
+        ]
+      },
+      {
+        "id": 247,
+        "key": "BIG_BANG",
+        "native_ids": [
+          "CARD.BIG_BANG"
+        ]
+      },
+      {
+        "id": 248,
+        "key": "BLACK_HOLE",
+        "native_ids": [
+          "CARD.BLACK_HOLE"
+        ]
+      },
+      {
+        "id": 249,
+        "key": "BLADE_DANCE",
+        "native_ids": [
+          "CARD.BLADE_DANCE"
+        ]
+      },
+      {
+        "id": 250,
+        "key": "BLADE_OF_INK",
+        "native_ids": [
+          "CARD.BLADE_OF_INK"
+        ]
+      },
+      {
+        "id": 251,
+        "key": "BLADE_SYMPHONY",
+        "native_ids": [
+          "CARD.BLADE_SYMPHONY"
+        ]
+      },
+      {
+        "id": 252,
+        "key": "BLAZE",
+        "native_ids": [
+          "CARD.BLAZE"
+        ]
+      },
+      {
+        "id": 253,
+        "key": "BLIGHT_STRIKE",
+        "native_ids": [
+          "CARD.BLIGHT_STRIKE"
+        ]
+      },
+      {
+        "id": 254,
+        "key": "BLUR",
+        "native_ids": [
+          "CARD.BLUR"
+        ]
+      },
+      {
+        "id": 255,
+        "key": "BODYGUARD",
+        "native_ids": [
+          "CARD.BODYGUARD"
+        ]
+      },
+      {
+        "id": 256,
+        "key": "BOMBARDMENT",
+        "native_ids": [
+          "CARD.BOMBARDMENT"
+        ]
+      },
+      {
+        "id": 257,
+        "key": "BONE_SHARDS",
+        "native_ids": [
+          "CARD.BONE_SHARDS"
+        ]
+      },
+      {
+        "id": 258,
+        "key": "BOOST_AWAY",
+        "native_ids": [
+          "CARD.BOOST_AWAY"
+        ]
+      },
+      {
+        "id": 259,
+        "key": "BOOT_SEQUENCE",
+        "native_ids": [
+          "CARD.BOOT_SEQUENCE"
+        ]
+      },
+      {
+        "id": 260,
+        "key": "BORROWED_TIME",
+        "native_ids": [
+          "CARD.BORROWED_TIME"
+        ]
+      },
+      {
+        "id": 261,
+        "key": "BOUNCING_FLASK",
+        "native_ids": [
+          "CARD.BOUNCING_FLASK"
+        ]
+      },
+      {
+        "id": 262,
+        "key": "BUBBLE_BUBBLE",
+        "native_ids": [
+          "CARD.BUBBLE_BUBBLE"
+        ]
+      },
+      {
+        "id": 263,
+        "key": "BUFFER",
+        "native_ids": [
+          "CARD.BUFFER"
+        ]
+      },
+      {
+        "id": 264,
+        "key": "BULK_UP",
+        "native_ids": [
+          "CARD.BULK_UP"
+        ]
+      },
+      {
+        "id": 265,
+        "key": "BULLET_TIME",
+        "native_ids": [
+          "CARD.BULLET_TIME"
+        ]
+      },
+      {
+        "id": 266,
+        "key": "BULWARK",
+        "native_ids": [
+          "CARD.BULWARK"
+        ]
+      },
+      {
+        "id": 267,
+        "key": "BUNDLE_OF_JOY",
+        "native_ids": [
+          "CARD.BUNDLE_OF_JOY"
+        ]
+      },
+      {
+        "id": 268,
+        "key": "BURST",
+        "native_ids": [
+          "CARD.BURST"
+        ]
+      },
+      {
+        "id": 269,
+        "key": "BURY",
+        "native_ids": [
+          "CARD.BURY"
+        ]
+      },
+      {
+        "id": 270,
+        "key": "BYRDONIS_EGG",
+        "native_ids": [
+          "CARD.BYRDONIS_EGG"
+        ]
+      },
+      {
+        "id": 271,
+        "key": "CACOPHONY",
+        "native_ids": [
+          "CARD.CACOPHONY"
+        ]
+      },
+      {
+        "id": 272,
+        "key": "CALCIFY",
+        "native_ids": [
+          "CARD.CALCIFY"
+        ]
+      },
+      {
+        "id": 273,
+        "key": "CALCULATED_GAMBLE",
+        "native_ids": [
+          "CARD.CALCULATED_GAMBLE"
+        ]
+      },
+      {
+        "id": 274,
+        "key": "CALL_OF_THE_VOID",
+        "native_ids": [
+          "CARD.CALL_OF_THE_VOID"
+        ]
+      },
+      {
+        "id": 275,
+        "key": "CAPACITOR",
+        "native_ids": [
+          "CARD.CAPACITOR"
+        ]
+      },
+      {
+        "id": 276,
+        "key": "CAPTURE_SPIRIT",
+        "native_ids": [
+          "CARD.CAPTURE_SPIRIT"
+        ]
+      },
+      {
+        "id": 277,
+        "key": "CELESTIAL_MIGHT",
+        "native_ids": [
+          "CARD.CELESTIAL_MIGHT"
+        ]
+      },
+      {
+        "id": 278,
+        "key": "CHAOS",
+        "native_ids": [
+          "CARD.CHAOS"
+        ]
+      },
+      {
+        "id": 279,
+        "key": "CHARGE",
+        "native_ids": [
+          "CARD.CHARGE"
+        ]
+      },
+      {
+        "id": 280,
+        "key": "CHARGE_BATTERY",
+        "native_ids": [
+          "CARD.CHARGE_BATTERY"
+        ]
+      },
+      {
+        "id": 281,
+        "key": "CHILD_OF_THE_STARS",
+        "native_ids": [
+          "CARD.CHILD_OF_THE_STARS"
+        ]
+      },
+      {
+        "id": 282,
+        "key": "CHILL",
+        "native_ids": [
+          "CARD.CHILL"
+        ]
+      },
+      {
+        "id": 283,
+        "key": "CLAW",
+        "native_ids": [
+          "CARD.CLAW"
+        ]
+      },
+      {
+        "id": 284,
+        "key": "CLEANSE",
+        "native_ids": [
+          "CARD.CLEANSE"
+        ]
+      },
+      {
+        "id": 285,
+        "key": "CLOAK_AND_DAGGER",
+        "native_ids": [
+          "CARD.CLOAK_AND_DAGGER"
+        ]
+      },
+      {
+        "id": 286,
+        "key": "CLOAK_OF_STARS",
+        "native_ids": [
+          "CARD.CLOAK_OF_STARS"
+        ]
+      },
+      {
+        "id": 287,
+        "key": "COLD_SNAP",
+        "native_ids": [
+          "CARD.COLD_SNAP"
+        ]
+      },
+      {
+        "id": 288,
+        "key": "COLLISION_COURSE",
+        "native_ids": [
+          "CARD.COLLISION_COURSE"
+        ]
+      },
+      {
+        "id": 289,
+        "key": "COMET",
+        "native_ids": [
+          "CARD.COMET"
+        ]
+      },
+      {
+        "id": 290,
+        "key": "COMPACT",
+        "native_ids": [
+          "CARD.COMPACT"
+        ]
+      },
+      {
+        "id": 291,
+        "key": "COMPILE_DRIVER",
+        "native_ids": [
+          "CARD.COMPILE_DRIVER"
+        ]
+      },
+      {
+        "id": 292,
+        "key": "CONCOCT",
+        "native_ids": [
+          "CARD.CONCOCT"
+        ]
+      },
+      {
+        "id": 293,
+        "key": "CONQUEROR",
+        "native_ids": [
+          "CARD.CONQUEROR"
+        ]
+      },
+      {
+        "id": 294,
+        "key": "CONSTELLATION",
+        "native_ids": [
+          "CARD.CONSTELLATION"
+        ]
+      },
+      {
+        "id": 295,
+        "key": "CONSUMING_SHADOW",
+        "native_ids": [
+          "CARD.CONSUMING_SHADOW"
+        ]
+      },
+      {
+        "id": 296,
+        "key": "CONVERGENCE",
+        "native_ids": [
+          "CARD.CONVERGENCE"
+        ]
+      },
+      {
+        "id": 297,
+        "key": "COOLANT",
+        "native_ids": [
+          "CARD.COOLANT"
+        ]
+      },
+      {
+        "id": 298,
+        "key": "COOLHEADED",
+        "native_ids": [
+          "CARD.COOLHEADED"
+        ]
+      },
+      {
+        "id": 299,
+        "key": "CORROSIVE_WAVE",
+        "native_ids": [
+          "CARD.CORROSIVE_WAVE"
+        ]
+      },
+      {
+        "id": 300,
+        "key": "COSMIC_INDIFFERENCE",
+        "native_ids": [
+          "CARD.COSMIC_INDIFFERENCE"
+        ]
+      },
+      {
+        "id": 301,
+        "key": "COUNTDOWN",
+        "native_ids": [
+          "CARD.COUNTDOWN"
+        ]
+      },
+      {
+        "id": 302,
+        "key": "CRASH_LANDING",
+        "native_ids": [
+          "CARD.CRASH_LANDING"
+        ]
+      },
+      {
+        "id": 303,
+        "key": "CREATIVE_AI",
+        "native_ids": [
+          "CARD.CREATIVE_AI"
+        ]
+      },
+      {
+        "id": 304,
+        "key": "CRESCENT_SPEAR",
+        "native_ids": [
+          "CARD.CRESCENT_SPEAR"
+        ]
+      },
+      {
+        "id": 305,
+        "key": "CRUSH_UNDER",
+        "native_ids": [
+          "CARD.CRUSH_UNDER"
+        ]
+      },
+      {
+        "id": 306,
+        "key": "DAGGER_SPRAY",
+        "native_ids": [
+          "CARD.DAGGER_SPRAY"
+        ]
+      },
+      {
+        "id": 307,
+        "key": "DAGGER_THROW",
+        "native_ids": [
+          "CARD.DAGGER_THROW"
+        ]
+      },
+      {
+        "id": 308,
+        "key": "DANSE_MACABRE",
+        "native_ids": [
+          "CARD.DANSE_MACABRE"
+        ]
+      },
+      {
+        "id": 309,
+        "key": "DARKNESS",
+        "native_ids": [
+          "CARD.DARKNESS"
+        ]
+      },
+      {
+        "id": 310,
+        "key": "DASH",
+        "native_ids": [
+          "CARD.DASH"
+        ]
+      },
+      {
+        "id": 311,
+        "key": "DEADLY_POISON",
+        "native_ids": [
+          "CARD.DEADLY_POISON"
+        ]
+      },
+      {
+        "id": 312,
+        "key": "DEATH_MARCH",
+        "native_ids": [
+          "CARD.DEATH_MARCH"
+        ]
+      },
+      {
+        "id": 313,
+        "key": "DEATHBRINGER",
+        "native_ids": [
+          "CARD.DEATHBRINGER"
+        ]
+      },
+      {
+        "id": 314,
+        "key": "DEATHS_DOOR",
+        "native_ids": [
+          "CARD.DEATHS_DOOR"
+        ]
+      },
+      {
+        "id": 315,
+        "key": "DEBILITATE",
+        "native_ids": [
+          "CARD.DEBILITATE"
+        ]
+      },
+      {
+        "id": 316,
+        "key": "DECISIONS_DECISIONS",
+        "native_ids": [
+          "CARD.DECISIONS_DECISIONS"
+        ]
+      },
+      {
+        "id": 317,
+        "key": "DEFEND_DEFECT",
+        "native_ids": [
+          "CARD.DEFEND_DEFECT"
+        ]
+      },
+      {
+        "id": 318,
+        "key": "DEFEND_NECROBINDER",
+        "native_ids": [
+          "CARD.DEFEND_NECROBINDER"
+        ]
+      },
+      {
+        "id": 319,
+        "key": "DEFEND_REGENT",
+        "native_ids": [
+          "CARD.DEFEND_REGENT"
+        ]
+      },
+      {
+        "id": 320,
+        "key": "DEFEND_SILENT",
+        "native_ids": [
+          "CARD.DEFEND_SILENT"
+        ]
+      },
+      {
+        "id": 321,
+        "key": "DEFILE",
+        "native_ids": [
+          "CARD.DEFILE"
+        ]
+      },
+      {
+        "id": 322,
+        "key": "DEFLECT",
+        "native_ids": [
+          "CARD.DEFLECT"
+        ]
+      },
+      {
+        "id": 323,
+        "key": "DEFRAGMENT",
+        "native_ids": [
+          "CARD.DEFRAGMENT"
+        ]
+      },
+      {
+        "id": 324,
+        "key": "DEFY",
+        "native_ids": [
+          "CARD.DEFY"
+        ]
+      },
+      {
+        "id": 325,
+        "key": "DELAY",
+        "native_ids": [
+          "CARD.DELAY"
+        ]
+      },
+      {
+        "id": 326,
+        "key": "DEMESNE",
+        "native_ids": [
+          "CARD.DEMESNE"
+        ]
+      },
+      {
+        "id": 327,
+        "key": "DEVASTATE",
+        "native_ids": [
+          "CARD.DEVASTATE"
+        ]
+      },
+      {
+        "id": 328,
+        "key": "DEVOUR_LIFE",
+        "native_ids": [
+          "CARD.DEVOUR_LIFE"
+        ]
+      },
+      {
+        "id": 329,
+        "key": "DIRGE",
+        "native_ids": [
+          "CARD.DIRGE"
+        ]
+      },
+      {
+        "id": 330,
+        "key": "DODGE_AND_ROLL",
+        "native_ids": [
+          "CARD.DODGE_AND_ROLL"
+        ]
+      },
+      {
+        "id": 331,
+        "key": "DOUBLE_ENERGY",
+        "native_ids": [
+          "CARD.DOUBLE_ENERGY"
+        ]
+      },
+      {
+        "id": 332,
+        "key": "DOWSING",
+        "native_ids": [
+          "CARD.DOWSING"
+        ]
+      },
+      {
+        "id": 333,
+        "key": "DRAIN_POWER",
+        "native_ids": [
+          "CARD.DRAIN_POWER"
+        ]
+      },
+      {
+        "id": 334,
+        "key": "DREDGE",
+        "native_ids": [
+          "CARD.DREDGE"
+        ]
+      },
+      {
+        "id": 335,
+        "key": "DUALCAST",
+        "native_ids": [
+          "CARD.DUALCAST"
+        ]
+      },
+      {
+        "id": 336,
+        "key": "DYING_STAR",
+        "native_ids": [
+          "CARD.DYING_STAR"
+        ]
+      },
+      {
+        "id": 337,
+        "key": "ECHO_FORM",
+        "native_ids": [
+          "CARD.ECHO_FORM"
+        ]
+      },
+      {
+        "id": 338,
+        "key": "ECHOING_SLASH",
+        "native_ids": [
+          "CARD.ECHOING_SLASH"
+        ]
+      },
+      {
+        "id": 339,
+        "key": "EIDOLON",
+        "native_ids": [
+          "CARD.EIDOLON"
+        ]
+      },
+      {
+        "id": 340,
+        "key": "END_OF_DAYS",
+        "native_ids": [
+          "CARD.END_OF_DAYS"
+        ]
+      },
+      {
+        "id": 341,
+        "key": "ENERGY_SURGE",
+        "native_ids": [
+          "CARD.ENERGY_SURGE"
+        ]
+      },
+      {
+        "id": 342,
+        "key": "ENFEEBLING_TOUCH",
+        "native_ids": [
+          "CARD.ENFEEBLING_TOUCH"
+        ]
+      },
+      {
+        "id": 343,
+        "key": "ENVENOM",
+        "native_ids": [
+          "CARD.ENVENOM"
+        ]
+      },
+      {
+        "id": 344,
+        "key": "ERADICATE",
+        "native_ids": [
+          "CARD.ERADICATE"
+        ]
+      },
+      {
+        "id": 345,
+        "key": "ESCAPE_PLAN",
+        "native_ids": [
+          "CARD.ESCAPE_PLAN"
+        ]
+      },
+      {
+        "id": 346,
+        "key": "EXPERTISE",
+        "native_ids": [
+          "CARD.EXPERTISE"
+        ]
+      },
+      {
+        "id": 347,
+        "key": "EXPOSE",
+        "native_ids": [
+          "CARD.EXPOSE"
+        ]
+      },
+      {
+        "id": 348,
+        "key": "FADE",
+        "native_ids": [
+          "CARD.FADE"
+        ]
+      },
+      {
+        "id": 349,
+        "key": "FALLING_STAR",
+        "native_ids": [
+          "CARD.FALLING_STAR"
+        ]
+      },
+      {
+        "id": 350,
+        "key": "FAN_OF_KNIVES",
+        "native_ids": [
+          "CARD.FAN_OF_KNIVES"
+        ]
+      },
+      {
+        "id": 351,
+        "key": "FEAR",
+        "native_ids": [
+          "CARD.FEAR"
+        ]
+      },
+      {
+        "id": 352,
+        "key": "FERAL",
+        "native_ids": [
+          "CARD.FERAL"
+        ]
+      },
+      {
+        "id": 353,
+        "key": "FETCH",
+        "native_ids": [
+          "CARD.FETCH"
+        ]
+      },
+      {
+        "id": 354,
+        "key": "FIGHT_THROUGH",
+        "native_ids": [
+          "CARD.FIGHT_THROUGH"
+        ]
+      },
+      {
+        "id": 355,
+        "key": "FINISHER",
+        "native_ids": [
+          "CARD.FINISHER"
+        ]
+      },
+      {
+        "id": 356,
+        "key": "FLAK_CANNON",
+        "native_ids": [
+          "CARD.FLAK_CANNON"
+        ]
+      },
+      {
+        "id": 357,
+        "key": "FLANKING",
+        "native_ids": [
+          "CARD.FLANKING"
+        ]
+      },
+      {
+        "id": 358,
+        "key": "FLATTEN",
+        "native_ids": [
+          "CARD.FLATTEN"
+        ]
+      },
+      {
+        "id": 359,
+        "key": "FLECHETTES",
+        "native_ids": [
+          "CARD.FLECHETTES"
+        ]
+      },
+      {
+        "id": 360,
+        "key": "FLICK_FLACK",
+        "native_ids": [
+          "CARD.FLICK_FLACK"
+        ]
+      },
+      {
+        "id": 361,
+        "key": "FOCUSED_STRIKE",
+        "native_ids": [
+          "CARD.FOCUSED_STRIKE"
+        ]
+      },
+      {
+        "id": 362,
+        "key": "FOOTWORK",
+        "native_ids": [
+          "CARD.FOOTWORK"
+        ]
+      },
+      {
+        "id": 363,
+        "key": "FORBIDDEN_GRIMOIRE",
+        "native_ids": [
+          "CARD.FORBIDDEN_GRIMOIRE"
+        ]
+      },
+      {
+        "id": 364,
+        "key": "FOREGONE_CONCLUSION",
+        "native_ids": [
+          "CARD.FOREGONE_CONCLUSION"
+        ]
+      },
+      {
+        "id": 365,
+        "key": "FRIENDSHIP",
+        "native_ids": [
+          "CARD.FRIENDSHIP"
+        ]
+      },
+      {
+        "id": 366,
+        "key": "FTL",
+        "native_ids": [
+          "CARD.FTL"
+        ]
+      },
+      {
+        "id": 367,
+        "key": "FURNACE",
+        "native_ids": [
+          "CARD.FURNACE"
+        ]
+      },
+      {
+        "id": 368,
+        "key": "FUSION",
+        "native_ids": [
+          "CARD.FUSION"
+        ]
+      },
+      {
+        "id": 369,
+        "key": "GAMMA_BLAST",
+        "native_ids": [
+          "CARD.GAMMA_BLAST"
+        ]
+      },
+      {
+        "id": 370,
+        "key": "GATHER_LIGHT",
+        "native_ids": [
+          "CARD.GATHER_LIGHT"
+        ]
+      },
+      {
+        "id": 371,
+        "key": "GENESIS",
+        "native_ids": [
+          "CARD.GENESIS"
+        ]
+      },
+      {
+        "id": 372,
+        "key": "GENETIC_ALGORITHM",
+        "native_ids": [
+          "CARD.GENETIC_ALGORITHM"
+        ]
+      },
+      {
+        "id": 373,
+        "key": "GLACIER",
+        "native_ids": [
+          "CARD.GLACIER"
+        ]
+      },
+      {
+        "id": 374,
+        "key": "GLASSWORK",
+        "native_ids": [
+          "CARD.GLASSWORK"
+        ]
+      },
+      {
+        "id": 375,
+        "key": "GLIMMER",
+        "native_ids": [
+          "CARD.GLIMMER"
+        ]
+      },
+      {
+        "id": 376,
+        "key": "GLIMPSE_BEYOND",
+        "native_ids": [
+          "CARD.GLIMPSE_BEYOND"
+        ]
+      },
+      {
+        "id": 377,
+        "key": "GLITTERSTREAM",
+        "native_ids": [
+          "CARD.GLITTERSTREAM"
+        ]
+      },
+      {
+        "id": 378,
+        "key": "GLOW",
+        "native_ids": [
+          "CARD.GLOW"
+        ]
+      },
+      {
+        "id": 379,
+        "key": "GO_FOR_THE_EYES",
+        "native_ids": [
+          "CARD.GO_FOR_THE_EYES"
+        ]
+      },
+      {
+        "id": 380,
+        "key": "GRAND_FINALE",
+        "native_ids": [
+          "CARD.GRAND_FINALE"
+        ]
+      },
+      {
+        "id": 381,
+        "key": "GRAVE_WARDEN",
+        "native_ids": [
+          "CARD.GRAVE_WARDEN"
+        ]
+      },
+      {
+        "id": 382,
+        "key": "GRAVEBLAST",
+        "native_ids": [
+          "CARD.GRAVEBLAST"
+        ]
+      },
+      {
+        "id": 383,
+        "key": "GUARDS",
+        "native_ids": [
+          "CARD.GUARDS"
+        ]
+      },
+      {
+        "id": 384,
+        "key": "GUIDING_STAR",
+        "native_ids": [
+          "CARD.GUIDING_STAR"
+        ]
+      },
+      {
+        "id": 385,
+        "key": "GUNK_UP",
+        "native_ids": [
+          "CARD.GUNK_UP"
+        ]
+      },
+      {
+        "id": 386,
+        "key": "HAILSTORM",
+        "native_ids": [
+          "CARD.HAILSTORM"
+        ]
+      },
+      {
+        "id": 387,
+        "key": "HAMMER_TIME",
+        "native_ids": [
+          "CARD.HAMMER_TIME"
+        ]
+      },
+      {
+        "id": 388,
+        "key": "HAND_TRICK",
+        "native_ids": [
+          "CARD.HAND_TRICK"
+        ]
+      },
+      {
+        "id": 389,
+        "key": "HANG",
+        "native_ids": [
+          "CARD.HANG"
+        ]
+      },
+      {
+        "id": 390,
+        "key": "HAUNT",
+        "native_ids": [
+          "CARD.HAUNT"
+        ]
+      },
+      {
+        "id": 391,
+        "key": "HAZE",
+        "native_ids": [
+          "CARD.HAZE"
+        ]
+      },
+      {
+        "id": 392,
+        "key": "HEAVENLY_DRILL",
+        "native_ids": [
+          "CARD.HEAVENLY_DRILL"
+        ]
+      },
+      {
+        "id": 393,
+        "key": "HEGEMONY",
+        "native_ids": [
+          "CARD.HEGEMONY"
+        ]
+      },
+      {
+        "id": 394,
+        "key": "HEIRLOOM_HAMMER",
+        "native_ids": [
+          "CARD.HEIRLOOM_HAMMER"
+        ]
+      },
+      {
+        "id": 395,
+        "key": "HELIX_DRILL",
+        "native_ids": [
+          "CARD.HELIX_DRILL"
+        ]
+      },
+      {
+        "id": 396,
+        "key": "HIBERNATE",
+        "native_ids": [
+          "CARD.HIBERNATE"
+        ]
+      },
+      {
+        "id": 397,
+        "key": "HIDDEN_CACHE",
+        "native_ids": [
+          "CARD.HIDDEN_CACHE"
+        ]
+      },
+      {
+        "id": 398,
+        "key": "HIDDEN_DAGGERS",
+        "native_ids": [
+          "CARD.HIDDEN_DAGGERS"
+        ]
+      },
+      {
+        "id": 399,
+        "key": "HIGH_FIVE",
+        "native_ids": [
+          "CARD.HIGH_FIVE"
+        ]
+      },
+      {
+        "id": 400,
+        "key": "HOLOGRAM",
+        "native_ids": [
+          "CARD.HOLOGRAM"
+        ]
+      },
+      {
+        "id": 401,
+        "key": "HOTFIX",
+        "native_ids": [
+          "CARD.HOTFIX"
+        ]
+      },
+      {
+        "id": 402,
+        "key": "HYPERBEAM",
+        "native_ids": [
+          "CARD.HYPERBEAM"
+        ]
+      },
+      {
+        "id": 403,
+        "key": "I_AM_INVINCIBLE",
+        "native_ids": [
+          "CARD.I_AM_INVINCIBLE"
+        ]
+      },
+      {
+        "id": 404,
+        "key": "ICE_LANCE",
+        "native_ids": [
+          "CARD.ICE_LANCE"
+        ]
+      },
+      {
+        "id": 405,
+        "key": "IGNITION",
+        "native_ids": [
+          "CARD.IGNITION"
+        ]
+      },
+      {
+        "id": 406,
+        "key": "IMITATION_LEARNING",
+        "native_ids": [
+          "CARD.IMITATION_LEARNING"
+        ]
+      },
+      {
+        "id": 407,
+        "key": "INFINITE_BLADES",
+        "native_ids": [
+          "CARD.INFINITE_BLADES"
+        ]
+      },
+      {
+        "id": 408,
+        "key": "INVOKE",
+        "native_ids": [
+          "CARD.INVOKE"
+        ]
+      },
+      {
+        "id": 409,
+        "key": "ITERATION",
+        "native_ids": [
+          "CARD.ITERATION"
+        ]
+      },
+      {
+        "id": 410,
+        "key": "KINGLY_KICK",
+        "native_ids": [
+          "CARD.KINGLY_KICK"
+        ]
+      },
+      {
+        "id": 411,
+        "key": "KINGLY_PUNCH",
+        "native_ids": [
+          "CARD.KINGLY_PUNCH"
+        ]
+      },
+      {
+        "id": 412,
+        "key": "KNIFE_TRAP",
+        "native_ids": [
+          "CARD.KNIFE_TRAP"
+        ]
+      },
+      {
+        "id": 413,
+        "key": "KNOCKOUT_BLOW",
+        "native_ids": [
+          "CARD.KNOCKOUT_BLOW"
+        ]
+      },
+      {
+        "id": 414,
+        "key": "KNOW_THY_PLACE",
+        "native_ids": [
+          "CARD.KNOW_THY_PLACE"
+        ]
+      },
+      {
+        "id": 415,
+        "key": "LANTERN_KEY",
+        "native_ids": [
+          "CARD.LANTERN_KEY"
+        ]
+      },
+      {
+        "id": 416,
+        "key": "LARGESSE",
+        "native_ids": [
+          "CARD.LARGESSE"
+        ]
+      },
+      {
+        "id": 417,
+        "key": "LEADING_STRIKE",
+        "native_ids": [
+          "CARD.LEADING_STRIKE"
+        ]
+      },
+      {
+        "id": 418,
+        "key": "LEAP",
+        "native_ids": [
+          "CARD.LEAP"
+        ]
+      },
+      {
+        "id": 419,
+        "key": "LEG_SWEEP",
+        "native_ids": [
+          "CARD.LEG_SWEEP"
+        ]
+      },
+      {
+        "id": 420,
+        "key": "LEGION_OF_BONE",
+        "native_ids": [
+          "CARD.LEGION_OF_BONE"
+        ]
+      },
+      {
+        "id": 421,
+        "key": "LETHALITY",
+        "native_ids": [
+          "CARD.LETHALITY"
+        ]
+      },
+      {
+        "id": 422,
+        "key": "LIGHTNING_ROD",
+        "native_ids": [
+          "CARD.LIGHTNING_ROD"
+        ]
+      },
+      {
+        "id": 423,
+        "key": "LOOP",
+        "native_ids": [
+          "CARD.LOOP"
+        ]
+      },
+      {
+        "id": 424,
+        "key": "LUNAR_BLAST",
+        "native_ids": [
+          "CARD.LUNAR_BLAST"
+        ]
+      },
+      {
+        "id": 425,
+        "key": "MACHINE_LEARNING",
+        "native_ids": [
+          "CARD.MACHINE_LEARNING"
+        ]
+      },
+      {
+        "id": 426,
+        "key": "MAKE_IT_SO",
+        "native_ids": [
+          "CARD.MAKE_IT_SO"
+        ]
+      },
+      {
+        "id": 427,
+        "key": "MALAISE",
+        "native_ids": [
+          "CARD.MALAISE"
+        ]
+      },
+      {
+        "id": 428,
+        "key": "MANIFEST_AUTHORITY",
+        "native_ids": [
+          "CARD.MANIFEST_AUTHORITY"
+        ]
+      },
+      {
+        "id": 429,
+        "key": "MASTER_PLANNER",
+        "native_ids": [
+          "CARD.MASTER_PLANNER"
+        ]
+      },
+      {
+        "id": 430,
+        "key": "MELANCHOLY",
+        "native_ids": [
+          "CARD.MELANCHOLY"
+        ]
+      },
+      {
+        "id": 431,
+        "key": "MEMENTO_MORI",
+        "native_ids": [
+          "CARD.MEMENTO_MORI"
+        ]
+      },
+      {
+        "id": 432,
+        "key": "METEOR_SHOWER",
+        "native_ids": [
+          "CARD.METEOR_SHOWER"
+        ]
+      },
+      {
+        "id": 433,
+        "key": "METEOR_STRIKE",
+        "native_ids": [
+          "CARD.METEOR_STRIKE"
+        ]
+      },
+      {
+        "id": 434,
+        "key": "MIDNIGHT",
+        "native_ids": [
+          "CARD.MIDNIGHT"
+        ]
+      },
+      {
+        "id": 435,
+        "key": "MIRAGE",
+        "native_ids": [
+          "CARD.MIRAGE"
+        ]
+      },
+      {
+        "id": 436,
+        "key": "MISERY",
+        "native_ids": [
+          "CARD.MISERY"
+        ]
+      },
+      {
+        "id": 437,
+        "key": "MODDED",
+        "native_ids": [
+          "CARD.MODDED"
+        ]
+      },
+      {
+        "id": 438,
+        "key": "MOMENTUM_STRIKE",
+        "native_ids": [
+          "CARD.MOMENTUM_STRIKE"
+        ]
+      },
+      {
+        "id": 439,
+        "key": "MONARCHS_GAZE",
+        "native_ids": [
+          "CARD.MONARCHS_GAZE"
+        ]
+      },
+      {
+        "id": 440,
+        "key": "MONOLOGUE",
+        "native_ids": [
+          "CARD.MONOLOGUE"
+        ]
+      },
+      {
+        "id": 441,
+        "key": "MULTI_CAST",
+        "native_ids": [
+          "CARD.MULTI_CAST"
+        ]
+      },
+      {
+        "id": 442,
+        "key": "MURDER",
+        "native_ids": [
+          "CARD.MURDER"
+        ]
+      },
+      {
+        "id": 443,
+        "key": "NECRO_MASTERY",
+        "native_ids": [
+          "CARD.NECRO_MASTERY"
+        ]
+      },
+      {
+        "id": 444,
+        "key": "NEGATIVE_PULSE",
+        "native_ids": [
+          "CARD.NEGATIVE_PULSE"
+        ]
+      },
+      {
+        "id": 445,
+        "key": "NEUROSURGE",
+        "native_ids": [
+          "CARD.NEUROSURGE"
+        ]
+      },
+      {
+        "id": 446,
+        "key": "NEUTRALIZE",
+        "native_ids": [
+          "CARD.NEUTRALIZE"
+        ]
+      },
+      {
+        "id": 447,
+        "key": "NEUTRON_AEGIS",
+        "native_ids": [
+          "CARD.NEUTRON_AEGIS"
+        ]
+      },
+      {
+        "id": 448,
+        "key": "NIGHTMARE",
+        "native_ids": [
+          "CARD.NIGHTMARE"
+        ]
+      },
+      {
+        "id": 449,
+        "key": "NO_ESCAPE",
+        "native_ids": [
+          "CARD.NO_ESCAPE"
+        ]
+      },
+      {
+        "id": 450,
+        "key": "NOXIOUS_FUMES",
+        "native_ids": [
+          "CARD.NOXIOUS_FUMES"
+        ]
+      },
+      {
+        "id": 451,
+        "key": "NULL_CARD",
+        "native_ids": [
+          "CARD.NULL"
+        ]
+      },
+      {
+        "id": 452,
+        "key": "OBLIVION",
+        "native_ids": [
+          "CARD.OBLIVION"
+        ]
+      },
+      {
+        "id": 453,
+        "key": "ONE_FOR_ALL",
+        "native_ids": [
+          "CARD.ONE_FOR_ALL"
+        ]
+      },
+      {
+        "id": 454,
+        "key": "ORBIT",
+        "native_ids": [
+          "CARD.ORBIT"
+        ]
+      },
+      {
+        "id": 455,
+        "key": "OUTBREAK",
+        "native_ids": [
+          "CARD.OUTBREAK"
+        ]
+      },
+      {
+        "id": 456,
+        "key": "OUTRAGE",
+        "native_ids": [
+          "CARD.OUTRAGE"
+        ]
+      },
+      {
+        "id": 457,
+        "key": "OVERCLOCK",
+        "native_ids": [
+          "CARD.OVERCLOCK"
+        ]
+      },
+      {
+        "id": 458,
+        "key": "PAGESTORM",
+        "native_ids": [
+          "CARD.PAGESTORM"
+        ]
+      },
+      {
+        "id": 459,
+        "key": "PALE_BLUE_DOT",
+        "native_ids": [
+          "CARD.PALE_BLUE_DOT"
+        ]
+      },
+      {
+        "id": 460,
+        "key": "PARRY",
+        "native_ids": [
+          "CARD.PARRY"
+        ]
+      },
+      {
+        "id": 461,
+        "key": "PARSE",
+        "native_ids": [
+          "CARD.PARSE"
+        ]
+      },
+      {
+        "id": 462,
+        "key": "PARTICLE_WALL",
+        "native_ids": [
+          "CARD.PARTICLE_WALL"
+        ]
+      },
+      {
+        "id": 463,
+        "key": "PATTER",
+        "native_ids": [
+          "CARD.PATTER"
+        ]
+      },
+      {
+        "id": 464,
+        "key": "PHANTOM_BLADES",
+        "native_ids": [
+          "CARD.PHANTOM_BLADES"
+        ]
+      },
+      {
+        "id": 465,
+        "key": "PHOTON_CUT",
+        "native_ids": [
+          "CARD.PHOTON_CUT"
+        ]
+      },
+      {
+        "id": 466,
+        "key": "PIERCING_WAIL",
+        "native_ids": [
+          "CARD.PIERCING_WAIL"
+        ]
+      },
+      {
+        "id": 467,
+        "key": "PILLAR_OF_CREATION",
+        "native_ids": [
+          "CARD.PILLAR_OF_CREATION"
+        ]
+      },
+      {
+        "id": 468,
+        "key": "PINPOINT",
+        "native_ids": [
+          "CARD.PINPOINT"
+        ]
+      },
+      {
+        "id": 469,
+        "key": "PLOT",
+        "native_ids": [
+          "CARD.PLOT"
+        ]
+      },
+      {
+        "id": 470,
+        "key": "POISONED_STAB",
+        "native_ids": [
+          "CARD.POISONED_STAB"
+        ]
+      },
+      {
+        "id": 471,
+        "key": "POKE",
+        "native_ids": [
+          "CARD.POKE"
+        ]
+      },
+      {
+        "id": 472,
+        "key": "POUNCE",
+        "native_ids": [
+          "CARD.POUNCE"
+        ]
+      },
+      {
+        "id": 473,
+        "key": "PRECISE_CUT",
+        "native_ids": [
+          "CARD.PRECISE_CUT"
+        ]
+      },
+      {
+        "id": 474,
+        "key": "PREDATOR",
+        "native_ids": [
+          "CARD.PREDATOR"
+        ]
+      },
+      {
+        "id": 475,
+        "key": "PREPARED",
+        "native_ids": [
+          "CARD.PREPARED"
+        ]
+      },
+      {
+        "id": 476,
+        "key": "PROPHESIZE",
+        "native_ids": [
+          "CARD.PROPHESIZE"
+        ]
+      },
+      {
+        "id": 477,
+        "key": "PROTECTOR",
+        "native_ids": [
+          "CARD.PROTECTOR"
+        ]
+      },
+      {
+        "id": 478,
+        "key": "PULL_AGGRO",
+        "native_ids": [
+          "CARD.PULL_AGGRO"
+        ]
+      },
+      {
+        "id": 479,
+        "key": "PULL_FROM_BELOW",
+        "native_ids": [
+          "CARD.PULL_FROM_BELOW"
+        ]
+      },
+      {
+        "id": 480,
+        "key": "PUTREFY",
+        "native_ids": [
+          "CARD.PUTREFY"
+        ]
+      },
+      {
+        "id": 481,
+        "key": "QUADCAST",
+        "native_ids": [
+          "CARD.QUADCAST"
+        ]
+      },
+      {
+        "id": 482,
+        "key": "QUASAR",
+        "native_ids": [
+          "CARD.QUASAR"
+        ]
+      },
+      {
+        "id": 483,
+        "key": "RADIATE",
+        "native_ids": [
+          "CARD.RADIATE"
+        ]
+      },
+      {
+        "id": 484,
+        "key": "RAINBOW",
+        "native_ids": [
+          "CARD.RAINBOW"
+        ]
+      },
+      {
+        "id": 485,
+        "key": "RATTLE",
+        "native_ids": [
+          "CARD.RATTLE"
+        ]
+      },
+      {
+        "id": 486,
+        "key": "REANIMATE",
+        "native_ids": [
+          "CARD.REANIMATE"
+        ]
+      },
+      {
+        "id": 487,
+        "key": "REAP",
+        "native_ids": [
+          "CARD.REAP"
+        ]
+      },
+      {
+        "id": 488,
+        "key": "REAPER_FORM",
+        "native_ids": [
+          "CARD.REAPER_FORM"
+        ]
+      },
+      {
+        "id": 489,
+        "key": "REAVE",
+        "native_ids": [
+          "CARD.REAVE"
+        ]
+      },
+      {
+        "id": 490,
+        "key": "REBOOT",
+        "native_ids": [
+          "CARD.REBOOT"
+        ]
+      },
+      {
+        "id": 491,
+        "key": "REFINE_BLADE",
+        "native_ids": [
+          "CARD.REFINE_BLADE"
+        ]
+      },
+      {
+        "id": 492,
+        "key": "REFLECT",
+        "native_ids": [
+          "CARD.REFLECT"
+        ]
+      },
+      {
+        "id": 493,
+        "key": "REFLEX",
+        "native_ids": [
+          "CARD.REFLEX"
+        ]
+      },
+      {
+        "id": 494,
+        "key": "REFRACT",
+        "native_ids": [
+          "CARD.REFRACT"
+        ]
+      },
+      {
+        "id": 495,
+        "key": "RESONANCE",
+        "native_ids": [
+          "CARD.RESONANCE"
+        ]
+      },
+      {
+        "id": 496,
+        "key": "RICOCHET",
+        "native_ids": [
+          "CARD.RICOCHET"
+        ]
+      },
+      {
+        "id": 497,
+        "key": "RIGHT_HAND_HAND",
+        "native_ids": [
+          "CARD.RIGHT_HAND_HAND"
+        ]
+      },
+      {
+        "id": 498,
+        "key": "ROCKET_PUNCH",
+        "native_ids": [
+          "CARD.ROCKET_PUNCH"
+        ]
+      },
+      {
+        "id": 499,
+        "key": "ROYAL_GAMBLE",
+        "native_ids": [
+          "CARD.ROYAL_GAMBLE"
+        ]
+      },
+      {
+        "id": 500,
+        "key": "ROYALTIES",
+        "native_ids": [
+          "CARD.ROYALTIES"
+        ]
+      },
+      {
+        "id": 501,
+        "key": "SACRIFICE",
+        "native_ids": [
+          "CARD.SACRIFICE"
+        ]
+      },
+      {
+        "id": 502,
+        "key": "SCAVENGE",
+        "native_ids": [
+          "CARD.SCAVENGE"
+        ]
+      },
+      {
+        "id": 503,
+        "key": "SCOURGE",
+        "native_ids": [
+          "CARD.SCOURGE"
+        ]
+      },
+      {
+        "id": 504,
+        "key": "SCRAPE",
+        "native_ids": [
+          "CARD.SCRAPE"
+        ]
+      },
+      {
+        "id": 505,
+        "key": "SCULPTING_STRIKE",
+        "native_ids": [
+          "CARD.SCULPTING_STRIKE"
+        ]
+      },
+      {
+        "id": 506,
+        "key": "SEANCE",
+        "native_ids": [
+          "CARD.SEANCE"
+        ]
+      },
+      {
+        "id": 507,
+        "key": "SEEKING_EDGE",
+        "native_ids": [
+          "CARD.SEEKING_EDGE"
+        ]
+      },
+      {
+        "id": 508,
+        "key": "SENTRY_MODE",
+        "native_ids": [
+          "CARD.SENTRY_MODE"
+        ]
+      },
+      {
+        "id": 509,
+        "key": "SERPENT_FORM",
+        "native_ids": [
+          "CARD.SERPENT_FORM"
+        ]
+      },
+      {
+        "id": 510,
+        "key": "SEVEN_STARS",
+        "native_ids": [
+          "CARD.SEVEN_STARS"
+        ]
+      },
+      {
+        "id": 511,
+        "key": "SEVERANCE",
+        "native_ids": [
+          "CARD.SEVERANCE"
+        ]
+      },
+      {
+        "id": 512,
+        "key": "SHADOW_SHIELD",
+        "native_ids": [
+          "CARD.SHADOW_SHIELD"
+        ]
+      },
+      {
+        "id": 513,
+        "key": "SHADOW_STEP",
+        "native_ids": [
+          "CARD.SHADOW_STEP"
+        ]
+      },
+      {
+        "id": 514,
+        "key": "SHADOWMELD",
+        "native_ids": [
+          "CARD.SHADOWMELD"
+        ]
+      },
+      {
+        "id": 515,
+        "key": "SHARED_FATE",
+        "native_ids": [
+          "CARD.SHARED_FATE"
+        ]
+      },
+      {
+        "id": 516,
+        "key": "SHATTER",
+        "native_ids": [
+          "CARD.SHATTER"
+        ]
+      },
+      {
+        "id": 517,
+        "key": "SHINING_STRIKE",
+        "native_ids": [
+          "CARD.SHINING_STRIKE"
+        ]
+      },
+      {
+        "id": 518,
+        "key": "SHROUD",
+        "native_ids": [
+          "CARD.SHROUD"
+        ]
+      },
+      {
+        "id": 519,
+        "key": "SIC_EM",
+        "native_ids": [
+          "CARD.SIC_EM"
+        ]
+      },
+      {
+        "id": 520,
+        "key": "SIDESTEP",
+        "native_ids": [
+          "CARD.SIDESTEP"
+        ]
+      },
+      {
+        "id": 521,
+        "key": "SIGNAL_BOOST",
+        "native_ids": [
+          "CARD.SIGNAL_BOOST"
+        ]
+      },
+      {
+        "id": 522,
+        "key": "SKEWER",
+        "native_ids": [
+          "CARD.SKEWER"
+        ]
+      },
+      {
+        "id": 523,
+        "key": "SKIM",
+        "native_ids": [
+          "CARD.SKIM"
+        ]
+      },
+      {
+        "id": 524,
+        "key": "SLEIGHT_OF_FLESH",
+        "native_ids": [
+          "CARD.SLEIGHT_OF_FLESH"
+        ]
+      },
+      {
+        "id": 525,
+        "key": "SLICE",
+        "native_ids": [
+          "CARD.SLICE"
+        ]
+      },
+      {
+        "id": 526,
+        "key": "SMOKESTACK",
+        "native_ids": [
+          "CARD.SMOKESTACK"
+        ]
+      },
+      {
+        "id": 527,
+        "key": "SNAKEBITE",
+        "native_ids": [
+          "CARD.SNAKEBITE"
+        ]
+      },
+      {
+        "id": 528,
+        "key": "SNAP",
+        "native_ids": [
+          "CARD.SNAP"
+        ]
+      },
+      {
+        "id": 529,
+        "key": "SNEAKY",
+        "native_ids": [
+          "CARD.SNEAKY"
+        ]
+      },
+      {
+        "id": 530,
+        "key": "SOLAR_STRIKE",
+        "native_ids": [
+          "CARD.SOLAR_STRIKE"
+        ]
+      },
+      {
+        "id": 531,
+        "key": "SOUL_STORM",
+        "native_ids": [
+          "CARD.SOUL_STORM"
+        ]
+      },
+      {
+        "id": 532,
+        "key": "SOULBOUND",
+        "native_ids": [
+          "CARD.SOULBOUND"
+        ]
+      },
+      {
+        "id": 533,
+        "key": "SOW",
+        "native_ids": [
+          "CARD.SOW"
+        ]
+      },
+      {
+        "id": 534,
+        "key": "SPECTRUM_SHIFT",
+        "native_ids": [
+          "CARD.SPECTRUM_SHIFT"
+        ]
+      },
+      {
+        "id": 535,
+        "key": "SPEEDSTER",
+        "native_ids": [
+          "CARD.SPEEDSTER"
+        ]
+      },
+      {
+        "id": 536,
+        "key": "SPINNER",
+        "native_ids": [
+          "CARD.SPINNER"
+        ]
+      },
+      {
+        "id": 537,
+        "key": "SPIRIT_OF_ASH",
+        "native_ids": [
+          "CARD.SPIRIT_OF_ASH"
+        ]
+      },
+      {
+        "id": 538,
+        "key": "SPOILS_MAP",
+        "native_ids": [
+          "CARD.SPOILS_MAP"
+        ]
+      },
+      {
+        "id": 539,
+        "key": "SPOILS_OF_BATTLE",
+        "native_ids": [
+          "CARD.SPOILS_OF_BATTLE"
+        ]
+      },
+      {
+        "id": 540,
+        "key": "SPUR",
+        "native_ids": [
+          "CARD.SPUR"
+        ]
+      },
+      {
+        "id": 541,
+        "key": "SQUEEZE",
+        "native_ids": [
+          "CARD.SQUEEZE"
+        ]
+      },
+      {
+        "id": 542,
+        "key": "STARDUST",
+        "native_ids": [
+          "CARD.STARDUST"
+        ]
+      },
+      {
+        "id": 543,
+        "key": "STORM",
+        "native_ids": [
+          "CARD.STORM"
+        ]
+      },
+      {
+        "id": 544,
+        "key": "STORM_OF_STEEL",
+        "native_ids": [
+          "CARD.STORM_OF_STEEL"
+        ]
+      },
+      {
+        "id": 545,
+        "key": "STRANGLE",
+        "native_ids": [
+          "CARD.STRANGLE"
+        ]
+      },
+      {
+        "id": 546,
+        "key": "STRIKE_DEFECT",
+        "native_ids": [
+          "CARD.STRIKE_DEFECT"
+        ]
+      },
+      {
+        "id": 547,
+        "key": "STRIKE_NECROBINDER",
+        "native_ids": [
+          "CARD.STRIKE_NECROBINDER"
+        ]
+      },
+      {
+        "id": 548,
+        "key": "STRIKE_REGENT",
+        "native_ids": [
+          "CARD.STRIKE_REGENT"
+        ]
+      },
+      {
+        "id": 549,
+        "key": "STRIKE_SILENT",
+        "native_ids": [
+          "CARD.STRIKE_SILENT"
+        ]
+      },
+      {
+        "id": 550,
+        "key": "SUBROUTINE",
+        "native_ids": [
+          "CARD.SUBROUTINE"
+        ]
+      },
+      {
+        "id": 551,
+        "key": "SUCKER_PUNCH",
+        "native_ids": [
+          "CARD.SUCKER_PUNCH"
+        ]
+      },
+      {
+        "id": 552,
+        "key": "SUMMON_FORTH",
+        "native_ids": [
+          "CARD.SUMMON_FORTH"
+        ]
+      },
+      {
+        "id": 553,
+        "key": "SUNDER",
+        "native_ids": [
+          "CARD.SUNDER"
+        ]
+      },
+      {
+        "id": 554,
+        "key": "SUPERCRITICAL",
+        "native_ids": [
+          "CARD.SUPERCRITICAL"
+        ]
+      },
+      {
+        "id": 555,
+        "key": "SUPERMASSIVE",
+        "native_ids": [
+          "CARD.SUPERMASSIVE"
+        ]
+      },
+      {
+        "id": 556,
+        "key": "SUPPRESS",
+        "native_ids": [
+          "CARD.SUPPRESS"
+        ]
+      },
+      {
+        "id": 557,
+        "key": "SURVIVOR",
+        "native_ids": [
+          "CARD.SURVIVOR"
+        ]
+      },
+      {
+        "id": 558,
+        "key": "SWEEPING_BEAM",
+        "native_ids": [
+          "CARD.SWEEPING_BEAM"
+        ]
+      },
+      {
+        "id": 559,
+        "key": "SWORD_SAGE",
+        "native_ids": [
+          "CARD.SWORD_SAGE"
+        ]
+      },
+      {
+        "id": 560,
+        "key": "SYNCHRONIZE",
+        "native_ids": [
+          "CARD.SYNCHRONIZE"
+        ]
+      },
+      {
+        "id": 561,
+        "key": "SYNTHESIS",
+        "native_ids": [
+          "CARD.SYNTHESIS"
+        ]
+      },
+      {
+        "id": 562,
+        "key": "TACTICIAN",
+        "native_ids": [
+          "CARD.TACTICIAN"
+        ]
+      },
+      {
+        "id": 563,
+        "key": "TEMPEST",
+        "native_ids": [
+          "CARD.TEMPEST"
+        ]
+      },
+      {
+        "id": 564,
+        "key": "TERRAFORMING",
+        "native_ids": [
+          "CARD.TERRAFORMING"
+        ]
+      },
+      {
+        "id": 565,
+        "key": "TESLA_COIL",
+        "native_ids": [
+          "CARD.TESLA_COIL"
+        ]
+      },
+      {
+        "id": 566,
+        "key": "THE_BALL",
+        "native_ids": [
+          "CARD.THE_BALL"
+        ]
+      },
+      {
+        "id": 567,
+        "key": "THE_HUNT",
+        "native_ids": [
+          "CARD.THE_HUNT"
+        ]
+      },
+      {
+        "id": 568,
+        "key": "THE_SCYTHE",
+        "native_ids": [
+          "CARD.THE_SCYTHE"
+        ]
+      },
+      {
+        "id": 569,
+        "key": "THE_SEALED_THRONE",
+        "native_ids": [
+          "CARD.THE_SEALED_THRONE"
+        ]
+      },
+      {
+        "id": 570,
+        "key": "THE_SMITH",
+        "native_ids": [
+          "CARD.THE_SMITH"
+        ]
+      },
+      {
+        "id": 571,
+        "key": "THUNDER",
+        "native_ids": [
+          "CARD.THUNDER"
+        ]
+      },
+      {
+        "id": 572,
+        "key": "TIMES_UP",
+        "native_ids": [
+          "CARD.TIMES_UP"
+        ]
+      },
+      {
+        "id": 573,
+        "key": "TOOLS_OF_THE_TRADE",
+        "native_ids": [
+          "CARD.TOOLS_OF_THE_TRADE"
+        ]
+      },
+      {
+        "id": 574,
+        "key": "TRACKING",
+        "native_ids": [
+          "CARD.TRACKING"
+        ]
+      },
+      {
+        "id": 575,
+        "key": "TRANSFIGURE",
+        "native_ids": [
+          "CARD.TRANSFIGURE"
+        ]
+      },
+      {
+        "id": 576,
+        "key": "TRASH_TO_TREASURE",
+        "native_ids": [
+          "CARD.TRASH_TO_TREASURE"
+        ]
+      },
+      {
+        "id": 577,
+        "key": "TURBO",
+        "native_ids": [
+          "CARD.TURBO"
+        ]
+      },
+      {
+        "id": 578,
+        "key": "TUTOR",
+        "native_ids": [
+          "CARD.TUTOR"
+        ]
+      },
+      {
+        "id": 579,
+        "key": "TYRANNY",
+        "native_ids": [
+          "CARD.TYRANNY"
+        ]
+      },
+      {
+        "id": 580,
+        "key": "UNDEATH",
+        "native_ids": [
+          "CARD.UNDEATH"
+        ]
+      },
+      {
+        "id": 581,
+        "key": "UNDERWORLD",
+        "native_ids": [
+          "CARD.UNDERWORLD"
+        ]
+      },
+      {
+        "id": 582,
+        "key": "UNLEASH",
+        "native_ids": [
+          "CARD.UNLEASH"
+        ]
+      },
+      {
+        "id": 583,
+        "key": "UNTOUCHABLE",
+        "native_ids": [
+          "CARD.UNTOUCHABLE"
+        ]
+      },
+      {
+        "id": 584,
+        "key": "UP_MY_SLEEVE",
+        "native_ids": [
+          "CARD.UP_MY_SLEEVE"
+        ]
+      },
+      {
+        "id": 585,
+        "key": "UPROAR",
+        "native_ids": [
+          "CARD.UPROAR"
+        ]
+      },
+      {
+        "id": 586,
+        "key": "VEILPIERCER",
+        "native_ids": [
+          "CARD.VEILPIERCER"
+        ]
+      },
+      {
+        "id": 587,
+        "key": "VENERATE",
+        "native_ids": [
+          "CARD.VENERATE"
+        ]
+      },
+      {
+        "id": 588,
+        "key": "VOID_FORM",
+        "native_ids": [
+          "CARD.VOID_FORM"
+        ]
+      },
+      {
+        "id": 589,
+        "key": "VOLTAIC",
+        "native_ids": [
+          "CARD.VOLTAIC"
+        ]
+      },
+      {
+        "id": 590,
+        "key": "WELL_LAID_PLANS",
+        "native_ids": [
+          "CARD.WELL_LAID_PLANS"
+        ]
+      },
+      {
+        "id": 591,
+        "key": "WHITE_NOISE",
+        "native_ids": [
+          "CARD.WHITE_NOISE"
+        ]
+      },
+      {
+        "id": 592,
+        "key": "WISP",
+        "native_ids": [
+          "CARD.WISP"
+        ]
+      },
+      {
+        "id": 593,
+        "key": "WITHER",
+        "native_ids": [
+          "CARD.WITHER"
+        ]
+      },
+      {
+        "id": 594,
+        "key": "WRAITH_FORM",
+        "native_ids": [
+          "CARD.WRAITH_FORM"
+        ]
+      },
+      {
+        "id": 595,
+        "key": "WROUGHT_IN_WAR",
+        "native_ids": [
+          "CARD.WROUGHT_IN_WAR"
+        ]
+      },
+      {
+        "id": 596,
+        "key": "ZAP",
+        "native_ids": [
+          "CARD.ZAP"
+        ]
+      }
+    ],
+    "RELIC": [
+      {
+        "id": 0,
+        "key": "INVALID",
+        "native_ids": []
+      },
+      {
+        "id": 1,
+        "key": "BURNING_BLOOD",
+        "native_ids": [
+          "RELIC.BURNING_BLOOD"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "BLACK_BLOOD",
+        "native_ids": [
+          "RELIC.BLACK_BLOOD"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "RING_OF_THE_SNAKE",
+        "native_ids": [
+          "RELIC.RING_OF_THE_SNAKE"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "RING_OF_THE_DRAKE",
+        "native_ids": [
+          "RELIC.RING_OF_THE_DRAKE"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "CRACKED_CORE",
+        "native_ids": [
+          "RELIC.CRACKED_CORE"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "INFUSED_CORE",
+        "native_ids": [
+          "RELIC.INFUSED_CORE"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "BOUND_PHYLACTERY",
+        "native_ids": [
+          "RELIC.BOUND_PHYLACTERY"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "PHYLACTERY_UNBOUND",
+        "native_ids": [
+          "RELIC.PHYLACTERY_UNBOUND"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "DIVINE_RIGHT",
+        "native_ids": [
+          "RELIC.DIVINE_RIGHT"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "DIVINE_DESTINY",
+        "native_ids": [
+          "RELIC.DIVINE_DESTINY"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "AMETHYST_AUBERGINE",
+        "native_ids": [
+          "RELIC.AMETHYST_AUBERGINE"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "ANCHOR",
+        "native_ids": [
+          "RELIC.ANCHOR"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "BAG_OF_PREPARATION",
+        "native_ids": [
+          "RELIC.BAG_OF_PREPARATION"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "BLOOD_VIAL",
+        "native_ids": [
+          "RELIC.BLOOD_VIAL"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "BONE_FLUTE",
+        "native_ids": [
+          "RELIC.BONE_FLUTE"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "BRONZE_SCALES",
+        "native_ids": [
+          "RELIC.BRONZE_SCALES"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "CENTENNIAL_PUZZLE",
+        "native_ids": [
+          "RELIC.CENTENNIAL_PUZZLE"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "DATA_DISK",
+        "native_ids": [
+          "RELIC.DATA_DISK"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "FENCING_MANUAL",
+        "native_ids": [
+          "RELIC.FENCING_MANUAL"
+        ]
+      },
+      {
+        "id": 20,
+        "key": "FESTIVE_POPPER",
+        "native_ids": [
+          "RELIC.FESTIVE_POPPER"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "GORGET",
+        "native_ids": [
+          "RELIC.GORGET"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "HAPPY_FLOWER",
+        "native_ids": [
+          "RELIC.HAPPY_FLOWER"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "JUZU_BRACELET",
+        "native_ids": [
+          "RELIC.JUZU_BRACELET"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "LANTERN",
+        "native_ids": [
+          "RELIC.LANTERN"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "MEAL_TICKET",
+        "native_ids": [
+          "RELIC.MEAL_TICKET"
+        ]
+      },
+      {
+        "id": 26,
+        "key": "ODDLY_SMOOTH_STONE",
+        "native_ids": [
+          "RELIC.ODDLY_SMOOTH_STONE"
+        ]
+      },
+      {
+        "id": 27,
+        "key": "PENDULUM",
+        "native_ids": [
+          "RELIC.PENDULUM"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "PERMAFROST",
+        "native_ids": [
+          "RELIC.PERMAFROST"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "POTION_BELT",
+        "native_ids": [
+          "RELIC.POTION_BELT"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "RED_SKULL",
+        "native_ids": [
+          "RELIC.RED_SKULL"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "REGAL_PILLOW",
+        "native_ids": [
+          "RELIC.REGAL_PILLOW"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "SNECKO_SKULL",
+        "native_ids": [
+          "RELIC.SNECKO_SKULL"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "STRAWBERRY",
+        "native_ids": [
+          "RELIC.STRAWBERRY"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "STRIKE_DUMMY",
+        "native_ids": [
+          "RELIC.STRIKE_DUMMY"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "TINY_MAILBOX",
+        "native_ids": [
+          "RELIC.TINY_MAILBOX"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "VAJRA",
+        "native_ids": [
+          "RELIC.VAJRA"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "VENERABLE_TEA_SET",
+        "native_ids": [
+          "RELIC.VENERABLE_TEA_SET"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "WAR_PAINT",
+        "native_ids": [
+          "RELIC.WAR_PAINT"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "WHETSTONE",
+        "native_ids": [
+          "RELIC.WHETSTONE"
+        ]
+      },
+      {
+        "id": 40,
+        "key": "BOOK_OF_FIVE_RINGS",
+        "native_ids": [
+          "RELIC.BOOK_OF_FIVE_RINGS"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "AKABEKO",
+        "native_ids": [
+          "RELIC.AKABEKO"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "BAG_OF_MARBLES",
+        "native_ids": [
+          "RELIC.BAG_OF_MARBLES"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "BELLOWS",
+        "native_ids": [
+          "RELIC.BELLOWS"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "BOOK_REPAIR_KNIFE",
+        "native_ids": [
+          "RELIC.BOOK_REPAIR_KNIFE"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "BOWLER_HAT",
+        "native_ids": [
+          "RELIC.BOWLER_HAT"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "CANDELABRA",
+        "native_ids": [
+          "RELIC.CANDELABRA"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "ETERNAL_FEATHER",
+        "native_ids": [
+          "RELIC.ETERNAL_FEATHER"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "FUNERARY_MASK",
+        "native_ids": [
+          "RELIC.FUNERARY_MASK"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "GALACTIC_DUST",
+        "native_ids": [
+          "RELIC.GALACTIC_DUST"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "GOLD_PLATED_CABLES",
+        "native_ids": [
+          "RELIC.GOLD_PLATED_CABLES"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "GREMLIN_HORN",
+        "native_ids": [
+          "RELIC.GREMLIN_HORN"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "HORN_CLEAT",
+        "native_ids": [
+          "RELIC.HORN_CLEAT"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "JOSS_PAPER",
+        "native_ids": [
+          "RELIC.JOSS_PAPER"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "KUSARIGAMA",
+        "native_ids": [
+          "RELIC.KUSARIGAMA"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "LETTER_OPENER",
+        "native_ids": [
+          "RELIC.LETTER_OPENER"
+        ]
+      },
+      {
+        "id": 56,
+        "key": "LUCKY_FYSH",
+        "native_ids": [
+          "RELIC.LUCKY_FYSH"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "MERCURY_HOURGLASS",
+        "native_ids": [
+          "RELIC.MERCURY_HOURGLASS"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "MINIATURE_CANNON",
+        "native_ids": [
+          "RELIC.MINIATURE_CANNON"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "NUNCHAKU",
+        "native_ids": [
+          "RELIC.NUNCHAKU"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "ORICHALCUM",
+        "native_ids": [
+          "RELIC.ORICHALCUM"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "ORNAMENTAL_FAN",
+        "native_ids": [
+          "RELIC.ORNAMENTAL_FAN"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "PANTOGRAPH",
+        "native_ids": [
+          "RELIC.PANTOGRAPH"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "PAPER_PHROG",
+        "native_ids": [
+          "RELIC.PAPER_PHROG"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "PARRYING_SHIELD",
+        "native_ids": [
+          "RELIC.PARRYING_SHIELD"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "PEAR",
+        "native_ids": [
+          "RELIC.PEAR"
+        ]
+      },
+      {
+        "id": 66,
+        "key": "PEN_NIB",
+        "native_ids": [
+          "RELIC.PEN_NIB"
+        ]
+      },
+      {
+        "id": 67,
+        "key": "PETRIFIED_TOAD",
+        "native_ids": [
+          "RELIC.PETRIFIED_TOAD"
+        ]
+      },
+      {
+        "id": 68,
+        "key": "PLANISPHERE",
+        "native_ids": [
+          "RELIC.PLANISPHERE"
+        ]
+      },
+      {
+        "id": 69,
+        "key": "RED_MASK",
+        "native_ids": [
+          "RELIC.RED_MASK"
+        ]
+      },
+      {
+        "id": 70,
+        "key": "REGALITE",
+        "native_ids": [
+          "RELIC.REGALITE"
+        ]
+      },
+      {
+        "id": 71,
+        "key": "REPTILE_TRINKET",
+        "native_ids": [
+          "RELIC.REPTILE_TRINKET"
+        ]
+      },
+      {
+        "id": 72,
+        "key": "RIPPLE_BASIN",
+        "native_ids": [
+          "RELIC.RIPPLE_BASIN"
+        ]
+      },
+      {
+        "id": 73,
+        "key": "SELF_FORMING_CLAY",
+        "native_ids": [
+          "RELIC.SELF_FORMING_CLAY"
+        ]
+      },
+      {
+        "id": 74,
+        "key": "SPARKLING_ROUGE",
+        "native_ids": [
+          "RELIC.SPARKLING_ROUGE"
+        ]
+      },
+      {
+        "id": 75,
+        "key": "STONE_CRACKER",
+        "native_ids": [
+          "RELIC.STONE_CRACKER"
+        ]
+      },
+      {
+        "id": 76,
+        "key": "TUNING_FORK",
+        "native_ids": [
+          "RELIC.TUNING_FORK"
+        ]
+      },
+      {
+        "id": 77,
+        "key": "TINGSHA",
+        "native_ids": [
+          "RELIC.TINGSHA"
+        ]
+      },
+      {
+        "id": 78,
+        "key": "VAMBRACE",
+        "native_ids": [
+          "RELIC.VAMBRACE"
+        ]
+      },
+      {
+        "id": 79,
+        "key": "ART_OF_WAR",
+        "native_ids": [
+          "RELIC.ART_OF_WAR"
+        ]
+      },
+      {
+        "id": 80,
+        "key": "BEATING_REMNANT",
+        "native_ids": [
+          "RELIC.BEATING_REMNANT"
+        ]
+      },
+      {
+        "id": 81,
+        "key": "BIG_HAT",
+        "native_ids": [
+          "RELIC.BIG_HAT"
+        ]
+      },
+      {
+        "id": 82,
+        "key": "BOOKMARK",
+        "native_ids": [
+          "RELIC.BOOKMARK"
+        ]
+      },
+      {
+        "id": 83,
+        "key": "CAPTAINS_WHEEL",
+        "native_ids": [
+          "RELIC.CAPTAINS_WHEEL"
+        ]
+      },
+      {
+        "id": 84,
+        "key": "CHANDELIER",
+        "native_ids": [
+          "RELIC.CHANDELIER"
+        ]
+      },
+      {
+        "id": 85,
+        "key": "CHARONS_ASHES",
+        "native_ids": [
+          "RELIC.CHARONS_ASHES"
+        ]
+      },
+      {
+        "id": 86,
+        "key": "DEMON_TONGUE",
+        "native_ids": [
+          "RELIC.DEMON_TONGUE"
+        ]
+      },
+      {
+        "id": 87,
+        "key": "EMOTION_CHIP",
+        "native_ids": [
+          "RELIC.EMOTION_CHIP"
+        ]
+      },
+      {
+        "id": 88,
+        "key": "FROZEN_EGG",
+        "native_ids": [
+          "RELIC.FROZEN_EGG"
+        ]
+      },
+      {
+        "id": 89,
+        "key": "GAMBLING_CHIP",
+        "native_ids": [
+          "RELIC.GAMBLING_CHIP"
+        ]
+      },
+      {
+        "id": 90,
+        "key": "GAME_PIECE",
+        "native_ids": [
+          "RELIC.GAME_PIECE"
+        ]
+      },
+      {
+        "id": 91,
+        "key": "GIRYA",
+        "native_ids": [
+          "RELIC.GIRYA"
+        ]
+      },
+      {
+        "id": 92,
+        "key": "HELICAL_DART",
+        "native_ids": [
+          "RELIC.HELICAL_DART"
+        ]
+      },
+      {
+        "id": 93,
+        "key": "ICE_CREAM",
+        "native_ids": [
+          "RELIC.ICE_CREAM"
+        ]
+      },
+      {
+        "id": 94,
+        "key": "INTIMIDATING_HELMET",
+        "native_ids": [
+          "RELIC.INTIMIDATING_HELMET"
+        ]
+      },
+      {
+        "id": 95,
+        "key": "IVORY_TILE",
+        "native_ids": [
+          "RELIC.IVORY_TILE"
+        ]
+      },
+      {
+        "id": 96,
+        "key": "KUNAI",
+        "native_ids": [
+          "RELIC.KUNAI"
+        ]
+      },
+      {
+        "id": 97,
+        "key": "LASTING_CANDY",
+        "native_ids": [
+          "RELIC.LASTING_CANDY"
+        ]
+      },
+      {
+        "id": 98,
+        "key": "LIZARD_TAIL",
+        "native_ids": [
+          "RELIC.LIZARD_TAIL"
+        ]
+      },
+      {
+        "id": 99,
+        "key": "LUNAR_PASTRY",
+        "native_ids": [
+          "RELIC.LUNAR_PASTRY"
+        ]
+      },
+      {
+        "id": 100,
+        "key": "MANGO",
+        "native_ids": [
+          "RELIC.MANGO"
+        ]
+      },
+      {
+        "id": 101,
+        "key": "MEAT_ON_THE_BONE",
+        "native_ids": [
+          "RELIC.MEAT_ON_THE_BONE"
+        ]
+      },
+      {
+        "id": 102,
+        "key": "METRONOME",
+        "native_ids": [
+          "RELIC.METRONOME"
+        ]
+      },
+      {
+        "id": 103,
+        "key": "MINI_REGENT",
+        "native_ids": [
+          "RELIC.MINI_REGENT"
+        ]
+      },
+      {
+        "id": 104,
+        "key": "MOLTEN_EGG",
+        "native_ids": [
+          "RELIC.MOLTEN_EGG"
+        ]
+      },
+      {
+        "id": 105,
+        "key": "MUMMIFIED_HAND",
+        "native_ids": [
+          "RELIC.MUMMIFIED_HAND"
+        ]
+      },
+      {
+        "id": 106,
+        "key": "OLD_COIN",
+        "native_ids": [
+          "RELIC.OLD_COIN"
+        ]
+      },
+      {
+        "id": 107,
+        "key": "ORANGE_DOUGH",
+        "native_ids": [
+          "RELIC.ORANGE_DOUGH"
+        ]
+      },
+      {
+        "id": 108,
+        "key": "POCKETWATCH",
+        "native_ids": [
+          "RELIC.POCKETWATCH"
+        ]
+      },
+      {
+        "id": 109,
+        "key": "POWER_CELL",
+        "native_ids": [
+          "RELIC.POWER_CELL"
+        ]
+      },
+      {
+        "id": 110,
+        "key": "PRAYER_WHEEL",
+        "native_ids": [
+          "RELIC.PRAYER_WHEEL"
+        ]
+      },
+      {
+        "id": 111,
+        "key": "RAINBOW_RING",
+        "native_ids": [
+          "RELIC.RAINBOW_RING"
+        ]
+      },
+      {
+        "id": 112,
+        "key": "RAZOR_TOOTH",
+        "native_ids": [
+          "RELIC.RAZOR_TOOTH"
+        ]
+      },
+      {
+        "id": 113,
+        "key": "SHOVEL",
+        "native_ids": [
+          "RELIC.SHOVEL"
+        ]
+      },
+      {
+        "id": 114,
+        "key": "SHURIKEN",
+        "native_ids": [
+          "RELIC.SHURIKEN"
+        ]
+      },
+      {
+        "id": 115,
+        "key": "STONE_CALENDAR",
+        "native_ids": [
+          "RELIC.STONE_CALENDAR"
+        ]
+      },
+      {
+        "id": 116,
+        "key": "STURDY_CLAMP",
+        "native_ids": [
+          "RELIC.STURDY_CLAMP"
+        ]
+      },
+      {
+        "id": 117,
+        "key": "THE_COURIER",
+        "native_ids": [
+          "RELIC.THE_COURIER"
+        ]
+      },
+      {
+        "id": 118,
+        "key": "TOUGH_BANDAGES",
+        "native_ids": [
+          "RELIC.TOUGH_BANDAGES"
+        ]
+      },
+      {
+        "id": 119,
+        "key": "TOXIC_EGG",
+        "native_ids": [
+          "RELIC.TOXIC_EGG"
+        ]
+      },
+      {
+        "id": 120,
+        "key": "TUNGSTEN_ROD",
+        "native_ids": [
+          "RELIC.TUNGSTEN_ROD"
+        ]
+      },
+      {
+        "id": 121,
+        "key": "UNCEASING_TOP",
+        "native_ids": [
+          "RELIC.UNCEASING_TOP"
+        ]
+      },
+      {
+        "id": 122,
+        "key": "UNSETTLING_LAMP",
+        "native_ids": [
+          "RELIC.UNSETTLING_LAMP"
+        ]
+      },
+      {
+        "id": 123,
+        "key": "RUINED_HELMET",
+        "native_ids": [
+          "RELIC.RUINED_HELMET"
+        ]
+      },
+      {
+        "id": 124,
+        "key": "VEXING_PUZZLEBOX",
+        "native_ids": [
+          "RELIC.VEXING_PUZZLEBOX"
+        ]
+      },
+      {
+        "id": 125,
+        "key": "WHITE_BEAST_STATUE",
+        "native_ids": [
+          "RELIC.WHITE_BEAST_STATUE"
+        ]
+      },
+      {
+        "id": 126,
+        "key": "WHITE_STAR",
+        "native_ids": [
+          "RELIC.WHITE_STAR"
+        ]
+      },
+      {
+        "id": 127,
+        "key": "PAPER_KRANE",
+        "native_ids": [
+          "RELIC.PAPER_KRANE"
+        ]
+      },
+      {
+        "id": 128,
+        "key": "BELT_BUCKLE",
+        "native_ids": [
+          "RELIC.BELT_BUCKLE"
+        ]
+      },
+      {
+        "id": 129,
+        "key": "BREAD",
+        "native_ids": [
+          "RELIC.BREAD"
+        ]
+      },
+      {
+        "id": 130,
+        "key": "BRIMSTONE",
+        "native_ids": [
+          "RELIC.BRIMSTONE"
+        ]
+      },
+      {
+        "id": 131,
+        "key": "BURNING_STICKS",
+        "native_ids": [
+          "RELIC.BURNING_STICKS"
+        ]
+      },
+      {
+        "id": 132,
+        "key": "CAULDRON",
+        "native_ids": [
+          "RELIC.CAULDRON"
+        ]
+      },
+      {
+        "id": 133,
+        "key": "CHEMICAL_X",
+        "native_ids": [
+          "RELIC.CHEMICAL_X"
+        ]
+      },
+      {
+        "id": 134,
+        "key": "DINGY_RUG",
+        "native_ids": [
+          "RELIC.DINGY_RUG"
+        ]
+      },
+      {
+        "id": 135,
+        "key": "DOLLYS_MIRROR",
+        "native_ids": [
+          "RELIC.DOLLYS_MIRROR"
+        ]
+      },
+      {
+        "id": 136,
+        "key": "DRAGON_FRUIT",
+        "native_ids": [
+          "RELIC.DRAGON_FRUIT"
+        ]
+      },
+      {
+        "id": 137,
+        "key": "GHOST_SEED",
+        "native_ids": [
+          "RELIC.GHOST_SEED"
+        ]
+      },
+      {
+        "id": 138,
+        "key": "GNARLED_HAMMER",
+        "native_ids": [
+          "RELIC.GNARLED_HAMMER"
+        ]
+      },
+      {
+        "id": 139,
+        "key": "KIFUDA",
+        "native_ids": [
+          "RELIC.KIFUDA"
+        ]
+      },
+      {
+        "id": 140,
+        "key": "LAVA_LAMP",
+        "native_ids": [
+          "RELIC.LAVA_LAMP"
+        ]
+      },
+      {
+        "id": 141,
+        "key": "LEES_WAFFLE",
+        "native_ids": [
+          "RELIC.LEES_WAFFLE"
+        ]
+      },
+      {
+        "id": 142,
+        "key": "MEMBERSHIP_CARD",
+        "native_ids": [
+          "RELIC.MEMBERSHIP_CARD"
+        ]
+      },
+      {
+        "id": 143,
+        "key": "MINIATURE_TENT",
+        "native_ids": [
+          "RELIC.MINIATURE_TENT"
+        ]
+      },
+      {
+        "id": 144,
+        "key": "MYSTIC_LIGHTER",
+        "native_ids": [
+          "RELIC.MYSTIC_LIGHTER"
+        ]
+      },
+      {
+        "id": 145,
+        "key": "NINJA_SCROLL",
+        "native_ids": [
+          "RELIC.NINJA_SCROLL"
+        ]
+      },
+      {
+        "id": 146,
+        "key": "ORRERY",
+        "native_ids": [
+          "RELIC.ORRERY"
+        ]
+      },
+      {
+        "id": 147,
+        "key": "PUNCH_DAGGER",
+        "native_ids": [
+          "RELIC.PUNCH_DAGGER"
+        ]
+      },
+      {
+        "id": 148,
+        "key": "RINGING_TRIANGLE",
+        "native_ids": [
+          "RELIC.RINGING_TRIANGLE"
+        ]
+      },
+      {
+        "id": 149,
+        "key": "ROYAL_STAMP",
+        "native_ids": [
+          "RELIC.ROYAL_STAMP"
+        ]
+      },
+      {
+        "id": 150,
+        "key": "RUNIC_CAPACITOR",
+        "native_ids": [
+          "RELIC.RUNIC_CAPACITOR"
+        ]
+      },
+      {
+        "id": 151,
+        "key": "SCREAMING_FLAGON",
+        "native_ids": [
+          "RELIC.SCREAMING_FLAGON"
+        ]
+      },
+      {
+        "id": 152,
+        "key": "SLING_OF_COURAGE",
+        "native_ids": [
+          "RELIC.SLING_OF_COURAGE"
+        ]
+      },
+      {
+        "id": 153,
+        "key": "THE_ABACUS",
+        "native_ids": [
+          "RELIC.THE_ABACUS"
+        ]
+      },
+      {
+        "id": 154,
+        "key": "TOOLBOX",
+        "native_ids": [
+          "RELIC.TOOLBOX"
+        ]
+      },
+      {
+        "id": 155,
+        "key": "UNDYING_SIGIL",
+        "native_ids": [
+          "RELIC.UNDYING_SIGIL"
+        ]
+      },
+      {
+        "id": 156,
+        "key": "VITRUVIAN_MINION",
+        "native_ids": [
+          "RELIC.VITRUVIAN_MINION"
+        ]
+      },
+      {
+        "id": 157,
+        "key": "WING_CHARM",
+        "native_ids": [
+          "RELIC.WING_CHARM"
+        ]
+      },
+      {
+        "id": 158,
+        "key": "ALCHEMICAL_COFFER",
+        "native_ids": [
+          "RELIC.ALCHEMICAL_COFFER"
+        ]
+      },
+      {
+        "id": 159,
+        "key": "ARCANE_SCROLL",
+        "native_ids": [
+          "RELIC.ARCANE_SCROLL"
+        ]
+      },
+      {
+        "id": 160,
+        "key": "ARCHAIC_TOOTH",
+        "native_ids": [
+          "RELIC.ARCHAIC_TOOTH"
+        ]
+      },
+      {
+        "id": 161,
+        "key": "ASTROLABE",
+        "native_ids": [
+          "RELIC.ASTROLABE"
+        ]
+      },
+      {
+        "id": 162,
+        "key": "BEAUTIFUL_BRACELET",
+        "native_ids": [
+          "RELIC.BEAUTIFUL_BRACELET"
+        ]
+      },
+      {
+        "id": 163,
+        "key": "BIG_MUSHROOM",
+        "native_ids": [
+          "RELIC.BIG_MUSHROOM"
+        ]
+      },
+      {
+        "id": 164,
+        "key": "BIIIG_HUG",
+        "native_ids": [
+          "RELIC.BIIIG_HUG"
+        ]
+      },
+      {
+        "id": 165,
+        "key": "BING_BONG",
+        "native_ids": [
+          "RELIC.BING_BONG"
+        ]
+      },
+      {
+        "id": 166,
+        "key": "BLACK_STAR",
+        "native_ids": [
+          "RELIC.BLACK_STAR"
+        ]
+      },
+      {
+        "id": 167,
+        "key": "BLESSED_ANTLER",
+        "native_ids": [
+          "RELIC.BLESSED_ANTLER"
+        ]
+      },
+      {
+        "id": 168,
+        "key": "BLOOD_SOAKED_ROSE",
+        "native_ids": [
+          "RELIC.BLOOD_SOAKED_ROSE"
+        ]
+      },
+      {
+        "id": 169,
+        "key": "BONE_TEA",
+        "native_ids": [
+          "RELIC.BONE_TEA"
+        ]
+      },
+      {
+        "id": 170,
+        "key": "BOOMING_CONCH",
+        "native_ids": [
+          "RELIC.BOOMING_CONCH"
+        ]
+      },
+      {
+        "id": 171,
+        "key": "BRILLIANT_SCARF",
+        "native_ids": [
+          "RELIC.BRILLIANT_SCARF"
+        ]
+      },
+      {
+        "id": 172,
+        "key": "BYRDPIP",
+        "native_ids": [
+          "RELIC.BYRDPIP"
+        ]
+      },
+      {
+        "id": 173,
+        "key": "CALLING_BELL",
+        "native_ids": [
+          "RELIC.CALLING_BELL"
+        ]
+      },
+      {
+        "id": 174,
+        "key": "CHOICES_PARADOX",
+        "native_ids": [
+          "RELIC.CHOICES_PARADOX"
+        ]
+      },
+      {
+        "id": 175,
+        "key": "CHOSEN_CHEESE",
+        "native_ids": [
+          "RELIC.CHOSEN_CHEESE"
+        ]
+      },
+      {
+        "id": 176,
+        "key": "CLAWS",
+        "native_ids": [
+          "RELIC.CLAWS"
+        ]
+      },
+      {
+        "id": 177,
+        "key": "CROSSBOW",
+        "native_ids": [
+          "RELIC.CROSSBOW"
+        ]
+      },
+      {
+        "id": 178,
+        "key": "CURSED_PEARL",
+        "native_ids": [
+          "RELIC.CURSED_PEARL"
+        ]
+      },
+      {
+        "id": 179,
+        "key": "DARKSTONE_PERIAPT",
+        "native_ids": [
+          "RELIC.DARKSTONE_PERIAPT"
+        ]
+      },
+      {
+        "id": 180,
+        "key": "DAUGHTER_OF_THE_WIND",
+        "native_ids": [
+          "RELIC.DAUGHTER_OF_THE_WIND"
+        ]
+      },
+      {
+        "id": 181,
+        "key": "DELICATE_FROND",
+        "native_ids": [
+          "RELIC.DELICATE_FROND"
+        ]
+      },
+      {
+        "id": 182,
+        "key": "DIAMOND_DIADEM",
+        "native_ids": [
+          "RELIC.DIAMOND_DIADEM"
+        ]
+      },
+      {
+        "id": 183,
+        "key": "DISTINGUISHED_CAPE",
+        "native_ids": [
+          "RELIC.DISTINGUISHED_CAPE"
+        ]
+      },
+      {
+        "id": 184,
+        "key": "DREAM_CATCHER",
+        "native_ids": [
+          "RELIC.DREAM_CATCHER"
+        ]
+      },
+      {
+        "id": 185,
+        "key": "DRIFTWOOD",
+        "native_ids": [
+          "RELIC.DRIFTWOOD"
+        ]
+      },
+      {
+        "id": 186,
+        "key": "DUSTY_TOME",
+        "native_ids": [
+          "RELIC.DUSTY_TOME"
+        ]
+      },
+      {
+        "id": 187,
+        "key": "ECTOPLASM",
+        "native_ids": [
+          "RELIC.ECTOPLASM"
+        ]
+      },
+      {
+        "id": 188,
+        "key": "ELECTRIC_SHRYMP",
+        "native_ids": [
+          "RELIC.ELECTRIC_SHRYMP"
+        ]
+      },
+      {
+        "id": 189,
+        "key": "EMBER_TEA",
+        "native_ids": [
+          "RELIC.EMBER_TEA"
+        ]
+      },
+      {
+        "id": 190,
+        "key": "EMPTY_CAGE",
+        "native_ids": [
+          "RELIC.EMPTY_CAGE"
+        ]
+      },
+      {
+        "id": 191,
+        "key": "FAKE_ANCHOR",
+        "native_ids": [
+          "RELIC.FAKE_ANCHOR"
+        ]
+      },
+      {
+        "id": 192,
+        "key": "FAKE_BLOOD_VIAL",
+        "native_ids": [
+          "RELIC.FAKE_BLOOD_VIAL"
+        ]
+      },
+      {
+        "id": 193,
+        "key": "FAKE_HAPPY_FLOWER",
+        "native_ids": [
+          "RELIC.FAKE_HAPPY_FLOWER"
+        ]
+      },
+      {
+        "id": 194,
+        "key": "FAKE_LEES_WAFFLE",
+        "native_ids": [
+          "RELIC.FAKE_LEES_WAFFLE"
+        ]
+      },
+      {
+        "id": 195,
+        "key": "FAKE_MANGO",
+        "native_ids": [
+          "RELIC.FAKE_MANGO"
+        ]
+      },
+      {
+        "id": 196,
+        "key": "FAKE_MERCHANTS_RUG",
+        "native_ids": [
+          "RELIC.FAKE_MERCHANTS_RUG"
+        ]
+      },
+      {
+        "id": 197,
+        "key": "FAKE_ORICHALCUM",
+        "native_ids": [
+          "RELIC.FAKE_ORICHALCUM"
+        ]
+      },
+      {
+        "id": 198,
+        "key": "FAKE_SNECKO_EYE",
+        "native_ids": [
+          "RELIC.FAKE_SNECKO_EYE"
+        ]
+      },
+      {
+        "id": 199,
+        "key": "FAKE_STRIKE_DUMMY",
+        "native_ids": [
+          "RELIC.FAKE_STRIKE_DUMMY"
+        ]
+      },
+      {
+        "id": 200,
+        "key": "FAKE_VENERABLE_TEA_SET",
+        "native_ids": [
+          "RELIC.FAKE_VENERABLE_TEA_SET"
+        ]
+      },
+      {
+        "id": 201,
+        "key": "FIDDLE",
+        "native_ids": [
+          "RELIC.FIDDLE"
+        ]
+      },
+      {
+        "id": 202,
+        "key": "FORGOTTEN_SOUL",
+        "native_ids": [
+          "RELIC.FORGOTTEN_SOUL"
+        ]
+      },
+      {
+        "id": 203,
+        "key": "FRAGRANT_MUSHROOM",
+        "native_ids": [
+          "RELIC.FRAGRANT_MUSHROOM"
+        ]
+      },
+      {
+        "id": 204,
+        "key": "FRESNEL_LENS",
+        "native_ids": [
+          "RELIC.FRESNEL_LENS"
+        ]
+      },
+      {
+        "id": 205,
+        "key": "FUR_COAT",
+        "native_ids": [
+          "RELIC.FUR_COAT"
+        ]
+      },
+      {
+        "id": 206,
+        "key": "GLASS_EYE",
+        "native_ids": [
+          "RELIC.GLASS_EYE"
+        ]
+      },
+      {
+        "id": 207,
+        "key": "GLITTER",
+        "native_ids": [
+          "RELIC.GLITTER"
+        ]
+      },
+      {
+        "id": 208,
+        "key": "GOLDEN_COMPASS",
+        "native_ids": [
+          "RELIC.GOLDEN_COMPASS"
+        ]
+      },
+      {
+        "id": 209,
+        "key": "GOLDEN_PEARL",
+        "native_ids": [
+          "RELIC.GOLDEN_PEARL"
+        ]
+      },
+      {
+        "id": 210,
+        "key": "HAND_DRILL",
+        "native_ids": [
+          "RELIC.HAND_DRILL"
+        ]
+      },
+      {
+        "id": 211,
+        "key": "HISTORY_COURSE",
+        "native_ids": [
+          "RELIC.HISTORY_COURSE"
+        ]
+      },
+      {
+        "id": 212,
+        "key": "IRON_CLUB",
+        "native_ids": [
+          "RELIC.IRON_CLUB"
+        ]
+      },
+      {
+        "id": 213,
+        "key": "JEWELED_MASK",
+        "native_ids": [
+          "RELIC.JEWELED_MASK"
+        ]
+      },
+      {
+        "id": 214,
+        "key": "JEWELRY_BOX",
+        "native_ids": [
+          "RELIC.JEWELRY_BOX"
+        ]
+      },
+      {
+        "id": 215,
+        "key": "LARGE_CAPSULE",
+        "native_ids": [
+          "RELIC.LARGE_CAPSULE"
+        ]
+      },
+      {
+        "id": 216,
+        "key": "LAVA_ROCK",
+        "native_ids": [
+          "RELIC.LAVA_ROCK"
+        ]
+      },
+      {
+        "id": 217,
+        "key": "LEAD_PAPERWEIGHT",
+        "native_ids": [
+          "RELIC.LEAD_PAPERWEIGHT"
+        ]
+      },
+      {
+        "id": 218,
+        "key": "LEAFY_POULTICE",
+        "native_ids": [
+          "RELIC.LEAFY_POULTICE"
+        ]
+      },
+      {
+        "id": 219,
+        "key": "LOOMING_FRUIT",
+        "native_ids": [
+          "RELIC.LOOMING_FRUIT"
+        ]
+      },
+      {
+        "id": 220,
+        "key": "LORDS_PARASOL",
+        "native_ids": [
+          "RELIC.LORDS_PARASOL"
+        ]
+      },
+      {
+        "id": 221,
+        "key": "LOST_COFFER",
+        "native_ids": [
+          "RELIC.LOST_COFFER"
+        ]
+      },
+      {
+        "id": 222,
+        "key": "LOST_WISP",
+        "native_ids": [
+          "RELIC.LOST_WISP"
+        ]
+      },
+      {
+        "id": 223,
+        "key": "MASSIVE_SCROLL",
+        "native_ids": [
+          "RELIC.MASSIVE_SCROLL"
+        ]
+      },
+      {
+        "id": 224,
+        "key": "MAW_BANK",
+        "native_ids": [
+          "RELIC.MAW_BANK"
+        ]
+      },
+      {
+        "id": 225,
+        "key": "MEAT_CLEAVER",
+        "native_ids": [
+          "RELIC.MEAT_CLEAVER"
+        ]
+      },
+      {
+        "id": 226,
+        "key": "MR_STRUGGLES",
+        "native_ids": [
+          "RELIC.MR_STRUGGLES"
+        ]
+      },
+      {
+        "id": 227,
+        "key": "MUSIC_BOX",
+        "native_ids": [
+          "RELIC.MUSIC_BOX"
+        ]
+      },
+      {
+        "id": 228,
+        "key": "NEOWS_TORMENT",
+        "native_ids": [
+          "RELIC.NEOWS_TORMENT"
+        ]
+      },
+      {
+        "id": 229,
+        "key": "NEW_LEAF",
+        "native_ids": [
+          "RELIC.NEW_LEAF"
+        ]
+      },
+      {
+        "id": 230,
+        "key": "NUTRITIOUS_OYSTER",
+        "native_ids": [
+          "RELIC.NUTRITIOUS_OYSTER"
+        ]
+      },
+      {
+        "id": 231,
+        "key": "NUTRITIOUS_SOUP",
+        "native_ids": [
+          "RELIC.NUTRITIOUS_SOUP"
+        ]
+      },
+      {
+        "id": 232,
+        "key": "PAELS_BLOOD",
+        "native_ids": [
+          "RELIC.PAELS_BLOOD"
+        ]
+      },
+      {
+        "id": 233,
+        "key": "PAELS_CLAW",
+        "native_ids": [
+          "RELIC.PAELS_CLAW"
+        ]
+      },
+      {
+        "id": 234,
+        "key": "PAELS_EYE",
+        "native_ids": [
+          "RELIC.PAELS_EYE"
+        ]
+      },
+      {
+        "id": 235,
+        "key": "PAELS_FLESH",
+        "native_ids": [
+          "RELIC.PAELS_FLESH"
+        ]
+      },
+      {
+        "id": 236,
+        "key": "PAELS_GROWTH",
+        "native_ids": [
+          "RELIC.PAELS_GROWTH"
+        ]
+      },
+      {
+        "id": 237,
+        "key": "PAELS_HORN",
+        "native_ids": [
+          "RELIC.PAELS_HORN"
+        ]
+      },
+      {
+        "id": 238,
+        "key": "PAELS_LEGION",
+        "native_ids": [
+          "RELIC.PAELS_LEGION"
+        ]
+      },
+      {
+        "id": 239,
+        "key": "PAELS_TEARS",
+        "native_ids": [
+          "RELIC.PAELS_TEARS"
+        ]
+      },
+      {
+        "id": 240,
+        "key": "PAELS_TOOTH",
+        "native_ids": [
+          "RELIC.PAELS_TOOTH"
+        ]
+      },
+      {
+        "id": 241,
+        "key": "PAELS_WING",
+        "native_ids": [
+          "RELIC.PAELS_WING"
+        ]
+      },
+      {
+        "id": 242,
+        "key": "PANDORAS_BOX",
+        "native_ids": [
+          "RELIC.PANDORAS_BOX"
+        ]
+      },
+      {
+        "id": 243,
+        "key": "PHILOSOPHERS_STONE",
+        "native_ids": [
+          "RELIC.PHILOSOPHERS_STONE"
+        ]
+      },
+      {
+        "id": 244,
+        "key": "POLLINOUS_CORE",
+        "native_ids": [
+          "RELIC.POLLINOUS_CORE"
+        ]
+      },
+      {
+        "id": 245,
+        "key": "POMANDER",
+        "native_ids": [
+          "RELIC.POMANDER"
+        ]
+      },
+      {
+        "id": 246,
+        "key": "PRECARIOUS_SHEARS",
+        "native_ids": [
+          "RELIC.PRECARIOUS_SHEARS"
+        ]
+      },
+      {
+        "id": 247,
+        "key": "PRECISE_SCISSORS",
+        "native_ids": [
+          "RELIC.PRECISE_SCISSORS"
+        ]
+      },
+      {
+        "id": 248,
+        "key": "PRESERVED_FOG",
+        "native_ids": [
+          "RELIC.PRESERVED_FOG"
+        ]
+      },
+      {
+        "id": 249,
+        "key": "PRISMATIC_GEM",
+        "native_ids": [
+          "RELIC.PRISMATIC_GEM"
+        ]
+      },
+      {
+        "id": 250,
+        "key": "PUMPKIN_CANDLE",
+        "native_ids": [
+          "RELIC.PUMPKIN_CANDLE"
+        ]
+      },
+      {
+        "id": 251,
+        "key": "RADIANT_PEARL",
+        "native_ids": [
+          "RELIC.RADIANT_PEARL"
+        ]
+      },
+      {
+        "id": 252,
+        "key": "ROYAL_POISON",
+        "native_ids": [
+          "RELIC.ROYAL_POISON"
+        ]
+      },
+      {
+        "id": 253,
+        "key": "RUNIC_PYRAMID",
+        "native_ids": [
+          "RELIC.RUNIC_PYRAMID"
+        ]
+      },
+      {
+        "id": 254,
+        "key": "SAI",
+        "native_ids": [
+          "RELIC.SAI"
+        ]
+      },
+      {
+        "id": 255,
+        "key": "SAND_CASTLE",
+        "native_ids": [
+          "RELIC.SAND_CASTLE"
+        ]
+      },
+      {
+        "id": 256,
+        "key": "SCROLL_BOXES",
+        "native_ids": [
+          "RELIC.SCROLL_BOXES"
+        ]
+      },
+      {
+        "id": 257,
+        "key": "SEA_GLASS",
+        "native_ids": [
+          "RELIC.SEA_GLASS"
+        ]
+      },
+      {
+        "id": 258,
+        "key": "SEAL_OF_GOLD",
+        "native_ids": [
+          "RELIC.SEAL_OF_GOLD"
+        ]
+      },
+      {
+        "id": 259,
+        "key": "SERE_TALON",
+        "native_ids": [
+          "RELIC.SERE_TALON"
+        ]
+      },
+      {
+        "id": 260,
+        "key": "SIGNET_RING",
+        "native_ids": [
+          "RELIC.SIGNET_RING"
+        ]
+      },
+      {
+        "id": 261,
+        "key": "SILVER_CRUCIBLE",
+        "native_ids": [
+          "RELIC.SILVER_CRUCIBLE"
+        ]
+      },
+      {
+        "id": 262,
+        "key": "SMALL_CAPSULE",
+        "native_ids": [
+          "RELIC.SMALL_CAPSULE"
+        ]
+      },
+      {
+        "id": 263,
+        "key": "SNECKO_EYE",
+        "native_ids": [
+          "RELIC.SNECKO_EYE"
+        ]
+      },
+      {
+        "id": 264,
+        "key": "SOZU",
+        "native_ids": [
+          "RELIC.SOZU"
+        ]
+      },
+      {
+        "id": 265,
+        "key": "SPIKED_GAUNTLETS",
+        "native_ids": [
+          "RELIC.SPIKED_GAUNTLETS"
+        ]
+      },
+      {
+        "id": 266,
+        "key": "STONE_HUMIDIFIER",
+        "native_ids": [
+          "RELIC.STONE_HUMIDIFIER"
+        ]
+      },
+      {
+        "id": 267,
+        "key": "STORYBOOK",
+        "native_ids": [
+          "RELIC.STORYBOOK"
+        ]
+      },
+      {
+        "id": 268,
+        "key": "SWORD_OF_STONE",
+        "native_ids": [
+          "RELIC.SWORD_OF_STONE"
+        ]
+      },
+      {
+        "id": 269,
+        "key": "SWORD_OF_JADE",
+        "native_ids": [
+          "RELIC.SWORD_OF_JADE"
+        ]
+      },
+      {
+        "id": 270,
+        "key": "TANXS_WHISTLE",
+        "native_ids": [
+          "RELIC.TANXS_WHISTLE"
+        ]
+      },
+      {
+        "id": 271,
+        "key": "TEA_OF_DISCOURTESY",
+        "native_ids": [
+          "RELIC.TEA_OF_DISCOURTESY"
+        ]
+      },
+      {
+        "id": 272,
+        "key": "THE_BOOT",
+        "native_ids": [
+          "RELIC.THE_BOOT"
+        ]
+      },
+      {
+        "id": 273,
+        "key": "THROWING_AXE",
+        "native_ids": [
+          "RELIC.THROWING_AXE"
+        ]
+      },
+      {
+        "id": 274,
+        "key": "TOASTY_MITTENS",
+        "native_ids": [
+          "RELIC.TOASTY_MITTENS"
+        ]
+      },
+      {
+        "id": 275,
+        "key": "TOUCH_OF_OROBAS",
+        "native_ids": [
+          "RELIC.TOUCH_OF_OROBAS"
+        ]
+      },
+      {
+        "id": 276,
+        "key": "TOY_BOX",
+        "native_ids": [
+          "RELIC.TOY_BOX"
+        ]
+      },
+      {
+        "id": 277,
+        "key": "TRI_BOOMERANG",
+        "native_ids": [
+          "RELIC.TRI_BOOMERANG"
+        ]
+      },
+      {
+        "id": 278,
+        "key": "VELVET_CHOKER",
+        "native_ids": [
+          "RELIC.VELVET_CHOKER"
+        ]
+      },
+      {
+        "id": 279,
+        "key": "VERY_HOT_COCOA",
+        "native_ids": [
+          "RELIC.VERY_HOT_COCOA"
+        ]
+      },
+      {
+        "id": 280,
+        "key": "WAR_HAMMER",
+        "native_ids": [
+          "RELIC.WAR_HAMMER"
+        ]
+      },
+      {
+        "id": 281,
+        "key": "WHISPERING_EARRING",
+        "native_ids": [
+          "RELIC.WHISPERING_EARRING"
+        ]
+      },
+      {
+        "id": 282,
+        "key": "WONGO_CUSTOMER_APPRECIATION_BADGE",
+        "native_ids": [
+          "RELIC.WONGO_CUSTOMER_APPRECIATION_BADGE"
+        ]
+      },
+      {
+        "id": 283,
+        "key": "WONGOS_MYSTERY_TICKET",
+        "native_ids": [
+          "RELIC.WONGOS_MYSTERY_TICKET"
+        ]
+      },
+      {
+        "id": 284,
+        "key": "YUMMY_COOKIE",
+        "native_ids": [
+          "RELIC.YUMMY_COOKIE"
+        ]
+      },
+      {
+        "id": 285,
+        "key": "SYMBIOTIC_VIRUS",
+        "native_ids": [
+          "RELIC.SYMBIOTIC_VIRUS"
+        ]
+      },
+      {
+        "id": 286,
+        "key": "TWISTED_FUNNEL",
+        "native_ids": [
+          "RELIC.TWISTED_FUNNEL"
+        ]
+      },
+      {
+        "id": 287,
+        "key": "CLOAK_CLASP",
+        "native_ids": [
+          "RELIC.CLOAK_CLASP"
+        ]
+      },
+      {
+        "id": 288,
+        "key": "CIRCLET",
+        "native_ids": [
+          "RELIC.CIRCLET"
+        ]
+      },
+      {
+        "id": 289,
+        "key": "DEPRECATED_RELIC",
+        "native_ids": [
+          "RELIC.DEPRECATED_RELIC"
+        ]
+      },
+      {
+        "id": 290,
+        "key": "SILKEN_TRESS",
+        "native_ids": [
+          "RELIC.SILKEN_TRESS"
+        ]
+      },
+      {
+        "id": 291,
+        "key": "DOWSING_ROD",
+        "native_ids": [
+          "RELIC.DOWSING_ROD"
+        ]
+      },
+      {
+        "id": 292,
+        "key": "HEFTY_TABLET",
+        "native_ids": [
+          "RELIC.HEFTY_TABLET"
+        ]
+      },
+      {
+        "id": 293,
+        "key": "NEOWS_BONES",
+        "native_ids": [
+          "RELIC.NEOWS_BONES"
+        ]
+      },
+      {
+        "id": 294,
+        "key": "NEOWS_SACRIFICE",
+        "native_ids": [
+          "RELIC.NEOWS_SACRIFICE"
+        ]
+      },
+      {
+        "id": 295,
+        "key": "FISHING_ROD",
+        "native_ids": [
+          "RELIC.FISHING_ROD"
+        ]
+      },
+      {
+        "id": 296,
+        "key": "KALEIDOSCOPE",
+        "native_ids": [
+          "RELIC.KALEIDOSCOPE"
+        ]
+      },
+      {
+        "id": 297,
+        "key": "PHIAL_HOLSTER",
+        "native_ids": [
+          "RELIC.PHIAL_HOLSTER"
+        ]
+      },
+      {
+        "id": 298,
+        "key": "WINGED_BOOTS",
+        "native_ids": [
+          "RELIC.WINGED_BOOTS"
+        ]
+      },
+      {
+        "id": 299,
+        "key": "NEOWS_TALISMAN",
+        "native_ids": [
+          "RELIC.NEOWS_TALISMAN"
+        ]
+      }
+    ],
+    "POTION": [
+      {
+        "id": 0,
+        "key": "INVALID",
+        "native_ids": []
+      },
+      {
+        "id": 1,
+        "key": "ATTACK_POTION",
+        "native_ids": [
+          "POTION.ATTACK_POTION"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "BLOCK_POTION",
+        "native_ids": [
+          "POTION.BLOCK_POTION"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "BLOOD_POTION",
+        "native_ids": [
+          "POTION.BLOOD_POTION"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "COLORLESS_POTION",
+        "native_ids": [
+          "POTION.COLORLESS_POTION"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "DEXTERITY_POTION",
+        "native_ids": [
+          "POTION.DEXTERITY_POTION"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "ENERGY_POTION",
+        "native_ids": [
+          "POTION.ENERGY_POTION"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "EXPLOSIVE_AMPOULE",
+        "native_ids": [
+          "POTION.EXPLOSIVE_AMPOULE"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "FIRE_POTION",
+        "native_ids": [
+          "POTION.FIRE_POTION"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "FLEX_POTION",
+        "native_ids": [
+          "POTION.FLEX_POTION"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "FOCUS_POTION",
+        "native_ids": [
+          "POTION.FOCUS_POTION"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "POISON_POTION",
+        "native_ids": [
+          "POTION.POISON_POTION"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "POTION_OF_DOOM",
+        "native_ids": [
+          "POTION.POTION_OF_DOOM"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "POWER_POTION",
+        "native_ids": [
+          "POTION.POWER_POTION"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "SKILL_POTION",
+        "native_ids": [
+          "POTION.SKILL_POTION"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "SPEED_POTION",
+        "native_ids": [
+          "POTION.SPEED_POTION"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "STAR_POTION",
+        "native_ids": [
+          "POTION.STAR_POTION"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "STRENGTH_POTION",
+        "native_ids": [
+          "POTION.STRENGTH_POTION"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "SWIFT_POTION",
+        "native_ids": [
+          "POTION.SWIFT_POTION"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "VULNERABLE_POTION",
+        "native_ids": [
+          "POTION.VULNERABLE_POTION"
+        ]
+      },
+      {
+        "id": 20,
+        "key": "WEAK_POTION",
+        "native_ids": [
+          "POTION.WEAK_POTION"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "ASHWATER",
+        "native_ids": [
+          "POTION.ASHWATER"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "BLESSING_OF_THE_FORGE",
+        "native_ids": [
+          "POTION.BLESSING_OF_THE_FORGE"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "BONE_BREW",
+        "native_ids": [
+          "POTION.BONE_BREW"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "CLARITY",
+        "native_ids": [
+          "POTION.CLARITY"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "CUNNING_POTION",
+        "native_ids": [
+          "POTION.CUNNING_POTION"
+        ]
+      },
+      {
+        "id": 26,
+        "key": "CURE_ALL",
+        "native_ids": [
+          "POTION.CURE_ALL"
+        ]
+      },
+      {
+        "id": 27,
+        "key": "DUPLICATOR",
+        "native_ids": [
+          "POTION.DUPLICATOR"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "FORTIFIER",
+        "native_ids": [
+          "POTION.FORTIFIER"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "FYSH_OIL",
+        "native_ids": [
+          "POTION.FYSH_OIL"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "GAMBLERS_BREW",
+        "native_ids": [
+          "POTION.GAMBLERS_BREW"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "HEART_OF_IRON",
+        "native_ids": [
+          "POTION.HEART_OF_IRON"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "KINGS_COURAGE",
+        "native_ids": [
+          "POTION.KINGS_COURAGE"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "LIQUID_BRONZE",
+        "native_ids": [
+          "POTION.LIQUID_BRONZE"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "POTION_OF_BINDING",
+        "native_ids": [
+          "POTION.POTION_OF_BINDING"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "POTION_OF_CAPACITY",
+        "native_ids": [
+          "POTION.POTION_OF_CAPACITY"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "POWDERED_DEMISE",
+        "native_ids": [
+          "POTION.POWDERED_DEMISE"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "RADIANT_TINCTURE",
+        "native_ids": [
+          "POTION.RADIANT_TINCTURE"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "REGEN_POTION",
+        "native_ids": [
+          "POTION.REGEN_POTION"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "STABLE_SERUM",
+        "native_ids": [
+          "POTION.STABLE_SERUM"
+        ]
+      },
+      {
+        "id": 40,
+        "key": "TOUCH_OF_INSANITY",
+        "native_ids": [
+          "POTION.TOUCH_OF_INSANITY"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "BEETLE_JUICE",
+        "native_ids": [
+          "POTION.BEETLE_JUICE"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "BOTTLED_POTENTIAL",
+        "native_ids": [
+          "POTION.BOTTLED_POTENTIAL"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "COSMIC_CONCOCTION",
+        "native_ids": [
+          "POTION.COSMIC_CONCOCTION"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "DISTILLED_CHAOS",
+        "native_ids": [
+          "POTION.DISTILLED_CHAOS"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "DROPLET_OF_PRECOGNITION",
+        "native_ids": [
+          "POTION.DROPLET_OF_PRECOGNITION"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "ENTROPIC_BREW",
+        "native_ids": [
+          "POTION.ENTROPIC_BREW"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "ESSENCE_OF_DARKNESS",
+        "native_ids": [
+          "POTION.ESSENCE_OF_DARKNESS"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "FAIRY_IN_ABOTTLE",
+        "native_ids": [
+          "POTION.FAIRY_IN_A_BOTTLE"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "FRUIT_JUICE",
+        "native_ids": [
+          "POTION.FRUIT_JUICE"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "GHOST_IN_AJAR",
+        "native_ids": [
+          "POTION.GHOST_IN_A_JAR"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "GIGANTIFICATION_POTION",
+        "native_ids": [
+          "POTION.GIGANTIFICATION_POTION"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "LIQUID_MEMORIES",
+        "native_ids": [
+          "POTION.LIQUID_MEMORIES"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "LUCKY_TONIC",
+        "native_ids": [
+          "POTION.LUCKY_TONIC"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "MAZALETHS_GIFT",
+        "native_ids": [
+          "POTION.MAZALETHS_GIFT"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "OROBIC_ACID",
+        "native_ids": [
+          "POTION.OROBIC_ACID"
+        ]
+      },
+      {
+        "id": 56,
+        "key": "POT_OF_GHOULS",
+        "native_ids": [
+          "POTION.POT_OF_GHOULS"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "SHACKLING_POTION",
+        "native_ids": [
+          "POTION.SHACKLING_POTION"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "SHIP_IN_ABOTTLE",
+        "native_ids": [
+          "POTION.SHIP_IN_A_BOTTLE"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "SNECKO_OIL",
+        "native_ids": [
+          "POTION.SNECKO_OIL"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "SOLDIERS_STEW",
+        "native_ids": [
+          "POTION.SOLDIERS_STEW"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "FOUL_POTION",
+        "native_ids": [
+          "POTION.FOUL_POTION"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "GLOWWATER_POTION",
+        "native_ids": [
+          "POTION.GLOWWATER_POTION"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "POTION_SHAPED_ROCK",
+        "native_ids": [
+          "POTION.POTION_SHAPED_ROCK"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "DEPRECATED_POTION",
+        "native_ids": [
+          "POTION.DEPRECATED_POTION"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "AMBERGRIS",
+        "native_ids": [
+          "POTION.AMBERGRIS"
+        ]
+      }
+    ],
+    "MONSTER": [
+      {
+        "id": 0,
+        "key": "INVALID",
+        "native_ids": []
+      },
+      {
+        "id": 1,
+        "key": "ARCHITECT",
+        "native_ids": [
+          "MONSTER.ARCHITECT"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "ASSASSIN_RUBY_RAIDER",
+        "native_ids": [
+          "MONSTER.ASSASSIN_RUBY_RAIDER"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "AXEBOT",
+        "native_ids": [
+          "MONSTER.AXEBOT"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "AXE_RUBY_RAIDER",
+        "native_ids": [
+          "MONSTER.AXE_RUBY_RAIDER"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "BATTLE_FRIEND_V1",
+        "native_ids": [
+          "MONSTER.BATTLE_FRIEND_V1"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "BATTLE_FRIEND_V2",
+        "native_ids": [
+          "MONSTER.BATTLE_FRIEND_V2"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "BATTLE_FRIEND_V3",
+        "native_ids": [
+          "MONSTER.BATTLE_FRIEND_V3"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "BOWLBUG_EGG",
+        "native_ids": [
+          "MONSTER.BOWLBUG_EGG"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "BOWLBUG_NECTAR",
+        "native_ids": [
+          "MONSTER.BOWLBUG_NECTAR"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "BOWLBUG_ROCK",
+        "native_ids": [
+          "MONSTER.BOWLBUG_ROCK"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "BOWLBUG_SILK",
+        "native_ids": [
+          "MONSTER.BOWLBUG_SILK"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "BRUTE_RUBY_RAIDER",
+        "native_ids": [
+          "MONSTER.BRUTE_RUBY_RAIDER"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "BYGONE_EFFIGY",
+        "native_ids": [
+          "MONSTER.BYGONE_EFFIGY"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "BYRDONIS",
+        "native_ids": [
+          "MONSTER.BYRDONIS"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "CALCIFIED_CULTIST",
+        "native_ids": [
+          "MONSTER.CALCIFIED_CULTIST"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "CEREMONIAL_BEAST",
+        "native_ids": [
+          "MONSTER.CEREMONIAL_BEAST"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "CHOMPER",
+        "native_ids": [
+          "MONSTER.CHOMPER"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "CORPSE_SLUG",
+        "native_ids": [
+          "MONSTER.CORPSE_SLUG"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "CROSSBOW_RUBY_RAIDER",
+        "native_ids": [
+          "MONSTER.CROSSBOW_RUBY_RAIDER"
+        ]
+      },
+      {
+        "id": 20,
+        "key": "CRUSHER",
+        "native_ids": [
+          "MONSTER.CRUSHER"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "CUBEX_CONSTRUCT",
+        "native_ids": [
+          "MONSTER.CUBEX_CONSTRUCT"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "DAMP_CULTIST",
+        "native_ids": [
+          "MONSTER.DAMP_CULTIST"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "DECIMILLIPEDE_SEGMENT",
+        "native_ids": [
+          "MONSTER.DECIMILLIPEDE_SEGMENT_FRONT",
+          "MONSTER.DECIMILLIPEDE_SEGMENT_MIDDLE",
+          "MONSTER.DECIMILLIPEDE_SEGMENT_BACK"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "DEVOTED_SCULPTOR",
+        "native_ids": [
+          "MONSTER.DEVOTED_SCULPTOR"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "DOOR",
+        "native_ids": []
+      },
+      {
+        "id": 26,
+        "key": "DOORMAKER",
+        "native_ids": []
+      },
+      {
+        "id": 27,
+        "key": "ENTOMANCER",
+        "native_ids": [
+          "MONSTER.ENTOMANCER"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "EXOSKELETON",
+        "native_ids": [
+          "MONSTER.EXOSKELETON"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "EYE_WITH_TEETH",
+        "native_ids": [
+          "MONSTER.EYE_WITH_TEETH"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "FABRICATOR",
+        "native_ids": [
+          "MONSTER.FABRICATOR"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "FAKE_MERCHANT_MONSTER",
+        "native_ids": [
+          "MONSTER.FAKE_MERCHANT_MONSTER"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "FAT_GREMLIN",
+        "native_ids": [
+          "MONSTER.FAT_GREMLIN"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "FLAIL_KNIGHT",
+        "native_ids": [
+          "MONSTER.FLAIL_KNIGHT"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "FLYCONID",
+        "native_ids": [
+          "MONSTER.FLYCONID"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "FOGMOG",
+        "native_ids": [
+          "MONSTER.FOGMOG"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "FOSSIL_STALKER",
+        "native_ids": [
+          "MONSTER.FOSSIL_STALKER"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "FROG_KNIGHT",
+        "native_ids": [
+          "MONSTER.FROG_KNIGHT"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "FUZZY_WURM_CRAWLER",
+        "native_ids": [
+          "MONSTER.FUZZY_WURM_CRAWLER"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "GAS_BOMB",
+        "native_ids": [
+          "MONSTER.GAS_BOMB"
+        ]
+      },
+      {
+        "id": 40,
+        "key": "GLOBE_HEAD",
+        "native_ids": [
+          "MONSTER.GLOBE_HEAD"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "GREMLIN_MERC",
+        "native_ids": [
+          "MONSTER.GREMLIN_MERC"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "GUARDBOT",
+        "native_ids": [
+          "MONSTER.GUARDBOT"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "HAUNTED_SHIP",
+        "native_ids": [
+          "MONSTER.HAUNTED_SHIP"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "HUNTER_KILLER",
+        "native_ids": [
+          "MONSTER.HUNTER_KILLER"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "INFESTED_PRISM",
+        "native_ids": [
+          "MONSTER.INFESTED_PRISM"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "INKLET",
+        "native_ids": [
+          "MONSTER.INKLET"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "KIN_FOLLOWER",
+        "native_ids": [
+          "MONSTER.KIN_FOLLOWER"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "KIN_PRIEST",
+        "native_ids": [
+          "MONSTER.KIN_PRIEST"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "KNOWLEDGE_DEMON",
+        "native_ids": [
+          "MONSTER.KNOWLEDGE_DEMON"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "LAGAVULIN_MATRIARCH",
+        "native_ids": [
+          "MONSTER.LAGAVULIN_MATRIARCH"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "LEAF_SLIME_M",
+        "native_ids": [
+          "MONSTER.LEAF_SLIME_M"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "LEAF_SLIME_S",
+        "native_ids": [
+          "MONSTER.LEAF_SLIME_S"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "LIVING_FOG",
+        "native_ids": [
+          "MONSTER.LIVING_FOG"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "LIVING_SHIELD",
+        "native_ids": [
+          "MONSTER.LIVING_SHIELD"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "LOUSE_PROGENITOR",
+        "native_ids": [
+          "MONSTER.LOUSE_PROGENITOR"
+        ]
+      },
+      {
+        "id": 56,
+        "key": "MAGI_KNIGHT",
+        "native_ids": [
+          "MONSTER.MAGI_KNIGHT"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "MAWLER",
+        "native_ids": [
+          "MONSTER.MAWLER"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "MECHA_KNIGHT",
+        "native_ids": [
+          "MONSTER.MECHA_KNIGHT"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "MYSTERIOUS_KNIGHT",
+        "native_ids": [
+          "MONSTER.MYSTERIOUS_KNIGHT"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "MYTE",
+        "native_ids": [
+          "MONSTER.MYTE"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "NIBBIT",
+        "native_ids": [
+          "MONSTER.NIBBIT"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "NOISEBOT",
+        "native_ids": [
+          "MONSTER.NOISEBOT"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "OVICOPTER",
+        "native_ids": [
+          "MONSTER.OVICOPTER"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "OWL_MAGISTRATE",
+        "native_ids": [
+          "MONSTER.OWL_MAGISTRATE"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "PARAFRIGHT",
+        "native_ids": [
+          "MONSTER.PARAFRIGHT"
+        ]
+      },
+      {
+        "id": 66,
+        "key": "PHANTASMAL_GARDENER",
+        "native_ids": [
+          "MONSTER.PHANTASMAL_GARDENER"
+        ]
+      },
+      {
+        "id": 67,
+        "key": "PHROG_PARASITE",
+        "native_ids": [
+          "MONSTER.PHROG_PARASITE"
+        ]
+      },
+      {
+        "id": 68,
+        "key": "PUNCH_CONSTRUCT",
+        "native_ids": [
+          "MONSTER.PUNCH_CONSTRUCT"
+        ]
+      },
+      {
+        "id": 69,
+        "key": "QUEEN",
+        "native_ids": [
+          "MONSTER.QUEEN"
+        ]
+      },
+      {
+        "id": 70,
+        "key": "ROCKET",
+        "native_ids": [
+          "MONSTER.ROCKET"
+        ]
+      },
+      {
+        "id": 71,
+        "key": "ROYAL_GUARD",
+        "native_ids": []
+      },
+      {
+        "id": 72,
+        "key": "SCROLL_OF_BITING",
+        "native_ids": [
+          "MONSTER.SCROLL_OF_BITING"
+        ]
+      },
+      {
+        "id": 73,
+        "key": "SEAPUNK",
+        "native_ids": [
+          "MONSTER.SEAPUNK"
+        ]
+      },
+      {
+        "id": 74,
+        "key": "SEWER_CLAM",
+        "native_ids": [
+          "MONSTER.SEWER_CLAM"
+        ]
+      },
+      {
+        "id": 75,
+        "key": "SHRINKER_BEETLE",
+        "native_ids": [
+          "MONSTER.SHRINKER_BEETLE"
+        ]
+      },
+      {
+        "id": 76,
+        "key": "SKULKING_COLONY",
+        "native_ids": [
+          "MONSTER.SKULKING_COLONY"
+        ]
+      },
+      {
+        "id": 77,
+        "key": "SLIMED_BERSERKER",
+        "native_ids": [
+          "MONSTER.SLIMED_BERSERKER"
+        ]
+      },
+      {
+        "id": 78,
+        "key": "SLITHERING_STRANGLER",
+        "native_ids": [
+          "MONSTER.SLITHERING_STRANGLER"
+        ]
+      },
+      {
+        "id": 79,
+        "key": "SLUDGE_SPINNER",
+        "native_ids": [
+          "MONSTER.SLUDGE_SPINNER"
+        ]
+      },
+      {
+        "id": 80,
+        "key": "SLUMBERING_BEETLE",
+        "native_ids": [
+          "MONSTER.SLUMBERING_BEETLE"
+        ]
+      },
+      {
+        "id": 81,
+        "key": "SNAPPING_JAXFRUIT",
+        "native_ids": [
+          "MONSTER.SNAPPING_JAXFRUIT"
+        ]
+      },
+      {
+        "id": 82,
+        "key": "SNEAKY_GREMLIN",
+        "native_ids": [
+          "MONSTER.SNEAKY_GREMLIN"
+        ]
+      },
+      {
+        "id": 83,
+        "key": "SOUL_FYSH",
+        "native_ids": [
+          "MONSTER.SOUL_FYSH"
+        ]
+      },
+      {
+        "id": 84,
+        "key": "SOUL_NEXUS",
+        "native_ids": [
+          "MONSTER.SOUL_NEXUS"
+        ]
+      },
+      {
+        "id": 85,
+        "key": "SPECTRAL_KNIGHT",
+        "native_ids": [
+          "MONSTER.SPECTRAL_KNIGHT"
+        ]
+      },
+      {
+        "id": 86,
+        "key": "SPINY_TOAD",
+        "native_ids": [
+          "MONSTER.SPINY_TOAD"
+        ]
+      },
+      {
+        "id": 87,
+        "key": "STABBOT",
+        "native_ids": [
+          "MONSTER.STABBOT"
+        ]
+      },
+      {
+        "id": 88,
+        "key": "TERROR_EEL",
+        "native_ids": [
+          "MONSTER.TERROR_EEL"
+        ]
+      },
+      {
+        "id": 89,
+        "key": "TEST_SUBJECT",
+        "native_ids": [
+          "MONSTER.TEST_SUBJECT"
+        ]
+      },
+      {
+        "id": 90,
+        "key": "THE_FORGOTTEN",
+        "native_ids": [
+          "MONSTER.THE_FORGOTTEN"
+        ]
+      },
+      {
+        "id": 91,
+        "key": "THE_INSATIABLE",
+        "native_ids": [
+          "MONSTER.THE_INSATIABLE"
+        ]
+      },
+      {
+        "id": 92,
+        "key": "THE_LOST",
+        "native_ids": [
+          "MONSTER.THE_LOST"
+        ]
+      },
+      {
+        "id": 93,
+        "key": "THE_OBSCURA",
+        "native_ids": [
+          "MONSTER.THE_OBSCURA"
+        ]
+      },
+      {
+        "id": 94,
+        "key": "THIEVING_HOPPER",
+        "native_ids": [
+          "MONSTER.THIEVING_HOPPER"
+        ]
+      },
+      {
+        "id": 95,
+        "key": "TOADPOLE",
+        "native_ids": [
+          "MONSTER.TOADPOLE"
+        ]
+      },
+      {
+        "id": 96,
+        "key": "TORCH_HEAD_AMALGAM",
+        "native_ids": [
+          "MONSTER.TORCH_HEAD_AMALGAM"
+        ]
+      },
+      {
+        "id": 97,
+        "key": "TOUGH_EGG",
+        "native_ids": [
+          "MONSTER.TOUGH_EGG"
+        ]
+      },
+      {
+        "id": 98,
+        "key": "TRACKER_RUBY_RAIDER",
+        "native_ids": [
+          "MONSTER.TRACKER_RUBY_RAIDER"
+        ]
+      },
+      {
+        "id": 99,
+        "key": "TUNNELER",
+        "native_ids": [
+          "MONSTER.TUNNELER"
+        ]
+      },
+      {
+        "id": 100,
+        "key": "TURRET_OPERATOR",
+        "native_ids": [
+          "MONSTER.TURRET_OPERATOR"
+        ]
+      },
+      {
+        "id": 101,
+        "key": "TWIG_SLIME_M",
+        "native_ids": [
+          "MONSTER.TWIG_SLIME_M"
+        ]
+      },
+      {
+        "id": 102,
+        "key": "TWIG_SLIME_S",
+        "native_ids": [
+          "MONSTER.TWIG_SLIME_S"
+        ]
+      },
+      {
+        "id": 103,
+        "key": "TWO_TAILED_RAT",
+        "native_ids": [
+          "MONSTER.TWO_TAILED_RAT"
+        ]
+      },
+      {
+        "id": 104,
+        "key": "VANTOM",
+        "native_ids": [
+          "MONSTER.VANTOM"
+        ]
+      },
+      {
+        "id": 105,
+        "key": "VINE_SHAMBLER",
+        "native_ids": [
+          "MONSTER.VINE_SHAMBLER"
+        ]
+      },
+      {
+        "id": 106,
+        "key": "WATERFALL_GIANT",
+        "native_ids": [
+          "MONSTER.WATERFALL_GIANT"
+        ]
+      },
+      {
+        "id": 107,
+        "key": "WRIGGLER",
+        "native_ids": [
+          "MONSTER.WRIGGLER"
+        ]
+      },
+      {
+        "id": 108,
+        "key": "ZAPBOT",
+        "native_ids": [
+          "MONSTER.ZAPBOT"
+        ]
+      },
+      {
+        "id": 109,
+        "key": "AEONGLASS",
+        "native_ids": [
+          "MONSTER.AEONGLASS"
+        ]
+      }
+    ],
+    "ENCOUNTER": [
+      {
+        "id": 0,
+        "key": "INVALID",
+        "native_ids": []
+      },
+      {
+        "id": 1,
+        "key": "SETUP_BATTLEWORN_DUMMY_V1",
+        "native_ids": [
+          "ENCOUNTER.BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "SETUP_BATTLEWORN_DUMMY_V2",
+        "native_ids": [
+          "ENCOUNTER.BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "SETUP_BATTLEWORN_DUMMY_V3",
+        "native_ids": [
+          "ENCOUNTER.BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "SETUP_DENSE_VEGETATION",
+        "native_ids": [
+          "ENCOUNTER.DENSE_VEGETATION_EVENT_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "SETUP_FAKE_MERCHANT",
+        "native_ids": [
+          "ENCOUNTER.FAKE_MERCHANT_EVENT_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "SETUP_MYSTERIOUS_KNIGHT",
+        "native_ids": [
+          "ENCOUNTER.MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "SETUP_PUNCH_OFF",
+        "native_ids": [
+          "ENCOUNTER.PUNCH_OFF_EVENT_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "SETUP_THE_ARCHITECT",
+        "native_ids": [
+          "ENCOUNTER.THE_ARCHITECT_EVENT_ENCOUNTER"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "SETUP_BYGONE_EFFIGY_ELITE",
+        "native_ids": [
+          "ENCOUNTER.BYGONE_EFFIGY_ELITE"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "SETUP_BYRDONIS_ELITE",
+        "native_ids": [
+          "ENCOUNTER.BYRDONIS_ELITE"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "SETUP_CEREMONIAL_BEAST_BOSS",
+        "native_ids": [
+          "ENCOUNTER.CEREMONIAL_BEAST_BOSS"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "SETUP_CUBEX_CONSTRUCT_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.CUBEX_CONSTRUCT_NORMAL"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "SETUP_FLYCONID_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.FLYCONID_NORMAL"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "SETUP_FOGMOG_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.FOGMOG_NORMAL"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "SETUP_FUZZY_WURM_CRAWLER_WEAK",
+        "native_ids": [
+          "ENCOUNTER.FUZZY_WURM_CRAWLER_WEAK"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "SETUP_INKLETS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.INKLETS_NORMAL"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "SETUP_MAWLER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.MAWLER_NORMAL"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "SETUP_NIBBITS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.NIBBITS_NORMAL"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "SETUP_NIBBITS_WEAK",
+        "native_ids": [
+          "ENCOUNTER.NIBBITS_WEAK"
+        ]
+      },
+      {
+        "id": 20,
+        "key": "SETUP_OVERGROWTH_CRAWLERS",
+        "native_ids": [
+          "ENCOUNTER.OVERGROWTH_CRAWLERS"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "SETUP_PHROG_PARASITE_ELITE",
+        "native_ids": [
+          "ENCOUNTER.PHROG_PARASITE_ELITE"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "SETUP_RUBY_RAIDERS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.RUBY_RAIDERS_NORMAL"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "SETUP_SHRINKER_BEETLE_WEAK",
+        "native_ids": [
+          "ENCOUNTER.SHRINKER_BEETLE_WEAK"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "SETUP_SLIMES_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SLIMES_NORMAL"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "SETUP_SLIMES_WEAK",
+        "native_ids": [
+          "ENCOUNTER.SLIMES_WEAK"
+        ]
+      },
+      {
+        "id": 26,
+        "key": "SETUP_SLITHERING_STRANGLER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SLITHERING_STRANGLER_NORMAL"
+        ]
+      },
+      {
+        "id": 27,
+        "key": "SETUP_SNAPPING_JAXFRUIT_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SNAPPING_JAXFRUIT_NORMAL"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "SETUP_THE_KIN_BOSS",
+        "native_ids": [
+          "ENCOUNTER.THE_KIN_BOSS"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "SETUP_VANTOM_BOSS",
+        "native_ids": [
+          "ENCOUNTER.VANTOM_BOSS"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "SETUP_VINE_SHAMBLER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.VINE_SHAMBLER_NORMAL"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "SETUP_BOWLBUGS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.BOWLBUGS_NORMAL"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "SETUP_BOWLBUGS_WEAK",
+        "native_ids": [
+          "ENCOUNTER.BOWLBUGS_WEAK"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "SETUP_CHOMPERS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.CHOMPERS_NORMAL"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "SETUP_DECIMILLIPEDE_ELITE",
+        "native_ids": [
+          "ENCOUNTER.DECIMILLIPEDE_ELITE"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "SETUP_ENTOMANCER_ELITE",
+        "native_ids": [
+          "ENCOUNTER.ENTOMANCER_ELITE"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "SETUP_EXOSKELETONS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.EXOSKELETONS_NORMAL"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "SETUP_EXOSKELETONS_WEAK",
+        "native_ids": [
+          "ENCOUNTER.EXOSKELETONS_WEAK"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "SETUP_HUNTER_KILLER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.HUNTER_KILLER_NORMAL"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "SETUP_INFESTED_PRISMS_ELITE",
+        "native_ids": [
+          "ENCOUNTER.INFESTED_PRISMS_ELITE"
+        ]
+      },
+      {
+        "id": 40,
+        "key": "SETUP_KAISER_CRAB_BOSS",
+        "native_ids": [
+          "ENCOUNTER.KAISER_CRAB_BOSS"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "SETUP_KNOWLEDGE_DEMON_BOSS",
+        "native_ids": [
+          "ENCOUNTER.KNOWLEDGE_DEMON_BOSS"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "SETUP_LOUSE_PROGENITOR_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.LOUSE_PROGENITOR_NORMAL"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "SETUP_MYTES_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.MYTES_NORMAL"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "SETUP_OVICOPTER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.OVICOPTER_NORMAL"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "SETUP_SLUMBERING_BEETLE_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SLUMBERING_BEETLE_NORMAL"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "SETUP_SPINY_TOAD_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SPINY_TOAD_NORMAL"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "SETUP_THE_INSATIABLE_BOSS",
+        "native_ids": [
+          "ENCOUNTER.THE_INSATIABLE_BOSS"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "SETUP_THE_OBSCURA_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.THE_OBSCURA_NORMAL"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "SETUP_THIEVING_HOPPER_WEAK",
+        "native_ids": [
+          "ENCOUNTER.THIEVING_HOPPER_WEAK"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "SETUP_TUNNELER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.TUNNELER_NORMAL"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "SETUP_TUNNELER_WEAK",
+        "native_ids": [
+          "ENCOUNTER.TUNNELER_WEAK"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "SETUP_AXEBOTS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.AXEBOTS_NORMAL"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "SETUP_CONSTRUCT_MENAGERIE_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.CONSTRUCT_MENAGERIE_NORMAL"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "SETUP_DEVOTED_SCULPTOR_WEAK",
+        "native_ids": [
+          "ENCOUNTER.DEVOTED_SCULPTOR_WEAK"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "SETUP_DOORMAKER_BOSS",
+        "native_ids": []
+      },
+      {
+        "id": 56,
+        "key": "SETUP_FABRICATOR_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.FABRICATOR_NORMAL"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "SETUP_FROG_KNIGHT_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.FROG_KNIGHT_NORMAL"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "SETUP_GLOBE_HEAD_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.GLOBE_HEAD_NORMAL"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "SETUP_KNIGHTS_ELITE",
+        "native_ids": [
+          "ENCOUNTER.KNIGHTS_ELITE"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "SETUP_MECHA_KNIGHT_ELITE",
+        "native_ids": [
+          "ENCOUNTER.MECHA_KNIGHT_ELITE"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "SETUP_OWL_MAGISTRATE_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.OWL_MAGISTRATE_NORMAL"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "SETUP_QUEEN_BOSS",
+        "native_ids": [
+          "ENCOUNTER.QUEEN_BOSS"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "SETUP_SCROLLS_OF_BITING_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SCROLLS_OF_BITING_NORMAL"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "SETUP_SCROLLS_OF_BITING_WEAK",
+        "native_ids": [
+          "ENCOUNTER.SCROLLS_OF_BITING_WEAK"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "SETUP_SLIMED_BERSERKER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SLIMED_BERSERKER_NORMAL"
+        ]
+      },
+      {
+        "id": 66,
+        "key": "SETUP_SOUL_NEXUS_ELITE",
+        "native_ids": [
+          "ENCOUNTER.SOUL_NEXUS_ELITE"
+        ]
+      },
+      {
+        "id": 67,
+        "key": "SETUP_TEST_SUBJECT_BOSS",
+        "native_ids": [
+          "ENCOUNTER.TEST_SUBJECT_BOSS"
+        ]
+      },
+      {
+        "id": 68,
+        "key": "SETUP_THE_LOST_AND_FORGOTTEN_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.THE_LOST_AND_FORGOTTEN_NORMAL"
+        ]
+      },
+      {
+        "id": 69,
+        "key": "SETUP_TURRET_OPERATOR_WEAK",
+        "native_ids": [
+          "ENCOUNTER.TURRET_OPERATOR_WEAK"
+        ]
+      },
+      {
+        "id": 70,
+        "key": "SETUP_CORPSE_SLUGS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.CORPSE_SLUGS_NORMAL"
+        ]
+      },
+      {
+        "id": 71,
+        "key": "SETUP_CORPSE_SLUGS_WEAK",
+        "native_ids": [
+          "ENCOUNTER.CORPSE_SLUGS_WEAK"
+        ]
+      },
+      {
+        "id": 72,
+        "key": "SETUP_CULTISTS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.CULTISTS_NORMAL"
+        ]
+      },
+      {
+        "id": 73,
+        "key": "SETUP_FOSSIL_STALKER_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.FOSSIL_STALKER_NORMAL"
+        ]
+      },
+      {
+        "id": 74,
+        "key": "SETUP_GREMLIN_MERC_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.GREMLIN_MERC_NORMAL"
+        ]
+      },
+      {
+        "id": 75,
+        "key": "SETUP_HAUNTED_SHIP_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.HAUNTED_SHIP_NORMAL"
+        ]
+      },
+      {
+        "id": 76,
+        "key": "SETUP_LAGAVULIN_MATRIARCH_BOSS",
+        "native_ids": [
+          "ENCOUNTER.LAGAVULIN_MATRIARCH_BOSS"
+        ]
+      },
+      {
+        "id": 77,
+        "key": "SETUP_LIVING_FOG_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.LIVING_FOG_NORMAL"
+        ]
+      },
+      {
+        "id": 78,
+        "key": "SETUP_PHANTASMAL_GARDENERS_ELITE",
+        "native_ids": [
+          "ENCOUNTER.PHANTASMAL_GARDENERS_ELITE"
+        ]
+      },
+      {
+        "id": 79,
+        "key": "SETUP_PUNCH_CONSTRUCT_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.PUNCH_CONSTRUCT_NORMAL"
+        ]
+      },
+      {
+        "id": 80,
+        "key": "SETUP_SEAPUNK_WEAK",
+        "native_ids": [
+          "ENCOUNTER.SEAPUNK_WEAK"
+        ]
+      },
+      {
+        "id": 81,
+        "key": "SETUP_SEWER_CLAM_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SEWER_CLAM_NORMAL"
+        ]
+      },
+      {
+        "id": 82,
+        "key": "SETUP_SKULKING_COLONY_ELITE",
+        "native_ids": [
+          "ENCOUNTER.SKULKING_COLONY_ELITE"
+        ]
+      },
+      {
+        "id": 83,
+        "key": "SETUP_SLUDGE_SPINNER_WEAK",
+        "native_ids": [
+          "ENCOUNTER.SLUDGE_SPINNER_WEAK"
+        ]
+      },
+      {
+        "id": 84,
+        "key": "SETUP_SOUL_FYSH_BOSS",
+        "native_ids": [
+          "ENCOUNTER.SOUL_FYSH_BOSS"
+        ]
+      },
+      {
+        "id": 85,
+        "key": "SETUP_TERROR_EEL_ELITE",
+        "native_ids": [
+          "ENCOUNTER.TERROR_EEL_ELITE"
+        ]
+      },
+      {
+        "id": 86,
+        "key": "SETUP_TOADPOLES_NORMAL",
+        "native_ids": []
+      },
+      {
+        "id": 87,
+        "key": "SETUP_TOADPOLES_WEAK",
+        "native_ids": [
+          "ENCOUNTER.TOADPOLES_WEAK"
+        ]
+      },
+      {
+        "id": 88,
+        "key": "SETUP_TWO_TAILED_RATS_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.TWO_TAILED_RATS_NORMAL"
+        ]
+      },
+      {
+        "id": 89,
+        "key": "SETUP_WATERFALL_GIANT_BOSS",
+        "native_ids": [
+          "ENCOUNTER.WATERFALL_GIANT_BOSS"
+        ]
+      },
+      {
+        "id": 90,
+        "key": "SETUP_SEAPUNK_NORMAL",
+        "native_ids": [
+          "ENCOUNTER.SEAPUNK_NORMAL"
+        ]
+      },
+      {
+        "id": 91,
+        "key": "SETUP_AEONGLASS_BOSS",
+        "native_ids": [
+          "ENCOUNTER.AEONGLASS_BOSS"
+        ]
+      }
+    ],
+    "EVENT": [
+      {
+        "id": 0,
+        "key": "EV_NEOW",
+        "native_ids": [
+          "EVENT.NEOW"
+        ]
+      },
+      {
+        "id": 1,
+        "key": "EV_AROMA_OF_CHAOS",
+        "native_ids": [
+          "EVENT.AROMA_OF_CHAOS"
+        ]
+      },
+      {
+        "id": 2,
+        "key": "EV_DENSE_VEGETATION",
+        "native_ids": [
+          "EVENT.DENSE_VEGETATION"
+        ]
+      },
+      {
+        "id": 3,
+        "key": "EV_SUNKEN_STATUE",
+        "native_ids": [
+          "EVENT.SUNKEN_STATUE"
+        ]
+      },
+      {
+        "id": 4,
+        "key": "EV_WELLSPRING",
+        "native_ids": [
+          "EVENT.WELLSPRING"
+        ]
+      },
+      {
+        "id": 5,
+        "key": "EV_TABLET_OF_TRUTH",
+        "native_ids": [
+          "EVENT.TABLET_OF_TRUTH"
+        ]
+      },
+      {
+        "id": 6,
+        "key": "EV_UNREST_SITE",
+        "native_ids": [
+          "EVENT.UNREST_SITE"
+        ]
+      },
+      {
+        "id": 7,
+        "key": "EV_SAPPHIRE_SEED",
+        "native_ids": [
+          "EVENT.SAPPHIRE_SEED"
+        ]
+      },
+      {
+        "id": 8,
+        "key": "EV_THIS_OR_THAT",
+        "native_ids": [
+          "EVENT.THIS_OR_THAT"
+        ]
+      },
+      {
+        "id": 9,
+        "key": "EV_ROOM_FULL_OF_CHEESE",
+        "native_ids": [
+          "EVENT.ROOM_FULL_OF_CHEESE"
+        ]
+      },
+      {
+        "id": 10,
+        "key": "EV_POTION_COURIER",
+        "native_ids": [
+          "EVENT.POTION_COURIER"
+        ]
+      },
+      {
+        "id": 11,
+        "key": "EV_BRAIN_LEECH",
+        "native_ids": [
+          "EVENT.BRAIN_LEECH"
+        ]
+      },
+      {
+        "id": 12,
+        "key": "EV_STONE_OF_ALL_TIME",
+        "native_ids": [
+          "EVENT.STONE_OF_ALL_TIME"
+        ]
+      },
+      {
+        "id": 13,
+        "key": "EV_WELCOME_TO_WONGOS",
+        "native_ids": [
+          "EVENT.WELCOME_TO_WONGOS"
+        ]
+      },
+      {
+        "id": 14,
+        "key": "EV_HUNGRY_FOR_MUSHROOMS",
+        "native_ids": [
+          "EVENT.HUNGRY_FOR_MUSHROOMS"
+        ]
+      },
+      {
+        "id": 15,
+        "key": "EV_REFLECTIONS",
+        "native_ids": [
+          "EVENT.REFLECTIONS"
+        ]
+      },
+      {
+        "id": 16,
+        "key": "EV_SPIRIT_GRAFTER",
+        "native_ids": [
+          "EVENT.SPIRIT_GRAFTER"
+        ]
+      },
+      {
+        "id": 17,
+        "key": "EV_LOST_WISP",
+        "native_ids": [
+          "EVENT.LOST_WISP"
+        ]
+      },
+      {
+        "id": 18,
+        "key": "EV_AMALGAMATOR",
+        "native_ids": [
+          "EVENT.AMALGAMATOR"
+        ]
+      },
+      {
+        "id": 19,
+        "key": "EV_AROMA_PLACEHOLDER",
+        "native_ids": []
+      },
+      {
+        "id": 20,
+        "key": "EV_BYRDONIS_NEST",
+        "native_ids": [
+          "EVENT.BYRDONIS_NEST"
+        ]
+      },
+      {
+        "id": 21,
+        "key": "EV_BUGSLAYER",
+        "native_ids": [
+          "EVENT.BUGSLAYER"
+        ]
+      },
+      {
+        "id": 22,
+        "key": "EV_COLORFUL_PHILOSOPHERS",
+        "native_ids": [
+          "EVENT.COLORFUL_PHILOSOPHERS"
+        ]
+      },
+      {
+        "id": 23,
+        "key": "EV_COLOSSAL_FLOWER",
+        "native_ids": [
+          "EVENT.COLOSSAL_FLOWER"
+        ]
+      },
+      {
+        "id": 24,
+        "key": "EV_CRYSTAL_SPHERE",
+        "native_ids": [
+          "EVENT.CRYSTAL_SPHERE"
+        ]
+      },
+      {
+        "id": 25,
+        "key": "EV_DOLL_ROOM",
+        "native_ids": [
+          "EVENT.DOLL_ROOM"
+        ]
+      },
+      {
+        "id": 26,
+        "key": "EV_FAKE_MERCHANT",
+        "native_ids": [
+          "EVENT.FAKE_MERCHANT"
+        ]
+      },
+      {
+        "id": 27,
+        "key": "EV_FIELD_OF_MAN_SIZED_HOLES",
+        "native_ids": [
+          "EVENT.FIELD_OF_MAN_SIZED_HOLES"
+        ]
+      },
+      {
+        "id": 28,
+        "key": "EV_GRAVE_OF_THE_FORGOTTEN",
+        "native_ids": [
+          "EVENT.GRAVE_OF_THE_FORGOTTEN"
+        ]
+      },
+      {
+        "id": 29,
+        "key": "EV_INFESTED_AUTOMATON",
+        "native_ids": [
+          "EVENT.INFESTED_AUTOMATON"
+        ]
+      },
+      {
+        "id": 30,
+        "key": "EV_JUNGLE_MAZE_ADVENTURE",
+        "native_ids": [
+          "EVENT.JUNGLE_MAZE_ADVENTURE"
+        ]
+      },
+      {
+        "id": 31,
+        "key": "EV_LUMINOUS_CHOIR",
+        "native_ids": [
+          "EVENT.LUMINOUS_CHOIR"
+        ]
+      },
+      {
+        "id": 32,
+        "key": "EV_MORPHIC_GROVE",
+        "native_ids": [
+          "EVENT.MORPHIC_GROVE"
+        ]
+      },
+      {
+        "id": 33,
+        "key": "EV_RANWID_THE_ELDER",
+        "native_ids": [
+          "EVENT.RANWID_THE_ELDER"
+        ]
+      },
+      {
+        "id": 34,
+        "key": "EV_RELIC_TRADER",
+        "native_ids": [
+          "EVENT.RELIC_TRADER"
+        ]
+      },
+      {
+        "id": 35,
+        "key": "EV_ROUND_TEA_PARTY",
+        "native_ids": [
+          "EVENT.ROUND_TEA_PARTY"
+        ]
+      },
+      {
+        "id": 36,
+        "key": "EV_SELF_HELP_BOOK",
+        "native_ids": [
+          "EVENT.SELF_HELP_BOOK"
+        ]
+      },
+      {
+        "id": 37,
+        "key": "EV_SLIPPERY_BRIDGE",
+        "native_ids": [
+          "EVENT.SLIPPERY_BRIDGE"
+        ]
+      },
+      {
+        "id": 38,
+        "key": "EV_SYMBIOTE",
+        "native_ids": [
+          "EVENT.SYMBIOTE"
+        ]
+      },
+      {
+        "id": 39,
+        "key": "EV_TEA_MASTER",
+        "native_ids": [
+          "EVENT.TEA_MASTER"
+        ]
+      },
+      {
+        "id": 40,
+        "key": "EV_THE_FUTURE_OF_POTIONS",
+        "native_ids": [
+          "EVENT.THE_FUTURE_OF_POTIONS"
+        ]
+      },
+      {
+        "id": 41,
+        "key": "EV_THE_LANTERN_KEY",
+        "native_ids": [
+          "EVENT.THE_LANTERN_KEY"
+        ]
+      },
+      {
+        "id": 42,
+        "key": "EV_THE_LEGENDS_WERE_TRUE",
+        "native_ids": [
+          "EVENT.THE_LEGENDS_WERE_TRUE"
+        ]
+      },
+      {
+        "id": 43,
+        "key": "EV_TINKER_TIME",
+        "native_ids": [
+          "EVENT.TINKER_TIME"
+        ]
+      },
+      {
+        "id": 44,
+        "key": "EV_TRIAL",
+        "native_ids": [
+          "EVENT.TRIAL"
+        ]
+      },
+      {
+        "id": 45,
+        "key": "EV_WAR_HISTORIAN_REPY",
+        "native_ids": [
+          "EVENT.WAR_HISTORIAN_REPY"
+        ]
+      },
+      {
+        "id": 46,
+        "key": "EV_BATTLEWORN_DUMMY",
+        "native_ids": [
+          "EVENT.BATTLEWORN_DUMMY"
+        ]
+      },
+      {
+        "id": 47,
+        "key": "EV_DARV",
+        "native_ids": [
+          "EVENT.DARV"
+        ]
+      },
+      {
+        "id": 48,
+        "key": "EV_OROBAS",
+        "native_ids": [
+          "EVENT.OROBAS"
+        ]
+      },
+      {
+        "id": 49,
+        "key": "EV_PAEL",
+        "native_ids": [
+          "EVENT.PAEL"
+        ]
+      },
+      {
+        "id": 50,
+        "key": "EV_TEZCATARA",
+        "native_ids": [
+          "EVENT.TEZCATARA"
+        ]
+      },
+      {
+        "id": 51,
+        "key": "EV_NONUPEIPE",
+        "native_ids": [
+          "EVENT.NONUPEIPE"
+        ]
+      },
+      {
+        "id": 52,
+        "key": "EV_TANX",
+        "native_ids": [
+          "EVENT.TANX"
+        ]
+      },
+      {
+        "id": 53,
+        "key": "EV_VAKUU",
+        "native_ids": [
+          "EVENT.VAKUU"
+        ]
+      },
+      {
+        "id": 54,
+        "key": "EV_ABYSSAL_BATHS",
+        "native_ids": [
+          "EVENT.ABYSSAL_BATHS"
+        ]
+      },
+      {
+        "id": 55,
+        "key": "EV_DROWNING_BEACON",
+        "native_ids": [
+          "EVENT.DROWNING_BEACON"
+        ]
+      },
+      {
+        "id": 56,
+        "key": "EV_ENDLESS_CONVEYOR",
+        "native_ids": [
+          "EVENT.ENDLESS_CONVEYOR"
+        ]
+      },
+      {
+        "id": 57,
+        "key": "EV_PUNCH_OFF",
+        "native_ids": [
+          "EVENT.PUNCH_OFF"
+        ]
+      },
+      {
+        "id": 58,
+        "key": "EV_SPIRALING_WHIRLPOOL",
+        "native_ids": [
+          "EVENT.SPIRALING_WHIRLPOOL"
+        ]
+      },
+      {
+        "id": 59,
+        "key": "EV_SUNKEN_TREASURY",
+        "native_ids": [
+          "EVENT.SUNKEN_TREASURY"
+        ]
+      },
+      {
+        "id": 60,
+        "key": "EV_DOORS_OF_LIGHT_AND_DARK",
+        "native_ids": [
+          "EVENT.DOORS_OF_LIGHT_AND_DARK"
+        ]
+      },
+      {
+        "id": 61,
+        "key": "EV_TRASH_HEAP",
+        "native_ids": [
+          "EVENT.TRASH_HEAP"
+        ]
+      },
+      {
+        "id": 62,
+        "key": "EV_WATERLOGGED_SCRIPTORIUM",
+        "native_ids": [
+          "EVENT.WATERLOGGED_SCRIPTORIUM"
+        ]
+      },
+      {
+        "id": 63,
+        "key": "EV_WHISPERING_HOLLOW",
+        "native_ids": [
+          "EVENT.WHISPERING_HOLLOW"
+        ]
+      },
+      {
+        "id": 64,
+        "key": "EV_WOOD_CARVINGS",
+        "native_ids": [
+          "EVENT.WOOD_CARVINGS"
+        ]
+      },
+      {
+        "id": 65,
+        "key": "EV_ZEN_WEAVER",
+        "native_ids": [
+          "EVENT.ZEN_WEAVER"
+        ]
+      }
+    ]
+  }
+}

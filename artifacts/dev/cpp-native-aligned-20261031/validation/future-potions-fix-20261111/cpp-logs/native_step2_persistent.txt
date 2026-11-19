@@ -1,1 +1,0 @@
-Native step2 persistent: 18 fixtures, 415 checks, 0 failures

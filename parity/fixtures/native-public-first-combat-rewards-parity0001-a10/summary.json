@@ -1,0 +1,8 @@
+{
+  "status": "limit_reached",
+  "actions_submitted": 31,
+  "aligned_decisions": 32,
+  "report_dir": "/Users/yebohou/SlayTheModel/parity/stage/reports/public-v1-final/20261119T022748Z-PARITY0001-7a3de6",
+  "trained_policy": false,
+  "stopped_at": 31
+}

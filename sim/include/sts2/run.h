@@ -1,0 +1,496 @@
+// Full-run state for a standard A0 Ironclad climb (STS2 v0.111.0 contract).
+#pragma once
+
+#include <string>
+#include <vector>
+
+#include "sts2/battle.h"
+#include "sts2/map.h"
+
+namespace sts2 {
+
+enum class RoomType : std::uint8_t { MONSTER, ELITE, EVENT, REST, SHOP, TREASURE, BOSS };
+enum class RunScreen : std::uint8_t {
+    MAP, COMBAT, CARD_REWARD, REST, SHOP, EVENT, TREASURE, RUN_OVER, REWARDS
+};
+enum class RunActionType : std::uint8_t {
+    MOVE, TAKE_CARD, SKIP_CARD, REST_HEAL, REST_UPGRADE, REST_DIG, REST_LIFT,
+    BUY_CARD, BUY_RELIC, BUY_POTION, REMOVE_CARD, LEAVE_SHOP,
+    EVENT_CHOICE, COLLECT, USE_POTION,
+    TAKE_GOLD_REWARD, TAKE_POTION_REWARD, TAKE_RELIC_REWARD, OPEN_CARD_REWARD,
+    LEAVE_REWARDS, DISCARD_POTION, SACRIFICE_CARD_REWARD, EVENT_SELECT_CARD,
+    TAKE_STOLEN_CARD_REWARD, SKIP_STOLEN_CARD_REWARD,
+    SELECT_GRID_CARD, CONFIRM_GRID_CARDS, CANCEL_GRID_PREVIEW, REST_CLONE, REST_HATCH,
+    // Crystal Sphere minigame: index = x * 11 + y of a still-hidden cell.
+    CRYSTAL_SPHERE_SMALL, CRYSTAL_SPHERE_BIG, REST_PROCEED, CANCEL_GRID_SELECTION,
+    TAKE_TREASURE_RELIC, LEAVE_TREASURE, REST_KINDLE,
+    REROLL_CARD_REWARD, OPEN_CARD_REMOVAL_REWARD, TAKE_SPECIAL_CARD_REWARD
+};
+constexpr RunActionType RUN_ACTION_LAST = RunActionType::TAKE_SPECIAL_CARD_REWARD;
+
+struct RunAction {
+    RunActionType type = RunActionType::MOVE;
+    int index = 0;
+};
+
+// RunRngSet order matches MegaCrit.Sts2.Core.Entities.Rngs.RunRngType.
+enum RunRngType : int {
+    RNG_UP_FRONT, RNG_SHUFFLE, RNG_UNKNOWN_MAP_POINT, RNG_COMBAT_CARD_GENERATION,
+    RNG_COMBAT_POTION_GENERATION, RNG_COMBAT_CARD_SELECTION, RNG_COMBAT_ENERGY_COSTS,
+    RNG_COMBAT_TARGETS, RNG_MONSTER_AI, RNG_NICHE, RNG_COMBAT_ORBS,
+    RNG_TREASURE_ROOM_RELICS, RNG_COUNT
+};
+// PlayerRngSet order matches PlayerRngType.
+enum PlayerRngType : int { PRNG_REWARDS, PRNG_SHOPS, PRNG_TRANSFORMATIONS, PRNG_COUNT };
+
+constexpr int MAX_DECK = 128;
+constexpr int MAX_SHOP_CARDS = 7;      // 5 character + 2 colorless
+constexpr int MAX_SHOP_RELICS = 3;
+constexpr int MAX_SHOP_POTIONS = 3;
+constexpr int MAX_ACTS = 3;
+constexpr int MAX_EVENT_CHOICES = 8;  // Fake Merchant: 6 relics + leave
+constexpr int MAX_REWARD_RELICS = 8;
+constexpr int MAX_REWARD_POTIONS = 12;
+constexpr int MAX_CARD_REWARDS = 8;
+constexpr int MAX_SPECIAL_CARD_REWARDS = 8;
+// Retained native CardCreationOptions, used by Driftwood after the initial
+// choices have been seen. This is engine state, never policy input.
+struct RewardCardRecipe {
+    // 0 unspecified, 1 regular combat, 2 elite combat, 3 boss combat,
+    // 4 other regular odds + upgrade, 5 uniform rarity, 6 default no upgrade,
+    // 7 Crystal Sphere event RNG, 8 Kaleidoscope empty reroll pool,
+    // 9 Dream Catcher (encounter odds, not IsFromCombat).
+    std::uint8_t kind = 0;
+    CardPool pool = CardPool::IRONCLAD;
+    Rarity rarity = Rarity::COMMON;
+    std::int8_t typeFilter = -1;
+    bool noPoolModifications = false;
+    bool upgradeAll = false;
+    bool upgradeRoll = false;
+};
+// Three options, plus Lasting Candy's extra Power on every second combat reward.
+constexpr int MAX_REWARD_CARD_CHOICES = 4;
+constexpr int RELIC_BAG_SLOTS = 4;  // common, uncommon, rare, shop
+constexpr int RELIC_BAG_CAPACITY = static_cast<int>(RelicId::COUNT);
+
+struct RelicBagState {
+    std::uint16_t entries[RELIC_BAG_SLOTS][RELIC_BAG_CAPACITY]{};
+    int counts[RELIC_BAG_SLOTS]{};
+};
+
+// Deliberately limited native progress context. Card/relic/event epoch filtering
+// remains outside this API; those pools use the simulator's implemented content.
+constexpr int SEEN_ENCOUNTER_WORDS = (static_cast<int>(Encounter::COUNT) + 63) / 64;
+struct NativeProgressContext {
+    // Native character unlock order: Ironclad, Silent, Regent, Necrobinder, Defect.
+    std::uint8_t unlockedCharacterMask = 31;
+    bool applyDiscoveryOrder = false;
+    int numberOfRuns = 1;
+    bool neowUnlocked = true;
+    bool orobasUnlocked = true;
+    bool darvUnlocked = true;
+    bool underdocksUnlocked = false;
+    bool underdocksDiscovered = true;
+    bool aeonglassSeen = true; // also required for SETUP_AEONGLASS_BOSS to count as seen
+    // ActModel.GenerateRooms removes TrashHeap / Reflections / ColorfulPhilosophers
+    // from the event list until Event1/2/3Epoch is revealed.
+    bool event1EpochRevealed = true;
+    bool event2EpochRevealed = true;
+    bool event3EpochRevealed = true;
+    // SaveManager.Progress.WongoPoints before this run (badge every 2000).
+    int wongoPoints = 0;
+    // UnlockState revealed epochs (bit = native_epoch_name index): gates card,
+    // relic and potion pool content. Default: everything revealed.
+    std::uint64_t revealedEpochs = ~std::uint64_t{0};
+    std::uint64_t seenEncounters[SEEN_ENCOUNTER_WORDS]{};
+
+    NativeProgressContext() {
+        for (auto &word : seenEncounters) word = ~std::uint64_t{0};
+    }
+    bool has_seen(Encounter encounter) const {
+        const int i = static_cast<int>(encounter);
+        return i >= 0 && i < static_cast<int>(Encounter::COUNT) &&
+               ((seenEncounters[i / 64] >> (i % 64)) & 1u) != 0;
+    }
+};
+
+// A visible card grid can suspend any run screen (e.g. Claws obtained in a shop).
+constexpr int CRYSTAL_SPHERE_SIZE = 11;
+constexpr int CRYSTAL_SPHERE_CELLS = CRYSTAL_SPHERE_SIZE * CRYSTAL_SPHERE_SIZE;
+constexpr int CRYSTAL_SPHERE_MAX_ITEMS = 150;  // 10 placement attempts x 15 items
+constexpr int CRYSTAL_SPHERE_ITEM_TYPES = 9;
+// CrystalSphereMinigame. Item types: 0 relic 4x4, 1 common potion 1x3,
+// 2 rare potion 2x2, 3/4/5 common/uncommon/rare card reward 2x2, 6 curse 2x2,
+// 7 small gold 1x1, 8 big gold 2x1.
+struct CrystalSphereState {
+    bool active = false;
+    int divinations = 0;
+    std::uint64_t hidden[2]{};                       // bit x * 11 + y
+    std::int16_t cellItem[CRYSTAL_SPHERE_CELLS]{};   // item index + 1 (0 = empty)
+    std::uint8_t itemType[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    std::int8_t itemX[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    std::int8_t itemY[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    bool itemPlaced[CRYSTAL_SPHERE_MAX_ITEMS]{};
+    int itemCount = 0;
+    std::int16_t revealed[CRYSTAL_SPHERE_MAX_ITEMS]{};  // item indices in reveal order
+    int revealedCount = 0;
+};
+constexpr int MAX_EXTRA_GOLD_REWARDS = 8;
+
+struct RunCardGrid {
+    std::uint8_t kind = 0; // 1 Brain Leech, 2 Cheese, 3 Claws, 4 Pael's Growth, 5 Scroll Boxes;
+                           // 6 remove, 7 transform, 8 transform+upgrade, 9 upgrade,
+                           // 10 Pael's Tooth, 11 Spiral, 12 Steady enchantment
+                           // 13 Sea Glass, 14 Dusty Tome, 15 Imbued, 16 Hefty Tablet
+    Card cards[15]{};
+    int count = 0;
+    bool selected[MAX_DECK]{};
+    int selectedCount = 0;
+    int minSelect = 0;
+    int maxSelect = 0;
+    bool preview = false;
+    int orderSlots[15] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    int freeNext[15] = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    int slotCount = 0;
+    int freeHead = -1;
+    int damageAfterSelection = 0;
+    CardId curseAfterSelection = CardId::INVALID;
+    // Kind 7/8 only: events call CardCmd.TransformToRandom(card, event.Rng)
+    // instead of the relics' niche stream.
+    bool eventRng = false;
+    // Kind 6-12 only: extra eligibility filter (DeckChoiceFilter).
+    std::uint8_t filter = 0;
+    // 1 rest-site Smith, 2 merchant removal: cancellable, manual confirmation.
+    std::uint8_t service = 0;
+};
+
+struct RunContext {
+    // Successful native rest options; each can be used once with Miniature Tent.
+    std::uint8_t restUsedOptions = 0;
+    void complete_rest_option(int bit);
+    // --- identity -----------------------------------------------------------
+    std::uint64_t seed = 0;
+    int ascension = 0;
+    ActType actTypes[MAX_ACTS]{ActType::OVERGROWTH, ActType::HIVE, ActType::GLORY};
+    NativeProgressContext nativeProgress;
+    int goldenPathAct = -1;
+    // SpoilsMap.SpoilsCoord: the act-2 Treasure carrying the Spoils Map quest
+    // (row/col), or -1 when no quest is on this act's map.
+    std::int8_t spoilsQuestRow = -1;
+    std::int8_t spoilsQuestCol = -1;
+    int unknownMapPointsVisited = 0;
+
+    // --- progression --------------------------------------------------------
+    int hp = 80;
+    int maxHp = 80;
+    int gold = 99;
+    int act = 0;        // 0..2
+    int actFloor = 0;   // 1-based row within the act (Ancient == 1)
+    int floor = 0;      // total floors entered
+    bool won = false;
+    bool truncated = false;  // safety cutoff; not a game loss
+
+    ActMap map;
+    std::int8_t curRow = -1;
+    std::int8_t curCol = -1;
+    std::uint64_t visitedLo = 0;
+    std::uint64_t visitedHi = 0;
+    std::int8_t lastPointType = 0;
+    std::int8_t ancientId = 0;              // EventId of this act's Ancient
+    bool sharedAncientInAct[MAX_ACTS]{};    // Darv assignment (C# GenerateRooms)
+
+    // --- deck ---------------------------------------------------------------
+    Card deck[MAX_DECK]{};
+    int deckCount = 0;
+    std::uint16_t nextUid = 1;
+
+    // --- battle -------------------------------------------------------------
+    BattleContext battle;
+    bool inBattle = false;
+    bool combatIsElite = false;
+    bool combatIsBoss = false;
+    int combatsFought = 0;
+    int elitesFought = 0;
+    int bossesFought = 0;
+    Card stolenOriginals[MAX_PILE]{};
+    bool stolenOriginalPresent[MAX_PILE]{};
+    bool stolenRewardPending[MAX_PILE]{};
+    int stolenSyncCount = 0;
+
+    // --- screens ------------------------------------------------------------
+    RunScreen screen = RunScreen::MAP;
+    Card offered[MAX_REWARD_CARD_CHOICES]{};
+    int offeredCount = 0;
+    bool rewardIsBoss = false;
+    int pendingGoldReward = 0;
+    int pendingRecoveredGold = 0;
+    // Additional custom GoldRewards (Crystal Sphere): TAKE_GOLD_REWARD index 2+i.
+    int extraGoldRewards[MAX_EXTRA_GOLD_REWARDS]{};
+    CrystalSphereState crystalSphere;
+    int pendingPotionReward = 0;  // PotionId::INVALID means none
+    int pendingPotions[MAX_REWARD_POTIONS]{};
+    int pendingPotionCount = 0;
+    int pendingRelics[MAX_REWARD_RELICS]{};
+    int pendingRelicCount = 0;
+    bool pendingRelicClaimed[MAX_REWARD_RELICS]{};
+    bool pendingRelicWax[MAX_REWARD_RELICS]{};
+    bool pendingCardReward = false;
+    Card rewardCards[MAX_CARD_REWARDS][MAX_REWARD_CARD_CHOICES]{};
+    int rewardCardCounts[MAX_CARD_REWARDS]{};
+    bool rewardCardPending[MAX_CARD_REWARDS]{};
+    bool rewardCardCanReroll[MAX_CARD_REWARDS]{};
+    RewardCardRecipe rewardCardRecipes[MAX_CARD_REWARDS]{};
+    int pendingCardRemovals = 0;
+    Card specialRewardCards[MAX_SPECIAL_CARD_REWARDS]{};
+    bool specialRewardPending[MAX_SPECIAL_CARD_REWARDS]{};
+    int activeCardReward = -1;
+    bool rewardReturnToRewards = false;
+    bool pendingReturnToEvent = false;
+    bool lavaRockTriggered = false;
+    RunScreen rewardResumeScreen = RunScreen::MAP;
+    bool deferredCustomRewards = false;
+    bool processingAction = false;
+    // NeowsBones awaits both mandatory relic claims, including nested reward
+    // screens, before giving its curse. Stage 1: its rewards; 2: nested rewards.
+    std::uint8_t neowsBonesStage = 0;
+    int neowsBonesRelics[2]{};
+    bool neowsBonesClaimed[2]{};
+
+    // --- shop ---------------------------------------------------------------
+    Card shopCards[MAX_SHOP_CARDS]{};
+    int shopPrices[MAX_SHOP_CARDS]{};
+    int shopBasePrices[MAX_SHOP_CARDS]{};
+    bool shopSold[MAX_SHOP_CARDS]{};
+    int shopCount = 0;
+    int shopRelics[MAX_SHOP_RELICS]{};
+    int shopRelicPrices[MAX_SHOP_RELICS]{};
+    int shopRelicBasePrices[MAX_SHOP_RELICS]{};
+    bool shopRelicSold[MAX_SHOP_RELICS]{};
+    int shopRelicCount = 0;
+    int shopPotions[MAX_SHOP_POTIONS]{};
+    int shopPotionPrices[MAX_SHOP_POTIONS]{};
+    int shopPotionBasePrices[MAX_SHOP_POTIONS]{};
+    bool shopPotionSold[MAX_SHOP_POTIONS]{};
+    int shopPotionCount = 0;
+    bool removalUsed = false;
+    int removalPrice = 75;
+    int removalBasePrice = 75;
+    int cardShopRemovalsUsed = 0;
+
+    // --- events -------------------------------------------------------------
+    std::int8_t eventId = -1;
+    std::int8_t eventPage = 0;
+    // Public action history needed by SetEventFinished's exact description.
+    // Preserved while a card selector/reward callback is awaiting completion.
+    std::int8_t eventLastOption = -1;
+    std::int8_t eventLastChoicePage = -1;
+    std::int8_t eventLastChoiceCount = 0;
+    int eventLastRelic = 0;
+    std::uint8_t eventCardSelection = 0;  // 1 upgrade, 2 Sown, 3 Vigorous
+    RunCardGrid cardGrid;
+    Card paelsToothCards[5]{};
+    int paelsToothCount = 0;
+    // Native awaits each obtain before starting the next. These acquisitions
+    // are suspended while a previous relic is waiting for a deck choice.
+    int pendingRelicObtains[MAX_RELICS]{};
+    bool pendingRelicObtainWax[MAX_RELICS]{};
+    int pendingRelicObtainCount = 0;
+    std::int8_t eventChoiceCount = 0;
+    int eventData[MAX_EVENT_CHOICES]{};
+    // Per-event deck-index set (Slippery Bridge's SkippedRemovals).
+    std::uint64_t eventDeckMask[2]{};
+    int eventRelics[MAX_EVENT_CHOICES]{};
+    CardPool preparedSeaGlassPool = CardPool::IRONCLAD;
+    CardId preparedDustyTomeCard = CardId::INVALID;
+    bool eventCombat = false;         // current room is a combat inside an event
+    std::int8_t eventReturnPage = 0;  // page to return to after event combat
+    Rng eventRng;                    // persistent across pages of the active event
+
+    // --- potions / relics ---------------------------------------------------
+    int potions[MAX_POTIONS]{};
+    int potionCount = 0;
+    int potionSlots = BASE_POTION_SLOTS;
+
+    int relics[MAX_RELICS]{};
+    int relicCount = 0;
+    int relicAux[MAX_RELICS]{};  // persistent run-level relic counters
+    bool relicWax[MAX_RELICS]{};
+    bool relicMelted[MAX_RELICS]{};
+    RelicBagState playerRelicBag;
+    RelicBagState sharedRelicBag;
+    bool relicBagsInitialized = false;
+
+    // --- RNG streams and odds ----------------------------------------------
+    Rng runRng[RNG_COUNT];
+    Rng playerRng[PRNG_COUNT];
+    float cardRarityOdds = -0.05f;   // rarity offset (grows by 0.01, rare resets)
+    float potionRewardOdds = 0.4f;
+    float unknownMonsterOdds = 0.1f;
+    float unknownEliteOdds = -1.0f;
+    float unknownTreasureOdds = 0.02f;
+    float unknownShopOdds = 0.03f;
+
+    // --- act room bags ------------------------------------------------------
+    std::uint16_t normalBag[32]{};
+    int normalBagN = 0;
+    int normalBagPos = 0;
+    std::uint16_t eliteBag[16]{};
+    int eliteBagN = 0;
+    int eliteBagPos = 0;
+    int bossEncounter = -1;
+    int secondBossEncounter = -1;
+    std::uint16_t eventBag[64]{};
+    int eventBagN = 0;
+    int eventBagPos = 0;
+    std::uint64_t visitedEvents[2]{};  // RunState.VisitedEventIds; persists across acts
+
+    // --- event/ancient relic bookkeeping (pre-existing hooks) ---------------
+    bool teaSetPending = false;
+    int cardsAdded = 0;
+    int nextCombatEnergy = 0;
+    bool nextCombatUpgradeHand = false;
+    int nextCombatDazed = 0;
+    int emberTeaCombats = 0;
+    int furCoatCombats = 0;
+    int toyBoxCombats = 0;
+    int largeCapsuleRelicsRemaining = 0;
+    bool largeCapsuleCardsPending = false;
+    int wongoCombats = 0;
+    int swordOfStoneWins = 0;
+    int paelsWingSkips = 0;
+    int silverCrucibleUses = 0;
+    bool mawBankPurchased = false;
+    bool treasureSkipped = false;
+    std::uint8_t treasureStage = 0; // 0 unopened, 1 relic offered, 2 proceed
+    int treasureRelic = -1;       // hidden before opening; -1 not prepared
+    int treasureRoomsEntered = 0;
+    int eventRelicsLegacy[3]{};
+
+    // --- lifecycle ----------------------------------------------------------
+    // Numeric input is the raw 64-bit RNG seed; strings use native canonicalization/hash.
+    void init(std::uint64_t seedValue, int ascensionLevel);
+    void init_seed(const std::string &seedText, int ascensionLevel);
+    void init_with_context(std::uint64_t seedValue, int ascensionLevel, int firstAct,
+                           const NativeProgressContext &progress);
+    void init_seed_with_context(const std::string &seedText, int ascensionLevel, int firstAct,
+                                const NativeProgressContext &progress);
+    void init_relic_bags();
+
+    bool add_card_to_deck(Card c);
+    int spoils_map_count() const;
+    void refresh_spoils_quest();
+    bool spoils_quest_active() const;
+    std::uint16_t allocate_card_uid();
+    Card make_run_card(CardId id, bool upgraded);
+    void add_potion(PotionId id);
+    bool use_potion_out_of_combat(int idx);
+    void sync_potions_from_battle();
+    bool add_relic(RelicId id, bool wax = false);
+    bool replace_starter_relic(int index, RelicId replacement);
+    void resume_pending_relic_obtains();
+    void sync_relics_from_battle();
+    void sync_stolen_cards();
+
+    // --- progression --------------------------------------------------------
+    void start_act(int actIndex);
+    void apply_golden_compass();
+    void begin_combat(Encounter enc);
+    void finish_combat();
+    void finish_room();
+    void enter_map_point(int nodeIdx);
+    void roll_card_reward(bool boss);
+    bool queue_random_relic_reward(Rng &rng, bool shared = false, bool wax = false);
+    bool queue_relic_reward(Rarity rarity);
+    bool queue_potion_rewards(int count);
+    void queue_rest_site_rewards();
+    bool queue_card_reward(Rarity fixedRarity, bool useBaseOdds, CardPool pool = CardPool::IRONCLAD);
+    // RewardsCmd.OfferCustom with an already populated CardReward (1..3 cards).
+    bool queue_prepared_card_reward(const Card *cards, int count, RewardCardRecipe recipe = {});
+    bool queue_special_card_reward(const Card &card);
+    bool reroll_card_reward();
+    int free_card_reward_slots() const;
+    // shopOnly: front pull with the IsAllowedInShops filter (back pulls are
+    // always shop pulls). Filtered-out relics stay in the bag.
+    RelicId pull_relic(Rarity rarity, bool fromBack = false, bool shared = false,
+                       const int *blacklist = nullptr, int blacklistCount = 0, bool shopOnly = false);
+    void roll_shop();
+    void roll_treasure();
+    void prepare_treasure();
+    int roll_unknown_room_type();
+    void roll_act_rooms();
+
+    [[nodiscard]] std::vector<RunAction> legal_actions() const;
+    [[nodiscard]] std::vector<int> available_map_nodes() const;
+    bool step(const RunAction &action);
+    bool step_combat(const Action &action);
+
+    [[nodiscard]] bool is_over() const { return screen == RunScreen::RUN_OVER; }
+    [[nodiscard]] int alive_floor() const { return floor; }
+    [[nodiscard]] int current_point_type() const;
+
+    // --- training API -------------------------------------------------------
+    [[nodiscard]] std::string serialize() const;
+    static bool restore(const std::string &blob, RunContext &out);
+    [[nodiscard]] std::uint64_t state_hash() const;
+    [[nodiscard]] double terminal_reward() const;
+};
+
+const char *room_name(RoomType r);
+
+// --- events (events.cpp) ----------------------------------------------------
+constexpr int MAX_EVENTS = 128;  // visitedEvents bit capacity
+enum class EventStatus : std::uint8_t { IMPLEMENTED, APPROXIMATE, UNSUPPORTED };
+struct EventInfo {
+    const char *name;
+    EventStatus status;
+    int act;  // -1 shared, 0..2 act-specific, 3 ancient
+};
+const EventInfo *event_info(int id);
+// Native GenerateRooms order: act events then shared events, minus unrevealed
+// epoch events (progress may be null: all revealed) and unsupported ports.
+int event_pool_for_act_type(ActType actType, int *out, int maxOut,
+                            const NativeProgressContext *progress = nullptr);
+int event_count();
+// Neow.AllPossibleOptions, native declaration order and IsAllowedAtNeow filter.
+int native_neow_relic_pool(const RunContext &rc, RelicId *out, int capacity);
+void begin_neows_bones(RunContext &rc);
+bool event_is_allowed(const RunContext &rc, int id);
+int event_pool_for_act(int act, int *out, int maxOut);  // implemented-only ids
+int event_ancient_for_act(int act);  // legacy: act 1 -> Neow
+int event_ancient_for_act(const RunContext &rc);
+void event_plan_shared_ancients(RunContext &rc);
+int event_pick_ancient(RunContext &rc);
+void event_begin(RunContext &rc, int eventId, bool ancient);
+int event_option_count(const RunContext &rc);
+bool event_option_available(const RunContext &rc, int option);
+bool event_choose(RunContext &rc, int option);
+bool event_card_selectable(const RunContext &rc, int index);
+bool event_card_selection_valid(const RunContext &rc);
+bool event_select_card(RunContext &rc, int index);
+bool event_can_remove_potions(const RunContext &rc);
+void event_finish_card_grid(RunContext &rc);
+void event_resume_after_combat(RunContext &rc);
+// Rewards offered mid-event (RewardsCmd.OfferCustom is awaited) were closed.
+void event_resume_after_rewards(RunContext &rc);
+// Neow's awaited relic obtain completes before its explicit Proceed option.
+void event_resume_neow_if_ready(RunContext &rc);
+// Event combats (EnterCombatWithoutExitingEvent): whether the encounter gives
+// the normal Monster-room rewards, its gold override (-1 default) and the
+// event's extra rewards, appended after the room rewards.
+bool event_fight_room_rewards(const RunContext &rc);
+int event_fight_gold(const RunContext &rc);
+void event_fight_extra_rewards(RunContext &rc);
+// LanternKey (quest card in the deck): in act index 2, "?" rooms are events and
+// the next event becomes War Historian Repy.
+bool run_lantern_key_active(const RunContext &rc);
+int event_modify_next(const RunContext &rc, int eventId);
+// FoulPotion.IsUsable out of combat: a merchant room, or the Fake Merchant.
+bool foul_potion_usable_out_of_combat(const RunContext &rc);
+// FakeMerchant.FoulPotionThrown: start the merchant fight.
+void event_fake_merchant_foul_potion(RunContext &rc);
+// Crystal Sphere minigame (events.cpp).
+bool crystal_sphere_cell_clickable(const RunContext &rc, int cell);
+bool crystal_sphere_click(RunContext &rc, bool big, int cell);
+bool crystal_sphere_snapshot_valid(const RunContext &rc);
+
+}  // namespace sts2

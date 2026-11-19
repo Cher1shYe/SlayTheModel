@@ -1,1 +1,0 @@
-validated 6742 live snapshots and rejected malformed inputs

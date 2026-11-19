@@ -1,8 +1,0 @@
-[
-  {
-    "monsterId": "GremlinMerc",
-    "useCurrentMove": true,
-    "killMonsterAfterMove": true,
-    "expectedSimulatedDynamicResolution": false
-  }
-]

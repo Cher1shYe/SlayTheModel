@@ -1,0 +1,8 @@
+{
+  "status": "unsupported",
+  "actions_submitted": 24,
+  "aligned_decisions": 24,
+  "report_dir": "/Users/yebohou/SlayTheModel/parity/stage/reports/first-combat-fixed/20261118T142940Z-PARITY0001-980679",
+  "trained_policy": false,
+  "stopped_at": 24
+}

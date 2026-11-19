@@ -1,1 +1,0 @@
-public state and known top preserved across 6000 resamplings; hidden next-card distributions in bounds

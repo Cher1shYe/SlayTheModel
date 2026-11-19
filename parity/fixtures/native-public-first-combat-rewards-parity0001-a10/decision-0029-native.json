@@ -1,0 +1,2276 @@
+{
+  "runIdentity": {
+    "seed": "PAR1TY0001",
+    "character": "IRONCLAD",
+    "ascension": 10,
+    "gameVersion": "v0.111.0",
+    "gameCommit": "41cef1ea",
+    "gameDllSha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+  },
+  "revision": 119,
+  "status": "ready",
+  "screen": "card_reward",
+  "title": "卡牌奖励",
+  "description": "选择一张卡牌，或选择下方的奖励替代选项。",
+  "player": {
+    "name": "The Ironclad",
+    "enName": "The Ironclad",
+    "hp": 51,
+    "maxHp": 80,
+    "block": 0,
+    "energy": 2,
+    "maxEnergy": 3,
+    "stars": 0,
+    "gold": 258,
+    "ascension": 10,
+    "act": 1,
+    "orbCapacity": 0,
+    "floor": 2,
+    "totalFloor": 2,
+    "combatTurn": 6,
+    "potionSlots": 2,
+    "statuses": []
+  },
+  "publicObservation": {
+    "version": 1,
+    "player": {
+      "hp": 51,
+      "maxHp": 80,
+      "block": 0,
+      "gold": 258,
+      "energy": 0,
+      "maxEnergy": 0,
+      "stars": 0,
+      "potionSlots": 2,
+      "powers": []
+    },
+    "run": {
+      "act": 0,
+      "floor": 2,
+      "actFloor": 2,
+      "ascension": 10,
+      "currentAct": "ACT.UNDERDOCKS",
+      "boss": "ENCOUNTER.WATERFALL_GIANT_BOSS",
+      "combatsFought": 1,
+      "elitesFought": 0,
+      "bossesFought": 0,
+      "cardShopRemovalsUsed": 0,
+      "unknownMapPointsVisited": 0
+    },
+    "cards": [
+      {
+        "transportId": "e2a9fbcaf3ced47a1a1715aa7fe81fee7",
+        "modelId": "CARD.STRIKE_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "ece2cd3d1ebb54cf7b35a1484bbdfedfe",
+        "modelId": "CARD.STRIKE_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "ecb64fd52fbb647a79c66b3d3fc00063f",
+        "modelId": "CARD.STRIKE_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "e918254f83e3047719a2155f38b8602ee",
+        "modelId": "CARD.STRIKE_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "e47f5d5b83e864a318b8b22b7fd7e998b",
+        "modelId": "CARD.STRIKE_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "efec6db1e91784845a60d113839d7bf8b",
+        "modelId": "CARD.DEFEND_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Skill",
+        "rarity": "Basic",
+        "target": "Self",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Defend"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Block",
+            "value": 5,
+            "enchantedValue": 5
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "e0fd8a8017c124611bd03cc1c4f55a608",
+        "modelId": "CARD.DEFEND_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Skill",
+        "rarity": "Basic",
+        "target": "Self",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Defend"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Block",
+            "value": 5,
+            "enchantedValue": 5
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "eefd98739078442b9b0ca0dad87a8264e",
+        "modelId": "CARD.DEFEND_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Skill",
+        "rarity": "Basic",
+        "target": "Self",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Defend"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Block",
+            "value": 5,
+            "enchantedValue": 5
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "e280a77b11c27463297d3befdaa1e2874",
+        "modelId": "CARD.DEFEND_IRONCLAD",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Skill",
+        "rarity": "Basic",
+        "target": "Self",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Defend"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Block",
+            "value": 5,
+            "enchantedValue": 5
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "e1485c511007f46a5a0ed2737069d3d17",
+        "modelId": "CARD.BASH",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Basic",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 2,
+        "baseCost": 2,
+        "localCost": 2,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 8,
+            "enchantedValue": 8
+          },
+          {
+            "name": "VulnerablePower",
+            "value": 2,
+            "enchantedValue": 2
+          }
+        ],
+        "tinkerRider": 0
+      },
+      {
+        "transportId": "ed665d60afb27477bb1b58d24a847fff7",
+        "modelId": "CARD.ASCENDERS_BANE",
+        "pile": "deck",
+        "upgrade": 0,
+        "maxUpgrade": 0,
+        "type": "Curse",
+        "rarity": "Curse",
+        "target": "None",
+        "costX": false,
+        "cost": -1,
+        "baseCost": -1,
+        "localCost": -1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [
+          "Eternal",
+          "Ethereal",
+          "Unplayable"
+        ],
+        "localKeywords": [
+          "Eternal",
+          "Ethereal",
+          "Unplayable"
+        ],
+        "tags": [],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [],
+        "tinkerRider": 0
+      }
+    ],
+    "enemies": [],
+    "knownTop": [],
+    "relics": [
+      {
+        "modelId": "RELIC.BURNING_BLOOD",
+        "position": 0,
+        "wax": false,
+        "melted": false,
+        "counterVisible": false,
+        "counter": 0,
+        "status": "Normal",
+        "dynamicVars": [
+          {
+            "name": "Heal",
+            "value": 6,
+            "enchantedValue": 6
+          }
+        ]
+      },
+      {
+        "modelId": "RELIC.GOLDEN_PEARL",
+        "position": 1,
+        "wax": false,
+        "melted": false,
+        "counterVisible": false,
+        "counter": 0,
+        "status": "Normal",
+        "dynamicVars": [
+          {
+            "name": "Gold",
+            "value": 150,
+            "enchantedValue": 150
+          }
+        ]
+      }
+    ],
+    "potions": [
+      {
+        "slot": 0,
+        "modelId": "POTION.ASHWATER",
+        "queued": false,
+        "disabledUntilRemoved": false
+      },
+      {
+        "slot": 1,
+        "queued": false,
+        "disabledUntilRemoved": false
+      }
+    ],
+    "map": [
+      {
+        "row": 1,
+        "col": 0,
+        "type": "Monster",
+        "visited": true,
+        "current": true,
+        "children": [
+          {
+            "row": 2,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 2,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 3,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 3,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 4,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 5,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 6,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 6,
+        "col": 0,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 7,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 8,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 9,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 9,
+        "col": 0,
+        "type": "Treasure",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 10,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 0,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 12,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 13,
+            "col": 0
+          },
+          {
+            "row": 13,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 13,
+        "col": 0,
+        "type": "Shop",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 14,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 0,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 4,
+        "col": 1,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 5,
+            "col": 0
+          },
+          {
+            "row": 5,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 6,
+        "col": 1,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 7,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 7,
+        "col": 1,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 8,
+            "col": 0
+          },
+          {
+            "row": 8,
+            "col": 1
+          },
+          {
+            "row": 8,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 8,
+        "col": 1,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 9,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 1,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 1,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 0
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 13,
+        "col": 1,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 14,
+            "col": 1
+          },
+          {
+            "row": 14,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 1,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 15,
+        "col": 1,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 16,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 2,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 3,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 3,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 4,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 4,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 5,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 5,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 6,
+            "col": 1
+          },
+          {
+            "row": 6,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 8,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 9,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 9,
+        "col": 2,
+        "type": "Treasure",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 10,
+            "col": 1
+          },
+          {
+            "row": 10,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 2,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 1
+          },
+          {
+            "row": 11,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 12,
+        "col": 2,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 13,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 13,
+        "col": 2,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 14,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 2,
+        "type": "Shop",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 1
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 1,
+        "col": 3,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 2,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 6,
+        "col": 3,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 7,
+            "col": 4
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 3,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 3,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 12,
+        "col": 3,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 13,
+            "col": 2
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 3,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 15,
+        "col": 3,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 16,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 5,
+        "col": 4,
+        "type": "Shop",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 6,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 7,
+        "col": 4,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 8,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 9,
+        "col": 4,
+        "type": "Treasure",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 10,
+            "col": 3
+          },
+          {
+            "row": 10,
+            "col": 4
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 4,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 4
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 4,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 4
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 12,
+        "col": 4,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 13,
+            "col": 4
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 13,
+        "col": 4,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 14,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 1,
+        "col": 5,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 2,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 2,
+        "col": 5,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 3,
+            "col": 5
+          },
+          {
+            "row": 3,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 3,
+        "col": 5,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 4,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 4,
+        "col": 5,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 5,
+            "col": 4
+          },
+          {
+            "row": 5,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 8,
+        "col": 5,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 9,
+            "col": 4
+          },
+          {
+            "row": 9,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 5,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 15,
+        "col": 5,
+        "type": "RestSite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 16,
+            "col": 3
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 3,
+        "col": 6,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 4,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 5,
+        "col": 6,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 6,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 6,
+        "col": 6,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 7,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 7,
+        "col": 6,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 8,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 9,
+        "col": 6,
+        "type": "Treasure",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 10,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 10,
+        "col": 6,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 11,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 11,
+        "col": 6,
+        "type": "Monster",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 12,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 12,
+        "col": 6,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 13,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 13,
+        "col": 6,
+        "type": "Unknown",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 14,
+            "col": 6
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 14,
+        "col": 6,
+        "type": "Elite",
+        "visited": false,
+        "current": false,
+        "children": [
+          {
+            "row": 15,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 0,
+        "col": 3,
+        "type": "Ancient",
+        "visited": true,
+        "current": false,
+        "children": [
+          {
+            "row": 1,
+            "col": 0
+          },
+          {
+            "row": 1,
+            "col": 3
+          },
+          {
+            "row": 1,
+            "col": 5
+          }
+        ],
+        "quests": []
+      },
+      {
+        "row": 16,
+        "col": 3,
+        "type": "Boss",
+        "visited": false,
+        "current": false,
+        "children": [],
+        "quests": []
+      }
+    ]
+  },
+  "decision": {
+    "title": "卡牌奖励",
+    "description": "选择一张卡牌，或选择下方的奖励替代选项。",
+    "choices": [
+      {
+        "index": 0,
+        "card": {
+          "id": "e4747815dac4d4f51b3c941bd8955fce5",
+          "kind": "card",
+          "name": "Thunderclap",
+          "enName": "Thunderclap",
+          "modelId": "CARD.THUNDERCLAP",
+          "description": "Deal 4 damage and apply 1 Vulnerable to ALL enemies.",
+          "pile": "choice",
+          "cost": 1,
+          "upgradeLevel": 0,
+          "statuses": []
+        },
+        "publicCard": {
+          "transportId": "e4747815dac4d4f51b3c941bd8955fce5",
+          "modelId": "CARD.THUNDERCLAP",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Attack",
+          "rarity": "Common",
+          "target": "AllEnemies",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Damage",
+              "value": 4,
+              "enchantedValue": 4
+            },
+            {
+              "name": "VulnerablePower",
+              "value": 1,
+              "enchantedValue": 1
+            }
+          ],
+          "tinkerRider": 0
+        }
+      },
+      {
+        "index": 1,
+        "card": {
+          "id": "e4d405947e9fa4b438632ea5026453d24",
+          "kind": "card",
+          "name": "Armaments",
+          "enName": "Armaments",
+          "modelId": "CARD.ARMAMENTS",
+          "description": "Gain 5 Block.\nUpgrade a card in your Hand.",
+          "pile": "choice",
+          "cost": 1,
+          "upgradeLevel": 0,
+          "statuses": []
+        },
+        "publicCard": {
+          "transportId": "e4d405947e9fa4b438632ea5026453d24",
+          "modelId": "CARD.ARMAMENTS",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Skill",
+          "rarity": "Common",
+          "target": "Self",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Block",
+              "value": 5,
+              "enchantedValue": 5
+            }
+          ],
+          "tinkerRider": 0
+        }
+      },
+      {
+        "index": 2,
+        "card": {
+          "id": "e6949465ef1094ea992cbde8802c71bfd",
+          "kind": "card",
+          "name": "Setup Strike",
+          "enName": "Setup Strike",
+          "modelId": "CARD.SETUP_STRIKE",
+          "description": "Deal 7 damage.\nGain 3 Strength this turn.",
+          "pile": "choice",
+          "cost": 1,
+          "upgradeLevel": 0,
+          "statuses": []
+        },
+        "publicCard": {
+          "transportId": "e6949465ef1094ea992cbde8802c71bfd",
+          "modelId": "CARD.SETUP_STRIKE",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Attack",
+          "rarity": "Common",
+          "target": "AnyEnemy",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [
+            "Strike"
+          ],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Damage",
+              "value": 7,
+              "enchantedValue": 7
+            },
+            {
+              "name": "StrengthPower",
+              "value": 3,
+              "enchantedValue": 3
+            }
+          ],
+          "tinkerRider": 0
+        }
+      }
+    ],
+    "entities": [
+      {
+        "id": "e4747815dac4d4f51b3c941bd8955fce5",
+        "kind": "card",
+        "name": "Thunderclap",
+        "enName": "Thunderclap",
+        "modelId": "CARD.THUNDERCLAP",
+        "description": "Deal 4 damage and apply 1 Vulnerable to ALL enemies.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      },
+      {
+        "id": "e4d405947e9fa4b438632ea5026453d24",
+        "kind": "card",
+        "name": "Armaments",
+        "enName": "Armaments",
+        "modelId": "CARD.ARMAMENTS",
+        "description": "Gain 5 Block.\nUpgrade a card in your Hand.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      },
+      {
+        "id": "e6949465ef1094ea992cbde8802c71bfd",
+        "kind": "card",
+        "name": "Setup Strike",
+        "enName": "Setup Strike",
+        "modelId": "CARD.SETUP_STRIKE",
+        "description": "Deal 7 damage.\nGain 3 Strength this turn.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      }
+    ]
+  },
+  "actOrder": [
+    "UNDERDOCKS",
+    "HIVE",
+    "GLORY"
+  ],
+  "entities": [
+    {
+      "id": "ed665d60afb27477bb1b58d24a847fff7",
+      "kind": "card",
+      "name": "Ascender's Bane",
+      "enName": "Ascender's Bane",
+      "modelId": "CARD.ASCENDERS_BANE",
+      "description": "Unplayable.\nEthereal.\nEternal.",
+      "pile": "deck",
+      "cost": -1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e1485c511007f46a5a0ed2737069d3d17",
+      "kind": "card",
+      "name": "Bash",
+      "enName": "Bash",
+      "modelId": "CARD.BASH",
+      "description": "Deal 8 damage.\nApply 2 Vulnerable.",
+      "pile": "deck",
+      "cost": 2,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e0fd8a8017c124611bd03cc1c4f55a608",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e280a77b11c27463297d3befdaa1e2874",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "eefd98739078442b9b0ca0dad87a8264e",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "efec6db1e91784845a60d113839d7bf8b",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e2a9fbcaf3ced47a1a1715aa7fe81fee7",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e47f5d5b83e864a318b8b22b7fd7e998b",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e918254f83e3047719a2155f38b8602ee",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "ecb64fd52fbb647a79c66b3d3fc00063f",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "ece2cd3d1ebb54cf7b35a1484bbdfedfe",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e6e2d222fa5a64c0c8fb6e9ba7e078092",
+      "kind": "relic",
+      "name": "Burning Blood",
+      "enName": "Burning Blood",
+      "modelId": "RELIC.BURNING_BLOOD",
+      "description": "At the end of combat, heal 6 HP.",
+      "statuses": []
+    },
+    {
+      "id": "e3afffef834094b5a99ac2f30424c17c9",
+      "kind": "relic",
+      "name": "Golden Pearl",
+      "enName": "Golden Pearl",
+      "modelId": "RELIC.GOLDEN_PEARL",
+      "description": "Upon pickup, gain 150 Gold.",
+      "statuses": []
+    },
+    {
+      "id": "ebc5734ea91a44aba92be085961c08ee6",
+      "kind": "potion",
+      "name": "Ashwater",
+      "enName": "Ashwater",
+      "modelId": "POTION.ASHWATER",
+      "description": "Exhaust any number of cards in your Hand.",
+      "potionSlotIndex": 0,
+      "statuses": []
+    },
+    {
+      "id": "e4747815dac4d4f51b3c941bd8955fce5",
+      "kind": "card",
+      "name": "Thunderclap",
+      "enName": "Thunderclap",
+      "modelId": "CARD.THUNDERCLAP",
+      "description": "Deal 4 damage and apply 1 Vulnerable to ALL enemies.",
+      "pile": "choice",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e4d405947e9fa4b438632ea5026453d24",
+      "kind": "card",
+      "name": "Armaments",
+      "enName": "Armaments",
+      "modelId": "CARD.ARMAMENTS",
+      "description": "Gain 5 Block.\nUpgrade a card in your Hand.",
+      "pile": "choice",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e6949465ef1094ea992cbde8802c71bfd",
+      "kind": "card",
+      "name": "Setup Strike",
+      "enName": "Setup Strike",
+      "modelId": "CARD.SETUP_STRIKE",
+      "description": "Deal 7 damage.\nGain 3 Strength this turn.",
+      "pile": "choice",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    }
+  ],
+  "actions": [
+    {
+      "id": "a0",
+      "label": "拿取 Thunderclap",
+      "enLabel": "Take Thunderclap",
+      "kind": "choose_reward_card",
+      "entityId": "e4747815dac4d4f51b3c941bd8955fce5",
+      "disabled": false,
+      "metadata": {
+        "entityId": "e4747815dac4d4f51b3c941bd8955fce5",
+        "card": {
+          "transportId": "e4747815dac4d4f51b3c941bd8955fce5",
+          "modelId": "CARD.THUNDERCLAP",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Attack",
+          "rarity": "Common",
+          "target": "AllEnemies",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Damage",
+              "value": 4,
+              "enchantedValue": 4
+            },
+            {
+              "name": "VulnerablePower",
+              "value": 1,
+              "enchantedValue": 1
+            }
+          ],
+          "tinkerRider": 0
+        }
+      }
+    },
+    {
+      "id": "a1",
+      "label": "拿取 Armaments",
+      "enLabel": "Take Armaments",
+      "kind": "choose_reward_card",
+      "entityId": "e4d405947e9fa4b438632ea5026453d24",
+      "disabled": false,
+      "metadata": {
+        "entityId": "e4d405947e9fa4b438632ea5026453d24",
+        "card": {
+          "transportId": "e4d405947e9fa4b438632ea5026453d24",
+          "modelId": "CARD.ARMAMENTS",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Skill",
+          "rarity": "Common",
+          "target": "Self",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Block",
+              "value": 5,
+              "enchantedValue": 5
+            }
+          ],
+          "tinkerRider": 0
+        }
+      }
+    },
+    {
+      "id": "a2",
+      "label": "拿取 Setup Strike",
+      "enLabel": "Take Setup Strike",
+      "kind": "choose_reward_card",
+      "entityId": "e6949465ef1094ea992cbde8802c71bfd",
+      "disabled": false,
+      "metadata": {
+        "entityId": "e6949465ef1094ea992cbde8802c71bfd",
+        "card": {
+          "transportId": "e6949465ef1094ea992cbde8802c71bfd",
+          "modelId": "CARD.SETUP_STRIKE",
+          "pile": "choice",
+          "upgrade": 0,
+          "maxUpgrade": 1,
+          "type": "Attack",
+          "rarity": "Common",
+          "target": "AnyEnemy",
+          "costX": false,
+          "cost": 1,
+          "baseCost": 1,
+          "localCost": 1,
+          "costModifiers": [],
+          "starCostX": false,
+          "starCost": -1,
+          "keywords": [],
+          "localKeywords": [],
+          "tags": [
+            "Strike"
+          ],
+          "replay": 0,
+          "enchantedReplay": 0,
+          "retain": false,
+          "exhaustOnNextPlay": false,
+          "retainThisTurn": false,
+          "slyThisTurn": false,
+          "dampened": false,
+          "progress": 0,
+          "dynamicVars": [
+            {
+              "name": "Damage",
+              "value": 7,
+              "enchantedValue": 7
+            },
+            {
+              "name": "StrengthPower",
+              "value": 3,
+              "enchantedValue": 3
+            }
+          ],
+          "tinkerRider": 0
+        }
+      }
+    },
+    {
+      "id": "a3",
+      "label": "Skip",
+      "enLabel": "Skip",
+      "kind": "native_button",
+      "disabled": false,
+      "metadata": {
+        "control": "NCardRewardAlternativeButton",
+        "role": "card_reward_alternative",
+        "optionId": "Skip",
+        "surface": "NCardRewardSelectionScreen"
+      }
+    },
+    {
+      "id": "a4",
+      "label": "丢弃 Ashwater",
+      "kind": "discard_potion",
+      "entityId": "ebc5734ea91a44aba92be085961c08ee6",
+      "disabled": false,
+      "metadata": {
+        "slot": 0,
+        "modelId": "POTION.ASHWATER"
+      }
+    }
+  ],
+  "choices": [
+    {
+      "index": 0,
+      "card": {
+        "id": "e4747815dac4d4f51b3c941bd8955fce5",
+        "kind": "card",
+        "name": "Thunderclap",
+        "enName": "Thunderclap",
+        "modelId": "CARD.THUNDERCLAP",
+        "description": "Deal 4 damage and apply 1 Vulnerable to ALL enemies.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      },
+      "publicCard": {
+        "transportId": "e4747815dac4d4f51b3c941bd8955fce5",
+        "modelId": "CARD.THUNDERCLAP",
+        "pile": "choice",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Common",
+        "target": "AllEnemies",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 4,
+            "enchantedValue": 4
+          },
+          {
+            "name": "VulnerablePower",
+            "value": 1,
+            "enchantedValue": 1
+          }
+        ],
+        "tinkerRider": 0
+      }
+    },
+    {
+      "index": 1,
+      "card": {
+        "id": "e4d405947e9fa4b438632ea5026453d24",
+        "kind": "card",
+        "name": "Armaments",
+        "enName": "Armaments",
+        "modelId": "CARD.ARMAMENTS",
+        "description": "Gain 5 Block.\nUpgrade a card in your Hand.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      },
+      "publicCard": {
+        "transportId": "e4d405947e9fa4b438632ea5026453d24",
+        "modelId": "CARD.ARMAMENTS",
+        "pile": "choice",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Skill",
+        "rarity": "Common",
+        "target": "Self",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Block",
+            "value": 5,
+            "enchantedValue": 5
+          }
+        ],
+        "tinkerRider": 0
+      }
+    },
+    {
+      "index": 2,
+      "card": {
+        "id": "e6949465ef1094ea992cbde8802c71bfd",
+        "kind": "card",
+        "name": "Setup Strike",
+        "enName": "Setup Strike",
+        "modelId": "CARD.SETUP_STRIKE",
+        "description": "Deal 7 damage.\nGain 3 Strength this turn.",
+        "pile": "choice",
+        "cost": 1,
+        "upgradeLevel": 0,
+        "statuses": []
+      },
+      "publicCard": {
+        "transportId": "e6949465ef1094ea992cbde8802c71bfd",
+        "modelId": "CARD.SETUP_STRIKE",
+        "pile": "choice",
+        "upgrade": 0,
+        "maxUpgrade": 1,
+        "type": "Attack",
+        "rarity": "Common",
+        "target": "AnyEnemy",
+        "costX": false,
+        "cost": 1,
+        "baseCost": 1,
+        "localCost": 1,
+        "costModifiers": [],
+        "starCostX": false,
+        "starCost": -1,
+        "keywords": [],
+        "localKeywords": [],
+        "tags": [
+          "Strike"
+        ],
+        "replay": 0,
+        "enchantedReplay": 0,
+        "retain": false,
+        "exhaustOnNextPlay": false,
+        "retainThisTurn": false,
+        "slyThisTurn": false,
+        "dampened": false,
+        "progress": 0,
+        "dynamicVars": [
+          {
+            "name": "Damage",
+            "value": 7,
+            "enchantedValue": 7
+          },
+          {
+            "name": "StrengthPower",
+            "value": 3,
+            "enchantedValue": 3
+          }
+        ],
+        "tinkerRider": 0
+      }
+    }
+  ],
+  "log": [
+    "打出 Defend",
+    "结束回合",
+    "打出 Defend",
+    "打出 Defend",
+    "打出 Strike → Toadpole",
+    "结束回合",
+    "打出 Strike → Toadpole",
+    "打出 Strike → Toadpole",
+    "打出 Defend",
+    "结束回合",
+    "打出 Defend",
+    "打出 Strike → Toadpole",
+    "打出 Strike → Toadpole",
+    "结束回合",
+    "打出 Strike → Toadpole",
+    "9 Gold",
+    "Ashwater",
+    "Add a card to your deck.",
+    "Skip",
+    "Add a card to your deck."
+  ]
+}
