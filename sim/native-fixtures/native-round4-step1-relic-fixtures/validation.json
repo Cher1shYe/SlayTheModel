@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "fixture_count": 11,
+  "ordered_replacement_fixtures": 8,
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "results_sha256": "f3308ab698279d6421a8971a63a58bbe5317397d1856ed44d5951491950ec155",
+  "scope": "Touch starter mapping, original position, native object/counter persistence, acquisition callback, missing-starter eligibility. C++ wax/floor metadata and other-character mechanics are not claimed supported.",
+  "invalid_call_boundary": "Native SetupForPlayer returns false; forced invalid Obtain inserts then throws. Simulator rejects the unsupported obtain atomically before mutation."
+}

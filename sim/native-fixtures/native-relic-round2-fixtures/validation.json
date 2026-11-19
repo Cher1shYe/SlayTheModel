@@ -1,0 +1,10 @@
+{
+  "status": "completed",
+  "fixture_count": 24,
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "source_sha256": "c848b9e0deff4f54c200028a36426811bd648b0a5adff196fe9fcabf1f582971",
+  "results_sha256": "c68ff3e677dd46bd18cbf101a1f035e4d203e41930231590e1642044f9fadc37",
+  "cpp_regression": "simulator/tests/native_relic_round2_alignment.cpp",
+  "scope": "Controlled direct native relic/choice/card fixtures. No full-run parity claim."
+}

@@ -1,0 +1,4346 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-event-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-event-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-event-fixtures/godot.log"
+  ],
+  "seconds": 3.4518558329999998,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-event-fixtures/results.json"
+  },
+  "harness_sha256": "28d3b2a91191beaa23a35274cffa23ae00e9e6bd619cbbbcfb42782be1402a87"
+}
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound3EventAudit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "dense_trudge",
+      "seed": 0,
+      "hp": 32,
+      "maxHp": 80,
+      "goldDelta": 84,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_trudge",
+      "seed": 42,
+      "hp": 32,
+      "maxHp": 80,
+      "goldDelta": 64,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_trudge",
+      "seed": 987654321,
+      "hp": 32,
+      "maxHp": 80,
+      "goldDelta": 99,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tungsten",
+      "seed": 0,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 84,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tungsten",
+      "seed": 42,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 64,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tungsten",
+      "seed": 987654321,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 99,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_fairy",
+      "seed": 0,
+      "hp": 24,
+      "maxHp": 80,
+      "goldDelta": 84,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_fairy",
+      "seed": 42,
+      "hp": 24,
+      "maxHp": 80,
+      "goldDelta": 64,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_fairy",
+      "seed": 987654321,
+      "hp": 24,
+      "maxHp": 80,
+      "goldDelta": 99,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tail",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 84,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tail",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 64,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "dense_tail",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 99,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "aroma_upgrade",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "aroma_upgrade",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "aroma_upgrade",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "aroma_transform",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "OFFERING",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "aroma_transform",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "aroma_transform",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "WHIRLWIND",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "wellspring_bathe",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "GUILTY",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "wellspring_bathe",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "GUILTY",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "wellspring_bathe",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "GUILTY",
+          "originalIndex": -1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_rejection",
+      "seed": 0,
+      "hp": 30,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_rejection",
+      "seed": 42,
+      "hp": 30,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_rejection",
+      "seed": 987654321,
+      "hp": 30,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_tungsten",
+      "seed": 0,
+      "hp": 31,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_tungsten",
+      "seed": 42,
+      "hp": 31,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "spirit_tungsten",
+      "seed": 987654321,
+      "hp": 31,
+      "maxHp": 80,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 1,
+      "candidates": {
+        "minSelect": 1,
+        "maxSelect": 1,
+        "cards": [
+          "STRIKE_IRONCLAD",
+          "DEFEND_IRONCLAD",
+          "BASH",
+          "ANGER",
+          "POMMEL_STRIKE",
+          "IRON_WAVE"
+        ]
+      },
+      "potions": []
+    },
+    {
+      "test": "tablet_giveup",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 77,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "tablet_giveup",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 77,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "tablet_giveup",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 77,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "tablet_five",
+      "seed": 0,
+      "hp": 1,
+      "maxHp": 1,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 4,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 71,
+          "rngCounter": 2,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 59,
+          "rngCounter": 3,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 35,
+          "maxHp": 35,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 1,
+          "maxHp": 1,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "tablet_five",
+      "seed": 42,
+      "hp": 1,
+      "maxHp": 1,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 4,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 71,
+          "rngCounter": 2,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 59,
+          "rngCounter": 3,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 35,
+          "maxHp": 35,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 1,
+          "maxHp": 1,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "tablet_five",
+      "seed": 987654321,
+      "hp": 1,
+      "maxHp": 1,
+      "goldDelta": 0,
+      "finished": true,
+      "rngCounter": 4,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [
+        {
+          "hp": 40,
+          "maxHp": 77,
+          "rngCounter": 1,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 71,
+          "rngCounter": 2,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 40,
+          "maxHp": 59,
+          "rngCounter": 3,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 35,
+          "maxHp": 35,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": false,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        },
+        {
+          "hp": 1,
+          "maxHp": 1,
+          "rngCounter": 4,
+          "deck": [
+            {
+              "card": "STRIKE_IRONCLAD",
+              "originalIndex": 0,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "DEFEND_IRONCLAD",
+              "originalIndex": 1,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "BASH",
+              "originalIndex": 2,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "ANGER",
+              "originalIndex": 3,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "POMMEL_STRIKE",
+              "originalIndex": 4,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            },
+            {
+              "card": "IRON_WAVE",
+              "originalIndex": 5,
+              "upgraded": true,
+              "enchantment": null,
+              "amount": null
+            }
+          ]
+        }
+      ],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "sunken_dive",
+      "seed": 0,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 113,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "sunken_dive",
+      "seed": 42,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 102,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "sunken_dive",
+      "seed": 987654321,
+      "hp": 33,
+      "maxHp": 80,
+      "goldDelta": 121,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "this_plain",
+      "seed": 0,
+      "hp": 34,
+      "maxHp": 80,
+      "goldDelta": 57,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "this_plain",
+      "seed": 42,
+      "hp": 34,
+      "maxHp": 80,
+      "goldDelta": 43,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "this_plain",
+      "seed": 987654321,
+      "hp": 34,
+      "maxHp": 80,
+      "goldDelta": 68,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "lost_search",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 63,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "lost_search",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 47,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "lost_search",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "goldDelta": 75,
+      "finished": true,
+      "rngCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ],
+      "steps": [],
+      "selectorCalls": 0,
+      "candidates": null,
+      "potions": []
+    },
+    {
+      "test": "rest_entry",
+      "seed": 42,
+      "hp": 33,
+      "maxHp": 80,
+      "teaPending": true,
+      "potions": [],
+      "offered": [],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "rest_heal",
+      "seed": 42,
+      "hp": 77,
+      "maxHp": 85,
+      "teaPending": true,
+      "potions": [],
+      "offered": [],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "rest_upgrade",
+      "seed": 42,
+      "hp": 33,
+      "maxHp": 80,
+      "teaPending": true,
+      "potions": [],
+      "offered": [],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "rest_mailbox_full",
+      "seed": 42,
+      "hp": 54,
+      "maxHp": 80,
+      "teaPending": false,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "FAIRY_IN_A_BOTTLE",
+        "VULNERABLE_POTION"
+      ],
+      "rewardCounter": 4,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "rest_mailbox_upgrade",
+      "seed": 42,
+      "hp": 30,
+      "maxHp": 80,
+      "teaPending": false,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": true,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "dense_rest_feather",
+      "seed": 42,
+      "hp": 54,
+      "maxHp": 80,
+      "teaPending": false,
+      "potions": [],
+      "offered": [],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "wellspring_bottle_full",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "LIQUID_MEMORIES"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "wellspring_bottle_full",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "BEETLE_JUICE"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "wellspring_bottle_full",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "WEAK_POTION"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_grab_full",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "FOUL_POTION",
+        "FOUL_POTION",
+        "FOUL_POTION"
+      ],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_grab_full",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "FOUL_POTION",
+        "FOUL_POTION",
+        "FOUL_POTION"
+      ],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_grab_full",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "FOUL_POTION",
+        "FOUL_POTION",
+        "FOUL_POTION"
+      ],
+      "rewardCounter": 0,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_ransack_full",
+      "seed": 0,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "LIQUID_BRONZE"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_ransack_full",
+      "seed": 42,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "BLESSING_OF_THE_FORGE"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    },
+    {
+      "test": "courier_ransack_full",
+      "seed": 987654321,
+      "hp": 40,
+      "maxHp": 80,
+      "potions": [
+        "FIRE_POTION",
+        "FIRE_POTION",
+        "FIRE_POTION"
+      ],
+      "offered": [
+        "TOUCH_OF_INSANITY"
+      ],
+      "rewardCounter": 1,
+      "deck": [
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 2,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 3,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 4,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 5,
+          "upgraded": false,
+          "enchantment": null,
+          "amount": null
+        }
+      ]
+    }
+  ]
+}

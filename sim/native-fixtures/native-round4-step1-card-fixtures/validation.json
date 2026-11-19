@@ -1,0 +1,10 @@
+{
+  "status": "passed",
+  "fixtures": 56,
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "harness_sha256": "1f2f1b1d3059e48b79a7f3be35e7ef82c5ea7923c0f2e9c1eb59abf342efd48a",
+  "host_assembly_sha256": "f67100f768ce1d77d6f835b3d6c06a087cfdcf613c1a5f46d98c454250cdf358",
+  "results_sha256": "7a41520e70cd010f296dfc1bd9036847d9256d383f98551d5ccedf121c41d20a",
+  "scope": "Controlled two-power OnPlay/replay, turn hooks, side gating, damage reduction and Lizard Tail fixtures. Not full-run or general hook-order parity.",
+  "known_boundary": "Native final death clears all powers; C++ retains its existing terminal state representation. C++ comparisons check lethal effects/outcome and skip terminal power teardown."
+}

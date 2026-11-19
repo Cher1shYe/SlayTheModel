@@ -1,0 +1,27 @@
+{
+  "commands": [
+    [
+      "dotnet",
+      "build",
+      "SimulatorAudit.csproj",
+      "-c",
+      "ExportRelease",
+      "--no-restore",
+      "-p:NuGetAudit=false"
+    ],
+    [
+      "codesign",
+      "--force",
+      "--deep",
+      "--sign",
+      "-",
+      "--entitlements",
+      "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-relic-fixtures/entitlements.plist",
+      "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-relic-fixtures/SimulatorAudit.app"
+    ]
+  ],
+  "host_runtime_source": "native-round3-relic-fixtures/SimulatorAudit.app",
+  "harness_sha256": "08d130defc035857f8a6625d39f16d22c9af578756fec47bcb9f568ed68d9c2a",
+  "assembly_sha256": "83a468d211d1203ff865cc27d81782f3a84b1619c2d6274c08fe304d8658fc48",
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+}

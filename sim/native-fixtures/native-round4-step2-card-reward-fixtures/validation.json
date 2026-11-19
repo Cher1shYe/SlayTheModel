@@ -1,0 +1,16 @@
+{
+  "status": "native-fixtures-verified",
+  "fixture_count": 82,
+  "metadata_card_count": 596,
+  "metadata_pool_count": 12,
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "hashes": {
+    "AuditWorker.cs": "b87d6d7811763ad4f7a064fe3989dd3dad3a2807cd06e7e6160eafffbf3b32c3",
+    "results.json": "309590b0a8fa24bd30f2898f271ca88f8999d806af89a9452b87c68060159cc0",
+    "AuditWorker-metadata.cs.txt": "a6de547ac98ad8dfd8ba262ba8244d09629b822334bf8c7a58be2332200516c0",
+    "content-metadata.json": "18290c28fe26184c533f4d18b0199d6ba7fef92a745eb8024d2d5f798e10cdb4"
+  },
+  "cpp_regression": "simulator/tests/native_step2_card_rewards.cpp",
+  "scope": "Controlled candidate generation and native acquisition/choice fixtures, not full-run parity. Metadata is separate from card-effect support."
+}

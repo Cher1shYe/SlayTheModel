@@ -1,0 +1,9 @@
+{
+  "status": "passed",
+  "fixtures": 18,
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "harness_sha256": "9638a0f1b181f96c21964eddd44dc62214c71845bc0d1b15d061d5e0329562b1",
+  "host_assembly_sha256": "640917c113f60c9b64f8b38eb717be934583b8a6be99f61df3b802ad61999e2b",
+  "results_sha256": "b11844fcc8fec1bd79078f95240a51bf3d9245f318957f3b96e2088e42510d30",
+  "scope": "Controlled BoneTea initial hand and saved uses; FakeTea rest arming and one-time energy; Byrdpip full deck/combat egg transforms, card acquisition hooks, skin private RNG, summoned pet and ByrdSwoop player attack. Not whole-run or all turn-start hook-order parity."
+}

@@ -1,0 +1,18 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/godot.log"
+  ],
+  "seconds": 3.14533825,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/results.json"
+  },
+  "harness_sha256": "9756be25899559e750d22af0af564923da5e9dbe32033461705a8840d66a526b"
+}

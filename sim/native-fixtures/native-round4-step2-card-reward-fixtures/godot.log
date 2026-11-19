@@ -1,0 +1,122 @@
+MegaDot v4.5.1.m.14.mono.custom_build - https://godotengine.org
+
+ERROR: Could not load global script cache.
+   at: get_global_class_list (core/config/project_settings.cpp:1341)
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:998)
+[INFO] Registered 22 migrations
+[INFO] Current save versions: PrefsSave v2; ProfileSave v2; SerializableProgress v24; RunHistory v10; SerializableRun v20; SettingsSave v8
+[INFO] Found release_info.json at: /Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-card-reward-fixtures/SimulatorAudit.app/Contents/MacOS/../Resources/release_info.json
+[INFO] Profile-scoped data path initialized: user://default/1/profile1
+[INFO] AtlasManager: Loaded ui_atlas with 102 sprites
+[INFO] AtlasManager: Loaded compressed with 45 sprites
+[INFO] Initializing language for the first time from platform locale: en-US -> eng
+[INFO] Loading locale path=res://localization/eng
+[INFO] ModelIdSerializationCache initialized. Categories: 20 Entries: 1658 Epochs: 57 Properties: 47 Hash: 1568834832
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] Applying 28 patches...
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] Patch application complete: 28 applied, 0 ignored, 0 failed, 28 total
+[INFO] [CombatSolver] [Patcher - Combat Solver simulation runtime] All patches applied successfully
+[INFO] Player 1 chose cards [SEEKER_STRIKE]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [THINKING_AHEAD]
+[INFO] Card rarity: Rolled 0.601263, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.41658908, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.42221153, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.99994755, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.3772895, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.058850233, need < 0 for rare (offset = -0.03)
+[INFO] Player 1 chose cards [SETUP_STRIKE]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [TWIN_STRIKE]
+[INFO] Player 1 chose cards [POISONED_STAB]
+[INFO] Player 1 chose cards [BACKFLIP]
+[INFO] Player 1 chose cards [UNTOUCHABLE]
+[INFO] Player 1 chose cards [HIDDEN_CACHE]
+[INFO] Player 1 chose cards [BEGONE]
+[INFO] Player 1 chose cards [WROUGHT_IN_WAR]
+[INFO] Player 1 chose cards [PULL_AGGRO]
+[INFO] Player 1 chose cards [BLIGHT_STRIKE]
+[INFO] Player 1 chose cards [WISP]
+[INFO] Player 1 chose cards [HOLOGRAM]
+[INFO] Player 1 chose cards [BARRAGE]
+[INFO] Player 1 chose cards [UPROAR]
+[INFO] Player 1 chose cards [PREP_TIME]
+[INFO] Player 1 chose cards [PURITY]
+[INFO] Player 1 chose cards [ETERNAL_ARMOR]
+[INFO] Player 1 chose cards [PREP_TIME]
+[INFO] Player 1 chose cards [PURITY]
+[INFO] Player 1 chose cards [ETERNAL_ARMOR]
+[INFO] Card rarity: Rolled 0.28841123, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.82155025, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.5038898, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.6579922, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9674629, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.86994153, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.68035245, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.0022184053, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.72813994, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.28841123, need < -0.0351 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.82155025, need < -0.030100003 for rare (offset = -0.045)
+[INFO] Card rarity: Rolled 0.5038898, need < -0.025100004 for rare (offset = -0.040000003)
+[INFO] Card rarity: Rolled 0.6579922, need < -0.0351 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9674629, need < -0.030100003 for rare (offset = -0.045)
+[INFO] Card rarity: Rolled 0.86994153, need < -0.025100004 for rare (offset = -0.040000003)
+[INFO] Card rarity: Rolled 0.68035245, need < -0.0351 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.0022184053, need < -0.030100003 for rare (offset = -0.045)
+[INFO] Card rarity: Rolled 0.72813994, need < -0.025100004 for rare (offset = -0.040000003)
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Player 1 chose cards [MIND_BLAST]
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Card rarity: Rolled 0.08386297, need < -0.020000001 for rare (offset = -0.05)
+[INFO] Card rarity: Rolled 0.9246929, need < -0.01 for rare (offset = -0.04)
+[INFO] Card rarity: Rolled 0.7192586, need < 0 for rare (offset = -0.03)
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards [ARMAMENTS]
+[INFO] Player 1 chose cards []
+[INFO] Player 1 chose cards []
+[INFO] Player 1 chose cards [BACKFLIP,DODGE_AND_ROLL,PREPARED,SUCKER_PUNCH,UNTOUCHABLE,PINPOINT,NOXIOUS_FUMES,SKEWER,PHANTOM_BLADES,HAZE,SERPENT_FORM,BURST,STORM_OF_STEEL,ENVENOM,OUTBREAK]

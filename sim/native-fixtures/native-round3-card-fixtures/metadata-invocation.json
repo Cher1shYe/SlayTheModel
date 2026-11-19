@@ -1,0 +1,18 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/godot.log"
+  ],
+  "seconds": 4.289288833,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-card-fixtures/results.json"
+  },
+  "harness_sha256": "f1a620aba28236edc6b45b3fda56dfa778bd95bafa2bb9c07bdc14506982f45f"
+}

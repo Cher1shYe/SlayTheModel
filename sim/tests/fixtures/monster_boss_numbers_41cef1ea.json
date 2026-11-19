@@ -1,0 +1,2911 @@
+{
+  "schema": "sts2.source-boss-number-cases/1",
+  "evidence": "values transcribed from pinned decompiled source; not a DLL execution fixture",
+  "target": "v0.111.0/41cef1ea",
+  "monsters": [
+    {
+      "id": "AEONGLASS",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Aeonglass.cs",
+      "hp": {
+        "A0": [
+          512,
+          512
+        ],
+        "A8": [
+          535,
+          535
+        ]
+      },
+      "moves": [
+        {
+          "state": "EBB_MOVE",
+          "local_state": 0,
+          "source_line": 118,
+          "levels": {
+            "0": {
+              "damage_per_hit": 22,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  33
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 22,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  33
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 26,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  33
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "EYE_LASERS_MOVE",
+          "local_state": 1,
+          "source_line": 126,
+          "levels": {
+            "0": {
+              "damage_per_hit": 11,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 11,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 12,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "INCREASING_INTENSITY_MOVE",
+          "local_state": 2,
+          "source_line": 135,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WITHER",
+                  1
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WITHER",
+                  1
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WITHER",
+                  2
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  4
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CEREMONIAL_BEAST",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/CeremonialBeast.cs",
+      "hp": {
+        "A0": [
+          252,
+          252
+        ],
+        "A8": [
+          262,
+          262
+        ]
+      },
+      "moves": [
+        {
+          "state": "STAMP_MOVE",
+          "local_state": 0,
+          "source_line": 170,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PLOW",
+                  150
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PLOW",
+                  150
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PLOW",
+                  160
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "PLOW_MOVE",
+          "local_state": 1,
+          "source_line": 178,
+          "levels": {
+            "0": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "STUN_MOVE",
+          "local_state": 2,
+          "source_line": 216,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BEAST_CRY_MOVE",
+          "local_state": 3,
+          "source_line": 222,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "RINGING",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "RINGING",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "RINGING",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "STOMP_MOVE",
+          "local_state": 4,
+          "source_line": 232,
+          "levels": {
+            "0": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 17,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "CRUSH_MOVE",
+          "local_state": 5,
+          "source_line": 246,
+          "levels": {
+            "0": {
+              "damage_per_hit": 17,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 17,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 19,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  4
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "CRUSHER",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Crusher.cs",
+      "hp": {
+        "A0": [
+          209,
+          209
+        ],
+        "A8": [
+          219,
+          219
+        ]
+      },
+      "moves": [
+        {
+          "state": "THRASH_MOVE",
+          "local_state": 0,
+          "source_line": 150,
+          "levels": {
+            "0": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "ENLARGING_STRIKE_MOVE",
+          "local_state": 1,
+          "source_line": 176,
+          "levels": {
+            "0": {
+              "damage_per_hit": 4,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 4,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 4,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BUG_STING_MOVE",
+          "local_state": 2,
+          "source_line": 158,
+          "levels": {
+            "0": {
+              "damage_per_hit": 6,
+              "hits": 2,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  2
+                ],
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 6,
+              "hits": 2,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  2
+                ],
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 7,
+              "hits": 2,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  2
+                ],
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  2
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "ADAPT_MOVE",
+          "local_state": 3,
+          "source_line": 169,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "GUARDED_STRIKE_MOVE",
+          "local_state": 4,
+          "source_line": 185,
+          "levels": {
+            "0": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  18
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  18
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  18
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "KIN_FOLLOWER",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KinFollower.cs",
+      "hp": {
+        "A0": [
+          58,
+          59
+        ],
+        "A8": [
+          62,
+          63
+        ]
+      },
+      "moves": [
+        {
+          "state": "QUICK_SLASH_MOVE",
+          "local_state": 0,
+          "source_line": 120,
+          "levels": {
+            "0": {
+              "damage_per_hit": 5,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 5,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 5,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BOOMERANG_MOVE",
+          "local_state": 1,
+          "source_line": 135,
+          "levels": {
+            "0": {
+              "damage_per_hit": 2,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 2,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 2,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "POWER_DANCE_MOVE",
+          "local_state": 2,
+          "source_line": 128,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "KIN_PRIEST",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KinPriest.cs",
+      "hp": {
+        "A0": [
+          190,
+          190
+        ],
+        "A8": [
+          199,
+          199
+        ]
+      },
+      "moves": [
+        {
+          "state": "ORB_OF_FRAILTY_MOVE",
+          "local_state": 0,
+          "source_line": 126,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 9,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "ORB_OF_WEAKNESS_MOVE",
+          "local_state": 1,
+          "source_line": 136,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 9,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "BEAM_MOVE",
+          "local_state": 2,
+          "source_line": 146,
+          "levels": {
+            "0": {
+              "damage_per_hit": 3,
+              "hits": 3,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 3,
+              "hits": 3,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 3,
+              "hits": 3,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "RITUAL_MOVE",
+          "local_state": 3,
+          "source_line": 161,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "KNOWLEDGE_DEMON",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/KnowledgeDemon.cs",
+      "hp": {
+        "A0": [
+          379,
+          379
+        ],
+        "A8": [
+          399,
+          399
+        ]
+      },
+      "moves": [
+        {
+          "state": "CURSE_OF_KNOWLEDGE_MOVE",
+          "local_state": 0,
+          "source_line": 149,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SLAP_MOVE",
+          "local_state": 1,
+          "source_line": 193,
+          "levels": {
+            "0": {
+              "damage_per_hit": 17,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 17,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "KNOWLEDGE_OVERWHELMING_MOVE",
+          "local_state": 2,
+          "source_line": 201,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 3,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 3,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 9,
+              "hits": 3,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "PONDER_MOVE",
+          "local_state": 3,
+          "source_line": 213,
+          "levels": {
+            "0": {
+              "damage_per_hit": 11,
+              "hits": 1,
+              "ops": [
+                [
+                  "heal",
+                  30
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 11,
+              "hits": 1,
+              "ops": [
+                [
+                  "heal",
+                  30
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 13,
+              "hits": 1,
+              "ops": [
+                [
+                  "heal",
+                  30
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "LAGAVULIN_MATRIARCH",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/LagavulinMatriarch.cs",
+      "hp": {
+        "A0": [
+          222,
+          222
+        ],
+        "A8": [
+          233,
+          233
+        ]
+      },
+      "moves": [
+        {
+          "state": "SLEEP_MOVE",
+          "local_state": 0,
+          "source_line": 184,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SLASH_MOVE",
+          "local_state": 2,
+          "source_line": 201,
+          "levels": {
+            "0": {
+              "damage_per_hit": 19,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 19,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 21,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SLASH2_MOVE",
+          "local_state": 4,
+          "source_line": 211,
+          "levels": {
+            "0": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  12
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 12,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  14
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": [
+                [
+                  "block",
+                  14
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "DISEMBOWEL_MOVE",
+          "local_state": 3,
+          "source_line": 222,
+          "levels": {
+            "0": {
+              "damage_per_hit": 9,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 9,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 10,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SOUL_SIPHON_MOVE",
+          "local_state": 5,
+          "source_line": 234,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "STRENGTH",
+                  -2
+                ],
+                [
+                  "power",
+                  "P",
+                  "DEXTERITY",
+                  -2
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "STRENGTH",
+                  -2
+                ],
+                [
+                  "power",
+                  "P",
+                  "DEXTERITY",
+                  -2
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "STRENGTH",
+                  -2
+                ],
+                [
+                  "power",
+                  "P",
+                  "DEXTERITY",
+                  -2
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "QUEEN",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Queen.cs",
+      "hp": {
+        "A0": [
+          400,
+          400
+        ],
+        "A8": [
+          419,
+          419
+        ]
+      },
+      "moves": [
+        {
+          "state": "PUPPET_STRINGS_MOVE",
+          "local_state": 0,
+          "source_line": 164,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "CHAINS_OF_BINDING",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "CHAINS_OF_BINDING",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "CHAINS_OF_BINDING",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "YOU_ARE_MINE_MOVE",
+          "local_state": 1,
+          "source_line": 171,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  99
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  99
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "FRAIL",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  99
+                ],
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  99
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "BURN_BRIGHT_FOR_ME_MOVE",
+          "local_state": 3,
+          "source_line": 182,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "O",
+                  "STRENGTH",
+                  1
+                ],
+                [
+                  "block",
+                  20
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "O",
+                  "STRENGTH",
+                  1
+                ],
+                [
+                  "block",
+                  20
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "O",
+                  "STRENGTH",
+                  1
+                ],
+                [
+                  "block",
+                  20
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "OFF_WITH_YOUR_HEAD_MOVE",
+          "local_state": 5,
+          "source_line": 195,
+          "levels": {
+            "0": {
+              "damage_per_hit": 3,
+              "hits": 5,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 3,
+              "hits": 5,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 4,
+              "hits": 5,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "EXECUTION_MOVE",
+          "local_state": 6,
+          "source_line": 205,
+          "levels": {
+            "0": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "ENRAGE_MOVE",
+          "local_state": 7,
+          "source_line": 214,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "ROCKET",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Rocket.cs",
+      "hp": {
+        "A0": [
+          199,
+          199
+        ],
+        "A8": [
+          209,
+          209
+        ]
+      },
+      "moves": [
+        {
+          "state": "TARGETING_RETICLE_MOVE",
+          "local_state": 0,
+          "source_line": 131,
+          "levels": {
+            "0": {
+              "damage_per_hit": 3,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 3,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 4,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "PRECISION_BEAM_MOVE",
+          "local_state": 1,
+          "source_line": 140,
+          "levels": {
+            "0": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "CHARGE_UP_MOVE",
+          "local_state": 2,
+          "source_line": 150,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "LASER_MOVE",
+          "local_state": 3,
+          "source_line": 157,
+          "levels": {
+            "0": {
+              "damage_per_hit": 31,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 31,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 35,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "RECHARGE_MOVE",
+          "local_state": 4,
+          "source_line": 167,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "SOUL_FYSH",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/SoulFysh.cs",
+      "hp": {
+        "A0": [
+          211,
+          211
+        ],
+        "A8": [
+          221,
+          221
+        ]
+      },
+      "moves": [
+        {
+          "state": "BECKON_MOVE",
+          "local_state": 0,
+          "source_line": 131,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "draw",
+                  "BECKON",
+                  1
+                ],
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "draw",
+                  "BECKON",
+                  1
+                ],
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "draw",
+                  "BECKON",
+                  1
+                ],
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "DE_GAS_MOVE",
+          "local_state": 1,
+          "source_line": 177,
+          "levels": {
+            "0": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "GAZE_MOVE",
+          "local_state": 2,
+          "source_line": 156,
+          "levels": {
+            "0": {
+              "damage_per_hit": 7,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 7,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BECKON",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "FADE_MOVE",
+          "local_state": 3,
+          "source_line": 197,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "INTANGIBLE",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "INTANGIBLE",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "INTANGIBLE",
+                  2
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "SCREAM_MOVE",
+          "local_state": 4,
+          "source_line": 185,
+          "levels": {
+            "0": {
+              "damage_per_hit": 13,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 13,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "TEST_SUBJECT",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TestSubject.cs",
+      "hp": {
+        "A0": [
+          100,
+          100
+        ],
+        "A8": [
+          111,
+          111
+        ]
+      },
+      "moves": [
+        {
+          "state": "RESPAWN_MOVE",
+          "local_state": 0,
+          "source_line": 254,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PAINFUL_STABS",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PAINFUL_STABS",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "PAINFUL_STABS",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "BITE_MOVE",
+          "local_state": 2,
+          "source_line": 279,
+          "levels": {
+            "0": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 22,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SKULL_BASH_MOVE",
+          "local_state": 3,
+          "source_line": 287,
+          "levels": {
+            "0": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  1
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  1
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "VULNERABLE",
+                  1
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "MULTI_CLAW_MOVE",
+          "local_state": 5,
+          "source_line": 296,
+          "levels": {
+            "0": {
+              "damage_per_hit": 10,
+              "hits": 3,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 10,
+              "hits": 3,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 11,
+              "hits": 3,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "PHASE3_LACERATE_MOVE",
+          "local_state": 6,
+          "source_line": 306,
+          "levels": {
+            "0": {
+              "damage_per_hit": 10,
+              "hits": 3,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 10,
+              "hits": 3,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 11,
+              "hits": 3,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BIG_POUNCE",
+          "local_state": 7,
+          "source_line": 315,
+          "levels": {
+            "0": {
+              "damage_per_hit": 45,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 45,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 45,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BURNING_GROWL_MOVE",
+          "local_state": 8,
+          "source_line": 323,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BURN",
+                  3
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BURN",
+                  3
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "BURN",
+                  5
+                ],
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "THE_INSATIABLE",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TheInsatiable.cs",
+      "hp": {
+        "A0": [
+          321,
+          321
+        ],
+        "A8": [
+          341,
+          341
+        ]
+      },
+      "moves": [
+        {
+          "state": "LIQUIFY_GROUND_MOVE",
+          "local_state": 0,
+          "source_line": 114,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "SANDPIT",
+                  4
+                ],
+                [
+                  "card",
+                  "draw",
+                  "FRANTIC_ESCAPE",
+                  3
+                ],
+                [
+                  "card",
+                  "discard",
+                  "FRANTIC_ESCAPE",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "SANDPIT",
+                  4
+                ],
+                [
+                  "card",
+                  "draw",
+                  "FRANTIC_ESCAPE",
+                  3
+                ],
+                [
+                  "card",
+                  "discard",
+                  "FRANTIC_ESCAPE",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "SANDPIT",
+                  4
+                ],
+                [
+                  "card",
+                  "draw",
+                  "FRANTIC_ESCAPE",
+                  3
+                ],
+                [
+                  "card",
+                  "discard",
+                  "FRANTIC_ESCAPE",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "THRASH_MOVE",
+          "local_state": 1,
+          "source_line": 147,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 9,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "THRASH_MOVE_2",
+          "local_state": 4,
+          "source_line": 147,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 9,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "LUNGING_BITE_MOVE",
+          "local_state": 2,
+          "source_line": 157,
+          "levels": {
+            "0": {
+              "damage_per_hit": 28,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 28,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 31,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "SALIVATE_MOVE",
+          "local_state": 3,
+          "source_line": 166,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  3
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "TORCH_HEAD_AMALGAM",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/TorchHeadAmalgam.cs",
+      "hp": {
+        "A0": [
+          199,
+          199
+        ],
+        "A8": [
+          211,
+          211
+        ]
+      },
+      "moves": [
+        {
+          "state": "STRONG_TACKLE_MOVE",
+          "local_state": 0,
+          "source_line": 83,
+          "levels": {
+            "0": {
+              "damage_per_hit": 26,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 26,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 32,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "TACKLE_2_MOVE",
+          "local_state": 1,
+          "source_line": 83,
+          "levels": {
+            "0": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 18,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 22,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "BEAM_MOVE",
+          "local_state": 2,
+          "source_line": 107,
+          "levels": {
+            "0": {
+              "damage_per_hit": 8,
+              "hits": 3,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 8,
+              "hits": 3,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 8,
+              "hits": 3,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "TACKLE_3_MOVE",
+          "local_state": 3,
+          "source_line": 99,
+          "levels": {
+            "0": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "TACKLE_4_MOVE",
+          "local_state": 4,
+          "source_line": 99,
+          "levels": {
+            "0": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "VANTOM",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/Vantom.cs",
+      "hp": {
+        "A0": [
+          173,
+          173
+        ],
+        "A8": [
+          183,
+          183
+        ]
+      },
+      "moves": [
+        {
+          "state": "INK_BLOT_MOVE",
+          "local_state": 0,
+          "source_line": 132,
+          "levels": {
+            "0": {
+              "damage_per_hit": 7,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 7,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 8,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "INKY_LANCE_MOVE",
+          "local_state": 1,
+          "source_line": 150,
+          "levels": {
+            "0": {
+              "damage_per_hit": 6,
+              "hits": 2,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 6,
+              "hits": 2,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 7,
+              "hits": 2,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "DISMEMBER_MOVE",
+          "local_state": 2,
+          "source_line": 170,
+          "levels": {
+            "0": {
+              "damage_per_hit": 26,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WOUND",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 26,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WOUND",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 30,
+              "hits": 1,
+              "ops": [
+                [
+                  "card",
+                  "discard",
+                  "WOUND",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "PREPARE_MOVE",
+          "local_state": 3,
+          "source_line": 191,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STRENGTH",
+                  2
+                ]
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "WATERFALL_GIANT",
+      "source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Monsters/WaterfallGiant.cs",
+      "hp": {
+        "A0": [
+          240,
+          240
+        ],
+        "A8": [
+          250,
+          250
+        ]
+      },
+      "moves": [
+        {
+          "state": "PRESSURIZE_MOVE",
+          "local_state": 0,
+          "source_line": 225,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  15
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  15
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  20
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "STOMP_MOVE",
+          "local_state": 1,
+          "source_line": 243,
+          "levels": {
+            "0": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 15,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 16,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "P",
+                  "WEAK",
+                  1
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "RAM_MOVE",
+          "local_state": 2,
+          "source_line": 254,
+          "levels": {
+            "0": {
+              "damage_per_hit": 10,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 10,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 11,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "SIPHON_MOVE",
+          "local_state": 3,
+          "source_line": 264,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "heal",
+                  10
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "heal",
+                  15
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": [
+                [
+                  "heal",
+                  15
+                ],
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "PRESSURE_GUN_MOVE",
+          "local_state": 4,
+          "source_line": 273,
+          "levels": {
+            "0": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 20,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 23,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "PRESSURE_UP_MOVE",
+          "local_state": 5,
+          "source_line": 233,
+          "levels": {
+            "0": {
+              "damage_per_hit": 13,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "8": {
+              "damage_per_hit": 13,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            },
+            "9": {
+              "damage_per_hit": 14,
+              "hits": 1,
+              "ops": [
+                [
+                  "power",
+                  "S",
+                  "STEAM_ERUPTION",
+                  3
+                ]
+              ]
+            }
+          }
+        },
+        {
+          "state": "ABOUT_TO_BLOW_MOVE",
+          "local_state": 6,
+          "source_line": 284,
+          "levels": {
+            "0": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 0,
+              "hits": 0,
+              "ops": []
+            }
+          }
+        },
+        {
+          "state": "EXPLODE_MOVE",
+          "local_state": 7,
+          "source_line": 292,
+          "levels": {
+            "0": {
+              "damage_per_hit": 37,
+              "hits": 1,
+              "ops": []
+            },
+            "8": {
+              "damage_per_hit": 37,
+              "hits": 1,
+              "ops": []
+            },
+            "9": {
+              "damage_per_hit": 37,
+              "hits": 1,
+              "ops": []
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

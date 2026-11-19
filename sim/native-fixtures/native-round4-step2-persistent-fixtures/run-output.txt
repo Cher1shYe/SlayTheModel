@@ -1,0 +1,977 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/godot.log"
+  ],
+  "seconds": 3.5927104169999997,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step2-persistent-fixtures/results.json"
+  },
+  "harness_sha256": "9638a0f1b181f96c21964eddd44dc62214c71845bc0d1b15d061d5e0329562b1"
+}
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound4Step2PersistentAudit20261031",
+  "scope": "Controlled persistent relic hooks, Byrdpip transforms/pet/ByrdSwoop. Not full runs or general hook order parity.",
+  "results": [
+    {
+      "test": "bone_tea",
+      "startsUsed": false,
+      "before": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 4
+        }
+      ],
+      "first": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": true,
+          "cost": 2,
+          "originalIndex": 4
+        }
+      ],
+      "second": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": true,
+          "cost": 2,
+          "originalIndex": 4
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": -1
+        }
+      ],
+      "left": 0
+    },
+    {
+      "test": "bone_tea",
+      "startsUsed": true,
+      "before": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 4
+        }
+      ],
+      "first": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 4
+        }
+      ],
+      "second": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 0
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": 3
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 4
+        },
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": -1
+        }
+      ],
+      "left": 0
+    },
+    {
+      "test": "bone_initial",
+      "hand": [
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": -1
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": true,
+          "cost": 1,
+          "originalIndex": -1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": -1
+        },
+        {
+          "id": "BASH",
+          "upgraded": true,
+          "cost": 2,
+          "originalIndex": -1
+        }
+      ],
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": -1
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": -1
+        },
+        {
+          "id": "STRIKE_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": -1
+        },
+        {
+          "id": "WOUND",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRDONIS_EGG",
+          "upgraded": false,
+          "cost": -1,
+          "originalIndex": -1
+        }
+      ],
+      "left": 0
+    },
+    {
+      "test": "fake_tea",
+      "rests": 0,
+      "armed": false,
+      "first": 3,
+      "second": 3,
+      "consumed": true
+    },
+    {
+      "test": "fake_tea",
+      "rests": 1,
+      "armed": true,
+      "first": 4,
+      "second": 3,
+      "consumed": true
+    },
+    {
+      "test": "fake_tea",
+      "rests": 2,
+      "armed": true,
+      "first": 4,
+      "second": 3,
+      "consumed": true
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7148434200721666028,
+      "hooks": "none",
+      "skin": "version4",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7148434200721666028,
+      "hooks": "molten",
+      "skin": "version4",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": true,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": true,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7148434200721666028,
+      "hooks": "bing",
+      "skin": "version4",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7148434200721666028,
+      "hooks": "fresnel_lucky_book",
+      "skin": "version4",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 50,
+      "goldDelta": 30,
+      "bookCount": 5,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7919287270473417401,
+      "hooks": "none",
+      "skin": "version1",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7919287270473417401,
+      "hooks": "molten",
+      "skin": "version1",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": true,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": true,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7919287270473417401,
+      "hooks": "bing",
+      "skin": "version1",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 80,
+      "goldDelta": 0,
+      "bookCount": 0,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_transform",
+      "seed": 7919287270473417401,
+      "hooks": "fresnel_lucky_book",
+      "skin": "version1",
+      "deck": [
+        {
+          "id": "BASH",
+          "upgraded": false,
+          "cost": 2,
+          "originalIndex": 0
+        },
+        {
+          "id": "DEFEND_IRONCLAD",
+          "upgraded": false,
+          "cost": 1,
+          "originalIndex": 2
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        },
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "draw": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "discard": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "exhaust": [
+        {
+          "id": "BYRD_SWOOP",
+          "upgraded": false,
+          "cost": 0,
+          "originalIndex": -1
+        }
+      ],
+      "petCount": 1,
+      "petIds": [
+        "BYRDPIP"
+      ],
+      "hasEventPet": true,
+      "hp": 50,
+      "goldDelta": 30,
+      "bookCount": 5,
+      "nicheDelta": 0,
+      "transformDelta": 0,
+      "enchants": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "test": "byrd_attack",
+      "pet": false,
+      "upgraded": false,
+      "damage": [
+        17,
+        0
+      ],
+      "petCount": 0
+    },
+    {
+      "test": "byrd_attack",
+      "pet": false,
+      "upgraded": true,
+      "damage": [
+        21,
+        0
+      ],
+      "petCount": 0
+    },
+    {
+      "test": "byrd_attack",
+      "pet": true,
+      "upgraded": false,
+      "damage": [
+        17,
+        0
+      ],
+      "petCount": 1
+    },
+    {
+      "test": "byrd_attack",
+      "pet": true,
+      "upgraded": true,
+      "damage": [
+        21,
+        0
+      ],
+      "petCount": 1
+    }
+  ]
+}

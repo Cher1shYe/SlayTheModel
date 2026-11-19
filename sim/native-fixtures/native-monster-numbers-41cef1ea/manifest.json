@@ -1,0 +1,11 @@
+{
+  "schema": "sts2.monster-numbers-manifest/1",
+  "gameDllSha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "context": "Real DLL unmodified getters/intent constructors on fresh mutable monster models; no Creature/encounter injected; actual run ascensions 7,8,9,10 plus before-run A0. This is not battle execution parity.",
+  "files": {
+    "monster-numbers-a7.json": "604fe7d24d845a4c32aee72159832118c960824bff04ee23c4d41f5486c07212",
+    "monster-numbers-a8.json": "35172103711fd69d077883954272473965de8d051fe37a541a031c8927aea320",
+    "monster-numbers-a9.json": "17fc803d0c733fb65f1240856ae7f375e0ff023e91a9125e68354ed1e1d5f6f2",
+    "monster-numbers-a10.json": "ee17dfb9a25bb2d911e1f1d788a44860122d8738fb1231dfafc0a5aaf81ea666"
+  }
+}
