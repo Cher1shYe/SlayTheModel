@@ -1,0 +1,30 @@
+{
+  "command": [
+    "clang++",
+    "-std=c++17",
+    "-O3",
+    "-UNDEBUG",
+    "-I/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/include",
+    "-I/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/json/include",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/simulator/tests/native_step1_downgrade.cpp",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/battle.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/card_candidates.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_colorless.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_ironclad.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/cards_status.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/events.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/map.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/mcts.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/monsters.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/observe.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/potions.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/relics.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/run.o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/obj/search.o",
+    "-o",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/validation/native_step1_downgrade"
+  ],
+  "returncode": 0,
+  "seconds": 2.963615292
+}

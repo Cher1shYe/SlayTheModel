@@ -1,0 +1,8 @@
+ERROR: Could not create directory: '/Users/yebohou/Library/Application Support/SlayTheModelNativeRound3CardAudit20261031'.
+   at: make_dir_recursive (core/io/dir_access.cpp:178)
+ERROR: Error attempting to create data dir: /Users/yebohou/Library/Application Support/SlayTheModelNativeRound3CardAudit20261031.
+   at: ensure_user_data_dir (core/os/os.cpp:418)
+ERROR: Could not load global script cache.
+   at: get_global_class_list (core/config/project_settings.cpp:1341)
+ERROR: Condition "ret != noErr" is true. Returning: ""
+   at: get_system_ca_certificates (platform/macos/os_macos.mm:998)

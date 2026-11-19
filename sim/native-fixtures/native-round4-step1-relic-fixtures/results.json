@@ -1,0 +1,919 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound4Step1RelicAudit20261031",
+  "scope": "Controlled target-DLL TouchOfOrobas/RelicCmd.Replace fixtures, not natural runs or full parity. No relic-rule patches.",
+  "results": [
+    {
+      "test": "replace_first",
+      "setup": true,
+      "starter": "BURNING_BLOOD",
+      "upgraded": "BLACK_BLOOD",
+      "before": [
+        {
+          "id": "BURNING_BLOOD",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "BLACK_BLOOD",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "BURNING_BLOOD",
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "BURNING_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "BLACK_BLOOD",
+          "order": [
+            "BLACK_BLOOD",
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "replace_middle",
+      "setup": true,
+      "starter": "BURNING_BLOOD",
+      "upgraded": "BLACK_BLOOD",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "BURNING_BLOOD",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "BLACK_BLOOD",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "BURNING_BLOOD",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "BURNING_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "BLACK_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "BLACK_BLOOD",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "replace_last",
+      "setup": true,
+      "starter": "BURNING_BLOOD",
+      "upgraded": "BLACK_BLOOD",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "BURNING_BLOOD",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "BLACK_BLOOD",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "BURNING_BLOOD",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "BURNING_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "BLACK_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "BLACK_BLOOD",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "black_blood_fallback",
+      "setup": true,
+      "starter": "BLACK_BLOOD",
+      "upgraded": "CIRCLET",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "BLACK_BLOOD",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "CIRCLET",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "BLACK_BLOOD",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "BLACK_BLOOD",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "CIRCLET",
+          "order": [
+            "PEN_NIB",
+            "CIRCLET",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "snake_mapping",
+      "setup": true,
+      "starter": "RING_OF_THE_SNAKE",
+      "upgraded": "RING_OF_THE_DRAKE",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "RING_OF_THE_SNAKE",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "RING_OF_THE_DRAKE",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "RING_OF_THE_SNAKE",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "RING_OF_THE_SNAKE",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "RING_OF_THE_DRAKE",
+          "order": [
+            "PEN_NIB",
+            "RING_OF_THE_DRAKE",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "core_mapping",
+      "setup": true,
+      "starter": "CRACKED_CORE",
+      "upgraded": "INFUSED_CORE",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "CRACKED_CORE",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "INFUSED_CORE",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "CRACKED_CORE",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "CRACKED_CORE",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "INFUSED_CORE",
+          "order": [
+            "PEN_NIB",
+            "INFUSED_CORE",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "phylactery_mapping",
+      "setup": true,
+      "starter": "BOUND_PHYLACTERY",
+      "upgraded": "PHYLACTERY_UNBOUND",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "BOUND_PHYLACTERY",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "PHYLACTERY_UNBOUND",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "BOUND_PHYLACTERY",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "BOUND_PHYLACTERY",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "PHYLACTERY_UNBOUND",
+          "order": [
+            "PEN_NIB",
+            "PHYLACTERY_UNBOUND",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "divine_mapping",
+      "setup": true,
+      "starter": "DIVINE_RIGHT",
+      "upgraded": "DIVINE_DESTINY",
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "DIVINE_RIGHT",
+          "floor": 77,
+          "wax": true,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 7
+        },
+        {
+          "id": "DIVINE_DESTINY",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 2
+        },
+        {
+          "id": "LIZARD_TAIL",
+          "floor": 1,
+          "wax": false,
+          "counter": 1
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "events": [
+        {
+          "action": "obtain",
+          "id": "TOUCH_OF_OROBAS",
+          "order": [
+            "PEN_NIB",
+            "DIVINE_RIGHT",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "remove",
+          "id": "DIVINE_RIGHT",
+          "order": [
+            "PEN_NIB",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        },
+        {
+          "action": "obtain",
+          "id": "DIVINE_DESTINY",
+          "order": [
+            "PEN_NIB",
+            "DIVINE_DESTINY",
+            "HAPPY_FLOWER",
+            "LIZARD_TAIL",
+            "TOUCH_OF_OROBAS"
+          ]
+        }
+      ],
+      "originalRemoved": true,
+      "replacementIsFresh": true,
+      "siblingIdentityPreserved": true,
+      "nicheCounter": 0
+    },
+    {
+      "test": "first_starter_wins",
+      "setup": true,
+      "starter": "BLACK_BLOOD",
+      "upgraded": "CIRCLET",
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "CIRCLET",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "BURNING_BLOOD",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ]
+    },
+    {
+      "test": "replacement_after_obtained_hook",
+      "hpBefore": 30,
+      "maxHpBefore": 80,
+      "hp": 37,
+      "maxHp": 87,
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "STRAWBERRY",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "HAPPY_FLOWER",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "originalRemoved": true
+    },
+    {
+      "test": "no_starter",
+      "setup": false,
+      "before": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "after": [
+        {
+          "id": "PEN_NIB",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        },
+        {
+          "id": "TOUCH_OF_OROBAS",
+          "floor": 1,
+          "wax": false,
+          "counter": 0
+        }
+      ],
+      "error": "System.InvalidOperationException",
+      "note": "Normal Orobas pool omits this option when SetupForPlayer returns false; forced invalid Obtain leaves Touch inserted before throwing."
+    }
+  ]
+}

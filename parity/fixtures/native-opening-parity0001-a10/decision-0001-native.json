@@ -1,0 +1,205 @@
+{
+  "runIdentity": {
+    "seed": "PAR1TY0001",
+    "character": "IRONCLAD",
+    "ascension": 10,
+    "gameVersion": "v0.111.0",
+    "gameCommit": "41cef1ea",
+    "gameDllSha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4"
+  },
+  "revision": 5,
+  "status": "ready",
+  "screen": "NEventRoom",
+  "surfaceModelId": "EVENT.NEOW",
+  "title": "Neow",
+  "description": "Proceed\nMother of Resurrection (Exiled)\nNEOW",
+  "player": {
+    "name": "The Ironclad",
+    "enName": "The Ironclad",
+    "hp": 64,
+    "maxHp": 80,
+    "block": 0,
+    "energy": 0,
+    "maxEnergy": 0,
+    "stars": 0,
+    "gold": 249,
+    "ascension": 10,
+    "act": 1,
+    "orbCapacity": 0,
+    "floor": 1,
+    "totalFloor": 1,
+    "combatTurn": 0,
+    "potionSlots": 2,
+    "statuses": []
+  },
+  "actOrder": [
+    "UNDERDOCKS",
+    "HIVE",
+    "GLORY"
+  ],
+  "entities": [
+    {
+      "id": "ea735b46967b2437c8674b261cb225d9b",
+      "kind": "card",
+      "name": "Ascender's Bane",
+      "enName": "Ascender's Bane",
+      "modelId": "CARD.ASCENDERS_BANE",
+      "description": "Unplayable.\nEthereal.\nEternal.",
+      "pile": "deck",
+      "cost": -1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e819329e43e5f479ba8ea1b75c31acc49",
+      "kind": "card",
+      "name": "Bash",
+      "enName": "Bash",
+      "modelId": "CARD.BASH",
+      "description": "Deal 8 damage.\nApply 2 Vulnerable.",
+      "pile": "deck",
+      "cost": 2,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e1b484f19cc8c40af9afd77fa0b544d89",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e7886e5ca5ffd4b158fa3e6110f22bd6b",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "ec047a553afaf4e33ae945a296958d844",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "ef3bf6855c6ee4e608fd958d62549558d",
+      "kind": "card",
+      "name": "Defend",
+      "enName": "Defend",
+      "modelId": "CARD.DEFEND_IRONCLAD",
+      "description": "Gain 5 Block.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e1a510cf83ac34cf4a65204113fa530d8",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e1efd564108444f379a3f9fd6618e7deb",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e22825b8d4fa948ce9fcb44ec7d079baa",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e234290e2ff854a6f84b3dba517b0eccc",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "eeb7ad26a7456409a80c2702f2fab2e31",
+      "kind": "card",
+      "name": "Strike",
+      "enName": "Strike",
+      "modelId": "CARD.STRIKE_IRONCLAD",
+      "description": "Deal 6 damage.",
+      "pile": "deck",
+      "cost": 1,
+      "upgradeLevel": 0,
+      "statuses": []
+    },
+    {
+      "id": "e722fb9056110448aaec1fe9c4e93fda9",
+      "kind": "relic",
+      "name": "Burning Blood",
+      "enName": "Burning Blood",
+      "modelId": "RELIC.BURNING_BLOOD",
+      "description": "At the end of combat, heal 6 HP.",
+      "statuses": []
+    },
+    {
+      "id": "eab661793b55c4b0aa3d447c2efeac373",
+      "kind": "relic",
+      "name": "Golden Pearl",
+      "enName": "Golden Pearl",
+      "modelId": "RELIC.GOLDEN_PEARL",
+      "description": "Upon pickup, gain 150 Gold.",
+      "statuses": []
+    }
+  ],
+  "actions": [
+    {
+      "id": "a0",
+      "label": "Proceed",
+      "kind": "event",
+      "optionIsProceed": true,
+      "disabled": false,
+      "description": ""
+    }
+  ],
+  "log": [
+    "Golden Pearl"
+  ]
+}

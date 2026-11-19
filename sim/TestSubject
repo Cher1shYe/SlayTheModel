@@ -1,0 +1,9016 @@
+{
+ "AEONGLASS": {
+  "states": {
+   "EBB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "EbbDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "EbbMove",
+    "follow": "EYE_LASERS_MOVE",
+    "must_once": false
+   },
+   "EYE_LASERS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "EyeLasersDamage",
+      "hits": "EyeLasersRepeat"
+     }
+    ],
+    "fn": "EyeLasersMove",
+    "follow": "INCREASING_INTENSITY_MOVE",
+    "must_once": false
+   },
+   "INCREASING_INTENSITY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "WitherAmount"
+      ]
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "IncreasingIntensityMove",
+    "follow": "EBB_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "EBB_MOVE",
+   "EYE_LASERS_MOVE",
+   "INCREASING_INTENSITY_MOVE"
+  ],
+  "initial": "EBB_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 535,
+    "base": 512
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "EbbDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 26,
+    "base": 22
+   },
+   "EbbBlock": {
+    "level": null,
+    "asc": 33,
+    "base": 33
+   },
+   "EyeLasersDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "EyeLasersRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "IncreasingIntensityBaseStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "WitherAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 2,
+    "base": 1
+   },
+   "IncreasingIntensityTotalStrength": {
+    "expr": "IncreasingIntensityBaseStrength + AdditionalStrength"
+   }
+  }
+ },
+ "ARCHITECT": {
+  "states": {
+   "NOTHING": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Hidden"
+     }
+    ],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING"
+  ],
+  "initial": "NOTHING",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   }
+  }
+ },
+ "ASSASSIN_RUBY_RAIDER": {
+  "states": {
+   "KILLSHOT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "KillshotDamage"
+     }
+    ],
+    "fn": "KillshotMove",
+    "follow": "KILLSHOT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "KILLSHOT_MOVE"
+  ],
+  "initial": "KILLSHOT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 24,
+    "base": 23
+   },
+   "KillshotDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   }
+  }
+ },
+ "AXE_RUBY_RAIDER": {
+  "states": {
+   "SWING_1": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwingDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "SwingMove",
+    "follow": "SWING_2",
+    "must_once": false
+   },
+   "SWING_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwingDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "SwingMove",
+    "follow": "BIG_SWING",
+    "must_once": false
+   },
+   "BIG_SWING": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BigSwingDamage"
+     }
+    ],
+    "fn": "BigSwingMove",
+    "follow": "SWING_1",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SWING_1",
+   "SWING_2",
+   "BIG_SWING"
+  ],
+  "initial": "SWING_1",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 21,
+    "base": 20
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 23,
+    "base": 22
+   },
+   "SwingDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "SwingBlock": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "BigSwingDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 12
+   }
+  }
+ },
+ "AXEBOT": {
+  "states": {
+   "BOOT_UP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BootUpMove",
+    "follow": "HAMMER_UPPERCUT_MOVE",
+    "must_once": false
+   },
+   "ONE_TWO_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "OneTwoDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "OneTwoMove",
+    "follow": "HAMMER_UPPERCUT_MOVE",
+    "must_once": false
+   },
+   "HAMMER_UPPERCUT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HammerUppercutDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "HammerUppercutMove",
+    "follow": "ONE_TWO_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BOOT_UP_MOVE",
+   "ONE_TWO_MOVE",
+   "HAMMER_UPPERCUT_MOVE"
+  ],
+  "initial": "HAMMER_UPPERCUT_MOVE",
+  "props": {
+   "BootUpBlock": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 10
+   },
+   "OneTwoDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "BootUpStrGain": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "HammerUppercutDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 14
+   },
+   "MinInitialHp": {
+    "expr": "AscensionHelper.GetValueIfAscension(AscensionLevel.ToughEnemies, 76, 70) + RespawnMaxHpBonus"
+   },
+   "MaxInitialHp": {
+    "expr": "AscensionHelper.GetValueIfAscension(AscensionLevel.ToughEnemies, 86, 78) + RespawnMaxHpBonus"
+   },
+   "RespawnMaxHpBonus": {
+    "expr": "RespawnCount * 10"
+   },
+   "RespawnCount": {
+    "expr": "2 - StockAmount"
+   }
+  }
+ },
+ "BATTLE_FRIEND_V1": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 75,
+    "base": 75
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 75,
+    "base": 75
+   }
+  }
+ },
+ "BATTLE_FRIEND_V2": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 150,
+    "base": 150
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 150,
+    "base": 150
+   }
+  }
+ },
+ "BATTLE_FRIEND_V3": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 300,
+    "base": 300
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 300,
+    "base": 300
+   }
+  }
+ },
+ "BIG_DUMMY": {
+  "states": {
+   "NOTHING": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Hidden"
+     }
+    ],
+    "fn": "NothingMove",
+    "follow": "NOTHING",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING"
+  ],
+  "initial": "NOTHING",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   }
+  }
+ },
+ "BOWLBUG_EGG": {
+  "states": {
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "BITE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BITE_MOVE"
+  ],
+  "initial": "BITE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 23,
+    "base": 21
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 24,
+    "base": 22
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "ProtectBlock": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   }
+  }
+ },
+ "BOWLBUG_NECTAR": {
+  "states": {
+   "THRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ThrashDamage"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "BUFF_MOVE",
+    "must_once": false
+   },
+   "BUFF_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BuffMove",
+    "follow": "THRASH2_MOVE",
+    "must_once": false
+   },
+   "THRASH2_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ThrashDamage"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "THRASH2_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "THRASH_MOVE",
+   "BUFF_MOVE",
+   "THRASH2_MOVE"
+  ],
+  "initial": "THRASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 36,
+    "base": 35
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 39,
+    "base": 38
+   },
+   "ThrashDamage": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   },
+   "BuffStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 15
+   }
+  }
+ },
+ "BOWLBUG_ROCK": {
+  "states": {
+   "HEADBUTT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HeadbuttDamage"
+     }
+    ],
+    "fn": "HeadbuttMove",
+    "follow": "POST_HEADBUTT",
+    "must_once": false
+   },
+   "DIZZY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "DizzyMove",
+    "follow": "HEADBUTT_MOVE",
+    "must_once": false
+   },
+   "POST_HEADBUTT": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "DIZZY_MOVE",
+      "cond": "() => IsOffBalance"
+     },
+     {
+      "state": "HEADBUTT_MOVE",
+      "cond": "() => !IsOffBalance"
+     }
+    ]
+   }
+  },
+  "order": [
+   "HEADBUTT_MOVE",
+   "DIZZY_MOVE",
+   "POST_HEADBUTT"
+  ],
+  "initial": "HEADBUTT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 46,
+    "base": 45
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 49,
+    "base": 48
+   },
+   "HeadbuttDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 15
+   }
+  }
+ },
+ "BOWLBUG_SILK": {
+  "states": {
+   "THRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ThrashDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "TOXIC_SPIT_MOVE",
+    "must_once": false
+   },
+   "TOXIC_SPIT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "SpitMove",
+    "follow": "THRASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "THRASH_MOVE",
+   "TOXIC_SPIT_MOVE"
+  ],
+  "initial": "TOXIC_SPIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 41,
+    "base": 40
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 44,
+    "base": 43
+   },
+   "ThrashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "BRUTE_RUBY_RAIDER": {
+  "states": {
+   "BEAT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BeatDamage"
+     }
+    ],
+    "fn": "BeatMove",
+    "follow": "ROAR_MOVE",
+    "must_once": false
+   },
+   "ROAR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RoarMove",
+    "follow": "BEAT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BEAT_MOVE",
+   "ROAR_MOVE"
+  ],
+  "initial": "BEAT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 31,
+    "base": 30
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 34,
+    "base": 33
+   },
+   "BeatDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   }
+  }
+ },
+ "BYGONE_EFFIGY": {
+  "states": {
+   "SLEEP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Sleep"
+     }
+    ],
+    "fn": "InitialSleepMove",
+    "follow": "WAKE_MOVE",
+    "must_once": false
+   },
+   "WAKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "WakeMove",
+    "follow": "SLASHES_MOVE",
+    "must_once": false
+   },
+   "SLEEP_MOVE_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Sleep"
+     }
+    ],
+    "fn": "SleepMove",
+    "follow": "SLASHES_MOVE",
+    "must_once": false
+   },
+   "SLASHES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SlashDamage"
+     }
+    ],
+    "fn": "SlashMove",
+    "follow": "SLASHES_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SLEEP_MOVE",
+   "WAKE_MOVE",
+   "SLEEP_MOVE_2",
+   "SLASHES_MOVE"
+  ],
+  "initial": "SLEEP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 132,
+    "base": 127
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SlashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 13
+   }
+  }
+ },
+ "BYRDONIS": {
+  "states": {
+   "PECK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "PeckDamage",
+      "hits": "PeckRepeat"
+     }
+    ],
+    "fn": "PeckMove",
+    "follow": "SWOOP_MOVE",
+    "must_once": false
+   },
+   "SWOOP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwoopDamage"
+     }
+    ],
+    "fn": "SwoopMove",
+    "follow": "PECK_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PECK_MOVE",
+   "SWOOP_MOVE"
+  ],
+  "initial": "SWOOP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 90,
+    "base": 81
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 90,
+    "base": 84
+   },
+   "PeckDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "PeckRepeat": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 3
+   },
+   "SwoopDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 17
+   }
+  }
+ },
+ "BYRDPIP": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   }
+  }
+ },
+ "CALCIFIED_CULTIST": {
+  "states": {
+   "INCANTATION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "IncantationMove",
+    "follow": "DARK_STRIKE_MOVE",
+    "must_once": false
+   },
+   "DARK_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DarkStrikeDamage"
+     }
+    ],
+    "fn": "DarkStrikeMove",
+    "follow": "DARK_STRIKE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "INCANTATION_MOVE",
+   "DARK_STRIKE_MOVE"
+  ],
+  "initial": "INCANTATION_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 39,
+    "base": 38
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 42,
+    "base": 41
+   },
+   "DarkStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 9
+   },
+   "IncantationAmount": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "CEREMONIAL_BEAST": {
+  "states": {
+   "STAMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "StampMove",
+    "follow": "PLOW_MOVE",
+    "must_once": false
+   },
+   "PLOW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PlowDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PlowMove",
+    "follow": "PLOW_MOVE",
+    "must_once": false
+   },
+   "STUN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "StunnedMove",
+    "follow": "BEAST_CRY_MOVE",
+    "must_once": true
+   },
+   "BEAST_CRY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "BeastCryMove",
+    "follow": "STOMP_MOVE",
+    "must_once": false
+   },
+   "STOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StompDamage"
+     }
+    ],
+    "fn": "StompMove",
+    "follow": "CRUSH_MOVE",
+    "must_once": false
+   },
+   "CRUSH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "CrushDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "CrushMove",
+    "follow": "BEAST_CRY_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "STAMP_MOVE",
+   "PLOW_MOVE",
+   "STUN_MOVE",
+   "BEAST_CRY_MOVE",
+   "STOMP_MOVE",
+   "CRUSH_MOVE"
+  ],
+  "initial": "STAMP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 262,
+    "base": 252
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "PlowAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 160,
+    "base": 150
+   },
+   "PlowDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 20,
+    "base": 18
+   },
+   "PlowStrength": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "StompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 15
+   },
+   "CrushDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 17
+   },
+   "CrushStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "CHOMPER": {
+  "states": {
+   "CLAMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ClampDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ClampMove",
+    "follow": "SCREECH_MOVE",
+    "must_once": false
+   },
+   "SCREECH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "3"
+      ]
+     }
+    ],
+    "fn": "ScreechMove",
+    "follow": "CLAMP_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CLAMP_MOVE",
+   "SCREECH_MOVE"
+  ],
+  "initial": "CLAMP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 63,
+    "base": 60
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 67,
+    "base": 64
+   },
+   "ClampDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "CORPSE_SLUG": {
+  "states": {
+   "WHIP_SLAP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "WhipSlapDamage",
+      "hits": "WhipSlapRepeat"
+     }
+    ],
+    "fn": "WhipSlapMove",
+    "follow": "GLOMP_MOVE",
+    "must_once": false
+   },
+   "GLOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "GlompDamage"
+     }
+    ],
+    "fn": "GlompMove",
+    "follow": "GOOP_MOVE",
+    "must_once": false
+   },
+   "GOOP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "GoopMove",
+    "follow": "WHIP_SLAP_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "WHIP_SLAP_MOVE",
+   "GLOMP_MOVE",
+   "GOOP_MOVE"
+  ],
+  "initial": {
+   "expr": "(StarterMoveIdx % 3) switch { 0 => moveState, 1 => moveState2, _ => moveState3, }",
+   "vars": {
+    "moveState": "WHIP_SLAP_MOVE",
+    "moveState2": "GLOMP_MOVE",
+    "moveState3": "GOOP_MOVE"
+   }
+  },
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 27,
+    "base": 25
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 29,
+    "base": 27
+   },
+   "WhipSlapDamage": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   },
+   "WhipSlapRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "GlompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "GoopFrailAmt": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "RavenousStr": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "CROSSBOW_RUBY_RAIDER": {
+  "states": {
+   "FIRE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "FireDamage"
+     }
+    ],
+    "fn": "FireMove",
+    "follow": "RELOAD_MOVE",
+    "must_once": false
+   },
+   "RELOAD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "ReloadMove",
+    "follow": "FIRE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "FIRE_MOVE",
+   "RELOAD_MOVE"
+  ],
+  "initial": "RELOAD_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 21
+   },
+   "FireDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   }
+  }
+ },
+ "CRUSHER": {
+  "states": {
+   "THRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ThrashDamage"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "ENLARGING_STRIKE_MOVE",
+    "must_once": false
+   },
+   "ENLARGING_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "EnlargingStrikeDamage"
+     }
+    ],
+    "fn": "EnlargingStrikeMove",
+    "follow": "BUG_STING_MOVE",
+    "must_once": false
+   },
+   "BUG_STING_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BugStingDamage",
+      "hits": "BugStingTimes"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "BugStingMove",
+    "follow": "ADAPT_MOVE",
+    "must_once": false
+   },
+   "ADAPT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "AdaptMove",
+    "follow": "GUARDED_STRIKE_MOVE",
+    "must_once": false
+   },
+   "GUARDED_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "GuardedStrikeDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "GuardedStrikeMove",
+    "follow": "THRASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "THRASH_MOVE",
+   "ENLARGING_STRIKE_MOVE",
+   "BUG_STING_MOVE",
+   "ADAPT_MOVE",
+   "GUARDED_STRIKE_MOVE"
+  ],
+  "initial": "THRASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 219,
+    "base": 209
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ThrashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 12
+   },
+   "EnlargingStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 4
+   },
+   "BugStingDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "BugStingTimes": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "AdaptStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "GuardedStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 12
+   }
+  }
+ },
+ "CUBEX_CONSTRUCT": {
+  "states": {
+   "CHARGE_UP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ChargeUpMove",
+    "follow": "REPEATER_BLAST_MOVE",
+    "must_once": false
+   },
+   "REPEATER_BLAST_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BlastDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RepeaterBlastMove",
+    "follow": "REPEATER_BLAST_MOVE_2",
+    "must_once": false
+   },
+   "REPEATER_BLAST_MOVE_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BlastDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RepeaterBlastMove",
+    "follow": "EXPEL_MOVE",
+    "must_once": false
+   },
+   "EXPEL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ExpelDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ExpelBlastMove",
+    "follow": "REPEATER_BLAST_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CHARGE_UP_MOVE",
+   "REPEATER_BLAST_MOVE",
+   "REPEATER_BLAST_MOVE_2",
+   "EXPEL_MOVE"
+  ],
+  "initial": "CHARGE_UP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 70,
+    "base": 65
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "BlastDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "ExpelDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   }
+  }
+ },
+ "DAMP_CULTIST": {
+  "states": {
+   "INCANTATION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "IncantationMove",
+    "follow": "DARK_STRIKE_MOVE",
+    "must_once": false
+   },
+   "DARK_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DarkStrikeDamage"
+     }
+    ],
+    "fn": "DarkStrikeMove",
+    "follow": "DARK_STRIKE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "INCANTATION_MOVE",
+   "DARK_STRIKE_MOVE"
+  ],
+  "initial": "INCANTATION_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 52,
+    "base": 51
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 54,
+    "base": 53
+   },
+   "DarkStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 1
+   },
+   "IncantationAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   }
+  }
+ },
+ "DECIMILLIPEDE_SEGMENT": {
+  "states": {
+   "WRITHE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "WritheDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "WritheMove",
+    "follow": "CONSTRICT_MOVE",
+    "must_once": false
+   },
+   "BULK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BulkDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BulkMove",
+    "follow": "WRITHE_MOVE",
+    "must_once": false
+   },
+   "CONSTRICT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ConstrictDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ConstrictMove",
+    "follow": "BULK_MOVE",
+    "must_once": false
+   },
+   "DEAD_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "DeadMove",
+    "follow": "REATTACH_MOVE",
+    "must_once": false
+   },
+   "REATTACH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Heal"
+     }
+    ],
+    "fn": "ReattachMove",
+    "follow": "RAND",
+    "must_once": true
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "WRITHE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "BULK_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "CONSTRICT_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "WRITHE_MOVE",
+   "BULK_MOVE",
+   "CONSTRICT_MOVE",
+   "DEAD_MOVE",
+   "REATTACH_MOVE",
+   "RAND"
+  ],
+  "initial": {
+   "expr": "(StarterMoveIdx % 3) switch { 0 => moveState, 1 => moveState2, _ => moveState3, }",
+   "vars": {
+    "moveState": "WRITHE_MOVE",
+    "moveState2": "BULK_MOVE",
+    "moveState3": "CONSTRICT_MOVE"
+   }
+  },
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 46,
+    "base": 40
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 52,
+    "base": 46
+   },
+   "WritheDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "ConstrictDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "BulkDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "BulkStrength": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "DEPRECATED_MONSTER": {
+  "states": {
+   "STUB": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Hidden"
+     }
+    ],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "STUB",
+    "must_once": false
+   }
+  },
+  "order": [
+   "STUB"
+  ],
+  "initial": "STUB",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 0,
+    "base": 0
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 0,
+    "base": 0
+   }
+  }
+ },
+ "DEVOTED_SCULPTOR": {
+  "states": {
+   "FORBIDDEN_INCANTATION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ForbiddenIncantationMove",
+    "follow": "SAVAGE_MOVE",
+    "must_once": false
+   },
+   "SAVAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SavageDamage"
+     }
+    ],
+    "fn": "SavageMove",
+    "follow": "SAVAGE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "FORBIDDEN_INCANTATION_MOVE",
+   "SAVAGE_MOVE"
+  ],
+  "initial": "FORBIDDEN_INCANTATION_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 172,
+    "base": 162
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SavageDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 12
+   }
+  }
+ },
+ "ENTOMANCER": {
+  "states": {
+   "PHEROMONE_SPIT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SpitMove",
+    "follow": "BEES_MOVE",
+    "must_once": false
+   },
+   "BEES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BeesDamage",
+      "hits": "BeesRepeat"
+     }
+    ],
+    "fn": "BeesMove",
+    "follow": "SPEAR_MOVE",
+    "must_once": false
+   },
+   "SPEAR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SpearMoveDamage"
+     }
+    ],
+    "fn": "SpearMove",
+    "follow": "PHEROMONE_SPIT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PHEROMONE_SPIT_MOVE",
+   "BEES_MOVE",
+   "SPEAR_MOVE"
+  ],
+  "initial": "BEES_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 165,
+    "base": 145
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SpearMoveDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 20,
+    "base": 18
+   },
+   "BeesRepeat": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "BeesDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "EXOSKELETON": {
+  "states": {
+   "SKITTER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SkitterDamage",
+      "hits": "SkitterRepeats"
+     }
+    ],
+    "fn": "SkitterMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "MANDIBLES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "MandiblesDamage"
+     }
+    ],
+    "fn": "MandiblesMove",
+    "follow": "ENRAGE_MOVE",
+    "must_once": false
+   },
+   "ENRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "EnrageMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SKITTER_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "MANDIBLES_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "SKITTER_MOVE",
+      "cond": "() => base.Creature.SlotName == \"first\""
+     },
+     {
+      "state": "MANDIBLES_MOVE",
+      "cond": "() => base.Creature.SlotName == \"second\""
+     },
+     {
+      "state": "ENRAGE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"third\""
+     },
+     {
+      "state": "RAND",
+      "cond": "() => base.Creature.SlotName == \"fourth\""
+     }
+    ]
+   }
+  },
+  "order": [
+   "SKITTER_MOVE",
+   "MANDIBLES_MOVE",
+   "ENRAGE_MOVE",
+   "RAND",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 26,
+    "base": 24
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 30,
+    "base": 28
+   },
+   "SkitterDamage": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "SkitterRepeats": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "MandiblesDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "EYE_WITH_TEETH": {
+  "states": {
+   "DISTRACT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "3"
+      ]
+     }
+    ],
+    "fn": "DistractMove",
+    "follow": "DISTRACT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "DISTRACT_MOVE"
+  ],
+  "initial": "DISTRACT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 6,
+    "base": 6
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   }
+  }
+ },
+ "FABRICATOR": {
+  "states": {
+   "FABRICATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "FabricateMove",
+    "follow": "fabricateBranch",
+    "must_once": false
+   },
+   "FABRICATING_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "FabricatingStrikeDamage"
+     },
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "FabricatingStrikeMove",
+    "follow": "fabricateBranch",
+    "must_once": false
+   },
+   "DISINTEGRATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DisintegrateDamage"
+     }
+    ],
+    "fn": "DisintegrateMove",
+    "follow": "fabricateBranch",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "FABRICATE_MOVE",
+      "repeat": "CAN_REPEAT_FOREVER",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "FABRICATING_STRIKE_MOVE",
+      "repeat": "CAN_REPEAT_FOREVER",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   },
+   "fabricateBranch": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "RAND",
+      "cond": "() => CanFabricate"
+     },
+     {
+      "state": "DISINTEGRATE_MOVE",
+      "cond": "() => !CanFabricate"
+     }
+    ]
+   }
+  },
+  "order": [
+   "FABRICATE_MOVE",
+   "FABRICATING_STRIKE_MOVE",
+   "DISINTEGRATE_MOVE",
+   "RAND",
+   "fabricateBranch"
+  ],
+  "initial": "fabricateBranch",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 155,
+    "base": 150
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "FabricatingStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 21,
+    "base": 18
+   },
+   "DisintegrateDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 11
+   }
+  }
+ },
+ "FAKE_MERCHANT_MONSTER": {
+  "states": {
+   "SWIPE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwipeDamage"
+     }
+    ],
+    "fn": "SwipeMove",
+    "follow": "RAND_MOVE",
+    "must_once": false
+   },
+   "SPEW_COINS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "2",
+      "hits": "8"
+     }
+    ],
+    "fn": "SpewCoinsMove",
+    "follow": "RAND_MOVE",
+    "must_once": false
+   },
+   "THROW_RELIC_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ThrowRelicDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ThrowRelicMove",
+    "follow": "RAND_ATTACK_MOVE",
+    "must_once": false
+   },
+   "ENRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "EnrageMove",
+    "follow": "RAND_MOVE",
+    "must_once": false
+   },
+   "RAND_MOVE": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SWIPE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "SPEW_COINS_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "THROW_RELIC_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "ENRAGE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 3
+     }
+    ]
+   },
+   "RAND_ATTACK_MOVE": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SWIPE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "SPEW_COINS_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "THROW_RELIC_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "SWIPE_MOVE",
+   "SPEW_COINS_MOVE",
+   "THROW_RELIC_MOVE",
+   "ENRAGE_MOVE",
+   "RAND_MOVE",
+   "RAND_ATTACK_MOVE"
+  ],
+  "initial": "SWIPE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 175,
+    "base": 165
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 175,
+    "base": 165
+   },
+   "SwipeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 13
+   },
+   "ThrowRelicDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 9
+   }
+  }
+ },
+ "FAT_GREMLIN": {
+  "states": {
+   "SPAWNED_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "SpawnedMove",
+    "follow": "FLEE_MOVE",
+    "must_once": false
+   },
+   "FLEE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Escape"
+     }
+    ],
+    "fn": "FleeMove",
+    "follow": "FLEE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SPAWNED_MOVE",
+   "FLEE_MOVE"
+  ],
+  "initial": "SPAWNED_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 14,
+    "base": 13
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 17
+   }
+  }
+ },
+ "FLAIL_KNIGHT": {
+  "states": {
+   "WAR_CHANT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "WarChantMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "FLAIL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "FlailDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "FlailMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RamDamage"
+     }
+    ],
+    "fn": "RamMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "WAR_CHANT",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "FLAIL_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "RAM_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "WAR_CHANT",
+   "FLAIL_MOVE",
+   "RAM_MOVE",
+   "RAND"
+  ],
+  "initial": "RAM_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 108,
+    "base": 101
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "FlailDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 9
+   },
+   "RamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 15
+   }
+  }
+ },
+ "FLYCONID": {
+  "states": {
+   "VULNERABLE_SPORES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "VulnerableSporesMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "FRAIL_SPORES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SporeDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "FrailSporesMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "SMASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SmashDamage"
+     }
+    ],
+    "fn": "SmashMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "VULNERABLE_SPORES_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 3
+     },
+     {
+      "state": "FRAIL_SPORES_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 2
+     },
+     {
+      "state": "SMASH_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   },
+   "INITIAL": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "FRAIL_SPORES_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 2
+     },
+     {
+      "state": "SMASH_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "VULNERABLE_SPORES_MOVE",
+   "FRAIL_SPORES_MOVE",
+   "SMASH_MOVE",
+   "RAND",
+   "INITIAL"
+  ],
+  "initial": "INITIAL",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 51,
+    "base": 47
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 53,
+    "base": 49
+   },
+   "SmashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "SporeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "FOGMOG": {
+  "states": {
+   "ILLUSION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "IllusionMove",
+    "follow": "SWIPE_MOVE",
+    "must_once": false
+   },
+   "SWIPE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwipeDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SwipeMove",
+    "follow": "BRANCH",
+    "must_once": false
+   },
+   "SWIPE_RANDOM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwipeDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SwipeMove",
+    "follow": "HEADBUTT_MOVE",
+    "must_once": false
+   },
+   "HEADBUTT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HeadbuttDamage"
+     }
+    ],
+    "fn": "HeadbuttMove",
+    "follow": "SWIPE_MOVE",
+    "must_once": false
+   },
+   "BRANCH": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SWIPE_RANDOM_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "0.4",
+      "cooldown": 0
+     },
+     {
+      "state": "HEADBUTT_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "0.6",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "ILLUSION_MOVE",
+   "SWIPE_MOVE",
+   "SWIPE_RANDOM_MOVE",
+   "HEADBUTT_MOVE",
+   "BRANCH"
+  ],
+  "initial": "ILLUSION_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 78,
+    "base": 74
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SwipeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "HeadbuttDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   }
+  }
+ },
+ "FOSSIL_STALKER": {
+  "states": {
+   "TACKLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TackleDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "TackleMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "LATCH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "LatchDamage"
+     }
+    ],
+    "fn": "LatchMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "LASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "LashDamage",
+      "hits": "LashRepeat"
+     }
+    ],
+    "fn": "LashAttack",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "LATCH_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "TACKLE_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "LASH_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "TACKLE_MOVE",
+   "LATCH_MOVE",
+   "LASH_MOVE",
+   "RAND"
+  ],
+  "initial": "LATCH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 54,
+    "base": 51
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 56,
+    "base": 53
+   },
+   "TackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 9
+   },
+   "LatchDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 12
+   },
+   "LashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "LashRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "FROG_KNIGHT": {
+  "states": {
+   "FOR_THE_QUEEN": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ForTheQueenMove",
+    "follow": "HALF_HEALTH",
+    "must_once": false
+   },
+   "STRIKE_DOWN_EVIL": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StrikeDownEvilDamage"
+     }
+    ],
+    "fn": "StrikeDownEvilMove",
+    "follow": "FOR_THE_QUEEN",
+    "must_once": false
+   },
+   "TONGUE_LASH": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TongueLashDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "TongueLashMove",
+    "follow": "STRIKE_DOWN_EVIL",
+    "must_once": false
+   },
+   "BEETLE_CHARGE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BeetleChargeDamage"
+     }
+    ],
+    "fn": "BeetleChargeMove",
+    "follow": "TONGUE_LASH",
+    "must_once": false
+   },
+   "HALF_HEALTH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "TONGUE_LASH",
+      "cond": "() => HasBeetleCharged || base.Creature.CurrentHp >= base.Creature.MaxHp / 2"
+     },
+     {
+      "state": "BEETLE_CHARGE",
+      "cond": "() => !HasBeetleCharged && base.Creature.CurrentHp < base.Creature.MaxHp / 2"
+     }
+    ]
+   }
+  },
+  "order": [
+   "FOR_THE_QUEEN",
+   "STRIKE_DOWN_EVIL",
+   "TONGUE_LASH",
+   "BEETLE_CHARGE",
+   "HALF_HEALTH"
+  ],
+  "initial": "TONGUE_LASH",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 199,
+    "base": 191
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "StrikeDownEvilDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 23,
+    "base": 21
+   },
+   "TongueLashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 13
+   },
+   "BeetleChargeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 40,
+    "base": 35
+   },
+   "PlatingAmount": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 15
+   }
+  }
+ },
+ "FUZZY_WURM_CRAWLER": {
+  "states": {
+   "FIRST_ACID_GOOP": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "AcidGoopDamage"
+     }
+    ],
+    "fn": "AcidGoop",
+    "follow": "INHALE",
+    "must_once": false
+   },
+   "ACID_GOOP": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "AcidGoopDamage"
+     }
+    ],
+    "fn": "AcidGoop",
+    "follow": "FIRST_ACID_GOOP",
+    "must_once": false
+   },
+   "INHALE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "Inhale",
+    "follow": "ACID_GOOP",
+    "must_once": false
+   }
+  },
+  "order": [
+   "FIRST_ACID_GOOP",
+   "ACID_GOOP",
+   "INHALE"
+  ],
+  "initial": "FIRST_ACID_GOOP",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 58,
+    "base": 55
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 59,
+    "base": 57
+   },
+   "AcidGoopDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 4
+   }
+  }
+ },
+ "GAS_BOMB": {
+  "states": {
+   "EXPLODE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "DeathBlow",
+      "damage": "() => ExplodeDamage"
+     }
+    ],
+    "fn": "ExplodeMove",
+    "follow": null,
+    "must_once": false
+   }
+  },
+  "order": [
+   "EXPLODE_MOVE"
+  ],
+  "initial": "EXPLODE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ExplodeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "GLOBE_HEAD": {
+  "states": {
+   "THUNDER_STRIKE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ThunderStrikeDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "ThunderStrike",
+    "follow": "GALVANIC_BURST",
+    "must_once": false
+   },
+   "SHOCKING_SLAP": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ShockingSlapDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ShockingSlap",
+    "follow": "THUNDER_STRIKE",
+    "must_once": false
+   },
+   "GALVANIC_BURST": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "GalvanicBurstDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "GalvanicBurstMove",
+    "follow": "SHOCKING_SLAP",
+    "must_once": false
+   }
+  },
+  "order": [
+   "THUNDER_STRIKE",
+   "SHOCKING_SLAP",
+   "GALVANIC_BURST"
+  ],
+  "initial": "SHOCKING_SLAP",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 158,
+    "base": 148
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ThunderStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "ShockingSlapDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 13
+   },
+   "GalvanicBurstDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 16
+   },
+   "GalvanicPowerAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 6
+   }
+  }
+ },
+ "GREMLIN_MERC": {
+  "states": {
+   "GIMME_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "GimmeDamage",
+      "hits": "GimmeRepeat"
+     }
+    ],
+    "fn": "GimmeMove",
+    "follow": "DOUBLE_SMASH_MOVE",
+    "must_once": false
+   },
+   "DOUBLE_SMASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "DoubleSmashDamage",
+      "hits": "DoubleSmashRepeat"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "DoubleSmashMove",
+    "follow": "HEHE_MOVE",
+    "must_once": false
+   },
+   "HEHE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HeheDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "HeheMove",
+    "follow": "GIMME_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "GIMME_MOVE",
+   "DOUBLE_SMASH_MOVE",
+   "HEHE_MOVE"
+  ],
+  "initial": "GIMME_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 51,
+    "base": 47
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 53,
+    "base": 49
+   },
+   "GimmeDamage": {
+    "level": "ToughEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "GimmeRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "DoubleSmashDamage": {
+    "level": "ToughEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "DoubleSmashRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "HeheDamage": {
+    "level": "ToughEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "GUARDBOT": {
+  "states": {
+   "GUARD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "GuardMove",
+    "follow": "GUARD_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "GUARD_MOVE"
+  ],
+  "initial": "GUARD_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 17,
+    "base": 16
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 21,
+    "base": 20
+   }
+  }
+ },
+ "HAUNTED_SHIP": {
+  "states": {
+   "SWIPE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SwipeDamage"
+     }
+    ],
+    "fn": "SwipeMove",
+    "follow": "STOMP_MOVE",
+    "must_once": false
+   },
+   "STOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "StompDamage",
+      "hits": "StompRepeat"
+     }
+    ],
+    "fn": "StompMove",
+    "follow": "SWIPE_MOVE",
+    "must_once": false
+   },
+   "HAUNT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "HauntDazed"
+      ]
+     }
+    ],
+    "fn": "HauntMove",
+    "follow": "SWIPE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SWIPE_MOVE",
+   "STOMP_MOVE",
+   "HAUNT_MOVE"
+  ],
+  "initial": "HAUNT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 67,
+    "base": 63
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "HauntDazed": {
+    "level": null,
+    "asc": 5,
+    "base": 5
+   },
+   "SwipeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 13
+   },
+   "StompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   },
+   "StompRepeat": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "HUNTER_KILLER": {
+  "states": {
+   "TENDERIZING_GOOP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "GoopMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "PUNCTURE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "PunctureDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "PunctureMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "BITE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "PUNCTURE_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "TENDERIZING_GOOP_MOVE",
+   "BITE_MOVE",
+   "PUNCTURE_MOVE",
+   "RAND"
+  ],
+  "initial": "TENDERIZING_GOOP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 126,
+    "base": 121
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 17
+   },
+   "PunctureDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   }
+  }
+ },
+ "INFESTED_PRISM": {
+  "states": {
+   "JAB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "JabDamage"
+     }
+    ],
+    "fn": "JabMove",
+    "follow": "RADIATE_MOVE",
+    "must_once": false
+   },
+   "RADIATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RadiateDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "RadiateMove",
+    "follow": "WHIRLWIND_MOVE",
+    "must_once": false
+   },
+   "WHIRLWIND_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "WhirlwindDamage",
+      "hits": "WhirlwindRepeat"
+     }
+    ],
+    "fn": "WhirlwindMove",
+    "follow": "PULSATE_MOVE",
+    "must_once": false
+   },
+   "PULSATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PulsateDamage"
+     },
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "PulsateMove",
+    "follow": "JAB_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "JAB_MOVE",
+   "RADIATE_MOVE",
+   "WHIRLWIND_MOVE",
+   "PULSATE_MOVE"
+  ],
+  "initial": "JAB_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 171,
+    "base": 161
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "JabDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 15
+   },
+   "VitalSparkAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "PulsateDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 8
+   },
+   "PulsateBlock": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 20
+   },
+   "RadiateDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 11
+   },
+   "RadiateBlock": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 11
+   },
+   "WhirlwindDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "WhirlwindRepeat": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "INKLET": {
+  "states": {
+   "JAB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "JabDamage"
+     }
+    ],
+    "fn": "JabMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "WHIRLWIND_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "WhirlwindDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "WhirlwindMove",
+    "follow": "JAB_MOVE",
+    "must_once": false
+   },
+   "PIERCING_GAZE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PiercingGazeDamage"
+     }
+    ],
+    "fn": "PiercingGazeMove",
+    "follow": "JAB_MOVE",
+    "must_once": false
+   },
+   "INIT_RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "JAB_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "WHIRLWIND_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "PIERCING_GAZE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "WHIRLWIND_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "JAB_MOVE",
+   "WHIRLWIND_MOVE",
+   "PIERCING_GAZE_MOVE",
+   "INIT_RAND",
+   "RAND"
+  ],
+  "initial": "JAB_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 17
+   },
+   "JabDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "WhirlwindDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "PiercingGazeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   }
+  }
+ },
+ "KIN_FOLLOWER": {
+  "states": {
+   "QUICK_SLASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "QuickSlashDamage"
+     }
+    ],
+    "fn": "QuickSlashMove",
+    "follow": "BOOMERANG_MOVE",
+    "must_once": false
+   },
+   "BOOMERANG_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BoomerangDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "BoomerangMove",
+    "follow": "POWER_DANCE_MOVE",
+    "must_once": false
+   },
+   "POWER_DANCE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PowerDanceMove",
+    "follow": "QUICK_SLASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "QUICK_SLASH_MOVE",
+   "BOOMERANG_MOVE",
+   "POWER_DANCE_MOVE"
+  ],
+  "initial": "QUICK_SLASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 62,
+    "base": 58
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 63,
+    "base": 59
+   },
+   "QuickSlashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 5
+   },
+   "BoomerangDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 2,
+    "base": 2
+   },
+   "DanceStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "KIN_PRIEST": {
+  "states": {
+   "ORB_OF_FRAILTY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "OrbOfFrailtyDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "OrbOfFrailtyMove",
+    "follow": "ORB_OF_WEAKNESS_MOVE",
+    "must_once": false
+   },
+   "ORB_OF_WEAKNESS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "OrbOfWeaknessDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "OrbOfWeaknessMove",
+    "follow": "BEAM_MOVE",
+    "must_once": false
+   },
+   "BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BeamDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "BeamMove",
+    "follow": "RITUAL_MOVE",
+    "must_once": false
+   },
+   "RITUAL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RitualMove",
+    "follow": "ORB_OF_FRAILTY_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "ORB_OF_FRAILTY_MOVE",
+   "ORB_OF_WEAKNESS_MOVE",
+   "BEAM_MOVE",
+   "RITUAL_MOVE"
+  ],
+  "initial": "ORB_OF_FRAILTY_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 199,
+    "base": 190
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "OrbOfFrailtyDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "OrbOfWeaknessDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "BeamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 3
+   },
+   "RitualStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "KNOWLEDGE_DEMON": {
+  "states": {
+   "CURSE_OF_KNOWLEDGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "CurseOfKnowledgeMove",
+    "follow": "SLAP_MOVE",
+    "must_once": false
+   },
+   "SLAP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SlapDamage"
+     }
+    ],
+    "fn": "SlapMove",
+    "follow": "KNOWLEDGE_OVERWHELMING_MOVE",
+    "must_once": false
+   },
+   "KNOWLEDGE_OVERWHELMING_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "KnowledgeOverwhelmingDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "KnowledgeOverwhelmingMove",
+    "follow": "PONDER_MOVE",
+    "must_once": false
+   },
+   "PONDER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PonderDamage"
+     },
+     {
+      "type": "Heal"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PonderMove",
+    "follow": "CurseOfKnowledgeBranch",
+    "must_once": false
+   },
+   "CurseOfKnowledgeBranch": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "CURSE_OF_KNOWLEDGE_MOVE",
+      "cond": "() => _curseOfKnowledgeCounter < 3"
+     },
+     {
+      "state": "SLAP_MOVE",
+      "cond": "() => _curseOfKnowledgeCounter >= 3"
+     }
+    ]
+   }
+  },
+  "order": [
+   "CURSE_OF_KNOWLEDGE_MOVE",
+   "SLAP_MOVE",
+   "KNOWLEDGE_OVERWHELMING_MOVE",
+   "PONDER_MOVE",
+   "CurseOfKnowledgeBranch"
+  ],
+  "initial": "CURSE_OF_KNOWLEDGE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 399,
+    "base": 379
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SlapDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 17
+   },
+   "PonderDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 11
+   },
+   "KnowledgeOverwhelmingDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "PonderStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "LAGAVULIN_MATRIARCH": {
+  "states": {
+   "SLEEP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Sleep"
+     }
+    ],
+    "fn": "SleepMove",
+    "follow": "SLEEP_BRANCH",
+    "must_once": false
+   },
+   "SLASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SlashDamage"
+     }
+    ],
+    "fn": "SlashMove",
+    "follow": "DISEMBOWEL_MOVE",
+    "must_once": false
+   },
+   "SLASH2_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "Slash2Damage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "Slash2Move",
+    "follow": "SOUL_SIPHON_MOVE",
+    "must_once": false
+   },
+   "DISEMBOWEL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "DisembowelDamage",
+      "hits": "DisembowelRepeat"
+     }
+    ],
+    "fn": "DisembowelMove",
+    "follow": "SLASH2_MOVE",
+    "must_once": false
+   },
+   "SOUL_SIPHON_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SoulSiphonMove",
+    "follow": "SLASH_MOVE",
+    "must_once": false
+   },
+   "SLEEP_BRANCH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "SLEEP_MOVE",
+      "cond": "() => base.Creature.HasPower<AsleepPower>()"
+     },
+     {
+      "state": "SLASH_MOVE",
+      "cond": "() => !base.Creature.HasPower<AsleepPower>()"
+     }
+    ]
+   }
+  },
+  "order": [
+   "SLEEP_MOVE",
+   "SLASH_MOVE",
+   "SLASH2_MOVE",
+   "DISEMBOWEL_MOVE",
+   "SOUL_SIPHON_MOVE",
+   "SLEEP_BRANCH"
+  ],
+  "initial": "SLEEP_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 233,
+    "base": 222
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SlashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 21,
+    "base": 19
+   },
+   "Slash2Damage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 12
+   },
+   "Slash2Block": {
+    "level": "ToughEnemies",
+    "asc": 14,
+    "base": 12
+   },
+   "DisembowelDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 9
+   },
+   "DisembowelRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "LEAF_SLIME_M": {
+  "states": {
+   "CLUMP_SHOT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ClumpDamage"
+     }
+    ],
+    "fn": "ClumpShotMove",
+    "follow": "STICKY_SHOT",
+    "must_once": false
+   },
+   "STICKY_SHOT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "2"
+      ]
+     }
+    ],
+    "fn": "StickyShotMove",
+    "follow": "CLUMP_SHOT",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CLUMP_SHOT",
+   "STICKY_SHOT"
+  ],
+  "initial": "STICKY_SHOT",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 33,
+    "base": 32
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 36,
+    "base": 35
+   },
+   "ClumpDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "LEAF_SLIME_S": {
+  "states": {
+   "TACKLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TackleDamage"
+     }
+    ],
+    "fn": "TackleMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "GOOP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "1"
+      ]
+     }
+    ],
+    "fn": "GoopMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "TACKLE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "GOOP_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "TACKLE_MOVE",
+   "GOOP_MOVE",
+   "RAND"
+  ],
+  "initial": "RAND",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 16,
+    "base": 15
+   },
+   "TackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "LIVING_FOG": {
+  "states": {
+   "ADVANCED_GAS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "AdvancedGasDamage"
+     },
+     {
+      "type": "CardDebuff"
+     }
+    ],
+    "fn": "AdvancedGasMove",
+    "follow": "BLOAT_MOVE",
+    "must_once": false
+   },
+   "BLOAT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BloatDamage"
+     },
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "BloatMove",
+    "follow": "SUPER_GAS_BLAST_MOVE",
+    "must_once": false
+   },
+   "SUPER_GAS_BLAST_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SuperGasBlastDamage"
+     }
+    ],
+    "fn": "SuperGasBlastMove",
+    "follow": "BLOAT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "ADVANCED_GAS_MOVE",
+   "BLOAT_MOVE",
+   "SUPER_GAS_BLAST_MOVE"
+  ],
+  "initial": "ADVANCED_GAS_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 82,
+    "base": 80
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "AdvancedGasDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "BloatDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "SuperGasBlastDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "LIVING_SHIELD": {
+  "states": {
+   "SHIELD_SLAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ShieldSlamDamage"
+     }
+    ],
+    "fn": "ShieldSlamMove",
+    "follow": "SHIELD_SLAM_BRANCH",
+    "must_once": false
+   },
+   "SHIELD_SLAM_BRANCH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "SHIELD_SLAM_MOVE",
+      "cond": "() => GetAllyCount() > 0"
+     },
+     {
+      "state": "SMASH_MOVE",
+      "cond": "() => GetAllyCount() == 0"
+     }
+    ]
+   },
+   "SMASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SmashDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SmashMove",
+    "follow": "SMASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SHIELD_SLAM_MOVE",
+   "SHIELD_SLAM_BRANCH",
+   "SMASH_MOVE"
+  ],
+  "initial": "SHIELD_SLAM_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 65,
+    "base": 55
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ShieldSlamDamage": {
+    "level": null,
+    "asc": 6,
+    "base": 6
+   },
+   "SmashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 16
+   },
+   "EnrageStr": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "LOUSE_PROGENITOR": {
+  "states": {
+   "WEB_CANNON_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "WebDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "WebMove",
+    "follow": "CURL_AND_GROW_MOVE",
+    "must_once": false
+   },
+   "POUNCE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PounceDamage"
+     }
+    ],
+    "fn": "PounceMove",
+    "follow": "WEB_CANNON_MOVE",
+    "must_once": false
+   },
+   "CURL_AND_GROW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "CurlAndGrowMove",
+    "follow": "POUNCE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "WEB_CANNON_MOVE",
+   "POUNCE_MOVE",
+   "CURL_AND_GROW_MOVE"
+  ],
+  "initial": "WEB_CANNON_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 138,
+    "base": 134
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 141,
+    "base": 136
+   },
+   "WebDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 9
+   },
+   "PounceDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "CurlBlock": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 14
+   },
+   "GrowStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 5
+   }
+  }
+ },
+ "MAGI_KNIGHT": {
+  "states": {
+   "POWER_SHIELD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PowerShieldDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "PowerShieldMove",
+    "follow": "DAMPEN_MOVE",
+    "must_once": false
+   },
+   "DAMPEN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "DampenMove",
+    "follow": "RAM_MOVE",
+    "must_once": false
+   },
+   "PREP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "PrepMove",
+    "follow": "MAGIC_BOMB",
+    "must_once": false
+   },
+   "MAGIC_BOMB": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BombDamage"
+     }
+    ],
+    "fn": "MagicBombMove",
+    "follow": "RAM_MOVE",
+    "must_once": false
+   },
+   "RAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SpearDamage"
+     }
+    ],
+    "fn": "SpearMove",
+    "follow": "PREP_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "POWER_SHIELD_MOVE",
+   "DAMPEN_MOVE",
+   "PREP_MOVE",
+   "MAGIC_BOMB",
+   "RAM_MOVE"
+  ],
+  "initial": "POWER_SHIELD_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 89,
+    "base": 82
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "PowerShieldDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "PowerShieldBlock": {
+    "level": "ToughEnemies",
+    "asc": 9,
+    "base": 5
+   },
+   "SpearDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "BombDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 40,
+    "base": 35
+   }
+  }
+ },
+ "MAWLER": {
+  "states": {
+   "RIP_AND_TEAR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RipAndTearDamage"
+     }
+    ],
+    "fn": "RipAndTearMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "ROAR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "RoarMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "CLAW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ClawDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ClawMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "RIP_AND_TEAR_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "ROAR_MOVE",
+      "repeat": "USE_ONLY_ONCE",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "CLAW_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "RIP_AND_TEAR_MOVE",
+   "ROAR_MOVE",
+   "CLAW_MOVE",
+   "RAND"
+  ],
+  "initial": "CLAW_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 76,
+    "base": 72
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "RipAndTearDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "ClawDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "MECHA_KNIGHT": {
+  "states": {
+   "CHARGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ChargeDamage"
+     }
+    ],
+    "fn": "ChargeMove",
+    "follow": "FLAMETHROWER_MOVE",
+    "must_once": false
+   },
+   "FLAMETHROWER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "FlamethrowerDamage"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "4"
+      ]
+     }
+    ],
+    "fn": "FlamethrowerMove",
+    "follow": "WINDUP_MOVE",
+    "must_once": false
+   },
+   "WINDUP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "WindupMove",
+    "follow": "HEAVY_CLEAVE_MOVE",
+    "must_once": false
+   },
+   "HEAVY_CLEAVE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HeavyCleaveDamage"
+     }
+    ],
+    "fn": "HeavyCleaveMove",
+    "follow": "FLAMETHROWER_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CHARGE_MOVE",
+   "FLAMETHROWER_MOVE",
+   "WINDUP_MOVE",
+   "HEAVY_CLEAVE_MOVE"
+  ],
+  "initial": "CHARGE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 320,
+    "base": 300
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ChargeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 30,
+    "base": 25
+   },
+   "FlamethrowerDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 8
+   },
+   "HeavyCleaveDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 40,
+    "base": 35
+   }
+  }
+ },
+ "MULTI_ATTACK_MOVE_MONSTER": {
+  "states": {
+   "POKE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "1",
+      "hits": "5"
+     }
+    ],
+    "fn": "PokeMove",
+    "follow": "POKE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "POKE"
+  ],
+  "initial": "POKE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 999,
+    "base": 999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 999,
+    "base": 999
+   }
+  }
+ },
+ "MYTE": {
+  "states": {
+   "TOXIC_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "2"
+      ]
+     }
+    ],
+    "fn": "ToxicMove",
+    "follow": "BITE_MOVE",
+    "must_once": false
+   },
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "SUCK_MOVE",
+    "must_once": false
+   },
+   "SUCK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SuckDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SuckMove",
+    "follow": "TOXIC_MOVE",
+    "must_once": false
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "TOXIC_MOVE",
+      "cond": "() => base.Creature.SlotName == \"first\""
+     },
+     {
+      "state": "SUCK_MOVE",
+      "cond": "() => base.Creature.SlotName == \"second\""
+     }
+    ]
+   }
+  },
+  "order": [
+   "TOXIC_MOVE",
+   "BITE_MOVE",
+   "SUCK_MOVE",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 64,
+    "base": 61
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 69,
+    "base": 67
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 13
+   },
+   "SuckDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 4
+   },
+   "SuckStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "NIBBIT": {
+  "states": {
+   "BUTT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ButtDamage"
+     }
+    ],
+    "fn": "ButtMove",
+    "follow": "SLICE_MOVE",
+    "must_once": false
+   },
+   "SLICE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SliceDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "SliceMove",
+    "follow": "HISS_MOVE",
+    "must_once": false
+   },
+   "HISS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "HissMove",
+    "follow": "BUTT_MOVE",
+    "must_once": false
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "BUTT_MOVE",
+      "cond": "() => ((Nibbit)base.Creature.Monster).IsAlone"
+     },
+     {
+      "state": "HISS_MOVE",
+      "cond": "() => !((Nibbit)base.Creature.Monster).IsFront"
+     },
+     {
+      "state": "SLICE_MOVE",
+      "cond": "() => ((Nibbit)base.Creature.Monster).IsFront"
+     }
+    ]
+   }
+  },
+  "order": [
+   "BUTT_MOVE",
+   "SLICE_MOVE",
+   "HISS_MOVE",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 44,
+    "base": 42
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 48,
+    "base": 46
+   },
+   "ButtDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 12
+   },
+   "SliceBlock": {
+    "level": "ToughEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "SliceDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "HissStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "NOISEBOT": {
+  "states": {
+   "NOISE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "2"
+      ]
+     }
+    ],
+    "fn": "NoiseMove",
+    "follow": "NOISE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOISE_MOVE"
+  ],
+  "initial": "NOISE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 24,
+    "base": 23
+   }
+  }
+ },
+ "ONE_HP_MONSTER": {
+  "states": {
+   "NOTHING": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Hidden"
+     }
+    ],
+    "fn": "NothingMove",
+    "follow": "NOTHING",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING"
+  ],
+  "initial": "NOTHING",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   }
+  }
+ },
+ "OSTY": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   }
+  }
+ },
+ "OVICOPTER": {
+  "states": {
+   "LAY_EGGS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "LayEggsMove",
+    "follow": "SMASH_MOVE",
+    "must_once": false
+   },
+   "SMASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SmashDamage"
+     }
+    ],
+    "fn": "SmashMove",
+    "follow": "TENDERIZER_MOVE",
+    "must_once": false
+   },
+   "TENDERIZER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TenderizerDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "TenderizerMove",
+    "follow": "SUMMON_BRANCH_STATE",
+    "must_once": false
+   },
+   "NUTRITIONAL_PASTE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "NutritionalPasteMove",
+    "follow": "SMASH_MOVE",
+    "must_once": false
+   },
+   "SUMMON_BRANCH_STATE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "LAY_EGGS_MOVE",
+      "cond": "() => CanLay"
+     },
+     {
+      "state": "NUTRITIONAL_PASTE_MOVE",
+      "cond": "() => !CanLay"
+     }
+    ]
+   }
+  },
+  "order": [
+   "LAY_EGGS_MOVE",
+   "SMASH_MOVE",
+   "TENDERIZER_MOVE",
+   "NUTRITIONAL_PASTE_MOVE",
+   "SUMMON_BRANCH_STATE"
+  ],
+  "initial": "LAY_EGGS_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 126,
+    "base": 124
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 132,
+    "base": 130
+   },
+   "SmashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 16
+   },
+   "TenderizerDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "NutritionalPasteStrengthAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "OWL_MAGISTRATE": {
+  "states": {
+   "MAGISTRATE_SCRUTINY": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ScrutinyDamage"
+     }
+    ],
+    "fn": "MagistrateScrutinyMove",
+    "follow": "PECK_ASSAULT",
+    "must_once": false
+   },
+   "PECK_ASSAULT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "PeckAssaultDamage",
+      "hits": "6"
+     }
+    ],
+    "fn": "PeckAssaultMove",
+    "follow": "JUDICIAL_FLIGHT",
+    "must_once": false
+   },
+   "JUDICIAL_FLIGHT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "JudicialFlightMove",
+    "follow": "VERDICT",
+    "must_once": false
+   },
+   "VERDICT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "VerdictDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "VerdictMove",
+    "follow": "MAGISTRATE_SCRUTINY",
+    "must_once": false
+   }
+  },
+  "order": [
+   "MAGISTRATE_SCRUTINY",
+   "PECK_ASSAULT",
+   "JUDICIAL_FLIGHT",
+   "VERDICT"
+  ],
+  "initial": "MAGISTRATE_SCRUTINY",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 247,
+    "base": 231
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "VerdictDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 36,
+    "base": 33
+   },
+   "ScrutinyDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 16
+   },
+   "PeckAssaultDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 4
+   }
+  }
+ },
+ "PAELS_LEGION": {
+  "states": {
+   "NOTHING_MOVE": {
+    "kind": "MoveState",
+    "intents": [],
+    "fn": "(IReadOnlyList<Creature> _) => Task.CompletedTask",
+    "follow": "NOTHING_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING_MOVE"
+  ],
+  "initial": "NOTHING_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 9999,
+    "base": 9999
+   }
+  }
+ },
+ "PARAFRIGHT": {
+  "states": {
+   "SLAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SlamDamage"
+     }
+    ],
+    "fn": "SlamMove",
+    "follow": "SLAM_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SLAM_MOVE"
+  ],
+  "initial": "SLAM_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 21,
+    "base": 21
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SlamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 16
+   }
+  }
+ },
+ "PHANTASMAL_GARDENER": {
+  "states": {
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "LASH_MOVE",
+    "must_once": false
+   },
+   "LASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "LashDamage"
+     }
+    ],
+    "fn": "LashMove",
+    "follow": "FLAIL_MOVE",
+    "must_once": false
+   },
+   "FLAIL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "FlailDamage",
+      "hits": "FlailRepeat"
+     }
+    ],
+    "fn": "FlailMove",
+    "follow": "ENLARGE_MOVE",
+    "must_once": false
+   },
+   "ENLARGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "EnlargeMove",
+    "follow": "BITE_MOVE",
+    "must_once": false
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "FLAIL_MOVE",
+      "cond": "() => base.Creature.SlotName == \"first\""
+     },
+     {
+      "state": "BITE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"second\""
+     },
+     {
+      "state": "LASH_MOVE",
+      "cond": "() => base.Creature.SlotName == \"third\""
+     },
+     {
+      "state": "ENLARGE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"fourth\""
+     }
+    ]
+   }
+  },
+  "order": [
+   "BITE_MOVE",
+   "LASH_MOVE",
+   "FLAIL_MOVE",
+   "ENLARGE_MOVE",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 27,
+    "base": 26
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 32,
+    "base": 31
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 5
+   },
+   "LashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 7
+   },
+   "FlailDamage": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "FlailRepeat": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 3
+   },
+   "EnlargeStr": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "SkittishAmount": {
+    "level": "ToughEnemies",
+    "asc": 7,
+    "base": 6
+   }
+  }
+ },
+ "PHROG_PARASITE": {
+  "states": {
+   "INFECT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "3"
+      ]
+     }
+    ],
+    "fn": "InfectMove",
+    "follow": "LASH_MOVE",
+    "must_once": false
+   },
+   "LASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "LashDamage",
+      "hits": "4"
+     }
+    ],
+    "fn": "LashMove",
+    "follow": "INFECT_MOVE",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "INFECT_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "LASH_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "INFECT_MOVE",
+   "LASH_MOVE",
+   "RAND"
+  ],
+  "initial": "INFECT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 66,
+    "base": 61
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 68,
+    "base": 64
+   },
+   "LashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "PUNCH_CONSTRUCT": {
+  "states": {
+   "READY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "ReadyMove",
+    "follow": "FAST_PUNCH_MOVE",
+    "must_once": false
+   },
+   "STRONG_PUNCH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StrongPunchDamage"
+     }
+    ],
+    "fn": "StrongPunchMove",
+    "follow": "READY_MOVE",
+    "must_once": false
+   },
+   "FAST_PUNCH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "FastPunchDamage",
+      "hits": "FastPunchRepeat"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "FastPunchMove",
+    "follow": "STRONG_PUNCH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "READY_MOVE",
+   "STRONG_PUNCH_MOVE",
+   "FAST_PUNCH_MOVE"
+  ],
+  "initial": {
+   "expr": "StartsWithFastPunch ? moveState3 : moveState",
+   "vars": {
+    "moveState3": "FAST_PUNCH_MOVE",
+    "moveState": "READY_MOVE"
+   }
+  },
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 60,
+    "base": 55
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "StrongPunchDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "FastPunchDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   },
+   "FastPunchRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "QUEEN": {
+  "states": {
+   "PUPPET_STRINGS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "CardDebuff"
+     }
+    ],
+    "fn": "PuppetStringsMove",
+    "follow": "YOU_ARE_MINE_MOVE",
+    "must_once": false
+   },
+   "YOU_ARE_MINE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "YoureMineMove",
+    "follow": "YOURE_MINE_NOW_BRANCH",
+    "must_once": false
+   },
+   "YOURE_MINE_NOW_BRANCH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "BURN_BRIGHT_FOR_ME_MOVE",
+      "cond": "() => !HasAmalgamDied"
+     },
+     {
+      "state": "OFF_WITH_YOUR_HEAD_MOVE",
+      "cond": "() => HasAmalgamDied"
+     }
+    ]
+   },
+   "BURN_BRIGHT_FOR_ME_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "BurnBrightForMeMove",
+    "follow": "BURN_BRIGHT_FOR_ME_BRANCH",
+    "must_once": false
+   },
+   "BURN_BRIGHT_FOR_ME_BRANCH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "BURN_BRIGHT_FOR_ME_MOVE",
+      "cond": "() => !HasAmalgamDied"
+     },
+     {
+      "state": "OFF_WITH_YOUR_HEAD_MOVE",
+      "cond": "() => HasAmalgamDied"
+     }
+    ]
+   },
+   "OFF_WITH_YOUR_HEAD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "OffWithYourHeadDamage",
+      "hits": "5"
+     }
+    ],
+    "fn": "OffWithYourHeadMove",
+    "follow": "EXECUTION_MOVE",
+    "must_once": false
+   },
+   "EXECUTION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ExecutionDamage"
+     }
+    ],
+    "fn": "ExecutionMove",
+    "follow": "ENRAGE_MOVE",
+    "must_once": false
+   },
+   "ENRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "EnrageMove",
+    "follow": "OFF_WITH_YOUR_HEAD_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PUPPET_STRINGS_MOVE",
+   "YOU_ARE_MINE_MOVE",
+   "YOURE_MINE_NOW_BRANCH",
+   "BURN_BRIGHT_FOR_ME_MOVE",
+   "BURN_BRIGHT_FOR_ME_BRANCH",
+   "OFF_WITH_YOUR_HEAD_MOVE",
+   "EXECUTION_MOVE",
+   "ENRAGE_MOVE"
+  ],
+  "initial": "PUPPET_STRINGS_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 419,
+    "base": 400
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "OffWithYourHeadDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "ExecutionDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 15
+   }
+  }
+ },
+ "ROCKET": {
+  "states": {
+   "TARGETING_RETICLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TargetingReticleDamage"
+     }
+    ],
+    "fn": "TargetingReticleMove",
+    "follow": "PRECISION_BEAM_MOVE",
+    "must_once": false
+   },
+   "PRECISION_BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PrecisionBeamDamage"
+     }
+    ],
+    "fn": "PrecisionBeamMove",
+    "follow": "CHARGE_UP_MOVE",
+    "must_once": false
+   },
+   "CHARGE_UP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ChargeUpMove",
+    "follow": "LASER_MOVE",
+    "must_once": false
+   },
+   "LASER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "LaserDamage"
+     }
+    ],
+    "fn": "LaserMove",
+    "follow": "RECHARGE_MOVE",
+    "must_once": false
+   },
+   "RECHARGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Sleep"
+     }
+    ],
+    "fn": "RechargeMove",
+    "follow": "TARGETING_RETICLE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "TARGETING_RETICLE_MOVE",
+   "PRECISION_BEAM_MOVE",
+   "CHARGE_UP_MOVE",
+   "LASER_MOVE",
+   "RECHARGE_MOVE"
+  ],
+  "initial": "TARGETING_RETICLE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 209,
+    "base": 199
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "TargetingReticleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "PrecisionBeamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 20,
+    "base": 18
+   },
+   "LaserDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 35,
+    "base": 31
+   },
+   "ChargeUpStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "SCROLL_OF_BITING": {
+  "states": {
+   "CHOMP": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ChompDamage"
+     }
+    ],
+    "fn": "ChompMove",
+    "follow": "MORE_TEETH",
+    "must_once": false
+   },
+   "CHEW": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ChewDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ChewState",
+    "follow": "rand",
+    "must_once": false
+   },
+   "MORE_TEETH": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "MoreTeethMove",
+    "follow": "CHEW",
+    "must_once": false
+   },
+   "rand": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "CHOMP",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "CHEW",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "CHOMP",
+   "CHEW",
+   "MORE_TEETH",
+   "rand"
+  ],
+  "initial": {
+   "expr": "return (StarterMoveIdx % 3) switch { 0 => new MonsterMoveStateMachine(list, moveState), 1 => new MonsterMoveStateMachine(list, moveState2), _ => new MonsterMoveStateMachine(list, moveState3), }",
+   "vars": {
+    "moveState": "CHOMP",
+    "moveState2": "CHEW",
+    "moveState3": "MORE_TEETH"
+   }
+  },
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 33,
+    "base": 30
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 39,
+    "base": 37
+   },
+   "ChompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "ChewDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 6,
+    "base": 5
+   }
+  }
+ },
+ "SEAPUNK": {
+  "states": {
+   "SEA_KICK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SeaKickDamage"
+     }
+    ],
+    "fn": "SeaKickMove",
+    "follow": "SPINNING_KICK_MOVE",
+    "must_once": false
+   },
+   "SPINNING_KICK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SpinningKickDamage",
+      "hits": "SpinningKickRepeat"
+     }
+    ],
+    "fn": "SpinningKickMove",
+    "follow": "BUBBLE_BURP_MOVE",
+    "must_once": false
+   },
+   "BUBBLE_BURP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "BubbleBurpMove",
+    "follow": "SEA_KICK_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SEA_KICK_MOVE",
+   "SPINNING_KICK_MOVE",
+   "BUBBLE_BURP_MOVE"
+  ],
+  "initial": "SEA_KICK_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 47,
+    "base": 44
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 49,
+    "base": 46
+   },
+   "SeaKickDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 11
+   },
+   "SpinningKickDamage": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "SpinningKickRepeat": {
+    "level": null,
+    "asc": 4,
+    "base": 4
+   },
+   "BubbleBlock": {
+    "level": "ToughEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "BubbleStr": {
+    "level": "DeadlyEnemies",
+    "asc": 2,
+    "base": 1
+   }
+  }
+ },
+ "SEWER_CLAM": {
+  "states": {
+   "PRESSURIZE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PressurizeMove",
+    "follow": "JET_MOVE",
+    "must_once": false
+   },
+   "JET_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "JetDamage"
+     }
+    ],
+    "fn": "JetMove",
+    "follow": "PRESSURIZE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PRESSURIZE_MOVE",
+   "JET_MOVE"
+  ],
+  "initial": "JET_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 58,
+    "base": 56
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "JetDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   }
+  }
+ },
+ "SHRINKER_BEETLE": {
+  "states": {
+   "SHRINKER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff",
+      "args": [
+       "strong: true"
+      ]
+     }
+    ],
+    "fn": "ShrinkMove",
+    "follow": "CHOMP_MOVE",
+    "must_once": false
+   },
+   "CHOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ChompDamage"
+     }
+    ],
+    "fn": "ChompMove",
+    "follow": "STOMP_MOVE",
+    "must_once": false
+   },
+   "STOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StompDamage"
+     }
+    ],
+    "fn": "StompMove",
+    "follow": "CHOMP_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SHRINKER_MOVE",
+   "CHOMP_MOVE",
+   "STOMP_MOVE"
+  ],
+  "initial": "SHRINKER_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 40,
+    "base": 38
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 42,
+    "base": 40
+   },
+   "ChompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "StompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 13
+   }
+  }
+ },
+ "SINGLE_ATTACK_MOVE_MONSTER": {
+  "states": {
+   "POKE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "1"
+     }
+    ],
+    "fn": "PokeMove",
+    "follow": "POKE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "POKE"
+  ],
+  "initial": "POKE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 999,
+    "base": 999
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 999,
+    "base": 999
+   }
+  }
+ },
+ "SKULKING_COLONY": {
+  "states": {
+   "ZOOM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ZoomDamage"
+     }
+    ],
+    "fn": "ZoomMove",
+    "follow": "ZOOM_MOVE_2",
+    "must_once": false
+   },
+   "ZOOM_MOVE_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ZoomDamage"
+     }
+    ],
+    "fn": "ZoomMove",
+    "follow": "INERTIA_MOVE",
+    "must_once": false
+   },
+   "INERTIA_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "InertiaDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "InertiaMove",
+    "follow": "PIERCING_STABS_MOVE",
+    "must_once": false
+   },
+   "PIERCING_STABS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "PiercingStabsDamage",
+      "hits": "PiercingStabsRepeat"
+     }
+    ],
+    "fn": "PiercingStabsMove",
+    "follow": "ZOOM_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "ZOOM_MOVE",
+   "ZOOM_MOVE_2",
+   "INERTIA_MOVE",
+   "PIERCING_STABS_MOVE"
+  ],
+  "initial": "ZOOM_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 80,
+    "base": 75
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "InertiaDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 9
+   },
+   "ZoomDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "PiercingStabsDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "PiercingStabsRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "InertiaStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 2
+   }
+  }
+ },
+ "SLIMED_BERSERKER": {
+  "states": {
+   "VOMIT_ICHOR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "10"
+      ]
+     }
+    ],
+    "fn": "VomitIchorMove",
+    "follow": "FURIOUS_PUMMELING_MOVE",
+    "must_once": false
+   },
+   "LEECHING_HUG_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "LeechingHugMove",
+    "follow": "SMOTHER_MOVE",
+    "must_once": false
+   },
+   "SMOTHER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SmotherDamage"
+     }
+    ],
+    "fn": "SmotherMove",
+    "follow": "VOMIT_ICHOR_MOVE",
+    "must_once": false
+   },
+   "FURIOUS_PUMMELING_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "PummelingDamage",
+      "hits": "4"
+     }
+    ],
+    "fn": "FuriousPummelingMove",
+    "follow": "LEECHING_HUG_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "VOMIT_ICHOR_MOVE",
+   "LEECHING_HUG_MOVE",
+   "SMOTHER_MOVE",
+   "FURIOUS_PUMMELING_MOVE"
+  ],
+  "initial": "VOMIT_ICHOR_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 281,
+    "base": 261
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "PummelingDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   },
+   "SmotherDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 33,
+    "base": 30
+   }
+  }
+ },
+ "SLITHERING_STRANGLER": {
+  "states": {
+   "CONSTRICT": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ConstrictMove",
+    "follow": "rand",
+    "must_once": false
+   },
+   "THWACK": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ThwackDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "ThwackMove",
+    "follow": "CONSTRICT",
+    "must_once": false
+   },
+   "LASH": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "LashDamage"
+     }
+    ],
+    "fn": "LashMove",
+    "follow": "CONSTRICT",
+    "must_once": false
+   },
+   "rand": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "THWACK",
+      "repeat": "CAN_REPEAT_FOREVER",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "LASH",
+      "repeat": "CAN_REPEAT_FOREVER",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "CONSTRICT",
+   "THWACK",
+   "LASH",
+   "rand"
+  ],
+  "initial": "CONSTRICT",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 54,
+    "base": 53
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 56,
+    "base": 55
+   },
+   "ThwackDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "LashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 13,
+    "base": 12
+   }
+  }
+ },
+ "SLUDGE_SPINNER": {
+  "states": {
+   "OIL_SPRAY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "OilSprayDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "OilSprayMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "SLAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SlamDamage"
+     }
+    ],
+    "fn": "SlamMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RageDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RageMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "OIL_SPRAY_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "SLAM_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "RAGE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "OIL_SPRAY_MOVE",
+   "SLAM_MOVE",
+   "RAGE_MOVE",
+   "RAND"
+  ],
+  "initial": "OIL_SPRAY_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 41,
+    "base": 37
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 42,
+    "base": 39
+   },
+   "OilSprayDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "SlamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "RageDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   }
+  }
+ },
+ "SLUMBERING_BEETLE": {
+  "states": {
+   "SNORE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Sleep"
+     }
+    ],
+    "fn": "SnoreMove",
+    "follow": "SNORE_NEXT",
+    "must_once": false
+   },
+   "ROLL_OUT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RolloutDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RolloutMove",
+    "follow": "ROLL_OUT_MOVE",
+    "must_once": false
+   },
+   "SNORE_NEXT": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "SNORE_MOVE",
+      "cond": "() => base.Creature.HasPower<SlumberPower>()"
+     },
+     {
+      "state": "ROLL_OUT_MOVE",
+      "cond": "() => !base.Creature.HasPower<SlumberPower>()"
+     }
+    ]
+   }
+  },
+  "order": [
+   "SNORE_MOVE",
+   "ROLL_OUT_MOVE",
+   "SNORE_NEXT"
+  ],
+  "initial": "SNORE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 89,
+    "base": 86
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "RolloutDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 16
+   },
+   "PlatingAmount": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 15
+   }
+  }
+ },
+ "SNAPPING_JAXFRUIT": {
+  "states": {
+   "ENERGY_ORB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "EnergyDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "EnergyOrb",
+    "follow": "ENERGY_ORB_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "ENERGY_ORB_MOVE"
+  ],
+  "initial": "ENERGY_ORB_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 34,
+    "base": 31
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 36,
+    "base": 33
+   },
+   "EnergyDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "SNEAKY_GREMLIN": {
+  "states": {
+   "SPAWNED_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "SpawnedMove",
+    "follow": "TACKLE_MOVE",
+    "must_once": false
+   },
+   "TACKLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TackleDamage"
+     }
+    ],
+    "fn": "TackleMove",
+    "follow": "TACKLE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SPAWNED_MOVE",
+   "TACKLE_MOVE"
+  ],
+  "initial": "SPAWNED_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 15,
+    "base": 14
+   },
+   "TackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 10,
+    "base": 9
+   }
+  }
+ },
+ "SOUL_FYSH": {
+  "states": {
+   "BECKON_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "BeckonMoveAmount"
+      ]
+     }
+    ],
+    "fn": "BeckonMove",
+    "follow": "DE_GAS_MOVE",
+    "must_once": false
+   },
+   "DE_GAS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DeGasDamage"
+     }
+    ],
+    "fn": "DeGasMove",
+    "follow": "GAZE_MOVE",
+    "must_once": false
+   },
+   "GAZE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "GazeDamage"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "GazeMoveAmount"
+      ]
+     }
+    ],
+    "fn": "GazeMove",
+    "follow": "FADE_MOVE",
+    "must_once": false
+   },
+   "FADE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "FadeMove",
+    "follow": "SCREAM_MOVE",
+    "must_once": false
+   },
+   "SCREAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ScreamDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ScreamMove",
+    "follow": "BECKON_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BECKON_MOVE",
+   "DE_GAS_MOVE",
+   "GAZE_MOVE",
+   "FADE_MOVE",
+   "SCREAM_MOVE"
+  ],
+  "initial": "BECKON_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 221,
+    "base": 211
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "DeGasDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 16
+   },
+   "ScreamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 13
+   },
+   "GazeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "BeckonMoveAmount": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   },
+   "GazeMoveAmount": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "ScreamMoveAmount": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "SOUL_NEXUS": {
+  "states": {
+   "SOUL_BURN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SoulBurnDamage"
+     }
+    ],
+    "fn": "SoulBurnMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "MAELSTROM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "MaelstromDamage",
+      "hits": "MaelstromRepeat"
+     }
+    ],
+    "fn": "MaelstromMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "DRAIN_LIFE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DrainLifeDamage"
+     },
+     {
+      "type": "Debuff",
+      "args": [
+       "strong: true"
+      ]
+     }
+    ],
+    "fn": "DrainLifeMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SOUL_BURN_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "MAELSTROM_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "DRAIN_LIFE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "SOUL_BURN_MOVE",
+   "MAELSTROM_MOVE",
+   "DRAIN_LIFE_MOVE",
+   "RAND"
+  ],
+  "initial": "SOUL_BURN_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 254,
+    "base": 234
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SoulBurnDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 31,
+    "base": 29
+   },
+   "MaelstromDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "MaelstromRepeat": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 4
+   },
+   "DrainLifeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 18
+   }
+  }
+ },
+ "SPECTRAL_KNIGHT": {
+  "states": {
+   "HEX": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "HexMove",
+    "follow": "SOUL_SLASH",
+    "must_once": false
+   },
+   "SOUL_SLASH": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SoulSlashDamage"
+     }
+    ],
+    "fn": "SoulSlashMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "SOUL_FLAME": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SoulFlameDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "SoulFlameMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SOUL_SLASH",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "SOUL_FLAME",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "HEX",
+   "SOUL_SLASH",
+   "SOUL_FLAME",
+   "RAND"
+  ],
+  "initial": "HEX",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 97,
+    "base": 93
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SoulSlashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 17,
+    "base": 15
+   },
+   "SoulFlameDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "SPINY_TOAD": {
+  "states": {
+   "PROTRUDING_SPIKES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SpikesMove",
+    "follow": "SPIKE_EXPLOSION_MOVE",
+    "must_once": false
+   },
+   "SPIKE_EXPLOSION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ExplosionDamage"
+     }
+    ],
+    "fn": "ExplosionMove",
+    "follow": "TONGUE_LASH_MOVE",
+    "must_once": false
+   },
+   "TONGUE_LASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "LashDamage"
+     }
+    ],
+    "fn": "LashMove",
+    "follow": "PROTRUDING_SPIKES_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PROTRUDING_SPIKES_MOVE",
+   "SPIKE_EXPLOSION_MOVE",
+   "TONGUE_LASH_MOVE"
+  ],
+  "initial": "PROTRUDING_SPIKES_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 121,
+    "base": 116
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 124,
+    "base": 119
+   },
+   "LashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 17
+   },
+   "ExplosionDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 25,
+    "base": 23
+   }
+  }
+ },
+ "STABBOT": {
+  "states": {
+   "STAB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StabDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "StabMove",
+    "follow": "STAB_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "STAB_MOVE"
+  ],
+  "initial": "STAB_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 24,
+    "base": 23
+   },
+   "StabDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 11
+   }
+  }
+ },
+ "TEN_HP_MONSTER": {
+  "states": {
+   "NOTHING": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Hidden"
+     }
+    ],
+    "fn": "NothingMove",
+    "follow": "NOTHING",
+    "must_once": false
+   }
+  },
+  "order": [
+   "NOTHING"
+  ],
+  "initial": "NOTHING",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 10,
+    "base": 10
+   },
+   "MaxInitialHp": {
+    "level": null,
+    "asc": 10,
+    "base": 10
+   }
+  }
+ },
+ "TERROR_EEL": {
+  "states": {
+   "CRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "CrashDamage"
+     }
+    ],
+    "fn": "CrashMove",
+    "follow": "THRASH_MOVE",
+    "must_once": false
+   },
+   "THRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ThrashDamage",
+      "hits": "ThrashRepeat"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "CRASH_MOVE",
+    "must_once": false
+   },
+   "STUN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "StunMove",
+    "follow": "TERROR_MOVE",
+    "must_once": false
+   },
+   "TERROR_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "TerrorMove",
+    "follow": "CRASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CRASH_MOVE",
+   "THRASH_MOVE",
+   "STUN_MOVE",
+   "TERROR_MOVE"
+  ],
+  "initial": "CRASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 150,
+    "base": 140
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ShriekAmount": {
+    "level": "ToughEnemies",
+    "asc": 75,
+    "base": 70
+   },
+   "CrashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 16
+   },
+   "ThrashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "ThrashRepeat": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   }
+  }
+ },
+ "TEST_SUBJECT": {
+  "states": {
+   "RESPAWN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Heal"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RespawnMove",
+    "follow": "REVIVE_BRANCH",
+    "must_once": true
+   },
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "SKULL_BASH_MOVE",
+    "must_once": false
+   },
+   "SKULL_BASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SkullBashDamage"
+     },
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "SkullBashMove",
+    "follow": "BITE_MOVE",
+    "must_once": false
+   },
+   "MULTI_CLAW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "MultiClawDamage",
+      "hits": "() => MultiClawTotalCount"
+     }
+    ],
+    "fn": "MultiClawMove",
+    "follow": "MULTI_CLAW_MOVE",
+    "must_once": false
+   },
+   "PHASE3_LACERATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "Phase3LacerateDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "Phase3LacerateMove",
+    "follow": "BIG_POUNCE",
+    "must_once": false
+   },
+   "BIG_POUNCE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BigPounceDamage"
+     }
+    ],
+    "fn": "BigPounceMove",
+    "follow": "BURNING_GROWL_MOVE",
+    "must_once": false
+   },
+   "BURNING_GROWL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "BurningGrowlBurnCount"
+      ]
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BurningGrowlMove",
+    "follow": "PHASE3_LACERATE_MOVE",
+    "must_once": false
+   },
+   "REVIVE_BRANCH": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "MULTI_CLAW_MOVE",
+      "cond": "() => Respawns < 2"
+     },
+     {
+      "state": "PHASE3_LACERATE_MOVE",
+      "cond": "() => Respawns >= 2"
+     }
+    ]
+   }
+  },
+  "order": [
+   "RESPAWN_MOVE",
+   "BITE_MOVE",
+   "SKULL_BASH_MOVE",
+   "MULTI_CLAW_MOVE",
+   "PHASE3_LACERATE_MOVE",
+   "BIG_POUNCE",
+   "BURNING_GROWL_MOVE",
+   "REVIVE_BRANCH"
+  ],
+  "initial": "BITE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "expr": "FirstFormHp"
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "FirstFormHp": {
+    "level": "ToughEnemies",
+    "asc": 111,
+    "base": 100
+   },
+   "SecondFormHp": {
+    "level": "ToughEnemies",
+    "asc": 212,
+    "base": 200
+   },
+   "ThirdFormHp": {
+    "level": "ToughEnemies",
+    "asc": 313,
+    "base": 300
+   },
+   "EnrageAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 22,
+    "base": 20
+   },
+   "SkullBashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "MultiClawDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "BaseMultiClawCount": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   },
+   "Phase3LacerateDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "BigPounceDamage": {
+    "level": null,
+    "asc": 45,
+    "base": 45
+   },
+   "BurningGrowlBurnCount": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 3
+   },
+   "BurningGrowlStrengthGain": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   },
+   "MultiClawTotalCount": {
+    "expr": "BaseMultiClawCount + ExtraMultiClawCount"
+   }
+  }
+ },
+ "THE_ADVERSARY_MK_ONE": {
+  "states": {
+   "SMASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "SmashDamage"
+     }
+    ],
+    "fn": "SmashMove",
+    "follow": "BEAM_MOVE",
+    "must_once": false
+   },
+   "BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BeamDamage"
+     }
+    ],
+    "fn": "BeamMove",
+    "follow": "BARRAGE_MOVE",
+    "must_once": false
+   },
+   "BARRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BarrageDamage",
+      "hits": "BarrageRepeat"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BarrageMove",
+    "follow": "SMASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "SMASH_MOVE",
+   "BEAM_MOVE",
+   "BARRAGE_MOVE"
+  ],
+  "initial": "SMASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": null,
+    "asc": 100,
+    "base": 100
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SmashDamage": {
+    "level": null,
+    "asc": 12,
+    "base": 12
+   },
+   "BeamDamage": {
+    "level": null,
+    "asc": 15,
+    "base": 15
+   },
+   "BarrageDamage": {
+    "level": null,
+    "asc": 8,
+    "base": 8
+   },
+   "BarrageRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "THE_ADVERSARY_MK_THREE": {
+  "states": {
+   "CRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "CrashDamage"
+     }
+    ],
+    "fn": "CrashMove",
+    "follow": "FLAME_BEAM_MOVE",
+    "must_once": false
+   },
+   "FLAME_BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "FlameBeamDamage"
+     }
+    ],
+    "fn": "FlameBeamMove",
+    "follow": "BARRAGE_MOVE",
+    "must_once": false
+   },
+   "BARRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BarrageDamage",
+      "hits": "BarrageRepeat"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BarrageMove",
+    "follow": "CRASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "CRASH_MOVE",
+   "FLAME_BEAM_MOVE",
+   "BARRAGE_MOVE"
+  ],
+  "initial": "CRASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 300,
+    "base": 300
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "CrashDamage": {
+    "level": null,
+    "asc": 15,
+    "base": 15
+   },
+   "FlameBeamDamage": {
+    "level": null,
+    "asc": 18,
+    "base": 18
+   },
+   "BarrageDamage": {
+    "level": null,
+    "asc": 10,
+    "base": 10
+   },
+   "BarrageRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "THE_ADVERSARY_MK_TWO": {
+  "states": {
+   "BASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BashDamage"
+     }
+    ],
+    "fn": "BashMove",
+    "follow": "FLAME_BEAM_MOVE",
+    "must_once": false
+   },
+   "FLAME_BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "FlameBeamDamage"
+     }
+    ],
+    "fn": "FlameBeamMove",
+    "follow": "BARRAGE_MOVE",
+    "must_once": false
+   },
+   "BARRAGE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "BarrageDamage",
+      "hits": "BarrageRepeat"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "BarrageMove",
+    "follow": "BASH_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BASH_MOVE",
+   "FLAME_BEAM_MOVE",
+   "BARRAGE_MOVE"
+  ],
+  "initial": "BASH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 200,
+    "base": 200
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "BashDamage": {
+    "level": null,
+    "asc": 13,
+    "base": 13
+   },
+   "FlameBeamDamage": {
+    "level": null,
+    "asc": 16,
+    "base": 16
+   },
+   "FlameBeamStatusCount": {
+    "level": null,
+    "asc": 1,
+    "base": 1
+   },
+   "BarrageDamage": {
+    "level": null,
+    "asc": 9,
+    "base": 9
+   },
+   "BarrageRepeat": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "THE_FORGOTTEN": {
+  "states": {
+   "MIASMA": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Defend"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "MiasmaMove",
+    "follow": null,
+    "must_once": false
+   },
+   "DREAD": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "() => DreadDamage"
+     }
+    ],
+    "fn": "DreadMove",
+    "follow": "MIASMA",
+    "must_once": false
+   }
+  },
+  "order": [
+   "MIASMA",
+   "DREAD"
+  ],
+  "initial": "MIASMA",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 111,
+    "base": 106
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "DebilitatingSmogDexStealAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "THE_INSATIABLE": {
+  "states": {
+   "LIQUIFY_GROUND_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "6"
+      ]
+     }
+    ],
+    "fn": "LiquifyMove",
+    "follow": "THRASH_MOVE",
+    "must_once": false
+   },
+   "THRASH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ThrashDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "LUNGING_BITE_MOVE",
+    "must_once": false
+   },
+   "THRASH_MOVE_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "ThrashDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "ThrashMove",
+    "follow": "THRASH_MOVE",
+    "must_once": false
+   },
+   "LUNGING_BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "SALIVATE_MOVE",
+    "must_once": false
+   },
+   "SALIVATE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SalivateMove",
+    "follow": "THRASH_MOVE_2",
+    "must_once": false
+   }
+  },
+  "order": [
+   "LIQUIFY_GROUND_MOVE",
+   "THRASH_MOVE",
+   "THRASH_MOVE_2",
+   "LUNGING_BITE_MOVE",
+   "SALIVATE_MOVE"
+  ],
+  "initial": "LIQUIFY_GROUND_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 341,
+    "base": 321
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "ThrashDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 31,
+    "base": 28
+   },
+   "SalivateStrength": {
+    "level": "DeadlyEnemies",
+    "asc": 3,
+    "base": 2
+   }
+  }
+ },
+ "THE_LOST": {
+  "states": {
+   "DEBILITATING_SMOG": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "DebilitatingSmogMove",
+    "follow": "EYE_LASERS",
+    "must_once": false
+   },
+   "EYE_LASERS": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "EyeLasersDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "EyeLasersMove",
+    "follow": "DEBILITATING_SMOG",
+    "must_once": false
+   }
+  },
+  "order": [
+   "DEBILITATING_SMOG",
+   "EYE_LASERS"
+  ],
+  "initial": "DEBILITATING_SMOG",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 99,
+    "base": 93
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "EyeLasersDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   },
+   "DebilitatingSmogStrengthStealAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "THE_OBSCURA": {
+  "states": {
+   "ILLUSION_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "IllusionMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "PIERCING_GAZE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PiercingGazeDamage"
+     }
+    ],
+    "fn": "PiercingGazeMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "SAIL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "WailMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "HARDENING_STRIKE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HardeningStrikeDamage"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "HardeningStrikeMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "PIERCING_GAZE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "SAIL_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "HARDENING_STRIKE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "ILLUSION_MOVE",
+   "PIERCING_GAZE_MOVE",
+   "SAIL_MOVE",
+   "HARDENING_STRIKE_MOVE",
+   "RAND"
+  ],
+  "initial": "ILLUSION_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 129,
+    "base": 123
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "PiercingGazeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "HardeningStrikeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "HardeningStrikeBlock": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   }
+  }
+ },
+ "THIEVING_HOPPER": {
+  "states": {
+   "THIEVERY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TheftDamage"
+     },
+     {
+      "type": "CardDebuff"
+     }
+    ],
+    "fn": "ThieveryMove",
+    "follow": "FLUTTER_MOVE",
+    "must_once": false
+   },
+   "NAB_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "NabDamage"
+     }
+    ],
+    "fn": "NabMove",
+    "follow": "ESCAPE_MOVE",
+    "must_once": false
+   },
+   "HAT_TRICK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "HatTrickDamage"
+     }
+    ],
+    "fn": "HatTrickMove",
+    "follow": "NAB_MOVE",
+    "must_once": false
+   },
+   "FLUTTER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "FlutterMove",
+    "follow": "HAT_TRICK_MOVE",
+    "must_once": false
+   },
+   "ESCAPE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Escape"
+     }
+    ],
+    "fn": "EscapeMove",
+    "follow": "ESCAPE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "THIEVERY_MOVE",
+   "NAB_MOVE",
+   "HAT_TRICK_MOVE",
+   "FLUTTER_MOVE",
+   "ESCAPE_MOVE"
+  ],
+  "initial": "THIEVERY_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 84,
+    "base": 79
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "TheftDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 19,
+    "base": 17
+   },
+   "HatTrickDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 23,
+    "base": 21
+   },
+   "NabDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   }
+  }
+ },
+ "TOADPOLE": {
+  "states": {
+   "SPIKE_SPIT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SpikeSpitDamage",
+      "hits": "SpikeSpitRepeat"
+     }
+    ],
+    "fn": "SpikeSpitMove",
+    "follow": "WHIRL_MOVE",
+    "must_once": false
+   },
+   "WHIRL_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "WhirlDamage"
+     }
+    ],
+    "fn": "WhirlMove",
+    "follow": "SPIKEN_MOVE",
+    "must_once": false
+   },
+   "SPIKEN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SpikenMove",
+    "follow": "SPIKE_SPIT_MOVE",
+    "must_once": false
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "WHIRL_MOVE",
+      "cond": "() => !((Toadpole)base.Creature.Monster).IsFront"
+     },
+     {
+      "state": "SPIKEN_MOVE",
+      "cond": "() => ((Toadpole)base.Creature.Monster).IsFront"
+     }
+    ]
+   }
+  },
+  "order": [
+   "SPIKE_SPIT_MOVE",
+   "WHIRL_MOVE",
+   "SPIKEN_MOVE",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 21
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 26,
+    "base": 25
+   },
+   "SpikeSpitDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   },
+   "SpikeSpitRepeat": {
+    "level": null,
+    "asc": 3,
+    "base": 3
+   },
+   "WhirlDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "SpikenAmount": {
+    "level": null,
+    "asc": 2,
+    "base": 2
+   }
+  }
+ },
+ "TORCH_HEAD_AMALGAM": {
+  "states": {
+   "STRONG_TACKLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StrongTackleDamage"
+     }
+    ],
+    "fn": "StrongTackleMove",
+    "follow": "TACKLE_2_MOVE",
+    "must_once": false
+   },
+   "TACKLE_2_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TackleDamage"
+     }
+    ],
+    "fn": "TackleMove",
+    "follow": "BEAM_MOVE",
+    "must_once": false
+   },
+   "BEAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SoulBeamDamage",
+      "hits": "3"
+     }
+    ],
+    "fn": "SoulBeamMove",
+    "follow": "TACKLE_3_MOVE",
+    "must_once": false
+   },
+   "TACKLE_3_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "WeakTackleDamage"
+     }
+    ],
+    "fn": "WeakTackleMove",
+    "follow": "TACKLE_4_MOVE",
+    "must_once": false
+   },
+   "TACKLE_4_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "WeakTackleDamage"
+     }
+    ],
+    "fn": "WeakTackleMove",
+    "follow": "BEAM_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "STRONG_TACKLE_MOVE",
+   "TACKLE_2_MOVE",
+   "BEAM_MOVE",
+   "TACKLE_3_MOVE",
+   "TACKLE_4_MOVE"
+  ],
+  "initial": "STRONG_TACKLE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 211,
+    "base": 199
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "StrongTackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 32,
+    "base": 26
+   },
+   "TackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 22,
+    "base": 18
+   },
+   "WeakTackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 14
+   },
+   "SoulBeamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 8
+   }
+  }
+ },
+ "TOUGH_EGG": {
+  "states": {
+   "HATCH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "HatchMove",
+    "follow": "NIBBLE_MOVE",
+    "must_once": false
+   },
+   "NIBBLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "NibbleDamage"
+     }
+    ],
+    "fn": "NibbleMove",
+    "follow": "NIBBLE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "HATCH_MOVE",
+   "NIBBLE_MOVE"
+  ],
+  "initial": "HATCH_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 15,
+    "base": 14
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "HatchlingMinHp": {
+    "level": "ToughEnemies",
+    "asc": 20,
+    "base": 19
+   },
+   "HatchlingMaxHp": {
+    "level": "ToughEnemies",
+    "asc": 23,
+    "base": 22
+   },
+   "NibbleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "TRACKER_RUBY_RAIDER": {
+  "states": {
+   "TRACK_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "TrackMove",
+    "follow": "HOUNDS_MOVE",
+    "must_once": false
+   },
+   "HOUNDS_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "HoundsDamage",
+      "hits": "HoundsRepeat"
+     }
+    ],
+    "fn": "HoundsMove",
+    "follow": "HOUNDS_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "TRACK_MOVE",
+   "HOUNDS_MOVE"
+  ],
+  "initial": "TRACK_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 21
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 26,
+    "base": 25
+   },
+   "HoundsDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 1,
+    "base": 1
+   },
+   "HoundsRepeat": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   }
+  }
+ },
+ "TUNNELER": {
+  "states": {
+   "BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "BURROW_MOVE",
+    "must_once": false
+   },
+   "BURROW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Defend"
+     }
+    ],
+    "fn": "BurrowMove",
+    "follow": "BELOW_MOVE",
+    "must_once": false
+   },
+   "BELOW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BelowDamage"
+     }
+    ],
+    "fn": "BelowMove",
+    "follow": "BELOW_MOVE",
+    "must_once": false
+   },
+   "DIZZY_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "StillDizzyMove",
+    "follow": "BITE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "BITE_MOVE",
+   "BURROW_MOVE",
+   "BELOW_MOVE",
+   "DIZZY_MOVE"
+  ],
+  "initial": "BITE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 92,
+    "base": 87
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 13
+   },
+   "BlockGain": {
+    "level": "ToughEnemies",
+    "asc": 37,
+    "base": 32
+   },
+   "BelowDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 26,
+    "base": 23
+   }
+  }
+ },
+ "TURRET_OPERATOR": {
+  "states": {
+   "UNLOAD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "FireDamage",
+      "hits": "5"
+     }
+    ],
+    "fn": "UnloadMove",
+    "follow": "UNLOAD_MOVE_2",
+    "must_once": false
+   },
+   "UNLOAD_MOVE_2": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "FireDamage",
+      "hits": "5"
+     }
+    ],
+    "fn": "UnloadMove",
+    "follow": "RELOAD_MOVE",
+    "must_once": false
+   },
+   "RELOAD_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "ReloadMove",
+    "follow": "UNLOAD_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "UNLOAD_MOVE",
+   "UNLOAD_MOVE_2",
+   "RELOAD_MOVE"
+  ],
+  "initial": "UNLOAD_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 51,
+    "base": 41
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "FireDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 4,
+    "base": 3
+   }
+  }
+ },
+ "TWIG_SLIME_M": {
+  "states": {
+   "POKEY_POUNCE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ClumpDamage"
+     }
+    ],
+    "fn": "ClumpShotMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "STICKY_SHOT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Status",
+      "args": [
+       "1"
+      ]
+     }
+    ],
+    "fn": "StickyShotMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "POKEY_POUNCE_MOVE",
+      "repeat": "CAN_REPEAT_X_TIMES",
+      "max": 2,
+      "weight": "1",
+      "cooldown": 0
+     },
+     {
+      "state": "STICKY_SHOT_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "1",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "POKEY_POUNCE_MOVE",
+   "STICKY_SHOT_MOVE",
+   "RAND"
+  ],
+  "initial": "STICKY_SHOT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 27,
+    "base": 26
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 29,
+    "base": 28
+   },
+   "ClumpDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 12,
+    "base": 11
+   }
+  }
+ },
+ "TWIG_SLIME_S": {
+  "states": {
+   "TACKLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "TackleDamage"
+     }
+    ],
+    "fn": "TackleMove",
+    "follow": "TACKLE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "TACKLE_MOVE"
+  ],
+  "initial": "TACKLE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 12,
+    "base": 11
+   },
+   "TackleDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 5,
+    "base": 4
+   }
+  }
+ },
+ "TWO_TAILED_RAT": {
+  "states": {
+   "SCRATCH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ScratchDamage"
+     }
+    ],
+    "fn": "ScratchMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "DISEASE_BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DiseaseBiteDamage"
+     }
+    ],
+    "fn": "DiseaseBiteMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "SCREECH_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Debuff"
+     }
+    ],
+    "fn": "ScreechMove",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "CALL_FOR_BACKUP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Summon"
+     }
+    ],
+    "fn": "CallForBackup",
+    "follow": "RAND",
+    "must_once": false
+   },
+   "RAND": {
+    "kind": "RandomBranchState",
+    "branches": [
+     {
+      "state": "SCRATCH_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "() => (!CanSummon()) ? 1f : (1f / 12f)",
+      "cooldown": 0
+     },
+     {
+      "state": "DISEASE_BITE_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "() => (!CanSummon()) ? 1f : (1f / 12f)",
+      "cooldown": 0
+     },
+     {
+      "state": "SCREECH_MOVE",
+      "repeat": "CANNOT_REPEAT",
+      "max": 1,
+      "weight": "() => (!CanSummon()) ? 1f : (1f / 12f)",
+      "cooldown": 3
+     },
+     {
+      "state": "CALL_FOR_BACKUP_MOVE",
+      "repeat": "USE_ONLY_ONCE",
+      "max": 1,
+      "weight": "() => (!CanSummon()) ? 0f : 0.75f",
+      "cooldown": 0
+     }
+    ]
+   }
+  },
+  "order": [
+   "SCRATCH_MOVE",
+   "DISEASE_BITE_MOVE",
+   "SCREECH_MOVE",
+   "CALL_FOR_BACKUP_MOVE",
+   "RAND"
+  ],
+  "initial": {
+   "expr": "(StarterMoveIndex % 3) switch { 0 => moveState, 1 => moveState2, _ => moveState3, }",
+   "vars": {
+    "moveState": "SCRATCH_MOVE",
+    "moveState2": "DISEASE_BITE_MOVE",
+    "moveState3": "SCREECH_MOVE"
+   }
+  },
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 17
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 21
+   },
+   "ScratchDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "DiseaseBiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   }
+  }
+ },
+ "VANTOM": {
+  "states": {
+   "INK_BLOT_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "InkBlotDamage"
+     }
+    ],
+    "fn": "InkBlotMove",
+    "follow": "INKY_LANCE_MOVE",
+    "must_once": false
+   },
+   "INKY_LANCE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "InkyLanceDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "InkyLanceMove",
+    "follow": "DISMEMBER_MOVE",
+    "must_once": false
+   },
+   "DISMEMBER_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "DismemberDamage"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "3"
+      ]
+     }
+    ],
+    "fn": "DismemberMove",
+    "follow": "PREPARE_MOVE",
+    "must_once": false
+   },
+   "PREPARE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PrepareMove",
+    "follow": "INK_BLOT_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "INK_BLOT_MOVE",
+   "INKY_LANCE_MOVE",
+   "DISMEMBER_MOVE",
+   "PREPARE_MOVE"
+  ],
+  "initial": "INK_BLOT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 183,
+    "base": 173
+   },
+   "SlipperyAmt": {
+    "level": "ToughEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "InkBlotDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 8,
+    "base": 7
+   },
+   "InkyLanceDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "DismemberDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 30,
+    "base": 26
+   }
+  }
+ },
+ "VINE_SHAMBLER": {
+  "states": {
+   "GRASPING_VINES_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "GraspingVinesDamage"
+     },
+     {
+      "type": "CardDebuff"
+     }
+    ],
+    "fn": "GraspingVinesMove",
+    "follow": "CHOMP_MOVE",
+    "must_once": false
+   },
+   "SWIPE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "MultiAttack",
+      "damage": "SwipeDamage",
+      "hits": "2"
+     }
+    ],
+    "fn": "SwipeMove",
+    "follow": "GRASPING_VINES_MOVE",
+    "must_once": false
+   },
+   "CHOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ChompDamage"
+     }
+    ],
+    "fn": "ChompMove",
+    "follow": "SWIPE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "GRASPING_VINES_MOVE",
+   "SWIPE_MOVE",
+   "CHOMP_MOVE"
+  ],
+  "initial": "SWIPE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 64,
+    "base": 61
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "GraspingVinesDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 9,
+    "base": 8
+   },
+   "SwipeDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   },
+   "ChompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 18,
+    "base": 16
+   }
+  }
+ },
+ "WATERFALL_GIANT": {
+  "states": {
+   "PRESSURIZE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PressurizeMove",
+    "follow": "STOMP_MOVE",
+    "must_once": false
+   },
+   "STOMP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "StompDamage"
+     },
+     {
+      "type": "Debuff"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "StompMove",
+    "follow": "RAM_MOVE",
+    "must_once": false
+   },
+   "RAM_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "RamDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "RamMove",
+    "follow": "SIPHON_MOVE",
+    "must_once": false
+   },
+   "SIPHON_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Heal"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "SiphonMove",
+    "follow": "PRESSURE_GUN_MOVE",
+    "must_once": false
+   },
+   "PRESSURE_GUN_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "() => CurrentPressureGunDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PressureGunMove",
+    "follow": "PRESSURE_UP_MOVE",
+    "must_once": false
+   },
+   "PRESSURE_UP_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "PressureUpDamage"
+     },
+     {
+      "type": "Buff"
+     }
+    ],
+    "fn": "PressureUpMove",
+    "follow": "STOMP_MOVE",
+    "must_once": false
+   },
+   "ABOUT_TO_BLOW_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "AboutToBlowMove",
+    "follow": "EXPLODE_MOVE",
+    "must_once": true
+   },
+   "EXPLODE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "DeathBlow",
+      "damage": "() => SteamEruptionDamage"
+     }
+    ],
+    "fn": "ExplodeMove",
+    "follow": "EXPLODE_MOVE",
+    "must_once": false
+   }
+  },
+  "order": [
+   "PRESSURIZE_MOVE",
+   "STOMP_MOVE",
+   "RAM_MOVE",
+   "SIPHON_MOVE",
+   "PRESSURE_GUN_MOVE",
+   "PRESSURE_UP_MOVE",
+   "ABOUT_TO_BLOW_MOVE",
+   "EXPLODE_MOVE"
+  ],
+  "initial": "PRESSURIZE_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 250,
+    "base": 240
+   },
+   "MaxInitialHp": {
+    "expr": "MinInitialHp"
+   },
+   "SiphonHeal": {
+    "level": "ToughEnemies",
+    "asc": 15,
+    "base": 10
+   },
+   "PressurizeAmount": {
+    "level": "DeadlyEnemies",
+    "asc": 20,
+    "base": 15
+   },
+   "StompDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 16,
+    "base": 15
+   },
+   "RamDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 11,
+    "base": 10
+   },
+   "PressureUpDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 14,
+    "base": 13
+   },
+   "BasePressureGunDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 23,
+    "base": 20
+   },
+   "PressureGunIncrease": {
+    "level": null,
+    "asc": 5,
+    "base": 5
+   }
+  }
+ },
+ "WRIGGLER": {
+  "states": {
+   "NASTY_BITE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "BiteDamage"
+     }
+    ],
+    "fn": "BiteMove",
+    "follow": "WRIGGLE_MOVE",
+    "must_once": false
+   },
+   "WRIGGLE_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Buff"
+     },
+     {
+      "type": "Status",
+      "args": [
+       "1"
+      ]
+     }
+    ],
+    "fn": "WriggleMove",
+    "follow": "NASTY_BITE_MOVE",
+    "must_once": false
+   },
+   "SPAWNED_MOVE": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "Stun"
+     }
+    ],
+    "fn": "SpawnedMove",
+    "follow": "INIT_MOVE",
+    "must_once": false
+   },
+   "INIT_MOVE": {
+    "kind": "ConditionalBranchState",
+    "branches": [
+     {
+      "state": "NASTY_BITE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"wriggler1\""
+     },
+     {
+      "state": "WRIGGLE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"wriggler2\""
+     },
+     {
+      "state": "NASTY_BITE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"wriggler3\""
+     },
+     {
+      "state": "WRIGGLE_MOVE",
+      "cond": "() => base.Creature.SlotName == \"wriggler4\""
+     }
+    ]
+   }
+  },
+  "order": [
+   "NASTY_BITE_MOVE",
+   "WRIGGLE_MOVE",
+   "SPAWNED_MOVE",
+   "INIT_MOVE"
+  ],
+  "initial": "INIT_MOVE",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 18,
+    "base": 17
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 22,
+    "base": 21
+   },
+   "BiteDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 7,
+    "base": 6
+   }
+  }
+ },
+ "ZAPBOT": {
+  "states": {
+   "ZAP": {
+    "kind": "MoveState",
+    "intents": [
+     {
+      "type": "SingleAttack",
+      "damage": "ZapDamage"
+     }
+    ],
+    "fn": "ZapMove",
+    "follow": "ZAP",
+    "must_once": false
+   }
+  },
+  "order": [
+   "ZAP"
+  ],
+  "initial": "ZAP",
+  "props": {
+   "MinInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 19,
+    "base": 18
+   },
+   "MaxInitialHp": {
+    "level": "ToughEnemies",
+    "asc": 24,
+    "base": 23
+   },
+   "ZapDamage": {
+    "level": "DeadlyEnemies",
+    "asc": 15,
+    "base": 14
+   }
+  }
+ }
+}

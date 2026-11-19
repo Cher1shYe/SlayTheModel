@@ -1,0 +1,12 @@
+{
+  "status": "native-fixtures-validated",
+  "fixtures": 198,
+  "executed_card_fixtures": 184,
+  "single_player_no_ally_target": 2,
+  "mechanisms": 12,
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "harness_sha256": "cdc05af3e31e7bb5218ae7fd71bb932f53d8c0b2ef593bde9fec1c1a97309257",
+  "host_assembly_sha256": "c4ef91ba6c1c5b10541e62c6e39232b0d95a9b83da5e026f9696229f8bb9a572",
+  "results_sha256": "7d1f438471511bb58f160f935f0433c1b221eb90340204656ddf89d325785ff2",
+  "scope": "Controlled native base/upgraded cards and Osty/Doom/Soul. C++ differential result is separately recorded; no full-run claim."
+}

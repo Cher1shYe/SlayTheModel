@@ -1,0 +1,26 @@
+{
+  "source": "D:\\sts2ai",
+  "commit": "ab06220cd7409e35e242113533a9b51448cc6303",
+  "license": "GPL-2.0-only",
+  "unmodified_vendored_files": {
+    "model.py": "57361ca6a0521f20de9edf96758d42a9e768e61edba1c37dfae50d5927716508",
+    "spec.py": "e70e9329c8ccc98d1a279af15f26963c9b60b84608e5ed92746f60253e147b75",
+    "sampling.py": "4c80522cdfd9e2986f6ffdd9e6bf52b484302112e9dd226887a82bc3f5a2eb3f",
+    "__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "methods_consulted": [
+    "scripts/train.py",
+    "train/sts2ai/ppo.py",
+    "train/sts2ai/curriculum.py",
+    "sim/Engine/Worker.cs"
+  ],
+  "encoding_sources_read": {
+    "shared/Encoding/StateEncoder.cs": "ec94d512db47909b024c55cbcb8c0c834cb7c4f0a0ef078c67708d5942eca139",
+    "shared/Encoding/ObsBuilder.cs": "3d2a19857cc655c1ae31605246abe6eaaa8503691b9d57c468eebd50ba6a08ea",
+    "shared/Encoding/Vocab.cs": "42279fdc5e7cd617ef5f3a45ffc67567a7dd369657500f04aac2c6ae583591b6",
+    "shared/Decisions/ActionEncoder.cs": "9afabf327e397fce08a5023f3672e3200930f33796562a0bbb635c2977abbfdb",
+    "shared/Decisions/CombatActions.cs": "6dc990e8a2634df614c78955988e786eb4670abe29ebc5bd66d08ecbf7b4812c",
+    "shared/Decisions/OfferEncoding.cs": "42c08b6a885a48cac688a6b4ec04bad09fc03b22b3ce43d7db737c443cdc4b4c",
+    "shared/Encoding/RunHistorySummary.cs": "eac9cc0245b450e02e24bf4ded8323ace52354192d5f9d08d5c3aee2acab73e6"
+  }
+}

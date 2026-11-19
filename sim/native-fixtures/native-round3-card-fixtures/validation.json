@@ -1,0 +1,37 @@
+{
+  "target": "v0.111.0 / 41cef1ea",
+  "nativeAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "status": "completed",
+  "metadataModels": 596,
+  "metadataVariants": 1192,
+  "effectFixtures": 70,
+  "effectCategories": {
+    "card_effect": 44,
+    "drum_exhaust": 4,
+    "brightest_max_hp": 12,
+    "second_wind_snapshot": 1,
+    "catastrophe_playable_priority": 1,
+    "anointed_free_slots": 1,
+    "hidden_gem_candidates": 1,
+    "maul_self_growth_replay": 2,
+    "rend_debuff": 4
+  },
+  "gameSceneLoaded": false,
+  "source_sha256": "91a7d7b53d04ebe6542c996d285334ccdb20808cdcfa24c2c06cdf4a4e12b461",
+  "metadata_source_sha256": "f1a620aba28236edc6b45b3fda56dfa778bd95bafa2bb9c07bdc14506982f45f",
+  "result_sha256": "05f2583d1c6a955829dbd772af33ec3c09c144885f6f0250435d85c7eba53769",
+  "metadata_result_sha256": "de8437e25835dd3bcc67697e2e11b6c57ae9c6988a37a8e68208cf526b0eb03f",
+  "nativeExitCode": 0,
+  "nativeSeconds": 4.0948665,
+  "cppRegression": {
+    "executable": "validation/native_card_round3_alignment",
+    "checks": 3996,
+    "failures": 0,
+    "evidence": "Observed compiled executable output on final native results; root also runs unified validation."
+  },
+  "excludedAttempts": [
+    "failed-dampen-setup-results.json: fixture wrongly applied player-only DampenPower to enemy; corrected fixture excludes impossible application",
+    "stale-build-invocation.json: old metadata-only assembly accidentally invoked during build; excluded from effect evidence"
+  ],
+  "scope": "Targeted controlled fixtures and broad metadata comparison. No full card-combination or same-seed full-run equivalence claim."
+}

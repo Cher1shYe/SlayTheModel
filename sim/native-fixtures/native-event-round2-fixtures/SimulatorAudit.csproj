@@ -1,0 +1,73 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <AssemblyName>SimulatorAudit</AssemblyName>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/0Harmony.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="CombatSolver">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/CombatSolver.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="NativeWorker">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/NativeWorker.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="STS2-RitsuLib.Runtime">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/STS2-RitsuLib.Runtime.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="STS2-RitsuLib.Settings">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/STS2-RitsuLib.Settings.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="STS2-RitsuLib.Shared">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/STS2-RitsuLib.Shared.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="STS2-RitsuLib.Ui">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/STS2-RitsuLib.Ui.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="STS2-RitsuLib">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/STS2-RitsuLib.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Sentry.Godot">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/Sentry.Godot.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Sentry">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/Sentry.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SlayTheModel.Search">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/SlayTheModel.Search.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SmartFormat.ZString">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/SmartFormat.ZString.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="SmartFormat">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/SmartFormat.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="Steamworks.NET">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/Steamworks.NET.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="System.IO.Hashing">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/System.IO.Hashing.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+    <Reference Include="sts2">
+      <HintPath>/Users/yebohou/SlayTheModel/artifacts/dev/rtg-probe-20261027/tools/Sts2.NativeWorker/.godot/mono/temp/bin/ExportRelease/sts2.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "fixtures": 26,
+  "game_assembly_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "harness_sha256": "9756be25899559e750d22af0af564923da5e9dbe32033461705a8840d66a526b",
+  "results_sha256": "2005c8a5eb099ca0d4dd74437a37b84b142e3ba15dca169615bbc9a5203e72ce",
+  "scope": "Controlled native relic fixtures only; not full-run or full-content parity."
+}

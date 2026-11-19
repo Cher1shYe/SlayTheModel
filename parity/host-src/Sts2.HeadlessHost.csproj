@@ -1,0 +1,14 @@
+<Project Sdk="Godot.NET.Sdk/4.5.1">
+  <PropertyGroup>
+    <AssemblyName>HeadlessHost</AssemblyName>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <Sts2ManagedDir Condition="'$(Sts2ManagedDir)' == ''">$(STS2_GAME_DIR)/data_sts2_windows_x86_64</Sts2ManagedDir>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="sts2" HintPath="$(Sts2ManagedDir)/sts2.dll" />
+    <Reference Include="0Harmony" HintPath="$(Sts2ManagedDir)/0Harmony.dll" />
+  </ItemGroup>
+  <Target Name="ValidateHeadlessInputs" BeforeTargets="ResolveReferences">
+    <Error Condition="!Exists('$(Sts2ManagedDir)/sts2.dll')" Text="Pass -p:Sts2ManagedDir pointing to the v0.111.0 game managed directory." />
+  </Target>
+</Project>

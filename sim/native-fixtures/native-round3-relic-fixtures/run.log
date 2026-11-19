@@ -1,0 +1,1652 @@
+{
+  "exit_code": 0,
+  "timed_out": false,
+  "command": [
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/SimulatorAudit.app/Contents/MacOS/SimulatorAudit",
+    "--headless",
+    "--path",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures",
+    "--log-file",
+    "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/godot.log"
+  ],
+  "seconds": 3.14533825,
+  "environment": {
+    "STS2_GAME_PACK": "/Users/yebohou/Library/Application Support/Steam/steamapps/common/Slay the Spire 2/SlayTheSpire2.app/Contents/Resources/Slay the Spire 2.pck",
+    "STS2_AUDIT_OUT": "/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round3-relic-fixtures/results.json"
+  },
+  "harness_sha256": "9756be25899559e750d22af0af564923da5e9dbe32033461705a8840d66a526b"
+}
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound3RelicAudit20261031",
+  "scope": "Controlled native fixtures, not natural runs or full-run parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "distinguished_cape",
+      "seed": 0,
+      "hp": 80,
+      "maxHp": 80,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "NORMALITY",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "REGRET",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 2,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "distinguished_cape",
+      "seed": 42,
+      "hp": 80,
+      "maxHp": 80,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "CLUMSY",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "GUILTY",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "APPARITION",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 2,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "sere_talon",
+      "seed": 0,
+      "hp": 71,
+      "maxHp": 71,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "sere_talon",
+      "seed": 42,
+      "hp": 71,
+      "maxHp": 71,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "leafy_poultice",
+      "seed": 0,
+      "hp": 68,
+      "maxHp": 68,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "SECOND_WIND",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "OFFERING",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 2
+    },
+    {
+      "test": "leafy_poultice",
+      "seed": 42,
+      "hp": 68,
+      "maxHp": 68,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 2
+    },
+    {
+      "test": "neows_torment",
+      "seed": 0,
+      "hp": 80,
+      "maxHp": 80,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "NEOWS_FURY",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "neows_torment",
+      "seed": 42,
+      "hp": 80,
+      "maxHp": 80,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "NEOWS_FURY",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "transformationOptions": [
+        "AGGRESSION",
+        "ANGER",
+        "ARMAMENTS",
+        "ASHEN_STRIKE",
+        "BARRICADE",
+        "BATTLE_TRANCE",
+        "BLOOD_WALL",
+        "BLOODLETTING",
+        "BLUDGEON",
+        "BODY_SLAM",
+        "BRAND",
+        "BREAKTHROUGH",
+        "BULLY",
+        "BURNING_PACT",
+        "CASCADE",
+        "CINDER",
+        "COLOSSUS",
+        "CONFLAGRATION",
+        "CRIMSON_MANTLE",
+        "CRUELTY",
+        "DARK_EMBRACE",
+        "DEMON_FORM",
+        "DISMANTLE",
+        "DOMINATE",
+        "DRUM_OF_BATTLE",
+        "EVIL_EYE",
+        "EXPECT_A_FIGHT",
+        "FEED",
+        "FEEL_NO_PAIN",
+        "FIEND_FIRE",
+        "FIGHT_ME",
+        "FLAME_BARRIER",
+        "FORGOTTEN_RITUAL",
+        "HAVOC",
+        "HEADBUTT",
+        "HELLRAISER",
+        "HEMOKINESIS",
+        "HOWL_FROM_BEYOND",
+        "IMPERVIOUS",
+        "INFERNAL_BLADE",
+        "INFERNO",
+        "INFLAME",
+        "IRON_WAVE",
+        "JUGGERNAUT",
+        "JUGGLING",
+        "MANGLE",
+        "MOLTEN_FIST",
+        "NOT_YET",
+        "OFFERING",
+        "ONE_TWO_PUNCH",
+        "PACTS_END",
+        "PERFECTED_STRIKE",
+        "PILLAGE",
+        "POMMEL_STRIKE",
+        "PRIMAL_FORCE",
+        "PYRE",
+        "RAGE",
+        "RAMPAGE",
+        "RUPTURE",
+        "SECOND_WIND",
+        "SETUP_STRIKE",
+        "SHRUG_IT_OFF",
+        "SPITE",
+        "STAMPEDE",
+        "STOKE",
+        "STOMP",
+        "STONE_ARMOR",
+        "SWORD_BOOMERANG",
+        "TAUNT",
+        "TEAR_ASUNDER",
+        "THRASH",
+        "THUNDERCLAP",
+        "TREMBLE",
+        "TRUE_GRIT",
+        "TWIN_STRIKE",
+        "UNMOVABLE",
+        "UNRELENTING",
+        "UPPERCUT",
+        "VICIOUS",
+        "WHIRLWIND"
+      ],
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "leafy_hooks",
+      "hp": 50,
+      "maxHp": 68,
+      "goldBefore": 99,
+      "goldAfter": 159,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": true
+        },
+        {
+          "card": "FIGHT_ME",
+          "originalIndex": -1,
+          "upgraded": true
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "BLOOD_WALL",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "bookCount": 8,
+      "nicheCounter": 0,
+      "transformationsCounter": 2
+    },
+    {
+      "test": "leafy_no_basic",
+      "hp": 68,
+      "maxHp": 68,
+      "goldBefore": 99,
+      "goldAfter": 99,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 1,
+          "upgraded": false
+        }
+      ],
+      "bookCount": null,
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "sere_tail",
+      "hp": 1,
+      "maxHp": 1,
+      "goldBefore": 99,
+      "goldAfter": 99,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "bookCount": null,
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "sere_tungsten",
+      "hp": 1,
+      "maxHp": 1,
+      "goldBefore": 99,
+      "goldAfter": 99,
+      "deck": [
+        {
+          "card": "BASH",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 6,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 7,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        },
+        {
+          "card": "WISH",
+          "originalIndex": -1,
+          "upgraded": false
+        }
+      ],
+      "bookCount": null,
+      "nicheCounter": 0,
+      "transformationsCounter": 0
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 0,
+      "goldAfter": 0,
+      "energyBefore": 3,
+      "energyAfter": 3
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 2,
+      "goldAfter": 2,
+      "energyBefore": 3,
+      "energyAfter": 3
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 3,
+      "goldAfter": 0,
+      "energyBefore": 3,
+      "energyAfter": 4
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 4,
+      "goldAfter": 1,
+      "energyBefore": 3,
+      "energyAfter": 4
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 5,
+      "goldAfter": 2,
+      "energyBefore": 3,
+      "energyAfter": 4
+    },
+    {
+      "test": "seal_of_gold",
+      "goldBefore": 6,
+      "goldAfter": 3,
+      "energyBefore": 3,
+      "energyAfter": 4
+    },
+    {
+      "test": "stone_cracker",
+      "seed": 0,
+      "empty": false,
+      "cards": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": true
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": false
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 6,
+          "upgraded": true
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 7,
+          "upgraded": false
+        }
+      ],
+      "counter": 7
+    },
+    {
+      "test": "stone_cracker",
+      "seed": 0,
+      "empty": true,
+      "cards": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 1,
+          "upgraded": true
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 2,
+          "upgraded": true
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": true
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": true
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": true
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 6,
+          "upgraded": true
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 7,
+          "upgraded": true
+        }
+      ],
+      "counter": 0
+    },
+    {
+      "test": "stone_cracker",
+      "seed": 42,
+      "empty": false,
+      "cards": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": false
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 1,
+          "upgraded": false
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 2,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": false
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": true
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": false
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 6,
+          "upgraded": true
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 7,
+          "upgraded": false
+        }
+      ],
+      "counter": 7
+    },
+    {
+      "test": "stone_cracker",
+      "seed": 42,
+      "empty": true,
+      "cards": [
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 0,
+          "upgraded": true
+        },
+        {
+          "card": "ANGER",
+          "originalIndex": 1,
+          "upgraded": true
+        },
+        {
+          "card": "IRON_WAVE",
+          "originalIndex": 2,
+          "upgraded": true
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 3,
+          "upgraded": true
+        },
+        {
+          "card": "STRIKE_IRONCLAD",
+          "originalIndex": 4,
+          "upgraded": true
+        },
+        {
+          "card": "DEFEND_IRONCLAD",
+          "originalIndex": 5,
+          "upgraded": true
+        },
+        {
+          "card": "BASH",
+          "originalIndex": 6,
+          "upgraded": true
+        },
+        {
+          "card": "POMMEL_STRIKE",
+          "originalIndex": 7,
+          "upgraded": true
+        }
+      ],
+      "counter": 0
+    },
+    {
+      "test": "red_skull_heal_damage",
+      "initial": 40,
+      "initialStrength": 3,
+      "healedStrength": 0,
+      "finalHp": 39,
+      "finalStrength": 3
+    },
+    {
+      "test": "red_skull_damage",
+      "initial": 80,
+      "initialStrength": 0,
+      "finalHp": 40,
+      "finalStrength": 3
+    },
+    {
+      "test": "fake_strike_dummy",
+      "both": false,
+      "strike": 7,
+      "bash": 8
+    },
+    {
+      "test": "fake_strike_dummy",
+      "both": true,
+      "strike": 10,
+      "bash": 8
+    }
+  ]
+}

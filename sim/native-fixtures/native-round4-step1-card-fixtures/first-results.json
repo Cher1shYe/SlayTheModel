@@ -1,0 +1,1994 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "userDirectory": "/Users/yebohou/Library/Application Support/SlayTheModelNativeRound4Step1CardAudit20261031",
+  "scope": "Actual card OnPlay/replay and controlled original turn hooks. Not full runs or general hook order parity. No simulator rule patches.",
+  "results": [
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": false,
+      "count": 1,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 79,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 78,
+        "block": 7,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": false,
+      "count": 2,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 14,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 78,
+        "block": 14,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 14,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 76,
+        "block": 14,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 14,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": false,
+      "count": 3,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 77,
+        "block": 21,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 74,
+        "block": 21,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": true,
+      "count": 1,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 10,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 79,
+        "block": 10,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 10,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 78,
+        "block": 10,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 10,
+        "infernoAmount": 0,
+        "crimsonSelf": 1,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": true,
+      "count": 2,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 20,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 78,
+        "block": 20,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 20,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 76,
+        "block": 20,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 20,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "CRIMSON_MANTLE",
+      "upgraded": true,
+      "count": 3,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 30,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 77,
+        "block": 30,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 30,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 74,
+        "block": 30,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 30,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": false,
+      "count": 1,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 6,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 79,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 6,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          6,
+          6
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 78,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 6,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          12,
+          12
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": false,
+      "count": 2,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 78,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          12,
+          12
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 76,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          24,
+          24
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": false,
+      "count": 3,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 77,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 74,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": true,
+      "count": 1,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 9,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 79,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 9,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          9,
+          9
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 78,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 9,
+        "crimsonSelf": 0,
+        "infernoSelf": 1,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": true,
+      "count": 2,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 78,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 76,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "stack",
+      "id": "INFERNO",
+      "upgraded": true,
+      "count": 3,
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 27,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "first": {
+        "hp": 77,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 27,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          27,
+          27
+        ],
+        "lizardUsed": false
+      },
+      "second": {
+        "hp": 74,
+        "block": 0,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 27,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          54,
+          54
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "tungsten",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 21,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 21,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "tungsten_buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 21,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "intangible",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 79,
+        "block": 21,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "revive",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 40,
+        "block": 21,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": true
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "CRIMSON_MANTLE",
+      "modifier": "lethal",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 21,
+        "infernoAmount": 0,
+        "crimsonSelf": 3,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 0,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 0,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "tungsten",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "tungsten_buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "intangible",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 79,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "revive",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 40,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": true
+      }
+    },
+    {
+      "test": "modifier",
+      "id": "INFERNO",
+      "modifier": "lethal",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 18,
+        "crimsonSelf": 0,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 0,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 0,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": false,
+      "modifier": "none",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 76,
+        "block": 7,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": false,
+      "modifier": "buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 77,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": false,
+      "modifier": "tungsten",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": false,
+      "modifier": "intangible",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 7,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": false,
+      "modifier": "revive",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 37,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "CRIMSON_MANTLE_POWER",
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": true
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": true,
+      "modifier": "none",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 76,
+        "block": 7,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": true,
+      "modifier": "buffer",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 1,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "BUFFER_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 79,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": true,
+      "modifier": "tungsten",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": true,
+      "modifier": "intangible",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 78,
+        "block": 7,
+        "strength": 4,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "INTANGIBLE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          36,
+          36
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "order",
+      "infernoFirst": true,
+      "modifier": "revive",
+      "before": {
+        "hp": 1,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 39,
+        "block": 7,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 7,
+        "infernoAmount": 18,
+        "crimsonSelf": 1,
+        "infernoSelf": 3,
+        "powers": [
+          "INFERNO_POWER",
+          "CRIMSON_MANTLE_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          18,
+          18
+        ],
+        "lizardUsed": true
+      }
+    },
+    {
+      "test": "damage_trigger",
+      "mode": "own_damage",
+      "after": {
+        "hp": 77,
+        "block": 0,
+        "strength": 2,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER",
+          "STRENGTH_POWER"
+        ],
+        "damage": [
+          12,
+          12
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "damage_trigger",
+      "mode": "enemy_damage",
+      "after": {
+        "hp": 77,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "damage_trigger",
+      "mode": "direct_hp",
+      "after": {
+        "hp": 77,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "damage_trigger",
+      "mode": "blocked",
+      "after": {
+        "hp": 80,
+        "block": 7,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 12,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER",
+          "RUPTURE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "direct_apply",
+      "id": "CRIMSON_MANTLE",
+      "after": {
+        "hp": 80,
+        "block": 13,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 13,
+        "infernoAmount": 0,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "remove_reapply",
+      "id": "CRIMSON_MANTLE",
+      "before": {
+        "hp": 80,
+        "block": 13,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 27,
+        "infernoAmount": 0,
+        "crimsonSelf": 2,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 13,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 13,
+        "infernoAmount": 0,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [
+          "CRIMSON_MANTLE_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "direct_apply",
+      "id": "INFERNO",
+      "after": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 13,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [
+          "INFERNO_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    },
+    {
+      "test": "remove_reapply",
+      "id": "INFERNO",
+      "before": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 25,
+        "crimsonSelf": 0,
+        "infernoSelf": 2,
+        "powers": [
+          "INFERNO_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      },
+      "after": {
+        "hp": 80,
+        "block": 0,
+        "strength": 0,
+        "buffer": 0,
+        "crimsonAmount": 0,
+        "infernoAmount": 13,
+        "crimsonSelf": 0,
+        "infernoSelf": 0,
+        "powers": [
+          "INFERNO_POWER"
+        ],
+        "damage": [
+          0,
+          0
+        ],
+        "lizardUsed": false
+      }
+    }
+  ]
+}

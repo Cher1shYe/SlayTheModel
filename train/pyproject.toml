@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spire-rl"
+version = "0.2.0"
+description = "One network plays whole runs of the C++ Slay the Spire 2 simulator (PPO, no search)"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "torch>=2.1"]
+
+[project.optional-dependencies]
+tensorboard = ["tensorboard>=2.14"]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["spire_rl", "parity", "a9", "a9.vendor", "a9.vendor.sts2ai"]
+package-dir = {"parity" = "../parity"}
+
+[tool.setuptools.package-data]
+spire_rl = ["public_catalog.json"]
+"a9.vendor" = ["LICENSE.sts2ai"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = [".."]
+filterwarnings = ["ignore::UserWarning"]

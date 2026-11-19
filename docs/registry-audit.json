@@ -1,0 +1,5162 @@
+{
+  "schema": "sts2.registry-audit/1",
+  "scope": "registration and selected base metadata, not effects or complete native parity",
+  "status": "pass_with_documented_exceptions",
+  "errors": [],
+  "native_fixture": "sim/native-fixtures/native-registry-41cef1ea.json",
+  "native_fixture_sha256": "2fff4579c9fcb9c8eba920a6316ca711267529e041a858d49c9100773caa2969",
+  "native_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "runtime": {
+    "available": true,
+    "error": null,
+    "ruleset": "native-41cef1ea-port-v14"
+  },
+  "categories": {
+    "cards": {
+      "category": "cards",
+      "counts": {
+        "native_registered": 596,
+        "simulator_content_rows": 596,
+        "simulator_enum_slots_including_invalid": 597,
+        "matched_identities": 595,
+        "native_pool_counts": {
+          "IRONCLAD_CARD_POOL": 90,
+          "SILENT_CARD_POOL": 91,
+          "REGENT_CARD_POOL": 91,
+          "NECROBINDER_CARD_POOL": 91,
+          "DEFECT_CARD_POOL": 91,
+          "COLORLESS_CARD_POOL": 65,
+          "CURSE_CARD_POOL": 18,
+          "DEPRECATED_CARD_POOL": 1,
+          "EVENT_CARD_POOL": 28,
+          "QUEST_CARD_POOL": 4,
+          "STATUS_CARD_POOL": 12,
+          "TOKEN_CARD_POOL": 14
+        },
+        "fresh_registered": 596,
+        "fresh_readable_variants": 1190,
+        "fresh_unavailable_variants": 2,
+        "field_checks": 33552,
+        "checks_by_family": {
+          "dll_identity": 1,
+          "fresh_registry": 15893,
+          "duplicate_local_id": 1,
+          "duplicate_mapped_native_id": 1,
+          "duplicate_native_id": 1,
+          "registration": 2,
+          "pool_manifest": 1,
+          "native_identity": 595,
+          "class_name": 595,
+          "type": 595,
+          "target": 595,
+          "rarity": 595,
+          "pool": 595,
+          "multiplayer_only": 595,
+          "max_upgrade": 595,
+          "combat_generation": 595,
+          "tags": 595,
+          "pool_order": 595,
+          "base": 3768,
+          "base_storage": 3570,
+          "upgraded": 3768,
+          "generated_table": 1
+        }
+      },
+      "matches": 33546,
+      "differences": [],
+      "exceptions": [
+        {
+          "id": "STARDUST",
+          "field": "fresh_registry.base.readable",
+          "native_metadata": "readable",
+          "native_registry": {
+            "error": "NullReferenceException",
+            "message": "Object reference not set to an instance of an object."
+          },
+          "reason": "Unowned native template export: Stardust.HasStarCostX is true, and CardModel.GetStarCostWithModifiers dereferences Owner.PlayerCombatState. Both variants are present in the separate owner-configured DLL fixture and checked against the simulator there. No missing value is replaced by zero."
+        },
+        {
+          "id": "STARDUST",
+          "field": "fresh_registry.upgraded.readable",
+          "native_metadata": "readable",
+          "native_registry": {
+            "error": "NullReferenceException",
+            "message": "Object reference not set to an instance of an object."
+          },
+          "reason": "Unowned native template export: Stardust.HasStarCostX is true, and CardModel.GetStarCostWithModifiers dereferences Owner.PlayerCombatState. Both variants are present in the separate owner-configured DLL fixture and checked against the simulator there. No missing value is replaced by zero."
+        },
+        {
+          "id": "GRAPPLE",
+          "field": "registration",
+          "simulator": "simulator-only",
+          "native": "absent",
+          "reason": "Reserved legacy enum slot, excluded by card_native_available; not a native card."
+        },
+        {
+          "id": "DEPRECATED_CARD",
+          "field": "registration",
+          "simulator": "absent",
+          "native": "native-only",
+          "reason": "Native DeprecatedCard save-migration fallback, not a playable content pool."
+        },
+        {
+          "id": "MAD_SCIENCE",
+          "field": "type",
+          "simulator": "attack",
+          "native": "none",
+          "reason": "Unconfigured native MadScience has TinkerTimeType=None and Target=Self; the legacy table defaults to Attack/AnyEnemy. Event-created instances carry tinkerType and card_type/card_target select Attack/Skill/Power. This template difference is not asserted equal."
+        },
+        {
+          "id": "MAD_SCIENCE",
+          "field": "target",
+          "simulator": "any_enemy",
+          "native": "self",
+          "reason": "Unconfigured native MadScience has TinkerTimeType=None and Target=Self; the legacy table defaults to Attack/AnyEnemy. Event-created instances carry tinkerType and card_type/card_target select Attack/Skill/Power. This template difference is not asserted equal."
+        }
+      ],
+      "aliases": [
+        {
+          "simulator_id": "AGGRESSION_CARD",
+          "native_id": "AGGRESSION"
+        },
+        {
+          "simulator_id": "BARRICADE_CARD",
+          "native_id": "BARRICADE"
+        },
+        {
+          "simulator_id": "CALAMITY_CARD",
+          "native_id": "CALAMITY"
+        },
+        {
+          "simulator_id": "COLOSSUS_CARD",
+          "native_id": "COLOSSUS"
+        },
+        {
+          "simulator_id": "COORDINATE_CARD",
+          "native_id": "COORDINATE"
+        },
+        {
+          "simulator_id": "CORRUPTION_CARD",
+          "native_id": "CORRUPTION"
+        },
+        {
+          "simulator_id": "CRUELTY_CARD",
+          "native_id": "CRUELTY"
+        },
+        {
+          "simulator_id": "DARK_EMBRACE_CARD",
+          "native_id": "DARK_EMBRACE"
+        },
+        {
+          "simulator_id": "DEMON_FORM_CARD",
+          "native_id": "DEMON_FORM"
+        },
+        {
+          "simulator_id": "DRUM_OF_BATTLE_CARD",
+          "native_id": "DRUM_OF_BATTLE"
+        },
+        {
+          "simulator_id": "FEEDING_FRENZY_CARD",
+          "native_id": "FEEDING_FRENZY"
+        },
+        {
+          "simulator_id": "FEEL_NO_PAIN_CARD",
+          "native_id": "FEEL_NO_PAIN"
+        },
+        {
+          "simulator_id": "FLAME_BARRIER_CARD",
+          "native_id": "FLAME_BARRIER"
+        },
+        {
+          "simulator_id": "HELLO_WORLD_CARD",
+          "native_id": "HELLO_WORLD"
+        },
+        {
+          "simulator_id": "HELLRAISER_CARD",
+          "native_id": "HELLRAISER"
+        },
+        {
+          "simulator_id": "INFERNO_CARD",
+          "native_id": "INFERNO"
+        },
+        {
+          "simulator_id": "INTERCEPT_CARD",
+          "native_id": "INTERCEPT"
+        },
+        {
+          "simulator_id": "JUGGERNAUT_CARD",
+          "native_id": "JUGGERNAUT"
+        },
+        {
+          "simulator_id": "JUGGLING_CARD",
+          "native_id": "JUGGLING"
+        },
+        {
+          "simulator_id": "MAYHEM_CARD",
+          "native_id": "MAYHEM"
+        },
+        {
+          "simulator_id": "NOSTALGIA_CARD",
+          "native_id": "NOSTALGIA"
+        },
+        {
+          "simulator_id": "NULL_CARD",
+          "native_id": "NULL"
+        },
+        {
+          "simulator_id": "ONE_TWO_PUNCH_CARD",
+          "native_id": "ONE_TWO_PUNCH"
+        },
+        {
+          "simulator_id": "PANACHE_CARD",
+          "native_id": "PANACHE"
+        },
+        {
+          "simulator_id": "RAGE_CARD",
+          "native_id": "RAGE"
+        },
+        {
+          "simulator_id": "RUPTURE_CARD",
+          "native_id": "RUPTURE"
+        },
+        {
+          "simulator_id": "SETUP_STRIKE_CARD",
+          "native_id": "SETUP_STRIKE"
+        },
+        {
+          "simulator_id": "SLOTH_STATUS",
+          "native_id": "SLOTH"
+        },
+        {
+          "simulator_id": "STAMPEDE_CARD",
+          "native_id": "STAMPEDE"
+        },
+        {
+          "simulator_id": "TANK_CARD",
+          "native_id": "TANK"
+        },
+        {
+          "simulator_id": "THE_BOMB_CARD",
+          "native_id": "THE_BOMB"
+        },
+        {
+          "simulator_id": "VICIOUS_CARD",
+          "native_id": "VICIOUS"
+        }
+      ],
+      "evidence": {
+        "native_metadata": "sim/native-fixtures/native-round4-step2-card-reward-fixtures/content-metadata.json",
+        "native_metadata_sha256": "18290c28fe26184c533f4d18b0199d6ba7fef92a745eb8024d2d5f798e10cdb4",
+        "native_metadata_digest_format": "original file bytes",
+        "game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+        "fresh_registry": "provided ModelDb registry object",
+        "fresh_registry_sha256": "6d470df08445af9a6b86e8069bb3c0d8d5381f644a2ff938df3b893162e35dfb",
+        "fresh_registry_digest_format": "canonical JSON",
+        "fresh_registry_exception_source": "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/CardModel.cs:GetStarCostWithModifiers; Cards/Stardust.cs:HasStarCostX",
+        "simulator_content": "sim/content/cards.json",
+        "generated_cpp_table": "sim/include/sts2/cards_generated.inc",
+        "mad_science_instance_rules": [
+          "sim/src/cards.cpp:card_type/card_target",
+          "sim/src/events.cpp:TinkerTime",
+          "sim/tests/native_step3_events.cpp"
+        ],
+        "scope": "Identity, pool membership/order, static base/upgraded properties and native dynamic variables; not card-effect execution parity."
+      }
+    },
+    "relics": {
+      "simulator_count": 299,
+      "native_registered_count": 299,
+      "native_non_mock_count": 299,
+      "duplicate_simulator_ids": [],
+      "duplicate_simulator_classes": [],
+      "duplicate_native_ids": [],
+      "missing": [],
+      "extra": [],
+      "excluded_native_test_models": [],
+      "non_model_source_helpers": [
+        "artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/VakuuCardSelector.cs"
+      ],
+      "identity_aliases": [],
+      "attribute_mismatches": [],
+      "conditional_attributes": [],
+      "runtime_content_mismatches": [],
+      "native_pool_declaration_mismatches": [],
+      "mapping": [
+        {
+          "simulator_id": 1,
+          "simulator_key": "BURNING_BLOOD",
+          "native_id": "RELIC.BURNING_BLOOD",
+          "class_name": "BurningBlood"
+        },
+        {
+          "simulator_id": 2,
+          "simulator_key": "BLACK_BLOOD",
+          "native_id": "RELIC.BLACK_BLOOD",
+          "class_name": "BlackBlood"
+        },
+        {
+          "simulator_id": 3,
+          "simulator_key": "RING_OF_THE_SNAKE",
+          "native_id": "RELIC.RING_OF_THE_SNAKE",
+          "class_name": "RingOfTheSnake"
+        },
+        {
+          "simulator_id": 4,
+          "simulator_key": "RING_OF_THE_DRAKE",
+          "native_id": "RELIC.RING_OF_THE_DRAKE",
+          "class_name": "RingOfTheDrake"
+        },
+        {
+          "simulator_id": 5,
+          "simulator_key": "CRACKED_CORE",
+          "native_id": "RELIC.CRACKED_CORE",
+          "class_name": "CrackedCore"
+        },
+        {
+          "simulator_id": 6,
+          "simulator_key": "INFUSED_CORE",
+          "native_id": "RELIC.INFUSED_CORE",
+          "class_name": "InfusedCore"
+        },
+        {
+          "simulator_id": 7,
+          "simulator_key": "BOUND_PHYLACTERY",
+          "native_id": "RELIC.BOUND_PHYLACTERY",
+          "class_name": "BoundPhylactery"
+        },
+        {
+          "simulator_id": 8,
+          "simulator_key": "PHYLACTERY_UNBOUND",
+          "native_id": "RELIC.PHYLACTERY_UNBOUND",
+          "class_name": "PhylacteryUnbound"
+        },
+        {
+          "simulator_id": 9,
+          "simulator_key": "DIVINE_RIGHT",
+          "native_id": "RELIC.DIVINE_RIGHT",
+          "class_name": "DivineRight"
+        },
+        {
+          "simulator_id": 10,
+          "simulator_key": "DIVINE_DESTINY",
+          "native_id": "RELIC.DIVINE_DESTINY",
+          "class_name": "DivineDestiny"
+        },
+        {
+          "simulator_id": 11,
+          "simulator_key": "AMETHYST_AUBERGINE",
+          "native_id": "RELIC.AMETHYST_AUBERGINE",
+          "class_name": "AmethystAubergine"
+        },
+        {
+          "simulator_id": 12,
+          "simulator_key": "ANCHOR",
+          "native_id": "RELIC.ANCHOR",
+          "class_name": "Anchor"
+        },
+        {
+          "simulator_id": 13,
+          "simulator_key": "BAG_OF_PREPARATION",
+          "native_id": "RELIC.BAG_OF_PREPARATION",
+          "class_name": "BagOfPreparation"
+        },
+        {
+          "simulator_id": 14,
+          "simulator_key": "BLOOD_VIAL",
+          "native_id": "RELIC.BLOOD_VIAL",
+          "class_name": "BloodVial"
+        },
+        {
+          "simulator_id": 15,
+          "simulator_key": "BONE_FLUTE",
+          "native_id": "RELIC.BONE_FLUTE",
+          "class_name": "BoneFlute"
+        },
+        {
+          "simulator_id": 16,
+          "simulator_key": "BRONZE_SCALES",
+          "native_id": "RELIC.BRONZE_SCALES",
+          "class_name": "BronzeScales"
+        },
+        {
+          "simulator_id": 17,
+          "simulator_key": "CENTENNIAL_PUZZLE",
+          "native_id": "RELIC.CENTENNIAL_PUZZLE",
+          "class_name": "CentennialPuzzle"
+        },
+        {
+          "simulator_id": 18,
+          "simulator_key": "DATA_DISK",
+          "native_id": "RELIC.DATA_DISK",
+          "class_name": "DataDisk"
+        },
+        {
+          "simulator_id": 19,
+          "simulator_key": "FENCING_MANUAL",
+          "native_id": "RELIC.FENCING_MANUAL",
+          "class_name": "FencingManual"
+        },
+        {
+          "simulator_id": 20,
+          "simulator_key": "FESTIVE_POPPER",
+          "native_id": "RELIC.FESTIVE_POPPER",
+          "class_name": "FestivePopper"
+        },
+        {
+          "simulator_id": 21,
+          "simulator_key": "GORGET",
+          "native_id": "RELIC.GORGET",
+          "class_name": "Gorget"
+        },
+        {
+          "simulator_id": 22,
+          "simulator_key": "HAPPY_FLOWER",
+          "native_id": "RELIC.HAPPY_FLOWER",
+          "class_name": "HappyFlower"
+        },
+        {
+          "simulator_id": 23,
+          "simulator_key": "JUZU_BRACELET",
+          "native_id": "RELIC.JUZU_BRACELET",
+          "class_name": "JuzuBracelet"
+        },
+        {
+          "simulator_id": 24,
+          "simulator_key": "LANTERN",
+          "native_id": "RELIC.LANTERN",
+          "class_name": "Lantern"
+        },
+        {
+          "simulator_id": 25,
+          "simulator_key": "MEAL_TICKET",
+          "native_id": "RELIC.MEAL_TICKET",
+          "class_name": "MealTicket"
+        },
+        {
+          "simulator_id": 26,
+          "simulator_key": "ODDLY_SMOOTH_STONE",
+          "native_id": "RELIC.ODDLY_SMOOTH_STONE",
+          "class_name": "OddlySmoothStone"
+        },
+        {
+          "simulator_id": 27,
+          "simulator_key": "PENDULUM",
+          "native_id": "RELIC.PENDULUM",
+          "class_name": "Pendulum"
+        },
+        {
+          "simulator_id": 28,
+          "simulator_key": "PERMAFROST",
+          "native_id": "RELIC.PERMAFROST",
+          "class_name": "Permafrost"
+        },
+        {
+          "simulator_id": 29,
+          "simulator_key": "POTION_BELT",
+          "native_id": "RELIC.POTION_BELT",
+          "class_name": "PotionBelt"
+        },
+        {
+          "simulator_id": 30,
+          "simulator_key": "RED_SKULL",
+          "native_id": "RELIC.RED_SKULL",
+          "class_name": "RedSkull"
+        },
+        {
+          "simulator_id": 31,
+          "simulator_key": "REGAL_PILLOW",
+          "native_id": "RELIC.REGAL_PILLOW",
+          "class_name": "RegalPillow"
+        },
+        {
+          "simulator_id": 32,
+          "simulator_key": "SNECKO_SKULL",
+          "native_id": "RELIC.SNECKO_SKULL",
+          "class_name": "SneckoSkull"
+        },
+        {
+          "simulator_id": 33,
+          "simulator_key": "STRAWBERRY",
+          "native_id": "RELIC.STRAWBERRY",
+          "class_name": "Strawberry"
+        },
+        {
+          "simulator_id": 34,
+          "simulator_key": "STRIKE_DUMMY",
+          "native_id": "RELIC.STRIKE_DUMMY",
+          "class_name": "StrikeDummy"
+        },
+        {
+          "simulator_id": 35,
+          "simulator_key": "TINY_MAILBOX",
+          "native_id": "RELIC.TINY_MAILBOX",
+          "class_name": "TinyMailbox"
+        },
+        {
+          "simulator_id": 36,
+          "simulator_key": "VAJRA",
+          "native_id": "RELIC.VAJRA",
+          "class_name": "Vajra"
+        },
+        {
+          "simulator_id": 37,
+          "simulator_key": "VENERABLE_TEA_SET",
+          "native_id": "RELIC.VENERABLE_TEA_SET",
+          "class_name": "VenerableTeaSet"
+        },
+        {
+          "simulator_id": 38,
+          "simulator_key": "WAR_PAINT",
+          "native_id": "RELIC.WAR_PAINT",
+          "class_name": "WarPaint"
+        },
+        {
+          "simulator_id": 39,
+          "simulator_key": "WHETSTONE",
+          "native_id": "RELIC.WHETSTONE",
+          "class_name": "Whetstone"
+        },
+        {
+          "simulator_id": 40,
+          "simulator_key": "BOOK_OF_FIVE_RINGS",
+          "native_id": "RELIC.BOOK_OF_FIVE_RINGS",
+          "class_name": "BookOfFiveRings"
+        },
+        {
+          "simulator_id": 41,
+          "simulator_key": "AKABEKO",
+          "native_id": "RELIC.AKABEKO",
+          "class_name": "Akabeko"
+        },
+        {
+          "simulator_id": 42,
+          "simulator_key": "BAG_OF_MARBLES",
+          "native_id": "RELIC.BAG_OF_MARBLES",
+          "class_name": "BagOfMarbles"
+        },
+        {
+          "simulator_id": 43,
+          "simulator_key": "BELLOWS",
+          "native_id": "RELIC.BELLOWS",
+          "class_name": "Bellows"
+        },
+        {
+          "simulator_id": 44,
+          "simulator_key": "BOOK_REPAIR_KNIFE",
+          "native_id": "RELIC.BOOK_REPAIR_KNIFE",
+          "class_name": "BookRepairKnife"
+        },
+        {
+          "simulator_id": 45,
+          "simulator_key": "BOWLER_HAT",
+          "native_id": "RELIC.BOWLER_HAT",
+          "class_name": "BowlerHat"
+        },
+        {
+          "simulator_id": 46,
+          "simulator_key": "CANDELABRA",
+          "native_id": "RELIC.CANDELABRA",
+          "class_name": "Candelabra"
+        },
+        {
+          "simulator_id": 47,
+          "simulator_key": "ETERNAL_FEATHER",
+          "native_id": "RELIC.ETERNAL_FEATHER",
+          "class_name": "EternalFeather"
+        },
+        {
+          "simulator_id": 48,
+          "simulator_key": "FUNERARY_MASK",
+          "native_id": "RELIC.FUNERARY_MASK",
+          "class_name": "FuneraryMask"
+        },
+        {
+          "simulator_id": 49,
+          "simulator_key": "GALACTIC_DUST",
+          "native_id": "RELIC.GALACTIC_DUST",
+          "class_name": "GalacticDust"
+        },
+        {
+          "simulator_id": 50,
+          "simulator_key": "GOLD_PLATED_CABLES",
+          "native_id": "RELIC.GOLD_PLATED_CABLES",
+          "class_name": "GoldPlatedCables"
+        },
+        {
+          "simulator_id": 51,
+          "simulator_key": "GREMLIN_HORN",
+          "native_id": "RELIC.GREMLIN_HORN",
+          "class_name": "GremlinHorn"
+        },
+        {
+          "simulator_id": 52,
+          "simulator_key": "HORN_CLEAT",
+          "native_id": "RELIC.HORN_CLEAT",
+          "class_name": "HornCleat"
+        },
+        {
+          "simulator_id": 53,
+          "simulator_key": "JOSS_PAPER",
+          "native_id": "RELIC.JOSS_PAPER",
+          "class_name": "JossPaper"
+        },
+        {
+          "simulator_id": 54,
+          "simulator_key": "KUSARIGAMA",
+          "native_id": "RELIC.KUSARIGAMA",
+          "class_name": "Kusarigama"
+        },
+        {
+          "simulator_id": 55,
+          "simulator_key": "LETTER_OPENER",
+          "native_id": "RELIC.LETTER_OPENER",
+          "class_name": "LetterOpener"
+        },
+        {
+          "simulator_id": 56,
+          "simulator_key": "LUCKY_FYSH",
+          "native_id": "RELIC.LUCKY_FYSH",
+          "class_name": "LuckyFysh"
+        },
+        {
+          "simulator_id": 57,
+          "simulator_key": "MERCURY_HOURGLASS",
+          "native_id": "RELIC.MERCURY_HOURGLASS",
+          "class_name": "MercuryHourglass"
+        },
+        {
+          "simulator_id": 58,
+          "simulator_key": "MINIATURE_CANNON",
+          "native_id": "RELIC.MINIATURE_CANNON",
+          "class_name": "MiniatureCannon"
+        },
+        {
+          "simulator_id": 59,
+          "simulator_key": "NUNCHAKU",
+          "native_id": "RELIC.NUNCHAKU",
+          "class_name": "Nunchaku"
+        },
+        {
+          "simulator_id": 60,
+          "simulator_key": "ORICHALCUM",
+          "native_id": "RELIC.ORICHALCUM",
+          "class_name": "Orichalcum"
+        },
+        {
+          "simulator_id": 61,
+          "simulator_key": "ORNAMENTAL_FAN",
+          "native_id": "RELIC.ORNAMENTAL_FAN",
+          "class_name": "OrnamentalFan"
+        },
+        {
+          "simulator_id": 62,
+          "simulator_key": "PANTOGRAPH",
+          "native_id": "RELIC.PANTOGRAPH",
+          "class_name": "Pantograph"
+        },
+        {
+          "simulator_id": 63,
+          "simulator_key": "PAPER_PHROG",
+          "native_id": "RELIC.PAPER_PHROG",
+          "class_name": "PaperPhrog"
+        },
+        {
+          "simulator_id": 64,
+          "simulator_key": "PARRYING_SHIELD",
+          "native_id": "RELIC.PARRYING_SHIELD",
+          "class_name": "ParryingShield"
+        },
+        {
+          "simulator_id": 65,
+          "simulator_key": "PEAR",
+          "native_id": "RELIC.PEAR",
+          "class_name": "Pear"
+        },
+        {
+          "simulator_id": 66,
+          "simulator_key": "PEN_NIB",
+          "native_id": "RELIC.PEN_NIB",
+          "class_name": "PenNib"
+        },
+        {
+          "simulator_id": 67,
+          "simulator_key": "PETRIFIED_TOAD",
+          "native_id": "RELIC.PETRIFIED_TOAD",
+          "class_name": "PetrifiedToad"
+        },
+        {
+          "simulator_id": 68,
+          "simulator_key": "PLANISPHERE",
+          "native_id": "RELIC.PLANISPHERE",
+          "class_name": "Planisphere"
+        },
+        {
+          "simulator_id": 69,
+          "simulator_key": "RED_MASK",
+          "native_id": "RELIC.RED_MASK",
+          "class_name": "RedMask"
+        },
+        {
+          "simulator_id": 70,
+          "simulator_key": "REGALITE",
+          "native_id": "RELIC.REGALITE",
+          "class_name": "Regalite"
+        },
+        {
+          "simulator_id": 71,
+          "simulator_key": "REPTILE_TRINKET",
+          "native_id": "RELIC.REPTILE_TRINKET",
+          "class_name": "ReptileTrinket"
+        },
+        {
+          "simulator_id": 72,
+          "simulator_key": "RIPPLE_BASIN",
+          "native_id": "RELIC.RIPPLE_BASIN",
+          "class_name": "RippleBasin"
+        },
+        {
+          "simulator_id": 73,
+          "simulator_key": "SELF_FORMING_CLAY",
+          "native_id": "RELIC.SELF_FORMING_CLAY",
+          "class_name": "SelfFormingClay"
+        },
+        {
+          "simulator_id": 74,
+          "simulator_key": "SPARKLING_ROUGE",
+          "native_id": "RELIC.SPARKLING_ROUGE",
+          "class_name": "SparklingRouge"
+        },
+        {
+          "simulator_id": 75,
+          "simulator_key": "STONE_CRACKER",
+          "native_id": "RELIC.STONE_CRACKER",
+          "class_name": "StoneCracker"
+        },
+        {
+          "simulator_id": 76,
+          "simulator_key": "TUNING_FORK",
+          "native_id": "RELIC.TUNING_FORK",
+          "class_name": "TuningFork"
+        },
+        {
+          "simulator_id": 77,
+          "simulator_key": "TINGSHA",
+          "native_id": "RELIC.TINGSHA",
+          "class_name": "Tingsha"
+        },
+        {
+          "simulator_id": 78,
+          "simulator_key": "VAMBRACE",
+          "native_id": "RELIC.VAMBRACE",
+          "class_name": "Vambrace"
+        },
+        {
+          "simulator_id": 79,
+          "simulator_key": "ART_OF_WAR",
+          "native_id": "RELIC.ART_OF_WAR",
+          "class_name": "ArtOfWar"
+        },
+        {
+          "simulator_id": 80,
+          "simulator_key": "BEATING_REMNANT",
+          "native_id": "RELIC.BEATING_REMNANT",
+          "class_name": "BeatingRemnant"
+        },
+        {
+          "simulator_id": 81,
+          "simulator_key": "BIG_HAT",
+          "native_id": "RELIC.BIG_HAT",
+          "class_name": "BigHat"
+        },
+        {
+          "simulator_id": 82,
+          "simulator_key": "BOOKMARK",
+          "native_id": "RELIC.BOOKMARK",
+          "class_name": "Bookmark"
+        },
+        {
+          "simulator_id": 83,
+          "simulator_key": "CAPTAINS_WHEEL",
+          "native_id": "RELIC.CAPTAINS_WHEEL",
+          "class_name": "CaptainsWheel"
+        },
+        {
+          "simulator_id": 84,
+          "simulator_key": "CHANDELIER",
+          "native_id": "RELIC.CHANDELIER",
+          "class_name": "Chandelier"
+        },
+        {
+          "simulator_id": 85,
+          "simulator_key": "CHARONS_ASHES",
+          "native_id": "RELIC.CHARONS_ASHES",
+          "class_name": "CharonsAshes"
+        },
+        {
+          "simulator_id": 86,
+          "simulator_key": "DEMON_TONGUE",
+          "native_id": "RELIC.DEMON_TONGUE",
+          "class_name": "DemonTongue"
+        },
+        {
+          "simulator_id": 87,
+          "simulator_key": "EMOTION_CHIP",
+          "native_id": "RELIC.EMOTION_CHIP",
+          "class_name": "EmotionChip"
+        },
+        {
+          "simulator_id": 88,
+          "simulator_key": "FROZEN_EGG",
+          "native_id": "RELIC.FROZEN_EGG",
+          "class_name": "FrozenEgg"
+        },
+        {
+          "simulator_id": 89,
+          "simulator_key": "GAMBLING_CHIP",
+          "native_id": "RELIC.GAMBLING_CHIP",
+          "class_name": "GamblingChip"
+        },
+        {
+          "simulator_id": 90,
+          "simulator_key": "GAME_PIECE",
+          "native_id": "RELIC.GAME_PIECE",
+          "class_name": "GamePiece"
+        },
+        {
+          "simulator_id": 91,
+          "simulator_key": "GIRYA",
+          "native_id": "RELIC.GIRYA",
+          "class_name": "Girya"
+        },
+        {
+          "simulator_id": 92,
+          "simulator_key": "HELICAL_DART",
+          "native_id": "RELIC.HELICAL_DART",
+          "class_name": "HelicalDart"
+        },
+        {
+          "simulator_id": 93,
+          "simulator_key": "ICE_CREAM",
+          "native_id": "RELIC.ICE_CREAM",
+          "class_name": "IceCream"
+        },
+        {
+          "simulator_id": 94,
+          "simulator_key": "INTIMIDATING_HELMET",
+          "native_id": "RELIC.INTIMIDATING_HELMET",
+          "class_name": "IntimidatingHelmet"
+        },
+        {
+          "simulator_id": 95,
+          "simulator_key": "IVORY_TILE",
+          "native_id": "RELIC.IVORY_TILE",
+          "class_name": "IvoryTile"
+        },
+        {
+          "simulator_id": 96,
+          "simulator_key": "KUNAI",
+          "native_id": "RELIC.KUNAI",
+          "class_name": "Kunai"
+        },
+        {
+          "simulator_id": 97,
+          "simulator_key": "LASTING_CANDY",
+          "native_id": "RELIC.LASTING_CANDY",
+          "class_name": "LastingCandy"
+        },
+        {
+          "simulator_id": 98,
+          "simulator_key": "LIZARD_TAIL",
+          "native_id": "RELIC.LIZARD_TAIL",
+          "class_name": "LizardTail"
+        },
+        {
+          "simulator_id": 99,
+          "simulator_key": "LUNAR_PASTRY",
+          "native_id": "RELIC.LUNAR_PASTRY",
+          "class_name": "LunarPastry"
+        },
+        {
+          "simulator_id": 100,
+          "simulator_key": "MANGO",
+          "native_id": "RELIC.MANGO",
+          "class_name": "Mango"
+        },
+        {
+          "simulator_id": 101,
+          "simulator_key": "MEAT_ON_THE_BONE",
+          "native_id": "RELIC.MEAT_ON_THE_BONE",
+          "class_name": "MeatOnTheBone"
+        },
+        {
+          "simulator_id": 102,
+          "simulator_key": "METRONOME",
+          "native_id": "RELIC.METRONOME",
+          "class_name": "Metronome"
+        },
+        {
+          "simulator_id": 103,
+          "simulator_key": "MINI_REGENT",
+          "native_id": "RELIC.MINI_REGENT",
+          "class_name": "MiniRegent"
+        },
+        {
+          "simulator_id": 104,
+          "simulator_key": "MOLTEN_EGG",
+          "native_id": "RELIC.MOLTEN_EGG",
+          "class_name": "MoltenEgg"
+        },
+        {
+          "simulator_id": 105,
+          "simulator_key": "MUMMIFIED_HAND",
+          "native_id": "RELIC.MUMMIFIED_HAND",
+          "class_name": "MummifiedHand"
+        },
+        {
+          "simulator_id": 106,
+          "simulator_key": "OLD_COIN",
+          "native_id": "RELIC.OLD_COIN",
+          "class_name": "OldCoin"
+        },
+        {
+          "simulator_id": 107,
+          "simulator_key": "ORANGE_DOUGH",
+          "native_id": "RELIC.ORANGE_DOUGH",
+          "class_name": "OrangeDough"
+        },
+        {
+          "simulator_id": 108,
+          "simulator_key": "POCKETWATCH",
+          "native_id": "RELIC.POCKETWATCH",
+          "class_name": "Pocketwatch"
+        },
+        {
+          "simulator_id": 109,
+          "simulator_key": "POWER_CELL",
+          "native_id": "RELIC.POWER_CELL",
+          "class_name": "PowerCell"
+        },
+        {
+          "simulator_id": 110,
+          "simulator_key": "PRAYER_WHEEL",
+          "native_id": "RELIC.PRAYER_WHEEL",
+          "class_name": "PrayerWheel"
+        },
+        {
+          "simulator_id": 111,
+          "simulator_key": "RAINBOW_RING",
+          "native_id": "RELIC.RAINBOW_RING",
+          "class_name": "RainbowRing"
+        },
+        {
+          "simulator_id": 112,
+          "simulator_key": "RAZOR_TOOTH",
+          "native_id": "RELIC.RAZOR_TOOTH",
+          "class_name": "RazorTooth"
+        },
+        {
+          "simulator_id": 113,
+          "simulator_key": "SHOVEL",
+          "native_id": "RELIC.SHOVEL",
+          "class_name": "Shovel"
+        },
+        {
+          "simulator_id": 114,
+          "simulator_key": "SHURIKEN",
+          "native_id": "RELIC.SHURIKEN",
+          "class_name": "Shuriken"
+        },
+        {
+          "simulator_id": 115,
+          "simulator_key": "STONE_CALENDAR",
+          "native_id": "RELIC.STONE_CALENDAR",
+          "class_name": "StoneCalendar"
+        },
+        {
+          "simulator_id": 116,
+          "simulator_key": "STURDY_CLAMP",
+          "native_id": "RELIC.STURDY_CLAMP",
+          "class_name": "SturdyClamp"
+        },
+        {
+          "simulator_id": 117,
+          "simulator_key": "THE_COURIER",
+          "native_id": "RELIC.THE_COURIER",
+          "class_name": "TheCourier"
+        },
+        {
+          "simulator_id": 118,
+          "simulator_key": "TOUGH_BANDAGES",
+          "native_id": "RELIC.TOUGH_BANDAGES",
+          "class_name": "ToughBandages"
+        },
+        {
+          "simulator_id": 119,
+          "simulator_key": "TOXIC_EGG",
+          "native_id": "RELIC.TOXIC_EGG",
+          "class_name": "ToxicEgg"
+        },
+        {
+          "simulator_id": 120,
+          "simulator_key": "TUNGSTEN_ROD",
+          "native_id": "RELIC.TUNGSTEN_ROD",
+          "class_name": "TungstenRod"
+        },
+        {
+          "simulator_id": 121,
+          "simulator_key": "UNCEASING_TOP",
+          "native_id": "RELIC.UNCEASING_TOP",
+          "class_name": "UnceasingTop"
+        },
+        {
+          "simulator_id": 122,
+          "simulator_key": "UNSETTLING_LAMP",
+          "native_id": "RELIC.UNSETTLING_LAMP",
+          "class_name": "UnsettlingLamp"
+        },
+        {
+          "simulator_id": 123,
+          "simulator_key": "RUINED_HELMET",
+          "native_id": "RELIC.RUINED_HELMET",
+          "class_name": "RuinedHelmet"
+        },
+        {
+          "simulator_id": 124,
+          "simulator_key": "VEXING_PUZZLEBOX",
+          "native_id": "RELIC.VEXING_PUZZLEBOX",
+          "class_name": "VexingPuzzlebox"
+        },
+        {
+          "simulator_id": 125,
+          "simulator_key": "WHITE_BEAST_STATUE",
+          "native_id": "RELIC.WHITE_BEAST_STATUE",
+          "class_name": "WhiteBeastStatue"
+        },
+        {
+          "simulator_id": 126,
+          "simulator_key": "WHITE_STAR",
+          "native_id": "RELIC.WHITE_STAR",
+          "class_name": "WhiteStar"
+        },
+        {
+          "simulator_id": 127,
+          "simulator_key": "PAPER_KRANE",
+          "native_id": "RELIC.PAPER_KRANE",
+          "class_name": "PaperKrane"
+        },
+        {
+          "simulator_id": 128,
+          "simulator_key": "BELT_BUCKLE",
+          "native_id": "RELIC.BELT_BUCKLE",
+          "class_name": "BeltBuckle"
+        },
+        {
+          "simulator_id": 129,
+          "simulator_key": "BREAD",
+          "native_id": "RELIC.BREAD",
+          "class_name": "Bread"
+        },
+        {
+          "simulator_id": 130,
+          "simulator_key": "BRIMSTONE",
+          "native_id": "RELIC.BRIMSTONE",
+          "class_name": "Brimstone"
+        },
+        {
+          "simulator_id": 131,
+          "simulator_key": "BURNING_STICKS",
+          "native_id": "RELIC.BURNING_STICKS",
+          "class_name": "BurningSticks"
+        },
+        {
+          "simulator_id": 132,
+          "simulator_key": "CAULDRON",
+          "native_id": "RELIC.CAULDRON",
+          "class_name": "Cauldron"
+        },
+        {
+          "simulator_id": 133,
+          "simulator_key": "CHEMICAL_X",
+          "native_id": "RELIC.CHEMICAL_X",
+          "class_name": "ChemicalX"
+        },
+        {
+          "simulator_id": 134,
+          "simulator_key": "DINGY_RUG",
+          "native_id": "RELIC.DINGY_RUG",
+          "class_name": "DingyRug"
+        },
+        {
+          "simulator_id": 135,
+          "simulator_key": "DOLLYS_MIRROR",
+          "native_id": "RELIC.DOLLYS_MIRROR",
+          "class_name": "DollysMirror"
+        },
+        {
+          "simulator_id": 136,
+          "simulator_key": "DRAGON_FRUIT",
+          "native_id": "RELIC.DRAGON_FRUIT",
+          "class_name": "DragonFruit"
+        },
+        {
+          "simulator_id": 137,
+          "simulator_key": "GHOST_SEED",
+          "native_id": "RELIC.GHOST_SEED",
+          "class_name": "GhostSeed"
+        },
+        {
+          "simulator_id": 138,
+          "simulator_key": "GNARLED_HAMMER",
+          "native_id": "RELIC.GNARLED_HAMMER",
+          "class_name": "GnarledHammer"
+        },
+        {
+          "simulator_id": 139,
+          "simulator_key": "KIFUDA",
+          "native_id": "RELIC.KIFUDA",
+          "class_name": "Kifuda"
+        },
+        {
+          "simulator_id": 140,
+          "simulator_key": "LAVA_LAMP",
+          "native_id": "RELIC.LAVA_LAMP",
+          "class_name": "LavaLamp"
+        },
+        {
+          "simulator_id": 141,
+          "simulator_key": "LEES_WAFFLE",
+          "native_id": "RELIC.LEES_WAFFLE",
+          "class_name": "LeesWaffle"
+        },
+        {
+          "simulator_id": 142,
+          "simulator_key": "MEMBERSHIP_CARD",
+          "native_id": "RELIC.MEMBERSHIP_CARD",
+          "class_name": "MembershipCard"
+        },
+        {
+          "simulator_id": 143,
+          "simulator_key": "MINIATURE_TENT",
+          "native_id": "RELIC.MINIATURE_TENT",
+          "class_name": "MiniatureTent"
+        },
+        {
+          "simulator_id": 144,
+          "simulator_key": "MYSTIC_LIGHTER",
+          "native_id": "RELIC.MYSTIC_LIGHTER",
+          "class_name": "MysticLighter"
+        },
+        {
+          "simulator_id": 145,
+          "simulator_key": "NINJA_SCROLL",
+          "native_id": "RELIC.NINJA_SCROLL",
+          "class_name": "NinjaScroll"
+        },
+        {
+          "simulator_id": 146,
+          "simulator_key": "ORRERY",
+          "native_id": "RELIC.ORRERY",
+          "class_name": "Orrery"
+        },
+        {
+          "simulator_id": 147,
+          "simulator_key": "PUNCH_DAGGER",
+          "native_id": "RELIC.PUNCH_DAGGER",
+          "class_name": "PunchDagger"
+        },
+        {
+          "simulator_id": 148,
+          "simulator_key": "RINGING_TRIANGLE",
+          "native_id": "RELIC.RINGING_TRIANGLE",
+          "class_name": "RingingTriangle"
+        },
+        {
+          "simulator_id": 149,
+          "simulator_key": "ROYAL_STAMP",
+          "native_id": "RELIC.ROYAL_STAMP",
+          "class_name": "RoyalStamp"
+        },
+        {
+          "simulator_id": 150,
+          "simulator_key": "RUNIC_CAPACITOR",
+          "native_id": "RELIC.RUNIC_CAPACITOR",
+          "class_name": "RunicCapacitor"
+        },
+        {
+          "simulator_id": 151,
+          "simulator_key": "SCREAMING_FLAGON",
+          "native_id": "RELIC.SCREAMING_FLAGON",
+          "class_name": "ScreamingFlagon"
+        },
+        {
+          "simulator_id": 152,
+          "simulator_key": "SLING_OF_COURAGE",
+          "native_id": "RELIC.SLING_OF_COURAGE",
+          "class_name": "SlingOfCourage"
+        },
+        {
+          "simulator_id": 153,
+          "simulator_key": "THE_ABACUS",
+          "native_id": "RELIC.THE_ABACUS",
+          "class_name": "TheAbacus"
+        },
+        {
+          "simulator_id": 154,
+          "simulator_key": "TOOLBOX",
+          "native_id": "RELIC.TOOLBOX",
+          "class_name": "Toolbox"
+        },
+        {
+          "simulator_id": 155,
+          "simulator_key": "UNDYING_SIGIL",
+          "native_id": "RELIC.UNDYING_SIGIL",
+          "class_name": "UndyingSigil"
+        },
+        {
+          "simulator_id": 156,
+          "simulator_key": "VITRUVIAN_MINION",
+          "native_id": "RELIC.VITRUVIAN_MINION",
+          "class_name": "VitruvianMinion"
+        },
+        {
+          "simulator_id": 157,
+          "simulator_key": "WING_CHARM",
+          "native_id": "RELIC.WING_CHARM",
+          "class_name": "WingCharm"
+        },
+        {
+          "simulator_id": 158,
+          "simulator_key": "ALCHEMICAL_COFFER",
+          "native_id": "RELIC.ALCHEMICAL_COFFER",
+          "class_name": "AlchemicalCoffer"
+        },
+        {
+          "simulator_id": 159,
+          "simulator_key": "ARCANE_SCROLL",
+          "native_id": "RELIC.ARCANE_SCROLL",
+          "class_name": "ArcaneScroll"
+        },
+        {
+          "simulator_id": 160,
+          "simulator_key": "ARCHAIC_TOOTH",
+          "native_id": "RELIC.ARCHAIC_TOOTH",
+          "class_name": "ArchaicTooth"
+        },
+        {
+          "simulator_id": 161,
+          "simulator_key": "ASTROLABE",
+          "native_id": "RELIC.ASTROLABE",
+          "class_name": "Astrolabe"
+        },
+        {
+          "simulator_id": 162,
+          "simulator_key": "BEAUTIFUL_BRACELET",
+          "native_id": "RELIC.BEAUTIFUL_BRACELET",
+          "class_name": "BeautifulBracelet"
+        },
+        {
+          "simulator_id": 163,
+          "simulator_key": "BIG_MUSHROOM",
+          "native_id": "RELIC.BIG_MUSHROOM",
+          "class_name": "BigMushroom"
+        },
+        {
+          "simulator_id": 164,
+          "simulator_key": "BIIIG_HUG",
+          "native_id": "RELIC.BIIIG_HUG",
+          "class_name": "BiiigHug"
+        },
+        {
+          "simulator_id": 165,
+          "simulator_key": "BING_BONG",
+          "native_id": "RELIC.BING_BONG",
+          "class_name": "BingBong"
+        },
+        {
+          "simulator_id": 166,
+          "simulator_key": "BLACK_STAR",
+          "native_id": "RELIC.BLACK_STAR",
+          "class_name": "BlackStar"
+        },
+        {
+          "simulator_id": 167,
+          "simulator_key": "BLESSED_ANTLER",
+          "native_id": "RELIC.BLESSED_ANTLER",
+          "class_name": "BlessedAntler"
+        },
+        {
+          "simulator_id": 168,
+          "simulator_key": "BLOOD_SOAKED_ROSE",
+          "native_id": "RELIC.BLOOD_SOAKED_ROSE",
+          "class_name": "BloodSoakedRose"
+        },
+        {
+          "simulator_id": 169,
+          "simulator_key": "BONE_TEA",
+          "native_id": "RELIC.BONE_TEA",
+          "class_name": "BoneTea"
+        },
+        {
+          "simulator_id": 170,
+          "simulator_key": "BOOMING_CONCH",
+          "native_id": "RELIC.BOOMING_CONCH",
+          "class_name": "BoomingConch"
+        },
+        {
+          "simulator_id": 171,
+          "simulator_key": "BRILLIANT_SCARF",
+          "native_id": "RELIC.BRILLIANT_SCARF",
+          "class_name": "BrilliantScarf"
+        },
+        {
+          "simulator_id": 172,
+          "simulator_key": "BYRDPIP",
+          "native_id": "RELIC.BYRDPIP",
+          "class_name": "Byrdpip"
+        },
+        {
+          "simulator_id": 173,
+          "simulator_key": "CALLING_BELL",
+          "native_id": "RELIC.CALLING_BELL",
+          "class_name": "CallingBell"
+        },
+        {
+          "simulator_id": 174,
+          "simulator_key": "CHOICES_PARADOX",
+          "native_id": "RELIC.CHOICES_PARADOX",
+          "class_name": "ChoicesParadox"
+        },
+        {
+          "simulator_id": 175,
+          "simulator_key": "CHOSEN_CHEESE",
+          "native_id": "RELIC.CHOSEN_CHEESE",
+          "class_name": "ChosenCheese"
+        },
+        {
+          "simulator_id": 176,
+          "simulator_key": "CLAWS",
+          "native_id": "RELIC.CLAWS",
+          "class_name": "Claws"
+        },
+        {
+          "simulator_id": 177,
+          "simulator_key": "CROSSBOW",
+          "native_id": "RELIC.CROSSBOW",
+          "class_name": "Crossbow"
+        },
+        {
+          "simulator_id": 178,
+          "simulator_key": "CURSED_PEARL",
+          "native_id": "RELIC.CURSED_PEARL",
+          "class_name": "CursedPearl"
+        },
+        {
+          "simulator_id": 179,
+          "simulator_key": "DARKSTONE_PERIAPT",
+          "native_id": "RELIC.DARKSTONE_PERIAPT",
+          "class_name": "DarkstonePeriapt"
+        },
+        {
+          "simulator_id": 180,
+          "simulator_key": "DAUGHTER_OF_THE_WIND",
+          "native_id": "RELIC.DAUGHTER_OF_THE_WIND",
+          "class_name": "DaughterOfTheWind"
+        },
+        {
+          "simulator_id": 181,
+          "simulator_key": "DELICATE_FROND",
+          "native_id": "RELIC.DELICATE_FROND",
+          "class_name": "DelicateFrond"
+        },
+        {
+          "simulator_id": 182,
+          "simulator_key": "DIAMOND_DIADEM",
+          "native_id": "RELIC.DIAMOND_DIADEM",
+          "class_name": "DiamondDiadem"
+        },
+        {
+          "simulator_id": 183,
+          "simulator_key": "DISTINGUISHED_CAPE",
+          "native_id": "RELIC.DISTINGUISHED_CAPE",
+          "class_name": "DistinguishedCape"
+        },
+        {
+          "simulator_id": 184,
+          "simulator_key": "DREAM_CATCHER",
+          "native_id": "RELIC.DREAM_CATCHER",
+          "class_name": "DreamCatcher"
+        },
+        {
+          "simulator_id": 185,
+          "simulator_key": "DRIFTWOOD",
+          "native_id": "RELIC.DRIFTWOOD",
+          "class_name": "Driftwood"
+        },
+        {
+          "simulator_id": 186,
+          "simulator_key": "DUSTY_TOME",
+          "native_id": "RELIC.DUSTY_TOME",
+          "class_name": "DustyTome"
+        },
+        {
+          "simulator_id": 187,
+          "simulator_key": "ECTOPLASM",
+          "native_id": "RELIC.ECTOPLASM",
+          "class_name": "Ectoplasm"
+        },
+        {
+          "simulator_id": 188,
+          "simulator_key": "ELECTRIC_SHRYMP",
+          "native_id": "RELIC.ELECTRIC_SHRYMP",
+          "class_name": "ElectricShrymp"
+        },
+        {
+          "simulator_id": 189,
+          "simulator_key": "EMBER_TEA",
+          "native_id": "RELIC.EMBER_TEA",
+          "class_name": "EmberTea"
+        },
+        {
+          "simulator_id": 190,
+          "simulator_key": "EMPTY_CAGE",
+          "native_id": "RELIC.EMPTY_CAGE",
+          "class_name": "EmptyCage"
+        },
+        {
+          "simulator_id": 191,
+          "simulator_key": "FAKE_ANCHOR",
+          "native_id": "RELIC.FAKE_ANCHOR",
+          "class_name": "FakeAnchor"
+        },
+        {
+          "simulator_id": 192,
+          "simulator_key": "FAKE_BLOOD_VIAL",
+          "native_id": "RELIC.FAKE_BLOOD_VIAL",
+          "class_name": "FakeBloodVial"
+        },
+        {
+          "simulator_id": 193,
+          "simulator_key": "FAKE_HAPPY_FLOWER",
+          "native_id": "RELIC.FAKE_HAPPY_FLOWER",
+          "class_name": "FakeHappyFlower"
+        },
+        {
+          "simulator_id": 194,
+          "simulator_key": "FAKE_LEES_WAFFLE",
+          "native_id": "RELIC.FAKE_LEES_WAFFLE",
+          "class_name": "FakeLeesWaffle"
+        },
+        {
+          "simulator_id": 195,
+          "simulator_key": "FAKE_MANGO",
+          "native_id": "RELIC.FAKE_MANGO",
+          "class_name": "FakeMango"
+        },
+        {
+          "simulator_id": 196,
+          "simulator_key": "FAKE_MERCHANTS_RUG",
+          "native_id": "RELIC.FAKE_MERCHANTS_RUG",
+          "class_name": "FakeMerchantsRug"
+        },
+        {
+          "simulator_id": 197,
+          "simulator_key": "FAKE_ORICHALCUM",
+          "native_id": "RELIC.FAKE_ORICHALCUM",
+          "class_name": "FakeOrichalcum"
+        },
+        {
+          "simulator_id": 198,
+          "simulator_key": "FAKE_SNECKO_EYE",
+          "native_id": "RELIC.FAKE_SNECKO_EYE",
+          "class_name": "FakeSneckoEye"
+        },
+        {
+          "simulator_id": 199,
+          "simulator_key": "FAKE_STRIKE_DUMMY",
+          "native_id": "RELIC.FAKE_STRIKE_DUMMY",
+          "class_name": "FakeStrikeDummy"
+        },
+        {
+          "simulator_id": 200,
+          "simulator_key": "FAKE_VENERABLE_TEA_SET",
+          "native_id": "RELIC.FAKE_VENERABLE_TEA_SET",
+          "class_name": "FakeVenerableTeaSet"
+        },
+        {
+          "simulator_id": 201,
+          "simulator_key": "FIDDLE",
+          "native_id": "RELIC.FIDDLE",
+          "class_name": "Fiddle"
+        },
+        {
+          "simulator_id": 202,
+          "simulator_key": "FORGOTTEN_SOUL",
+          "native_id": "RELIC.FORGOTTEN_SOUL",
+          "class_name": "ForgottenSoul"
+        },
+        {
+          "simulator_id": 203,
+          "simulator_key": "FRAGRANT_MUSHROOM",
+          "native_id": "RELIC.FRAGRANT_MUSHROOM",
+          "class_name": "FragrantMushroom"
+        },
+        {
+          "simulator_id": 204,
+          "simulator_key": "FRESNEL_LENS",
+          "native_id": "RELIC.FRESNEL_LENS",
+          "class_name": "FresnelLens"
+        },
+        {
+          "simulator_id": 205,
+          "simulator_key": "FUR_COAT",
+          "native_id": "RELIC.FUR_COAT",
+          "class_name": "FurCoat"
+        },
+        {
+          "simulator_id": 206,
+          "simulator_key": "GLASS_EYE",
+          "native_id": "RELIC.GLASS_EYE",
+          "class_name": "GlassEye"
+        },
+        {
+          "simulator_id": 207,
+          "simulator_key": "GLITTER",
+          "native_id": "RELIC.GLITTER",
+          "class_name": "Glitter"
+        },
+        {
+          "simulator_id": 208,
+          "simulator_key": "GOLDEN_COMPASS",
+          "native_id": "RELIC.GOLDEN_COMPASS",
+          "class_name": "GoldenCompass"
+        },
+        {
+          "simulator_id": 209,
+          "simulator_key": "GOLDEN_PEARL",
+          "native_id": "RELIC.GOLDEN_PEARL",
+          "class_name": "GoldenPearl"
+        },
+        {
+          "simulator_id": 210,
+          "simulator_key": "HAND_DRILL",
+          "native_id": "RELIC.HAND_DRILL",
+          "class_name": "HandDrill"
+        },
+        {
+          "simulator_id": 211,
+          "simulator_key": "HISTORY_COURSE",
+          "native_id": "RELIC.HISTORY_COURSE",
+          "class_name": "HistoryCourse"
+        },
+        {
+          "simulator_id": 212,
+          "simulator_key": "IRON_CLUB",
+          "native_id": "RELIC.IRON_CLUB",
+          "class_name": "IronClub"
+        },
+        {
+          "simulator_id": 213,
+          "simulator_key": "JEWELED_MASK",
+          "native_id": "RELIC.JEWELED_MASK",
+          "class_name": "JeweledMask"
+        },
+        {
+          "simulator_id": 214,
+          "simulator_key": "JEWELRY_BOX",
+          "native_id": "RELIC.JEWELRY_BOX",
+          "class_name": "JewelryBox"
+        },
+        {
+          "simulator_id": 215,
+          "simulator_key": "LARGE_CAPSULE",
+          "native_id": "RELIC.LARGE_CAPSULE",
+          "class_name": "LargeCapsule"
+        },
+        {
+          "simulator_id": 216,
+          "simulator_key": "LAVA_ROCK",
+          "native_id": "RELIC.LAVA_ROCK",
+          "class_name": "LavaRock"
+        },
+        {
+          "simulator_id": 217,
+          "simulator_key": "LEAD_PAPERWEIGHT",
+          "native_id": "RELIC.LEAD_PAPERWEIGHT",
+          "class_name": "LeadPaperweight"
+        },
+        {
+          "simulator_id": 218,
+          "simulator_key": "LEAFY_POULTICE",
+          "native_id": "RELIC.LEAFY_POULTICE",
+          "class_name": "LeafyPoultice"
+        },
+        {
+          "simulator_id": 219,
+          "simulator_key": "LOOMING_FRUIT",
+          "native_id": "RELIC.LOOMING_FRUIT",
+          "class_name": "LoomingFruit"
+        },
+        {
+          "simulator_id": 220,
+          "simulator_key": "LORDS_PARASOL",
+          "native_id": "RELIC.LORDS_PARASOL",
+          "class_name": "LordsParasol"
+        },
+        {
+          "simulator_id": 221,
+          "simulator_key": "LOST_COFFER",
+          "native_id": "RELIC.LOST_COFFER",
+          "class_name": "LostCoffer"
+        },
+        {
+          "simulator_id": 222,
+          "simulator_key": "LOST_WISP",
+          "native_id": "RELIC.LOST_WISP",
+          "class_name": "LostWisp"
+        },
+        {
+          "simulator_id": 223,
+          "simulator_key": "MASSIVE_SCROLL",
+          "native_id": "RELIC.MASSIVE_SCROLL",
+          "class_name": "MassiveScroll"
+        },
+        {
+          "simulator_id": 224,
+          "simulator_key": "MAW_BANK",
+          "native_id": "RELIC.MAW_BANK",
+          "class_name": "MawBank"
+        },
+        {
+          "simulator_id": 225,
+          "simulator_key": "MEAT_CLEAVER",
+          "native_id": "RELIC.MEAT_CLEAVER",
+          "class_name": "MeatCleaver"
+        },
+        {
+          "simulator_id": 226,
+          "simulator_key": "MR_STRUGGLES",
+          "native_id": "RELIC.MR_STRUGGLES",
+          "class_name": "MrStruggles"
+        },
+        {
+          "simulator_id": 227,
+          "simulator_key": "MUSIC_BOX",
+          "native_id": "RELIC.MUSIC_BOX",
+          "class_name": "MusicBox"
+        },
+        {
+          "simulator_id": 228,
+          "simulator_key": "NEOWS_TORMENT",
+          "native_id": "RELIC.NEOWS_TORMENT",
+          "class_name": "NeowsTorment"
+        },
+        {
+          "simulator_id": 229,
+          "simulator_key": "NEW_LEAF",
+          "native_id": "RELIC.NEW_LEAF",
+          "class_name": "NewLeaf"
+        },
+        {
+          "simulator_id": 230,
+          "simulator_key": "NUTRITIOUS_OYSTER",
+          "native_id": "RELIC.NUTRITIOUS_OYSTER",
+          "class_name": "NutritiousOyster"
+        },
+        {
+          "simulator_id": 231,
+          "simulator_key": "NUTRITIOUS_SOUP",
+          "native_id": "RELIC.NUTRITIOUS_SOUP",
+          "class_name": "NutritiousSoup"
+        },
+        {
+          "simulator_id": 232,
+          "simulator_key": "PAELS_BLOOD",
+          "native_id": "RELIC.PAELS_BLOOD",
+          "class_name": "PaelsBlood"
+        },
+        {
+          "simulator_id": 233,
+          "simulator_key": "PAELS_CLAW",
+          "native_id": "RELIC.PAELS_CLAW",
+          "class_name": "PaelsClaw"
+        },
+        {
+          "simulator_id": 234,
+          "simulator_key": "PAELS_EYE",
+          "native_id": "RELIC.PAELS_EYE",
+          "class_name": "PaelsEye"
+        },
+        {
+          "simulator_id": 235,
+          "simulator_key": "PAELS_FLESH",
+          "native_id": "RELIC.PAELS_FLESH",
+          "class_name": "PaelsFlesh"
+        },
+        {
+          "simulator_id": 236,
+          "simulator_key": "PAELS_GROWTH",
+          "native_id": "RELIC.PAELS_GROWTH",
+          "class_name": "PaelsGrowth"
+        },
+        {
+          "simulator_id": 237,
+          "simulator_key": "PAELS_HORN",
+          "native_id": "RELIC.PAELS_HORN",
+          "class_name": "PaelsHorn"
+        },
+        {
+          "simulator_id": 238,
+          "simulator_key": "PAELS_LEGION",
+          "native_id": "RELIC.PAELS_LEGION",
+          "class_name": "PaelsLegion"
+        },
+        {
+          "simulator_id": 239,
+          "simulator_key": "PAELS_TEARS",
+          "native_id": "RELIC.PAELS_TEARS",
+          "class_name": "PaelsTears"
+        },
+        {
+          "simulator_id": 240,
+          "simulator_key": "PAELS_TOOTH",
+          "native_id": "RELIC.PAELS_TOOTH",
+          "class_name": "PaelsTooth"
+        },
+        {
+          "simulator_id": 241,
+          "simulator_key": "PAELS_WING",
+          "native_id": "RELIC.PAELS_WING",
+          "class_name": "PaelsWing"
+        },
+        {
+          "simulator_id": 242,
+          "simulator_key": "PANDORAS_BOX",
+          "native_id": "RELIC.PANDORAS_BOX",
+          "class_name": "PandorasBox"
+        },
+        {
+          "simulator_id": 243,
+          "simulator_key": "PHILOSOPHERS_STONE",
+          "native_id": "RELIC.PHILOSOPHERS_STONE",
+          "class_name": "PhilosophersStone"
+        },
+        {
+          "simulator_id": 244,
+          "simulator_key": "POLLINOUS_CORE",
+          "native_id": "RELIC.POLLINOUS_CORE",
+          "class_name": "PollinousCore"
+        },
+        {
+          "simulator_id": 245,
+          "simulator_key": "POMANDER",
+          "native_id": "RELIC.POMANDER",
+          "class_name": "Pomander"
+        },
+        {
+          "simulator_id": 246,
+          "simulator_key": "PRECARIOUS_SHEARS",
+          "native_id": "RELIC.PRECARIOUS_SHEARS",
+          "class_name": "PrecariousShears"
+        },
+        {
+          "simulator_id": 247,
+          "simulator_key": "PRECISE_SCISSORS",
+          "native_id": "RELIC.PRECISE_SCISSORS",
+          "class_name": "PreciseScissors"
+        },
+        {
+          "simulator_id": 248,
+          "simulator_key": "PRESERVED_FOG",
+          "native_id": "RELIC.PRESERVED_FOG",
+          "class_name": "PreservedFog"
+        },
+        {
+          "simulator_id": 249,
+          "simulator_key": "PRISMATIC_GEM",
+          "native_id": "RELIC.PRISMATIC_GEM",
+          "class_name": "PrismaticGem"
+        },
+        {
+          "simulator_id": 250,
+          "simulator_key": "PUMPKIN_CANDLE",
+          "native_id": "RELIC.PUMPKIN_CANDLE",
+          "class_name": "PumpkinCandle"
+        },
+        {
+          "simulator_id": 251,
+          "simulator_key": "RADIANT_PEARL",
+          "native_id": "RELIC.RADIANT_PEARL",
+          "class_name": "RadiantPearl"
+        },
+        {
+          "simulator_id": 252,
+          "simulator_key": "ROYAL_POISON",
+          "native_id": "RELIC.ROYAL_POISON",
+          "class_name": "RoyalPoison"
+        },
+        {
+          "simulator_id": 253,
+          "simulator_key": "RUNIC_PYRAMID",
+          "native_id": "RELIC.RUNIC_PYRAMID",
+          "class_name": "RunicPyramid"
+        },
+        {
+          "simulator_id": 254,
+          "simulator_key": "SAI",
+          "native_id": "RELIC.SAI",
+          "class_name": "Sai"
+        },
+        {
+          "simulator_id": 255,
+          "simulator_key": "SAND_CASTLE",
+          "native_id": "RELIC.SAND_CASTLE",
+          "class_name": "SandCastle"
+        },
+        {
+          "simulator_id": 256,
+          "simulator_key": "SCROLL_BOXES",
+          "native_id": "RELIC.SCROLL_BOXES",
+          "class_name": "ScrollBoxes"
+        },
+        {
+          "simulator_id": 257,
+          "simulator_key": "SEA_GLASS",
+          "native_id": "RELIC.SEA_GLASS",
+          "class_name": "SeaGlass"
+        },
+        {
+          "simulator_id": 258,
+          "simulator_key": "SEAL_OF_GOLD",
+          "native_id": "RELIC.SEAL_OF_GOLD",
+          "class_name": "SealOfGold"
+        },
+        {
+          "simulator_id": 259,
+          "simulator_key": "SERE_TALON",
+          "native_id": "RELIC.SERE_TALON",
+          "class_name": "SereTalon"
+        },
+        {
+          "simulator_id": 260,
+          "simulator_key": "SIGNET_RING",
+          "native_id": "RELIC.SIGNET_RING",
+          "class_name": "SignetRing"
+        },
+        {
+          "simulator_id": 261,
+          "simulator_key": "SILVER_CRUCIBLE",
+          "native_id": "RELIC.SILVER_CRUCIBLE",
+          "class_name": "SilverCrucible"
+        },
+        {
+          "simulator_id": 262,
+          "simulator_key": "SMALL_CAPSULE",
+          "native_id": "RELIC.SMALL_CAPSULE",
+          "class_name": "SmallCapsule"
+        },
+        {
+          "simulator_id": 263,
+          "simulator_key": "SNECKO_EYE",
+          "native_id": "RELIC.SNECKO_EYE",
+          "class_name": "SneckoEye"
+        },
+        {
+          "simulator_id": 264,
+          "simulator_key": "SOZU",
+          "native_id": "RELIC.SOZU",
+          "class_name": "Sozu"
+        },
+        {
+          "simulator_id": 265,
+          "simulator_key": "SPIKED_GAUNTLETS",
+          "native_id": "RELIC.SPIKED_GAUNTLETS",
+          "class_name": "SpikedGauntlets"
+        },
+        {
+          "simulator_id": 266,
+          "simulator_key": "STONE_HUMIDIFIER",
+          "native_id": "RELIC.STONE_HUMIDIFIER",
+          "class_name": "StoneHumidifier"
+        },
+        {
+          "simulator_id": 267,
+          "simulator_key": "STORYBOOK",
+          "native_id": "RELIC.STORYBOOK",
+          "class_name": "Storybook"
+        },
+        {
+          "simulator_id": 268,
+          "simulator_key": "SWORD_OF_STONE",
+          "native_id": "RELIC.SWORD_OF_STONE",
+          "class_name": "SwordOfStone"
+        },
+        {
+          "simulator_id": 269,
+          "simulator_key": "SWORD_OF_JADE",
+          "native_id": "RELIC.SWORD_OF_JADE",
+          "class_name": "SwordOfJade"
+        },
+        {
+          "simulator_id": 270,
+          "simulator_key": "TANXS_WHISTLE",
+          "native_id": "RELIC.TANXS_WHISTLE",
+          "class_name": "TanxsWhistle"
+        },
+        {
+          "simulator_id": 271,
+          "simulator_key": "TEA_OF_DISCOURTESY",
+          "native_id": "RELIC.TEA_OF_DISCOURTESY",
+          "class_name": "TeaOfDiscourtesy"
+        },
+        {
+          "simulator_id": 272,
+          "simulator_key": "THE_BOOT",
+          "native_id": "RELIC.THE_BOOT",
+          "class_name": "TheBoot"
+        },
+        {
+          "simulator_id": 273,
+          "simulator_key": "THROWING_AXE",
+          "native_id": "RELIC.THROWING_AXE",
+          "class_name": "ThrowingAxe"
+        },
+        {
+          "simulator_id": 274,
+          "simulator_key": "TOASTY_MITTENS",
+          "native_id": "RELIC.TOASTY_MITTENS",
+          "class_name": "ToastyMittens"
+        },
+        {
+          "simulator_id": 275,
+          "simulator_key": "TOUCH_OF_OROBAS",
+          "native_id": "RELIC.TOUCH_OF_OROBAS",
+          "class_name": "TouchOfOrobas"
+        },
+        {
+          "simulator_id": 276,
+          "simulator_key": "TOY_BOX",
+          "native_id": "RELIC.TOY_BOX",
+          "class_name": "ToyBox"
+        },
+        {
+          "simulator_id": 277,
+          "simulator_key": "TRI_BOOMERANG",
+          "native_id": "RELIC.TRI_BOOMERANG",
+          "class_name": "TriBoomerang"
+        },
+        {
+          "simulator_id": 278,
+          "simulator_key": "VELVET_CHOKER",
+          "native_id": "RELIC.VELVET_CHOKER",
+          "class_name": "VelvetChoker"
+        },
+        {
+          "simulator_id": 279,
+          "simulator_key": "VERY_HOT_COCOA",
+          "native_id": "RELIC.VERY_HOT_COCOA",
+          "class_name": "VeryHotCocoa"
+        },
+        {
+          "simulator_id": 280,
+          "simulator_key": "WAR_HAMMER",
+          "native_id": "RELIC.WAR_HAMMER",
+          "class_name": "WarHammer"
+        },
+        {
+          "simulator_id": 281,
+          "simulator_key": "WHISPERING_EARRING",
+          "native_id": "RELIC.WHISPERING_EARRING",
+          "class_name": "WhisperingEarring"
+        },
+        {
+          "simulator_id": 282,
+          "simulator_key": "WONGO_CUSTOMER_APPRECIATION_BADGE",
+          "native_id": "RELIC.WONGO_CUSTOMER_APPRECIATION_BADGE",
+          "class_name": "WongoCustomerAppreciationBadge"
+        },
+        {
+          "simulator_id": 283,
+          "simulator_key": "WONGOS_MYSTERY_TICKET",
+          "native_id": "RELIC.WONGOS_MYSTERY_TICKET",
+          "class_name": "WongosMysteryTicket"
+        },
+        {
+          "simulator_id": 284,
+          "simulator_key": "YUMMY_COOKIE",
+          "native_id": "RELIC.YUMMY_COOKIE",
+          "class_name": "YummyCookie"
+        },
+        {
+          "simulator_id": 285,
+          "simulator_key": "SYMBIOTIC_VIRUS",
+          "native_id": "RELIC.SYMBIOTIC_VIRUS",
+          "class_name": "SymbioticVirus"
+        },
+        {
+          "simulator_id": 286,
+          "simulator_key": "TWISTED_FUNNEL",
+          "native_id": "RELIC.TWISTED_FUNNEL",
+          "class_name": "TwistedFunnel"
+        },
+        {
+          "simulator_id": 287,
+          "simulator_key": "CLOAK_CLASP",
+          "native_id": "RELIC.CLOAK_CLASP",
+          "class_name": "CloakClasp"
+        },
+        {
+          "simulator_id": 288,
+          "simulator_key": "CIRCLET",
+          "native_id": "RELIC.CIRCLET",
+          "class_name": "Circlet"
+        },
+        {
+          "simulator_id": 289,
+          "simulator_key": "DEPRECATED_RELIC",
+          "native_id": "RELIC.DEPRECATED_RELIC",
+          "class_name": "DeprecatedRelic"
+        },
+        {
+          "simulator_id": 290,
+          "simulator_key": "SILKEN_TRESS",
+          "native_id": "RELIC.SILKEN_TRESS",
+          "class_name": "SilkenTress"
+        },
+        {
+          "simulator_id": 291,
+          "simulator_key": "DOWSING_ROD",
+          "native_id": "RELIC.DOWSING_ROD",
+          "class_name": "DowsingRod"
+        },
+        {
+          "simulator_id": 292,
+          "simulator_key": "HEFTY_TABLET",
+          "native_id": "RELIC.HEFTY_TABLET",
+          "class_name": "HeftyTablet"
+        },
+        {
+          "simulator_id": 293,
+          "simulator_key": "NEOWS_BONES",
+          "native_id": "RELIC.NEOWS_BONES",
+          "class_name": "NeowsBones"
+        },
+        {
+          "simulator_id": 294,
+          "simulator_key": "NEOWS_SACRIFICE",
+          "native_id": "RELIC.NEOWS_SACRIFICE",
+          "class_name": "NeowsSacrifice"
+        },
+        {
+          "simulator_id": 295,
+          "simulator_key": "FISHING_ROD",
+          "native_id": "RELIC.FISHING_ROD",
+          "class_name": "FishingRod"
+        },
+        {
+          "simulator_id": 296,
+          "simulator_key": "KALEIDOSCOPE",
+          "native_id": "RELIC.KALEIDOSCOPE",
+          "class_name": "Kaleidoscope"
+        },
+        {
+          "simulator_id": 297,
+          "simulator_key": "PHIAL_HOLSTER",
+          "native_id": "RELIC.PHIAL_HOLSTER",
+          "class_name": "PhialHolster"
+        },
+        {
+          "simulator_id": 298,
+          "simulator_key": "WINGED_BOOTS",
+          "native_id": "RELIC.WINGED_BOOTS",
+          "class_name": "WingedBoots"
+        },
+        {
+          "simulator_id": 299,
+          "simulator_key": "NEOWS_TALISMAN",
+          "native_id": "RELIC.NEOWS_TALISMAN",
+          "class_name": "NeowsTalisman"
+        }
+      ],
+      "matching_identity_count": 299,
+      "status": "match"
+    },
+    "potions": {
+      "simulator_count": 65,
+      "native_registered_count": 66,
+      "native_non_mock_count": 65,
+      "duplicate_simulator_ids": [],
+      "duplicate_simulator_classes": [],
+      "duplicate_native_ids": [],
+      "missing": [],
+      "extra": [],
+      "excluded_native_test_models": [
+        "POTION.MOCK_DISCARD_AND_ADD_SHIVS_POTION"
+      ],
+      "non_model_source_helpers": [],
+      "identity_aliases": [
+        {
+          "simulator_id": 48,
+          "simulator_key": "FAIRY_IN_ABOTTLE",
+          "native_id": "POTION.FAIRY_IN_A_BOTTLE",
+          "class_name": "FairyInABottle"
+        },
+        {
+          "simulator_id": 50,
+          "simulator_key": "GHOST_IN_AJAR",
+          "native_id": "POTION.GHOST_IN_A_JAR",
+          "class_name": "GhostInAJar"
+        },
+        {
+          "simulator_id": 58,
+          "simulator_key": "SHIP_IN_ABOTTLE",
+          "native_id": "POTION.SHIP_IN_A_BOTTLE",
+          "class_name": "ShipInABottle"
+        }
+      ],
+      "attribute_mismatches": [],
+      "conditional_attributes": [
+        {
+          "id": "POTION.FOUL_POTION",
+          "field": "target",
+          "native": {
+            "outsideCombat": "TargetedNoCreature",
+            "inCombat": "AllEnemies"
+          },
+          "simulator": {
+            "outsideCombat": "TargetedNoCreature",
+            "inCombat": "AllEnemies"
+          }
+        }
+      ],
+      "runtime_content_mismatches": [],
+      "native_pool_declaration_mismatches": [],
+      "mapping": [
+        {
+          "simulator_id": 1,
+          "simulator_key": "ATTACK_POTION",
+          "native_id": "POTION.ATTACK_POTION",
+          "class_name": "AttackPotion"
+        },
+        {
+          "simulator_id": 2,
+          "simulator_key": "BLOCK_POTION",
+          "native_id": "POTION.BLOCK_POTION",
+          "class_name": "BlockPotion"
+        },
+        {
+          "simulator_id": 3,
+          "simulator_key": "BLOOD_POTION",
+          "native_id": "POTION.BLOOD_POTION",
+          "class_name": "BloodPotion"
+        },
+        {
+          "simulator_id": 4,
+          "simulator_key": "COLORLESS_POTION",
+          "native_id": "POTION.COLORLESS_POTION",
+          "class_name": "ColorlessPotion"
+        },
+        {
+          "simulator_id": 5,
+          "simulator_key": "DEXTERITY_POTION",
+          "native_id": "POTION.DEXTERITY_POTION",
+          "class_name": "DexterityPotion"
+        },
+        {
+          "simulator_id": 6,
+          "simulator_key": "ENERGY_POTION",
+          "native_id": "POTION.ENERGY_POTION",
+          "class_name": "EnergyPotion"
+        },
+        {
+          "simulator_id": 7,
+          "simulator_key": "EXPLOSIVE_AMPOULE",
+          "native_id": "POTION.EXPLOSIVE_AMPOULE",
+          "class_name": "ExplosiveAmpoule"
+        },
+        {
+          "simulator_id": 8,
+          "simulator_key": "FIRE_POTION",
+          "native_id": "POTION.FIRE_POTION",
+          "class_name": "FirePotion"
+        },
+        {
+          "simulator_id": 9,
+          "simulator_key": "FLEX_POTION",
+          "native_id": "POTION.FLEX_POTION",
+          "class_name": "FlexPotion"
+        },
+        {
+          "simulator_id": 10,
+          "simulator_key": "FOCUS_POTION",
+          "native_id": "POTION.FOCUS_POTION",
+          "class_name": "FocusPotion"
+        },
+        {
+          "simulator_id": 11,
+          "simulator_key": "POISON_POTION",
+          "native_id": "POTION.POISON_POTION",
+          "class_name": "PoisonPotion"
+        },
+        {
+          "simulator_id": 12,
+          "simulator_key": "POTION_OF_DOOM",
+          "native_id": "POTION.POTION_OF_DOOM",
+          "class_name": "PotionOfDoom"
+        },
+        {
+          "simulator_id": 13,
+          "simulator_key": "POWER_POTION",
+          "native_id": "POTION.POWER_POTION",
+          "class_name": "PowerPotion"
+        },
+        {
+          "simulator_id": 14,
+          "simulator_key": "SKILL_POTION",
+          "native_id": "POTION.SKILL_POTION",
+          "class_name": "SkillPotion"
+        },
+        {
+          "simulator_id": 15,
+          "simulator_key": "SPEED_POTION",
+          "native_id": "POTION.SPEED_POTION",
+          "class_name": "SpeedPotion"
+        },
+        {
+          "simulator_id": 16,
+          "simulator_key": "STAR_POTION",
+          "native_id": "POTION.STAR_POTION",
+          "class_name": "StarPotion"
+        },
+        {
+          "simulator_id": 17,
+          "simulator_key": "STRENGTH_POTION",
+          "native_id": "POTION.STRENGTH_POTION",
+          "class_name": "StrengthPotion"
+        },
+        {
+          "simulator_id": 18,
+          "simulator_key": "SWIFT_POTION",
+          "native_id": "POTION.SWIFT_POTION",
+          "class_name": "SwiftPotion"
+        },
+        {
+          "simulator_id": 19,
+          "simulator_key": "VULNERABLE_POTION",
+          "native_id": "POTION.VULNERABLE_POTION",
+          "class_name": "VulnerablePotion"
+        },
+        {
+          "simulator_id": 20,
+          "simulator_key": "WEAK_POTION",
+          "native_id": "POTION.WEAK_POTION",
+          "class_name": "WeakPotion"
+        },
+        {
+          "simulator_id": 21,
+          "simulator_key": "ASHWATER",
+          "native_id": "POTION.ASHWATER",
+          "class_name": "Ashwater"
+        },
+        {
+          "simulator_id": 22,
+          "simulator_key": "BLESSING_OF_THE_FORGE",
+          "native_id": "POTION.BLESSING_OF_THE_FORGE",
+          "class_name": "BlessingOfTheForge"
+        },
+        {
+          "simulator_id": 23,
+          "simulator_key": "BONE_BREW",
+          "native_id": "POTION.BONE_BREW",
+          "class_name": "BoneBrew"
+        },
+        {
+          "simulator_id": 24,
+          "simulator_key": "CLARITY",
+          "native_id": "POTION.CLARITY",
+          "class_name": "Clarity"
+        },
+        {
+          "simulator_id": 25,
+          "simulator_key": "CUNNING_POTION",
+          "native_id": "POTION.CUNNING_POTION",
+          "class_name": "CunningPotion"
+        },
+        {
+          "simulator_id": 26,
+          "simulator_key": "CURE_ALL",
+          "native_id": "POTION.CURE_ALL",
+          "class_name": "CureAll"
+        },
+        {
+          "simulator_id": 27,
+          "simulator_key": "DUPLICATOR",
+          "native_id": "POTION.DUPLICATOR",
+          "class_name": "Duplicator"
+        },
+        {
+          "simulator_id": 28,
+          "simulator_key": "FORTIFIER",
+          "native_id": "POTION.FORTIFIER",
+          "class_name": "Fortifier"
+        },
+        {
+          "simulator_id": 29,
+          "simulator_key": "FYSH_OIL",
+          "native_id": "POTION.FYSH_OIL",
+          "class_name": "FyshOil"
+        },
+        {
+          "simulator_id": 30,
+          "simulator_key": "GAMBLERS_BREW",
+          "native_id": "POTION.GAMBLERS_BREW",
+          "class_name": "GamblersBrew"
+        },
+        {
+          "simulator_id": 31,
+          "simulator_key": "HEART_OF_IRON",
+          "native_id": "POTION.HEART_OF_IRON",
+          "class_name": "HeartOfIron"
+        },
+        {
+          "simulator_id": 32,
+          "simulator_key": "KINGS_COURAGE",
+          "native_id": "POTION.KINGS_COURAGE",
+          "class_name": "KingsCourage"
+        },
+        {
+          "simulator_id": 33,
+          "simulator_key": "LIQUID_BRONZE",
+          "native_id": "POTION.LIQUID_BRONZE",
+          "class_name": "LiquidBronze"
+        },
+        {
+          "simulator_id": 34,
+          "simulator_key": "POTION_OF_BINDING",
+          "native_id": "POTION.POTION_OF_BINDING",
+          "class_name": "PotionOfBinding"
+        },
+        {
+          "simulator_id": 35,
+          "simulator_key": "POTION_OF_CAPACITY",
+          "native_id": "POTION.POTION_OF_CAPACITY",
+          "class_name": "PotionOfCapacity"
+        },
+        {
+          "simulator_id": 36,
+          "simulator_key": "POWDERED_DEMISE",
+          "native_id": "POTION.POWDERED_DEMISE",
+          "class_name": "PowderedDemise"
+        },
+        {
+          "simulator_id": 37,
+          "simulator_key": "RADIANT_TINCTURE",
+          "native_id": "POTION.RADIANT_TINCTURE",
+          "class_name": "RadiantTincture"
+        },
+        {
+          "simulator_id": 38,
+          "simulator_key": "REGEN_POTION",
+          "native_id": "POTION.REGEN_POTION",
+          "class_name": "RegenPotion"
+        },
+        {
+          "simulator_id": 39,
+          "simulator_key": "STABLE_SERUM",
+          "native_id": "POTION.STABLE_SERUM",
+          "class_name": "StableSerum"
+        },
+        {
+          "simulator_id": 40,
+          "simulator_key": "TOUCH_OF_INSANITY",
+          "native_id": "POTION.TOUCH_OF_INSANITY",
+          "class_name": "TouchOfInsanity"
+        },
+        {
+          "simulator_id": 41,
+          "simulator_key": "BEETLE_JUICE",
+          "native_id": "POTION.BEETLE_JUICE",
+          "class_name": "BeetleJuice"
+        },
+        {
+          "simulator_id": 42,
+          "simulator_key": "BOTTLED_POTENTIAL",
+          "native_id": "POTION.BOTTLED_POTENTIAL",
+          "class_name": "BottledPotential"
+        },
+        {
+          "simulator_id": 43,
+          "simulator_key": "COSMIC_CONCOCTION",
+          "native_id": "POTION.COSMIC_CONCOCTION",
+          "class_name": "CosmicConcoction"
+        },
+        {
+          "simulator_id": 44,
+          "simulator_key": "DISTILLED_CHAOS",
+          "native_id": "POTION.DISTILLED_CHAOS",
+          "class_name": "DistilledChaos"
+        },
+        {
+          "simulator_id": 45,
+          "simulator_key": "DROPLET_OF_PRECOGNITION",
+          "native_id": "POTION.DROPLET_OF_PRECOGNITION",
+          "class_name": "DropletOfPrecognition"
+        },
+        {
+          "simulator_id": 46,
+          "simulator_key": "ENTROPIC_BREW",
+          "native_id": "POTION.ENTROPIC_BREW",
+          "class_name": "EntropicBrew"
+        },
+        {
+          "simulator_id": 47,
+          "simulator_key": "ESSENCE_OF_DARKNESS",
+          "native_id": "POTION.ESSENCE_OF_DARKNESS",
+          "class_name": "EssenceOfDarkness"
+        },
+        {
+          "simulator_id": 48,
+          "simulator_key": "FAIRY_IN_ABOTTLE",
+          "native_id": "POTION.FAIRY_IN_A_BOTTLE",
+          "class_name": "FairyInABottle"
+        },
+        {
+          "simulator_id": 49,
+          "simulator_key": "FRUIT_JUICE",
+          "native_id": "POTION.FRUIT_JUICE",
+          "class_name": "FruitJuice"
+        },
+        {
+          "simulator_id": 50,
+          "simulator_key": "GHOST_IN_AJAR",
+          "native_id": "POTION.GHOST_IN_A_JAR",
+          "class_name": "GhostInAJar"
+        },
+        {
+          "simulator_id": 51,
+          "simulator_key": "GIGANTIFICATION_POTION",
+          "native_id": "POTION.GIGANTIFICATION_POTION",
+          "class_name": "GigantificationPotion"
+        },
+        {
+          "simulator_id": 52,
+          "simulator_key": "LIQUID_MEMORIES",
+          "native_id": "POTION.LIQUID_MEMORIES",
+          "class_name": "LiquidMemories"
+        },
+        {
+          "simulator_id": 53,
+          "simulator_key": "LUCKY_TONIC",
+          "native_id": "POTION.LUCKY_TONIC",
+          "class_name": "LuckyTonic"
+        },
+        {
+          "simulator_id": 54,
+          "simulator_key": "MAZALETHS_GIFT",
+          "native_id": "POTION.MAZALETHS_GIFT",
+          "class_name": "MazalethsGift"
+        },
+        {
+          "simulator_id": 55,
+          "simulator_key": "OROBIC_ACID",
+          "native_id": "POTION.OROBIC_ACID",
+          "class_name": "OrobicAcid"
+        },
+        {
+          "simulator_id": 56,
+          "simulator_key": "POT_OF_GHOULS",
+          "native_id": "POTION.POT_OF_GHOULS",
+          "class_name": "PotOfGhouls"
+        },
+        {
+          "simulator_id": 57,
+          "simulator_key": "SHACKLING_POTION",
+          "native_id": "POTION.SHACKLING_POTION",
+          "class_name": "ShacklingPotion"
+        },
+        {
+          "simulator_id": 58,
+          "simulator_key": "SHIP_IN_ABOTTLE",
+          "native_id": "POTION.SHIP_IN_A_BOTTLE",
+          "class_name": "ShipInABottle"
+        },
+        {
+          "simulator_id": 59,
+          "simulator_key": "SNECKO_OIL",
+          "native_id": "POTION.SNECKO_OIL",
+          "class_name": "SneckoOil"
+        },
+        {
+          "simulator_id": 60,
+          "simulator_key": "SOLDIERS_STEW",
+          "native_id": "POTION.SOLDIERS_STEW",
+          "class_name": "SoldiersStew"
+        },
+        {
+          "simulator_id": 61,
+          "simulator_key": "FOUL_POTION",
+          "native_id": "POTION.FOUL_POTION",
+          "class_name": "FoulPotion"
+        },
+        {
+          "simulator_id": 62,
+          "simulator_key": "GLOWWATER_POTION",
+          "native_id": "POTION.GLOWWATER_POTION",
+          "class_name": "GlowwaterPotion"
+        },
+        {
+          "simulator_id": 63,
+          "simulator_key": "POTION_SHAPED_ROCK",
+          "native_id": "POTION.POTION_SHAPED_ROCK",
+          "class_name": "PotionShapedRock"
+        },
+        {
+          "simulator_id": 64,
+          "simulator_key": "DEPRECATED_POTION",
+          "native_id": "POTION.DEPRECATED_POTION",
+          "class_name": "DeprecatedPotion"
+        },
+        {
+          "simulator_id": 65,
+          "simulator_key": "AMBERGRIS",
+          "native_id": "POTION.AMBERGRIS",
+          "class_name": "Ambergris"
+        }
+      ],
+      "matching_identity_count": 65,
+      "status": "match"
+    },
+    "events": {
+      "counts": {
+        "simulator_slots": 66,
+        "native_active": 57,
+        "simulator_active_normal": 57,
+        "checks": 7,
+        "differences": 0
+      },
+      "checks": [
+        {
+          "name": "OVERGROWTH.event_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.event_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.event_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.event_order",
+          "passed": true
+        },
+        {
+          "name": "shared_event_order",
+          "passed": true
+        },
+        {
+          "name": "active_registry_missing",
+          "passed": true
+        },
+        {
+          "name": "active_pool_unsupported",
+          "passed": true
+        }
+      ],
+      "differences": [],
+      "exceptions": [
+        {
+          "id": "AROMA_PLACEHOLDER",
+          "status": "reserved_non_native_inactive",
+          "inActivePool": false
+        },
+        {
+          "id": "THE_ARCHITECT",
+          "status": "ending_event_outside_normal_pools_not_registered_in_simulator"
+        },
+        {
+          "ids": [
+            "DEPRECATED_EVENT",
+            "DEPRECATED_ANCIENT_EVENT"
+          ],
+          "status": "native_save_compatibility_only"
+        },
+        {
+          "fields": [
+            "vars",
+            "isShared"
+          ],
+          "status": "not_compared",
+          "reason": "simulator has no standalone registry fields; isShared is multiplayer sharing, not cross-act membership"
+        }
+      ],
+      "evidence": [
+        "sim/src/events.cpp: EVENTS and *_EVENT_ORDER (legacy EventInfo.act is not pool membership)"
+      ],
+      "oracle": "native_dll_registry"
+    },
+    "ancients": {
+      "counts": {
+        "native_active": 8,
+        "simulator_active": 8,
+        "possible_relics_by_ancient": {
+          "NEOW": 30,
+          "OROBAS": 10,
+          "PAEL": 10,
+          "TEZCATARA": 10,
+          "NONUPEIPE": 10,
+          "TANX": 10,
+          "VAKUU": 10,
+          "DARV": 12
+        },
+        "checks": 14,
+        "differences": 0
+      },
+      "checks": [
+        {
+          "name": "active_registry_missing",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH.ancient_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.ancient_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.ancient_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.ancient_order",
+          "passed": true
+        },
+        {
+          "name": "shared_ancients",
+          "passed": true
+        },
+        {
+          "name": "NEOW.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "OROBAS.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "PAEL.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "TEZCATARA.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "NONUPEIPE.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "TANX.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "VAKUU.possible_relics",
+          "passed": true
+        },
+        {
+          "name": "DARV.possible_relics",
+          "passed": true
+        }
+      ],
+      "differences": [],
+      "exceptions": [
+        {
+          "status": "not_compared",
+          "fields": [
+            "dynamic eligibility",
+            "choice generation weights",
+            "vars",
+            "effects"
+          ]
+        }
+      ],
+      "evidence": [
+        "sim/src/events.cpp: event_pick_ancient, event_plan_shared_ancients, generate_ancient_options"
+      ],
+      "oracle": "native_dll_registry"
+    },
+    "monsters": {
+      "counts": {
+        "simulator_rule_ids": 109,
+        "native_registry": 107,
+        "mapped_native_ids": 108,
+        "mapped_active_native_ids": 107,
+        "checks": 218,
+        "differences": 0
+      },
+      "checks": [
+        {
+          "name": "BYGONE_EFFIGY.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BYGONE_EFFIGY.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LEAF_SLIME_M.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LEAF_SLIME_M.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TWIG_SLIME_M.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TWIG_SLIME_M.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG.hpA10",
+          "passed": true
+        },
+        {
+          "name": "EYE_WITH_TEETH.hpA0",
+          "passed": true
+        },
+        {
+          "name": "EYE_WITH_TEETH.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "INKLET.hpA0",
+          "passed": true
+        },
+        {
+          "name": "INKLET.hpA10",
+          "passed": true
+        },
+        {
+          "name": "MAWLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "MAWLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "NIBBIT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "NIBBIT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "WRIGGLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "WRIGGLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "AXE_RUBY_RAIDER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "AXE_RUBY_RAIDER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "ASSASSIN_RUBY_RAIDER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "ASSASSIN_RUBY_RAIDER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BRUTE_RUBY_RAIDER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BRUTE_RUBY_RAIDER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CROSSBOW_RUBY_RAIDER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CROSSBOW_RUBY_RAIDER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TRACKER_RUBY_RAIDER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TRACKER_RUBY_RAIDER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LEAF_SLIME_S.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LEAF_SLIME_S.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TWIG_SLIME_S.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TWIG_SLIME_S.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "KIN_FOLLOWER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "KIN_FOLLOWER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "KIN_PRIEST.hpA0",
+          "passed": true
+        },
+        {
+          "name": "KIN_PRIEST.hpA10",
+          "passed": true
+        },
+        {
+          "name": "VANTOM.hpA0",
+          "passed": true
+        },
+        {
+          "name": "VANTOM.hpA10",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUG.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUG.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CALCIFIED_CULTIST.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CALCIFIED_CULTIST.hpA10",
+          "passed": true
+        },
+        {
+          "name": "DAMP_CULTIST.hpA0",
+          "passed": true
+        },
+        {
+          "name": "DAMP_CULTIST.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC.hpA0",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FAT_GREMLIN.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FAT_GREMLIN.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SNEAKY_GREMLIN.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SNEAKY_GREMLIN.hpA10",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP.hpA0",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG.hpA10",
+          "passed": true
+        },
+        {
+          "name": "GAS_BOMB.hpA0",
+          "passed": true
+        },
+        {
+          "name": "GAS_BOMB.hpA10",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RAT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RAT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_EGG.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_EGG.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_SILK.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_SILK.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_NECTAR.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_NECTAR.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_ROCK.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUG_ROCK.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CHOMPER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CHOMPER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_FRONT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_FRONT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_MIDDLE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_MIDDLE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_BACK.hpA0",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_SEGMENT_BACK.hpA10",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETON.hpA0",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETON.hpA10",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "CRUSHER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "CRUSHER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "ROCKET.hpA0",
+          "passed": true
+        },
+        {
+          "name": "ROCKET.hpA10",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISM.hpA0",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISM.hpA10",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON.hpA0",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR.hpA10",
+          "passed": true
+        },
+        {
+          "name": "MYTE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "MYTE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TOUGH_EGG.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TOUGH_EGG.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD.hpA10",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA.hpA0",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA.hpA10",
+          "passed": true
+        },
+        {
+          "name": "PARAFRIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "PARAFRIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "AXEBOT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "AXEBOT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR.hpA0",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR.hpA10",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS.hpA0",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR.hpA10",
+          "passed": true
+        },
+        {
+          "name": "GUARDBOT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "GUARDBOT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "NOISEBOT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "NOISEBOT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "ZAPBOT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "ZAPBOT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "STABBOT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "STABBOT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD.hpA0",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FLAIL_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FLAIL_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SPECTRAL_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SPECTRAL_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "MAGI_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "MAGI_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE.hpA0",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE.hpA10",
+          "passed": true
+        },
+        {
+          "name": "QUEEN.hpA0",
+          "passed": true
+        },
+        {
+          "name": "QUEEN.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TORCH_HEAD_AMALGAM.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TORCH_HEAD_AMALGAM.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SCROLL_OF_BITING.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SCROLL_OF_BITING.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS.hpA0",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST.hpA0",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST.hpA10",
+          "passed": true
+        },
+        {
+          "name": "THE_FORGOTTEN.hpA0",
+          "passed": true
+        },
+        {
+          "name": "THE_FORGOTTEN.hpA10",
+          "passed": true
+        },
+        {
+          "name": "LIVING_SHIELD.hpA0",
+          "passed": true
+        },
+        {
+          "name": "LIVING_SHIELD.hpA10",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR.hpA0",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR.hpA10",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_MONSTER.hpA0",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_MONSTER.hpA10",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT.hpA0",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V1.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V1.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V2.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V2.hpA10",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V3.hpA0",
+          "passed": true
+        },
+        {
+          "name": "BATTLE_FRIEND_V3.hpA10",
+          "passed": true
+        },
+        {
+          "name": "encounter_monster_registry_missing",
+          "passed": true
+        },
+        {
+          "name": "active_monster_registry_missing",
+          "passed": true
+        },
+        {
+          "name": "unexpected_native_identity",
+          "passed": true
+        },
+        {
+          "name": "concrete_identity_export",
+          "passed": true
+        }
+      ],
+      "differences": [],
+      "exceptions": [
+        {
+          "ids": [
+            "DOOR",
+            "DOORMAKER",
+            "ROYAL_GUARD"
+          ],
+          "status": "reserved_non_native_inactive"
+        },
+        {
+          "ids": [
+            "ARCHITECT",
+            "BIG_DUMMY",
+            "BYRDPIP",
+            "DEPRECATED_MONSTER",
+            "MOCK_ARTIFACT_MONSTER",
+            "MOCK_ATTACK_AND_SUMMON_MINION_MONSTER",
+            "MOCK_ATTACK_MONSTER",
+            "MOCK_INTANGIBLE_MONSTER",
+            "MOCK_PLATING_MONSTER",
+            "MOCK_REATTACH_MONSTER",
+            "MULTI_ATTACK_MOVE_MONSTER",
+            "ONE_HP_MONSTER",
+            "OSTY",
+            "PAELS_LEGION",
+            "SINGLE_ATTACK_MOVE_MONSTER",
+            "TEN_HP_MONSTER",
+            "THE_ADVERSARY_MK_ONE",
+            "THE_ADVERSARY_MK_THREE",
+            "THE_ADVERSARY_MK_TWO"
+          ],
+          "status": "native_classes_outside_ModelDb_Monsters",
+          "reason": "includes Architect ending, pets, deprecated/debug classes and currently unreferenced Adversary variants"
+        },
+        {
+          "ids": [
+            "ARCHITECT"
+          ],
+          "status": "simulator_implemented_native_models_outside_active_monster_registry"
+        },
+        {
+          "implementation": "DECIMILLIPEDE_SEGMENT",
+          "nativeAliases": {
+            "DECIMILLIPEDE_SEGMENT_FRONT": "DECIMILLIPEDE_SEGMENT",
+            "DECIMILLIPEDE_SEGMENT_MIDDLE": "DECIMILLIPEDE_SEGMENT",
+            "DECIMILLIPEDE_SEGMENT_BACK": "DECIMILLIPEDE_SEGMENT"
+          },
+          "status": "shared_rules_concrete_identity_by_persistent_slot",
+          "evidence": "DecimillipedeSegmentFront/Middle/Back inherit HP and AI unchanged; only SegmentAttack visual method differs"
+        }
+      ],
+      "evidence": [
+        "sim/include/sts2/monsters_generated.inc: actual compiled HP table",
+        "sim/bindings/bindings.cpp: native_monster_entry"
+      ],
+      "oracle": "native_dll_registry"
+    },
+    "encounters": {
+      "counts": {
+        "simulator_slots": 91,
+        "native_registry": 85,
+        "mapped_active_native_ids": 85,
+        "checks": 357,
+        "differences": 0
+      },
+      "checks": [
+        {
+          "name": "active_encounter_registry_missing",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER.roomType",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER.slots",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER.tags",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER.roomType",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER.slots",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER.tags",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER.roomType",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER.slots",
+          "passed": true
+        },
+        {
+          "name": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER.tags",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_EVENT_ENCOUNTER.roomType",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_EVENT_ENCOUNTER.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_EVENT_ENCOUNTER.slots",
+          "passed": true
+        },
+        {
+          "name": "FAKE_MERCHANT_EVENT_ENCOUNTER.tags",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER.roomType",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER.isWeak",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER.slots",
+          "passed": true
+        },
+        {
+          "name": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER.tags",
+          "passed": true
+        },
+        {
+          "name": "BYGONE_EFFIGY_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "BYGONE_EFFIGY_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BYGONE_EFFIGY_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "BYGONE_EFFIGY_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "BYRDONIS_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "CEREMONIAL_BEAST_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "CUBEX_CONSTRUCT_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "FLYCONID_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "FOGMOG_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "FUZZY_WURM_CRAWLER_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "INKLETS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "INKLETS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "INKLETS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "INKLETS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "MAWLER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "MAWLER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "MAWLER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "MAWLER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "NIBBITS_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH_CRAWLERS.roomType",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH_CRAWLERS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH_CRAWLERS.slots",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH_CRAWLERS.tags",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "PHROG_PARASITE_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "RUBY_RAIDERS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "RUBY_RAIDERS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "RUBY_RAIDERS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "RUBY_RAIDERS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "SHRINKER_BEETLE_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "SLIMES_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SLITHERING_STRANGLER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SNAPPING_JAXFRUIT_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "THE_KIN_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "THE_KIN_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "THE_KIN_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "THE_KIN_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "VANTOM_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "VANTOM_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "VANTOM_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "VANTOM_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "VINE_SHAMBLER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "BOWLBUGS_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "CHOMPERS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "CHOMPERS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CHOMPERS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "CHOMPERS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "DECIMILLIPEDE_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "ENTOMANCER_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "EXOSKELETONS_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "HUNTER_KILLER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISMS_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISMS_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISMS_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "INFESTED_PRISMS_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "KAISER_CRAB_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "KAISER_CRAB_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "KAISER_CRAB_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "KAISER_CRAB_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "KNOWLEDGE_DEMON_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "LOUSE_PROGENITOR_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "MYTES_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "MYTES_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "MYTES_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "MYTES_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "OVICOPTER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SLUMBERING_BEETLE_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SPINY_TOAD_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "THE_INSATIABLE_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "THE_OBSCURA_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "THIEVING_HOPPER_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "TUNNELER_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "AXEBOTS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "AXEBOTS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "AXEBOTS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "AXEBOTS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "CONSTRUCT_MENAGERIE_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "CONSTRUCT_MENAGERIE_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CONSTRUCT_MENAGERIE_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "CONSTRUCT_MENAGERIE_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "DEVOTED_SCULPTOR_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "FABRICATOR_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "FROG_KNIGHT_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "GLOBE_HEAD_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "KNIGHTS_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "KNIGHTS_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "KNIGHTS_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "KNIGHTS_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "MECHA_KNIGHT_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "OWL_MAGISTRATE_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "QUEEN_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "QUEEN_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "QUEEN_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "QUEEN_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "SCROLLS_OF_BITING_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SLIMED_BERSERKER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "SOUL_NEXUS_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "TEST_SUBJECT_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST_AND_FORGOTTEN_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST_AND_FORGOTTEN_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST_AND_FORGOTTEN_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "THE_LOST_AND_FORGOTTEN_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "TURRET_OPERATOR_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "CORPSE_SLUGS_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "CULTISTS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "CULTISTS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "CULTISTS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "CULTISTS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "FOSSIL_STALKER_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "GREMLIN_MERC_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "HAUNTED_SHIP_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "LAGAVULIN_MATRIARCH_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "LIVING_FOG_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENERS_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENERS_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENERS_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "PHANTASMAL_GARDENERS_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "PUNCH_CONSTRUCT_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SEWER_CLAM_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "SKULKING_COLONY_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "SLUDGE_SPINNER_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "SOUL_FYSH_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL_ELITE.roomType",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL_ELITE.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL_ELITE.slots",
+          "passed": true
+        },
+        {
+          "name": "TERROR_EEL_ELITE.tags",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLES_WEAK.roomType",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLES_WEAK.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLES_WEAK.slots",
+          "passed": true
+        },
+        {
+          "name": "TOADPOLES_WEAK.tags",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RATS_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RATS_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RATS_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "TWO_TAILED_RATS_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "WATERFALL_GIANT_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_NORMAL.roomType",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_NORMAL.isWeak",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_NORMAL.slots",
+          "passed": true
+        },
+        {
+          "name": "SEAPUNK_NORMAL.tags",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS_BOSS.roomType",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS_BOSS.isWeak",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS_BOSS.slots",
+          "passed": true
+        },
+        {
+          "name": "AEONGLASS_BOSS.tags",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH.weak_order",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH.normal_order",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH.elite_order",
+          "passed": true
+        },
+        {
+          "name": "OVERGROWTH.boss_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.weak_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.normal_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.elite_order",
+          "passed": true
+        },
+        {
+          "name": "HIVE.boss_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.weak_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.normal_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.elite_order",
+          "passed": true
+        },
+        {
+          "name": "GLORY.boss_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.weak_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.normal_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.elite_order",
+          "passed": true
+        },
+        {
+          "name": "UNDERDOCKS.boss_order",
+          "passed": true
+        }
+      ],
+      "differences": [],
+      "exceptions": [
+        {
+          "ids": [
+            "DOORMAKER_BOSS",
+            "TOADPOLES_NORMAL"
+          ],
+          "status": "reserved_non_native_inactive"
+        },
+        {
+          "ids": [
+            "TUNNELER_NORMAL"
+          ],
+          "status": "native_registered_but_excluded_from_act_pool"
+        },
+        {
+          "ids": [
+            "DENSE_VEGETATION_EVENT_ENCOUNTER",
+            "PUNCH_OFF_EVENT_ENCOUNTER",
+            "THE_ARCHITECT_EVENT_ENCOUNTER"
+          ],
+          "status": "native_registered_outside_ModelDb_AllEncounters",
+          "reason": "directly created event/ending encounters; not ordinary act pool omissions"
+        },
+        {
+          "aliases": {
+            "SETUP_PUNCH_OFF": "PUNCH_OFF_EVENT_ENCOUNTER",
+            "SETUP_DENSE_VEGETATION": "DENSE_VEGETATION_EVENT_ENCOUNTER",
+            "SETUP_FAKE_MERCHANT": "FAKE_MERCHANT_EVENT_ENCOUNTER",
+            "SETUP_MYSTERIOUS_KNIGHT": "MYSTERIOUS_KNIGHT_EVENT_ENCOUNTER",
+            "SETUP_THE_ARCHITECT": "THE_ARCHITECT_EVENT_ENCOUNTER",
+            "SETUP_BATTLEWORN_DUMMY_V1": "BATTLEWORN_DUMMY_EVENT_V1_ENCOUNTER",
+            "SETUP_BATTLEWORN_DUMMY_V2": "BATTLEWORN_DUMMY_EVENT_V2_ENCOUNTER",
+            "SETUP_BATTLEWORN_DUMMY_V3": "BATTLEWORN_DUMMY_EVENT_V3_ENCOUNTER"
+          },
+          "status": "explicit_native_encounter_id_aliases"
+        },
+        {
+          "status": "not_compared",
+          "fields": [
+            "generated initial rosters",
+            "summoning effects",
+            "shouldGiveRewards for event routing"
+          ],
+          "reason": "AllPossibleMonsters is a registry, not an initial roster"
+        }
+      ],
+      "evidence": [
+        "sim/src/run.cpp: start_act actual ordered pools",
+        "sim/src/monsters.cpp: encounter_native_entry",
+        "sim/bindings/bindings.cpp: native_encounter_slots",
+        "sim/include/sts2/monsters_generated.inc: actual tag masks"
+      ],
+      "oracle": "native_dll_registry"
+    }
+  },
+  "identity_lock": {
+    "path": "sim/content/registry_identity_lock.json",
+    "differences": [],
+    "slots": {
+      "CARD": 597,
+      "RELIC": 300,
+      "POTION": 66,
+      "MONSTER": 110,
+      "ENCOUNTER": 92,
+      "EVENT": 66
+    }
+  },
+  "public_catalog": {
+    "differences": [],
+    "counts": {
+      "CARD": 596,
+      "POWER": 265,
+      "RELIC": 299,
+      "POTION": 65,
+      "MONSTER": 120,
+      "ENCOUNTER": 90,
+      "EVENT": 68,
+      "ENCHANTMENT": 23,
+      "AFFLICTION": 7
+    },
+    "relic_ui_traits": {
+      "checked": true,
+      "missing_source_count": 0,
+      "reason": null
+    }
+  },
+  "unverified": [
+    "card/relic/potion/event/ancient effect execution",
+    "all dynamic eligibility and choice weights",
+    "all monster AI and combat transitions",
+    "whole-run native parity"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "captured_at_utc": "2026-11-18T14:10:57Z",
+  "source_report": "parity/stage/reports/opening/20261118T141057Z-PARITY0001-892e4e",
+  "source_kind": "real native v0.111.0 DLL via HeadlessHost HTTP, not simulator-generated",
+  "bytes_preserved": true,
+  "seed_input": "PARITY0001",
+  "seed_canonical": "PAR1TY0001",
+  "ascension": 10,
+  "character": "IRONCLAD",
+  "source_game_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "diagnostic_actions": [
+    {
+      "kind": "neow_relic",
+      "args": [
+        "GOLDEN_PEARL"
+      ]
+    },
+    {
+      "kind": "neow_proceed",
+      "args": []
+    },
+    {
+      "kind": "move",
+      "args": [
+        0,
+        1
+      ]
+    }
+  ],
+  "capture_observation": "Decisions 0-2 matched the then-supported partial public-state/action contract. Decision 3 showed native ENCOUNTER.TOADPOLES_WEAK while the simulator at capture time selected SEAPUNK; the adapter stopped unsupported. This is historical evidence, not a requirement to preserve simulator mismatches.",
+  "scope_limit": "These captures do not establish full observation, full combat, whole-run or all A1-A10 parity.",
+  "sha256": {
+    "config.json": "664d3cf93cbb1d0b8bc585cd0ef7eb340c85053328406e0fa798f826e53b033f",
+    "summary.json": "7f731b6df47ad7b4d2093f971f3d15f78d561fdbe3672d6dc338537eb71d8cf5",
+    "decision-0000-native.json": "17a9aeac48efd94395927b0bc8a2778ea2b377d3b600526c5b19c86befc5cdee",
+    "decision-0001-native.json": "285b7696e00ab1a4dceb531e48ae42cdf2ae7180e850b74155503e480f19bb18",
+    "decision-0002-native.json": "70566aa608b5bc4addd38eeb3eeaa5b82d47854862b1230da8a64ad2d1f7c3f2",
+    "decision-0003-native.json": "dcd54066d0b6372de9c0d11a99d4f130279dd8fdb7ef378edeb57a6c384852fd"
+  }
+}

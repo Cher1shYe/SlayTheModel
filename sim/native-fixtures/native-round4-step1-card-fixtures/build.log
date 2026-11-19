@@ -1,0 +1,10 @@
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/AuditWorker.cs(108,149): warning CS8625: Cannot convert null literal to non-nullable reference type. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+  SimulatorAudit -> /Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/.godot/mono/temp/bin/ExportRelease/SimulatorAudit.dll
+
+Build succeeded.
+
+/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/AuditWorker.cs(108,149): warning CS8625: Cannot convert null literal to non-nullable reference type. [/Users/yebohou/SlayTheModel/artifacts/dev/cpp-native-aligned-20261031/native-round4-step1-card-fixtures/SimulatorAudit.csproj]
+    1 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:21.65

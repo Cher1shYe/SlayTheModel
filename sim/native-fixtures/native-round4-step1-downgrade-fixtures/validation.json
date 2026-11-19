@@ -1,0 +1,16 @@
+{
+  "status": "completed",
+  "fixture_count": 28,
+  "direct_cases": 19,
+  "event_cases": 9,
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "results_sha256": "59af59cd910c1e02eb795e5b59a8fa210fd59fbe6bfdd2887a10b29e5e4f1a58",
+  "harness_sha256": "d027e9752a1ce1bb7563be46e4de41254f231325eaacce58d0bb739836168e89",
+  "cpp_regression": "simulator/tests/native_step1_downgrade.cpp",
+  "scope": "Canonical downgrade and represented independent cost modifiers; Reflections TouchAMirror and Wongo Leave from seeded post-BeginEvent state. Not complete Wongo or combat cost-modifier-stack parity.",
+  "cpp_validation": "cpp-validation.json",
+  "cpp_validation_status": "passed",
+  "cpp_test_sha256": "0a7231fa65e25c2d1a58d1a3732b556f845bc6fc0e59895c2cef3730b82fc187",
+  "initial_cpp_failure": "first-cpp-failure.txt"
+}

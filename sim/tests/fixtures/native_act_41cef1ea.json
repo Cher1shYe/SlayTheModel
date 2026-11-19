@@ -1,0 +1,89 @@
+{
+  "provenance": {
+    "kind": "source-exact (not a dynamic full-run oracle)",
+    "native_release_commit": "41cef1ea",
+    "native_dll_sha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+    "source_sha256": {
+      "Map/GoldenPathActMap.cs": "73ec1a3f7baee9ef5596f80e9a7b52a6000103b1f814c8c59ed982d608603783",
+      "Models/Relics/GoldenCompass.cs": "4c444add3c7a77ce07c202661e5507d1666966fb1e7f69ff21b52d2db2091f86",
+      "Odds/UnknownMapPointOdds.cs": "14d7be9b2e338591456f3e9d80a7b24b5bbf8adf820861e5ef72c01b12653a78",
+      "Models/ActModel.cs": "158831cf2c7b7887f2242fa5751fad3ceeb5c8913fbc89d41451645bd822cc9b",
+      "Models/Acts/Overgrowth.cs": "9becfaa069afe2d97d66aa39a4a045e5eb4d0fc8b0d289de1354e0d6eba3abe8",
+      "Models/Acts/Underdocks.cs": "50e64a9a3bc8f7a2c72a406fe834bdc5c1f751503d9c476271eac32ba07e6460",
+      "Models/Acts/Hive.cs": "4fe0cbf5a392b5397e77a903ae4d641c132c5c983349e00b7d47c8bdd2c81b65",
+      "Models/Acts/Glory.cs": "3dc2065dde34d262e34eec18482541f6de38f31b23db46e69cb0deee01680a2c"
+    }
+  },
+  "golden_path_rooms": [
+    "Monster",
+    "Unknown",
+    "Monster",
+    "RestSite",
+    "Monster",
+    "RestSite",
+    "Unknown",
+    "Treasure",
+    "Unknown",
+    "Treasure",
+    "Unknown",
+    "Shop",
+    "Elite",
+    "RestSite",
+    "Elite",
+    "RestSite"
+  ],
+  "boss_discovery_order": {
+    "Overgrowth": [
+      "VantomBoss",
+      "CeremonialBeastBoss",
+      "TheKinBoss"
+    ],
+    "Underdocks": [
+      "WaterfallGiantBoss",
+      "SoulFyshBoss",
+      "LagavulinMatriarchBoss"
+    ],
+    "Hive": [
+      "TheInsatiableBoss",
+      "KnowledgeDemonBoss",
+      "KaiserCrabBoss"
+    ],
+    "Glory": [
+      "QueenBoss",
+      "TestSubjectBoss",
+      "AeonglassBoss"
+    ]
+  },
+  "underdocks_encounters": [
+    "CorpseSlugsNormal",
+    "CorpseSlugsWeak",
+    "CultistsNormal",
+    "FossilStalkerNormal",
+    "GremlinMercNormal",
+    "HauntedShipNormal",
+    "LagavulinMatriarchBoss",
+    "LivingFogNormal",
+    "PhantasmalGardenersElite",
+    "PunchConstructNormal",
+    "SeapunkNormal",
+    "SeapunkWeak",
+    "SewerClamNormal",
+    "SkulkingColonyElite",
+    "SludgeSpinnerWeak",
+    "SoulFyshBoss",
+    "TerrorEelElite",
+    "ToadpolesWeak",
+    "TwoTailedRatsNormal",
+    "WaterfallGiantBoss"
+  ],
+  "golden_unknown_roll": {
+    "consumes_next_float": true,
+    "result": "Event",
+    "changes_non_event_odds": false
+  },
+  "first_run_unknowns": [
+    "Event",
+    "Event",
+    "Monster"
+  ]
+}

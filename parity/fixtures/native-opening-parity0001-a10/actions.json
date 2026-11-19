@@ -1,0 +1,19 @@
+[
+  {
+    "kind": "neow_relic",
+    "args": [
+      "GOLDEN_PEARL"
+    ]
+  },
+  {
+    "kind": "neow_proceed",
+    "args": []
+  },
+  {
+    "kind": "move",
+    "args": [
+      0,
+      1
+    ]
+  }
+]

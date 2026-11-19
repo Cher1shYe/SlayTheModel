@@ -1,0 +1,6554 @@
+{
+  "status": "completed",
+  "gameAssemblySha256": "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4",
+  "gameSceneLoaded": false,
+  "results": [
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "SEEKER_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SALVO",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "SEEKER_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "THINKING_AHEAD",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ULTIMATE_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "THINKING_AHEAD",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "NOT_YET",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "UNMOVABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "MOLTEN_FIST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "TREMBLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "FEEL_NO_PAIN",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "tome",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "CORRUPTION",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Ancient"
+        }
+      ],
+      "prepared": "CORRUPTION",
+      "preparedCounter": 1,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "tome",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "CORRUPTION",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Ancient"
+        }
+      ],
+      "prepared": "CORRUPTION",
+      "preparedCounter": 1,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "tome",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "CORRUPTION",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Ancient"
+        }
+      ],
+      "prepared": "CORRUPTION",
+      "preparedCounter": 1,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "SETUP_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TAUNT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "WHIRLWIND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "FLAME_BARRIER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STOMP",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "UNRELENTING",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BARRICADE",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "CONFLAGRATION",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "JUGGERNAUT",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "SETUP_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "HAVOC",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BLOODLETTING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "FLAME_BARRIER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "FEEL_NO_PAIN",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BATTLE_TRANCE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "AGGRESSION",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "HELLRAISER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "NOT_YET",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_SILENT",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "POISONED_STAB",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "RICOCHET",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "BACKFLIP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DODGE_AND_ROLL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PREPARED",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "UP_MY_SLEEVE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "FLECHETTES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "REFLEX",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SPEEDSTER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "AFTERIMAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ADRENALINE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BLADE_OF_INK",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SERPENT_FORM",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MASTER_PLANNER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "POISONED_STAB",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_SILENT",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "BACKFLIP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DODGE_AND_ROLL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PREPARED",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SUCKER_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "UNTOUCHABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PINPOINT",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "NOXIOUS_FUMES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SKEWER",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PHANTOM_BLADES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SERPENT_FORM",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BURST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "STORM_OF_STEEL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ENVENOM",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OUTBREAK",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "BACKFLIP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_SILENT",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "UNTOUCHABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SLICE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "POISONED_STAB",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DEADLY_POISON",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SUCKER_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "FINISHER",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ACROBATICS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "FLECHETTES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "EXPOSE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ACCURACY",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ABRASIVE",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "KNIFE_TRAP",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "NIGHTMARE",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BURST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OUTBREAK",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "UNTOUCHABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_REGENT",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "HIDDEN_CACHE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PHOTON_CUT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "BEGONE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "GATHER_LIGHT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PATTER",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TERRAFORMING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "KNOCKOUT_BLOW",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ORBIT",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SHINING_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STARDUST",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BIG_BANG",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BEAT_INTO_SHAPE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BUNDLE_OF_JOY",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "NEUTRON_AEGIS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "HEIRLOOM_HAMMER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "HIDDEN_CACHE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_REGENT",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "BEGONE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "GATHER_LIGHT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PATTER",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SPOILS_OF_BATTLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "WROUGHT_IN_WAR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "REFLECT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "QUASAR",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SPECTRUM_SHIFT",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RADIATE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ORBIT",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "NEUTRON_AEGIS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "CRASH_LANDING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SEVEN_STARS",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DYING_STAR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MONARCHS_GAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "BEGONE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_REGENT",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "WROUGHT_IN_WAR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "REFINE_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "HIDDEN_CACHE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "CRESCENT_SPEAR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SPOILS_OF_BATTLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "KINGLY_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BULWARK",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "KNOCKOUT_BLOW",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "KINGLY_KICK",
+          "upgraded": false,
+          "cost": 4,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BLACK_HOLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ARSENAL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "GUARDS",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MAKE_IT_SO",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "CRASH_LANDING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MONARCHS_GAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "WROUGHT_IN_WAR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_NECROBINDER",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "PULL_AGGRO",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SCOURGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "BLIGHT_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "GRAVEBLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "REAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "VEILPIERCER",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "DREDGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAUNT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SEVERANCE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SIC_EM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "DEMESNE",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "CALL_OF_THE_VOID",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "EIDOLON",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SHARED_FATE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "REAPER_FORM",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "PULL_AGGRO",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_NECROBINDER",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "BLIGHT_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "GRAVEBLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "REAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SOW",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "WISP",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PUTREFY",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PARSE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SHROUD",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PULL_FROM_BELOW",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAUNT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SHARED_FATE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ERADICATE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SQUEEZE",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MISERY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SENTRY_MODE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "BLIGHT_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_NECROBINDER",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "WISP",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SCULPTING_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PULL_AGGRO",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "FLATTEN",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SOW",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DIRGE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BURY",
+          "upgraded": false,
+          "cost": 4,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "DREDGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "DELAY",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BORROWED_TIME",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BANSHEES_CRY",
+          "upgraded": false,
+          "cost": 9,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OBLIVION",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SEANCE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ERADICATE",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SENTRY_MODE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "WISP",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_DEFECT",
+      "hook": "none",
+      "seed": 0,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "HOLOGRAM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "LIGHTNING_ROD",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "BARRAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "COOLHEADED",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "LEAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "WHITE_NOISE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAILSTORM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "OVERCLOCK",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SYNCHRONIZE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TEMPEST",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BUFFER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ALL_FOR_ONE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "COOLANT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "RAINBOW",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MACHINE_LEARNING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "HOLOGRAM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_DEFECT",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "BARRAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "COOLHEADED",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "LEAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TURBO",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "UPROAR",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "STORM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SKIM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SYNTHESIS",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SMOKESTACK",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "OVERCLOCK",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAINBOW",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DEFRAGMENT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "SIGNAL_BOOST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "FLAK_CANNON",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MULTI_CAST",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "BARRAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_DEFECT",
+      "hook": "none",
+      "seed": 987654321,
+      "act": 0,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "UPROAR",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "MOMENTUM_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "HOLOGRAM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "COLD_SNAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TURBO",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "GLASSWORK",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "CAPACITOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAILSTORM",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "GLACIER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "BULK_UP",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ADAPTIVE_STRIKE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "HYPERBEAM",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MODDED",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DEFRAGMENT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "MULTI_CAST",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "UPROAR",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 5,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "PROWESS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PREP_TIME",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "PREP_TIME",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 17,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "SALVO",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PURITY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "PURITY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 36,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ETERNAL_ARMOR",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "ETERNAL_ARMOR",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 5,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "PROWESS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PREP_TIME",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "PREP_TIME",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 17,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "SALVO",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PURITY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "PURITY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 36,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ETERNAL_ARMOR",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "ETERNAL_ARMOR",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 5,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "JUGGLING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PERFECTED_STRIKE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 17,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "SHRUG_IT_OFF",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TREMBLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 36,
+      "act": 2,
+      "ascension": 0,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "EXPECT_A_FIGHT",
+          "upgraded": true,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 5,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "JUGGLING",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PERFECTED_STRIKE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.035000004,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 17,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "SHRUG_IT_OFF",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SETUP_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TREMBLE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.035000004,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "none",
+      "seed": 36,
+      "act": 2,
+      "ascension": 7,
+      "selection": 1,
+      "offered": [
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "EXPECT_A_FIGHT",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SHRUG_IT_OFF",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.035000004,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "eggs",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "wing",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 1,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "lens_glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "glitter_lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "silver",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "silken",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "dingy",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "prismatic",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "eggs",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "wing",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 1,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "lens_glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "glitter_lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "silver",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "silken",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "dingy",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "arcane",
+      "hook": "prismatic",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [
+        {
+          "card": "BRAND",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 1,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "eggs",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "wing",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 1,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "lens_glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "glitter_lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "silver",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 1,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "silken",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "FIGHT_ME",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": true
+    },
+    {
+      "test": "dream",
+      "hook": "dingy",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "THUNDERCLAP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "dream",
+      "hook": "prismatic",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "SPEEDSTER",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "UPROAR",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "CHARGE_BATTERY",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "selectorCalls": 0,
+      "minSelect": 0,
+      "maxSelect": 0,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 9,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.02,
+      "hp": 64,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "eggs",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": true,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": true,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": true,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "wing",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "SWIFT",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 3,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "lens_glitter",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "NIMBLE",
+          "amount": 2,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "glitter_lens",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": "GLAM",
+          "amount": 1,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "silver",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "silken",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "dingy",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "prismatic",
+      "seed": 42,
+      "act": 1,
+      "ascension": 0,
+      "selection": 0,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "lead",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": -1,
+      "offered": [
+        {
+          "card": "MIND_BLAST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "VOLLEY",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 1,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 6,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_IRONCLAD",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": -1,
+      "offered": [
+        {
+          "card": "ARMAMENTS",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "IRON_WAVE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SWORD_BOOMERANG",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TRUE_GRIT",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "TWIN_STRIKE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SECOND_WIND",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RAMPAGE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "STONE_ARMOR",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "RUPTURE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "INFERNAL_BLADE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "ONE_TWO_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DARK_EMBRACE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "PYRE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "DOMINATE",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OFFERING",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    },
+    {
+      "test": "sea_SILENT",
+      "hook": "none",
+      "seed": 42,
+      "act": 0,
+      "ascension": 0,
+      "selection": 15,
+      "offered": [
+        {
+          "card": "BACKFLIP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DODGE_AND_ROLL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PREPARED",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SUCKER_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "UNTOUCHABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PINPOINT",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "NOXIOUS_FUMES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SKEWER",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PHANTOM_BLADES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SERPENT_FORM",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BURST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "STORM_OF_STEEL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ENVENOM",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OUTBREAK",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "selectorCalls": 1,
+      "minSelect": 0,
+      "maxSelect": 15,
+      "added": [
+        {
+          "card": "BACKFLIP",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "DODGE_AND_ROLL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PREPARED",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "SUCKER_PUNCH",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "UNTOUCHABLE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Common"
+        },
+        {
+          "card": "PINPOINT",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "NOXIOUS_FUMES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SKEWER",
+          "upgraded": false,
+          "cost": 0,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "PHANTOM_BLADES",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "HAZE",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Uncommon"
+        },
+        {
+          "card": "SERPENT_FORM",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "BURST",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "STORM_OF_STEEL",
+          "upgraded": false,
+          "cost": 1,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "ENVENOM",
+          "upgraded": false,
+          "cost": 2,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        },
+        {
+          "card": "OUTBREAK",
+          "upgraded": false,
+          "cost": 3,
+          "enchantment": null,
+          "amount": null,
+          "rarity": "Rare"
+        }
+      ],
+      "prepared": null,
+      "preparedCounter": null,
+      "rewardsCounter": 15,
+      "nicheCounter": 0,
+      "pityBefore": -0.05,
+      "pityAfter": -0.05,
+      "hp": 40,
+      "silverUsed": 0,
+      "silkenUsed": false
+    }
+  ]
+}
