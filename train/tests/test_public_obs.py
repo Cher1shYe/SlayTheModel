@@ -106,6 +106,39 @@ def test_same_public_network_batch_and_checkpoint(tmp_path):
     with torch.no_grad():torch.testing.assert_close(output["logp"],restored(batch)["logp"])
 
 
+@pytest.mark.parametrize("device", ["cpu", "cuda"])
+def test_public_network_bf16_map_messages_forward_and_backward(device):
+    if device == "cuda" and (not torch.cuda.is_available() or not torch.cuda.is_bf16_supported()):
+        pytest.skip("requires a CUDA device with BF16 support")
+    torch.manual_seed(0)
+    cfg = UnifiedNetConfig(dim=32, ctx_layers=1, combat_layers=1, heads=4, observation_schema=p.SCHEMA_ID)
+    net = UnifiedNet(cfg).to(device)
+    batch = collate([p.encode(p.from_simulator(rc)) for rc in (initial(), combat())]).to(device)
+    assert batch.edge_src.numel() > 0
+    # Reproduce autocast's mixed map-message dtypes even on CPUs without BF16
+    # matrix backward support. CUDA exercises actual autocast for the whole net.
+    if device == "cpu":
+        for projection in (net.down, net.up):
+            projection.register_forward_hook(lambda module, args, output: output.to(torch.bfloat16))
+    net.eval()
+    with torch.no_grad(), torch.autocast(device, dtype=torch.bfloat16, enabled=device == "cuda"):
+        sampled = net(batch)
+    assert torch.isfinite(sampled["logp"][batch.cmask]).all()
+    assert torch.isfinite(sampled["value"]).all()
+    net.train()
+    with torch.autocast(device, dtype=torch.bfloat16, enabled=device == "cuda"):
+        output = net(batch)
+        loss = -output["logp"][:, 0].float().mean() + output["value"].float().square().mean()
+    assert torch.isfinite(loss)
+    loss.backward()
+    for projection in (net.down, net.up):
+        grad = projection.weight.grad
+        assert grad is not None and torch.isfinite(grad).all() and grad.abs().sum() > 0
+    for parameter in net.parameters():
+        if parameter.grad is not None:
+            assert torch.isfinite(parameter.grad).all()
+
+
 def test_full_differences_are_json_serializable_and_candidate_indices_are_checked():
     state=p.from_simulator(initial());other=deepcopy(state);other.facts["player"]["gold"]+=1
     assert "public.player.gold" in json.dumps(p.differences(state,other))

@@ -197,8 +197,12 @@ class UnifiedNet(nn.Module):
             ones = torch.ones(b.edge_src.shape[0], dtype=flat.dtype, device=flat.device)
             deg_dst = torch.zeros(bsz * n, dtype=flat.dtype, device=flat.device).index_add_(0, b.edge_dst, ones).clamp(min=1)[:, None]
             deg_src = torch.zeros(bsz * n, dtype=flat.dtype, device=flat.device).index_add_(0, b.edge_src, ones).clamp(min=1)[:, None]
-            from_parents = torch.zeros_like(flat).index_add_(0, b.edge_dst, self.down(flat)[b.edge_src]) / deg_dst
-            from_children = torch.zeros_like(flat).index_add_(0, b.edge_src, self.up(flat)[b.edge_dst]) / deg_src
+            # Autocast can make the linear outputs BF16 while embeddings stay FP32.
+            # index_add_ requires matching dtypes; accumulate in the embedding dtype.
+            parent_messages = self.down(flat)[b.edge_src].to(dtype=flat.dtype)
+            child_messages = self.up(flat)[b.edge_dst].to(dtype=flat.dtype)
+            from_parents = torch.zeros_like(flat).index_add_(0, b.edge_dst, parent_messages) / deg_dst
+            from_children = torch.zeros_like(flat).index_add_(0, b.edge_src, child_messages) / deg_src
             x = (flat + from_parents + from_children).reshape(bsz, n, d)
         x = self.ctx_encoder(x, src_key_padding_mask=~b.mask)
         return self.ctx_norm(x).masked_fill(~b.mask[..., None], 0.0), b.mask
