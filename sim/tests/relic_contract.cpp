@@ -123,15 +123,19 @@ int main() {
         check(b.player.dexterity == 2, "buckle not applied twice");
     }
     {
-        BattleContext b = battle_with(RelicId::TOASTY_MITTENS);
-        b.drawCount = 2;
-        b.draw[0] = make_card(CardId::STRIKE_IRONCLAD, false, 200);
-        b.draw[1] = make_card(CardId::DRAMATIC_ENTRANCE, false, 201);
-        b.turn = 1;
+        // ToastyMittens.AfterPlayerTurnStart: the player chooses 1 hand card to exhaust,
+        // then gains 1 Strength; the draw pile is untouched.
+        BattleContext b = battle_with(RelicId::TOASTY_MITTENS);  // turn 1 already set up
+        const int draws = b.drawCount, hand = b.handCount;
+        check(b.pending.op == ChoiceOp::EXHAUST && b.pending.count == hand && b.toastyMittensPending &&
+              b.player_power(PowerId::STRENGTH) == 0, "mittens asks for a hand card");
         const int exhausted = b.exhaustCount;
-        relics_turn_start(b);
-        check(b.exhaustCount == exhausted + 1 && b.exhaust[exhausted].uid == 200,
-              "mittens preserve innate before first draw");
+        const int chosen[1] = {b.hand[hand - 1].uid};
+        b.confirm_exhaust_choice(chosen, 1);
+        check(b.exhaustCount == exhausted + 1 && b.exhaust[exhausted].uid == chosen[0] &&
+              b.handCount == hand - 1 && b.drawCount == draws &&
+              b.player_power(PowerId::STRENGTH) == 1 && !b.toastyMittensPending,
+              "mittens exhausts the chosen card then gains strength");
     }
     {
         RunContext r; r.init(123u, 0);
@@ -193,13 +197,11 @@ int main() {
     {
         RunContext r; r.init(123u, 0);
         check(r.add_relic(RelicId::AMETHYST_AUBERGINE), "obtain aubergine");
+        // AmethystAubergine.TryModifyRewards adds a GoldReward(15); it is not a victory hook
+        // (reward-screen coverage: native_relic_effects_v18).
         const int initial = r.gold;
         relics_combat_end(r, true, true);
-        check(r.gold == initial + 10, "aubergine first boss reward");
-        r.act = 2;
-        const int last = r.gold;
-        relics_combat_end(r, true, true);
-        check(r.gold == last, "aubergine excludes final boss");
+        check(r.gold == initial, "aubergine is a reward, not a victory hook");
     }
     std::cout << "checks=" << checks << " failures=" << failures << '\n';
     return failures ? 1 : 0;

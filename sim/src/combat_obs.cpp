@@ -143,7 +143,7 @@ CombatObservation combat_entity_observation(const BattleContext &bc) {
     b.f(bc.nextTurnEnergy / 10.0f);
     b.f(bc.nextTurnDraw / 10.0f);
     b.f(bc.attackSkillPlaysThisTurn / 10.0f);
-    b.f(bc.blockCardPlaysThisTurn / 10.0f);
+    b.f(bc.blockGainEntriesThisTurn / 10.0f);
     b.f(bc.skillsLocked ? 1.0f : 0.0f);
     b.f(p.tookUnblockedDamageThisTurn ? 1.0f : 0.0f);
     b.f(p.tookUnblockedAttackDamageThisCombat ? 1.0f : 0.0f);

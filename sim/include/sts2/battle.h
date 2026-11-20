@@ -206,6 +206,7 @@ struct AutoPlayRequest {
     bool forceExhaust = false;
     bool dupe = false;
     bool visible = false;
+    int xOverride = -1;  // X already captured by CardModel.SpendResources (skipXCapture)
 };
 struct SuspendedPlay {
     ActivePlay play;
@@ -334,13 +335,27 @@ struct BattleContext {
     bool lavaLampTookQualifyingDamage = false;
     // BattlewornDummyEventEncounter.RanOutOfTime (the dummy escaped).
     bool battlewornRanOutOfTime = false;
+    // CombatState.EscapedCreatures for EncounterModel.CalculateGoldProportion:
+    // creatures removed by CreatureCmd.Escape (Thieving Hopper, Fat Gremlin).
+    std::uint8_t escapedMonsterCount = 0;
+    bool fatGremlinEscaped = false;
+    // GremlinMercNormal.GoldWasStolen (SurprisePower.AfterDeath with stolen gold).
+    bool mercGoldStolen = false;
+    // Goopy DeckVersion growth (Amount++ per play), applied to the run deck by
+    // uid when the combat ends. Only original deck cards have a DeckVersion.
+    std::uint16_t goopyUids[MAX_PILE]{};
+    std::int16_t goopyGrowth[MAX_PILE]{};
+    int goopyCount = 0;
+    void record_goopy_growth(std::uint16_t uid);
     Card returnNextTurn[MAX_HAND]{};
     int returnNextTurnCount = 0;
     bool gainedBlockFromCardThisTurn = false;
     // UnmovablePower counts block-gaining CardPlays this turn: the index of the
     // current play is fixed on its first block gain and compared to Amount.
-    int blockCardPlaysThisTurn = 0;
-    int blockPlayIndex = -1;
+    // UnmovablePower: native BlockGainedEntry rows (block > 0 gained from a card play)
+    // this turn, and how many of them belong to the card play in progress.
+    int blockGainEntriesThisTurn = 0;
+    int blockGainEntriesThisPlay = 0;
     bool playedAttackOrSkillThisTurn = false;
     bool jugglingTriggeredThisTurn = false;
     // Attack/skill plays started this turn (NostalgiaPower compares this count
@@ -357,6 +372,12 @@ struct BattleContext {
     bool reboundPending = false;
     bool skillsLocked = false;
     bool inMonsterTurn = false;
+    // FurCoat.AfterCreatureAddedToCombat: enemies added during a marked combat start at 1 HP.
+    bool furCoatActive = false;
+    // ToastyMittens: Strength follows the turn-start hand exhaust choice.
+    bool toastyMittensPending = false;
+    // CardSelectCmd.PushSelector(VakuuCardSelector): selections take the first maxSelect options.
+    bool vakuuSelecting = false;
     int turn1Energy = 0;
     int gold = 0;
     int nextTurnEnergy = 0;
@@ -452,6 +473,9 @@ struct BattleContext {
     bool boundCardPlayed = false;
     // Hook.ShouldPlay listeners that block a card (Sloth, Chains of Binding).
     bool hook_blocks_play(const Card &c) const;
+    // v17: Ringing / Entangled / Smog afflictions (one affliction per card; only a
+    // card with no other affliction receives them). 0 none, 1 Ringing, 2 Entangled, 3 Smog.
+    int turn_affliction(const Card &c) const;
     // AfterCardEnteredCombat afflictions: GalvanicPower (Power cards -> Galvanized) and
     // VitalSparkPower (Skills without an affliction -> Tainted).
     void afflict_entering_card(Card &c) const;
@@ -606,6 +630,10 @@ struct BattleContext {
     void check_outcome();
     void clear_player_powers_after_death();
     int energy_cost_in_combat(const Card &card) const;
+    // CardModel.CanPlay for a hand card (any valid target): the legal-play filter.
+    bool hand_card_playable_now(int handIdx) const;
+    // WhisperingEarring.AfterAutoPrePlayPhaseEnteredLate (turn 1).
+    void whispering_earring_auto_play();
 
     bool can_use_potion(int idx) const;
     bool potion_action_queued(int idx) const;

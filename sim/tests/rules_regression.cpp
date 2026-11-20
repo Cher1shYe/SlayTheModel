@@ -964,7 +964,7 @@ int main() {
         b.relics[b.relicCount++] = static_cast<int>(RelicId::ORICHALCUM);
         b.add_player_power(PowerId::JUGGERNAUT, 5);
         const int hp = b.monsters[0].hp;
-        relics_turn_end(b);
+        relics_turn_end(b, b.player.block == 0);
         check("orichalcum_block_unpowered_value", b.player.block, 6);
         check("orichalcum_block_triggers_juggernaut", hp - b.monsters[0].hp, 5);
     }
@@ -2215,7 +2215,7 @@ int main() {
         r.hp = 50;
         r.map.nodes[r.map.startIdx].type = static_cast<int>(MapPointType::UNKNOWN);
         r.enter_map_point(r.map.startIdx);
-        check("r6_planisphere_unknown_heal", r.hp, 54);
+        check("r6_planisphere_unknown_heal", r.hp, 55);  // Planisphere Heal 5
     }
     {
         BattleContext b;

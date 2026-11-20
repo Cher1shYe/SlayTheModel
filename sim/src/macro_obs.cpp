@@ -151,7 +151,7 @@ MacroObservation macro_observation(const RunContext &rc) {
     b.f(rc.nextCombatUpgradeHand ? 1.0f : 0.0f);
     b.f(rc.nextCombatDazed / 10.0f);
     b.f(rc.emberTeaCombats / 10.0f);
-    b.f(rc.furCoatCombats / 10.0f);
+    b.f(rc.fur_coat_visible_marks() / 10.0f);
     b.f(rc.toyBoxCombats / 15.0f);
     b.f(rc.wongoCombats / 6.0f);
     b.f(rc.swordOfStoneWins / 10.0f);

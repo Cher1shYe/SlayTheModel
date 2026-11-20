@@ -77,6 +77,41 @@ def build_catalog(*, include_relic_traits=True):
     result["cardTags"] = {"CARD." + card["id"]: sorted(card["tags"]) for card in oracle["results"]
                           if "CARD." + card["id"] in content["CARD"]}
     result["variableNames"] = sorted({name for variants in result["cardVars"].values() for variant in variants for name in variant})
+    # Checklist D: static encounter-pool rules (ActModel.GenerateRooms). Pools and
+    # tags come from the pinned DLL registry; NumberOfWeakEncounters is an
+    # override in each Acts/<Act>.cs (ActModel default 3).
+    acts = {}
+    for row in registry["acts"]:
+        source = (NATIVE / "Acts" / (row["id"].title() + ".cs")).read_text()
+        weak = re.search(r"override int NumberOfWeakEncounters\s*=>\s*(\d+)", source)
+        acts["ACT." + row["id"]] = {
+            "weakCount": int(weak[1]) if weak else 3,
+            **{kind: ["ENCOUNTER." + e for e in row[kind]] for kind in ("weak", "normal", "elite", "boss")}}
+    result["acts"] = acts
+    # Checklist A3/B: hits per play of each card's damage, parsed from native OnPlay
+    # (DamageCmd.Attack(...).WithHitCount(...)). int = fixed; "repeat" = the card's
+    # Repeat variable; "x" = X energy; "variable" = decided during play (not previewed).
+    hits = {}
+    for row in registry["cards"]:
+        path = NATIVE / "Cards" / (row["className"] + ".cs")
+        if not path.is_file():
+            continue
+        src = path.read_text()
+        if "DamageCmd.Attack" not in src:
+            continue
+        found = re.findall(r"WithHitCount\(([^;]*?)\)\s*[.\n]", src) or re.findall(r"WithHitCount\(([^;\n]*)", src)
+        kinds = set()
+        for arg in found:
+            arg = arg.strip()
+            if re.fullmatch(r"\d+", arg): kinds.add(int(arg))
+            elif "Repeat" in arg: kinds.add("repeat")
+            elif "ResolveEnergyXValue" in arg or re.search(r"\b" + re.escape(arg) + r"\s*=\s*ResolveEnergyXValue\(\)\s*;", src): kinds.add("x")
+            else: kinds.add("variable")
+        if not found: kinds.add(1)
+        if src.count("DamageCmd.Attack") > 1 or len(kinds) > 1: kinds = {"variable"}
+        hits["CARD." + row["id"]] = kinds.pop()
+    result["cardHits"] = hits
+    result["encounterTags"] = {"ENCOUNTER." + row["id"]: sorted(row["tags"]) for row in registry["encounters"]}
     return result
 
 

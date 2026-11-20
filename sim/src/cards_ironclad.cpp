@@ -115,13 +115,22 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::PERFECTED_STRIKE: {
+            // PlayerCombatState.AllCards (Hand, Draw, Discard, Exhaust, Play) tagged Strike.
+            // Natively the card being played sits in the Play pile during OnPlay
+            // (CardModel.OnPlay doc), so it counts itself; this engine holds it outside
+            // the piles while it resolves.
             int strikes = 0;
+            bool selfInPiles = false;
             const Card *piles[] = {bc.hand, bc.draw, bc.discard, bc.exhaust, bc.playPile};
             const int counts[] = {bc.handCount, bc.drawCount, bc.discardCount,
                                   bc.exhaustCount, bc.playCount};
             for (int p = 0; p < 5; ++p) {
-                for (int i = 0; i < counts[p]; ++i) strikes += card_is_strike(piles[p][i]) ? 1 : 0;
+                for (int i = 0; i < counts[p]; ++i) {
+                    strikes += card_is_strike(piles[p][i]) ? 1 : 0;
+                    selfInPiles |= piles[p][i].uid == card.uid;
+                }
             }
+            if (!selfInPiles && card_is_strike(card)) ++strikes;
             hit(bc, card, target, card_var(card, VarId::CALC_BASE) +
                                    card_var(card, VarId::EXTRA_DAMAGE) * strikes);
             return true;

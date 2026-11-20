@@ -63,7 +63,7 @@ int main() {
 
     auto restored = std::make_unique<RunContext>();
     const auto blob = source->serialize();
-    assert(static_cast<unsigned char>(blob[4]) == 14);
+    assert(static_cast<unsigned char>(blob[4]) == 18);
     assert(RunContext::restore(blob, *restored));
     assert(restored->serialize() == blob);
     assert(public_observation(*restored) == runObservation);

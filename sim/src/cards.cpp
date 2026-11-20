@@ -30,8 +30,8 @@ void card_apply_upgrade(Card &c) {
     for(int i=0;i<c.costModifierCount;++i)
         if(c.costModifiers[i].absolute && c.costModifiers[i].amount>d.costUp && d.costUp<d.cost)
             c.costModifiers[i].amount=d.costUp;
-    c.storedCost = d.costUp;
-    if (!c.costThisTurn) c.costForTurn = d.costUp;
+    c.storedCost = c.enchantment == EnchantmentId::TEZCATARAS_EMBER && d.costUp > 0 ? 0 : d.costUp;
+    if (!c.costThisTurn) c.costForTurn = c.storedCost;
 }
 
 void card_apply_downgrade(Card &c) {
@@ -43,8 +43,8 @@ void card_apply_downgrade(Card &c) {
     // the supported growth cards restore their accumulated bonus on downgrade.
     c.upgraded = false;
     const CardDef &d = card_def(c.id);
-    c.storedCost = d.cost;
-    if (!c.costThisTurn) c.costForTurn = d.cost;
+    c.storedCost = c.enchantment == EnchantmentId::TEZCATARAS_EMBER && d.cost > 0 ? 0 : d.cost;
+    if (!c.costThisTurn) c.costForTurn = c.storedCost;
     c.etherealThisCombat = false;
     c.retainThisCombat = false;
     // Enchantments, afflictions, replay and cost modifiers survive. Steady's
@@ -130,6 +130,9 @@ bool card_has(const Card &c, std::uint16_t flag) {
     // SoulsPower.OnEnchant removes the card's own Exhaust keyword.
     if (flag == CF_INNATE && c.enchantment == EnchantmentId::ROYALLY_APPROVED) return true;
     if (flag == CF_EXHAUST && c.enchantment == EnchantmentId::SOULS_POWER) return false;
+    // Goopy.OnEnchant adds Exhaust; TezcatarasEmber.OnEnchant adds Eternal.
+    if (flag == CF_EXHAUST && c.enchantment == EnchantmentId::GOOPY) return true;
+    if (flag == CF_ETERNAL && c.enchantment == EnchantmentId::TEZCATARAS_EMBER) return true;
     const CardDef &d = card_def(c.id);
     const std::uint16_t f = c.upgraded ? d.flagsUp : d.flags;
     return (f & flag) != 0;
@@ -168,6 +171,11 @@ bool card_can_enchant(const Card &c, EnchantmentId enchantment) {
         !card_is_playable(c)) return false;
     const CardType type = card_type(c);
     if (type == CardType::CURSE || type == CardType::STATUS || type == CardType::QUEST) return false;
+    // TezcatarasEmber has no extra filter; Goopy needs the Defend tag;
+    // Instinct.CanEnchantCardType is Attack only.
+    if (enchantment == EnchantmentId::TEZCATARAS_EMBER) return true;
+    if (enchantment == EnchantmentId::GOOPY) return card_is_defend(c);
+    if (enchantment == EnchantmentId::INSTINCT) return type == CardType::ATTACK;
     if (enchantment == EnchantmentId::SOWN || enchantment == EnchantmentId::SWIFT ||
         enchantment == EnchantmentId::INKY ||
         enchantment == EnchantmentId::GLAM || enchantment == EnchantmentId::CLONE ||
@@ -206,6 +214,12 @@ bool card_apply_enchantment(Card &c, EnchantmentId enchantment, int amount) {
     c.momentumExtraDamage = 0;
     c.enchantmentAmount = static_cast<std::int16_t>(amount);
     c.enchantmentDisabled = false;
+    // TezcatarasEmber.OnEnchant: EnergyCost.UpgradeBy(-current base cost), i.e.
+    // the base cost becomes 0 permanently (upgrades/downgrades keep it).
+    if (enchantment == EnchantmentId::TEZCATARAS_EMBER && c.storedCost > 0) {
+        c.storedCost = 0;
+        if (!c.costThisTurn) c.costForTurn = 0;
+    }
     return true;
 }
 

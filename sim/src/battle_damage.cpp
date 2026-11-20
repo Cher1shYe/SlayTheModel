@@ -237,6 +237,22 @@ void BattleContext::resolve_monster_death(int idx) {
                                monsters[i].everLogged & (1u << 1);
             if (!otherCaster) dampen_remove();
         }
+        // ShrinkPower / ConstrictPower.AfterDeath: removed when their applier dies
+        // (one Shrinker Beetle / Slithering Strangler per native encounter).
+        if (!prevented && m.id == MonsterId::SHRINKER_BEETLE)
+            player.power[static_cast<int>(PowerId::SHRINK)] = 0;
+        if (!prevented && m.id == MonsterId::SLITHERING_STRANGLER)
+            player.power[static_cast<int>(PowerId::CONSTRICT)] = 0;
+        // Queen.AfterDeath(TorchHeadAmalgam): HasAmalgamDied; a pending
+        // BURN_BRIGHT_FOR_ME (state 3) becomes ENRAGE (state 7) via SetMoveImmediate.
+        if (!prevented && m.id == MonsterId::TORCH_HEAD_AMALGAM) {
+            for (int i = 0; i < monsterCount; ++i) {
+                Monster &q = monsters[i];
+                if (i == idx || q.id != MonsterId::QUEEN || !q.alive || q.reviving) continue;
+                // After acting this turn its NextMove is already the follow-up branch.
+                if (q.move == 3 && !q.pendingRoll) { q.move = 7; roll_intent(*this, q); }
+            }
+        }
     }
     // VitalSparkPower.AfterRemoved (removed on death): every Tainted affliction clears.
     if (m.power[static_cast<int>(PowerId::VITAL_SPARK)] > 0) {
@@ -397,6 +413,7 @@ void BattleContext::resolve_monster_death(int idx) {
                 }
             } else if (m.power[static_cast<int>(PowerId::SURPRISE)] > 0) {
                 surpriseGold = m.stolenGold;
+                if (m.stolenGold > 0) mercGoldStolen = true;  // GremlinMercNormal.MarkGoldStolen
                 m.alive = false;
                 m.combatEndBlocker = false;
                 relics_monster_died(*this);

@@ -4,6 +4,7 @@
 #include "sts2/defect.h"
 #include "sts2/necrobinder.h"
 #include "sts2/battle.h"
+#include "sts2/exact.h"
 #include "sts2/monsters.h"
 #include "sts2/effects.h"
 #include "sts2/relics.h"
@@ -480,6 +481,17 @@ void BattleContext::dampen_remove() {
     }
 }
 
+int BattleContext::turn_affliction(const Card &c) const {
+    if (c.bound || c.tainted || c.galvanized || c.hexed) return 0;
+    // RingingPower.AfterApplied / AfterCardEnteredCombat: every unafflicted card.
+    if (player_power(PowerId::RINGING) > 0) return 1;
+    // TangledPower: every unafflicted Attack.
+    if (player_power(PowerId::TANGLED) > 0 && card_is_attack(c)) return 2;
+    // SmoggyPower.AfterCardPlayed: every unafflicted Skill once a Skill was played this turn.
+    if (skillsLocked && card_is_skill(c)) return 3;
+    return 0;
+}
+
 bool BattleContext::hook_blocks_play(const Card &c) const {
     // SlothPower.ShouldPlay: no more than Amount cards per turn.
     if (player_power(PowerId::SLOTH) > 0 && slothCardsPlayedThisTurn >= player_power(PowerId::SLOTH)) return true;
@@ -490,6 +502,8 @@ bool BattleContext::hook_blocks_play(const Card &c) const {
 
 void BattleContext::draw_cards(int count, bool fromHandDraw) {
     if (!fromHandDraw && player_power(PowerId::NO_DRAW) > 0) return;
+    // Fiddle.ShouldDraw: no draws except the hand draw while it is the player's side.
+    if (!fromHandDraw && !inMonsterTurn && relic_has(*this, RelicId::FIDDLE)) return;
     // Nesting depth of CardPileCmd.Draw calls; Scrape only uses cards returned
     // by its own draw, not those drawn by AfterCardDrawn hooks inside it.
     struct DepthGuard {
@@ -772,21 +786,34 @@ double BattleContext::thrash_damage_growth(const Card &selected) const {
         default:
             break;
     }
-    double result = enchant_card_damage(selected, base) + player.strength +
-                    relics_damage_additive(*this, selected);
+    // Native decimal arithmetic: exact rationals, never binary floating point.
+    Exact result = Exact::of_double(enchant_card_damage(selected, base)) +
+                   Exact::of(player.strength + relics_damage_additive(*this, selected));
     // Vigor was consumed by Thrash's completed AttackCommand. A later hook may
     // have granted new Vigor, which ModifyDamage observes without consuming it.
-    result += player_power(PowerId::VIGOR);
-    if (player.weak > 0) result *= 0.75;
-    if (player_power(PowerId::SHRINK) != 0) result *= 0.7;
-    if (player_power(PowerId::DOUBLE_DAMAGE) > 0) result *= 2.0;
+    result = result + Exact::of(player_power(PowerId::VIGOR));
+    if (player.weak > 0) result = result * Exact::of(3, 4);
+    if (player_power(PowerId::SHRINK) != 0) result = result * Exact::of(7, 10);
+    if (player_power(PowerId::DOUBLE_DAMAGE) > 0) result = result * Exact::of(2);
     // This engine defers Gigantification's decrement to AfterCardPlayed. Native
     // AfterAttack has already consumed one stack at this point in Thrash.
-    if (player_power(PowerId::GIGANTIFICATION) > 1) result *= 3.0;
+    if (player_power(PowerId::GIGANTIFICATION) > 1) result = result * Exact::of(3);
     // PenNib's AttackToDouble is Thrash, not selected. Conversely, at counter 9
     // a card still in Hand receives the native "next attack" preview modifier.
-    if (relic_aux(*this, RelicId::PEN_NIB) == 9) result *= 2.0;
-    return std::max(0.0, result);
+    if (relic_aux(*this, RelicId::PEN_NIB) == 9) result = result * Exact::of(2);
+    return std::max(0.0, result.to_double());
+}
+
+void BattleContext::record_goopy_growth(std::uint16_t uid) {
+    if (std::find(originalDeckUids, originalDeckUids + originalDeckCount, uid) ==
+        originalDeckUids + originalDeckCount) return;
+    int i = 0;
+    while (i < goopyCount && goopyUids[i] != uid) ++i;
+    if (i == goopyCount) {
+        if (goopyCount == MAX_PILE) throw std::overflow_error("Goopy growth history exceeds storage");
+        goopyUids[goopyCount++] = uid;
+    }
+    if (goopyGrowth[i] < 32767) ++goopyGrowth[i];
 }
 
 double BattleContext::enchant_card_damage(const Card &card, double base) const {
@@ -796,6 +823,10 @@ double BattleContext::enchant_card_damage(const Card &card, double base) const {
         case EnchantmentId::SHARP: return base + card.enchantmentAmount;
         case EnchantmentId::MOMENTUM: return base + card.momentumExtraDamage;
         case EnchantmentId::CORRUPTED: return base * 1.5;
+        // TezcatarasEmber.EnchantDamageAdditive (+3, fixed) and
+        // Instinct.EnchantDamageMultiplicative (x2), powered attacks only.
+        case EnchantmentId::TEZCATARAS_EMBER: return base + 3;
+        case EnchantmentId::INSTINCT: return base * 2.0;
         default: return base;
     }
 }
@@ -803,64 +834,67 @@ double BattleContext::enchant_card_damage(const Card &card, double base) const {
 int BattleContext::calc_player_damage(double base, int monsterIdx, bool powered,
                                       const Card *card) const {
     if (!powered) return base > 0 ? static_cast<int>(std::floor(base)) : 0;
+    // Native Hook.ModifyDamage works in System.Decimal: exact rationals here, so
+    // e.g. 15 * 3 * 1.4 is 63, not 62.99999999999999 floored to 62.
     // VigorPower applies once per AttackCommand, not per hit; callers that
     // start a command fold it into `base` (see attack_* below).
-    double dmg = base + player.strength;
+    Exact dmg = Exact::of_double(base) + Exact::of(player.strength);
     // Hook.ModifyDamageAdditive runs before the multiplicative phases
     // (Strike Dummy +3 must be scaled by Weak, not added after it).
-    dmg += silent_damage_additive(*this, card, powered);  // Accuracy, Phantom Blades
+    dmg = dmg + Exact::of_double(silent_damage_additive(*this, card, powered));  // Accuracy, Phantom Blades
     if (card != nullptr) {
-        dmg += defect_damage_additive(*this, *card, activePlay.active ? activePlay.energySpent : 0);
-        dmg += relics_damage_additive(*this, *card);
+        dmg = dmg + Exact::of(defect_damage_additive(*this, *card, activePlay.active ? activePlay.energySpent : 0));
+        dmg = dmg + Exact::of(relics_damage_additive(*this, *card));
         // The card's enchantment was applied to `base` by the caller.
     }
-    if (player_power(PowerId::GIGANTIFICATION) > 0) dmg *= 3.0;
-    if (card != nullptr && player_power(PowerId::DOUBLE_DAMAGE) > 0) dmg *= 2.0;
-    if (player.weak > 0) dmg *= 0.75;
-    if (player_power(PowerId::SHRINK) != 0) dmg *= 0.7;
+    if (player_power(PowerId::GIGANTIFICATION) > 0) dmg = dmg * Exact::of(3);
+    if (card != nullptr && player_power(PowerId::DOUBLE_DAMAGE) > 0) dmg = dmg * Exact::of(2);
+    if (player.weak > 0) dmg = dmg * Exact::of(3, 4);
+    if (player_power(PowerId::SHRINK) != 0) dmg = dmg * Exact::of(7, 10);
     if (monsterIdx >= 0 && monsterIdx < monsterCount) {
         const Monster &m = monsters[monsterIdx];
         if (m.power[static_cast<int>(PowerId::COVERED)] > 0) return 0;
-        if (m.power[static_cast<int>(PowerId::SOAR)] > 0) dmg *= 0.5f;
-        if (m.power[static_cast<int>(PowerId::FLUTTER)] > 0) dmg *= 0.5f;
+        if (m.power[static_cast<int>(PowerId::SOAR)] > 0) dmg = dmg * Exact::of(1, 2);
+        if (m.power[static_cast<int>(PowerId::FLUTTER)] > 0) dmg = dmg * Exact::of(1, 2);
         if (m.vulnerable > 0) {
             // CrueltyPower.ModifyVulnerableMultiplier adds to the multiplier.
-            double vuln = relic_has(*this, RelicId::PAPER_PHROG) ? 1.75 : 1.5;
-            vuln += player_power(PowerId::CRUELTY) / 100.0;
-            dmg *= vuln;
+            Exact vuln = relic_has(*this, RelicId::PAPER_PHROG) ? Exact::of(7, 4) : Exact::of(3, 2);
+            vuln = vuln + Exact::of(player_power(PowerId::CRUELTY), 100);
+            dmg = dmg * vuln;
         }
         // SlowPower.ModifyDamageMultiplicative: +10% per card played this turn.
         if (m.power[static_cast<int>(PowerId::SLOW)] > 0 && m.slowCardsThisTurn > 0) {
-            dmg *= 1.0 + 0.1 * m.slowCardsThisTurn;
+            dmg = dmg * Exact::of(10 + m.slowCardsThisTurn, 10);
         }
-        if (card != nullptr) dmg *= regent_damage_multiplier(*this, *card, monsterIdx);
-        dmg *= silent_damage_multiplier(*this, monsterIdx, powered);  // Tracking
+        if (card != nullptr) dmg = dmg * Exact::of_double(regent_damage_multiplier(*this, *card, monsterIdx));
+        dmg = dmg * Exact::of_double(silent_damage_multiplier(*this, monsterIdx, powered));  // Tracking
     }
     // Lethality, Hang, Debilitate (doubles the Vulnerable bonus).
-    dmg *= necrobinder_damage_multiplier(*this, card, monsterIdx, powered);
-    if (card != nullptr) dmg *= relics_damage_multiplier(*this, *card);
-    const int result = static_cast<int>(std::floor(dmg));
-    return result > 0 ? result : 0;
+    dmg = dmg * Exact::of_double(necrobinder_damage_multiplier(*this, card, monsterIdx, powered));
+    if (card != nullptr) dmg = dmg * Exact::of(relics_damage_multiplier(*this, *card));
+    if (dmg < Exact::of(0)) return 0;
+    return dmg.truncate();
 }
 
 int BattleContext::calc_monster_damage(const Monster &m, int base) const {
     // TaintedPower.ModifyDamageAdditive: powered attacks on the player deal Amount more.
-    float dmg = static_cast<float>(base + m.strength + m.power[static_cast<int>(PowerId::VIGOR)] +
-                                   std::max(0, player_power(PowerId::TAINTED)));
-    if (m.power[static_cast<int>(PowerId::SHRINK)] > 0) dmg *= 0.7f;
-    if (m.weak > 0) dmg *= 0.75f;
-    if (player.vulnerable > 0) dmg *= 1.5f;
+    // Exact decimal arithmetic like native Hook.ModifyDamage (was single-precision float).
+    Exact dmg = Exact::of(base + m.strength + m.power[static_cast<int>(PowerId::VIGOR)] +
+                          std::max(0, player_power(PowerId::TAINTED)));
+    if (m.power[static_cast<int>(PowerId::SHRINK)] > 0) dmg = dmg * Exact::of(7, 10);
+    if (m.weak > 0) dmg = dmg * Exact::of(3, 4);
+    if (player.vulnerable > 0) dmg = dmg * Exact::of(3, 2);
     if (player_power(PowerId::SURROUNDED) > 0 &&
         ((player.surroundedFacingRight && m.power[static_cast<int>(PowerId::BACK_ATTACK_LEFT)] > 0) ||
          (!player.surroundedFacingRight && m.power[static_cast<int>(PowerId::BACK_ATTACK_RIGHT)] > 0))) {
-        dmg *= 1.5f;
+        dmg = dmg * Exact::of(3, 2);
     }
     // ColossusPower checks the *dealer's* Vulnerable, not the player's.
-    if (player_power(PowerId::COLOSSUS) > 0 && m.vulnerable > 0) dmg *= 0.5f;
+    if (player_power(PowerId::COLOSSUS) > 0 && m.vulnerable > 0) dmg = dmg * Exact::of(1, 2);
     // Debilitate (Weak becomes 50%) and Undying Sigil.
-    dmg *= static_cast<float>(necrobinder_monster_damage_multiplier(*this, static_cast<int>(&m - monsters)));
-    const int result = static_cast<int>(std::floor(dmg));
-    return result > 0 ? result : 0;
+    dmg = dmg * Exact::of_double(necrobinder_monster_damage_multiplier(*this, static_cast<int>(&m - monsters)));
+    if (dmg < Exact::of(0)) return 0;
+    return dmg.truncate();
 }
 
 
@@ -1016,6 +1050,9 @@ void BattleContext::gain_block(int amount, bool fromCard, bool powered) {
     // including calculated block (e.g. Fisticuffs and Stack).
     if (fromCard && activePlay.active && activePlay.card.enchantment == EnchantmentId::NIMBLE)
         amount += activePlay.card.enchantmentAmount;
+    // Goopy.EnchantBlockAdditive: Amount - 1 (Amount starts at 1, +1 per play).
+    if (fromCard && activePlay.active && activePlay.card.enchantment == EnchantmentId::GOOPY)
+        amount += activePlay.card.enchantmentAmount - 1;
     if (amount <= 0) return;
     if (fromCard && powered && player_power(PowerId::NO_BLOCK) > 0) return;
     // Hook.ModifyBlockAdditive (Dexterity) runs before the multiplicative
@@ -1025,10 +1062,11 @@ void BattleContext::gain_block(int amount, bool fromCard, bool powered) {
     int additive = static_cast<int>(value);
     if (powered) additive = relics_modify_block_gain(*this, additive, fromCard);
     value = static_cast<float>(additive);
-    if (fromCard && player_power(PowerId::UNMOVABLE) > 0) {
-        if (blockPlayIndex < 0) blockPlayIndex = blockCardPlaysThisTurn++;
-        if (blockPlayIndex < player_power(PowerId::UNMOVABLE)) value *= 2.0f;
-    }
+    // UnmovablePower.ModifyBlockMultiplicative: x2 while fewer than Amount BlockGainedEntry
+    // rows from *other* card plays exist this turn (entries, not plays: a card that
+    // gains block twice adds two).
+    if (fromCard && player_power(PowerId::UNMOVABLE) > 0 &&
+        blockGainEntriesThisTurn - blockGainEntriesThisPlay < player_power(PowerId::UNMOVABLE)) value *= 2.0f;
     if (powered && player.frail > 0) value *= 0.75f;
     // ShadowmeldPower.ModifyBlockMultiplicative has no ValueProp gate.
     value *= static_cast<float>(silent_block_multiplier(*this));
@@ -1036,6 +1074,8 @@ void BattleContext::gain_block(int amount, bool fromCard, bool powered) {
     gain_block_raw(static_cast<int>(std::floor(value)), false);
     const int gained = player.block - before;
     if (fromCard) gainedBlockFromCardThisTurn = true;
+    // CreatureCmd.GainBlock records History.BlockGained only when the amount is > 0.
+    if (fromCard && gained > 0) { ++blockGainEntriesThisTurn; ++blockGainEntriesThisPlay; }
     if (gained > 0) trigger_block_hooks(gained);
 }
 
@@ -1123,7 +1163,6 @@ void BattleContext::monster_attack_player(int monsterIdx, int base) {
     Monster &m = monsters[monsterIdx];
     if (!m.alive) return;
     int dmg = calc_monster_damage(m, base);
-    if (player_power(PowerId::DIAMOND_DIADEM) > 0) dmg /= 2;
     if (m.power[static_cast<int>(PowerId::VIGOR)] > 0) {
         m.power[static_cast<int>(PowerId::VIGOR)] = 0;
     }
@@ -1488,6 +1527,10 @@ void BattleContext::maybe_finish_pending() {
     }
     if (src.id == CardId::BURNING_PACT) draw_cards(card_var(src, VarId::CARDS));
     if (src.id == CardId::BRAND) add_player_power(PowerId::STRENGTH, card_var(src, VarId::STRENGTH));
+    if (op == ChoiceOp::EXHAUST && toastyMittensPending) {
+        toastyMittensPending = false;
+        add_player_power(PowerId::STRENGTH, 1);  // ToastyMittens: after the exhaust
+    }
     if (src.id == CardId::SEEKER_STRIKE) { /* chosen card already added */ }
     // Resume a draw interrupted by the Stratagem selection.  During turn setup
     // the hand draw is resumed by the turn flow instead (fromHandDraw).
@@ -1765,36 +1808,9 @@ std::vector<Action> BattleContext::legal_actions() const {
     Action end;
     end.type = ActionType::END_TURN;
     actions.push_back(end);
-    const bool noMoreCards = normality_blocks(*this);
-    for (int i = 0; i < handCount && !noMoreCards; ++i) {
+    for (int i = 0; i < handCount; ++i) {
         const Card &c = hand[i];
-        if (!card_is_playable(c) || !character_playable(*this, c)) continue;
-        if (enthralled_blocks(*this, c)) continue;
-        if (c.id == CardId::CLASH) {
-            bool hasNonAttack = false;
-            for (int j = 0; j < handCount; ++j) {
-                hasNonAttack |= !card_is_attack(hand[j]);
-            }
-            if (hasNonAttack) continue;
-        }
-        if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) continue;
-        if (skillsLocked && card_is_skill(c)) continue;
-        if (hook_blocks_play(c)) continue;
-        if (relic_has(*this, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6) continue;
-        int cost = card_cost(c);
-        if (player_power(PowerId::CORRUPTION) > 0 && card_is_skill(c)) cost = 0;
-        if (card_is_attack(c) && player_power(PowerId::FREE_ATTACK) > 0) cost = 0;
-        if (relic_has(*this, RelicId::BRILLIANT_SCARF) && manualCardsPlayedThisTurn == 4) cost = 0;
-        // CuriousPower.TryModifyEnergyCostInCombat: Power cards cost Amount less.
-        if (card_is_power(c) && cost > 0 && player_power(PowerId::CURIOUS) > 0)
-            cost = std::max(0, cost - player_power(PowerId::CURIOUS));
-        if (relic_has(*this, RelicId::SPIKED_GAUNTLETS) && card_is_power(c) && cost > 0) ++cost;
-        cost = necrobinder_resolved_cost(*this, c, cost);  // Borrowed Time, Veilpiercer
-        // VoidFormPower.TryModifyEnergyCostInCombatLate runs after the others.
-        if (cost > 0 && regent_void_form_free(*this, c)) cost = 0;
-        if (cost > player.energy) continue;
-        // PlayerCombatState.HasEnoughResourcesFor: StarCostTooHigh.
-        if (regent_star_cost(*this, c) > regent.stars) continue;
+        if (!hand_card_playable_now(i)) continue;
         if (card_target(c) == TargetType::ENEMY) {
             for (int m = 0; m < monsterCount; ++m) {
                 // A dead creature (hp 0, waiting to revive or reattach) is not targetable.
@@ -1875,6 +1891,7 @@ bool BattleContext::step_action(const Action &action) {
             queuedPotionActions[queuedPotionActionCount++] = action;
         } else if (action.type == ActionType::DISCARD_POTION) {
             potion_remove_at(potions, potionSlots, potionCount, action.hand);
+            relics_potion_discarded(*this);
         } else use_potion(action.hand, action.target);
         return true;
     }
@@ -1944,8 +1961,8 @@ bool BattleContext::step_action(const Action &action) {
                 if (!card_is_attack(hand[i])) return false;
             }
         }
-        if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) return false;
-        if (skillsLocked && card_is_skill(c)) return false;
+        if (turn_affliction(c) == 1 && cardsPlayedThisTurn > 0) return false;
+        if (turn_affliction(c) == 3) return false;
         if (hook_blocks_play(c)) return false;
         if (card_target(c) == TargetType::ENEMY) {
             if (action.target >= monsterCount || !monsters[action.target].alive) return false;
@@ -1971,14 +1988,85 @@ int BattleContext::energy_cost_in_combat(const Card &card) const {
     // X-cost card still spends all current energy: GetAmountToSpend special-
     // cases CostsX before any cost modification.
     if (freeAttack && !xCostCard) cost = 0;
-    if (relic_has(self, RelicId::BRILLIANT_SCARF) && manualCardsPlayedThisTurn == 4) cost = 0;
     if (!xCostCard && card_is_power(card) && cost > 0 && player_power(PowerId::CURIOUS) > 0)
         cost = std::max(0, cost - player_power(PowerId::CURIOUS));
-    if (relic_has(self, RelicId::SPIKED_GAUNTLETS) && card_is_power(card) && cost > 0) ++cost;
+    // SpikedGauntlets.TryModifyEnergyCostInCombat: every Power costs 1 more (0-cost too).
+    if (!xCostCard && relic_has(self, RelicId::SPIKED_GAUNTLETS) && card_is_power(card)) ++cost;
+    // TangledPower.TryModifyEnergyCostInCombat: Entangled cards cost Amount more
+    // (X costs are resolved before modifiers).
+    if (!xCostCard && turn_affliction(card) == 2) cost += player_power(PowerId::TANGLED);
     if (!xCostCard) cost = necrobinder_resolved_cost(self, card, cost);
+    // BrilliantScarf.TryModifyEnergyCostInCombatLate: the 5th manual play is free after
+    // every ordinary modifier (Spiked Gauntlets, Tangled, ...). X costs spend all energy.
+    if (!xCostCard && relic_has(self, RelicId::BRILLIANT_SCARF) && manualCardsPlayedThisTurn == 4) cost = 0;
     // GetAmountToSpend special-cases CostsX before any modifier.
     if (!xCostCard && cost > 0 && regent_void_form_free(self, card)) cost = 0;
     return xCostCard && cost != 0 ? -1 : cost;
+}
+
+bool BattleContext::hand_card_playable_now(int handIdx) const {
+    if (handIdx < 0 || handIdx >= handCount) return false;
+    auto &self = const_cast<BattleContext &>(*this);
+    if (normality_blocks(self)) return false;
+    const Card &c = hand[handIdx];
+    if (!card_is_playable(c) || !character_playable(self, c)) return false;
+    if (enthralled_blocks(self, c)) return false;
+    if (c.id == CardId::CLASH) {
+        for (int j = 0; j < handCount; ++j) if (!card_is_attack(hand[j])) return false;
+    }
+    // RingingPower / SmoggyPower.ShouldPlay act on the afflicted cards only.
+    if (turn_affliction(c) == 1 && cardsPlayedThisTurn > 0) return false;
+    if (turn_affliction(c) == 3) return false;
+    if (self.hook_blocks_play(c)) return false;
+    if (relic_has(self, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6) return false;
+    // Same resolved cost as the play itself (one source of truth for every modifier).
+    if (energy_cost_in_combat(c) > player.energy) return false;
+    // PlayerCombatState.HasEnoughResourcesFor: StarCostTooHigh.
+    if (regent_star_cost(self, c) > regent.stars) return false;
+    if (card_target(c) == TargetType::ENEMY) {
+        for (int m = 0; m < monsterCount; ++m)
+            if (monsters[m].alive && !monsters[m].reviving) return true;  // a dead/reviving creature is not targetable
+        return false;
+    }
+    return true;
+}
+
+// WhisperingEarring.AfterAutoPrePlayPhaseEnteredLate: on turn 1, up to 13 times, the first
+// hand card that CanPlay() pays its resources and auto-plays (AnyEnemy -> the first hittable
+// enemy); every selection meanwhile goes through VakuuCardSelector (first maxSelect options).
+void BattleContext::whispering_earring_auto_play() {
+    if (turn != 1 || !relic_has(*this, RelicId::WHISPERING_EARRING)) return;
+    vakuuSelecting = true;
+    for (int played = 0; played < 13 && outcome == Outcome::UNDECIDED; ++played) {
+        if (pending.op != ChoiceOp::NONE || activePlay.active || autoPlayQueueCount) break;
+        int idx = -1;
+        for (int i = 0; i < handCount && idx < 0; ++i) if (hand_card_playable_now(i)) idx = i;
+        if (idx < 0) break;
+        const Card card = hand[idx];
+        const bool xCostCard = card_cost(card) < 0;
+        const int cost = energy_cost_in_combat(card);
+        const int spend = xCostCard ? player.energy : std::max(0, cost);
+        int target = -1;
+        if (card_target(card) == TargetType::ENEMY) {
+            int order[MAX_MONSTERS];
+            const int total = enemy_order(order);
+            for (int k = 0; k < total && target < 0; ++k)
+                if (monsters[order[k]].alive && !monsters[order[k]].reviving) target = order[k];
+        }
+        remove_at(hand, handCount, idx);
+        player.energy -= spend;  // CardModel.SpendResources
+        regent_spend_energy(*this, spend);
+        regent_spend_stars(*this, std::max(0, regent_star_cost(*this, card)));
+        if (outcome != Outcome::UNDECIDED) break;
+        if (autoPlayQueueCount >= MAX_PILE) throw std::overflow_error("Automatic play queue capacity exhausted");
+        auto &task = autoPlayQueue[autoPlayQueueCount++];
+        task = AutoPlayRequest{};
+        task.card = card; task.ownerDepth = -1; task.target = target;
+        task.xOverride = xCostCard ? spend + (relic_has(*this, RelicId::CHEMICAL_X) ? 2 : 0) : -1;
+        if (!runningPlayLoop && !runningConfirmedExhaust && !resolvingCard) run_active_play();
+        settle_forced_choices();
+    }
+    vakuuSelecting = false;
 }
 
 bool BattleContext::play_card(int handIdx, int target) {
@@ -1997,8 +2085,8 @@ bool BattleContext::play_card(int handIdx, int target) {
     const bool freeAttack = card_is_attack(card) && player_power(PowerId::FREE_ATTACK) > 0;
     const int starCost = regent_star_cost(*this, card);
     if (starCost > regent.stars) return false;
-    if (player_power(PowerId::RINGING) > 0 && cardsPlayedThisTurn > 0) return false;
-    if (skillsLocked && card_is_skill(card)) return false;
+    if (turn_affliction(card) == 1 && cardsPlayedThisTurn > 0) return false;
+    if (turn_affliction(card) == 3) return false;
     if (hook_blocks_play(card)) return false;
     if (relic_has(*this, RelicId::VELVET_CHOKER) && cardsPlayedThisTurn >= 6) return false;
     int x = xCostCard ? player.energy : 0;
@@ -2088,8 +2176,10 @@ namespace {
 // (OFFER) have no such shortcut. Returns true if the choice was taken.
 bool auto_select_forced_choice(BattleContext &b) {
     const PendingChoice &p = b.pending;
-    if (p.op == ChoiceOp::NONE || p.optional || p.selectedCount || p.pile == ChoicePile::OFFER ||
-        p.count <= 0 || p.count > p.remaining) return false;
+    // VakuuCardSelector.GetSelectedCards: options.Take(maxSelect), optional or not.
+    const bool vakuu = b.vakuuSelecting && p.op != ChoiceOp::NONE && !p.selectedCount && p.count > 0;
+    if (!vakuu && (p.op == ChoiceOp::NONE || p.optional || p.selectedCount || p.pile == ChoicePile::OFFER ||
+        p.count <= 0 || p.count > p.remaining)) return false;
     std::uint16_t uids[MAX_PILE];
     int n = 0;
     auto offered = [&](std::uint16_t uid) {
@@ -2105,6 +2195,8 @@ bool auto_select_forced_choice(BattleContext &b) {
         n = 0;
         for (int k = 0; k < p.count; ++k) uids[n++] = p.cards[k].uid;
     }
+    if (vakuu) n = std::min(n, std::max(0, static_cast<int>(p.remaining)));
+    if (vakuu && n == 0) return false;
     const ChoiceOp op = p.op;
     if(op==ChoiceOp::EXHAUST && p.pile==ChoicePile::HAND) {
         int selected[MAX_HAND];for(int i=0;i<n;++i)selected[i]=uids[i];
@@ -2179,6 +2271,11 @@ void BattleContext::run_active_play() {
             }
             if(card.enchantment == EnchantmentId::ADROIT) gain_block(card.enchantmentAmount,true,true);
             if(card.enchantment == EnchantmentId::MOMENTUM) card.momentumExtraDamage += card.enchantmentAmount;
+            // Goopy.AfterCardPlayed: Amount++ on this card and on its DeckVersion.
+            if(card.enchantment == EnchantmentId::GOOPY) {
+                if(card.enchantmentAmount < 32767) ++card.enchantmentAmount;
+                record_goopy_growth(card.uid);
+            }
             // Corrupted.OnPlay (every play, after the card's own effect): 2
             // unblockable, unpowered damage to the owner.
             if (card.enchantment == EnchantmentId::CORRUPTED) damage_player(2, true);
@@ -2227,7 +2324,7 @@ void BattleContext::run_active_play() {
             ++attackSkillPlaysThisTurn;
             if (playedThisTurnCount < MAX_PILE) playedThisTurn[playedThisTurnCount++] = card.uid;
         }
-        blockPlayIndex = -1;
+        blockGainEntriesThisPlay = 0;
         silent_before_card_played(*this,card);
         necrobinder_before_card_played(*this,card);
         defect_before_card_played(*this,activePlay);

@@ -44,11 +44,14 @@ void relics_card_played(BattleContext &bc, const Card &card);
 void relics_monster_died(BattleContext &bc);
 void relics_exhausted(BattleContext &bc, const Card &card, bool causedByEthereal);
 void relics_shuffled(BattleContext &bc);
-void relics_turn_end(BattleContext &bc);
+// blockWasZero: Orichalcum.BeforeSideTurnEndVeryEarly, sampled before any end-of-turn effect.
+void relics_turn_end(BattleContext &bc, bool blockWasZero);
+void relics_after_side_turn_end(BattleContext &bc);
 void relics_after_turn(BattleContext &bc);
 void relics_ethereal_turn_end(BattleContext &bc);
 void relics_potion_obtained(BattleContext &bc);
 void relics_potion_used(BattleContext &bc);
+void relics_potion_discarded(BattleContext &bc);
 int relics_block_retain(const BattleContext &bc);
 bool relics_keep_energy(const BattleContext &bc);
 

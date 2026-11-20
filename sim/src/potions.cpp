@@ -210,6 +210,9 @@ bool BattleContext::try_fairy_revive() {
         player.hp = std::max(1, player.maxHp * 30 / 100);
         relics_current_hp_changed(*this);
         outcome = Outcome::UNDECIDED;
+        // AfterPreventingDeath -> OnUseWrapper: a real potion use (Hook.AfterPotionUsed:
+        // Belt Buckle, Reptile Trinket).
+        relics_potion_used(*this);
         return true;
     }
     return false;

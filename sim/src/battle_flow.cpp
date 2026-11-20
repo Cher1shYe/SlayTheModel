@@ -53,7 +53,8 @@ bool BattleContext::start_queued_auto_play() {
     if(target<0 && (targetType==TargetType::ENEMY || targetType==TargetType::RANDOM_ENEMY))
         target=random_alive_monster();
     if(target<0)target=0;
-    xCost=player.energy+(card_def(task.card.id).cost<0 && relic_has(*this,RelicId::CHEMICAL_X)?2:0);
+    xCost=task.xOverride>=0?task.xOverride:
+        player.energy+(card_def(task.card.id).cost<0 && relic_has(*this,RelicId::CHEMICAL_X)?2:0);
     nextPlayIsDupe=task.dupe;
     begin_play(task.card,target,true,task.forceExhaust);
     return true;

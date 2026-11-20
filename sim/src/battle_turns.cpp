@@ -112,8 +112,8 @@ void BattleContext::start_player_turn(bool extraTurn) {
     exhaustedThisTurn = 0;
     cardsDrawnThisTurn = 0;
     gainedBlockFromCardThisTurn = false;
-    blockCardPlaysThisTurn = 0;
-    blockPlayIndex = -1;
+    blockGainEntriesThisTurn = 0;
+    blockGainEntriesThisPlay = 0;
     playedAttackOrSkillThisTurn = false;
     attackSkillPlaysThisTurn = 0;
     // HardenedShellPower.BeforeSideTurnStart(side Player): the per-turn HP-loss
@@ -373,6 +373,12 @@ void BattleContext::resume_turn_flow() {
             if (turn != 1 && player_power(PowerId::PLATING) > 0)
                 add_player_power(PowerId::PLATING, -1);
             silent_player_turn_start(*this);
+            // DiamondDiadem.AfterSideTurnStart (relics follow the player's powers, so
+            // Blur's own decrement has already run): turn 1 +20 block (Unpowered), Blur 1.
+            if (turn == 1 && relic_has(*this, RelicId::DIAMOND_DIADEM)) {
+                gain_block(20, false, false);
+                add_player_power(PowerId::BLUR, 1);
+            }
             defect_after_side_turn_start(*this);
             necrobinder_after_side_turn_start(*this);
             regent_after_side_turn_start(*this);
@@ -385,6 +391,8 @@ void BattleContext::resume_turn_flow() {
             defect_player_turn_start(*this);
             if (outcome != Outcome::UNDECIDED) return;
             relic_persistent_finish_turn_start(*this);
+            // RunAutoPrePlayPhase -> Hook.AfterAutoPrePlayPhaseEnteredLate.
+            whispering_earring_auto_play();
             return;
         }
     }
@@ -492,6 +500,8 @@ void BattleContext::end_player_turn() {
         if (!dup) playedLastTurn[playedLastTurnCount++] = playedThisTurn[i];
     }
     playedThisTurnCount = 0;
+    // Hook.BeforeSideTurnEndVeryEarly (Orichalcum) precedes every end-of-turn effect.
+    const bool blockWasZeroAtTurnEnd = player.block == 0;
     // end-of-turn powers
     if (player_power(PowerId::CONSTRICT) > 0) {
         damage_player(player_power(PowerId::CONSTRICT));
@@ -531,7 +541,7 @@ void BattleContext::end_player_turn() {
         heal_hp(player_power(PowerId::REGEN));
         add_player_power(PowerId::REGEN, -1);
     }
-    relics_turn_end(*this);
+    relics_turn_end(*this, blockWasZeroAtTurnEnd);
     relics_after_turn(*this);
     if (outcome != Outcome::UNDECIDED) return;
 
@@ -549,6 +559,8 @@ void BattleContext::end_player_turn() {
     if (outcome != Outcome::UNDECIDED) return;
     flush_ethereal_exhaust_hooks();
     // Hook.AfterSideTurnEnd(Player).
+    relics_after_side_turn_end(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     silent_player_turn_end(*this);
     necrobinder_player_turn_end(*this);
     regent_player_turn_end(*this);
@@ -589,6 +601,10 @@ void BattleContext::end_player_turn() {
         tenderCardsPlayedThisTurn = 0;
     }
     player.power[static_cast<int>(PowerId::RINGING)] = 0;
+    // TangledPower.AfterSideTurnEnd removes itself (and the Entangled afflictions).
+    player.power[static_cast<int>(PowerId::TANGLED)] = 0;
+    // SmoggyPower.AfterSideTurnEnd clears every Smog affliction.
+    skillsLocked = false;
     // GrapplePower.AfterTurnEnd removes the debuff at the end of the turn
     // (TheGambit kills immediately in damage_player, never at turn end).
     for (int i = 0; i < monsterCount; ++i) {
