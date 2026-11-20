@@ -188,7 +188,11 @@ def initialize_simulator(sim, seed: str, ascension: int, profile: str = "default
     return rc, {"profile": profile, "first_act": first_act, "effective_progress": effective}
 
 
-def compare_decision(frame: dict, rc, sim, catalog, *, observation_schema="subset") -> tuple[dict, object, object]:
+def compare_decision(frame: dict, rc, sim, catalog, *, observation_schema="subset",
+                     legacy_capture=False) -> tuple[dict, object, object]:
+    """``legacy_capture``: the frame predates host fields added later (act encounter
+    history, checklist D). Only for replaying preserved captures: those fields are
+    removed from both sides and reported as uncovered, never filled in."""
     result = {"unsupported": {}, "public_state_diff": {}, "action_diff": {},
               "coverage": "partial public-state/action contract; not full observation or rule parity",
               "uncovered_state": UNCOVERED_STATE}
@@ -224,13 +228,41 @@ def compare_decision(frame: dict, rc, sim, catalog, *, observation_schema="subse
             from spire_rl import public_obs
             import numpy as np
             states = {}
-            for source, make in (("native", lambda: public_obs.from_native(frame, native)),
+            for source, make in (("native", lambda: public_obs.from_native(frame, native, legacy_capture)),
                                  ("simulator", lambda: public_obs.from_simulator(rc, simulator))):
                 try: states[source] = make()
                 except public_obs.ObservationCoverageError as exc:
                     result["unsupported"][source + "_observation"] = str(exc)
             result["coverage"] = "spire.public/1 public facts, encoded policy inputs and legal action semantics; not complete game-rule parity"
             result["uncovered_state"] = ["Future transitions and full-game rule equivalence require replay verification."]
+            legacy_missing = [key for key in ("actNormalEncounters", "actEliteEncounters")
+                              if legacy_capture and "native" in states
+                              and states["native"].facts["run"][key] is None]
+            if legacy_missing:
+                for state in states.values():
+                    for key in legacy_missing: state.facts["run"][key] = None
+                result["uncovered_state"].append("pre-D capture: run." + ", run.".join(legacy_missing) + " not exported by this host build")
+            if legacy_capture and "native" in states and any(e["moves"] is None for e in states["native"].facts["enemies"]):
+                for state in states.values():
+                    for e in state.facts["enemies"]: e.update(moves=None, stunned=None)
+                result["uncovered_state"].append("pre-A2 capture: enemy move predictions not exported by this host build")
+            native_decision = states["native"].facts.get("decision") if legacy_capture and "native" in states else None
+            if legacy_capture and native_decision is not None and native_decision.get("purpose", "") is None:
+                for state in states.values():
+                    if state.facts["decision"] is not None: state.facts["decision"].update(purpose=None, service=None)
+                result["uncovered_state"].append("pre-A6 capture: selection purpose not exported by this host build")
+            if legacy_capture and "native" in states and states["native"].facts["player"].get("ostyHp", 0) is None:
+                for state in states.values():
+                    state.facts["player"].update(ostyHp=None, ostyMaxHp=None)
+                result["uncovered_state"].append("pre-Osty capture: player Osty HP not exported by this host build")
+            if legacy_capture and "native" in states and any(
+                    card["pile"] in ("hand", "play") and card["displayDamage"] is None and card["displayBlock"] is None
+                    and card["displayDamageVs"] is None for card in states["native"].facts["cards"]):
+                # Pre-A1 capture: display values were not recorded; drop them on both sides.
+                for state in states.values():
+                    for card in state.facts["cards"]:
+                        card.update(displayDamage=None, displayBlock=None, displayDamageVs=None, previewUnsupported=False)
+                result["uncovered_state"].append("pre-A1 capture: card display values not exported by this host build")
             if len(states) == 2:
                 result["model_state_diff"] = public_obs.differences(states["simulator"], states["native"])
                 result["model_input_diff"] = {}

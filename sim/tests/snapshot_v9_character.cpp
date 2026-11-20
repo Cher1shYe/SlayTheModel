@@ -32,7 +32,7 @@ int main() {
     b.regent.stars = 4;
 
     const auto blob = source->serialize();
-    check(static_cast<unsigned char>(blob[4]) == 14, "snapshot version 14");
+    check(static_cast<unsigned char>(blob[4]) == 18, "snapshot version 18");
     auto restored = std::make_unique<RunContext>();
     check(RunContext::restore(blob, *restored), "restore character state");
     check(restored->serialize() == blob, "round trip identical");

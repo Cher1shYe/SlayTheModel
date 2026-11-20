@@ -250,6 +250,7 @@ def main() -> None:
                         ops[-1] = (*ops[-1], value9)
                         op_n[ai] += 1
                 states.append({
+                    "name": sname,
                     "kind": 0, "once": 1 if st.get("once") else 0,
                     "follow": sidx.get(st.get("follow"), 255),
                     "intent_off": intent_off, "intent_n": intent_n,
@@ -270,6 +271,7 @@ def main() -> None:
                         conds.append((int(b["cond_code"]) if "cond_code" in b else cond_code(b["cond"]),
                                       sidx.get(b["state"], 0)))
                 states.append({
+                    "name": sname,
                     "kind": 1 if kind == "random" else 2, "once": 0,
                     "follow": 255, "intent_off": [0, 0], "intent_n": [0, 0],
                     "branch_off": br_off, "branch_n": len(st["branches"]),
@@ -362,6 +364,12 @@ def main() -> None:
                s["op_off"][0], s["op_off"][1],
                s["op_n"][0], s["op_n"][1],
                s["branch_off"], s["branch_n"], s.get("aux_code", 0)))
+    lines.append("};")
+
+    # Observation A2: public move identity (state names, parallel to MON_STATES).
+    lines.append("constexpr const char *MON_STATE_NAMES[] = {")
+    for s in states:
+        lines.append(f"    {cstr(s['name'])},")
     lines.append("};")
 
     lines.append("constexpr MonPowerDef MON_INNATE[] = {")

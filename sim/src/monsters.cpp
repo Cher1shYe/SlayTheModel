@@ -140,9 +140,11 @@ static bool rat_can_summon(const BattleContext &bc, const Monster &m) {
 // weight x 10), summed in branch order; num = rng.NextFloat(sum); then
 // num -= weight for every branch in order, first with num <= 0 wins. Exactly one
 // MonsterAi draw per traversal, also when every weight is zero (NextFloat(0)).
-static int choose_random(BattleContext &bc, Monster &m, const MonStateDef &st) {
-    float weights[16];
-    float total = 0.0f;
+// Branch weights of a RandomBranchState after the repeat / max-times / cooldown rules
+// (shared by the real roll and the A2 prediction). Returns the branch count.
+static int random_branch_weights(const BattleContext &bc, const Monster &m, const MonStateDef &st,
+                                 float *weights, float &total) {
+    total = 0.0f;
     const int n = std::min<int>(st.branchN, 16);
     const bool rat = m.id == MonsterId::TWO_TAILED_RAT;
     const bool ratCanSummon = rat && rat_can_summon(bc, m);
@@ -164,6 +166,13 @@ static int choose_random(BattleContext &bc, Monster &m, const MonStateDef &st) {
         weights[i] = w > 0.0f ? w : 0.0f;
         total += weights[i];
     }
+    return n;
+}
+
+static int choose_random(BattleContext &bc, Monster &m, const MonStateDef &st) {
+    float weights[16];
+    float total = 0.0f;
+    const int n = random_branch_weights(bc, m, st, weights, total);
     float num = bc.monsterAiRng.next_float(0.0f, total);
     for (int i = 0; i < n; ++i) {
         num -= weights[i];
@@ -367,6 +376,10 @@ static void spawn_at(BattleContext &bc, MonsterId id, int slot,
     if (id == MonsterId::ROCKET) {
         bc.player.power[static_cast<int>(PowerId::SURROUNDED)] = 1;
     }
+    // Hook.AfterCreatureAddedToCombat fires only for CreatureCmd.Add (mid-combat summons,
+    // turn >= 1), not for the encounter's initial roster.
+    if (bc.turn >= 1 && relic_has(bc, RelicId::PHILOSOPHERS_STONE)) m.strength += 1;
+    if (bc.furCoatActive) m.hp = 1;  // FurCoat.AfterCreatureAddedToCombat: SetCurrentHp(1)
 }
 
 void roll_pending_moves(BattleContext &bc) {
@@ -783,7 +796,8 @@ static void perform_ops(BattleContext &bc, Monster &m, int selfIdx, const MonSta
             case OP_POWER_PLAYER: {
                 PowerId pid = static_cast<PowerId>(op.a);
                 int amount = useDeadly ? op.deadlyAmount : op.b;
-                if (pid == PowerId::SHRINK && amount < 0) amount = -amount;
+                // ShrinkerBeetle applies Shrink -1: a negative amount is permanent
+                // (ShrinkPower.IsInfinite) until the applier dies.
                 if (amount < 0 && pid == PowerId::STRENGTH &&
                     power_ref(m, PowerId::POSSESS_STRENGTH) > 0) {
                     m.aux[0] = static_cast<std::int16_t>(m.aux[0] - amount);
@@ -1172,6 +1186,12 @@ void monster_act(BattleContext &bc, Monster &m) {
             if (bc.theftOwners[i] == selfIdx && !bc.theftReturned[i])
                 bc.theftOwners[i] = -1;  // escape forfeits the stolen card
         }
+        // The Doormaker's phase change is not CreatureCmd.Escape; everything
+        // else leaving through an escape move counts as an escaped creature.
+        if (m.id != MonsterId::DOORMAKER) {
+            if (bc.escapedMonsterCount < 255) ++bc.escapedMonsterCount;
+            if (m.id == MonsterId::FAT_GREMLIN) bc.fatGremlinEscaped = true;
+        }
         if (m.id == MonsterId::DOORMAKER) {
             int doorIdx = -1;
             for (int i = 0; i < bc.monsterCount; ++i) {
@@ -1249,14 +1269,15 @@ void monster_act(BattleContext &bc, Monster &m) {
     if (m.alive && power_ref(m, PowerId::HATCH) > 0) {
         --power_ref(m, PowerId::HATCH);
     }
+    // AsleepPower.BeforeSideTurnEndVeryEarly removes Plating on the last asleep
+    // turn before PlatingPower.BeforeSideTurnEndEarly would grant its block.
+    if (power_ref(m, PowerId::ASLEEP) > 0 && power_ref(m, PowerId::ASLEEP) <= 1)
+        power_ref(m, PowerId::PLATING) = 0;
     if (power_ref(m, PowerId::PLATING) > 0) {
         m.block += power_ref(m, PowerId::PLATING);
         power_ref(m, PowerId::PLATING) -= 1;
     }
-    if (power_ref(m, PowerId::ASLEEP) > 0) {
-        if (power_ref(m, PowerId::ASLEEP) <= 1) power_ref(m, PowerId::PLATING) = 0;
-        power_ref(m, PowerId::ASLEEP) -= 1;
-    }
+    if (power_ref(m, PowerId::ASLEEP) > 0) power_ref(m, PowerId::ASLEEP) -= 1;
     if (power_ref(m, PowerId::METALLICIZE) > 0) m.block += power_ref(m, PowerId::METALLICIZE);
     if (power_ref(m, PowerId::REGEN) > 0) m.hp = std::min(m.maxHp, m.hp + power_ref(m, PowerId::REGEN));
     if (m.alive && power_ref(m, PowerId::SLUMBER) > 0) {
@@ -1307,4 +1328,120 @@ void monster_act(BattleContext &bc, Monster &m) {
     if (m.alive) roll_intent(bc, m);
 }
 
+
+// ---------------------------------------------------------------- A2 prediction
+namespace {
+// Distribution over MON_MOVE states reached from `local` (random / conditional
+// branches expanded); mirrors resolve_state without drawing from the RNG.
+void expand_state(const BattleContext &bc, const Monster &m, int selfIdx, int local, double p,
+                  std::vector<std::pair<int, double>> &out, int guard = 0) {
+    const MonsterDef &def = monster_def(m.id);
+    if (guard > 32 || local < 0 || local >= def.stateCount || p <= 0.0) {
+        out.push_back({0, p});
+        return;
+    }
+    const MonStateDef &st = state_of(def, local);
+    if (st.kind == MON_MOVE) {
+        out.push_back({local, p});
+        return;
+    }
+    if (st.kind == MON_RANDOM) {
+        float weights[16];
+        float total = 0.0f;
+        const int n = random_branch_weights(bc, m, st, weights, total);
+        if (total <= 0.0f) {  // NextFloat(0) = 0 -> the first branch (num <= 0)
+            if (n > 0) expand_state(bc, m, selfIdx, MON_BRANCHES[st.branchOff].state, p, out, guard + 1);
+            return;
+        }
+        for (int i = 0; i < n; ++i)
+            if (weights[i] > 0.0f)
+                expand_state(bc, m, selfIdx, MON_BRANCHES[st.branchOff + i].state, p * weights[i] / total, out, guard + 1);
+        return;
+    }
+    auto &mutableBc = const_cast<BattleContext &>(bc);   // eval_cond only reads
+    Monster copy = m;
+    for (int i = 0; i < st.branchN; ++i) {
+        const MonCondDef &cb = MON_CONDS[st.branchOff + i];
+        if (eval_cond(mutableBc, copy, selfIdx, cb.cond)) {
+            expand_state(bc, m, selfIdx, cb.state, p, out, guard + 1);
+            return;
+        }
+    }
+    out.push_back({0, p});
+}
+
+PredictedMove describe(const BattleContext &bc, const Monster &m, int local, double p) {
+    PredictedMove r{local, p, 2, 0, 0};
+    const MonsterDef &def = monster_def(m.id);
+    if (local < 0 || local >= def.stateCount) return r;
+    const MonStateDef &st = state_of(def, local);
+    const int asc = bc.ascension >= 8 ? 1 : 0;
+    for (int i = 0; i < st.intentN[asc]; ++i) {
+        const MonIntentDef &in = MON_INTENTS[st.intentOff[asc] + i];
+        if (i == 0) r.intentType = in.type;
+        if (in.type == 0) {
+            r.intentType = 0;
+            r.damage = bc.calc_monster_damage(m, move_attack_damage(bc, m, local, in));
+            r.hits = bc.ascension >= 9 && in.deadlyHits >= 0 ? in.deadlyHits : in.hits;
+            if (def.multiClawState != 255 && local == def.multiClawState) r.hits = 3 + m.aux[1];
+            break;
+        }
+    }
+    return r;
+}
+
+// State bookkeeping a performed move leaves behind (move log, AI counters).
+void perform(const BattleContext &bc, Monster &m, int local) {
+    const MonsterDef &def = monster_def(m.id);
+    const MonStateDef &st = state_of(def, local);
+    const int asc = bc.ascension >= 8 ? 1 : 0;
+    switch (st.auxCode) {
+        case 1: ++m.aux[0]; break;
+        case 2: m.aux[0] = 1; break;
+        case 3: ++m.aux[1]; break;
+        case 4: ++m.aux[0]; m.maxHp = m.hp = m.aux[0] == 1 ? (asc ? 212 : 200) : (asc ? 313 : 300); break;
+        default: break;
+    }
+    add_log(m, local);
+    m.pendingState = static_cast<std::uint8_t>(st.follow == 255 ? local : st.follow);
+}
+}  // namespace
+
+const char *monster_state_name(MonsterId id, int local) {
+    const MonsterDef &def = monster_def(id);
+    if (local < 0 || local >= def.stateCount) return "";
+    return MON_STATE_NAMES[def.stateOff + local];
+}
+
+std::vector<std::vector<PredictedMove>> predict_monster_moves(const BattleContext &bc, int slot, int depth) {
+    std::vector<std::vector<PredictedMove>> steps;
+    if (slot < 0 || slot >= bc.monsterCount || depth <= 0) return steps;
+    const Monster &start = bc.monsters[slot];
+    if (start.id == MonsterId::INVALID) return steps;
+    steps.push_back({describe(bc, start, start.move, 1.0)});
+    std::vector<std::pair<Monster, double>> frontier{{start, 1.0}};
+    for (int k = 1; k < depth; ++k) {
+        std::vector<std::pair<Monster, double>> next;
+        std::vector<PredictedMove> step;
+        for (auto &[m, p] : frontier) {
+            Monster after = m;
+            perform(bc, after, m.move);
+            std::vector<std::pair<int, double>> reached;
+            expand_state(bc, after, slot, after.pendingState, p, reached);
+            for (auto [local, q] : reached) {
+                Monster branch = after;
+                branch.move = static_cast<std::uint8_t>(local);
+                bool merged = false;
+                for (auto &row : step)
+                    if (row.state == local) { row.p += q; merged = true; break; }
+                if (!merged) step.push_back(describe(bc, branch, local, q));
+                next.push_back({branch, q});
+            }
+        }
+        steps.push_back(step);
+        frontier.swap(next);
+        if (frontier.size() > 256) break;  // bounded: three steps never come close
+    }
+    return steps;
+}
 }  // namespace sts2

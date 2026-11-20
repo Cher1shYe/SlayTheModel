@@ -465,9 +465,9 @@ Thieving Hopper 偷牌的挑选规则；一张牌同时可能被多种附着影�
 
 ---
 
-## 12. 2026-11-18～19 公共模型接口与真实选择补全（ruleset v12）
+## 12. 2026-11-18 公共模型接口与真实选择补全（America/Los_Angeles，ruleset v12）
 
-用户要求补全上一轮发现的接口和遗物缺口，并同步 AGENTS；11 月 19 日要求集中核实、加快完成。本批仍保留 C++ 执行器，没有训练、提交或推送，也没有修改原始 DLL 或旧原生样例。
+用户要求补全上一轮发现的接口和遗物缺口，并同步 AGENTS；随后要求集中核实、加快完成。本批仍保留 C++ 执行器，没有训练、提交或推送，也没有修改原始 DLL 或旧原生样例。
 
 ### 12.1 一个模型使用同一套输入和候选动作
 
@@ -524,7 +524,7 @@ ruleset `native-41cef1ea-port-v12`；快照 v13；宏观观察 v4 / 96 列，战
 
 ---
 
-## 13. 2026-11-19 基础注册审计与固定编号（ruleset v13）
+## 13. 2026-11-18 基础注册审计与固定编号（America/Los_Angeles，ruleset v13）
 
 用户要求先核对卡牌、遗物、事件、怪物和先古之民的基础注册，避免训练后发现模拟器与原生身份对不上。本轮同步检查药水与遭遇池，没有扩展为所有效果重写。完整范围、例外与复查命令见 [registry-audit.md](registry-audit.md)，逐项结果见 [registry-audit.json](registry-audit.json)。
 
@@ -561,7 +561,7 @@ DLL 实际枚举：596 卡牌、299 遗物、66 药水（含 1 Mock）、57 普�
 
 ruleset 升为 `native-41cef1ea-port-v13`；快照仍 v13，观察/动作版本和尺寸沿用 v12；Card 仍 304 字节。**本轮不是全部效果验证**：遗物/事件/先古动态数值与效果、候选资格和概率、怪物 AI/阵容执行、整局对照仍未全面核实。`NATIVE_PARITY_COMPLETE` 保持 false。未训练、未提交、未推送；本次原生导出进程已退出。
 
-## 14. 全部活动怪物数值核对与修正（2026-11-19，ruleset v14）
+## 14. 全部活动怪物数值核对与修正（2026-11-18，America/Los_Angeles，ruleset v14）
 
 用户要求下一版本核对所有小怪、精英、Boss 的数值。本轮以真实 `ModelDb.Monsters` 的 **107 个活动模型**为范围，含召唤物和组件；按 Boss 相关 15、精英相关 17、普通/事件/其他召唤物 75 分工检查。15/17 不是 Boss/精英遭遇的数量。完整清单、修正表和边界见 [monster-number-audit.md](monster-number-audit.md)，机器结果见同名 JSON。
 
@@ -604,3 +604,531 @@ ruleset 升为 `native-41cef1ea-port-v13`；快照仍 v13，观察/动作版本�
 ruleset 为 `native-41cef1ea-port-v14`，快照升 **v14**：Louse 空闲辅助槽保存待触发 CurlUp 的来源 UID，Aeonglass 空闲辅助槽保存 CardsLeft；包含恢复校验，旧快照明确拒绝。没有增大 Card（仍 304 字节），没有改旧 ID 或观察维度/位置。内部来源 UID 只输出为待触发布尔值，不进入模型特征。`AGENTS.md`、两个 README 和审计报告已同步。
 
 **验证边界**：此次直接 DLL 证据是初始数值 getter/意图构造；动态变化与时序是源码期望加 C++ 执行回归。尚未在真实 DLL 中逐场执行全部怪物战斗，也没有穷尽遗物/能力组合、所有钩子顺序、多人缩放或整局对拍；Thieving Hopper 偷牌挑选仍未核对。`NATIVE_PARITY_COMPLETE` 保持 false。未训练、未提交、未推送，导出进程已退出。
+
+## 15. 分支建立后的交接更新（2026-11-18，America/Los_Angeles）
+
+用户指定完整项目改在 `v111_SF2` 工作，`v111_simulator` 只发布其中的模拟器子集，保留旧 `v111_SF1`。此前代理创建分支的环境权限被拒绝，用户要求先停在准备阶段，随后改为提供命令、由用户自行操作。最终采用在原仓库内从完整项目提交提取子树的方式，不要求新增工作区。
+
+本次只读核验：当前分支为 `v111_SF2`，提交 `aefad6a`；`v111_simulator` 为 `fbfdd8f`。两者分别与本地 `origin/` 跟踪引用相同，本次没有联网刷新。模拟器分支根目录仅 `.gitignore`、`LICENSE`、`sim/`；两分支的 `sim/` 子树均为 `0b6a9774eb7686ee60957603781ee1a76d60f6d8`，内容比较无差异。
+
+补齐 `AGENTS.md` 中此前遗漏的分支约定，移除“新目录仍未跟踪、尚未提交”的过时说明，并纠正 GitHub 永久不可访问的旧描述。明确主工作区留在 SF2、模拟器是子集、两者需要显式同步；后续模拟器发布要追加既有分支历史，不重新创建或混入整个工作区。完整注册审计依赖训练目录的公共词表，独立模拟器只能执行其自包含审计与测试。
+
+此次只改交接文档，检查文档差异和分支子树一致性，没有修改规则、运行状态或生成表，也未重新执行已通过的运行测试。此前准备的独立模拟器副本已完整编译并通过 51/51 C++ 测试及怪物数值审计。此次文档修改未提交、未推送。
+
+## 16. 公共接口提速（2026-11-18 晚，America/Los_Angeles；只改 Python，ruleset 不变）
+
+**起因**：随机打法实测走 `spire.public/1`（`from_simulator` + `encode`）每个决策约 3 毫秒，旧观察约 0.15 毫秒；训练机 8 线程要达到计划吞吐，每个决策需在 1 毫秒以内。性能分析显示一半以上时间花在 `parity/semantic.py` 的 `SimulatorCatalog.from_repo`：**每个决策都重新读 `cards_generated.inc` 并用正则重建卡牌表**。
+
+**改动**（不改 C++、规则、观察布局或数值）：
+
+- `SimulatorCatalog.from_repo` 按（仓库路径、两个源文件 mtime）缓存；文件重新生成后自动重解析。
+- `public_obs.py`：`need` / `number` 对精确 dict / int / bool / float 走快速路径，其他类型仍走原检查；动态变量名下标改为预建字典（与 `list.index` 同取首次出现）。
+- 卡牌校验结果缓存：`_card` 只依赖原始内容和来源，键为不含 `transportId` 的**类型精确**内容（bool、int、float 分开），返回浅拷贝；同时缓存排序用 JSON 文本，`knownTopPosition` 被改写的牌重新计算。
+- 编码行缓存：卡牌的 768 维行只依赖其事实字典；顶层标量键带类型（True 与 1 编码不同），嵌套值已经过 `number()` 规整。实体行改为每 64 行一次分配。
+- 两个缓存各上限 8,192 项（约 5 KB/项，满了清空）。缓存假定运行期间不修改 `_CATALOG`；目前没有代码或测试这样做。
+
+**验证**：用改动前代码的副本和新代码，在同一批种子与动作序列上逐决策比较公开事实（`repr`）、候选动作及句柄、全部 11 个网络输入张量的哈希（kind、id、num、edges、global_row、player_row、cand_type/index/t1/t2/num）。A0/A10 交替、偏向出牌的随机打法：60 局 6,366 个决策、另 200 局 20,450 个决策（最远第 17 层），**全部逐字节一致，0 异常**。（首次比较脚本有几个字段名写错、漏比候选张量，修正后重跑。）
+
+| 每个决策（本机单线程，200 局） | 改前 | 改后 |
+| --- | ---: | ---: |
+| 公开事实 `from_simulator` | 2,681 µs | 517 µs |
+| 编码 `encode` | 423 µs | 248 µs |
+| 合计 | 3,104 µs | 765 µs |
+
+剩余大头：`_common` 中地图与排序、动作投影 `project_simulator`（约 130 µs）、C++ 导出（约 90 µs）、编码中地图约 70 个 768 维行。随机打法牌组小（平均每决策 22 张牌），真实对局牌更多，耗时会更高。另记：每个观察约 90 个实体 × 768 维 float32 ≈ 0.27 MB，开训前要考虑 PPO 样本存储量。
+
+新增测试 `test_observation_caches_match_uncached_results_and_keep_types_exact`：冷/热缓存结果一致、返回副本不串改、bool 与 int 键分开、行缓存与直接计算一致、卡牌表缓存与重新解析一致。**训练 Python 43/43、parity Python 91 项 + 109 子项通过**（parity 此前记 89，本次运行实际为 91，未追查差异来源）。未重编 C++、未跑 C++ 测试（未改 C++）。
+
+本次同时更正 `AGENTS.md` 2.1：两台 Mac 的仓库路径与 Python 不同，写明各自位置并加 parity 测试命令。未提交、未推送。
+
+## 17. 两项硬要求：人用命令行、AI 可上原生客户端（2026-11-18 晚，America/Los_Angeles；ruleset 不变）
+
+用户明确两点：模拟器要能由人在命令行里直接操作；用模拟器训练的 AI 要能直接到**带画面的原生客户端**里玩（后者现在不做，只核实能力、防止走偏）。此前文档都没有把这两点写成要求；旧分支历史里也没有人用的命令行（旧 `cli.py` 是训练入口）。
+
+### 17.1 人用命令行（已完成）
+
+新增 `train/spire_rl/play_cli.py`，运行方式为 `python -m spire_rl.play_cli --seed 种子 --ascension 10`：
+
+- 画面只从 `PublicState` 渲染，包括头部（幕/层/HP/金币/Boss）、遗物、药槽、战斗（能量、格挡、能力，敌人血量/格挡/意图/能力，手牌带费用/伤害/格挡/关键字/附魔，各牌堆张数）、带连线的地图、奖励/货架、候选牌与选择要求，以及水晶球。抽牌堆只列内容不列顺序，已知顶牌按公开位置显示。
+- 候选就是网络打分的那份（同一语义动作键），每个动作都有中文标签。选牌、跳过、确认、丢药等全部由人选，不自动代选。
+- 命令：数字执行；`deck/draw/discard/exhaust/map/state`；`undo`（最多 50 步，调试用，会看到同样的随机结果）；`save/load` 快照；`help/quit`。遇到公共接口不支持的局面明确停止，提示 undo/load，不猜。
+- 后端接口为 `observe() -> PublicState` 和 `act(index)`。现在只有模拟器后端；以后接原生宿主（或客户端 mod），同一个前端可以直接用。
+
+验证：120 局 A0/A10 随机脚本输入（夹杂查看/撤销命令），**0 次接口停止**，出现过的 33 种动作类型全部有标签。新增 `tests/test_play_cli.py`：随机脚本整局、**重排隐藏抽牌顺序 7 次后画面逐字相同**（NoSL）、撤销与存读快照还原同一画面、越界编号不执行。**训练 Python 47/47、parity 91 项 + 109 子项**。命令行放在 `train/`（依赖公共契约），因此不在只含 `sim/` 的 `v111_simulator` 分支里。
+
+### 17.2 AI 上原生客户端：能力核实（结论：路子对，不需要推倒）
+
+依据（读源码确认，未在客户端里实际运行）：
+
+1. **宿主加载的是完整原生场景树**：`NativeBootstrap` 实例化 `res://scenes/game.tscn` 的 `NGame`，只是无画面。
+2. **执行动作走真实界面**：点击真实控件（`UiHelper.Click`、`NCardHolder` 的 Pressed 信号）；丢药等少数操作提交与界面相同的 GameAction。状态读取 `RunManager` / `CombatManager`，并等待 ActionExecutor 和动作队列空闲。带画面的客户端里是同一套节点和管理器。
+3. **网络输入两端同源**：原生 `NativePublicObservation` 和模拟器各自导出公开事实，经同一个 `public_obs.encode`；原生 actionId 只做执行句柄。已有 31 步真实记录证明该轨迹两端张量一致。
+4. **游戏自带 mod 加载器**：v0.111.0 源码有 `Core/Modding/ModManager`，支持 manifest、依赖、Harmony，可以把桥接代码作为 mod 装进客户端。
+
+将来真正上客户端还要做（现在不做）：mod 打包（manifest + DLL）、在已运行的游戏里挂接而不是自己创建 `NGame`、客户端内的传输（可沿用同一 HTTP 协议）、“网络选动作 → 发给原生”的循环、客户端动画速度下的等待，以及把接口覆盖从开局 31 步扩展到整局（与恢复模拟器的对照是同一件事）。
+
+**走偏风险**：观察清单 B“动作效果预览”原计划在模拟器的 `resample_hidden` 副本上试走算出，而用户已决定要做“只用公开信息的动作效果预览”。这种算法在客户端里没有对应的模拟器状态，上线时就缺了这项输入。已在清单中注明：实现前要改成只由 `PublicState` 加共享代码算，或者两端各算一份并对拍。A 类推算量同理。其余约束写入 `AGENTS.md` 第 3 节“可部署”。
+
+未改 C++ 或规则，未提交、未推送。
+
+## 18. 局内概率与生成核查，修正 6 处（2026-11-18 晚，America/Los_Angeles；ruleset v15）
+
+用户要求：随机数不必逐位一致，但训练面对的内容、数值、机制、地图生成、事件分支和所有可计算概率必须与原生一致；对照由同学负责，这里做源码核查。用户同时指定模拟器默认按全解锁玩家处理。
+
+### 18.1 核查范围与结论
+
+逐项阅读原生源码再对照 C++，报告见 [content-audit.md](content-audit.md)。一致的部分如下：
+
+- 问号房基础概率、累加和遗物钩子；卡牌奖励稀有度、保底、升级和 Boss 规则；金币范围与 A3。
+- 药水稀有度；遭遇生成（弱怪数、标签不重复、精英 15、Boss、A10 第二 Boss）；事件袋组成。
+- 遗物稀有度、遗物袋与宝箱；商店组成、打折和卡牌/药水价格；各幕地图点数量。
+- A1–A5、A7、A10 局外效果；火堆回血。
+
+确认 6 处不一致和 1 个配置问题：
+
+1. **问号房不出商店**：原生在记录本格历史前，看上一格的房间里有没有商店。C++ 在掷骰前已把 `lastPointType` 改成当前格，规则从未生效；用的还是地图点类型，问号房抽中的商店不算。
+2. **精英战药水概率**：原生用“当前概率 + 0.125”同一门槛判掉落并更新；C++ 更新时没算精英加成。
+3. **白兽雕像**：原生强制掉落时不掷骰、不改概率；C++ 每场 −0.1。
+4. **逃跑金币比例**（`EncounterModel.CalculateGoldProportion`）：普通战按“1 − 逃跑数 / 出现过的怪物种类数”缩放（四舍五入到偶数），为 0 时没有金币奖励。Gremlin Merc：Fat Gremlin 逃跑给一半，金币被偷且未夺回则 0。C++ 一律给全额。
+5. **商店遗物基础价**：原生 175/225/275/200，C++ 每档多 25。补货遗物的价格还按掷出的稀有度计算，袋子回退时会错。
+6. **A6 删牌价**：原生 100 + 50n，C++ 一直是 75 + 25n。
+7. **配置**：默认 `init` 固定第一幕 Overgrowth 且 Underdocks 未解锁，训练永远见不到 Underdocks。
+
+小差异：原生价格取整为五成双（无色稀有牌基础 172.5 → 172，C++ 原为 173），一并修正。卡牌奖励某稀有度抽空时的回退顺序有差异，铁甲碰不到，未改。
+
+### 18.2 改动
+
+- `run.cpp`：`lastPointType` 改为在房间类型确定后记录本格（房间是商店则记 SHOP），问号房掷骰时读到的是上一格。药水按原生逻辑重写。新增 `battle_gold_proportion` 并按比例缩放金币。遗物价格表、补货价格、删牌价改正；新增 `native_round`（`nearbyint`）代替 `lround`。
+- `battle.h` / `monsters.cpp` / `battle_damage.cpp`：新增 `escapedMonsterCount`、`fatGremlinEscaped`、`mercGoldStolen`。逃跑招式计数，Doormaker 换阶段不算 `CreatureCmd.Escape`；Surprise 死亡且偷过金币时标记 Merc 金币被偷。快照校验覆盖这三个新字段。
+- `run.h`：`NativeProgressContext::underdocksUnlocked` 默认 true；`init`（及调用它的 `init_seed`）第一幕改为 `-1`，即按原生 `act_selection` 选择。
+- ruleset **`native-41cef1ea-port-v15`**，快照 **v15**（旧快照拒绝）。没有新增或改动任何 ID，没有改观察布局，`Card` 大小不变。
+
+### 18.3 验证
+
+新增 `sim/tests/native_run_odds_v15.cpp`，覆盖以下内容：
+
+- **问号房**：直接调用和走地图两种方式都检查。商店之后、问号房抽中商店之后，下一个问号房不再出商店，且被排除的商店概率不增长。
+- **药水**：精英战 600 次按原生门槛判定并更新，其中包含落在加成区间的情况；白兽雕像不改概率。
+- **金币**：逃跑比例为 0 时没有金币；Merc 给一半（A10 为 4–8）或 0；一场真实的 Thieving Hopper 逃跑使计数为 1。
+- **商店**：A0/6/10 的删牌价；300 家商店的遗物价格落在原生区间，并出现低于旧最低价的价格；无色牌价格区间。
+- **开局**：400 个种子中第一幕 Underdocks 占 40–60%，显式指定第一幕仍然有效。
+
+为配合新规则改了 5 处旧测试断言：
+
+- 3 处快照版本号 14 → 15。
+- `observation_contract` 的第一幕检查改为翻转当前抽到的幕。
+- 训练测试中两条录制的搜索轨迹，固定为录制时的上下文（Overgrowth、Underdocks 未解锁），否则种子 UNIFIED6 现在会抽到 Underdocks。
+
+这些改动都没有放宽检查。
+
+结果：**C++ 52/52、训练 Python 47/47、parity Python 91 项 + 109 子项**。基础注册审计和怪物数值审计通过，与存档报告相比只有 ruleset 名称变化，已更新 `docs/registry-audit.json` 和 `docs/monster-number-audit.json`。
+
+**边界**：这些是源码对照与源码期望回归，不是 DLL 执行对拍。事件（含 23 个 C++ 自标“近似实现”）、遗物、卡牌、药水效果尚未系统核对。未提交、未推送。
+
+## 19. 事件与先古核查，补上 5 件无效果的先古遗物（2026-11-18 晚，America/Los_Angeles；ruleset v16）
+
+用户要求核对事件。方法同第 18 节：逐个对照原生 `Models/Events/*.cs` 与 C++ `events.cpp` 等，详细结果见 [content-audit.md](content-audit.md) 第 8 节。
+
+### 19.1 结论
+
+- **出现条件**：57 个普通事件的 `IsAllowed` 全部一致。“永恒”判断漏了 Forbidden Grimoire（铁甲拿不到），也漏了 Tezcatara 余烬附魔带来的永恒，已补。
+- **23 个原“近似实现”事件**：15 个普通事件逐个核对，选项、数值、随机范围、选牌约束和后续效果都与原生一致；Neow 在 v11 已对拍；7 位先古另核对选项池。标签是早期遗留，已改为 IMPLEMENTED（只有 UNSUPPORTED 会影响事件袋，改标签不影响行为）。
+- **先古选项池**：Darv、Vakuu、Tanx、Nonupeipe 一致。Tezcatara 分组写错：Seal of Gold 应在第 3 组；只有牌组有基础打击时才提供 Nutritious Soup。Pael：有事件宠物时不提供 Legion；Claw 的条件应是至少 3 张 Goopy 可附魔的牌。Orobas：Archaic Tooth 只认 Bash，不认 Break。
+- **5 件先古遗物标为已实现，但拿到后没有任何效果**：Nutritious Soup、Pael's Claw、Tri-Boomerang、War Hammer、Meat Cleaver。发现方法：先发现 Soup 拿到后牌组没有变化，再统计每件遗物在 C++ 里除注册表和选项列表以外是否出现过。同样方法查出的 Divine Destiny、Ring of the Drake 是其他职业的升级起始遗物；Fake Merchant's Rug、Wongo 徽章在原生里本来就没有效果。这种排查只能发现“完全没写”的遗物，发现不了“写了但数值或时机错”的遗物。
+
+### 19.2 改动
+
+- **新附魔**（`EnchantmentId` 追加 GOOPY、INSTINCT、TEZCATARAS_EMBER）：
+  - Tezcatara 余烬：基础费用永久为 0，升级、降级都保持；带永恒；受力量加成的攻击 +3。
+  - Goopy：只能附在防御牌上；加消耗；格挡加“层数 − 1”；每打出一次层数 +1，并记录到 `BattleContext::goopyUids/goopyGrowth`，战斗结束时写回牌组（只有原始牌组里的牌有 DeckVersion）。
+  - Instinct：只能附在攻击牌上；受力量加成的攻击伤害 ×2。
+- **遗物效果**：
+  - Nutritious Soup、Pael's Claw：获得时附魔。
+  - Tri-Boomerang：新增选牌界面类型 23，由玩家选 3 张，可选不足 3 张时全部自动附魔，与原生选牌器一致。
+  - War Hammer：精英战胜利后用 Niche 流打乱可升级的牌，升级前 4 张。
+  - Meat Cleaver：`RunActionType::REST_COOK` 追加；可删除的牌至少 2 张时可用；删除选牌界面设 `service = 4`，可取消、需确认；确认后最大生命 +5，记入火堆已用选项第 7 位。“全部用完”的掩码从 127 改为 255。
+- **选项池**：Tezcatara、Pael、Orobas 按原生修正。
+- **公共接口**：`public_obs.ENCHANTMENTS` 追加三项。卡牌行原有的附魔 one-hot 在 56–74，紧接着的 76–78 已被占用，所以新附魔放在空闲的 238–240，原有特征位置不变。`parity/action_contract.py` 增加 REST_COOK→COOK 和选牌界面类型 23。旧的 legacy 观察附魔 one-hot 长度固定，不包含新附魔（新网络不使用 legacy 观察）。
+- ruleset **`native-41cef1ea-port-v16`**、快照 **v16**。编号锁没有变动，`Card` 大小不变。
+
+### 19.3 验证
+
+新增 `sim/tests/native_ancient_relics_v16.cpp`：
+
+- **选项池**：各种子下 Seal of Gold 只出现在第 3 组，约 1/4；没有基础打击时不提供 Soup；牌组有 Byrdonis Egg 时不提供 Legion；防御牌都已附魔时不提供 Claw；只有 Break 时不提供 Archaic Tooth。
+- **Soup**：5 张基础打击 0 费、永恒、不可删除，升级后仍为 0 费，伤害 6→9。
+- **Claw**：真实打出一张 Goopy 防御：格挡 5、被消耗，牌组层数 1→2。
+- **Tri-Boomerang**：选牌界面要求选 3 张，攻击伤害 ×2，非攻击牌不可附魔。
+- **War Hammer**：精英战升级 4 张，普通战不升级。
+- **Cook**：取消后选项仍在，确认后牌组 −2、最大生命和当前生命 +5，之后其他火堆选项也不可用；全程做了快照往返。
+
+训练测试新增一项：两种新附魔在公共状态里可见（0 费、永恒、消耗），one-hot 落在 238/240，原有区间没有被占用。
+
+旧测试只改了一处：火堆用完后的掩码断言从 127 改为 255，另外 3 处是快照版本号 15→16。
+
+结果：**C++ 53/53、训练 Python 48/48、parity Python 91 项 + 109 子项**；基础注册审计和怪物数值审计通过，与存档报告相比只有 ruleset 名称变化。
+
+**边界**：仍然是源码对照，不是 DLL 执行对拍。其余 41 个事件只核对了出现条件；遗物、卡牌、药水效果的数值和时机还没有逐件核对。未提交、未推送。
+
+## 20. 卡牌身份与编码核对（2026-11-18 晚，America/Los_Angeles；ruleset 不变）
+
+用户要求：确保训练时网络在模拟器里选的牌，和以后在原生客户端里测试时选的是同一张，两边的编码一致。
+
+此前 v13 注册审计核对的是 C++ 生成表与 DLL 的静态属性，没有覆盖“模拟器公开导出 → 编码器 → 网络输入”这一段。本次补上：
+
+- 新增只读绑定 `public_card_template(card_id, upgraded)`，导出一张新牌组卡，走与真实牌组卡相同的 `public_card_view`；只是接口，不改规则。
+- 新增 `parity/card_encoding_audit.py`：对 DLL 注册表每张卡、每个升级档，比较模拟器导出和按原生宿主 `DescribePublicCard` 格式构造的卡。两者经同一个 `_card` 和行编码器，比较全部公开字段与 768 维编码行。另外检查：
+  - 模拟器编号到原生模型 ID 的一一对应；
+  - 编号锁与动作键映射表一致；
+  - C++ 打印伤害/格挡等于 DLL 数值。
+
+结果：**1,148 个变体 0 差异**。33 个改名别名都正确；GRAPPLE 是保留空槽；DEPRECATED_CARD 只是原生兜底；例外为 Stardust（模板无持有者，导出报错）和 Mad Science（未配置模板）。报告存为 `docs/card-encoding-audit.json`。
+
+`parity/tests/test_card_encoding_audit.py` 锁定 0 差异，并验证篡改 Bash 的关键词会被报出，防止空通过。
+
+**parity 93 项 + 109 子项、训练 48/48** 通过。只重编了 Python 扩展，C++ 规则与测试程序未改。
+
+**边界**：只核对新牌。战斗中的临时修改（费用修正、临时关键词、附魔、加成）也走同一编码器，但未逐卡穷举；遗物效果按用户要求暂不核对。未提交、未推送。
+
+## 21. 怪物机制与回合触发核对（2026-11-18 晚，America/Los_Angeles；ruleset v17）
+
+用户要求按源码核对所有小怪和 Boss 的机制、数值和每个回合的触发时机；真实执行对照不在本次范围。数值 v14 已用 DLL 导出核对过，本次重点是机制与时机。详细结果见 [content-audit.md](content-audit.md) 第 10 节。
+
+### 21.1 方法
+
+1. 列出原生所有怪物覆写的钩子，逐个阅读方法体。大部分只涉及台词、动画、音效，影响规则的只有 Queen 那一处。
+2. 列出怪物施加的全部 68 种能力，抽出每种能力的触发方法（回合开始/结束、受伤、死亡、出牌、费用、伤害修正等），与 C++ 的实现位置和时机对照。
+3. 重跑 `native_monster_ai.py --compare/--effects`，没有出现第 8.4 节之外的新偏差。
+4. 核对 C++ “每只怪行动后立即结算回合末能力”与原生“敌方回合结束统一结算”的差异：没有跨怪物影响，被眩晕的怪同样结算。
+
+### 21.2 修正（均按原生）
+
+- **Shrinker Beetle**：Shrink −1 是永久的。`OP_POWER_PLAYER` 不再把负数改成正数，回合末只递减正数层；甲虫死亡时移除。
+- **Constrict**：Slithering Strangler 死亡时移除。
+- **Queen**：Torch Head Amalgam 死亡时，如果 Queen 待出招（尚未行动）是 Burn Bright For Me（状态 3），改为 Enrage（状态 7）；本回合已经出过招的不改。
+- **Lagavulin Matriarch**：最后一个沉睡回合先移除镀甲，再结算镀甲格挡。
+- **Tangled / Ringing / Smog**：新增 `BattleContext::turn_affliction`，按原生“一张牌只有一个附着”的规则推导 Ringing、Entangled、Smog。
+  - 出牌限制只作用于带这些附着的牌；Entangled 攻击牌费用 + Tangled 层数（X 费不受影响）。
+  - Tangled 和 Smog 在玩家回合末清除。
+  - 公开卡牌导出补上 `AFFLICTION.RINGING/ENTANGLED/SMOG`（公共词表原本就有）。
+
+ruleset **`native-41cef1ea-port-v17`**；数据布局没有变化，快照仍为 v16。
+
+### 21.3 验证
+
+新增 `sim/tests/native_monster_mechanics_v17.cpp`，覆盖：
+
+- 真实回合中甲虫施加 −1 层，两回合后仍是 −1，甲虫死后变为 0；
+- Strangler 死后 Constrict 清除；
+- Queen 改招，以及本回合已出招时不改；
+- Matriarch 三个沉睡回合的格挡依次为 12、11、0；
+- Tangled 让攻击 +1 费、技能不变、已带其他附着的牌不受影响、回合末移除；
+- Ringing 下打出一张牌后，只有已带其他附着的牌仍可出；
+- Smog 锁定未附着的技能牌，并在回合末清除。
+
+结果：**C++ 54/54、训练 Python 48/48、parity 93 项 + 109 子项**；注册表、怪物数值、卡牌编码三项审计通过，相比存档只有 ruleset 名称变化。
+
+**边界**：源码对照，不是 DLL 战斗对拍。Thieving Hopper 的偷牌规则仍未核对。Lagavulin Matriarch 被打醒后的意图标签与原生不同（规则等价）。Python 端没有施加能力的绑定，新附着的公开导出由 C++ 端 `turn_affliction` 的断言覆盖。未提交、未推送。
+
+### 21.4 Thieving Hopper 偷牌规则（补充）
+
+按用户要求核对 `ThievingHopper._stealPriorities`、`ThieveryMove` 与 `SwipePower`，与 C++ `steal_hopper_card` 逐条一致：
+
+- 候选是抽牌堆和弃牌堆中原本在牌组里的牌；
+- 四档优先级为：罕见 → 普通/稀有/事件 → 基础/任务 → 先古或 Imbued，前三档都排除 Imbued；
+- 四档都空时从全部候选里挑；用 CombatCardGeneration 流均匀抽取；先偷后攻击；被眩晕不偷；
+- 偷走的牌同时离开牌组，打死跳蚤可通过特殊奖励拿回，逃跑则丢失。
+
+所以**没有修改规则**，ruleset 保持 v17。`native_monster_mechanics_v17.cpp` 新增优先级测试，覆盖：
+
+- 有罕见牌时偷罕见牌；
+- 附 Imbued 的罕见牌让位给普通牌；
+- 只剩基础牌时偷基础牌；
+- 只剩 Imbued 牌、先古牌和诅咒时，只在前两者中挑；
+- 只有诅咒时偷诅咒。
+
+此前 DEVLOG 第 9.2、10.5、14.3 节中“偷牌规则未核对”的记录至此结清。**C++ 54/54** 通过。未提交、未推送。
+
+## 22. 事件选项效果核对（2026-11-18 晚，America/Los_Angeles；ruleset v18）
+
+**做了什么**：v16 只核对了全部事件的出现条件和 23 个原“近似”事件。本轮把其余 41 个普通事件逐个与原生 `Models/Events/*.cs`（以及 Crystal Sphere 小游戏、Fake Merchant 货架、各战斗事件遭遇）并排对照，内容包括初始化、选项是否可用、选项效果、数值与随机范围、所用随机流、选牌约束、奖励组成、多页流程以及战后恢复。
+
+**结果**：39 个一致；2 处差异都与 Maw Bank 有关，已按原生修正：
+
+- Waterlogged Scriptorium 付金币是 `PlayerCmd.LoseGold`，不是商店购买。原生 Maw Bank 不失效，C++ 却让它失效了。已删除这行。
+- Fake Merchant 的货架就是商店遗物格，购买走 `MerchantEntry.OnTryPurchaseWrapper` → `Hook.AfterItemPurchased`，不限房间，花费大于 0 时 Maw Bank 失效。C++ 原来不会失效，已补上。
+
+原生 Maw Bank 只在 `AfterItemPurchased` 时失效；C++ 商店的买牌、遗物、药水和删牌本来就正确。
+
+**顺带发现（未修，留给遗物核对）**：Lord's Parasol 在原生里会白拿商店的全部角色牌、无色牌、遗物、药水，并强制做一次不可取消的免费删牌；C++ 只白拿遗物。
+
+**验证**：
+- 新增 `sim/tests/native_event_options_v18.cpp`，覆盖两档付费的 Waterlogged、Fake Merchant 购买、离开不买。
+- 结果：**C++ 55/55、训练 Python 48/48、parity 93 项 + 109 子项**。
+- 注册表、怪物数值、卡牌编码三项审计通过，相比存档只有 ruleset 名称变化。
+- ruleset 升为 `native-41cef1ea-port-v18`。观察、动作和快照版本不变。
+
+**边界**：这是源码对照，不是 DLL 执行对拍。未提交、未推送。
+
+## 23. 遗物效果核对（2026-11-18 晚至 11-19，America/Los_Angeles；ruleset v19）
+
+**做了什么**：把铁甲能拿到的 265 件遗物（共享池、铁甲池、事件池、先古池）逐件与原生 `Models/Relics/*.cs` 对照，按触发时机核对数值、条件、随机流和顺序。
+
+**修正**：
+
+| 类型 | 遗物与修正 |
+| --- | --- |
+| 数值 | Amethyst Aubergine（改为奖励页一份 15 金币，原来直接给 10）、Permafrost（7）、Planisphere（5）、Signet Ring（888）、Bread（第一回合 −2） |
+| 时机 | Orichalcum（VeryEarly 判断）、Parrying Shield（AfterSideTurnEnd）、Brilliant Scarf（Late 修正、不影响 X 费）、Spiked Gauntlets（0 费能力也 +1） |
+| 漏掉的效果 | Booming Conch 精英能量、Fiddle 禁止回合内抽牌、Belt Buckle 丢药水、Fairy 算使用药水、Philosopher's Stone 召唤物力量 |
+| 按 v0.111 重写 | Diamond Diadem、Toasty Mittens（玩家选手牌消耗）、Fur Coat（地图标记 8 点、公开为地图任务）、Whispering Earring（自动预出牌阶段 + VakuuCardSelector）、Lord's Parasol（白拿全部商品 + 强制免费删牌） |
+
+**状态与接口**：
+- 快照 v17。
+- 公共编码地图行第 17 位表示 Fur Coat 标记，是新增位，原有位置不变。
+- 出牌合法性统一为 `hand_card_playable_now`，修掉了合法动作里漏算 Tangled 的重复费用计算。
+
+**验证**：
+- C++ 56/56，新增 `native_relic_effects_v18.cpp`；`relic_contract`、`rules_regression`、`observation_contract` 中按旧行为写的断言改为原生预期。
+- 训练 Python 49/49，新增 Fur Coat 公共标记测试。
+- parity 93 项 + 109 子项。
+- 注册表、怪物数值、卡牌编码三项审计通过。
+- 塞入新遗物的随机整局冒烟测试被用户中止，未跑。
+
+**未修缺口**：见 AGENTS.md 第 0 节 v19 条目和 content-audit 第 12 节。
+
+**用户决定**：模拟器工作到此暂停，等同学原生对照结果再继续。这是源码对照，不是 DLL 对拍。未提交、未推送。
+
+## 24. 文档同步与阳伞缺口补记（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：只改文档，不改代码。
+- `content-audit.md` 第 0 节速览表和第 11 节第 2 项仍写着遗物“待核对 / 下一步 / 已知待修 Lord's Parasol”，与 v19 已完成矛盾，改为与第 12 节一致。
+- 补记一个遗物缺口（用户确认）：Lord's Parasol 白拿过程中弹出选牌（如 Astrolabe）时，原生逐件 `await` 购买、选完再拿下一件，药水最后拿；C++ 选牌界面打开后循环继续，后续遗物排队、药水当场拿。Astrolabe 之后有 Potion Belt / Sozu 或持有 The Courier 时结果不同。已写入 content-audit 第 12 节和 AGENTS.md v19 未修缺口。按暂停安排未修。
+
+**依据**：`artifacts/native-source/v0.111.0/MegaCrit/sts2/Core/Models/Relics/LordsParasol.cs` 与 `sim/src/run.cpp` 的 `lords_parasol_purchase_everything`、`add_relic`（选牌界面打开时排队）。源码对照，未实测。
+
+## 25. 训练框架设定（2026-11-19，America/Los_Angeles；只记录，不写代码）
+
+用户定：初始奖励用 Zero-Search 数值；练习战 30%；防卡死照 AlphaDefect；标量价值头；网络宽 768、12+12 层。本机用现有 `UnifiedNet`（`spire.public/1` 布局）实测 217.4M 参数，384×(6+6) 为 31.7M、512×(8+8) 为 69.1M。按实体数估算 217M 在 5090 上每秒只有几百个决策，未实测，训练机测速后再定。奖励、观察、价值可见性都要可变。**所有内容核对完之后再写训练框架。** 全部数值见 plan 第 6.2 节。
+
+补充（同日晚）：用户可用 A100 约 3 天有效训练时间；估算 217M 在 A100 上约 300–500 决策/秒、3 天约 0.8–1.3 亿决策（未实测）。用户拍板仍用 217M。练习战改为 40%，抽样类型权重 Boss 6、精英 3、普通 1。见 plan 第 6.2 节。
+
+## 26. 跳过卡牌奖励后可重开：原生行为，防循环放在 AI 驱动层（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**核对**：
+- 原生真实记录 `parity/fixtures/native-public-first-combat-rewards-parity0001-a10/` 第 26–29 步：奖励页 → 打开选牌 → 跳过 → 回到奖励页 → 再打开同一组牌 → 领 Thunderclap。用同一编码器比较：第 26 与 28 步（奖励页）、第 27 与 29 步（选牌页）的公开状态**完全相同**，跳过后“打开选牌”仍是合法动作。
+- 模拟器同样可以无限“打开 → 跳过”，前后公开状态与网络输入张量逐位相同。
+- 结论：这是原生游戏本身的行为，模拟器与原生一致，**不改模拟器**。
+
+**问题**：网络看到的局面前后一样，取最大评估时，第一次选了打开就会永远循环；只在训练环境里防，上线原生客户端时照样会卡住。
+
+**定下的做法（用户同意）**：防循环属于 AI 驱动程序（读 `PublicState` → 网络 → 选动作的那层 Python，模拟器和原生共用同一份），不属于游戏或模拟器：
+1. 驱动程序自己记公开历史（例如这个卡牌奖励已跳过几次），作为观察值给网络；
+2. 保险规则在驱动程序里从候选中去掉会造成循环的动作（例如重开超过 2 次后不再提供“打开选牌”）。原生游戏不改，按钮仍在，只是 AI 不点。
+战斗防卡死规则同样放在这一层。其他界面上的往返（选中/取消、预览/取消、进出商店等）实现时按同一原则统一处理。
+
+## 27. 观察第 1 批：E 牌组摘要、C 抽牌概率、A5 路线摘要（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：新增 `train/spire_rl/public_derived.py`，只读 `PublicState.facts`，模拟器和原生共用这一份，不改 C++。`public_obs.encode` 写入：
+- **E 牌组摘要** → 全局行第 32–63 列：张数；五类牌张数与占比；不能打、X 费、平均费用、0 费与 2 费以上占比；升级比例；印刷伤害/格挡密度；打击/防御张数；群攻、消耗、虚无、固有、保留、附魔、苦难、稀有张数。印刷值，不含战斗加成（加成是 A1）。
+- **C 抽牌概率** → 战斗玩家行第 32–95 列：抽牌/弃牌/消耗堆张数；已知顶牌数；抽牌堆和弃牌堆各类张数；接下来 1、2、5 张里抽到攻击/技能/能力/状态/诅咒/有伤害/有格挡/0 费牌的概率和期望张数；距下次洗牌张数。抽牌堆按多重集加已公开的顶牌位置算（超出窗口的已知牌不会进窗口），不够时从弃牌堆洗入的部分按超几何算；抽牌途中新生成或移动的牌不算。
+- **A5 路线摘要** → 每个地图点第 18–41 列：到 Boss、最近火堆、商店、宝箱的步数（含能否到达）；下一个火堆前（没有则到 Boss）精英与战斗数的最少/最多；到 Boss 的精英、普通战最少/最多；问号、火堆、商店最多；路线条数。只看地图结构，按结构缓存。
+- `public_obs.FEATURE_VERSION = 2`；`net.save` 记录、`net.load` 不符即拒绝。
+
+**为什么**：用户已定的观察清单 A–E 中不依赖加成计算和引擎内部状态的三项，先做。
+
+**验证**：新增 `train/tests/test_public_derived.py`（10 项）：抽牌概率与逐一枚举所有隐藏顺序的精确结果相等（含已知顶牌、洗牌）；小地图路线手算核对；起始牌组数值；重排隐藏抽牌顺序后全局行与玩家行逐位不变；随机整局数值有限且有界；检查点特征版本不符被拒。**训练 Python 59/59、parity 93 项 + 109 子项**。编码耗时每决策约 0.40 毫秒（路线缓存后新特征约 0.06–0.09 毫秒）。
+
+**边界**：原生端无需新导出，三项都从已有公开事实算；未做真实原生帧上的数值比对（用户定暂不做对拍）。
+
+## 28. 观察第 2 批：D 本幕遭遇（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：
+- **模拟器导出**（`sim/bindings/public_view.inc`，只加接口）：`run.actNormalEncounters`、`run.actEliteEncounters`，即本幕已从地图房间进入的普通/精英遭遇，按顺序（遭遇袋已用的前缀）。遭遇袋本身（未来顺序，隐藏）不导出。
+- **原生宿主导出**（`parity/host-src/NativePublicObservation.cs`）：同名字段，取本局历史 `MapPointHistory[当前幕]` 每个地图点的第一个房间中类型为 Monster / Elite 的遭遇 ID（事件开出的战斗第一个房间是 Event，不计入）。**这台 Mac 没有游戏备份，C# 未编译、未实跑**，要在有游戏的机器上编译并录一段新的原生记录核对。
+- **公共目录**（`sim/tools/gen_public_catalog.py` 重新生成 `public_catalog.json`）：新增 `acts`（每幕弱怪/普通/精英/Boss 池，取自原生注册表；弱怪场数取自各幕源码 `NumberOfWeakEncounters`：Overgrowth、Underdocks 3，Hive、Glory 2）和 `encounterTags`。原有内容逐项不变。
+- **共享推算**（`public_derived.act_encounters`）：按原生 `ActModel.GenerateRooms` 规则，从已遇到的历史推下一场的概率——前若干场从弱怪袋、之后从普通袋抽，袋空才整池补满；每次在“不等于上一场、且不与上一场共享标签”的袋内遭遇中均匀抽，没有则在袋内任抽。精英同理（一个袋）。只用公开历史和静态规则。
+- **编码**：全局行第 64–79 列（本幕普通/精英场数、弱怪还剩几场、是否弱怪阶段、当前袋剩余数、下一场候选数、历史缺失标记）；每个本幕遇到过或下一场可能遇到的遭遇一个实体（kind 6，与 Boss 共用，第 0 列区分 Boss），含遇到次数、是否刚打过、弱/普通/精英、下一场普通/精英概率、是否仍在当前袋中。Boss 行第 9 列标第二个 Boss。`FEATURE_VERSION = 3`。
+- **旧原生录制**：`from_native` 缺这两个字段时默认报错（不静默补零）；只有 `compare_decision(..., legacy_capture=True)` 回放此前保存的录制时，两边都去掉这两项并在报告里列为未覆盖。`test_native_public_fixture` 用此模式。
+
+**验证**：新增 4 项测试：弱怪阶段排除已抽、首个普通战排除与上一场同标签的遭遇；精英袋满一轮后补满；旧录制模式与模拟器导出；40 局随机整局里**每一场实际进入的遭遇，在进入前的预测概率都大于 0**，且每次预测概率和为 1（模拟器真实遭遇袋 vs 共享规则）。随机打法基本只到第一幕，Hive、Glory 的池子靠注册表数据，未经整局覆盖。**训练 Python 63/63、parity 93 项 + 109 子项**。编码每决策约 0.48 毫秒，局外实体平均多约 9 个。
+
+**边界**：第一局教学顺序（`numberOfRuns == 0` 时 Overgrowth 固定排序）未建模；默认全解锁进度不会触发。遭遇列表用完后循环的情况未建模（返回空预测）。
+
+## 29. 观察 A1：加成后的牌面伤害和格挡（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：
+- **C++ 新增 `sim/include/sts2/card_preview.h`、`sim/src/card_preview.cpp`**（只读，不改规则）：照原生 `DamageVar / BlockVar / CalculatedDamageVar / CalculatedBlockVar.UpdateCardPreview`、`Hook.ModifyDamage / ModifyDamageInternal / ModifyBlock` 和每个相关的 power / relic / 附魔钩子移植。规则要点：
+  - 只有手牌和出牌区的牌跑全局修正（`CardModel.UpdateDynamicVarPreview`）；其他牌堆只算附魔。
+  - 附魔先于其他修正（Corrupted 打击 + 2 力量 = 6×1.5+2 = 11，不是 12）；加法（力量、Vigor、Strike Dummy、Miniature Cannon、Mystic Lighter、One For All 预览分支）→ 乘法（Weak、Shrink、Double Damage、Gigantification、Pen Nib、目标的 Vulnerable/Paper Phrog/Cruelty、Soar、Flutter、Covered、Slow）→ 封顶（Intangible、Hard To Kill）→ 至少 0 → 截断取整。
+  - 格挡：附魔（Goopy、Nimble）→ 敏捷、Fasten → Unmovable、Shadowmeld、Frail、No Block、Vambrace、Pael's Legion。
+  - 按局面计算的牌：铁甲可得的 Ashen Strike、Body Slam、Bully、Gang Up、Gold Axe、Mind Blast、Perfected Strike、Rend、Demonic Shield、Expect a Fight、Mimic、Stack 已按原生公式移植；其他职业的计算牌（Prismatic Gem 才可能出现）返回“不支持”，观察里标为未知，不给数。
+  - 原生是十进制 decimal，这里用精确分数计算，最后截断一次，不用浮点。
+- `rend_debuff_count` 从文件内私有改为共享（逻辑不变），预览和出牌用同一份。
+- **导出**：模拟器 `previewDamage`（不选目标时）、`previewBlock`、`previewDamageVs`（按公开敌人顺序逐个目标）；原生宿主同名字段（调用原生 `UpdateDynamicVarPreview` 读 `PreviewValue`，最后恢复为不选目标的显示），**C# 未编译**。
+- **Python**：只给牌本身有对应变量的手牌/出牌区牌；牌行第 544–563 列（有无伤害、伤害、有无格挡、格挡、不支持标记、对 6 个敌人位置的伤害）。显示值不进入排序和动作身份。原生缺字段默认报错，旧录制用 `legacy_capture` 两边都去掉。`FEATURE_VERSION = 4`。
+
+**验证**：
+- `sim/tests/card_preview_native.cpp`：53 项，每个期望值按原生源码手算并写在旁边（各修正单独和组合、附魔顺序、十进制取整、Pen Nib 出牌区、封顶、One For All、12 张计算牌、格挡各修正）。另对其中 29 项在战斗副本里实际打出比对引擎。**C++ 57/57**。
+- `train/tests/test_card_preview.py`：字段只出现在应有的牌上、编码位置、不支持标记、原生缺字段报错、显示值不改变牌的身份；60 局随机对局中 **4,821 次伤害、3,860 次格挡** 预览与引擎实际出牌结果逐一相等（其中 998 次伤害带加成）。**训练 Python 69/69、parity 93 项 + 109 子项**。
+- 公开状态约 0.65 毫秒、编码约 0.49 毫秒每决策。
+
+**顺带发现的引擎差异（未修，模拟器暂停中）**：
+1. **Perfected Strike 打出时少算自己**：原生 OnPlay 时这张牌在出牌区（`CardModel.cs` 注释“While this method is being run, this card will be in the Play pile”），`AllCards` 计入；C++ 出牌时不计入，少 2/3 点（升级前/后）。预览按原生。
+2. **伤害用 double 计算**：少数乘数组合下比原生少 1。例：(6+9)×3（Gigantification）×1.4（Slow 4 张）原生 63，引擎 62。在 0–399 的伤害和三种以内乘数组合里有 610 种这样的情况，多与 Slow、Shrink 有关。格挡用 float 但只乘 2、0.75，没发现误差。
+3. **Unmovable 计数口径**：原生数本回合的 BlockGainedEntry 条数，C++ 数获得格挡的出牌次数，一张牌两次获得格挡时不同（代码注释已写明，预览沿用 C++ 口径）。
+
+## 30. 修正 A1 发现的三处引擎差异（2026-11-19，America/Los_Angeles；ruleset v20）
+
+用户要求修正第 29 节列出的三处差异。
+
+**改动**：
+1. **Perfected Strike 计入自己**（`cards_ironclad.cpp`）：原生 OnPlay 期间牌在出牌区，`AllCards` 包含它；C++ 出牌时把它放在牌堆之外，现在不在任何牌堆里时补算自己。预览（`card_preview.cpp`）同样处理出牌区中的这张牌。
+2. **伤害改为精确十进制**：新增 `sim/include/sts2/exact.h`（精确分数）。`calc_player_damage`、`calc_monster_damage`、`thrash_damage_growth` 全部改用它，最后截断一次；原来分别是 double / float。其他职业助手函数返回的 double 乘数用分母 ≤ 10000 的最佳有理数逼近还原成准确分数——第一版按 4 位小数取整时，Debilitate 的 2.0/1.5 = 4/3 被截成 1.3333，Necrobinder 原生 DLL 样例（Debilitate + 易伤，原生 22）掉到 21，测试当场报错，改成逼近后恢复。预览共用同一个工具。
+3. **Unmovable 按原生记录计数**：`blockCardPlaysThisTurn / blockPlayIndex` 改为 `blockGainEntriesThisTurn / blockGainEntriesThisPlay`：每次出牌获得格挡且大于 0 记一条（原生 `CreatureCmd.GainBlock` 只在 > 0 时 `History.BlockGained`），条件为“本回合其他出牌的记录数 < Amount”。快照 v18（字段含义变化，旧快照拒绝），快照校验覆盖新字段；旧观察 `observe.cpp`、`combat_obs.cpp` 读取新计数。
+
+**验证**：
+- `card_preview_native` 增至 58 项（新增 Unmovable：同一次出牌两次获得格挡都翻倍，下一次出牌不翻倍，获得 0 不记录），**引擎实际出牌与预览 0 处差异**（修正前 2 处）。
+- **C++ 57/57**；含原生 DLL 样例的测试全部通过，其中 Necrobinder 198 个样例 3,357 项。更新了 3 个测试里写死的快照版本号。
+- **训练 Python 69/69**（随机对局预览与实际出牌对照仍全部一致）、**parity 93 项 + 109 子项**；注册表、怪物数值、卡牌编码三项审计通过，报告中 ruleset 更新为 v20。
+- 怪物伤害原为单精度 float：在 1–199 的伤害与三种以内乘数组合里没找到算错的例子，改为精确计算只为一致。
+
+**边界**：源码对照加原生样例回归，不是新的 DLL 执行对拍。未提交。
+
+## 31. 用户指定的 A1 同步测试三条（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+新增 `sim/tests/card_preview_user_cases.cpp`（70 项）。每条都用真实出牌得到能力，再比较三样：预览值、实际打出结果、按 v0.111.0 源码手算的原生值（源码推导，不是 DLL 实跑，这台 Mac 没有游戏）。
+
+1. **残酷 CRUELTY 25 / 残酷+ 50**，敌人易伤 4 层，无遗物：易伤倍率 1.5 + Amount/100。欺凌 = 4 + (2 / 3) × 易伤 4 = 12 / 16。
+   - 残酷：打击 10、打击+ 15、欺凌 21、欺凌+ 28；残酷+：12、18、24、32；两张都打（75）：13、20、27、36。三者全部一致。
+2. **无惧疼痛 FEEL_NO_PAIN 3 / 4 + 重振精神 SECOND_WIND 5 / 7**，手里 4 张非攻击牌（防御、耸肩、燃烧、伤口）和 1 张打击：原生逐张“消耗（无惧疼痛 +3/+4 无加成格挡）→ 获得 5/7 格挡”。预览显示每张 5 / 7；总格挡 32、40、36、44；消耗 4 张、打击留在手里。全部一致。
+3. **Regent：剑圣 SWORD_SAGE + 招架 PARRY 10 / 14 + 淬炼刀刃 REFINE_BLADE 锻造 8 / 12** 生成并强化大剑 SOVEREIGN_BLADE，打出一次：剑圣给大剑 1 次重放；每次伤害 10 + 锻造 = 18 / 22，每次获得格挡 = 招架层数。预览伤害 18 / 22、预览格挡 10 / 14（两张招架都打为 24）；实际打出（共 2 次）伤害 36 / 44、格挡 20 / 28 / 48。全部一致。
+
+**为此补的一处预览**：大剑的 CalculatedBlock（`GetOwnerParryAmount`：在战斗牌堆中时等于玩家 ParryPower）原来按“其他职业计算牌”标为不支持，现在实现。
+
+**验证**：C++ 58/58、训练 Python 69/69、parity 93 项 + 109 子项。
+
+补充（同日）：用户要求第 1 条的易伤层数从 0 到 5 各跑一次。测试改为对 0–5 层、三种残酷配置逐一检查（144 项，预览、实际打出、原生公式三者全部一致）。0 层时易伤不生效，打击 6 / 9、欺凌 4 / 4；有易伤时伤害 = ⌊印刷伤害 × (150 + 残酷) / 100⌋，欺凌印刷伤害随层数 4 + 2n / 4 + 3n。C++ 58/58。用户确认通过后数值这一条结束。
+
+## 32. 观察 A3 / A4 / B：能打多少、结束回合掉多少血、每个动作的效果预览（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**（新增 `train/spire_rl/public_tactics.py`，只读公开状态，两端共用，建立在 A1 显示值和公开意图上）：
+- **A3** 每个敌人：用当前手牌和能量最多能打它多少（合法出牌各一次的 0/1 背包，不考虑抽牌和出牌顺序带来的加成，按用户定义的简化版）、能否打死（≥ 血 + 格挡）。随机目标按期望。
+- **A4** 现在结束回合会掉多少血，按原生顺序：回合结束前（Orichalcum / Fake Orichalcum 先查格挡是否为 0；Plating、Cloak Clasp、Ripple Basin 加格挡；Regret 此时数手牌）→ 虚无牌消耗（Feel No Pain 加格挡）→ 回合结束牌按手牌顺序（Burn、Decay、Infection、Toxic、Wither 可格挡；Bad Luck 13、Beckon 6、Regret 不可格挡）→ Constrict、Demise、Disintegration → 敌人回合逐下结算意图。伤害：Intangible 每下至多 1、格挡、**Osty 先吃攻击伤害**、Tungsten Rod / Beating Remnant（按遗物栏顺序）、Buffer。不含下回合开始时的效果（Inferno 自伤、中毒）。隐藏意图标未知。
+- **B** 每个出牌动作：对目标打掉多少（含格挡）、是否打死、所有敌人总伤害、获得格挡（牌面显示值 + 攻击牌的 Rage）、出牌后剩余能量（含 Sown 返还）、出牌后再结束回合会掉多少血、是否致死；“结束回合”动作给当前 A4。打死敌人且幸存敌人带有可能对同伴死亡作出反应的能力（如 Corpse Slug 的 Ravenous）时标未知。
+- **打击次数表**：`gen_public_catalog.py` 从原生出牌代码解析 `WithHitCount(...)` 写入 `public_catalog.json` 的 `cardHits`（固定次数 / Repeat 变量 / X 费 / 出牌时才决定）；Spite、Dismantle 按原生条件单独处理；出牌时才决定的标未知。
+- **Osty 公开**：模拟器与原生宿主（C#，未编译）导出 `player.ostyHp / ostyMaxHp`。核对中发现：Kaleidoscope 给的死灵牌召唤出 Osty 后，它替玩家挡攻击伤害，而公开状态原来完全没有它——这是观察缺口，已补。旧原生录制按 legacy 处理。
+- **编码**：A4 → 玩家行 96–101，Osty → 104–106；A3 → 敌人行 600–603；B → 候选行新增第 512–543 列（`CAND_NUM` 512→544，语义描述上限仍 495 字节）。`FEATURE_VERSION = 6`。
+
+**验证**（`train/tests/test_public_tactics.py`）：用模拟器实际结束回合 / 实际出牌作对照，只排除定义之外的局面（敌人意图含增益/减益/召唤等会改变其他敌人伤害的招式、下回合开始掉血的能力）：
+- A4：**2,003 个局面**预测与实际结束回合掉血完全一致（1,852 个掉血 > 0）。
+- B：**6,620 次出牌**的剩余能量、获得格挡、对所有敌人的总伤害一致；其中 **3,458 次**再结束回合，掉血与预测一致。
+  > **更正（2026-11-20，见第 35 节）**：这组对照只覆盖 20 张白名单普通牌，且跳过有特殊能力的敌人；其余牌（放血、重振精神、自伤牌、重放等）实际有系统性偏差却标“已知”。“出牌效果预览与实际一致”只对白名单成立，第 35 节已改为全量对照。
+- A3：1,564 个敌人上，背包结果与枚举所有出牌组合的最优解相等。
+- 规则单测：Orichalcum 判定时机、Burn 可格挡、Regret 计数、Feel No Pain + 虚无、Intangible、Buffer、Tungsten Rod、Beating Remnant、Constrict/Demise、Osty、隐藏意图。
+- 过程中修正：Sown 返还能量、Rage 格挡、Osty 导出与吸收、反应性击杀标未知、测试排除 Inferno。
+- **C++ 58/58、训练 Python 73/73、parity 93 项 + 109 子项**。公开状态约 0.49 毫秒、编码约 0.45 毫秒每决策。
+
+**边界**：A3 不考虑出牌顺序（先上易伤再打）和抽牌；B 只预测伤害、格挡、能量和结束回合掉血，不预测其他效果（给敌人上虚弱等）；A4 不含敌人回合中途的增益/减益对后续攻击的影响（例如一个敌人先给另一个加力量）。
+
+## 33. 观察 A2：怪物招式 ID 与后续两步预测（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：
+- `gen_monsters.py` 额外生成 `MON_STATE_NAMES`（与 `MON_STATES` 平行的招式名），重新生成的 `monsters_generated.inc` 只有新增，原有内容逐字节不变。
+- `monsters.cpp`：把随机分支的权重计算（重复、连续次数上限、冷却）抽成 `random_branch_weights`，真实出招和预测共用（逻辑不变，C++ 全套与怪物数值审计确认）；新增只读 `predict_monster_moves`：第 0 步为当前显示的招式（概率 1），之后按“执行该招 → 记录招式历史与 AI 计数器 → 后续状态 → 随机分支按权重 / 条件分支按当前战场展开”推出第 1、2 步的概率分布，并给出每个候选招式的攻击伤害与段数。不读任何随机数。
+- 公开状态：每个敌人 `moves`（三步，每步为 招式名、局部编号、概率、意图类型、伤害、段数）和 `stunned`；原生缺失默认报错，旧录制 legacy。编码：敌人行 610–657（三步各 16 格概率）、658–661（后两步攻击概率与期望伤害）、664 眩晕、665 缺失。`FEATURE_VERSION = 7`。
+
+**验证**（`train/tests/test_move_prediction.py`）：
+- 第 0 步与显示的意图一致；每步概率和为 1。
+- 40 局随机对局的战斗局面，每个局面把隐藏随机（含怪物 AI 流）重采样 24 次后**实际结束回合**（前 8 次再结束一回合看第 2 步）：**13,131 次**实际出现的招式全部在预测的候选内；随机分支频率与预测概率的合并卡方 χ²/df = 1.27（df 66），离线大样本（13 个随机选招局面 × 200 次）实际频率与预测非常接近（如 50%/50% 实际 99:101、91:109）。
+- 只改隐藏随机后预测不变（NoSL）；原有“重采样后编码逐位相同”测试也覆盖它。
+- **C++ 58/58、训练 Python 76/76、parity 93 项 + 109 子项**，三项审计通过。
+
+**边界**：条件分支按当前战场判断（敌人回合中血量等变化后可能不同）；被眩晕/复活中的敌人第 0 步以外仅供参考（标记 `stunned`）。**原生端未实现**：需要在宿主里读原生 MoveStateMachine 并按同样规则推算（C# 版本），部署前必须补。
+
+## 34. 观察 A6：选牌用途；A–E 收尾与原生端欠账（2026-11-19，America/Los_Angeles；ruleset 不变）
+
+**做了什么**：选牌决策新增公开的 `purpose`（用途）和 `service`（商店 / 休息点 / 奖励等来源）。战斗内 17 种（升级、消耗、放回牌堆顶、抽到手、变化、复制、弃牌……），局外 23 种（删牌、变化、变化并升级、升级、各附魔、Brain Leech、Scroll Boxes、Sea Glass、Hefty Tablet、事件选牌……）。词表 `public_obs.PURPOSES` 只能追加；C++ 导出表和 Python 词表由测试锁定一致，`ChoiceOp` 每个值都有对应用途。编码在上下文行 360–423（用途）、424–429（来源），359 为旧录制缺失标记。`FEATURE_VERSION = 8`。战斗中触发选牌的那张牌本来就以“出牌区”牌导出，不另加。
+
+**未做**：事件选项提示（用户定，另有人做）；遗物“本场是否已触发”等额外状态（现有状态 / 计数 / 蜡封 / 熔化已导出，收益小）。
+
+**验证**：训练 Python 77/77、parity 93 项 + 109 子项。随机对局中各用途正确进入编码。
+
+**观察 A–E 至此完成**（除上面两项）。每决策：公开状态约 0.5 毫秒、编码约 0.5 毫秒。
+
+**部署到原生客户端前必须补的原生端工作**（模拟器侧都已完成并测试）：
+1. 编译并实跑原生宿主中已写好的 C# 导出：本幕遭遇（D）、牌面显示值（A1）、Osty 血量。这台 Mac 没有游戏备份，均未编译。
+2. 原生端招式预测（A2）：在宿主中读原生 MoveStateMachine，按同样规则推算（尚未写）。
+3. 原生选牌界面到 `PURPOSES` / `service` 的映射（A6，尚未写）。
+4. 补完后录一段新的原生记录，用完整对照（非 legacy）核对上述字段。
+
+## 35. B 效果预览改为“我方精确、敌方不追”；A4 补漏；选牌用途表错位与牌面小数伤害两处修复（2026-11-20，America/Los_Angeles；ruleset 不变，`FEATURE_VERSION = 9`）
+
+**起因**：用户的检查器指出，B（每个出牌的效果预览）没有算条件效果、重放、回能、遗物触发和出牌后的手牌/血量变化。例：重振精神预测卡面 5，实际是 5 × 消耗张数；放血预测出牌后仍是 3 能量，实际回能。核实：60 局随机对局 10,933 次出牌里约 446 次（约 4%）数字错误但标“已知”；第 32 节“6,620 次一致”只覆盖 20 张白名单牌（已在第 32 节更正）。
+
+**口径**（用户 2026-11-20 同意：敌人机制多，不追）：
+- **我方这一侧精确，算不准就标未知**：按原生 `CardModel.OnPlayWrapper` 在 `PublicState` 上结算一次出牌，不在模拟器副本上试走（可部署）。
+- **敌人一侧不追**：伤害定义为“牌面伤害 × 段数 + 我方遗物/能力的伤害”，**不含敌人自身的防御与反应**（滑溜、Skittish、坚硬外壳、荆棘、蜷缩……），由网络从敌人能力编码里学。会反击或改变敌人本回合行动的敌方能力被打到时，“出牌后结束回合掉血”标未知。
+- 讨论结论：改“说法”本身不改变网络输入；真正改变输入的是我方这一侧的数字。预期收益小但成本低，且训练开始前改观察没有代价。
+
+**做了什么**（`train/spire_rl/public_tactics.py`）：
+- 出牌次数：附魔重放 + 一二拳（攻击）/ Duplication / Burst（技能）/ Throwing Axe（本场第一张）；Echo Form、Tag Team、Signal Boost 标未知。重放时会变的（自加能力、算式牌、给敌人上能力的牌、Vigor、Pen Nib、Vambrace、Pael's Legion、Shuriken/Kunai/Rainbow Ring/Red Skull、Rupture+自伤）标未知。
+- 每次出牌：出牌前（Intimidating Helmet）→ 效果 → 出牌后（Rage、Ornamental Fan、Kusarigama、Letter Opener、Nunchaku、Tuning Fork、Daughter of the Wind、Lost Wisp、Iron Club、Game Piece、Music Box、Permafrost→未知），全部按原生计数。
+- 卡牌本身：自伤（放血、血墙、突破、御血术、Offering、Brand：不可格挡，经无实体/钨棒/Beating Remnant/Buffer；Inferno 自伤反伤；Demon Tongue/Centennial Puzzle）、回能（放血、Offering、Forgotten Ritual、Production、Luminesce、Fuel、Brightest Flame、Restlessness 条件）、重振精神（每张非攻击牌先消耗再格挡）、Entrench（当前格挡）、Evil Eye（本回合消耗过牌则两次）、Pact's End（消耗堆 ≥ 3 才有伤害，A3 同样生效）、Not Yet 回血、Brightest Flame 降上限、Stoke（消耗全部手牌）、True Grit/Cinder 随机消耗一张、True Grit+/Brand/Burning Pact 只剩一张时原生自动选中。
+- 消耗触发：Feel No Pain、Dark Embrace、Joss Paper、Burning Sticks、Charon's Ashes、Forgotten Soul、Drum of Battle（被消耗回能）。
+- 击杀触发：Gremlin Horn（回能 + 抽牌）；打死 Constrict 施加者 → 结束回合未知；预测打死的敌人有自身防御 → 结束回合未知。
+- 出牌后结束回合：带入出牌后的格挡、已掉血、Buffer、手牌（重振精神/Stoke 确定移除）、这张牌给自己加的 Plating / Feel No Pain / 无实体 / 火焰屏障 / 荆棘 / The Gambit / Stampede；抽牌/加牌/随机消耗时，若回合结束受手牌影响（Cloak Clasp、手里有 Regret、Feel No Pain、抽牌堆/弃牌堆里有回合末伤害牌或虚无牌）标未知；Weak/减力量/眩晕等改变敌人本回合的牌标未知（Whistle 眩晕目标直接去掉其意图）。
+- 只对复核过 OnPlay 的卡池（铁甲、无色、事件、诅咒、状态、衍生，227 张）给数；其他职业的牌、从抽牌堆自动打牌（浩劫、Cascade、Catastrophe、Beat Down、Uproar）、Fisticuffs、Omnislice、Thrash、Mad Science、友方目标牌标未知；出牌带非 Hexed 的负面附加，或场上有对出牌有反应的敌方能力（Strangle、Haunt、Gravity、Galvanic、Enrage、Monologue、Tender、Withering Presence、Smoggy、Chains of Binding、Vital Spark）标未知。
+- 新字段 `self_hp_loss`（出牌过程中自己掉的血，负数为回血），编码在候选行 522；`lethal_after` 改为“出牌自伤 + 出牌后结束回合掉血 ≥ 当前血量”。`FEATURE_VERSION 8 → 9`。
+
+**A4（结束回合掉血）顺带补漏**（同一函数，B 也用）：同一种能力多条记录改为求和（原来只取第一条）；回合结束消耗虚无牌触发 Charon's Ashes（确定，可致死）、Forgotten Soul（可能致死时未知）；Juggernaut 在回合结束获得格挡时可能打死或惊动敌人 → 未知；火焰屏障/荆棘反伤可能打死攻击者或触发其反应 → 未知；The Gambit、Stampede、最后一回合的 The Bomb、消耗堆里的 Howl from Beyond → 未知。
+
+**另修两处已有的观察错误**（不改规则，ruleset 不变）：
+1. **A6 选牌用途表错位**（第 34 节引入）：`public_view.inc` 用按位置排列的 18 项字符串表，而 `ChoiceOp` 有 25 个值（同一行写了多个枚举值，原测试按行计数漏掉）。第 14 项以后全部错名，`GAMBLING_CHIP`（铁甲可得遗物）和 `KNOWLEDGE_CURSE`（Knowledge Demon）直接越界抛错，训练中遇到会中断采样。改为逐个 `case` 的显式映射；`PURPOSES` 末尾追加 7 个新名称（只追加）；新增绑定 `choice_purposes()`，测试按枚举逐个核对。
+2. **A1 牌面伤害遇到小数基础伤害抛错**：原生 Thrash 把被消耗攻击牌经加成后的伤害（decimal，可为小数，如虚弱 ×0.75）加进自己的 `Damage.BaseValue`，A1 原来把非整数当错误。改为按精确小数参与计算。
+
+**测试接口**：绑定新增 `RunContext.add_card(id, upgraded)`（与 `add_relic` 同类，仅用于测试布置，不改规则），用于把特殊牌塞进随机对局。
+
+**验证**（`train/tests/test_public_tactics.py`，白名单测试改为全量）：所有牌、所有局面里 B 标“已知”的出牌，剩余能量、获得格挡、出牌自伤、对敌伤害（敌人无反应类能力时）必须与模拟器实际完全一致；不含未知时，出牌后结束回合掉血也必须一致。开发期四组大样本对照（随机 60 局；塞入 24 种特殊牌 30 局；再加两组遗物各 25 局）共比对 B 标“已知”的 42,472 次出牌、8,991 次出牌后结束回合：前三组全部一致；第四组（Cloak Clasp、Tungsten Rod、Juggernaut 等遗物组合）有约 30 处不一致（打击 19、Dark Embrace 5、Juggernaut 6）。逐个查过的打击、Dark Embrace 案例都是下面第 4 条模拟器问题（回合开始流程未走完），Juggernaut 的 6 处未逐个查。修复后不再出现选牌用途越界和小数伤害报错；Fake Merchant 报错在 100 局里出现 5 次（含开发期）。正式测试：随机 15 局 + 塞特殊牌 6 局 + 塞特殊牌与遗物 4 局，外加放血/御血术/重振精神/Offering 定点检查。
+
+**对照中查出、未修的模拟器问题**（按约定模拟器规则暂停修改，待统一处理；均为源码对照所见）：
+1. **Intimidating Helmet**：原生每次重放都走 `BeforeCardPlayed`，每次都加 4 格挡；模拟器整张牌只触发一次（`battle.cpp` 出牌扣费处）。重放时模拟器少给格挡。
+2. **Pen Nib 跨战斗**：原生若第 10 次攻击直接结束战斗，`AfterCardPlayed` 不执行，`AttackToDouble` 留着旧牌引用，下一场任何牌都不再翻倍，直到计数再次归零；模拟器把 aux=100 带进下一场，使下一场第一次攻击翻倍。
+3. **同一时机多个遗物的顺序**（已登记）：Beating Remnant 与 Tungsten Rod 同为 `ModifyHpLostAfterOsty`，原生按遗物栏顺序，模拟器固定先钨棒。
+4. ~~**回合开始流程未走完就交出操作权**（较强怀疑，待复现）~~ **已否定（第 37 节）**：实为预览漏算附魔（Swift 抽牌、Corrupted 自伤）：在一些局面里，玩家已可出牌，模拟器的 `pendingDrawRemainder`（被选择打断后剩余的抽牌）或回合开始效果（如 Inferno 自伤）要等玩家下一个动作才执行。原生在交出操作权前处理完。影响：该局面手牌少于原生，且差异对公开观察不可见。
+5. **Fake Merchant 结束页导出报错**（训练前必须解决）：原生 Fake Merchant 是商店界面，`GenerateInitialOptions` 为空，没有文字页；模拟器离开商店后进入事件结束页（127），`event_page_key` 找不到原生说明而抛错，采样会中断（第 2 幕起常见）。需到有游戏的机器上看原生这时导出什么（可能根本没有这一步），再决定改模拟器流程还是导出键。
+
+**测试**：C++ 58/58、训练 Python 79/79（新增全量 B 对照与定点检查）、parity 93 项 + 109 子项；注册表、怪物数值、卡牌编码审计未受影响（未改规则与注册表）。
+
+## 36. ruleset v21：Fake Merchant 离开直接回地图（2026-11-20，America/Los_Angeles）
+
+**问题**：第 35 节发现，离开 Fake Merchant 后公开观察抛错（`No native finished event description for FAKE_MERCHANT`），训练采样会中断。
+
+**原生（反编译源码确认）**：`FakeMerchant.LayoutType = Custom`，`GenerateInitialOptions` 为空；事件开始时 `SetInitialEventState` 把说明设为 `FAKE_MERCHANT.pages.INITIAL.description`，之后不再改，也从不调用 `SetEventFinished`。界面是 `NFakeMerchant`：商店 + 继续按钮，继续按钮 `HideScreen` 直接 `NMapScreen.Instance.Open()`；地图从进入起就允许出发（`SetTravelEnabled(true)`）。原生 AutoSlay 离开时也只点这一个按钮。
+
+**模拟器原来**：选“离开商店”后进入事件结束页（127），再要一次“继续”才回地图——多出一个原生不存在的决策，且结束页没有原生说明文字，导出报错。
+
+**改动**：`events.cpp` 中 Fake Merchant 选项 6（离开）改为 `leave_event` 直接回地图。ruleset `v20 → v21`（`PORT_SOURCE.json`、`ENGINE_RULESET_ID`、README、parity/README、AGENTS）；快照格式不变。买遗物、扔 Foul Potion 开战的流程不变。语义层原本就把 Fake Merchant 第 0 页当商店（`leave_shop`），不需要改。`event_page_key` 里结束页仍会对 Fake Merchant 抛错，作为不该再到达的保护。
+
+**边界**：原生打开地图后玩家理论上还能关掉地图回到商店（再买或扔药水）；模拟器离开即不可返回。这只少了一个“离开又回来”的绕路，不少真实选择。
+
+**验证**：C++ `native_step3_events` 改为断言离开后直接到地图；C++ 58/58；注册表、卡牌编码、怪物数值审计通过并以 v21 重新生成；之前报错的 4 个对局（8103、8114、8215、8218）复跑全部走完、不再报错，其中 B 对照 2,578 次出牌全部一致；训练 Python 79/79、parity 93 项 + 109 子项。
+
+## 37. 附魔补进 B；“回合开始流程”怀疑否定；训练框架第一版（2026-11-20，America/Los_Angeles；ruleset 不变）
+
+**否定第 35 节第 4 条**：新增只读诊断绑定 `RunContext.debug_turn_flow`（回合流程阶段、`pendingDrawRemainder`、自动打牌队列；只用于诊断，不进观察），在 85 局（含塞牌塞遗物）共约 1.75 万个可出牌决策点扫描：回合开始流程未走完 0 次。逐个复查第 35 节剩余偏差：打出 Dark Embrace 多抽 2 张是这张牌带 **Swift 附魔**（打出时抽牌）；打击自伤 1 点并触发 Inferno 是 **Corrupted 附魔**（每次打出自伤 2）。模拟器没有问题，是 B 漏了附魔。
+
+**B 补附魔**（按原生 `EnchantmentModel.OnPlay`，在牌本身效果之后、每次重放都执行）：Corrupted 每次 2 点不可格挡自伤；Swift 首次打出抽牌（手牌变化）；Sown 回能（原有）；Adroit 的格挡加成未逐项核对 → 未知；Inky 给敌人上虚弱 → 出牌后结束回合未知；Momentum / Goopy / Vigorous 重放时数值会变 → 未知；Sharp、Tezcatara's Ember 等只改牌面数值（A1 已含），Glam / Spiral 为重放次数（已计入）。另补：打出 Juggernaut 这张牌后，新得的 Juggernaut 在回合结束获得格挡时可能打死敌人 → 带入结束回合计算。
+
+**全量对照（最终，脚本 `train/scripts/audit_action_preview.py`）**：四组（随机 60 局；塞 24 种特殊牌 30 局；再加两组遗物各 25 局）B 标“已知”的 **43,206 次出牌、8,965 次出牌后结束回合，全部与模拟器一致**（排除项只有已查明的 Intimidating Helmet 重放差异与 Beating Remnant/Tungsten Rod 顺序差异）。
+
+**训练框架第一版**（用户要求今晚搭好、明天上 A100）：
+- `spire_rl/driver.py`（AI 驱动层，训练与原生客户端共用，只读 `PublicState` 与自身公开历史，不改规则）：同一作用域内同一网络输入第三次出现时，去掉已从它走过的候选（作用域：战斗内按回合，战斗外按层与地图/房间）；战斗中同一回合内重复出现的决策只允许结束回合；敌人血量+格挡合计 20 个玩家回合未创新低判负；一局 5,000 决策判负。只有一个可选候选时由驱动层直接执行，不进网络、不成样本，奖励并入下一个样本。
+- `spire_rl/rewards.py`：每项奖励一个函数和权重（层 +0.01、精英 +0.02、Boss +0.1、通关 +1、死亡 −0.1、血量势函数 0.1，终局势能 0）；判负（停滞、超限、异常）按死亡计。`--reward '{"floor": 0.02}'` 可改权重。
+- `spire_rl/rollout.py`：多进程（spawn）每进程若干局，同步推进；网络输入约 98% 为零，传输与存储都用稀疏格式（每样本约十几 KB，6.5 万样本约 1 GB）。单局异常记入日志并换新局，不中断训练。
+- `spire_rl/ppo.py`：同步整局 PPO，GAE（γ 0.999、λ 0.95）、截断 0.2、KL 早停、熵 0.01→0.001 线性下降、学习率 3e-5 带预热、梯度裁剪 1.0、每次更新 65,536 样本 × 2 遍、小批 4,096 按 `--micro` 梯度累积、CUDA 上 BF16 自动混合精度；EMA 按 2 小时时间常数换算衰减；`latest.pt`（含优化器）与 `ema.pt` 原子覆盖保存，只留两份；`--hours` 到时、Ctrl-C/SIGTERM 在当前更新后保存退出，同一 `--run` 再运行即续训；网络配置或观察版本不符拒绝续训；`--bench` 测采样决策/秒、更新速度与显存。
+- 网络加标量价值头 `value`（原三个 Boss 概率保留为辅助输出，暂不训练）。
+- **尚未做**：练习战池；价值函数看隐藏信息（`--value-hidden` 预留，目前拒绝）；EMA 取最大评估脚本。217M 在 GPU 上的速度未实测。
+
+**验证**：`train/tests/test_training.py`（6 项）：稀疏打包还原逐位相同；战斗内重复决策只剩结束回合；房间内第三次出现时去掉已走候选；停滞与超限判负；奖励各项数值；小网络 CPU 上整局 PPO 两次更新并续训。本机小网络（0.9M）2 进程 × 4 局实测约 350–440 决策/秒（CPU 推理）。C++ 58/58、训练 Python 85/85、parity 93 项 + 109 子项。
+

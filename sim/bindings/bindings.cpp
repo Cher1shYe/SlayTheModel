@@ -229,7 +229,7 @@ static py::list card_enchantments(const Card *cards, int n) {
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
     // Identity of this port, not a claim of complete native-game parity.
-    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v14";
+    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v21";
     m.attr("TARGET_GAME_DLL_SHA256") = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4";
     m.attr("NATIVE_PARITY_COMPLETE") = false;
 
@@ -330,7 +330,8 @@ PYBIND11_MODULE(sts2_sim, m) {
         .value("REST_KINDLE", RunActionType::REST_KINDLE)
         .value("REROLL_CARD_REWARD", RunActionType::REROLL_CARD_REWARD)
         .value("OPEN_CARD_REMOVAL_REWARD", RunActionType::OPEN_CARD_REMOVAL_REWARD)
-        .value("TAKE_SPECIAL_CARD_REWARD", RunActionType::TAKE_SPECIAL_CARD_REWARD);
+        .value("TAKE_SPECIAL_CARD_REWARD", RunActionType::TAKE_SPECIAL_CARD_REWARD)
+        .value("REST_COOK", RunActionType::REST_COOK);
     py::enum_<EventStatus>(m, "EventStatus")
         .value("IMPLEMENTED", EventStatus::IMPLEMENTED)
         .value("APPROXIMATE", EventStatus::APPROXIMATE)
@@ -483,6 +484,11 @@ PYBIND11_MODULE(sts2_sim, m) {
         return py::make_tuple(std::string(d.key ? d.key : ""), d.act, pats);
     });
     m.def("card_name", [](int id) { return std::string(card_name(static_cast<CardId>(id))); });
+    m.def("choice_purposes", []() {  // A6: purpose string of every ChoiceOp value, in enum order
+        py::list out;
+        for (int i = 0; i <= static_cast<int>(ChoiceOp::GAMBLING_CHIP); ++i) out.append(choice_purpose(static_cast<ChoiceOp>(i)));
+        return out;
+    });
     m.def("card_count", []() { return static_cast<int>(CardId::COUNT); });
     m.def("card_native_available", [](int id) { return card_native_available(static_cast<CardId>(id)); });
     m.def("card_features", [](int id, bool upgraded, int price) {
@@ -1124,10 +1130,20 @@ PYBIND11_MODULE(sts2_sim, m) {
         .def("add_relic", [](RunContext &rc, int id) {
             return rc.add_relic(static_cast<RelicId>(id));
         })
+        // Test setup only (like add_relic): obtain a card into the deck via the normal path.
+        .def("add_card", [](RunContext &rc, int id, bool upgraded) {
+            return rc.add_card_to_deck(rc.make_run_card(static_cast<CardId>(id), upgraded));
+        }, py::arg("id"), py::arg("upgraded") = false)
         .def("add_potion", [](RunContext &rc, int id) {
             rc.add_potion(static_cast<PotionId>(id));
         })
         .def_property_readonly("event_id", [](const RunContext &rc) { return static_cast<int>(rc.eventId); })
+        // Diagnostics only (never an observation): unfinished player-turn setup at a decision.
+        .def_property_readonly("debug_turn_flow", [](const RunContext &rc) {
+            const BattleContext &b = rc.battle;
+            return py::make_tuple(b.turnFlow.stage, b.pendingDrawRemainder, b.autoPlayQueueCount,
+                                  b.activePlay.active, b.suspendedPlayCount);
+        })
         .def_property_readonly("ancient_id", [](const RunContext &rc) { return static_cast<int>(rc.ancientId); })
         .def("start_act", [](RunContext &rc, int actIndex) {
             if (actIndex < 0 || actIndex >= MAX_ACTS) return false;

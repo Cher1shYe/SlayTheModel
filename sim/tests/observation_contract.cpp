@@ -49,7 +49,7 @@ int main() {
     CHECK_BATTLE(nextTurnEnergy, 2);
     CHECK_BATTLE(nextTurnDraw, 2);
     CHECK_BATTLE(attackSkillPlaysThisTurn, 2);
-    CHECK_BATTLE(blockCardPlaysThisTurn, 2);
+    CHECK_BATTLE(blockGainEntriesThisTurn, 2);
     CHECK_BATTLE(skillsLocked, true);
     CHECK_BATTLE(recoveredStolenGold, 20);
     CHECK_BATTLE(monsters[0].offBalance, true);
@@ -204,7 +204,8 @@ int main() {
         check(combat_action_features(a, action) != combat_action_features(b, action), "discard-any action encoding");
     }
     CHECK_RUN(rewardIsBoss, true);
-    CHECK_RUN(actTypes[0], ActType::UNDERDOCKS);
+    // v15: init() selects the first act natively, so flip whichever act seed 123 drew.
+    CHECK_RUN(actTypes[0], a.actTypes[0] == ActType::UNDERDOCKS ? ActType::OVERGROWTH : ActType::UNDERDOCKS);
     CHECK_RUN(goldenPathAct, 1);
     CHECK_RUN(unknownMapPointsVisited, 2);
     CHECK_RUN(nativeProgress.numberOfRuns, 10);
@@ -229,7 +230,13 @@ int main() {
     CHECK_RUN(nextCombatUpgradeHand, true);
     CHECK_RUN(nextCombatDazed, 2);
     CHECK_RUN(emberTeaCombats, 2);
-    CHECK_RUN(furCoatCombats, 2);
+    {
+        // Fur Coat's marked map points are public (MapPoint.Quests), not a hidden counter.
+        RunContext a; a.init(123u, 0);
+        check(a.add_relic(RelicId::FUR_COAT) && a.furCoatCount > 0, "furCoat marks");
+        RunContext b = a; b.furCoatCount = 0;
+        check(public_observation(a) != public_observation(b), "furCoatMarks");
+    }
     CHECK_RUN(toyBoxCombats, 2);
     CHECK_RUN(wongoCombats, 2);
     CHECK_RUN(swordOfStoneWins, 2);

@@ -99,24 +99,24 @@ enum EventId : int {
 static_assert(EV_COUNT <= MAX_EVENTS, "visitedEvents capacity");
 
 const EventInfo EVENTS[EV_COUNT] = {
-    {"NEOW", EventStatus::APPROXIMATE, 3},
-    {"AROMA_OF_CHAOS", EventStatus::APPROXIMATE, 0},
-    {"DENSE_VEGETATION", EventStatus::APPROXIMATE, 0},
+    {"NEOW", EventStatus::IMPLEMENTED, 3},
+    {"AROMA_OF_CHAOS", EventStatus::IMPLEMENTED, 0},
+    {"DENSE_VEGETATION", EventStatus::IMPLEMENTED, 0},
     {"SUNKEN_STATUE", EventStatus::IMPLEMENTED, 0},
-    {"WELLSPRING", EventStatus::APPROXIMATE, 0},
-    {"TABLET_OF_TRUTH", EventStatus::APPROXIMATE, 0},
-    {"UNREST_SITE", EventStatus::APPROXIMATE, 0},
-    {"SAPPHIRE_SEED", EventStatus::APPROXIMATE, 0},
-    {"THIS_OR_THAT", EventStatus::APPROXIMATE, -1},
-    {"ROOM_FULL_OF_CHEESE", EventStatus::APPROXIMATE, -1},
-    {"POTION_COURIER", EventStatus::APPROXIMATE, -1},
-    {"BRAIN_LEECH", EventStatus::APPROXIMATE, -1},
-    {"STONE_OF_ALL_TIME", EventStatus::APPROXIMATE, -1},
-    {"WELCOME_TO_WONGOS", EventStatus::APPROXIMATE, -1},
+    {"WELLSPRING", EventStatus::IMPLEMENTED, 0},
+    {"TABLET_OF_TRUTH", EventStatus::IMPLEMENTED, 0},
+    {"UNREST_SITE", EventStatus::IMPLEMENTED, 0},
+    {"SAPPHIRE_SEED", EventStatus::IMPLEMENTED, 0},
+    {"THIS_OR_THAT", EventStatus::IMPLEMENTED, -1},
+    {"ROOM_FULL_OF_CHEESE", EventStatus::IMPLEMENTED, -1},
+    {"POTION_COURIER", EventStatus::IMPLEMENTED, -1},
+    {"BRAIN_LEECH", EventStatus::IMPLEMENTED, -1},
+    {"STONE_OF_ALL_TIME", EventStatus::IMPLEMENTED, -1},
+    {"WELCOME_TO_WONGOS", EventStatus::IMPLEMENTED, -1},
     {"HUNGRY_FOR_MUSHROOMS", EventStatus::IMPLEMENTED, 2},
-    {"REFLECTIONS", EventStatus::APPROXIMATE, 2},
-    {"SPIRIT_GRAFTER", EventStatus::APPROXIMATE, 1},
-    {"LOST_WISP", EventStatus::APPROXIMATE, 1},
+    {"REFLECTIONS", EventStatus::IMPLEMENTED, 2},
+    {"SPIRIT_GRAFTER", EventStatus::IMPLEMENTED, 1},
+    {"LOST_WISP", EventStatus::IMPLEMENTED, 1},
     {"AMALGAMATOR", EventStatus::IMPLEMENTED, 1},
     {"AROMA_PLACEHOLDER", EventStatus::UNSUPPORTED, -1},
     {"BYRDONIS_NEST", EventStatus::IMPLEMENTED, 0},
@@ -146,13 +146,13 @@ const EventInfo EVENTS[EV_COUNT] = {
     {"TRIAL", EventStatus::IMPLEMENTED, 2},
     {"WAR_HISTORIAN_REPY", EventStatus::IMPLEMENTED, -1},
     {"BATTLEWORN_DUMMY", EventStatus::IMPLEMENTED, 2},
-    {"DARV", EventStatus::APPROXIMATE, 3},
-    {"OROBAS", EventStatus::APPROXIMATE, 3},
-    {"PAEL", EventStatus::APPROXIMATE, 3},
-    {"TEZCATARA", EventStatus::APPROXIMATE, 3},
-    {"NONUPEIPE", EventStatus::APPROXIMATE, 3},
-    {"TANX", EventStatus::APPROXIMATE, 3},
-    {"VAKUU", EventStatus::APPROXIMATE, 3},
+    {"DARV", EventStatus::IMPLEMENTED, 3},
+    {"OROBAS", EventStatus::IMPLEMENTED, 3},
+    {"PAEL", EventStatus::IMPLEMENTED, 3},
+    {"TEZCATARA", EventStatus::IMPLEMENTED, 3},
+    {"NONUPEIPE", EventStatus::IMPLEMENTED, 3},
+    {"TANX", EventStatus::IMPLEMENTED, 3},
+    {"VAKUU", EventStatus::IMPLEMENTED, 3},
     // 4 denotes the alternate first act, not progression index 3.
     {"ABYSSAL_BATHS", EventStatus::IMPLEMENTED, 4},
     {"DROWNING_BEACON", EventStatus::IMPLEMENTED, 4},
@@ -888,7 +888,8 @@ void generate_ancient_options(RunContext &rc, int id) {
             for(int i=0;i<rc.relicCount;++i) if(relic_raw_rarity(static_cast<RelicId>(rc.relics[i]))==0) {
                 third[thirdN++]=static_cast<int>(RelicId::TOUCH_OF_OROBAS); break;
             }
-            for(int i=0;i<rc.deckCount;++i) if(rc.deck[i].id==CardId::BASH || rc.deck[i].id==CardId::BREAK) {
+            // ArchaicTooth.TranscendenceUpgrades keys: the starter card (Bash), not Break.
+            for(int i=0;i<rc.deckCount;++i) if(rc.deck[i].id==CardId::BASH) {
                 third[thirdN++]=static_cast<int>(RelicId::ARCHAIC_TOOTH); break;
             }
             opts[2]=thirdN?pick_one(third,thirdN,rng):0;
@@ -903,7 +904,10 @@ void generate_ancient_options(RunContext &rc, int id) {
             int list[8];
             int n = 0;
             list[n++] = static_cast<int>(RelicId::PAELS_WING);
-            if (deck_flag_count(rc, CF_DEFEND) >= 3) {
+            // Goopy.CanEnchant: Defend tag plus the base enchantability checks.
+            int goopy = 0;
+            for (int i = 0; i < rc.deckCount; ++i) goopy += card_can_enchant(rc.deck[i], EnchantmentId::GOOPY);
+            if (goopy >= 3) {
                 list[n++] = static_cast<int>(RelicId::PAELS_CLAW);
             }
             if (removable_cards(rc) >= 5) {
@@ -918,24 +922,31 @@ void generate_ancient_options(RunContext &rc, int id) {
             int n2 = 0;
             list2[n2++] = static_cast<int>(RelicId::PAELS_EYE);
             list2[n2++] = static_cast<int>(RelicId::PAELS_BLOOD);
-            list2[n2++] = static_cast<int>(RelicId::PAELS_LEGION);  // no existing pet
+            if (!run_has_event_pet(rc)) list2[n2++] = static_cast<int>(RelicId::PAELS_LEGION);
             opts[2] = pick_one(list2, n2, rng);
             break;
         }
         case EV_TEZCATARA: {
-            static const int p1[3] = {static_cast<int>(RelicId::NUTRITIOUS_SOUP),
-                                      static_cast<int>(RelicId::VERY_HOT_COCOA),
-                                      static_cast<int>(RelicId::YUMMY_COOKIE)};
-            static const int p2[4] = {static_cast<int>(RelicId::BIIIG_HUG),
+            // Tezcatara.GenerateInitialOptions: OptionPool1 (+ Nutritious Soup when
+            // the deck has a Basic Strike), OptionPool2, OptionPool3.
+            int p1[3] = {static_cast<int>(RelicId::VERY_HOT_COCOA),
+                         static_cast<int>(RelicId::YUMMY_COOKIE), 0};
+            int n1 = 2;
+            for (int i = 0; i < rc.deckCount; ++i)
+                if (card_is_strike(rc.deck[i]) && card_def(rc.deck[i].id).rarity == Rarity::BASIC) {
+                    p1[n1++] = static_cast<int>(RelicId::NUTRITIOUS_SOUP);
+                    break;
+                }
+            static const int p2[3] = {static_cast<int>(RelicId::BIIIG_HUG),
                                       static_cast<int>(RelicId::STORYBOOK),
-                                      static_cast<int>(RelicId::SEAL_OF_GOLD),
                                       static_cast<int>(RelicId::TOASTY_MITTENS)};
-            static const int p3[3] = {static_cast<int>(RelicId::GOLDEN_COMPASS),
+            static const int p3[4] = {static_cast<int>(RelicId::GOLDEN_COMPASS),
                                       static_cast<int>(RelicId::PUMPKIN_CANDLE),
-                                      static_cast<int>(RelicId::TOY_BOX)};
-            opts[0] = pick_one(p1, 3, rng);
-            opts[1] = pick_one(p2, 4, rng);
-            opts[2] = pick_one(p3, 3, rng);
+                                      static_cast<int>(RelicId::TOY_BOX),
+                                      static_cast<int>(RelicId::SEAL_OF_GOLD)};
+            opts[0] = pick_one(p1, n1, rng);
+            opts[1] = pick_one(p2, 3, rng);
+            opts[2] = pick_one(p3, 4, rng);
             break;
         }
         case EV_NONUPEIPE: {
@@ -1876,8 +1887,8 @@ bool event_choose(RunContext &rc, int option) {
             if (option == 0) gain_max_hp(rc, 6);
             else {
                 if (!begin_deck_relic_choice(rc, 12, option == 1 ? 1 : 2)) return false;
+                // PlayerCmd.LoseGold(Spent) is not a MerchantEntry purchase: Maw Bank stays active.
                 rc.gold -= option == 1 ? 55 : 99;
-                rc.mawBankPurchased = true;
             }
             finish_event(rc);
             return true;
@@ -2195,12 +2206,18 @@ bool event_choose(RunContext &rc, int option) {
             return true;
         case EV_FAKE_MERCHANT:
             if (option == 6) {
-                finish_event(rc);
+                // Native FakeMerchant is a custom-layout event with no text pages: its Proceed
+                // button (NFakeMerchant.HideScreen) opens the map directly and the event never
+                // reaches SetEventFinished, so there is no finished page to confirm (v21).
+                leave_event(rc);
             } else {
                 lose_gold(rc, rc.eventData[option]);
                 add_relic(rc, static_cast<RelicId>(rc.eventRelics[option]));
                 rc.eventRelics[option] = 0;  // no longer stocked
                 rc.eventData[option] = 0;
+                // NMerchantRelic -> MerchantEntry.OnTryPurchaseWrapper -> Hook.AfterItemPurchased
+                // (any room, goldSpent > 0): Maw Bank is used up, as in a real shop.
+                rc.mawBankPurchased = true;
             }
             return true;
         case EV_BATTLEWORN_DUMMY: {

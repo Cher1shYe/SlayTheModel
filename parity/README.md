@@ -2,9 +2,9 @@
 
 这里用备份的 **v0.111.0 / 41cef1ea 原生 DLL** 在 Godot 无界面模式中运行，通过本机 HTTP 读取决策和执行动作，再与 C++ 模拟器对照。不会修改 `artifacts/preserved-game-versions/` 中的游戏备份。
 
-当前模拟器 ruleset 为 **`native-41cef1ea-port-v14`**；本轮静态怪物数值导出与动态规则修正见 [怪物数值核对报告](../docs/monster-number-audit.md)。
+当前模拟器 ruleset 为 **`native-41cef1ea-port-v21`**（局内概率核查见 [内容核查报告](../docs/content-audit.md)）；本轮静态怪物数值导出与动态规则修正见 [怪物数值核对报告](../docs/monster-number-audit.md)。
 
-**2026-11-19 已完成 31 个动作、32 个决策点的完整公共接口对照。** 铁甲 A10、种子 `PARITY0001`，从 Neow、首战一直到领金币/药水、卡牌奖励跳过后重开并领取，再返回地图；全部公共事实、网络输入张量和合法动作语义相符。双方末态 **51/80 HP、258 金币、12 张牌、Ashwater**。新原始帧与离线回归在 `fixtures/native-public-first-combat-rewards-parity0001-a10/`。这证明该轨迹的接口一致，不代表其他场景、整局或 A1–A10 所有规则一致。旧 24 步公开子集记录保持原样。
+**2026-11-18（America/Los_Angeles）已完成 31 个动作、32 个决策点的完整公共接口对照。** 铁甲 A10、种子 `PARITY0001`，从 Neow、首战一直到领金币/药水、卡牌奖励跳过后重开并领取，再返回地图；全部公共事实、网络输入张量和合法动作语义相符。双方末态 **51/80 HP、258 金币、12 张牌、Ashwater**。新原始帧与离线回归在 `fixtures/native-public-first-combat-rewards-parity0001-a10/`。这证明该轨迹的接口一致，不代表其他场景、整局或 A1–A10 所有规则一致。旧 24 步公开子集记录保持原样。
 
 ## 本机编译和启动
 

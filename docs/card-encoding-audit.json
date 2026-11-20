@@ -1,0 +1,20 @@
+{
+  "schema": "sts2.card-encoding-audit/1",
+  "ruleset": "native-41cef1ea-port-v21",
+  "native_cards": 596,
+  "compared_variants": 1148,
+  "issues": [],
+  "exceptions": [
+    {
+      "card": "MAD_SCIENCE",
+      "field": "all",
+      "reason": "native registry template is unconfigured (type None); real instances are configured by Tinker Time"
+    },
+    {
+      "card": "STARDUST",
+      "field": "all",
+      "reason": "native registry export has no readable variant (NullReferenceException without an owner)"
+    }
+  ],
+  "status": "pass"
+}

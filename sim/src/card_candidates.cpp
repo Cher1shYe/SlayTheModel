@@ -5,8 +5,12 @@
 namespace sts2 {
 bool card_can_transform_from_deck(const Card &card) {
     // These are the Eternal cards in the bundled single-player card data.
+    // Eternal: printed on the seven native cards below, or added by
+    // TezcatarasEmber (CardModel.IsRemovable == !Keywords.Contains(Eternal)).
+    if (card.enchantment == EnchantmentId::TEZCATARAS_EMBER) return false;
     switch (card.id) {
         case CardId::INVALID:
+        case CardId::FORBIDDEN_GRIMOIRE:
         case CardId::ASCENDERS_BANE:
         case CardId::BAD_LUCK:
         case CardId::CURSE_OF_THE_BELL:
@@ -33,6 +37,7 @@ bool card_eligible_for_deck_choice(const Card &card, int kind, int filter) {
     if (kind == 9) return card_upgradable(card);
     if (kind == 11 || kind == 12 || kind == 15)
         return card_can_enchant(card,kind==11?EnchantmentId::SPIRAL:kind==12?EnchantmentId::STEADY:EnchantmentId::IMBUED);
+    if (kind == 23) return card_can_enchant(card, EnchantmentId::INSTINCT);
     return card_can_transform_from_deck(card) && (kind != 10 || card_upgradable(card));
 }
 
@@ -177,7 +182,7 @@ bool can_generate_scroll_boxes(const RunContext &rc) {
 }
 
 bool can_begin_deck_relic_choice(const RunContext &rc, int kind, int count, CardId curseAfter, int filter) {
-    if (rc.cardGrid.kind || (kind < 6 || kind > 12) && kind != 15 && (kind < 17 || kind > 21) || count < 0 || count > 6) return false;
+    if (rc.cardGrid.kind || (kind < 6 || kind > 12) && kind != 15 && kind != 23 && (kind < 17 || kind > 21) || count < 0 || count > 6) return false;
     if (kind == 10 && (count > 5 || rc.paelsToothCount)) return false;
     if (filter < 0 || filter > 2 || (filter && kind != 6)) return false;
     int eligible = 0;
@@ -403,7 +408,7 @@ bool card_grid_can_select(const RunContext &rc, int index) {
     if (grid.selected[index]) return true;
     if (grid.selectedCount >= grid.maxSelect) return false;
     if(grid.kind==22 && !event_card_selectable(rc,index))return false;
-    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22))) {
+    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23))) {
         if (!card_eligible_for_deck_choice(rc.deck[index],grid.kind,grid.filter)) return false;
         if (grid.kind == 17) return rc.deckCount + (run_has_relic(rc, RelicId::BING_BONG) ? 2 : 1) <= MAX_DECK;
         if (grid.kind == 6 || grid.kind >= 9) return true;
@@ -443,7 +448,7 @@ bool select_card_grid(RunContext &rc, int index) {
     grid.selected[index] = true;
     ++grid.selectedCount;
     if (grid.selectedCount == grid.maxSelect) {
-        if (grid.kind == 3 || grid.kind == 5 || (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22)))) grid.preview = true;
+        if (grid.kind == 3 || grid.kind == 5 || (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23)))) grid.preview = true;
         else if(grid.kind!=14) return confirm_card_grid(rc);
     }
     return true;
@@ -476,10 +481,14 @@ bool confirm_card_grid(RunContext &rc) {
         }
         rc.cardGrid=RunCardGrid{};rc.resume_pending_relic_obtains();return true;
     }
-    if (kind == 9 || kind == 11 || kind == 12 || kind == 15) {
+    if (kind == 9 || kind == 11 || kind == 12 || kind == 15 || kind == 23) {
         for(int i=0;i<rc.deckCount;++i)
             if(grid.selected[i] && rc.hp>0) {
                 if(kind==9)card_apply_upgrade(rc.deck[i]);
+                else if(kind==23) {
+                    if(!card_apply_enchantment(rc.deck[i],EnchantmentId::INSTINCT,1))
+                        throw std::logic_error("Selected card cannot receive Instinct");
+                }
                 else if(!card_apply_enchantment(rc.deck[i],kind==11?EnchantmentId::SPIRAL:kind==12?EnchantmentId::STEADY:EnchantmentId::IMBUED,1))
                     throw std::logic_error("Selected card cannot receive enchantment");
             }
@@ -503,7 +512,7 @@ bool confirm_card_grid(RunContext &rc) {
         rc.resume_pending_relic_obtains();
         return true;
     }
-    if (((kind >= 6 && kind <= 12) || kind == 15 || (kind >= 17 && kind <= 22))) {
+    if (((kind >= 6 && kind <= 12) || kind == 15 || (kind >= 17 && kind <= 23))) {
         // Resolve in selection order while indices still refer to the original
         // deck. Removing one selection must not change what another points at.
         Card replacements[8];
@@ -535,6 +544,8 @@ bool confirm_card_grid(RunContext &rc) {
         if (damage) run_take_noncombat_damage(rc, damage);
         if(service==2) { rc.gold-=rc.removalPrice;rc.mawBankPurchased=true;rc.removalUsed=true;++rc.cardShopRemovalsUsed; }
         if(service==3) --rc.pendingCardRemovals;
+        if(service==4) { rc.maxHp += 5; rc.hp += 5; rc.complete_rest_option(7); }  // Cook: GainMaxHp(5)
+        if(service==5) { rc.removalUsed=true;++rc.cardShopRemovalsUsed; }  // Lord's Parasol: free, goldSpent 0
         rc.resume_pending_relic_obtains();
         return true;
     }
@@ -628,18 +639,21 @@ bool card_grid_valid(const RunContext &rc) {
     if (reinterpret_cast<const unsigned char &>(grid.eventRng) > 1 ||
         (grid.eventRng && grid.kind != 7 && grid.kind != 8) || grid.filter > 2 ||
         (grid.filter && grid.kind != 6)) return false;
-    if (grid.service > 3 || (grid.service == 1 && (grid.kind != 9 || rc.screen != RunScreen::REST)) ||
+    if (grid.service > 5 ||
+        (grid.service == 5 && (grid.kind != 6 || rc.screen != RunScreen::SHOP || rc.removalUsed || grid.minSelect != 1)) || (grid.service == 1 && (grid.kind != 9 || rc.screen != RunScreen::REST)) ||
+        (grid.service == 4 && (grid.kind != 6 || rc.screen != RunScreen::REST || grid.minSelect != 2 ||
+                               !run_has_relic(rc, RelicId::MEAT_CLEAVER) || (rc.restUsedOptions & 128))) ||
         (grid.service == 2 && (grid.kind != 6 || rc.screen != RunScreen::SHOP || rc.removalUsed || rc.gold < rc.removalPrice)) ||
         (grid.service == 3 && (grid.kind != 6 || rc.screen != RunScreen::REWARDS || rc.pendingCardRemovals <= 0))) return false;
     if (grid.kind==22 && (!rc.eventCardSelection || rc.screen!=RunScreen::EVENT || grid.minSelect!=1 || grid.maxSelect!=1))return false;
-    if (grid.kind > 22 || grid.count < 0 || grid.count > ((grid.kind == 3 || grid.kind == 4 || (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22)))) ? rc.deckCount : 15) ||
+    if (grid.kind > 23 || grid.count < 0 || grid.count > ((grid.kind == 3 || grid.kind == 4 || (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23)))) ? rc.deckCount : 15) ||
         grid.minSelect < 0 || grid.maxSelect < grid.minSelect || grid.maxSelect > (grid.kind==14?15:6) ||
         grid.selectedCount < 0 || grid.selectedCount > grid.maxSelect) return false;
     if (grid.slotCount < 0 || grid.slotCount > 15 || grid.freeHead < -1 ||
         grid.freeHead >= grid.slotCount || (grid.preview && grid.kind != 3 && grid.kind != 5 && grid.kind < 6)) return false;
-    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22)) && (grid.count != rc.deckCount || (grid.kind != 18 && grid.kind != 19 && grid.minSelect != grid.maxSelect) ||
+    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23)) && (grid.count != rc.deckCount || (grid.kind != 18 && grid.kind != 19 && grid.minSelect != grid.maxSelect) ||
         grid.maxSelect < 1 || ((grid.kind == 18 || grid.kind == 19) ? (grid.minSelect != 0 || grid.maxSelect != 3 || (grid.selectedCount==grid.maxSelect && !grid.preview)) : grid.preview != (grid.selectedCount == grid.maxSelect)))) return false;
-    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22))) {
+    if (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23))) {
         int eligible = 0;
         for (int i = 0; i < rc.deckCount; ++i)
             eligible += grid.kind==22 ? event_card_selectable(rc,i) : card_eligible_for_deck_choice(rc.deck[i],grid.kind,grid.filter);
@@ -693,7 +707,7 @@ bool card_grid_valid(const RunContext &rc) {
         if (grid.selected[i]) {
             if ((grid.kind==22 && !event_card_selectable(rc,i)) || i >= grid.count || (grid.kind == 5 && i >= 2) ||
                 (grid.kind == 3 && !card_can_transform_from_deck(rc.deck[i])) ||
-                (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 22)) && !card_eligible_for_deck_choice(rc.deck[i],grid.kind,grid.filter)) ||
+                (((grid.kind >= 6 && grid.kind <= 12) || grid.kind == 15 || (grid.kind >= 17 && grid.kind <= 23)) && !card_eligible_for_deck_choice(rc.deck[i],grid.kind,grid.filter)) ||
                 (grid.kind == 4 && !card_can_enchant(rc.deck[i], EnchantmentId::CLONE))) return false;
             ++selected;
         }

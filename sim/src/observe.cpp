@@ -237,7 +237,7 @@ std::vector<float> public_combat_observation(const BattleContext &bc) {
     v.push_back(bc.nextTurnEnergy / 10.0f);
     v.push_back(bc.nextTurnDraw / 10.0f);
     v.push_back(bc.attackSkillPlaysThisTurn / 10.0f);
-    v.push_back(bc.blockCardPlaysThisTurn / 10.0f);
+    v.push_back(bc.blockGainEntriesThisTurn / 10.0f);
     v.push_back(bc.skillsLocked ? 1.0f : 0.0f);
     v.push_back(bc.recoveredStolenGold / 100.0f);
 
@@ -609,7 +609,7 @@ std::vector<float> public_observation(const RunContext &rc) {
     v.push_back(rc.nextCombatUpgradeHand ? 1.0f : 0.0f);
     v.push_back(rc.nextCombatDazed / 10.0f);
     v.push_back(rc.emberTeaCombats / 10.0f);
-    v.push_back(rc.furCoatCombats / 10.0f);
+    v.push_back(rc.fur_coat_visible_marks() / 10.0f);
     v.push_back(rc.toyBoxCombats / 10.0f);
     v.push_back(rc.wongoCombats / 10.0f);
     v.push_back(rc.swordOfStoneWins / 10.0f);

@@ -64,7 +64,8 @@ class NativePublicFixtureReplayTests(unittest.TestCase):
             frame = json.loads(capture.read_text())
             verify_native_identity(frame, expected_identity)
             result, simulated, native = compare_decision(
-                frame, rc, self.sim, catalog, observation_schema="spire.public/1")
+                frame, rc, self.sim, catalog, observation_schema="spire.public/1",
+                legacy_capture=True)  # captured before the host exported act encounter history (D)
             self.assertEqual(result["status"], "aligned_model_interface",
                              f"decision {index}: {result}")
             if index == len(actions):

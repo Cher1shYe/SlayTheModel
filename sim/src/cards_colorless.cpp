@@ -1,3 +1,4 @@
+#include "sts2/card_preview.h"
 #include "sts2/effects.h"
 #include "sts2/monsters.h"
 
@@ -79,6 +80,9 @@ int zero_cost_pool(CardId *out, std::uint64_t epochs) {
     return n;
 }
 
+}  // namespace
+
+// Shared with card_preview.cpp (Rend's CalculatedDamage preview); logic unchanged.
 int rend_debuff_count(const Monster &m) {
     int n = 0;
     if (m.vulnerable > 0) ++n;
@@ -98,8 +102,6 @@ int rend_debuff_count(const Monster &m) {
     for (PowerId id : debuffs) if (m.power[static_cast<int>(id)] != 0) ++n;
     return n;
 }
-
-}  // namespace
 
 bool colorless_effect(BattleContext &bc, Card &card, int target) {
     const double dmg = card_base_damage(card);

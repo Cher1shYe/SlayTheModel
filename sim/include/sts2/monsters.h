@@ -43,6 +43,21 @@ struct VisibleMonsterIntent {
 };
 // The currently displayed icons and numbers only; never a move/AI state identifier.
 std::vector<VisibleMonsterIntent> visible_monster_intents(const BattleContext &bc, int slot);
+
+// Observation A2: move identity and prediction. Step 0 is the move the enemy shows now
+// (probability 1); step k is the distribution of its k-th following move, from the state
+// machine's follow-ups, random-branch weights (repeat / max-times / cooldown rules on the
+// move history) and conditional branches evaluated on the current battle. No RNG is read;
+// the rolled future is never used. Read-only.
+struct PredictedMove {
+    int state;        // monster-local state index (MON_STATE_NAMES via monster_state_name)
+    double p;
+    int intentType;   // first intent's generator type (0 = attack)
+    int damage;       // per-hit damage of the first attack against the player now (0 if none)
+    int hits;
+};
+std::vector<std::vector<PredictedMove>> predict_monster_moves(const BattleContext &bc, int slot, int depth);
+const char *monster_state_name(MonsterId id, int local);
 struct MonOpDef { std::uint8_t op; std::int16_t a; std::int16_t b; std::int16_t deadlyAmount; };
 struct MonBranchDef {
     std::uint8_t state;

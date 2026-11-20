@@ -117,3 +117,80 @@ def test_full_differences_are_json_serializable_and_candidate_indices_are_checke
 def test_old_native_subset_cannot_be_claimed_as_full_observation():
     with pytest.raises(p.ObservationCoverageError,match="publicObservation"):
         p.from_native({},projection=project_simulator(initial(),sim))
+
+
+def test_observation_caches_match_uncached_results_and_keep_types_exact():
+    """Speed caches (2026-11-18) must not change facts or tensors and must hand out copies."""
+    from parity.semantic import SimulatorCatalog, _REPO_ROOT
+    rc=combat();raw=sim.public_model_state(rc);raw["eventPage"]=None
+    projection=project_simulator(rc,sim)
+    p._CARD_CACHE.clear();p._ROW_CACHE.clear()
+    cold_state=p._common(deepcopy(raw),projection,"simulator");cold=p.encode(cold_state)
+    warm_state=p._common(deepcopy(raw),projection,"simulator");warm=p.encode(warm_state)
+    assert p._CARD_CACHE and p._ROW_CACHE,"second pass must actually use the caches"
+    assert p.differences(cold_state,warm_state)==[] and repr(cold_state.facts)==repr(warm_state.facts)
+    equal_encoding(cold,warm)
+    for i,card in enumerate(raw["cards"]):
+        assert p._card_cached(card,"simulator","x")[0]==p._card(card,"simulator","x")
+    # Returned cards are copies: mutating one (as _common does for knownTop/choices) cannot leak.
+    first=p._card_cached(raw["cards"][0],"simulator","x")[0];first["knownTopPosition"]=7
+    assert p._card_cached(raw["cards"][0],"simulator","x")[0]["knownTopPosition"]==-1
+    # bool and int are equal in Python but encode differently (x/1 vs x/10): keys must differ.
+    as_bool=dict(raw["cards"][0],retain=True);as_int=dict(raw["cards"][0],retain=1)
+    card_bool=p._card_cached(as_bool,"simulator","x")[0];card_int=p._card_cached(as_int,"simulator","x")[0]
+    assert type(card_bool["retain"]) is bool and type(card_int["retain"]) is int
+    row_bool=np.zeros(p.NUM,np.float32);row_int=np.zeros(p.NUM,np.float32)
+    p._card_row(card_bool,row_bool);p._card_row(card_int,row_int)
+    reference=np.zeros(p.NUM,np.float32);p._fill_card_row(card_int,reference)
+    np.testing.assert_array_equal(row_int,reference)
+    assert not np.array_equal(row_bool,row_int)
+    # The parsed simulator card catalog is reused but identical to a fresh parse.
+    assert SimulatorCatalog.from_repo() is SimulatorCatalog.from_repo()
+    assert SimulatorCatalog.from_repo().cards==SimulatorCatalog._parse(_REPO_ROOT).cards
+
+
+def test_v16_ancient_enchantments_are_public_and_use_appended_feature_slots():
+    """Nutritious Soup / Pael's Claw enchantments: visible cost, keywords and one-hot slots 238+."""
+    import json
+    from pathlib import Path
+    lock = json.loads((Path(__file__).resolve().parents[2] / "sim/content/registry_identity_lock.json").read_text())
+    relic = {e["key"]: e["id"] for e in lock["categories"]["RELIC"]}
+    rc = initial()
+    assert rc.add_relic(relic["NUTRITIOUS_SOUP"]) and rc.add_relic(relic["PAELS_CLAW"])
+    state = p.from_simulator(rc)
+    deck = [c for c in state.facts["cards"] if c["pile"] == "deck"]
+    strikes = [c for c in deck if c["modelId"] == "CARD.STRIKE_IRONCLAD"]
+    defends = [c for c in deck if c["modelId"] == "CARD.DEFEND_IRONCLAD"]
+    assert strikes and defends
+    for c in strikes:
+        assert c["enchantment"][0] == "ENCHANTMENT.TEZCATARAS_EMBER"
+        assert c["cost"] == 0 and c["baseCost"] == 0 and "Eternal" in c["keywords"]
+    for c in defends:
+        assert c["enchantment"][:2] == ("ENCHANTMENT.GOOPY", 1) and "Exhaust" in c["keywords"]
+    obs = p.encode(state)
+    rows = [obs.num[i] for i in range(len(obs.kind)) if int(obs.kind[i]) == 2]  # deck cards
+    ember = p.ENCHANTMENTS.index("TEZCATARAS_EMBER")
+    goopy = p.ENCHANTMENTS.index("GOOPY")
+    assert p._enchantment_offset(ember) == 240 and p._enchantment_offset(goopy) == 238
+    assert p._enchantment_offset(p.ENCHANTMENTS.index("ROYALLY_APPROVED")) == 74  # old slots unchanged
+    assert sum(int(r[240]) for r in rows) == len(strikes) and sum(int(r[238]) for r in rows) == len(defends)
+    assert all(r[56:75].sum() == 0 for r in rows)  # no collision with the original one-hot block
+
+
+def test_v18_fur_coat_marks_are_public_map_quests_in_appended_slot():
+    """Fur Coat's 8 marked Monster/Elite points: MapPoint.Quests -> map row slot 17 (16 = Spoils Map)."""
+    import json
+    from pathlib import Path
+    lock = json.loads((Path(__file__).resolve().parents[2] / "sim/content/registry_identity_lock.json").read_text())
+    relic = {e["key"]: e["id"] for e in lock["categories"]["RELIC"]}
+    rc = initial()
+    before = p.encode(p.from_simulator(rc))
+    assert rc.add_relic(relic["FUR_COAT"])
+    state = p.from_simulator(rc)
+    marked = [pt for pt in state.facts["map"] if "RELIC.FUR_COAT" in pt["quests"]]
+    assert len(marked) == 8 and all(pt["type"] in ("Monster", "Elite") for pt in marked)
+    obs = p.encode(state)
+    rows = [obs.num[i] for i in range(len(obs.kind)) if int(obs.kind[i]) == 5]
+    assert sum(int(r[17]) for r in rows) == 8 and all(int(r[16]) == 0 for r in rows)
+    old = [before.num[i] for i in range(len(before.kind)) if int(before.kind[i]) == 5]
+    assert all(int(r[17]) == 0 for r in old)

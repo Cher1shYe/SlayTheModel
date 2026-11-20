@@ -231,6 +231,10 @@ def project_native(frame: dict) -> Projection:
     return projection
 
 
+_REPO_ROOT = Path(__file__).resolve().parents[1]
+_CATALOG_CACHE: dict = {}
+
+
 @dataclass(frozen=True)
 class SimulatorCatalog:
     """Numeric card IDs from the generated enum, not JSON list/display-name guesses."""
@@ -238,7 +242,18 @@ class SimulatorCatalog:
 
     @classmethod
     def from_repo(cls, root: str | Path | None = None) -> "SimulatorCatalog":
-        root = Path(root) if root is not None else Path(__file__).resolve().parents[1]
+        """Parsed once per (root, file versions): it used to be rebuilt on every
+        decision (~2 ms). Stat keys keep a regenerated table from being stale."""
+        root = Path(root) if root is not None else _REPO_ROOT
+        files = (root / "sim/include/sts2/cards_generated.inc", root / "train/spire_rl/public_catalog.json")
+        key = (str(root),) + tuple(p.stat().st_mtime_ns if p.exists() else None for p in files)
+        cached = _CATALOG_CACHE.get(key)
+        if cached is None:
+            cached = _CATALOG_CACHE[key] = cls._parse(root)
+        return cached
+
+    @classmethod
+    def _parse(cls, root: Path) -> "SimulatorCatalog":
         source = (root / "sim/include/sts2/cards_generated.inc").read_text()
         match = re.search(r"enum class CardId[^\{]*\{(.*?)\};", source, re.S)
         if not match:

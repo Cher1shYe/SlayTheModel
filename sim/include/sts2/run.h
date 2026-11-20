@@ -24,9 +24,11 @@ enum class RunActionType : std::uint8_t {
     // Crystal Sphere minigame: index = x * 11 + y of a still-hidden cell.
     CRYSTAL_SPHERE_SMALL, CRYSTAL_SPHERE_BIG, REST_PROCEED, CANCEL_GRID_SELECTION,
     TAKE_TREASURE_RELIC, LEAVE_TREASURE, REST_KINDLE,
-    REROLL_CARD_REWARD, OPEN_CARD_REMOVAL_REWARD, TAKE_SPECIAL_CARD_REWARD
+    REROLL_CARD_REWARD, OPEN_CARD_REMOVAL_REWARD, TAKE_SPECIAL_CARD_REWARD,
+    // v16: Meat Cleaver's CookRestSiteOption (append-only).
+    REST_COOK
 };
-constexpr RunActionType RUN_ACTION_LAST = RunActionType::TAKE_SPECIAL_CARD_REWARD;
+constexpr RunActionType RUN_ACTION_LAST = RunActionType::REST_COOK;
 
 struct RunAction {
     RunActionType type = RunActionType::MOVE;
@@ -89,7 +91,9 @@ struct NativeProgressContext {
     bool neowUnlocked = true;
     bool orobasUnlocked = true;
     bool darvUnlocked = true;
-    bool underdocksUnlocked = false;
+    // Default = fully unlocked veteran profile (user 2026-11-18): Underdocks is
+    // unlocked and discovered, so act 1 is Overgrowth or Underdocks 50/50.
+    bool underdocksUnlocked = true;
     bool underdocksDiscovered = true;
     bool aeonglassSeen = true; // also required for SETUP_AEONGLASS_BOSS to count as seen
     // ActModel.GenerateRooms removes TrashHeap / Reflections / ColorfulPhilosophers
@@ -160,7 +164,8 @@ struct RunCardGrid {
     bool eventRng = false;
     // Kind 6-12 only: extra eligibility filter (DeckChoiceFilter).
     std::uint8_t filter = 0;
-    // 1 rest-site Smith, 2 merchant removal: cancellable, manual confirmation.
+    // 1 rest-site Smith, 2 merchant removal, 4 rest-site Cook: cancellable, manual
+    // confirmation. 3 removal reward.
     std::uint8_t service = 0;
 };
 
@@ -273,6 +278,8 @@ struct RunContext {
     bool shopPotionSold[MAX_SHOP_POTIONS]{};
     int shopPotionCount = 0;
     bool removalUsed = false;
+    // LordsParasol: its free, non-cancelable card removal waits for any relic choice it opened.
+    bool parasolRemovalPending = false;
     int removalPrice = 75;
     int removalBasePrice = 75;
     int cardShopRemovalsUsed = 0;
@@ -351,7 +358,15 @@ struct RunContext {
     bool nextCombatUpgradeHand = false;
     int nextCombatDazed = 0;
     int emberTeaCombats = 0;
-    int furCoatCombats = 0;
+    int furCoatCombats = 0;  // legacy (pre-v18), always 0
+    // FurCoat: obtain act and up to 8 marked Monster/Elite coordinates (MapCoord row/col).
+    // Combats on a marked coordinate start every enemy at 1 HP. Native BeforeCombatStart
+    // compares coordinates only, so the marks also apply in later acts (quest markers are
+    // shown on the obtain act's map only).
+    std::int8_t furCoatAct = -1;
+    std::uint8_t furCoatCount = 0;
+    std::int8_t furCoatRow[8]{};
+    std::int8_t furCoatCol[8]{};
     int toyBoxCombats = 0;
     int largeCapsuleRelicsRemaining = 0;
     bool largeCapsuleCardsPending = false;
@@ -379,6 +394,11 @@ struct RunContext {
     bool add_card_to_deck(Card c);
     int spoils_map_count() const;
     void refresh_spoils_quest();
+    void lords_parasol_purchase_everything();  // LordsParasol.PurchaseEverything
+    void open_parasol_removal();
+    void fur_coat_mark();  // FurCoat.AddMarkedRooms (AfterObtained / ModifyGeneratedMapLate)
+    bool fur_coat_marked(int row, int col) const;
+    int fur_coat_visible_marks() const;  // marks shown as quests on the current map
     bool spoils_quest_active() const;
     std::uint16_t allocate_card_uid();
     Card make_run_card(CardId id, bool upgraded);

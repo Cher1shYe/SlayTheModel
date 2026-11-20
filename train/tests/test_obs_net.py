@@ -13,7 +13,11 @@ from spire_rl.net import UnifiedNet, UnifiedNetConfig, ValueWeights, collate, co
 def _run_to_combat(seed="UNIFIED1"):
     rng = random.Random(0)
     rc = sim.RunContext()
-    rc.init_seed(seed, 0)
+    # Recorded search traces predate v15's native first-act choice: pin the
+    # context they were recorded with (Overgrowth, Underdocks locked).
+    progress = sim.NativeProgressContext()
+    progress.underdocks_unlocked = False
+    rc.init_seed_with_context(seed, 0, int(sim.ActType.OVERGROWTH), progress)
     while rc.screen != sim.RunScreen.COMBAT:
         acts = rc.legal_actions()
         rc.step(*acts[rng.randrange(len(acts))])

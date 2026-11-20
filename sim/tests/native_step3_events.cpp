@@ -1206,7 +1206,8 @@ int main() {
         RunContext saved;
         check(RunContext::restore(r.serialize(), saved), "snapshot at the fake merchant");
         RunContext leave = r;
-        check(leave.step({RunActionType::EVENT_CHOICE, 6}) && (leave.screen == RunScreen::EVENT && leave.eventPage == 127), "leave");
+        check(leave.step({RunActionType::EVENT_CHOICE, 6}) && leave.screen == RunScreen::MAP && leave.eventId < 0,
+              "leave goes straight to the map (native Proceed opens the map; no finished page)");
         check(foul_usable(r) && r.step({RunActionType::USE_POTION, 0}) && r.inBattle && r.potionCount == 0 &&
               r.battle.monsters[0].id == MonsterId::FAKE_MERCHANT_MONSTER, "throwing the Foul Potion starts the fight");
         for (int i = 0; i < r.battle.monsterCount; ++i) { r.battle.monsters[i].hp = 0; r.battle.monsters[i].alive = false; }

@@ -268,7 +268,7 @@ int main() {
         for(int k=0;k<5;++k) {win(*r);assert(r->step({RunActionType::LEAVE_REWARDS,0}));}
         assert(run_energy_bonus(*r)==0);r->screen=RunScreen::REST;
         assert(r->step({RunActionType::REST_KINDLE,0}));assert(run_energy_bonus(*r)==1);
-        assert(r->restUsedOptions==127);snapshot(*r);
+        assert(r->restUsedOptions==255);snapshot(*r);
     }
     {
         auto b=battle({RelicId::PENDULUM});assert(relic_aux(*b,RelicId::PENDULUM)==1);
@@ -281,7 +281,7 @@ int main() {
     {
         auto b=battle({RelicId::STONE_CALENDAR});b->turn=7;
         const int hp=b->monsters[0].hp;relics_turn_start(*b);assert(b->monsters[0].hp==hp);
-        relics_turn_end(*b);assert(b->monsters[0].hp==std::max(0,hp-52));
+        relics_turn_end(*b,b->player.block==0);assert(b->monsters[0].hp==std::max(0,hp-52));
     }
     {
         auto r=run();assert(r->add_relic(RelicId::PAELS_EYE));r->begin_combat(Encounter::SETUP_CEREMONIAL_BEAST_BOSS);

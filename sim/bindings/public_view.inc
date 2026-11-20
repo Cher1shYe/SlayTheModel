@@ -2,8 +2,44 @@
 // Included after the binding helpers; never export a RunContext/Monster memory dump.
 #include <cctype>
 #include "sts2/card_candidates.h"
+#include "sts2/card_preview.h"
+#include <cstring>
 #include "public_power_view.inc"
 #include "public_relic_view.inc"
+// A6 combat selection purpose, one explicit case per ChoiceOp (-Wswitch and
+// train/tests/test_public_derived.py check completeness). The strings are public_obs.PURPOSES
+// entries; new ones are appended there. (Replaces a positional table that had fallen out of step
+// with the enum: later ops were mislabelled and Gambling Chip / Knowledge Demon raised.)
+static const char *choice_purpose(ChoiceOp op) {
+    switch(op) {
+        case ChoiceOp::NONE: return "none";
+        case ChoiceOp::UPGRADE: return "combat.upgrade";
+        case ChoiceOp::EXHAUST: return "combat.exhaust";
+        case ChoiceOp::RETURN_DISCARD_TOP: return "combat.return_discard_top";
+        case ChoiceOp::PUT_HAND_TOP: return "combat.put_hand_top";
+        case ChoiceOp::DRAW_TO_HAND: return "combat.draw_to_hand";
+        case ChoiceOp::DISCARD_TO_HAND: return "combat.discard_to_hand";
+        case ChoiceOp::OFFER_TO_HAND: return "combat.offer_to_hand";
+        case ChoiceOp::GIVE_REPLAY: return "combat.give_replay";
+        case ChoiceOp::TRANSFORM: return "combat.transform";
+        case ChoiceOp::MAKE_FREE: return "combat.make_free";
+        case ChoiceOp::DUPLICATE: return "combat.duplicate";
+        case ChoiceOp::DISCARD_ANY: return "combat.discard";
+        case ChoiceOp::SILENT_DISCARD: return "combat.silent_discard";
+        case ChoiceOp::SILENT_SLY: return "combat.silent_sly";
+        case ChoiceOp::SILENT_NIGHTMARE: return "combat.silent_nightmare";
+        case ChoiceOp::NECRO_SCULPT_ETHEREAL: return "combat.sculpt_ethereal";
+        case ChoiceOp::NECRO_SNAP_RETAIN: return "combat.snap_retain";
+        case ChoiceOp::NECRO_SEANCE: return "combat.seance";
+        case ChoiceOp::NECRO_TRANSFIGURE: return "combat.transfigure";
+        case ChoiceOp::REGENT_TRANSFORM: return "combat.regent_transform";
+        case ChoiceOp::REGENT_CLONE: return "combat.regent_clone";
+        case ChoiceOp::REGENT_AUTO_SKILL: return "combat.regent_auto_skill";
+        case ChoiceOp::KNOWLEDGE_CURSE: return "combat.knowledge_curse";
+        case ChoiceOp::GAMBLING_CHIP: return "combat.gambling_chip";
+    }
+    throw std::logic_error("unmapped ChoiceOp for public purpose");
+}
 static std::string public_native_slug(const char *name) {
     std::string result;
     for(int i=0;name[i];++i){const unsigned char c=name[i];if(i>0&&c>='A'&&c<='Z')result+='_' ;result+=static_cast<char>(std::toupper(c));}
@@ -29,6 +65,17 @@ static py::dict public_card_view(const Card &c, const char *pile, int position,
     out["damage"] = card_base_damage(c);
     out["block"] = card_block(c);
     out["bonusDamage"] = c.bonusDamage;out["bonusBlock"] = c.bonusBlock;
+    // Checklist A1: native display values (card_preview.h). Hand/Play cards run the
+    // global hooks; "previewDamageVs" follows the public enemy order. Python keeps only
+    // the variables this card actually has (catalog cardVars).
+    if (battle && (std::strcmp(pile,"hand")==0 || std::strcmp(pile,"play")==0)) {
+        const bool inPlay = std::strcmp(pile,"play")==0;
+        out["previewDamage"] = card_preview_damage(*battle, c, -1, true, inPlay);
+        out["previewBlock"] = card_preview_block(*battle, c, -1, true, inPlay);
+        py::list vs;
+        for (int i : public_monster_turn_order(*battle)) vs.append(card_preview_damage(*battle, c, i, true, inPlay));
+        out["previewDamageVs"] = vs;
+    }
     out["replay"] = c.replay + c.bonusReplay;
     out["enchantedReplay"] = c.replay + c.bonusReplay +
         ((c.enchantment == EnchantmentId::SPIRAL || (c.enchantment == EnchantmentId::GLAM && !c.enchantmentDisabled)) ? 1 : 0);
@@ -77,7 +124,9 @@ static py::dict public_card_view(const Card &c, const char *pile, int position,
     out["enchantment"] = enchantment;
     py::list afflictions;
     for (const auto &aff : std::vector<std::pair<const char *, int>>{
-        {"BOUND", c.bound ? 1 : 0}, {"GALVANIZED",c.galvanized},{"TAINTED",c.tainted},{"HEXED",c.hexed ? 1 : 0}})
+        {"BOUND", c.bound ? 1 : 0}, {"GALVANIZED",c.galvanized},{"TAINTED",c.tainted},{"HEXED",c.hexed ? 1 : 0},
+        {"RINGING", battle && battle->turn_affliction(c) == 1}, {"ENTANGLED", battle && battle->turn_affliction(c) == 2},
+        {"SMOG", battle && battle->turn_affliction(c) == 3}})
         if (aff.second) { py::dict row; row["modelId"] = std::string("AFFLICTION.")+aff.first;
             row["amount"]=aff.second; afflictions.append(row); }
     out["afflictions"] = afflictions;
@@ -97,6 +146,10 @@ static py::dict public_model_state(const RunContext &rc) {
     player["maxEnergy"] = inCombat ? bc.player.energyPerTurn : 0;
     player["stars"] = inCombat ? bc.regent.stars : 0;
     player["potionSlots"] = inCombat ? bc.potionSlots : rc.potionSlots;
+    // Osty (Necrobinder pet, reachable via other characters' cards) is a visible creature
+    // that absorbs unblocked powered attack damage before the player (A4).
+    player["ostyHp"] = inCombat ? std::max(0, bc.necro.ostyHp) : 0;
+    player["ostyMaxHp"] = inCombat && bc.necro.ostyHp > 0 ? bc.necro.ostyMaxHp : 0;
     py::list powers=inCombat?public_power_view(bc):py::list();
     player["powers"]=powers;
     out["player"]=player;
@@ -107,6 +160,17 @@ static py::dict public_model_state(const RunContext &rc) {
     run["currentAct"]=acts[static_cast<int>(rc.actTypes[rc.act])];
     run["boss"]=std::string("ENCOUNTER.")+encounter_native_entry(static_cast<Encounter>(rc.bossEncounter));
     run["secondBoss"]=rc.secondBossEncounter>=0 ? py::cast(std::string("ENCOUNTER.")+encounter_native_entry(static_cast<Encounter>(rc.secondBossEncounter))) : py::none();
+    // Public history (checklist D): the act's normal / elite encounters already
+    // entered from map rooms, in order. RoomSet pulls bag[visited % count]; the
+    // bag itself (future order) is hidden and never exported.
+    auto act_history=[](const std::uint16_t *bag,int count,int pos){
+        py::list out;
+        for(int i=0;count>0 && i<pos;++i)
+            out.append(std::string("ENCOUNTER.")+encounter_native_entry(static_cast<Encounter>(bag[i%count])));
+        return out;
+    };
+    run["actNormalEncounters"]=act_history(rc.normalBag,rc.normalBagN,rc.normalBagPos);
+    run["actEliteEncounters"]=act_history(rc.eliteBag,rc.eliteBagN,rc.eliteBagPos);
     out["run"]=run;
     if (inCombat) {
         combat["turn"]=bc.turn;combat["round"]=bc.combatRound;
@@ -193,10 +257,19 @@ static py::dict public_model_state(const RunContext &rc) {
         d["minSelect"]=bc.pending.optional?0:std::min(bc.pending.remaining,bc.pending.count);
         d["maxSelect"]=std::min(bc.pending.remaining,bc.pending.count);
         d["requireManualConfirmation"]=bc.pending.pile==ChoicePile::HAND;
-        d["preview"]=false;d["cancelable"]=false;d["selectedCount"]=bc.pending.selectedCount;decision=d;
+        d["preview"]=false;d["cancelable"]=false;d["selectedCount"]=bc.pending.selectedCount;
+        // A6: what the selection is for (the on-screen prompt). Vocabulary in public_obs.PURPOSES.
+        d["purpose"]=choice_purpose(bc.pending.op);d["service"]=0;decision=d;
     }else if(rc.cardGrid.kind){py::dict d;d["minSelect"]=rc.cardGrid.minSelect;d["maxSelect"]=rc.cardGrid.maxSelect;
-        d["requireManualConfirmation"]=true;d["preview"]=rc.cardGrid.preview;d["cancelable"]=rc.cardGrid.service!=0;
-        d["selectedCount"]=rc.cardGrid.selectedCount;decision=d;}
+        d["requireManualConfirmation"]=true;d["preview"]=rc.cardGrid.preview;d["cancelable"]=rc.cardGrid.service!=0 && rc.cardGrid.service!=5;
+        d["selectedCount"]=rc.cardGrid.selectedCount;
+        static const char *kinds[]={"none","deck.brain_leech","deck.cheese","deck.claws","deck.paels_growth","deck.scroll_boxes",
+            "deck.remove","deck.transform","deck.transform_upgrade","deck.upgrade","deck.paels_tooth","deck.enchant_spiral",
+            "deck.enchant_steady","deck.sea_glass","deck.dusty_tome","deck.enchant_imbued","deck.hefty_tablet","deck.duplicate",
+            "deck.enchant_sharp","deck.enchant_adroit","deck.enchant_momentum","deck.enchant_royally_approved","deck.event",
+            "deck.enchant_instinct"};
+        if(rc.cardGrid.kind>=sizeof(kinds)/sizeof(kinds[0]))throw std::logic_error("unmapped card grid kind for public purpose");
+        d["purpose"]=kinds[rc.cardGrid.kind];d["service"]=rc.cardGrid.service;decision=d;}
     out["decision"]=decision;
     out["board"]=py::none();
     if(rc.crystalSphere.active){const auto &g=rc.crystalSphere;py::dict board;py::list cells;
@@ -224,6 +297,8 @@ static py::dict public_model_state(const RunContext &rc) {
         point["current"]=rc.map.at(rc.curRow,rc.curCol)==i;py::list children,quests;
         for(int j=0;j<node.childCount;++j)children.append(coordinate(node.children[j]));
         if(py::cast<int>(point["row"])==rc.spoilsQuestRow && py::cast<int>(point["col"])==rc.spoilsQuestCol)quests.append("CARD.SPOILS_MAP");
+        // MapPoint.Quests carries FurCoat on its marked points of the obtain act's map.
+        if(rc.fur_coat_visible_marks()>0 && rc.fur_coat_marked(py::cast<int>(point["row"]),py::cast<int>(point["col"])))quests.append("RELIC.FUR_COAT");
         point["children"]=children;point["quests"]=quests;map.append(point);}
     out["map"]=map;
     py::list enemies;
@@ -238,6 +313,13 @@ static py::dict public_model_state(const RunContext &rc) {
         py::list intents;
         for(const auto &intent:visible_monster_intents(bc,i)){py::dict row;row["type"]=intent.type;row["damage"]=intent.damage;row["hits"]=intent.hits;intents.append(row);}
         e["intents"]=intents;e["intentsVisible"]=true;
+        // A2: current move and the next two moves' distributions (state machine weights, no RNG).
+        py::list steps;
+        for(const auto &step:predict_monster_moves(bc,i,3)){py::list rows;
+            for(const auto &mv:step){py::dict row;row["move"]=std::string(monster_state_name(m.id,mv.state));row["local"]=mv.state;
+                row["p"]=mv.p;row["type"]=mv.intentType;row["damage"]=mv.damage;row["hits"]=mv.hits;rows.append(row);}
+            steps.append(rows);}
+        e["moves"]=steps;e["stunned"]=m.stunned;
         e["reviving"]=m.reviving;e["slowCardsThisTurn"]=m.slowCardsThisTurn;
         e["alive"]=m.alive && m.hp>0;e["hittable"]=m.alive && !m.reviving && m.hp>0;
         e["powers"]=public_power_view(bc,i);enemies.append(e);
@@ -258,6 +340,14 @@ static py::dict public_model_state(const RunContext &rc) {
 static void bind_public_view(py::module_ &m) {
     m.def("public_model_state", &public_model_state,
           "Public policy facts; IDs are routing metadata. Hidden piles are unordered multisets.");
+    // Audit helper (no rule state): the public export of a fresh deck card, through
+    // the same public_card_view used for real deck cards. Used to check that every
+    // simulator card encodes exactly like the native card of the same model.
+    m.def("public_card_template", [](int cardId, bool upgraded) {
+        const CardId id = static_cast<CardId>(cardId);
+        if (!card_native_available(id)) throw std::invalid_argument("card is absent from the target native version");
+        return public_card_view(make_card(id, upgraded, 1), "deck", -1);
+    }, py::arg("card_id"), py::arg("upgraded") = false);
     m.def("pending_extra_gold_rewards", [](const RunContext &rc) {
         return std::vector<int>(std::begin(rc.extraGoldRewards), std::end(rc.extraGoldRewards));
     });

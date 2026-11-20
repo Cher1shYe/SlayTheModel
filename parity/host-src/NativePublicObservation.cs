@@ -22,8 +22,28 @@ public sealed partial class NativeGameBridge
         .Select(pair => (object)new { name = pair.Key, value = pair.Value.BaseValue,
             enchantedValue = pair.Value.EnchantedValue }).ToArray();
 
+    // Checklist A1: the value the card displays (DynamicVar.PreviewValue after
+    // CardModel.UpdateDynamicVarPreview(Normal, target)), (int) like the card text.
+    private static int? PreviewInt(CardModel card, params string[] names) => card.DynamicVars
+        .Where(pair => names.Contains(pair.Key)).Select(pair => (int?)(int)pair.Value.PreviewValue).FirstOrDefault();
+
+    private static (int? damage, int? block, int?[]? vs) PublicPreview(CardModel card, string pile)
+    {
+        if (pile is not ("hand" or "play") || card.CombatState is not { } combatState) return (null, null, null);
+        var enemies = CombatManager.Instance.DebugOnlyGetState()?.Enemies.ToArray() ?? [];
+        var vs = enemies.Select(enemy =>
+        {
+            card.UpdateDynamicVarPreview(CardPreviewMode.Normal, enemy, card.DynamicVars);
+            return PreviewInt(card, "Damage", "CalculatedDamage");
+        }).ToArray();
+        // Leave the untargeted (in-hand) preview in place, as NCard shows it.
+        card.UpdateDynamicVarPreview(CardPreviewMode.Normal, null, card.DynamicVars);
+        return (PreviewInt(card, "Damage", "CalculatedDamage"), PreviewInt(card, "Block", "CalculatedBlock"), vs);
+    }
+
     internal object DescribePublicCard(CardModel card, string pile, int? position = null)
     {
+        var preview = PublicPreview(card, pile);
         var costs = NativeView.Items(NativeView.Get(card.EnergyCost, "_localModifiers")
             ?? throw new MissingMemberException("CardEnergyCost._localModifiers"))
             .Cast<LocalCostModifier>().Select(mod => new
@@ -53,6 +73,7 @@ public sealed partial class NativeGameBridge
             slyThisTurn = (bool)(NativeView.Get(card, "HasSingleTurnSly") ?? throw new MissingMemberException("Card.HasSingleTurnSly")),
             dampened = IsPubliclyDampened(card),
             progress, dynamicVars = PublicVars(card.DynamicVars),
+            previewDamage = preview.damage, previewBlock = preview.block, previewDamageVs = preview.vs,
             tinkerRider = card is MadScience science ? (int)science.TinkerTimeRider : 0,
             enchantment = card.Enchantment is { } enchantment ? new
             {
@@ -138,6 +159,8 @@ public sealed partial class NativeGameBridge
             player = new { hp = player.Creature.CurrentHp, maxHp = player.Creature.MaxHp, block = player.Creature.Block,
                 gold = player.Gold, energy = combat?.Energy ?? 0, maxEnergy = combat?.MaxEnergy ?? 0,
                 stars = combat?.Stars ?? 0, potionSlots = player.PotionSlots.Count,
+                ostyHp = combat is not null && player.IsOstyAlive ? player.Osty!.CurrentHp : 0,
+                ostyMaxHp = combat is not null && player.IsOstyAlive ? player.Osty!.MaxHp : 0,
                 powers = PublicPowers(player.Creature) },
             run = new { act = run.CurrentActIndex, floor = run.TotalFloor, actFloor = run.ActFloor,
                 ascension = run.AscensionLevel, currentAct = run.Act.Id.ToString(),
@@ -146,7 +169,11 @@ public sealed partial class NativeGameBridge
                 elitesFought = enteredRooms.Count(room => room?.RoomType == RoomType.Elite),
                 bossesFought = enteredRooms.Count(room => room?.RoomType == RoomType.Boss),
                 cardShopRemovalsUsed = player.ExtraFields.CardShopRemovalsUsed,
-                unknownMapPointsVisited = run.MapPointHistory.SelectMany(act => act).Count(entry => entry.MapPointType.ToString() == "Unknown") },
+                unknownMapPointsVisited = run.MapPointHistory.SelectMany(act => act).Count(entry => entry.MapPointType.ToString() == "Unknown"),
+                // Checklist D: public history of this act's normal / elite rooms in entry order
+                // (the encounters RoomSet pulled). Event-started combats begin with an Event room.
+                actNormalEncounters = ActRoomEncounters(run, RoomType.Monster),
+                actEliteEncounters = ActRoomEncounters(run, RoomType.Elite) },
             combat = state is null ? null : new
             {
                 turn = combat!.TurnNumber, round = state.RoundNumber,
@@ -183,6 +210,14 @@ public sealed partial class NativeGameBridge
             }).ToArray(),
         };
     }
+
+    // First room of each map point in the current act: an Event-started combat is not
+    // a map room pull; unknown points resolve to their room type on entry.
+    private static string[] ActRoomEncounters(RunState run, RoomType type) =>
+        (run.MapPointHistory.ElementAtOrDefault(run.CurrentActIndex) ?? [])
+            .Select(entry => entry.Rooms.FirstOrDefault())
+            .Where(room => room is not null && room.RoomType == type && room.ModelId is not null)
+            .Select(room => room!.ModelId!.ToString()).ToArray();
 
     private static object[] PublicPowers(Creature creature) => creature.Powers.Where(power => power.IsVisible)
         .OrderBy(power => power.Id.ToString(), StringComparer.Ordinal).Select(power => (object)new

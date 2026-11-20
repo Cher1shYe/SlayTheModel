@@ -367,8 +367,10 @@ enum CardFlags : std::uint16_t {
 };
 
 enum class EnchantmentId : std::uint8_t { NONE, SOWN, VIGOROUS, SWIFT, GLAM, CLONE, SPIRAL, STEADY, NIMBLE, INKY,
-                                          SLITHER, PERFECT_FIT, CORRUPTED, SOULS_POWER, SHARP, IMBUED, ADROIT, MOMENTUM, ROYALLY_APPROVED };
-constexpr EnchantmentId ENCHANTMENT_LAST = EnchantmentId::ROYALLY_APPROVED;  // append-only
+                                          SLITHER, PERFECT_FIT, CORRUPTED, SOULS_POWER, SHARP, IMBUED, ADROIT, MOMENTUM, ROYALLY_APPROVED,
+                                          // v16: Pael's Claw, Tri-Boomerang, Nutritious Soup (ancient relics).
+                                          GOOPY, INSTINCT, TEZCATARAS_EMBER };
+constexpr EnchantmentId ENCHANTMENT_LAST = EnchantmentId::TEZCATARAS_EMBER;  // append-only
 
 constexpr int MAX_CARD_COST_MODIFIERS = 32;
 struct CardCostModifier {

@@ -347,7 +347,7 @@ def simulator_extra_key(rc, sim, catalog, action, enemies=None):
         if name == "CONFIRM_GRID_CARDS" and int(rc.card_grid_kind) in (13, 16):
             return Key("skip_selection")
         return Key(fixed[name])
-    rests = {"REST_HEAL": "HEAL", "REST_UPGRADE": "SMITH", "REST_DIG": "DIG", "REST_LIFT": "LIFT", "REST_CLONE": "CLONE", "REST_HATCH": "HATCH", "REST_KINDLE": "KINDLE"}
+    rests = {"REST_HEAL": "HEAL", "REST_UPGRADE": "SMITH", "REST_DIG": "DIG", "REST_LIFT": "LIFT", "REST_CLONE": "CLONE", "REST_HATCH": "HATCH", "REST_KINDLE": "KINDLE", "REST_COOK": "COOK"}
     if name in rests:
         return Key("rest", (rests[name],))
     if name in ("BUY_CARD", "BUY_RELIC", "BUY_POTION"):
@@ -371,7 +371,7 @@ def simulator_extra_key(rc, sim, catalog, action, enemies=None):
         return Key("event_option", (rc.event_name, option))
     if name in ("SELECT_GRID_CARD", "EVENT_SELECT_CARD"):
         cards = list(rc.card_grid_cards) if name == "SELECT_GRID_CARD" else list(rc.deck)
-        if name == "SELECT_GRID_CARD" and not cards and int(rc.card_grid_kind) in (3, 4, 6, 7, 8, 9, 10, 11, 12, 15, 17, 18, 19, 20, 21, 22):
+        if name == "SELECT_GRID_CARD" and not cards and int(rc.card_grid_kind) in (3, 4, 6, 7, 8, 9, 10, 11, 12, 15, 17, 18, 19, 20, 21, 22, 23):
             cards = list(rc.deck)
         if not cards:
             raise Error(f"simulator card grid {rc.card_grid_kind} has no public cards binding")

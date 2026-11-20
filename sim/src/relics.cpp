@@ -395,9 +395,13 @@ int relics_energy_for_turn(BattleContext &bc, int base) {
     if (relic_has(bc, RelicId::VERY_HOT_COCOA) && bc.turn == 1) energy += 4;
     if (relic_has(bc, RelicId::CANDELABRA) && bc.turn == 2) energy += 2;
     if (relic_has(bc, RelicId::CHANDELIER) && bc.turn == 3) energy += 3;
+    // BoomingConch.AfterSideTurnStart: +1 energy on turn 1 of Elite combats (draw is in relics_modify_draw).
+    if (relic_has(bc, RelicId::BOOMING_CONCH) && bc.turn == 1 &&
+        std::strstr(encounter_key(bc.encounter), "ELITE") != nullptr) energy += 1;
     if (relic_has(bc, RelicId::BREAD)) {
-        energy += 1;
+        // ModifyMaxEnergy +1 except on turn 1; turn 1 AfterSideTurnStart LoseEnergy(2).
         if (bc.turn == 1) energy -= 2;
+        else energy += 1;
     }
     if (bc.turn == 1) energy += bc.turn1Energy;
     if (relic_has(bc, RelicId::HAPPY_FLOWER)) {
@@ -446,7 +450,6 @@ int relics_modify_draw(BattleContext &bc, int base) {
 }
 
 void relics_turn_start(BattleContext &bc) {
-    bc.player.power[static_cast<int>(PowerId::DIAMOND_DIADEM)] = 0;
     set_aux(bc, RelicId::MUSIC_BOX, 0);
     // PollinousCore.BeforeSideTurnStart counts player turns across combats.
     if (relic_has(bc, RelicId::POLLINOUS_CORE)) bump(bc, RelicId::POLLINOUS_CORE, 1);
@@ -457,21 +460,6 @@ void relics_turn_start(BattleContext &bc) {
     }
     if (relic_has(bc, RelicId::SAI)) bc.gain_block(7, false, false);
     if (relic_has(bc, RelicId::MR_STRUGGLES)) damage_all(bc, bc.turn);
-    if (relic_has(bc, RelicId::TOASTY_MITTENS)) {
-        if (bc.drawCount == 0) bc.shuffle_discard_into_draw();
-        if (bc.drawCount > 0) {
-            int idx = bc.drawCount - 1;
-            if (bc.turn == 1) {
-                for (int i = bc.drawCount - 1; i >= 0; --i) {
-                    if (!card_has(bc.draw[i], CF_INNATE)) { idx = i; break; }
-                }
-            }
-            Card c = bc.draw[idx];
-            bc.remove_draw_at(idx);
-            bc.move_to_exhaust(c);
-        }
-        bc.add_player_power(PowerId::STRENGTH, 1);
-    }
     if (relic_has(bc, RelicId::PAELS_LEGION) && relic_aux(bc, RelicId::PAELS_LEGION) > 0) {
         bump(bc, RelicId::PAELS_LEGION, -1);
     }
@@ -588,6 +576,14 @@ void relics_after_player_turn_start(BattleContext &bc) {
             bc.add_card_to_hand(c);
         }
     }
+        // ToastyMittens.AfterPlayerTurnStart: choose 1 hand card to exhaust (CardSelectCmd.FromHand,
+        // min = max = 1), then +1 Strength (after the choice, see maybe_finish_pending).
+        if(id==RelicId::TOASTY_MITTENS) {
+            Card dummy{};dummy.uid=0xFFFF;
+            if(bc.handCount>0) bc.start_choice(ChoiceOp::EXHAUST,ChoicePile::HAND,1,false,dummy,false);
+            if(bc.pending.op!=ChoiceOp::NONE){bc.pending.hasSource=false;bc.toastyMittensPending=true;}
+            else bc.add_player_power(PowerId::STRENGTH,1);
+        }
         if(id==RelicId::GAMBLING_CHIP && bc.turn==1 && bc.handCount) {
             bc.pending=PendingChoice{};bc.pending.op=ChoiceOp::GAMBLING_CHIP;
             bc.pending.pile=ChoicePile::HAND;bc.pending.optional=true;
@@ -599,15 +595,8 @@ void relics_after_player_turn_start(BattleContext &bc) {
 }
 
 void relics_hand_drawn(BattleContext &bc) {
-    if (relic_has(bc, RelicId::WHISPERING_EARRING) && bc.turn == 1) {
-        int guard = 0;
-        while (bc.handCount > 0 && guard++ < 13 && bc.outcome == Outcome::UNDECIDED) {
-            Card c = bc.hand[0];
-            for (int i = 0; i + 1 < bc.handCount; ++i) bc.hand[i] = bc.hand[i + 1];
-            --bc.handCount;
-            bc.auto_play_random(c, false);
-        }
-    }
+    // Whispering Earring runs in the auto pre-play phase (BattleContext::whispering_earring_auto_play).
+    (void)bc;
 }
 
 void relics_card_about_to_play(BattleContext &bc, const Card &card) {
@@ -797,7 +786,7 @@ void relics_card_played(BattleContext &bc, const Card &card) {
     if (card_is_power(card)) {
         if (relic_has(bc, RelicId::PERMAFROST) && relic_aux(bc, RelicId::PERMAFROST) == 0) {
             set_aux(bc, RelicId::PERMAFROST, 1);
-            bc.gain_block(6, false, false);
+            bc.gain_block(7, false, false);  // Permafrost Block 7
         }
         if (relic_has(bc, RelicId::GAME_PIECE)) bc.draw_cards(1);
         if (relic_has(bc, RelicId::LOST_WISP)) damage_all(bc, 8);
@@ -888,25 +877,28 @@ void relics_shuffled(BattleContext &bc) {
     if (relic_has(bc, RelicId::BIIIG_HUG)) add_to_draw(bc, CardId::SOOT, 1);
 }
 
-void relics_turn_end(BattleContext &bc) {
+void relics_turn_end(BattleContext &bc, bool blockWasZero) {
     if (relic_has(bc, RelicId::STONE_CALENDAR) && bc.turn == 7) damage_all(bc, 52);
-    if (relic_has(bc, RelicId::ORICHALCUM) && bc.player.block == 0) bc.gain_block(6, false, false);
-    if (relic_has(bc, RelicId::FAKE_ORICHALCUM) && bc.player.block == 0) bc.gain_block(3, false, false);
-    if (relic_has(bc, RelicId::DIAMOND_DIADEM) && bc.cardsPlayedThisTurn <= 2) {
-        bc.player.power[static_cast<int>(PowerId::DIAMOND_DIADEM)] = 1;
-    }
+    // Orichalcum decides in BeforeSideTurnEndVeryEarly (before Plating/Constrict/...),
+    // then gains its block in BeforeSideTurnEnd.
+    if (relic_has(bc, RelicId::ORICHALCUM) && blockWasZero) bc.gain_block(6, false, false);
+    if (relic_has(bc, RelicId::FAKE_ORICHALCUM) && blockWasZero) bc.gain_block(3, false, false);
     if (relic_has(bc, RelicId::PAELS_TEARS)) {
         set_aux(bc, RelicId::PAELS_TEARS, bc.player.energy > 0 ? 1 : 0);
     }
     if (relic_has(bc, RelicId::RIPPLE_BASIN) && bc.attacksPlayedThisTurn == 0) {
         bc.gain_block(4, false, false);
     }
-    if (relic_has(bc, RelicId::PARRYING_SHIELD) && bc.player.block >= 10) {
-        bc.attack_random_monster(6, 1, false);
-    }
     if (relic_has(bc, RelicId::CLOAK_CLASP)) bc.gain_block(bc.handCount, false, false);
     if (relic_has(bc, RelicId::SCREAMING_FLAGON) && bc.handCount == 0) {
         damage_all(bc, 20);
+    }
+}
+
+// Hook.AfterSideTurnEnd(Player): after every BeforeSideTurnEnd effect and the discard.
+void relics_after_side_turn_end(BattleContext &bc) {
+    if (relic_has(bc, RelicId::PARRYING_SHIELD) && bc.player.block >= 10) {
+        bc.attack_random_monster(6, 1, false);
     }
 }
 
@@ -930,6 +922,15 @@ void relics_potion_obtained(BattleContext &bc) {
     if (i >= 0 && bc.relicAux[i] != 0) {
         bc.player.dexterity -= 2;
         bc.relicAux[i] = 0;
+    }
+}
+
+// BeltBuckle.AfterPotionDiscarded: an empty belt re-applies the Dexterity.
+void relics_potion_discarded(BattleContext &bc) {
+    const int i = aux_index(bc, RelicId::BELT_BUCKLE);
+    if (i >= 0 && bc.potionCount == 0 && bc.relicAux[i] == 0) {
+        bc.player.dexterity += 2;
+        bc.relicAux[i] = 1;
     }
 }
 
@@ -1366,6 +1367,19 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
             break;
         }
         case RelicId::ASTROLABE: begin_deck_relic_choice(rc, 8, 3); break;
+        // NutritiousSoup.AfterObtained: every Basic Strike that TezcatarasEmber can enchant.
+        case RelicId::NUTRITIOUS_SOUP:
+            for (int i = 0; i < rc.deckCount; ++i)
+                if (card_def(rc.deck[i].id).rarity == Rarity::BASIC && card_is_strike(rc.deck[i]))
+                    card_apply_enchantment(rc.deck[i], EnchantmentId::TEZCATARAS_EMBER, 1);
+            break;
+        // PaelsClaw.AfterObtained: every card Goopy can enchant (Defend tag), amount 1.
+        case RelicId::PAELS_CLAW:
+            for (int i = 0; i < rc.deckCount; ++i)
+                card_apply_enchantment(rc.deck[i], EnchantmentId::GOOPY, 1);
+            break;
+        // TriBoomerang.AfterObtained: choose 3 deck cards for Instinct (real choice).
+        case RelicId::TRI_BOOMERANG: begin_deck_relic_choice(rc, 23, 3); break;
         case RelicId::BEAUTIFUL_BRACELET: {
             int candidates[MAX_DECK], count = 0;
             for (int i = 0; i < rc.deckCount; ++i)
@@ -1425,7 +1439,11 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
             upgrade_random_cards(rc,2);
             break;
         }
-        case RelicId::FUR_COAT: rc.furCoatCombats = 7; break;
+        case RelicId::FUR_COAT:  // AfterObtained: FurCoatActIndex = act; AddMarkedRooms(map)
+            rc.furCoatAct = static_cast<std::int8_t>(rc.act);
+            rc.furCoatCount = 0;
+            rc.fur_coat_mark();
+            break;
         case RelicId::DOLLYS_MIRROR: begin_deck_relic_choice(rc,17,1); break;
         case RelicId::GNARLED_HAMMER: begin_deck_relic_choice(rc,18,3); break;
         case RelicId::KIFUDA: begin_deck_relic_choice(rc,19,3); break;
@@ -1505,7 +1523,7 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
             lose_relic_max_hp(rc, 9);
             for (int i = 0; i < 3; ++i) add_deck_card(rc, CardId::WISH);
             break;
-        case RelicId::SIGNET_RING: run_gain_gold(rc, 999); break;
+        case RelicId::SIGNET_RING: run_gain_gold(rc, 888); break;  // SignetRing Gold 888
         case RelicId::SILVER_CRUCIBLE: rc.silverCrucibleUses = 3; break;
         case RelicId::SMALL_CAPSULE:
             if (!rc.queue_random_relic_reward(rc.playerRng[PRNG_REWARDS]))
@@ -1595,9 +1613,7 @@ void relics_combat_end(RunContext &rc, bool victory, bool boss) {
         rc.hp = std::min(rc.maxHp, rc.hp + heal);
     }
     // Pantograph heals on entering the Boss room (run.cpp), not after victory.
-    if ((!boss || rc.act < MAX_ACTS - 1) && run_has_relic(rc, RelicId::AMETHYST_AUBERGINE)) {
-        run_gain_gold(rc, 10);
-    }
+    // Amethyst Aubergine is a reward (RunContext::finish_combat), not a victory hook.
     if (run_has_relic(rc, RelicId::CHOSEN_CHEESE)) {
         rc.maxHp += 1;
         rc.hp += 1;

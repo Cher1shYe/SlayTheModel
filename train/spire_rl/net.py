@@ -26,6 +26,8 @@ Heads:
     q[2] = P(beat the act after | both passed)
 * combat auxiliary (in combat only, helps the trunk): death logit, HP left / max HP,
   potions used.
+* ``value`` (scalar, 2026-11-20): expected remaining dense reward for PPO (docs/plan.md 6.2).
+  ``q`` stays as an auxiliary output.
 
 ``combine`` turns q into the decision value U with per-act rewards r and cross-act weights
 w applied only at use time:
@@ -174,6 +176,7 @@ class UnifiedNet(nn.Module):
         self.state_mlp = nn.Sequential(nn.Linear(3 * d, d), nn.GELU(), nn.Linear(d, d))
         self.q_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 3))
         self.aux_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 3))
+        self.value_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
         self.type_emb = nn.Embedding(uo.CAND_TYPES, d)
         self.cnum_proj = nn.Linear(uo.CAND_NUM, d)
         self.ref = nn.Parameter(torch.zeros(2, d))
@@ -223,7 +226,7 @@ class UnifiedNet(nn.Module):
         sc = s[:, None].expand_as(cand)
         scores = self.cand_mlp(torch.cat((cand, sc, cand * sc), -1))[..., 0]
         logp = torch.log_softmax(scores.masked_fill(~b.cmask, float("-inf")), -1)
-        return {"logp": logp, "q_logit": self.q_head(s), "aux": self.aux_head(s)}
+        return {"logp": logp, "value": self.value_head(s)[..., 0], "q_logit": self.q_head(s), "aux": self.aux_head(s)}
 
 
 def combine(q: torch.Tensor, act: torch.Tensor, vw: ValueWeights = ValueWeights()) -> torch.Tensor:
@@ -247,6 +250,7 @@ def save(path, net: UnifiedNet, extra: dict | None = None) -> None:
     torch.save({"format": "spire_rl.unified/1", "config": asdict(net.cfg), "state": net.state_dict(),
                 "macro_obs_version": int(sim.MACRO_OBS_VERSION), "combat_obs_version": int(sim.COMBAT_OBS_VERSION),
                 "public_catalog_sha256": getattr(schema, "CATALOG_SHA256", None),
+                "public_feature_version": getattr(schema, "FEATURE_VERSION", None),
                 "ruleset": sim.ENGINE_RULESET_ID, "extra": extra or {}}, path)
 
 
@@ -258,7 +262,8 @@ def load(path, device="cpu") -> UnifiedNet:
     if (p.get("format") != "spire_rl.unified/1" or (schema_name == "legacy" and
             (p.get("macro_obs_version") != int(sim.MACRO_OBS_VERSION)
              or p.get("combat_obs_version") != int(sim.COMBAT_OBS_VERSION))) or
-            (schema_name != "legacy" and p.get("public_catalog_sha256") != schema.CATALOG_SHA256)):
+            (schema_name != "legacy" and (p.get("public_catalog_sha256") != schema.CATALOG_SHA256
+                                          or p.get("public_feature_version") != schema.FEATURE_VERSION))):
         raise ValueError(f"{path}: not a unified net for the current observation versions")
     net = UnifiedNet(UnifiedNetConfig(**p["config"]))
     net.load_state_dict(p["state"])
