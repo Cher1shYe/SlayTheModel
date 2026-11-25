@@ -71,12 +71,6 @@ for rc, s in states(range(int(sys.argv[1]), int(sys.argv[2]))):
             revived = any(x["order"] == e["order"] and x["alive"] and pv_kill(e) for e in f["enemies"] for x in a["enemies"])
             if not revived and (not random_part or sum(e["hittable"] for e in f["enemies"]) == 1) and abs(tot - pv["total_damage"]) > 1e-6:
                 d["damage"] = (pv["total_damage"], tot)
-        # Known simulator gaps (reported separately): Intimidating Helmet fires once per card instead of
-        # once per replayed play.
-        if "RELIC.INTIMIDATING_HELMET" in [r["modelId"] for r in f["relics"]] and (
-                card["enchantedReplay"] or any(pw[0] in ("POWER.ONE_TWO_PUNCH_POWER", "POWER.DUPLICATION_POWER", "POWER.BURST_POWER") for pw in f["powers"])
-                or any(r["modelId"] == "RELIC.THROWING_AXE" and r["status"] == "Active" for r in f["relics"])):
-            st["simgap"] += 1; continue
         st["cmp"] += 1
         if card["modelId"] not in ("CARD.INFERNO", "CARD.CRIMSON_MANTLE") and not any(pw[0] == "POWER.CRIMSON_MANTLE_POWER" for pw in f["powers"]) and not pv["unknown"] and simple_enemy_turn(f) and after.facts["screen"] == "combat" and any(x.key.kind == "end_turn" for x in after.actions):
             actual = hp_after_end_turn(copy, after)

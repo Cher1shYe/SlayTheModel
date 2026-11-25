@@ -161,6 +161,10 @@ public sealed partial class NativeGameBridge
                 stars = combat?.Stars ?? 0, potionSlots = player.PotionSlots.Count,
                 ostyHp = combat is not null && player.IsOstyAlive ? player.Osty!.CurrentHp : 0,
                 ostyMaxHp = combat is not null && player.IsOstyAlive ? player.Osty!.MaxHp : 0,
+                orbCapacity = combat?.OrbQueue.Capacity ?? 0,
+                orbs = combat?.OrbQueue.Orbs.Select(orb => new { modelId = orb.Id.ToString(),
+                    passive = (int)orb.PassiveVal, evoke = (int)orb.EvokeVal }).ToArray()
+                    ?? Array.Empty<object>().Select(_ => new { modelId = "", passive = 0, evoke = 0 }).ToArray(),
                 powers = PublicPowers(player.Creature) },
             run = new { act = run.CurrentActIndex, floor = run.TotalFloor, actFloor = run.ActFloor,
                 ascension = run.AscensionLevel, currentAct = run.Act.Id.ToString(),

@@ -23,7 +23,7 @@ from . import public_tactics as tactics
 
 SCHEMA_ID = "spire.public/1"
 # Derived feature layout (public_derived.py); bump on any change. Checkpoints record it.
-FEATURE_VERSION = 9   # 9: B player-side resolution + HP lost during the play (col 522)
+FEATURE_VERSION = 12  # 12: every numeric input bounded (squash; lengths / their caps; Waterfall Giant HP 999999999 was 5e6), DEVLOG 50; 11: channeled orbs (player row 107..178), A4 counts their turn-end passives; 10: A2 advances the rat summon cooldown, A4 drops enemies killed by Poison first; 9: B player-side resolution + HP lost during the play (col 522)
 _CATALOG = json.loads(Path(__file__).with_name("public_catalog.json").read_text())
 CATALOG_SHA256 = hashlib.sha256(Path(__file__).with_name("public_catalog.json").read_bytes()).hexdigest()
 _MODELS = _CATALOG["models"]
@@ -35,6 +35,16 @@ MACRO_KINDS, COMBAT_KINDS, KINDS = 13, 13, 26
 MACRO_NUM = COMBAT_NUM = NUM = 768
 CAND_NUM = 544          # 0..15 scalar args, 15 length, 16..510 descriptor bytes, 512..543 B preview (appended)
 DESCRIPTOR_CAP = 495
+SQUASH_CAP = 6.0
+
+
+def _sq(x, scale):
+    """Bounded numeric input (FEATURE_VERSION 12): x / scale unchanged inside [-1, 1], log-compressed
+    beyond (1 + ln|v|) and capped at SQUASH_CAP. Monotone, so order and equality are kept. Before,
+    raw prices (300+), lengths (495) and a 999999999-HP enemy (5e6) entered the network directly."""
+    v = float(x) / scale
+    a = abs(v)
+    return v if a <= 1.0 else math.copysign(min(1.0 + math.log(a), SQUASH_CAP), v)
 B_OFFSET = 512
 # Stable, semantic actions shared by both transports. New choices append here.
 ACTION_KINDS = (
@@ -69,6 +79,9 @@ def _enchantment_offset(index):
 _CARD_SCALARS = ("upgrade", "maxUpgrade", "costX", "cost", "baseCost", "localCost", "starCostX", "starCost",
                  "damage", "block", "replay", "enchantedReplay", "retain", "exhaustOnNextPlay", "progress", "tinkerRider",
                  "position", "knownTopPosition", "selected", "price", "sold", "retainThisTurn", "slyThisTurn", "dampened")
+_CARD_SCALE = {"price": 100}    # every other non-bool card scalar: _sq(x, 10)
+MAX_ORBS = 10
+ORB_KINDS = ("ORB.LIGHTNING_ORB", "ORB.FROST_ORB", "ORB.DARK_ORB", "ORB.PLASMA_ORB", "ORB.GLASS_ORB")
 _COMBAT_SCALARS = ("turn", "round", "cardsPlayedTurn", "attacksPlayedTurn", "skillsPlayedTurn", "cardsPlayedCombat",
                    "cardsFinishedCombat", "cardsExhaustedTurn", "unblockedHitsCombat", "hpLostTurn", "manualCardsPlayedTurn")
 
@@ -303,6 +316,16 @@ def _common(raw, projection, source, legacy_capture=False):
         if key in p: result["player"][key] = number(p[key], key)
         elif legacy_capture: result["player"][key] = None
         else: raise ObservationCoverageError(f"{source}.player.{key}: missing")
+    if "orbs" in p:
+        result["player"]["orbCapacity"] = number(need(p, "orbCapacity", source + ".player"), "orbCapacity")
+        result["player"]["orbs"] = [{"modelId": need(orb, "modelId", source + ".player.orbs"),
+                                     "passive": number(need(orb, "passive", source + ".player.orbs"), "passive"),
+                                     "evoke": number(need(orb, "evoke", source + ".player.orbs"), "evoke")}
+                                    for orb in p["orbs"]]
+    elif legacy_capture:
+        result["player"].update(orbCapacity=None, orbs=None)
+    else:
+        raise ObservationCoverageError(f"{source}.player.orbs: missing")
     run=need(raw,"run",source)
     result["run"] = {key:need(run,key,source+".run") for key in
         ("act","floor","actFloor","ascension","currentAct","boss","combatsFought","elitesFought","bossesFought",
@@ -527,7 +550,8 @@ def _card_row(card, row):
 
 
 def _fill_card_row(card, row):
-    row[:len(_CARD_SCALARS)] = [number(need(card, key, "card"), key) / (1 if isinstance(card[key], bool) else 10)
+    row[:len(_CARD_SCALARS)] = [number(need(card, key, "card"), key) if isinstance(card[key], bool)
+                                else _sq(number(need(card, key, "card"), key), _CARD_SCALE.get(key, 10))
                                 for key in _CARD_SCALARS]
     row[24 + CARD_TYPES.index(card["type"])] = 1
     row[30 + RARITIES.index(card["rarity"])] = 1
@@ -541,23 +565,23 @@ def _fill_card_row(card, row):
         offset = 256 + 2 * _VARIABLE_INDEX[name]
         if offset + 1 >= NUM:
             raise ObservationCoverageError("card.dynamicVars: feature capacity exceeded")
-        row[offset:offset+2] = [1, value / 30]
+        row[offset:offset+2] = [1, _sq(value, 30)]
     if card["enchantment"]:
         eid, amount, disabled, extra_damage = card["enchantment"]
         row[_enchantment_offset(ENCHANTMENTS.index(eid.split(".", 1)[1]))] = 1
-        row[76:79] = [amount / 10, disabled, extra_damage / 30]
+        row[76:79] = [_sq(amount, 10), disabled, _sq(extra_damage, 30)]
     for affliction, amount in card["afflictions"]:
-        row[80 + _IDS["AFFLICTION"][affliction]] = amount / 10
-    for j, modifier in enumerate(card["costModifiers"]):
-        row[96 + 4*j:100 + 4*j] = modifier
+        row[80 + _IDS["AFFLICTION"][affliction]] = _sq(amount, 10)
+    for j, (amount, absolute, expiration, reduce) in enumerate(card["costModifiers"]):
+        row[96 + 4*j:100 + 4*j] = [_sq(amount, 5), absolute, expiration / 16, reduce]   # expiration: bits 2, 4, 8
     # A1 (appended block 544..): displayed damage/block and damage vs each enemy (public order).
     damage, block, vs = card["displayDamage"], card["displayBlock"], card["displayDamageVs"]
-    row[544:549] = [damage is not None, (damage or 0) / 30, block is not None, (block or 0) / 30, card["previewUnsupported"]]
+    row[544:549] = [damage is not None, _sq(damage or 0, 30), block is not None, _sq(block or 0, 30), card["previewUnsupported"]]
     if vs is not None:
         if len(vs) > 6:
             raise ObservationCoverageError("card.displayDamageVs: more than 6 enemies")
         for k, v in enumerate(vs):
-            if v is not None: row[552 + 2*k:554 + 2*k] = [1, v / 30]
+            if v is not None: row[552 + 2*k:554 + 2*k] = [1, _sq(v, 30)]
 
 
 # A6: public selection purposes (append-only; context row one-hot 360..). The native host
@@ -599,10 +623,10 @@ def encode(state: PublicState) -> UObs:
         return index, row
     p, r = f["player"], f["run"]
     g = np.zeros(NUM, np.float32)
-    g[:5] = [p["hp"] / p["maxHp"], p["hp"] / 100, p["maxHp"] / 100, p["gold"] / 300, r["floor"] / 49]
+    g[:5] = [p["hp"] / p["maxHp"], _sq(p["hp"], 100), _sq(p["maxHp"], 100), _sq(p["gold"], 300), r["floor"] / 49]
     g[5 + r["act"]] = 1
-    g[8:12] = [r["actFloor"] / 16, r["ascension"] / 10, p["potionSlots"] / 5, len(f["cards"]) / 100]
-    g[12:17] = [need(r, key, "run") / 20 for key in ("combatsFought", "elitesFought", "bossesFought", "cardShopRemovalsUsed", "unknownMapPointsVisited")]
+    g[8:12] = [r["actFloor"] / 16, r["ascension"] / 10, p["potionSlots"] / 5, _sq(len(f["cards"]), 100)]
+    g[12:17] = [_sq(need(r, key, "run"), 20) for key in ("combatsFought", "elitesFought", "bossesFought", "cardShopRemovalsUsed", "unknownMapPointsVisited")]
     g[17 + ("ACT.OVERGROWTH", "ACT.HIVE", "ACT.GLORY", "ACT.UNDERDOCKS").index(r["currentAct"])] = 1
     g[derived.DECK_OFFSET:derived.DECK_OFFSET + derived.DECK_WIDTH] = derived.deck_summary(f["cards"])  # E
     act_summary, act_rows = derived.act_encounters(r, _CATALOG["acts"], _CATALOG["encounterTags"])  # D
@@ -616,10 +640,11 @@ def encode(state: PublicState) -> UObs:
     if f["eventPage"] is not None:
         page=f["eventPage"].encode("utf-8")
         if len(page)>256:raise ObservationCoverageError("eventPage: exceeds public encoding capacity")
-        context[96]=len(page);context[97:97+len(page)]=np.frombuffer(page,dtype=np.uint8)/255
+        context[96]=len(page)/256;context[97:97+len(page)]=np.frombuffer(page,dtype=np.uint8)/255
     if f["decision"] is not None:
-        context[32:39] = [1] + [f["decision"][key] for key in
-            ("minSelect", "maxSelect", "requireManualConfirmation", "preview", "cancelable", "selectedCount")]
+        d = f["decision"]
+        context[32:39] = [1, _sq(d["minSelect"], 10), _sq(d["maxSelect"], 10), d["requireManualConfirmation"],
+                          d["preview"], d["cancelable"], _sq(d["selectedCount"], 10)]
         purpose = f["decision"].get("purpose")
         if purpose is None:
             context[359] = 1  # purpose not exported (legacy capture)
@@ -640,8 +665,8 @@ def encode(state: PublicState) -> UObs:
         if card["pile"] == "deck": add_card(card)
     choice_refs = [add_card(card) for card in f["choices"]]
     for relic in f["relics"]:
-        add(3, relic["modelId"], [relic["position"] / 30, relic["wax"], relic["melted"], relic["counterVisible"],
-            relic["counter"] / 10, ("Normal", "Active", "Disabled").index(relic["status"])])
+        add(3, relic["modelId"], [relic["position"] / 64, relic["wax"], relic["melted"], relic["counterVisible"],
+            _sq(relic["counter"], 10), ("Normal", "Active", "Disabled").index(relic["status"])])
     map_refs = {}
     routes = derived.route_summary(f["map"])  # A5
     for point in f["map"]:
@@ -667,18 +692,18 @@ def encode(state: PublicState) -> UObs:
     for offer in f["offers"]:
         ident=offer["modelId"];category=ident.split(".")[0] if ident else None
         _,row=add({"RELIC":8,"POTION":9,"CARD":7,None:10}[category],ident,
-            [offer["amount"] is not None,(offer["amount"] or 0)/100,offer["recovered"],offer["price"]/100,offer["available"]])
+            [offer["amount"] is not None,_sq(offer["amount"] or 0,100),offer["recovered"],_sq(offer["price"],100),offer["available"]])
         if offer["kind"] not in offer_types:raise ObservationCoverageError("offer.kind: unknown "+offer["kind"])
         row[8+offer_types.index(offer["kind"])]=1
     sphere_refs={}
     if f["board"] is not None:
-        board=f["board"];context[48:53]=[1,board["width"],board["height"],board["remaining"],board["finished"]]
+        board=f["board"];context[48:53]=[1,_sq(board["width"],10),_sq(board["height"],10),_sq(board["remaining"],10),board["finished"]]
         item_types=(None,"CrystalSphereRelic","CrystalSpherePotion","CrystalSphereCardReward","CrystalSphereCurse","CrystalSphereGold")
         for cell in board["cells"]:
             i,row=add(12,values=[cell["x"]/10,cell["y"]/10,cell["hidden"],cell["fragment"]])
             row[4+item_types.index(cell["revealedItem"])]=1;sphere_refs[(cell["x"],cell["y"])]=i
             if cell["revealedReward"] is not None:
-                reward=cell["revealedReward"];row[12:14]=[reward["amount"] is not None,(reward["amount"] or 0)/30]
+                reward=cell["revealedReward"];row[12:14]=[reward["amount"] is not None,_sq(reward["amount"] or 0,30)]
                 row[14+(None,"Common","Uncommon","Rare").index(reward["rarity"])]=1
     # Visible non-card offers have their own model embeddings, including Neow
     # options. Their identity must not disappear into an anonymous action mask.
@@ -702,23 +727,30 @@ def encode(state: PublicState) -> UObs:
     player_row = np.zeros(NUM, np.float32)
     in_combat = f["combat"] is not None
     if in_combat:
-        player_row[:7] = [p["hp"] / p["maxHp"], p["hp"] / 100, p["maxHp"] / 100, p["block"] / 50,
-                           p["energy"] / 3, p["maxEnergy"] / 3, p["stars"] / 10]
-        player_row[8:8+len(_COMBAT_SCALARS)] = [f["combat"][key] / 10 for key in _COMBAT_SCALARS]
+        player_row[:7] = [p["hp"] / p["maxHp"], _sq(p["hp"], 100), _sq(p["maxHp"], 100), _sq(p["block"], 50),
+                           _sq(p["energy"], 3), _sq(p["maxEnergy"], 3), _sq(p["stars"], 10)]
+        player_row[8:8+len(_COMBAT_SCALARS)] = [_sq(f["combat"][key], 10) for key in _COMBAT_SCALARS]
         player_row[derived.DRAW_OFFSET:derived.DRAW_OFFSET + derived.DRAW_WIDTH] = derived.draw_odds(f)  # C
         loss, unknown, self_damage, incoming = tactics.end_turn(f)  # A4 (appended 96..)
-        player_row[96:102] = [1, loss / 50, loss >= p["hp"], unknown, self_damage / 20, incoming / 50]
-        player_row[104:107] = [p["ostyHp"] is not None, (p["ostyHp"] or 0) / 50, (p["ostyMaxHp"] or 0) / 50]
+        player_row[96:102] = [1, _sq(loss, 50), loss >= p["hp"], unknown, _sq(self_damage, 20), _sq(incoming, 50)]
+        player_row[104:107] = [p["ostyHp"] is not None, _sq(p["ostyHp"] or 0, 50), _sq(p["ostyMaxHp"] or 0, 50)]
+        player_row[107:109] = [p["orbs"] is not None, _sq(p["orbCapacity"] or 0, 10)]
+        for slot, orb in enumerate(p["orbs"] or ()):         # queue order, 7 columns per slot
+            if slot >= MAX_ORBS or orb["modelId"] not in ORB_KINDS:
+                raise ObservationCoverageError("player.orbs: unexpected orb " + str(orb["modelId"]))
+            base = 109 + 7 * slot
+            player_row[base + ORB_KINDS.index(orb["modelId"])] = 1
+            player_row[base + 5:base + 7] = [_sq(orb["passive"], 20), _sq(orb["evoke"], 20)]
         reach = tactics.max_damage(state)  # A3
         previews = tactics.action_preview(state)  # B
         add(13, values=player_row)
         for ident, amount, display, variables in f["powers"]:
-            add(15, ident, [amount / 10, display / 10] + [value / 10 for name, value in variables])
+            add(15, ident, [_sq(amount, 10), _sq(display, 10)] + [_sq(value, 10) for name, value in variables])
         for card in f["cards"]:
             if card["pile"] != "deck": add_card(card)
         for enemy in f["enemies"]:
-            i, row = add(22, enemy["modelId"], [enemy["order"], enemy["hp"] / 200, enemy["maxHp"] / 200,
-                enemy["block"] / 50, enemy["intentsVisible"], enemy["alive"], enemy["hittable"], enemy["reviving"]])
+            i, row = add(22, enemy["modelId"], [enemy["order"] / 5, _sq(enemy["hp"], 200), _sq(enemy["maxHp"], 200),
+                _sq(enemy["block"], 50), enemy["intentsVisible"], enemy["alive"], enemy["hittable"], enemy["reviving"]])
             enemy_refs[enemy["order"]] = i
             if enemy["moves"] is None:   # A2 (appended 610..)
                 row[665] = 1
@@ -731,18 +763,19 @@ def encode(state: PublicState) -> UObs:
                         if k and kind == 0:
                             row[658 + 2 * (k - 1)] += prob
                             row[659 + 2 * (k - 1)] += prob * damage * max(1, hits) / 50
+                row[659] = _sq(row[659], 1); row[661] = _sq(row[661], 1)   # expected damage (already / 50)
                 row[664] = bool(enemy["stunned"])
             if enemy["order"] in reach:  # A3 (appended 600..)
                 total, kills, unknown = reach[enemy["order"]]
-                row[600:604] = [1, total / 50, kills, unknown]
+                row[600:604] = [1, _sq(total, 50), kills, unknown]
             slot=(enemy["slotName"] or "").encode("utf-8")
             if len(slot)>128:raise ObservationCoverageError("enemy.slotName: exceeds public encoding capacity")
-            row[64]=len(slot);row[65:65+len(slot)]=np.frombuffer(slot,dtype=np.uint8)/255
+            row[64]=len(slot)/128;row[65:65+len(slot)]=np.frombuffer(slot,dtype=np.uint8)/255
             for intent, damage, hits in enemy["intents"]:
                 pos = 8 + INTENTS.index(intent) * 3
-                row[pos:pos+3] = [1, damage / 50, hits / 5]
+                row[pos:pos+3] = [1, _sq(damage, 50), _sq(hits, 5)]
             for ident, amount, display, variables in enemy["powers"]:
-                add(23, ident, [amount / 10, enemy["order"], display / 10] + [value / 10 for name, value in variables])
+                add(23, ident, [_sq(amount, 10), enemy["order"] / 5, _sq(display, 10)] + [_sq(value, 10) for name, value in variables])
     for potion in f["potions"]:
         index, _ = add(24 if in_combat else 4, potion["modelId"], [potion["slot"] / 5, potion["modelId"] is None,
             potion["queued"],potion["disabledUntilRemoved"]])
@@ -798,7 +831,7 @@ def encode(state: PublicState) -> UObs:
         scalar_args = [x for x in args if isinstance(x, (int, float, bool))]
         if len(scalar_args) > 15:
             raise ObservationCoverageError(f"action[{index}]: numeric descriptor capacity")
-        values[:len(scalar_args)] = scalar_args
+        values[:len(scalar_args)] = [_sq(x, 10) for x in scalar_args]
         # Preserve the complete semantic descriptor (public model/TextKeys,
         # bundle membership, duplicate ordinal and constraints). UTF-8 bytes are
         # an injective fixed input, unlike Python hash() or truncated model IDs.
@@ -806,14 +839,14 @@ def encode(state: PublicState) -> UObs:
         encoded = json.dumps(descriptor(args), ensure_ascii=False, separators=(",", ":")).encode("utf-8")
         if len(encoded) > DESCRIPTOR_CAP:
             raise ObservationCoverageError(f"action[{index}]: semantic descriptor exceeds {DESCRIPTOR_CAP} bytes")
-        values[15] = len(encoded)
+        values[15] = len(encoded) / DESCRIPTOR_CAP
         values[16:16+len(encoded)] = np.frombuffer(encoded, dtype=np.uint8) / 255
         preview = previews.get(index)  # B (appended block)
         if preview is not None:
-            values[B_OFFSET:B_OFFSET + 11] = [1, preview["known"], preview["hp_damage"] / 50, preview["kills"],
-                preview["total_damage"] / 50, preview["block"] / 30, preview["energy_after"] / 5,
-                preview["end_turn_loss"] / 50, preview["lethal_after"], preview["unknown"],
-                preview["self_hp_loss"] / 50]
+            values[B_OFFSET:B_OFFSET + 11] = [1, preview["known"], _sq(preview["hp_damage"], 50), preview["kills"],
+                _sq(preview["total_damage"], 50), _sq(preview["block"], 30), _sq(preview["energy_after"], 5),
+                _sq(preview["end_turn_loss"], 50), preview["lethal_after"], preview["unknown"],
+                _sq(preview["self_hp_loss"], 50)]
         types.append(ACTION_KINDS.index(key.kind)); c1.append(t1); c2.append(t2); nums.append(values)
     out = UObs(np.asarray(kinds, np.int64), np.asarray(ids, np.int64), np.concatenate(blocks)[:len(rows)].copy(),
         np.asarray(edges, np.int64).reshape(-1, 2), g, player_row, np.asarray(types, np.int64),

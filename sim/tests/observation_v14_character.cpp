@@ -25,7 +25,7 @@ int main() {
     b->regent.stars = 3;
     const auto obs = public_combat_observation(*b);
     check(static_cast<int>(obs.size()) == PUBLIC_COMBAT_OBS_DIM, "dimension");
-    check(PUBLIC_OBS_VERSION == 18, "public observation version 18");
+    check(PUBLIC_OBS_VERSION == 19, "public observation version 19");
     // v17 adds combatRound after the unchanged v14 character block.
     const std::size_t t = obs.size() - PUB_V18_COMBAT_TAIL - 1 - PUB_CHARACTER_FEAT;
     // Character one-hot: IRONCLAD, SILENT, DEFECT, NECROBINDER, REGENT.

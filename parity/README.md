@@ -2,7 +2,7 @@
 
 这里用备份的 **v0.111.0 / 41cef1ea 原生 DLL** 在 Godot 无界面模式中运行，通过本机 HTTP 读取决策和执行动作，再与 C++ 模拟器对照。不会修改 `artifacts/preserved-game-versions/` 中的游戏备份。
 
-当前模拟器 ruleset 为 **`native-41cef1ea-port-v21`**（局内概率核查见 [内容核查报告](../docs/content-audit.md)）；本轮静态怪物数值导出与动态规则修正见 [怪物数值核对报告](../docs/monster-number-audit.md)。
+当前模拟器 ruleset 为 **`native-41cef1ea-port-v30`**（局内概率核查见 [内容核查报告](../docs/content-audit.md)）；本轮静态怪物数值导出与动态规则修正见 [怪物数值核对报告](../docs/monster-number-audit.md)。
 
 **2026-11-18（America/Los_Angeles）已完成 31 个动作、32 个决策点的完整公共接口对照。** 铁甲 A10、种子 `PARITY0001`，从 Neow、首战一直到领金币/药水、卡牌奖励跳过后重开并领取，再返回地图；全部公共事实、网络输入张量和合法动作语义相符。双方末态 **51/80 HP、258 金币、12 张牌、Ashwater**。新原始帧与离线回归在 `fixtures/native-public-first-combat-rewards-parity0001-a10/`。这证明该轨迹的接口一致，不代表其他场景、整局或 A1–A10 所有规则一致。旧 24 步公开子集记录保持原样。
 
@@ -75,6 +75,8 @@ bash parity/run_host.sh 18779 SlayTheModelParity20261118
 ## 当前接口与验证边界
 
 v12 新增 `train/spire_rl/public_obs.py`，协议 **`spire.public/1`**。两端公开事实经过同一个编码器，再由 `UnifiedNetConfig(observation_schema="spire.public/1")` 构造的同一个网络消费。旧 `obs.observe` / legacy 网络仍保留，新公共布局不会静默套用旧权重。新增能力包括：
+
+**2026-11-23 待验证**：`NativePublicObservation` 新增了充能球导出（`orbCapacity`、`orbs`），和本幕遭遇、牌面显示值、Osty 血量一样**尚未编译、未实跑**。旧录制按 `legacy_capture=True` 回放，这些字段在报告里标“未覆盖”。
 
 - 完整牌实例、费用修饰、附魔/苦难、动态变量、公开牌堆、可推知的顶牌；能力显示、结构化意图、遗物计数、物理药槽与排队状态。
 - 地图公开图结构与房间、奖励和商店商品、事件当前页、卡牌选择上下限与预览状态。

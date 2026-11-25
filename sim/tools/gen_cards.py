@@ -94,7 +94,7 @@ def main() -> None:
         lines.append(
             "    {CardId::%s, %s, %s, CardPool::%s, %d, %d, CardType::%s,"
             " TargetType::%s, Rarity::%s, "
-            "%d, %d, %d, %d, {%s}, {%s}, %d, %d, %d, %d, %s, %s, %d, %d}," % (
+            "%d, %d, %d, %d, {%s}, {%s}, %d, %d, %d, %d, %s, %s, %d, %d, %s}," % (
                 c["id"], cstr(c["id"]), cstr(title),
                 POOLS.get(c["pool"], "IRONCLAD"), cost, cost_up,
                 TYPES.get(c["type"], "SKILL"), TARGETS.get(c["target"], "SELF"),
@@ -105,7 +105,8 @@ def main() -> None:
                 flags(c["variants"]["base"]), flags(up),
                 c.get("star_cost", -1), up.get("star_cost", -1),
                 str(c.get("star_cost_x", False)).lower(), str(up.get("star_cost_x", False)).lower(),
-                c.get("max_upgrade_level", 1), c.get("native_pool_order", 99999)))
+                c.get("max_upgrade_level", 1), c.get("native_pool_order", 99999),
+                cstr(c.get("native_id") or c["id"])))
     lines.append("};")
     lines.append("static_assert(sizeof(CARD_DEFS) / sizeof(CARD_DEFS[0]) =="
                  " static_cast<int>(CardId::COUNT), \"card table size\");")

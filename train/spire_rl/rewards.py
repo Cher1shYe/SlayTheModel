@@ -19,7 +19,8 @@ class Progress:
     won: bool
 
 
-DEFAULT_WEIGHTS = {"floor": 0.01, "elite": 0.02, "boss": 0.1, "win": 1.0, "death": -0.1, "hp": 0.1}
+# win 1.6 (user 2026-11-24, DEVLOG 53): with 0.99 per floor a win is still worth about 1 seen from floor 1
+DEFAULT_WEIGHTS = {"floor": 0.01, "elite": 0.02, "boss": 0.1, "win": 1.6, "death": -0.1, "hp": 0.1}
 
 
 def _potential(x: Progress) -> float:

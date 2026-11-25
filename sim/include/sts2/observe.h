@@ -15,7 +15,7 @@ constexpr int COMBAT_OBS_DIM = 21 + MAX_MONSTERS * 10;
 // Versioned public schema.  Anything a player can see is encoded; RNG state,
 // draw order and future intents are not.  Bump both versions when the layout
 // changes and keep old checkpoints loadable only by their matching version.
-constexpr int PUBLIC_OBS_VERSION = 18;  // appended public choice, potion queue, service and treasure state
+constexpr int PUBLIC_OBS_VERSION = 19;  // v19: MAX_RELICS 64 widens the pending-relic block; v18 appended public choice, potion queue, service and treasure state
 constexpr int ACTION_SCHEMA_VERSION = 15;
 constexpr int PUB_CARD_INSTANCE_FEAT = 23;  // + Mad Science type/rider
 

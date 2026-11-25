@@ -318,6 +318,7 @@ void BattleContext::resolve_monster_death(int idx) {
                 m.move = def.reviveState;
                 m.pendingRoll = false;
                 m.block = 0;
+                relics_monster_died(*this);   // Gremlin Horn ignores wasRemovalPrevented
                 roll_intent(*this, m);
             } else if (m.power[static_cast<int>(PowerId::STOCK)] > 0) {
                 // StockPower.AfterDeath: CreatureCmd.Add(new Axebot { StockAmount = stock - 1 })
@@ -364,6 +365,7 @@ void BattleContext::resolve_monster_death(int idx) {
                     m.block = 0;
                     m.move = 3;  // DEAD_MOVE; follow-up is REATTACH_MOVE (4)
                     m.pendingRoll = false;
+                    relics_monster_died(*this);
                     roll_intent(*this, m);
                 } else {
                     for (int i = 0; i < monsterCount; ++i) {
@@ -383,6 +385,7 @@ void BattleContext::resolve_monster_death(int idx) {
                 m.block = 0;
                 m.move = 3;  // Door DEAD_MOVE
                 m.pendingRoll = false;
+                relics_monster_died(*this);
                 roll_intent(*this, m);
                 int slot = -1;
                 for (int i = 0; i < monsterCount; ++i) {

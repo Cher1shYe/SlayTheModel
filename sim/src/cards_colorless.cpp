@@ -1,3 +1,4 @@
+#include "sts2/card_candidates.h"
 #include "sts2/card_preview.h"
 #include "sts2/effects.h"
 #include "sts2/monsters.h"
@@ -7,37 +8,11 @@ namespace sts2 {
 
 namespace {
 
-bool usable_generated(const CardDef &d, std::uint64_t epochs) {
-    if (!card_native_available(d.id) || !card_epoch_unlocked(epochs, d.id)) return false;
-    if (d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
-                   CF_CANNOT_GENERATE_IN_COMBAT)) {
-        return false;
-    }
-    return d.rarity == Rarity::COMMON || d.rarity == Rarity::UNCOMMON ||
-           d.rarity == Rarity::RARE;
-}
-
-int ironclad_pool(CardId *out, std::uint64_t epochs) {
-    int n = 0;
-    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-        if (CARD_DEFS[i].pool == CardPool::IRONCLAD &&
-            usable_generated(CARD_DEFS[i], epochs)) {
-            out[n++] = static_cast<CardId>(i);
-        }
-    }
-    return n;
-}
-
 void random_ironclad_cards(BattleContext &bc, int count, bool upgraded, Card *out, int &outN) {
     CardId pool[static_cast<int>(CardId::COUNT)];
-    const int n = ironclad_pool(pool, bc.revealedEpochs);
-    outN = 0;
-    // CardFactory.GetDistinctForCombat uses TakeRandom: one full Fisher-Yates
-    // shuffle, then Take(count), including draws for candidates not selected.
-    bc.cardGenerationRng.shuffle(pool, n);
-    for (int k = 0; k < count && k < n; ++k) {
-        out[outN++] = make_card(pool[k], upgraded, bc.require_card_uid());
-    }
+    const int n = bc.combat_card_options(bc.characterPool, pool);
+    outN = bc.distinct_for_combat(pool, n, count, out);
+    if (upgraded) for (int k = 0; k < outN; ++k) bc.upgrade_card(out[k]);
 }
 
 void add_from_draw(BattleContext &bc, int idx) {
@@ -52,15 +27,11 @@ void random_draw_auto_play(BattleContext &bc, int count) {
         // the Shuffle stream, separately for every auto-play.
         int candidates[MAX_PILE];
         int n = 0;
-        for (int i = 0; i < bc.drawCount; ++i)
+        for (int i = bc.drawCount - 1; i >= 0; --i)   // native pile order: top first
             if (!card_has(bc.draw[i], CF_UNPLAYABLE)) candidates[n++] = i;
         if (n == 0)
-            for (int i = 0; i < bc.drawCount; ++i) candidates[n++] = i;
-        std::stable_sort(candidates, candidates + n, [&](int a, int b) {
-            const int byId = std::strcmp(card_key(bc.draw[a].id), card_key(bc.draw[b].id));
-            if (byId != 0) return byId < 0;
-            return bc.draw[a].upgraded < bc.draw[b].upgraded;
-        });
+            for (int i = bc.drawCount - 1; i >= 0; --i) candidates[n++] = i;
+        native_sort_card_indices(bc.draw, candidates, n);
         bc.shuffleRng.shuffle(candidates, n);
         const int idx = candidates[0];
         Card c = bc.draw[idx];
@@ -69,15 +40,13 @@ void random_draw_auto_play(BattleContext &bc, int count) {
     }
 }
 
-int zero_cost_pool(CardId *out, std::uint64_t epochs) {
-    int n = 0;
-    for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-        const CardDef &d = CARD_DEFS[i];
-        if (d.pool != CardPool::IRONCLAD) continue;
-        if (!usable_generated(d, epochs)) continue;
-        if (d.cost == 0 && d.costUp == 0) out[n++] = static_cast<CardId>(i);
-    }
-    return n;
+// Jackpot: character cards whose canonical cost is exactly 0 (X costs are negative here).
+int zero_cost_pool(const BattleContext &bc, CardId *out) {
+    CardId options[static_cast<int>(CardId::COUNT)];
+    const int n = bc.combat_card_options(bc.characterPool, options);
+    int kept = 0;
+    for (int i = 0; i < n; ++i) if (card_def(options[i]).cost == 0) out[kept++] = options[i];
+    return kept;
 }
 
 }  // namespace
@@ -109,22 +78,10 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
     switch (card.id) {
         case CardId::ABUNDANCE: {
             CardId pool[static_cast<int>(CardId::COUNT)];
-            int n = 0;
-            for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-                const CardDef &d = CARD_DEFS[i];
-                if (d.pool == CardPool::IRONCLAD && d.type == CardType::POWER &&
-                    usable_generated(d, bc.revealedEpochs)) pool[n++] = d.id;
-            }
-            // IroncladCardPool.GenerateAllCards is in native model-name order;
-            // appended IDs must not affect generation order or RNG consumption.
-            std::sort(pool, pool + n, [](CardId a, CardId b) {
-                return std::strcmp(card_key(a), card_key(b)) < 0;
-            });
-            bc.cardGenerationRng.shuffle(pool, n);
+            const int n = bc.combat_card_options(bc.characterPool, pool, static_cast<int>(CardType::POWER));
             Card offers[3];
-            const int count = std::min(3, n);
-            for (int i = 0; i < count; ++i)
-                offers[i] = make_card(pool[i], true, bc.require_card_uid());
+            const int count = bc.distinct_for_combat(pool, n, 3, offers);
+            for (int i = 0; i < count; ++i) bc.upgrade_card(offers[i]);
             if (count) {
                 bc.start_offer(ChoiceOp::OFFER_TO_HAND, offers, count, card,
                                bc.card_will_exhaust(card), true);
@@ -211,13 +168,14 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::JACK_OF_ALL_TRADES: {
-            CardId picked[MAX_HAND]{};
-            picked[0] = CardId::JACK_OF_ALL_TRADES;
-            int n = 1;
-            for (int k = 0; k < card_var(card, VarId::CARDS); ++k) {
-                Card c = bc.random_colorless_card_excluding(picked, n);
-                if (n < MAX_HAND) picked[n++] = c.id;
-                bc.add_card_to_hand(c);
+            CardId options[static_cast<int>(CardId::COUNT)];
+            int n = bc.combat_card_options(CardPool::COLORLESS, options);
+            n = static_cast<int>(std::remove(options, options + n, CardId::JACK_OF_ALL_TRADES) - options);
+            Card generated[MAX_HAND];
+            const int made = bc.distinct_for_combat(options, n, std::min<int>(card_var(card, VarId::CARDS), MAX_HAND), generated);
+            for (int k = 0; k < made; ++k) {
+                bc.add_card_to_hand(generated[k]);
+                bc.notify_card_generated(generated[k]);
             }
             return true;
         }
@@ -238,10 +196,15 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             const DamageDealt res = bc.damage_monster(target, hitDmg, true, true);
             bc.trigger_skittish(target, res.unblocked > 0);
             const int splash = res.total + res.overkill;
-            if (splash <= 0) return true;
-            for (int i = 0; i < bc.monsterCount; ++i) {
+            // The splash is Unpowered, but ThornsPower reacts to any damage from Omnislice.
+            int targets[MAX_MONSTERS];
+            const int n = bc.living_enemies(targets);
+            for (int k = 0; k < n && bc.outcome == Outcome::UNDECIDED; ++k) {
+                const int i = targets[k];
                 if (i == target || !bc.monsters[i].alive) continue;
-                bc.damage_monster(i, splash, true, false);
+                const int thorns = bc.monsters[i].power[static_cast<int>(PowerId::THORNS)];
+                if (thorns > 0) bc.damage_player(thorns);
+                if (bc.outcome == Outcome::UNDECIDED) bc.damage_monster(i, splash, true, false);
             }
             return true;
         }
@@ -314,15 +277,23 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             if (bc.outcome == Outcome::UNDECIDED && bc.drawCount > 0) {
                 bc.start_draw_choice(card, bc.card_will_exhaust(card), -1,
                                      -1, card_var(card, VarId::CARDS));
+            } else if (bc.drawCount > 1) {
+                // StableShuffle still consumes the stream when the attack ended the combat.
+                int order[MAX_PILE];
+                for (int i = 0; i < bc.drawCount; ++i) order[i] = i;
+                bc.cardSelectionRng.shuffle(order, bc.drawCount);
             }
             return true;
         case CardId::SHOCKWAVE:
-            for (int i = 0; i < bc.monsterCount; ++i) {
-                if (!bc.monsters[i].alive) continue;
-                bc.apply_weak(i, card_var(card, VarId::POWER));
-                bc.apply_vulnerable(i, card_var(card, VarId::POWER));
+        {
+            int targets[MAX_MONSTERS];   // HittableEnemies
+            const int n = bc.living_enemies(targets);
+            for (int k = 0; k < n; ++k) {
+                bc.apply_weak(targets[k], card_var(card, VarId::POWER));
+                bc.apply_vulnerable(targets[k], card_var(card, VarId::POWER));
             }
             return true;
+        }
         case CardId::SPLASH: {
             // Splash.OnPlay: Attacks from every unlocked character pool except
             // the player's own (kept only when it is the sole unlocked pool),
@@ -341,10 +312,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             CardId pool[static_cast<int>(CardId::COUNT)];
             int poolCount = 0;
             for (int p = 0; p < poolN; ++p)
-                for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i)
-                    if (CARD_DEFS[i].pool == pools[p] && CARD_DEFS[i].type == CardType::ATTACK &&
-                        usable_generated(CARD_DEFS[i], bc.revealedEpochs))
-                        pool[poolCount++] = static_cast<CardId>(i);
+                poolCount += bc.combat_card_options(pools[p], pool + poolCount, static_cast<int>(CardType::ATTACK));
             bc.cardGenerationRng.shuffle(pool, poolCount);
             Card offers[MAX_HAND];
             int n = 0;
@@ -393,7 +361,8 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                                   bc.exhaustCount, bc.playCount};
             for (int p = 0; p < 5; ++p) {
                 for (int i = 0; i < counts[p]; ++i) {
-                    if (card_upgradable(piles[p][i])) bc.upgrade_card(piles[p][i]);
+                    // PlayerCombatState.AllCards, except the Apotheosis being played.
+                    if (piles[p][i].uid != card.uid && card_upgradable(piles[p][i])) bc.upgrade_card(piles[p][i]);
                 }
             }
             return true;
@@ -407,7 +376,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             // slots. Cards beyond that limit must remain in the draw pile.
             std::uint16_t candidates[MAX_PILE];
             int n = 0;
-            for (int i = 0; i < bc.drawCount; ++i)
+            for (int i = bc.drawCount - 1; i >= 0; --i)   // native pile order: top first
                 if (card_def(bc.draw[i].id).rarity == Rarity::RARE) candidates[n++] = bc.draw[i].uid;
             bc.cardSelectionRng.shuffle(candidates, n);
             const int take = std::min(n, MAX_HAND - bc.handCount);
@@ -424,9 +393,14 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.add_player_power(PowerId::THORNS, card_var(card, VarId::THORNS_POWER),true);
             return true;
         case CardId::DISTRACTION: {
-            Card c = bc.random_card_of_type(CardType::SKILL, false);
-            card_modify_cost(c, 0, true, 2 | 4);  // SetToFreeThisTurn
-            bc.add_card_to_hand(c);
+            CardId options[static_cast<int>(CardId::COUNT)];
+            const int n = bc.combat_card_options(bc.characterPool, options, static_cast<int>(CardType::SKILL));
+            Card c;
+            if (bc.distinct_for_combat(options, n, 1, &c) == 1) {
+                card_modify_cost(c, 0, true, 2 | 4 | 8);  // SetToFreeThisTurn
+                bc.add_card_to_hand(c);
+                bc.notify_card_generated(c);
+            }
             return true;
         }
         case CardId::DUAL_WIELD:
@@ -466,26 +440,25 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             }
             return true;
         }
-        case CardId::METAMORPHOSIS:
-            for (int i = 0; i < card_var(card, VarId::CARDS); ++i) {
-                Card c = bc.random_card_of_type(CardType::ATTACK, false);
+        case CardId::METAMORPHOSIS: {
+            CardId options[static_cast<int>(CardId::COUNT)];
+            const int n = bc.combat_card_options(bc.characterPool, options, static_cast<int>(CardType::ATTACK));
+            for (int i = 0; i < card_var(card, VarId::CARDS) && n > 0; ++i) {
+                Card c = bc.next_for_combat(options, n);
                 c.freeCombat = true;
-                card_modify_cost(c, 0, true, 0);
+                card_modify_cost(c, 0, true, 8);  // SetToFreeThisCombat
                 bc.add_card_to_draw_random(c);
+                bc.notify_card_generated(c);
             }
             return true;
+        }
         case CardId::NEOWS_FURY: {
             bc.attack_from_card(card, target, dmg);
-            int take = std::min(card_var(card, VarId::CARDS), bc.discardCount);
-            for (int i = 0; i < take; ++i) {
-                const int idx = bc.cardSelectionRng.next_int(0, bc.discardCount - 1);
-                Card c = bc.discard[idx];
-                for (int j = idx; j + 1 < bc.discardCount; ++j) {
-                    bc.discard[j] = bc.discard[j + 1];
-                }
-                --bc.discardCount;
-                bc.add_card_to_hand(c);
-            }
+            // The player chooses up to min(Cards, free hand slots) discard cards.
+            const int take = std::min({card_var(card, VarId::CARDS), MAX_HAND - bc.handCount, bc.discardCount});
+            if (take > 0 && bc.outcome == Outcome::UNDECIDED)
+                bc.start_choice(ChoiceOp::DISCARD_TO_HAND, ChoicePile::DISCARD, take, true, card,
+                                bc.card_will_exhaust(card));
             return true;
         }
         case CardId::PECK:
@@ -527,15 +500,16 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                 int n = 0;
                 random_ironclad_cards(bc, 1, false, generated, n);
                 if (n == 1) {
-                    card_modify_cost(generated[0], 0, true, 2 | 4);  // SetToFreeThisTurn
+                    card_modify_cost(generated[0], 0, true, 2 | 4 | 8);  // SetToFreeThisTurn
                     bc.add_card_to_hand(generated[0]);
+                    bc.notify_card_generated(generated[0]);
                 }
             }
             return true;
         }
         case CardId::REBOUND:
             bc.attack_from_card(card, target, dmg);
-            bc.reboundPending = true;
+            bc.add_player_power(PowerId::REBOUND, 1, true);
             return true;
         case CardId::RIP_AND_TEAR:
             bc.attack_random_from_card(card, dmg, 2);
@@ -563,10 +537,9 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
                     idxs[n++] = i;
                 }
             }
-            for (int i = n - 1; i > 0; --i) {
-                const int j = bc.cardSelectionRng.next_int(0, i);
-                std::swap(idxs[i], idxs[j]);
-            }
+            // StableShuffle on the Shuffle stream.
+            native_sort_card_indices(bc.discard, idxs, n);
+            bc.shuffleRng.shuffle(idxs, n);
             Card picks[MAX_PILE];
             int picked = 0;
             const int count = std::min<int>(card_var(card, VarId::CARDS), n);
@@ -581,11 +554,8 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             return true;
         }
         case CardId::BOLAS:
+            // Follows the normal result pile; BeforeHandDraw recalls it next turn.
             bc.attack_from_card(card, target, dmg);
-            if (bc.outcome == Outcome::UNDECIDED) {
-                bc.returnToHand = true;
-                bc.queue_return_next_turn(card);
-            }
             return true;
         case CardId::CALAMITY_CARD:
             bc.add_player_power(PowerId::CALAMITY, 1,true);
@@ -617,7 +587,7 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             int preferred[MAX_PILE];
             int n = 0;
             int preferredCount = 0;
-            for (int i = 0; i < bc.drawCount; ++i) {
+            for (int i = bc.drawCount - 1; i >= 0; --i) {   // native pile order: top first
                 const CardDef &d = card_def(bc.draw[i].id);
                 if (card_has(bc.draw[i], CF_UNPLAYABLE)) continue;
                 if (card_type(bc.draw[i]) == CardType::CURSE) continue;
@@ -644,12 +614,12 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
         case CardId::JACKPOT: {
             bc.attack_from_card(card, target, dmg);
             CardId pool[static_cast<int>(CardId::COUNT)];
-            const int n = zero_cost_pool(pool, bc.revealedEpochs);
+            const int n = zero_cost_pool(bc, pool);
             for (int k = 0; k < card_var(card, VarId::CARDS) && n > 0; ++k) {
-                Card c = make_card(pool[bc.cardGenerationRng.next_int(0, n - 1)],
-                                   false, bc.require_card_uid());
+                Card c = bc.next_for_combat(pool, n);
                 if (card.upgraded) bc.upgrade_card(c);
                 bc.add_card_to_hand(c);
+                bc.notify_card_generated(c);
             }
             return true;
         }

@@ -48,6 +48,23 @@ def main():
     ap.add_argument('--no-tests', action='store_true', help='build only the Python extension')
     args = ap.parse_args()
     started = time.monotonic()
+
+    def roomy_test_stack():
+        # Test programs keep many 640 KB RunContext objects in one stack frame. How many
+        # slots share memory depends on the compiler: clang fits 8 MB, g++ can overflow it
+        # (native_step3_events exited -11 on the Linux training machine).
+        import resource
+        soft, hard = resource.getrlimit(resource.RLIMIT_STACK)
+        for want in (256 << 20, 128 << 20, 64 << 20, 32 << 20, 16 << 20):   # macOS refuses its nominal maximum
+            limit = want if hard == resource.RLIM_INFINITY else min(want, hard)
+            if soft == resource.RLIM_INFINITY or soft >= limit:
+                return
+            try:
+                resource.setrlimit(resource.RLIMIT_STACK, (limit, hard))
+                return
+            except (ValueError, OSError):
+                continue
+
     for d in (obj, test_dir):
         d.mkdir(parents=True, exist_ok=True)
     def source_revision():
@@ -118,7 +135,8 @@ def main():
         for t in tests:
             exe = test_dir / t.stem
             t0 = time.monotonic()
-            p = subprocess.run([str(exe)], cwd=src, capture_output=True, text=True)
+            p = subprocess.run([str(exe)], cwd=src, capture_output=True, text=True,
+                               preexec_fn=roomy_test_stack if os.name == 'posix' else None)
             (test_dir / (t.stem + '.log')).write_text(p.stdout + p.stderr)
             status = 'ok' if p.returncode == 0 else f'FAILED ({p.returncode})'
             print(f'{status:12s} {t.stem}  [{time.monotonic() - t0:.1f}s]', flush=True)

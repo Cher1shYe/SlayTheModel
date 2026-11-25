@@ -3,6 +3,7 @@
 #include <cctype>
 #include "sts2/card_candidates.h"
 #include "sts2/card_preview.h"
+#include "sts2/defect.h"
 #include <cstring>
 #include "public_power_view.inc"
 #include "public_relic_view.inc"
@@ -150,6 +151,18 @@ static py::dict public_model_state(const RunContext &rc) {
     // that absorbs unblocked powered attack damage before the player (A4).
     player["ostyHp"] = inCombat ? std::max(0, bc.necro.ostyHp) : 0;
     player["ostyMaxHp"] = inCombat && bc.necro.ostyHp > 0 ? bc.necro.ostyMaxHp : 0;
+    // Channeled orbs are on screen; values are what each orb shows now (queue order, next evoke first).
+    player["orbCapacity"] = inCombat ? bc.defect.orbCapacity : 0;
+    py::list orbs;
+    if (inCombat) for (int i = 0; i < bc.defect.orbCount; ++i) {
+        static const char *const names[] = {"", "ORB.LIGHTNING_ORB", "ORB.FROST_ORB", "ORB.DARK_ORB", "ORB.PLASMA_ORB", "ORB.GLASS_ORB"};
+        py::dict row;
+        row["modelId"] = names[static_cast<int>(bc.defect.orbs[i].id)];
+        row["passive"] = defect_orb_passive_value(bc, bc.defect.orbs[i]);
+        row["evoke"] = defect_orb_evoke_value(bc, bc.defect.orbs[i]);
+        orbs.append(row);
+    }
+    player["orbs"] = orbs;
     py::list powers=inCombat?public_power_view(bc):py::list();
     player["powers"]=powers;
     out["player"]=player;

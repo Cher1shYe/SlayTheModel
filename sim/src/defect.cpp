@@ -11,9 +11,10 @@ int focus_value(const BattleContext &bc, int base, OrbId id) {
     return value;
 }
 void damage_all(BattleContext &bc, int amount) {
-    for (int i = 0; i < bc.monsterCount; ++i)
-        if (bc.monsters[i].alive && bc.monsters[i].hp > 0)
-            bc.damage_monster(i, amount, true, false);
+    int targets[MAX_MONSTERS];   // CombatState.HittableEnemies, fixed before the first hit
+    const int n = bc.living_enemies(targets);
+    for (int k = 0; k < n && bc.outcome == Outcome::UNDECIDED; ++k)
+        if (bc.monsters[targets[k]].alive) bc.damage_monster(targets[k], amount, true, false);
 }
 bool temporary_focus(PowerId id) {
     return id == PowerId::FOCUSED_STRIKE || id == PowerId::HOTFIX ||
@@ -56,6 +57,28 @@ void passive_with_trigger_hooks(BattleContext &bc, int index) {
 }
 }  // namespace
 
+int defect_orb_passive_value(const BattleContext &bc, const OrbState &orb) {
+    switch (orb.id) {
+        case OrbId::LIGHTNING: return focus_value(bc, 3, orb.id);
+        case OrbId::FROST: return focus_value(bc, 2, orb.id);
+        case OrbId::DARK: return focus_value(bc, 6, orb.id);
+        case OrbId::PLASMA: return 1;
+        case OrbId::GLASS: return focus_value(bc, orb.value, orb.id);
+        default: return 0;
+    }
+}
+
+int defect_orb_evoke_value(const BattleContext &bc, const OrbState &orb) {
+    switch (orb.id) {
+        case OrbId::LIGHTNING: return focus_value(bc, 8, orb.id);
+        case OrbId::FROST: return focus_value(bc, 5, orb.id);
+        case OrbId::DARK: return orb.value;
+        case OrbId::PLASMA: return 2;
+        case OrbId::GLASS: return 2 * focus_value(bc, orb.value, orb.id);
+        default: return 0;
+    }
+}
+
 void defect_init(BattleContext &bc) {
     bc.defect = DefectState{};
     bc.defect.orbCapacity = bc.characterPool == CardPool::DEFECT ? 3 : 0;
@@ -88,18 +111,21 @@ void defect_evoke(BattleContext &bc, int index, bool dequeue) {
     switch (orb.id) {
         case OrbId::LIGHTNING:
             target = bc.random_alive_monster();
-            if (target >= 0) bc.damage_monster(target, focus_value(bc, 8, orb.id), true, false);
+            if (target >= 0) bc.damage_monster(target, defect_orb_evoke_value(bc, orb), true, false);
             break;
-        case OrbId::FROST: bc.gain_block(focus_value(bc, 5, orb.id), false, false); break;
-        case OrbId::DARK:
-            for (int i = 0; i < bc.monsterCount; ++i)
-                if (bc.monsters[i].alive && bc.monsters[i].hp > 0 &&
-                    (target < 0 || bc.monsters[i].hp < bc.monsters[target].hp)) target = i;
-            if (target >= 0) bc.damage_monster(target, orb.value, true, false);
+        case OrbId::FROST: bc.gain_block(defect_orb_evoke_value(bc, orb), false, false); break;
+        case OrbId::DARK: {
+            // HittableEnemies.MinBy(CurrentHp): the first lowest in native list order.
+            int targets[MAX_MONSTERS];
+            const int n = bc.living_enemies(targets);
+            for (int k = 0; k < n; ++k)
+                if (target < 0 || bc.monsters[targets[k]].hp < bc.monsters[target].hp) target = targets[k];
+            if (target >= 0) bc.damage_monster(target, defect_orb_evoke_value(bc, orb), true, false);
             break;
-        case OrbId::PLASMA: bc.player.energy += 2; break;
+        }
+        case OrbId::PLASMA: bc.player.energy += defect_orb_evoke_value(bc, orb); break;
         case OrbId::GLASS: {
-            const int value = 2 * focus_value(bc, orb.value, orb.id);
+            const int value = defect_orb_evoke_value(bc, orb);
             if (value > 0) damage_all(bc, value);
             break;
         }
@@ -117,13 +143,13 @@ void defect_orb_passive(BattleContext &bc, int index, int target) {
     switch (orb.id) {
         case OrbId::LIGHTNING:
             if (target < 0) target = bc.random_alive_monster();
-            if (target >= 0) bc.damage_monster(target, focus_value(bc, 3, orb.id), true, false);
+            if (target >= 0) bc.damage_monster(target, defect_orb_passive_value(bc, orb), true, false);
             break;
-        case OrbId::FROST: bc.gain_block(focus_value(bc, 2, orb.id), false, false); break;
-        case OrbId::DARK: orb.value += focus_value(bc, 6, orb.id); break;
-        case OrbId::PLASMA: ++bc.player.energy; break;
+        case OrbId::FROST: bc.gain_block(defect_orb_passive_value(bc, orb), false, false); break;
+        case OrbId::DARK: orb.value += defect_orb_passive_value(bc, orb); break;
+        case OrbId::PLASMA: bc.player.energy += defect_orb_passive_value(bc, orb); break;
         case OrbId::GLASS: {
-            const int value = focus_value(bc, orb.value, orb.id);
+            const int value = defect_orb_passive_value(bc, orb);
             if (value > 0) {orb.value = std::max(0, orb.value - 1); damage_all(bc, value);}
             break;
         }

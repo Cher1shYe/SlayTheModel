@@ -11,6 +11,10 @@
 namespace sts2 {
 namespace {
 bool alive(const BattleContext &b,int i){return i>=0&&i<b.monsterCount&&b.monsters[i].alive;}
+void damage_hittable(BattleContext &b,int amount){
+    int targets[MAX_MONSTERS];const int n=b.living_enemies(targets);  // HittableEnemies
+    for(int k=0;k<n&&b.outcome==Outcome::UNDECIDED;++k)if(alive(b,targets[k]))b.damage_monster(targets[k],amount,true,false);
+}
 
 // PlayerCombatState.AllCards plus the in-flight play frames.  Dupes
 // (HistoryCourse) are excluded, like ForgeCmd.GetSovereignBlades.
@@ -49,8 +53,7 @@ void regent_gain_stars(BattleContext &b,int amount){
     b.regent.starsGainedThisTurn+=amount;
     // BlackHolePower.AfterStarsGained: unpowered damage to every hittable enemy.
     const int blackHole=b.player_power(PowerId::BLACK_HOLE);
-    if(blackHole>0)for(int i=0;i<b.monsterCount&&b.outcome==Outcome::UNDECIDED;++i)
-        if(alive(b,i))b.damage_monster(i,blackHole,true,false);
+    if(blackHole>0)damage_hittable(b,blackHole);
 }
 
 // CardModel.SpendStars -> PlayerCombatState.LoseStars -> Hook.AfterStarsSpent.
@@ -94,15 +97,8 @@ void regent_forge(BattleContext &b,int amount){
 // full UnstableShuffle of the native-ordered pool on CombatCardGeneration.
 void regent_generate_colorless(BattleContext &b,int count,bool upgraded){
     if(b.outcome!=Outcome::UNDECIDED||count<=0)return;
-    CardId pool[static_cast<int>(CardId::COUNT)];int n=0;
-    for(int i=1;i<static_cast<int>(CardId::COUNT);++i){
-        const auto id=static_cast<CardId>(i);const auto &d=card_def(id);
-        if(d.pool!=CardPool::COLORLESS||!card_native_available(id))continue;
-        if(d.rarity!=Rarity::COMMON&&d.rarity!=Rarity::UNCOMMON&&d.rarity!=Rarity::RARE)continue;
-        if(d.flags&(CF_UNPLAYABLE|CF_MULTIPLAYER_ONLY|CF_CANNOT_GENERATE_IN_COMBAT))continue;
-        pool[n++]=id;
-    }
-    native_sort_card_ids(pool,n);
+    CardId pool[static_cast<int>(CardId::COUNT)];
+    const int n=b.combat_card_options(CardPool::COLORLESS,pool);
     b.cardGenerationRng.shuffle(pool,n);
     for(int k=0;k<count&&k<n&&b.outcome==Outcome::UNDECIDED;++k){
         Card c=make_card(pool[k],upgraded,b.require_card_uid());
@@ -166,7 +162,7 @@ void regent_before_hand_draw(BattleContext &b){
         if(b.drawCount==0)b.shuffle_discard_into_draw(false);
         remove_power(b,PowerId::FOREGONE_CONCLUSION);
         if(b.drawCount<=foregone){
-            while(b.drawCount>0){Card c=b.draw[0];b.remove_draw_at(0);b.add_card_to_hand(c);}
+            while(b.drawCount>0){Card c=b.draw[b.drawCount-1];b.remove_draw_at(b.drawCount-1);b.add_card_to_hand(c);}  // top first
         }else if(b.pending.op==ChoiceOp::NONE){
             Card source=make_card(CardId::FOREGONE_CONCLUSION,false,0xffff);
             b.start_draw_choice(source,false,-1,-1);
@@ -239,10 +235,9 @@ void regent_before_card_played(BattleContext &b){
 void regent_after_card_played(BattleContext &b){
     auto &r=b.regent;auto &play=b.activePlay;
     const bool last=play.nextPlay>=play.playCount;
-    if(!play.dupe){
-        ++r.cardsFinishedThisTurn;
-        if(card_is_skill(play.card))++r.skillsFinishedThisTurn;
-    }
+    // History.CardPlayFinished records every play, dupes included.
+    ++r.cardsFinishedThisTurn;
+    if(card_is_skill(play.card))++r.skillsFinishedThisTurn;
     // MonologuePower.AfterCardPlayed.
     for(int i=0;i<play.regent.monologueCount&&i<r.monologueCount;++i){
         const int value=play.regent.monologue[i];
@@ -252,9 +247,7 @@ void regent_after_card_played(BattleContext &b){
     if(b.outcome!=Outcome::UNDECIDED)return;
     // BlackHolePower.AfterCardPlayed: once per series that spent stars.
     const int blackHole=b.player_power(PowerId::BLACK_HOLE);
-    if(blackHole>0&&last&&play.starsSpent>0)
-        for(int i=0;i<b.monsterCount&&b.outcome==Outcome::UNDECIDED;++i)
-            if(alive(b,i))b.damage_monster(i,blackHole,true,false);
+    if(blackHole>0&&last&&play.starsSpent>0)damage_hittable(b,blackHole);
     // PaleBlueDotPower counts every finished play this turn (not only attacks).
     const int paleBlue=b.player_power(PowerId::PALE_BLUE_DOT);
     if(paleBlue>0&&!r.paleBlueActivated&&r.cardsFinishedThisTurn>=5){
@@ -264,16 +257,30 @@ void regent_after_card_played(BattleContext &b){
     // VoidFormPower.AfterCardPlayed counts manual, last-in-series plays.
     if(b.player_power(PowerId::VOID_FORM)>0&&!play.autoPlay&&last&&r.voidFormManualPlays<999999999)
         ++r.voidFormManualPlays;
+    // MakeItSo.AfterCardPlayedLate: every Cards-th Skill this turn brings each copy back to hand.
+    if(card_is_skill(play.card)&&b.outcome==Outcome::UNDECIDED){
+        Card *piles[]={b.draw,b.discard,b.exhaust,b.playPile};const int counts[]={b.drawCount,b.discardCount,b.exhaustCount,b.playCount};
+        std::uint16_t uids[MAX_PILE];int n=0;
+        for(int p=0;p<4;++p)for(int i=0;i<counts[p];++i)
+            if(piles[p][i].id==CardId::MAKE_IT_SO&&r.skillsFinishedThisTurn%card_var(piles[p][i],VarId::CARDS)==0)uids[n++]=piles[p][i].uid;
+        for(int i=0;i<n;++i){
+            for(int p=0;p<4;++p)for(int j=0;j<(p==0?b.drawCount:p==1?b.discardCount:p==2?b.exhaustCount:b.playCount);++j)
+                if(piles[p][j].uid==uids[i]){const Card moved=piles[p][j];b.detach_card(moved.uid);b.add_card_to_hand(moved);p=4;break;}
+        }
+    }
 }
 
-// No Regent power listens to AfterCardDrawn in the target version.
-void regent_card_drawn(BattleContext &,Card &){}
+// KinglyKick / KinglyPunch.AfterCardDrawn act on the drawn card itself.
+void regent_card_drawn(BattleContext &,Card &card){
+    if(card.id==CardId::KINGLY_KICK)card_modify_cost(card,-1,false,0);
+    if(card.id==CardId::KINGLY_PUNCH)card.bonusDamage+=card_var(card,VarId::INCREASE);
+}
 
 // Hook.AfterDamageGiven / DamageReceivedEntry for player-dealt damage.
 void regent_after_damage_given(BattleContext &b,int target,bool poweredAttack){
     if(!poweredAttack||target<0||target>=b.monsterCount)return;
     // Beat Into Shape counts powered attack hits on its target this turn.
-    if(target<4)++b.regent.hitsGivenThisTurn[target];
+    ++b.regent.hitsGivenThisTurn[target];
     // MonarchsGazePower: MonarchsGazeStrengthDown (temporary Strength loss).
     const int gaze=b.player_power(PowerId::MONARCHS_GAZE);
     if(gaze>0&&alive(b,target)){
@@ -316,6 +323,8 @@ int regent_star_cost(const BattleContext &b,const Card &card){
     if(x)return b.regent.stars;
     const int cost=card.upgraded?d.starCostUp:d.starCost;
     if(cost<0)return -1;
+    // SetToFreeThisTurn / SetToFreeThisCombat also set the star cost to 0.
+    for(int i=0;i<card.costModifierCount;++i)if(card.costModifiers[i].expiration&8)return 0;
     if(regent_void_form_free(b,card))return 0;
     // BrilliantScarf.TryModifyStarCost shares its energy rule.
     if(relic_has(b,RelicId::BRILLIANT_SCARF)&&b.cardsPlayedThisTurn==4)return 0;

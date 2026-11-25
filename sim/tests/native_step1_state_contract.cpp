@@ -31,7 +31,7 @@ int main() {
     b.player.infernoBeforeCrimsonMantle = true;
     const auto observation = public_combat_observation(b);
     assert(observation.size() == PUBLIC_COMBAT_OBS_DIM);
-    assert(PUBLIC_OBS_VERSION == 18);
+    assert(PUBLIC_OBS_VERSION == 19);
     // The v14 character block follows the v13 self-damage fields; v17 adds
     // combatRound after that character block, preserving the prior offsets.
     const std::size_t tail = observation.size() - PUB_V18_COMBAT_TAIL - 1 - PUB_CHARACTER_FEAT;
@@ -63,7 +63,7 @@ int main() {
 
     auto restored = std::make_unique<RunContext>();
     const auto blob = source->serialize();
-    assert(static_cast<unsigned char>(blob[4]) == 18);
+    assert(static_cast<unsigned char>(blob[4]) == 20);
     assert(RunContext::restore(blob, *restored));
     assert(restored->serialize() == blob);
     assert(public_observation(*restored) == runObservation);

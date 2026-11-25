@@ -53,6 +53,7 @@ class UnifiedNetConfig:
     ff_mult: int = 4
     dropout: float = 0.0
     observation_schema: str = "legacy"
+    value_hidden: bool = False      # training-only value input; the policy never reads it
 
 
 @dataclass
@@ -83,9 +84,11 @@ class UBatch:
     ct2: torch.Tensor
     cnum: torch.Tensor        # [B, C, CAND_NUM]
     cmask: torch.Tensor       # [B, C]
+    hidden: torch.Tensor | None = None  # [B, HIDDEN_CARDS] value-only hidden input
 
     def to(self, device, non_blocking: bool = False) -> "UBatch":
-        return UBatch(**{k: v.to(device, non_blocking=non_blocking) for k, v in self.__dict__.items()})
+        return UBatch(**{k: None if v is None else v.to(device, non_blocking=non_blocking)
+                         for k, v in self.__dict__.items()})
 
 
 _OFFS = {}
@@ -177,15 +180,29 @@ class UnifiedNet(nn.Module):
         self.q_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 3))
         self.aux_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 3))
         self.value_head = nn.Sequential(nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
+        if cfg.value_hidden:
+            from .rollout import HIDDEN_CARDS, HIDDEN_VOCAB
+            self.hidden_cards = HIDDEN_CARDS
+            self.hidden_emb = nn.Embedding(HIDDEN_VOCAB, 64, padding_idx=0)
+            self.hidden_value = nn.Sequential(nn.Linear(d + 64 * HIDDEN_CARDS, d), nn.GELU(), nn.Linear(d, 1))
         self.type_emb = nn.Embedding(uo.CAND_TYPES, d)
         self.cnum_proj = nn.Linear(uo.CAND_NUM, d)
         self.ref = nn.Parameter(torch.zeros(2, d))
         self.cand_mlp = nn.Sequential(nn.Linear(3 * d, d), nn.GELU(), nn.Linear(d, d), nn.GELU(), nn.Linear(d, 1))
 
+    @staticmethod
+    def _fp32(module, x):
+        """Run a small input or output layer in FP32 inside BF16 autocast. BF16 keeps 8 significant
+        bits: at a value of -0.15 it rounds to steps of 0.001, close to the reward of one HP
+        (0.00125), and at a logit of 8 to steps of 0.06. Only the Transformer body stays BF16."""
+        with torch.autocast(x.device.type, enabled=False):
+            return module(x.float())
+
     def _embed(self, kind, ids, num):
         uo = self.observation_schema
         combat_kind = (kind >= uo.MACRO_KINDS)[..., None]
-        numx = torch.where(combat_kind, self.combat_proj(num), self.macro_proj(num[..., :uo.MACRO_NUM]))
+        numx = torch.where(combat_kind, self._fp32(self.combat_proj, num),
+                           self._fp32(self.macro_proj, num[..., :uo.MACRO_NUM]))
         return self.in_norm(self.kind_emb(kind) + self.id_emb(ids) + numx)
 
     def encode_context(self, b: UBatch) -> tuple[torch.Tensor, torch.Tensor]:
@@ -220,17 +237,23 @@ class UnifiedNet(nn.Module):
         xmask = torch.cat([cmask_ctx, b.c_mask], 1)
         pooled, _ = self.pool(self.pool_q.expand(x.shape[0], -1, -1), x, x, key_padding_mask=~xmask)
         player = torch.cat([b.player_row, b.in_combat[:, None]], -1)
-        s = self.state_mlp(torch.cat([pooled[:, 0], self.global_proj(b.global_row), self.player_proj(player)], -1))
+        s = self._fp32(self.state_mlp, torch.cat([pooled[:, 0].float(), self._fp32(self.global_proj, b.global_row),
+                                                  self._fp32(self.player_proj, player)], -1))
 
         def gather(t):
             g = torch.gather(x, 1, t.clamp(min=0)[..., None].expand(-1, -1, x.shape[-1]))
             return g * (t >= 0)[..., None]
-        cand = (self.type_emb(b.ctype) + self.cnum_proj(b.cnum) + gather(b.ct1) + gather(b.ct2)
+        cand = (self.type_emb(b.ctype) + self._fp32(self.cnum_proj, b.cnum) + gather(b.ct1).float() + gather(b.ct2).float()
                 + (b.ct1 >= 0)[..., None] * self.ref[0] + (b.ct2 >= 0)[..., None] * self.ref[1])
         sc = s[:, None].expand_as(cand)
-        scores = self.cand_mlp(torch.cat((cand, sc, cand * sc), -1))[..., 0]
+        scores = self._fp32(self.cand_mlp, torch.cat((cand, sc, cand * sc), -1))[..., 0]
         logp = torch.log_softmax(scores.masked_fill(~b.cmask, float("-inf")), -1)
-        return {"logp": logp, "value": self.value_head(s)[..., 0], "q_logit": self.q_head(s), "aux": self.aux_head(s)}
+        value = self._fp32(self.value_head, s)[..., 0]
+        if self.cfg.value_hidden:       # added after the policy's inputs: cannot reach the policy
+            h = b.hidden if b.hidden is not None else torch.zeros(s.shape[0], self.hidden_cards, dtype=torch.long, device=s.device)
+            e = self.hidden_emb(h).flatten(1).to(dtype=s.dtype)
+            value = value + self._fp32(self.hidden_value, torch.cat([s, e], -1))[..., 0]
+        return {"logp": logp, "value": value, "q_logit": self._fp32(self.q_head, s), "aux": self._fp32(self.aux_head, s)}
 
 
 def combine(q: torch.Tensor, act: torch.Tensor, vw: ValueWeights = ValueWeights()) -> torch.Tensor:

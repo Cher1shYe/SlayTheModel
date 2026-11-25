@@ -280,6 +280,10 @@ struct RunContext {
     bool removalUsed = false;
     // LordsParasol: its free, non-cancelable card removal waits for any relic choice it opened.
     bool parasolRemovalPending = false;
+    // v29: Lord's Parasol buys shop relics one at a time and awaits each Obtain (choices, reward
+    // screens) before the next relic, then the potions. -1 = not buying; 0..shopRelicCount = the
+    // next relic slot to buy (shopRelicCount: relics done, potions next).
+    std::int8_t parasolRelicCursor = -1;
     int removalPrice = 75;
     int removalBasePrice = 75;
     int cardShopRemovalsUsed = 0;
@@ -396,6 +400,7 @@ struct RunContext {
     void refresh_spoils_quest();
     void lords_parasol_purchase_everything();  // LordsParasol.PurchaseEverything
     void open_parasol_removal();
+    void resume_lords_parasol();               // continue after a relic's choice / reward screen
     void fur_coat_mark();  // FurCoat.AddMarkedRooms (AfterObtained / ModifyGeneratedMapLate)
     bool fur_coat_marked(int row, int col) const;
     int fur_coat_visible_marks() const;  // marks shown as quests on the current map

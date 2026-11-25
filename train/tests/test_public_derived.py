@@ -246,7 +246,9 @@ def test_selection_purpose_tables_match_and_reach_the_encoding():
     assert dict(zip(names, purposes))["KNOWLEDGE_CURSE"] == "combat.knowledge_curse"
     rng = random.Random(9)
     seen = set()
-    for seed in range(25):
+    for seed in range(250):     # at least 25 games, then until both purposes have appeared
+        if seed >= 25 and {"combat.upgrade", "deck.transform"} <= seen:
+            break
         rc = sim.RunContext(); rc.init(8000 + seed, 10)
         for _ in range(1200):
             if rc.is_terminal:
@@ -263,3 +265,41 @@ def test_selection_purpose_tables_match_and_reach_the_encoding():
                 seen.add(purpose)
             p.step_simulator(rc, s, rng.randrange(len(s.actions)))
     assert {"combat.upgrade", "deck.transform"} <= seen, seen
+
+
+def test_every_encoded_input_is_bounded():
+    """FEATURE_VERSION 12 (DEVLOG 50): no raw prices, lengths or HP enter the network. Random
+    runs from all three acts with relics added; every input column stays within SQUASH_CAP."""
+    assert p._sq(999999999, 200) == p.SQUASH_CAP          # Waterfall Giant about to blow
+    assert p._sq(0.5, 1) == 0.5 and p._sq(-30, 10) < -1 and p._sq(30, 10) > p._sq(20, 10)
+    relics = [int(v) for k, v in sim.RelicId.__members__.items()
+              if k not in ("INVALID", "DUSTY_TOME", "NEOWS_BONES", "BLACK_BLOOD") and sim.relic_info(int(v))[3] in (0, 1)]
+    worst = 0.0
+    for seed in range(12):
+        rng = random.Random(9500 + seed)
+        rc = sim.RunContext(); rc.init(9500 + seed, 10)
+        for _ in range(300):
+            if rc.screen == sim.RunScreen.MAP:
+                break
+            s = p.from_simulator(rc)
+            p.step_simulator(rc, s, rng.randrange(len(s.actions)))
+        for rid in rng.sample(relics, 6):
+            if rc.screen == sim.RunScreen.MAP:
+                try:
+                    rc.add_relic(rid)
+                except RuntimeError:
+                    pass
+        if seed % 3 and rc.screen == sim.RunScreen.MAP:
+            rc.start_act(seed % 3)
+        for _ in range(400):
+            if rc.is_terminal:
+                break
+            s = p.from_simulator(rc)
+            if not s.actions:
+                break
+            o = p.encode(s)
+            for name in ("num", "cand_num", "global_row", "player_row"):
+                worst = max(worst, float(np.abs(np.asarray(getattr(o, name))).max(initial=0)))
+            plays = [i for i, a in enumerate(s.actions) if a.key.kind == "play"]
+            p.step_simulator(rc, s, rng.choice(plays) if plays and rng.random() < 0.85 else rng.randrange(len(s.actions)))
+    assert worst <= p.SQUASH_CAP, worst

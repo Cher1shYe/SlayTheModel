@@ -255,6 +255,10 @@ def compare_decision(frame: dict, rc, sim, catalog, *, observation_schema="subse
                 for state in states.values():
                     state.facts["player"].update(ostyHp=None, ostyMaxHp=None)
                 result["uncovered_state"].append("pre-Osty capture: player Osty HP not exported by this host build")
+            if legacy_capture and "native" in states and states["native"].facts["player"].get("orbs", ()) is None:
+                for state in states.values():
+                    state.facts["player"].update(orbCapacity=None, orbs=None)
+                result["uncovered_state"].append("pre-orb capture: channeled orbs not exported by this host build")
             if legacy_capture and "native" in states and any(
                     card["pile"] in ("hand", "play") and card["displayDamage"] is None and card["displayBlock"] is None
                     and card["displayDamageVs"] is None for card in states["native"].facts["cards"]):

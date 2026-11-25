@@ -101,6 +101,19 @@ def _hittable(facts):
     return [e for e in facts["enemies"] if e["hittable"]]
 
 
+def _hits_total(per_hit, hits, enemy, facts):
+    """Damage of ``hits`` hits. The Boot turns a hit costing the enemy 1..4 HP into 5, after its block."""
+    if not any(r["modelId"] == "RELIC.THE_BOOT" and r["status"] != "Disabled" for r in facts["relics"]):
+        return per_hit * hits
+    block, total = enemy["block"], 0
+    for _ in range(int(hits)):
+        absorbed = min(block, per_hit)
+        block -= absorbed
+        left = per_hit - absorbed
+        total += absorbed + (5 if 0 < left < 5 else left)
+    return total
+
+
 def play_damage(card, facts, target_order):
     """{enemy order: expected damage before block} of one play, or None if unknown."""
     vs = card["displayDamageVs"]
@@ -116,17 +129,17 @@ def play_damage(card, facts, target_order):
             hits = card_hits(card, facts, e)
             if hits is None:
                 return None
-            out[order] = vs[order] * hits
+            out[order] = _hits_total(vs[order], hits, e, facts)
         return out
     if card["target"] == "RandomEnemy":   # expected value: each hit picks a hittable enemy uniformly
         hits = card_hits(card, facts)
         if hits is None or not enemies:
             return None if hits is None else {}
-        return {order: vs[order] * hits / len(enemies) for order in enemies}
+        return {order: _hits_total(vs[order], hits, e, facts) / len(enemies) for order, e in enemies.items()}
     if target_order is None or target_order not in enemies:
         return {}
     hits = card_hits(card, facts, enemies[target_order])
-    return None if hits is None else {target_order: vs[target_order] * hits}
+    return None if hits is None else {target_order: _hits_total(vs[target_order], hits, enemies[target_order], facts)}
 
 
 def _energy_cost(card, facts):
@@ -279,6 +292,34 @@ def end_turn(facts, extra_block=0, enemy_damage=None, played=None, attack_played
     if "RELIC.CLOAK_CLASP" in relics: p.block += len(hand)
     if "RELIC.RIPPLE_BASIN" in relics and facts["combat"]["attacksPlayedTurn"] == 0 and not attack_played:
         p.block += 4
+    # DoTurnEnd: OrbQueue.BeforeTurnEnd, in queue order, before the hand's end-of-turn effects.
+    dealt = dict(enemy_damage)
+    orbs = facts["player"].get("orbs", ())
+    if orbs is None:                                     # legacy capture without the orb export
+        unknown = True
+    else:
+        cables = "RELIC.GOLD_PLATED_CABLES" in relics    # the first orb triggers twice
+        hittable = [e for e in facts["enemies"] if e["alive"] and e["hittable"]]
+        random_hits = 0
+        unknown |= bool(orbs) and _power(powers, "POWER.CONSUMING_SHADOW_POWER") > 0  # evokes after the hand
+        for index, orb in enumerate(orbs):
+            triggers = 1 + (cables and index == 0)
+            if orb["modelId"] == "ORB.FROST_ORB":
+                p.block += orb["passive"] * triggers
+                unknown |= _power(powers, "POWER.HAILSTORM_POWER") > 0
+            elif orb["modelId"] == "ORB.LIGHTNING_ORB":
+                random_hits += orb["passive"] * triggers
+            elif orb["modelId"] == "ORB.GLASS_ORB" and orb["passive"] > 0:
+                unknown |= triggers > 1                  # its value falls between the two triggers
+                for e in hittable:
+                    dealt[e["order"]] = dealt.get(e["order"], 0) + orb["passive"]
+                    unknown |= _reacts_on_hit(e)
+        if random_hits and len(hittable) == 1:
+            dealt[hittable[0]["order"]] = dealt.get(hittable[0]["order"], 0) + random_hits
+            unknown |= _reacts_on_hit(hittable[0])
+        elif random_hits:                                # random target: only matters if one can die or react
+            unknown |= any(_reacts_on_hit(e) or e["hp"] + e["block"] - dealt.get(e["order"], 0) <= random_hits
+                           for e in hittable)
     regret_count = len(hand)
     # DoTurnEnd: Ethereal (non turn-end) cards exhaust first -> Feel No Pain.
     fnp = _power(powers, "POWER.FEEL_NO_PAIN_POWER")
@@ -298,7 +339,6 @@ def end_turn(facts, extra_block=0, enemy_damage=None, played=None, attack_played
             p.block += fnp                                   # exhausted after its effect
     # Exhausted at turn end (Ethereal): Charon's Ashes 3 to every enemy, Forgotten Soul 1 to a random one.
     exhausted = len(ethereal) + sum("Ethereal" in c["keywords"] for c in turn_end)
-    dealt = dict(enemy_damage)
     if exhausted and "RELIC.CHARONS_ASHES" in relics:
         for e in facts["enemies"]:
             if e["alive"] and e["hittable"]:
@@ -317,7 +357,7 @@ def end_turn(facts, extra_block=0, enemy_damage=None, played=None, attack_played
     if juggernaut and p.block > block_before and any(e["alive"] and _reacts_on_hit(e) for e in facts["enemies"]):
         unknown = True
     if juggernaut and p.block > block_before:
-        reach = juggernaut * (len(hand) + 4)                 # bound on the number of block gains
+        reach = juggernaut * (len(hand) + 4 + 2 * len(orbs or ()))  # bound on the number of block gains
         if any(e["alive"] and e["hp"] + e["block"] - dealt.get(e["order"], 0) <= reach
                for e in facts["enemies"]):
             unknown = True
@@ -331,6 +371,15 @@ def end_turn(facts, extra_block=0, enemy_damage=None, played=None, attack_played
                     not {pw[0] for pw in enemy["powers"]} <= DEATH_QUIET_POWERS:
                 unknown = True                               # its own defenses may keep it alive
             continue                                         # killed by this play / at turn end
+        # PoisonPower.AfterSideTurnStart ticks before any enemy acts and ignores block.
+        poison = _power(enemy["powers"], "POWER.POISON_POWER")
+        if poison > 0:
+            ticks = min(poison, 1 + _power(powers, "POWER.ACCELERANT_POWER"))
+            hp_left = enemy["hp"] - max(0, dealt.get(enemy["order"], 0) - enemy["block"])
+            if ticks * poison - ticks * (ticks - 1) // 2 >= hp_left:
+                if not {pw[0] for pw in enemy["powers"]} <= DEATH_QUIET_POWERS | {"POWER.POISON_POWER"}:
+                    unknown = True                           # its death may trigger something
+                continue
         if not enemy["intentsVisible"]:
             unknown = True
             continue
@@ -645,6 +694,7 @@ class _Play:
         if plays > 1 and (mid in REPLAY_VARIES or mid in APPLIES_ENEMY_POWER or mid in SELF_HP_LOSS and self.power("RUPTURE_POWER")
                           or any(r in self.relics for r in _MID_SERIES) or self.power("VIGOR_POWER")
                           or "RELIC.PEN_NIB" in self.relics or "RELIC.VAMBRACE" in self.relics
+                          or "RELIC.THE_BOOT" in self.relics   # replays hit the block the last one left
                           or "RELIC.PAELS_LEGION" in self.relics):
             self.unknown = True
         enchant = card["enchantment"]
@@ -661,6 +711,9 @@ class _Play:
             self.exhausted(card)
         if card["target"] == "RandomEnemy":
             self.random_damage += sum((play_damage(card, facts, self.target) or {}).values()) * plays
+        if mid == "CARD.COLOSSUS" and any(e["alive"] and _power(e["powers"], "POWER.VULNERABLE_POWER") > 0
+                                          for e in facts["enemies"]):
+            self.end_unknown = True                       # halves what the Vulnerable enemies' intents show
         if mid in HAND_CHANGE:
             self.hand_change = True
         if mid in ENEMY_TURN_CHANGE:
@@ -736,9 +789,23 @@ class _Play:
             for _ in range(2 if facts["combat"]["cardsExhaustedTurn"] > 0 else 1):
                 self.gain_block(card["displayBlock"] or 0)
         elif mid == "CARD.ENTRENCH":                      # GainBlock(current Block), Unpowered | Move
-            if "RELIC.VAMBRACE" in self.relics or "RELIC.PAELS_LEGION" in self.relics:
+            # Move-flagged block: Vambrace, Pael's Legion and Unmovable may double it. Whether
+            # Unmovable is still unused this turn (no card BlockGainedEntry yet) is not public
+            # (DEVLOG 54: the audit found Entrench previewed 7 for an actual 14).
+            if "RELIC.VAMBRACE" in self.relics or "RELIC.PAELS_LEGION" in self.relics or \
+                    _power(facts["powers"], "POWER.UNMOVABLE_POWER") > 0:
                 self.unknown = True
-            self.gain_block(self.player.block)
+            # The card's own block enchantments add to this GainBlock too (Nimble +Amount, even at
+            # 0 Block; Goopy's growing Amount is not tracked). displayBlock covers them for
+            # ordinary block cards; Entrench reads the current Block instead (DEVLOG 54).
+            ench = card.get("enchantment")
+            extra = 0
+            if ench:
+                if ench[0] == "ENCHANTMENT.NIMBLE" and not ench[2]:
+                    extra = ench[1]
+                elif ench[0] in ("ENCHANTMENT.GOOPY",):
+                    self.unknown = True
+            self.gain_block(self.player.block + extra)
         else:
             self.gain_block(card["displayBlock"] or 0)
         if mid in RANDOM_HAND_EXHAUST and not (mid == "CARD.TRUE_GRIT" and card["upgrade"]) and self.hand:

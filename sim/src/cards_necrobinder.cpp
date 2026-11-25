@@ -15,7 +15,8 @@ void apply_temporary_strength_down(BattleContext &b,int target,PowerId id,int am
     if(applied)b.add_monster_power(target,PowerId::STRENGTH,-applied,true);
 }
 void doom_all(BattleContext &b,int amount) {
-    for (int i=0;i<b.monsterCount;++i) if(b.monsters[i].alive) b.add_monster_power(i,PowerId::DOOM,amount,true);
+    int targets[MAX_MONSTERS];const int n=b.living_enemies(targets);  // HittableEnemies
+    for(int k=0;k<n;++k)if(b.monsters[targets[k]].alive)b.add_monster_power(targets[k],PowerId::DOOM,amount,true);
 }
 void choose(BattleContext &b,Card &c,ChoiceOp op,ChoicePile pile,int count=1) {
     b.start_choice(op,pile,count,false,c,b.card_will_exhaust(c));
@@ -81,8 +82,11 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::DEATH_MARCH:
         b.attack_from_card(c,target,v(c,VarId::CALCULATION_BASE)+v(c,VarId::EXTRA_DAMAGE)*b.necro.extraDrawsThisTurn+c.bonusDamage); return true;
     case CardId::DEATHBRINGER:
+    {
         doom_all(b,v(c,VarId::DOOM_POWER));
-        for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.apply_weak(i,v(c,VarId::WEAK_POWER)); return true;
+        int targets[MAX_MONSTERS];const int n=b.living_enemies(targets);
+        for(int k=0;k<n;++k)b.apply_weak(targets[k],v(c,VarId::WEAK_POWER));return true;
+    }
     case CardId::DEATHS_DOOR:
         for(int i=0,n=1+(b.necro.doomAppliedThisTurn?v(c,VarId::REPEAT):0);i<n;++i)b.gain_block(card_block(c),true); return true;
     case CardId::DEBILITATE:
@@ -106,7 +110,8 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
         return true;
     }
     case CardId::DREDGE:
-        choose(b,c,ChoiceOp::DISCARD_TO_HAND,ChoicePile::DISCARD,std::min(v(c,VarId::CARDS),MAX_HAND-b.handCount)); return true;
+        if(MAX_HAND-b.handCount>0)choose(b,c,ChoiceOp::DISCARD_TO_HAND,ChoicePile::DISCARD,std::min(v(c,VarId::CARDS),MAX_HAND-b.handCount));
+        return true;
     case CardId::EIDOLON: {
         Card cards[MAX_PILE];int n=0;
         for(int i=0;i<b.exhaustCount;++i)if(card_has(b.exhaust[i],CF_ETHEREAL)&&!card_has(b.exhaust[i],CF_UNPLAYABLE))cards[n++]=b.exhaust[i];
@@ -139,7 +144,8 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::HAUNT:b.add_player_power(PowerId::HAUNT,v(c,VarId::HP_LOSS),true);return true;
     case CardId::HIGH_FIVE:
         if(b.necro.ostyHp>0){necrobinder_attack_osty(b,c,target,v(c,VarId::OSTY_DAMAGE),1,true);
-        for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.apply_vulnerable(i,v(c,VarId::VULNERABLE_POWER));}return true;
+        int targets[MAX_MONSTERS];const int n=b.living_enemies(targets);
+        for(int k=0;k<n;++k)b.apply_vulnerable(targets[k],v(c,VarId::VULNERABLE_POWER));}return true;
     case CardId::INVOKE:
         b.add_player_power(PowerId::SUMMON_NEXT_TURN,v(c,VarId::SUMMON),true);b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(c,VarId::ENERGY),true);return true;
     case CardId::LETHALITY:b.add_player_power(PowerId::LETHALITY,v(c,VarId::LETHALITY_POWER),true);return true;
@@ -214,7 +220,7 @@ bool necrobinder_effect(BattleContext &b,Card &c,int target) {
     case CardId::TIMES_UP:b.attack_from_card(c,target,b.monster_power(target,PowerId::DOOM)+c.bonusDamage);return true;
     case CardId::TRANSFIGURE:choose(b,c,ChoiceOp::NECRO_TRANSFIGURE,ChoicePile::HAND);return true;
     case CardId::UNDEATH:{
-        b.gain_block(card_block(c),true);Card copy=c;copy.uid=b.require_card_uid();b.add_card_to_discard(copy);return true;
+        b.gain_block(card_block(c),true);Card copy=c;copy.uid=b.require_card_uid();b.add_card_to_discard(copy);b.notify_card_generated(copy,true,true);return true;
     }
     case CardId::UNDERWORLD:b.add_player_power(PowerId::UNDERWORLD,1,true);return true;
     case CardId::UNLEASH:necrobinder_attack_osty(b,c,target,v(c,VarId::CALCULATION_BASE)+b.necro.ostyHp+c.bonusDamage);return true;
@@ -287,7 +293,9 @@ void misery(BattleContext &b,Card &card,int target) {
     if(target<0||target>=b.monsterCount)return;
     const Monster source=b.monsters[target];
     b.attack_from_card(card,target,card_base_damage(card));
-    for(int i=0;i<b.monsterCount;++i)if(i!=target&&b.monsters[i].alive){
+    int hittable[MAX_MONSTERS];const int hittableCount=b.living_enemies(hittable);
+    for(int k=0;k<hittableCount;++k)if(hittable[k]!=target&&b.monsters[hittable[k]].alive){
+        const int i=hittable[k];
         // Temporary strength wrappers apply the strength loss themselves. Keep
         // only the permanent remainder for the independent StrengthPower.
         if(source.weak>0)b.apply_weak(i,source.weak);

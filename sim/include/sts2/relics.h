@@ -27,6 +27,11 @@ void relics_turn_start(BattleContext &bc);
 void relics_hand_drawn(BattleContext &bc);
 void relics_before_hand_draw(BattleContext &bc);
 void relics_after_player_turn_start(BattleContext &bc);
+// v29 (DEVLOG 54): player-turn start split into the native hook stages, each in relic-bar order.
+void relics_before_side_turn_start(BattleContext &bc);       // Hook.BeforeSideTurnStart (player side)
+void relics_after_block_cleared(BattleContext &bc);          // Hook.AfterBlockCleared
+void relics_after_player_turn_start_late(BattleContext &bc); // Hook.AfterPlayerTurnStartLate
+void relics_after_side_turn_start(BattleContext &bc);        // Hook.AfterSideTurnStart (player side)
 int relics_debuff_amount(BattleContext &bc, PowerId power, int amount, bool opponent, bool visible = true);
 int relics_modify_damage(BattleContext &bc, int dmg, int target, const Card *card);
 // Hook.ModifyDamageAdditive / ModifyDamageMultiplicative are separate phases:
@@ -38,10 +43,14 @@ int relics_modify_hp_loss(BattleContext &bc, int amount);
 void relics_damage_received(BattleContext &bc, int amount);
 void relics_current_hp_changed(BattleContext &bc);
 bool relics_try_revive(BattleContext &bc);
-int relics_modify_block_gain(BattleContext &bc, int amount, bool fromCard);
+int relics_modify_block_gain(BattleContext &bc, int amount, bool fromCard, bool commit = true);
 int relics_strength_gain(BattleContext &bc, int amount);
 void relics_card_played(BattleContext &bc, const Card &card);
 void relics_monster_died(BattleContext &bc);
+void relics_card_entered_combat(BattleContext &bc, Card &card);  // Ghost Seed
+void relics_check_empty_hand(BattleContext &bc);                 // CombatManager.CheckForEmptyHand
+void relics_auto_pre_play(BattleContext &bc);                    // History Course
+void relics_play_interrupted(BattleContext &bc);                 // Pen Nib when the combat ends mid-play
 void relics_exhausted(BattleContext &bc, const Card &card, bool causedByEthereal);
 void relics_shuffled(BattleContext &bc);
 // blockWasZero: Orichalcum.BeforeSideTurnEndVeryEarly, sampled before any end-of-turn effect.

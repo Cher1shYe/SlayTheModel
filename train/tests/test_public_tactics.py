@@ -268,3 +268,27 @@ def test_end_turn_rules_on_constructed_facts():
     assert t.end_turn(facts(osty=4, hand=[burn], intents=()))[0] == 2
     # Hidden intents are unknown, never zero.
     assert t.end_turn(facts(intents=((("Hidden", 0, 0),),)))[1]
+
+
+def test_channeled_orbs_are_public_and_counted_at_turn_end():
+    found = 0
+    for rc, s in injected_combat_states(range(8300, 8306), ("COLD_SNAP", "ZAP", "GLACIER")):
+        f = s.facts
+        orbs = f["player"]["orbs"]
+        if not orbs:
+            continue
+        found += 1
+        row = p.encode(s).player_row
+        assert row[107] == 1 and row[108] == pytest.approx(f["player"]["orbCapacity"] / 10)
+        for slot, orb in enumerate(orbs):
+            base = 109 + 7 * slot
+            assert row[base + p.ORB_KINDS.index(orb["modelId"])] == 1 and row[base:base + 5].sum() == 1
+            assert row[base + 5] == pytest.approx(orb["passive"] / 20)
+            assert row[base + 6] == pytest.approx(orb["evoke"] / 20)
+        assert row[109 + 7 * len(orbs):109 + 70].sum() == 0
+        if all(orb["modelId"] == "ORB.FROST_ORB" for orb in orbs):
+            without = dict(f, player=dict(f["player"], orbs=[]))
+            assert t.end_turn(f)[0] <= t.end_turn(without)[0]
+        if found >= 60:
+            break
+    assert found

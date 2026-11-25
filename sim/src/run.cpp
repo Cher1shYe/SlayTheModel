@@ -1088,10 +1088,10 @@ void RunContext::resume_pending_relic_obtains() {
         }
         pendingRelicObtains[--pendingRelicObtainCount]=0;
         pendingRelicObtainWax[pendingRelicObtainCount]=false;
-        if (!add_relic(id,wax)) throw std::logic_error("Queued relic obtain cannot be completed");
+        if (!add_relic(id,wax)) throw std::logic_error(std::string("Queued relic obtain cannot be completed: ") + relic_name(id));
     }
     if (!cardGrid.kind && !pendingRelicObtainCount) relics_resume_lifecycle(*this);
-    if (!cardGrid.kind && !pendingRelicObtainCount && !deferredCustomRewards) open_parasol_removal();
+    if (!cardGrid.kind && !pendingRelicObtainCount && !deferredCustomRewards) resume_lords_parasol();
 }
 
 bool RunContext::queue_random_relic_reward(Rng &rng, bool shared, bool wax) {
@@ -1276,33 +1276,30 @@ void RunContext::begin_combat(Encounter enc) {
         nextCombatUpgradeHand = false;
     }
     if (nextCombatDazed > 0) {
+        // TeaOfDiscourtesy.BeforeCombatStart: AddToCombatAndPreview<Dazed>(Draw, 2, Random) ->
+        // AddGeneratedCardToCombat with the player as creator. v30: was the top of the draw pile
+        // without the generated-card hooks (DEVLOG 55).
         for (int i = 0; i < nextCombatDazed; ++i) {
-            battle.add_card_to_draw_top(make_card(CardId::DAZED, false, battle.require_card_uid()));
+            const Card dazed = make_card(CardId::DAZED, false, battle.require_card_uid());
+            battle.add_card_to_draw_random(dazed);
+            battle.notify_card_generated(dazed);
         }
         nextCombatDazed = 0;
     }
     // FurCoat.BeforeCombatStart: on a marked coordinate every hittable enemy is set to 1 HP.
+    // Native compares only the coordinate, not the act the marks were made in, so a later act's
+    // point on the same (row, col) is affected too -- including a boss whose (MAP_WIDTH / 2,
+    // RowCount) matches a mark of a longer earlier map (DEVLOG 55). Kept as native.
     battle.furCoatActive = false;
     if (furCoatCount > 0 && run_has_relic(*this, RelicId::FUR_COAT) && fur_coat_marked(curRow, curCol)) {
-        for (int i = 0; i < battle.monsterCount; ++i) {
-            if (battle.monsters[i].alive) battle.monsters[i].hp = 1;
-        }
+        int targets[MAX_MONSTERS];
+        const int n = battle.living_enemies(targets);      // HittableEnemies (v30: was every alive enemy)
+        for (int k = 0; k < n; ++k) battle.monsters[targets[k]].hp = 1;
         battle.furCoatActive = true;
     }
-    if (run_has_relic(*this, RelicId::GHOST_SEED)) {
-        for (int i = 0; i < battle.drawCount; ++i) {
-            const CardId id = battle.draw[i].id;
-            if (id == CardId::STRIKE_IRONCLAD || id == CardId::DEFEND_IRONCLAD) {
-                battle.draw[i].etherealThisCombat = true;
-            }
-        }
-        for (int i = 0; i < battle.handCount; ++i) {
-            const CardId id = battle.hand[i].id;
-            if (id == CardId::STRIKE_IRONCLAD || id == CardId::DEFEND_IRONCLAD) {
-                battle.hand[i].etherealThisCombat = true;
-            }
-        }
-    }
+    // GhostSeed.AfterRoomEntered: every Basic Strike and Defend in the combat deck.
+    for (int i = 0; i < battle.drawCount; ++i) relics_card_entered_combat(battle, battle.draw[i]);
+    for (int i = 0; i < battle.handCount; ++i) relics_card_entered_combat(battle, battle.hand[i]);
     battle.settle_forced_choices();
     battle.clear_card_uid_reservations();
     inBattle = true;
@@ -1504,35 +1501,49 @@ int RunContext::spoils_map_count() const {
 // quest goes on the first Treasure in GetAllMapPoints (column-major) order of
 // the final map. With no Treasure the card keeps its earlier coordinate.
 // LordsParasol.PurchaseEverything: every stocked character card, colorless card, relic and
-// potion via OnTryPurchaseWrapper(ignoreCost: true) -- free, so goldSpent 0 (Maw Bank stays),
-// The Courier still restocks; a potion without a free slot stays stocked. Then the card
-// removal entry, non-cancelable and free (CardShopRemovalsUsed still increases).
+// potion via OnTryPurchaseWrapper(ignoreCost: true) -- free, so goldSpent 0 (Maw Bank stays); a
+// potion without a free slot (or under Sozu) stays stocked. Then the card removal entry,
+// non-cancelable and free (CardShopRemovalsUsed still increases).
+// v29: each relic purchase is awaited natively, so a relic that opens a choice (Astrolabe) or a
+// reward screen (Cauldron) suspends the purchases until it is resolved; relics bought later in the
+// same loop (Potion Belt, Sozu, The Courier) are owned before the potions are bought. The Courier
+// is checked at every purchase (Hook.ShouldRefillMerchantEntry), not once at the start.
 void RunContext::lords_parasol_purchase_everything() {
-    const bool courier = run_has_relic(*this, RelicId::THE_COURIER);
     for (int i = 0; i < shopCount; ++i) {
         if (shopSold[i]) continue;
         if (deckCount > MAX_DECK - (run_has_relic(*this, RelicId::BING_BONG) ? 2 : 1)) continue;
         if (!acquire_card(*this, shopCards[i])) continue;
         shopSold[i] = true;
-        if (courier) refill_shop_card(*this, i);
+        if (run_has_relic(*this, RelicId::THE_COURIER)) refill_shop_card(*this, i);
     }
-    for (int i = 0; i < shopRelicCount; ++i) {
+    parasolRelicCursor = 0;
+    resume_lords_parasol();
+}
+
+void RunContext::resume_lords_parasol() {
+    if (screen != RunScreen::SHOP || cardGrid.kind || pendingRelicObtainCount || deferredCustomRewards) return;
+    if (parasolRelicCursor < 0) { open_parasol_removal(); return; }
+    while (parasolRelicCursor < shopRelicCount) {
+        const int i = parasolRelicCursor++;
         if (shopRelicSold[i]) continue;
         const RelicId acquired = static_cast<RelicId>(shopRelics[i]);
         if (!can_obtain_relic(*this, acquired) || !add_relic(acquired)) continue;
         shopRelicSold[i] = true;
         apply_new_shop_discount(*this, acquired);
-        if (courier) refill_shop_relic(*this, i);
+        if (run_has_relic(*this, RelicId::THE_COURIER)) refill_shop_relic(*this, i);
+        // The Obtain is still in progress (a selection, queued obtains or a reward screen).
+        if (screen != RunScreen::SHOP || cardGrid.kind || pendingRelicObtainCount || deferredCustomRewards) return;
     }
+    parasolRelicCursor = -1;
     for (int i = 0; i < shopPotionCount; ++i) {
         if (shopPotionSold[i] || potionCount >= potionSlots || run_has_relic(*this, RelicId::SOZU)) continue;
         add_potion(static_cast<PotionId>(shopPotions[i]));
         shopPotionSold[i] = true;
-        if (courier) refill_shop_potion(*this, i);
+        if (run_has_relic(*this, RelicId::THE_COURIER)) refill_shop_potion(*this, i);
     }
     if (!removalUsed) {
         parasolRemovalPending = true;
-        if (!cardGrid.kind && !pendingRelicObtainCount && !deferredCustomRewards) open_parasol_removal();
+        open_parasol_removal();
     }
 }
 
@@ -1885,6 +1896,7 @@ void RunContext::enter_map_point(int nodeIdx) {
             roll_shop();
             if (run_has_relic(*this, RelicId::MEAL_TICKET)) hp = std::min(maxHp, hp + 15);
             screen = RunScreen::SHOP;
+            parasolRelicCursor = -1;
             // LordsParasol.AfterRoomEntered (relic order: Meal Ticket's heal is unaffected).
             if (run_has_relic(*this, RelicId::LORDS_PARASOL)) lords_parasol_purchase_everything();
             break;
@@ -1980,6 +1992,7 @@ void RunContext::finish_combat() {
         if (combatIsElite && run_has_relic(*this, RelicId::WAR_HAMMER)) {
             int candidates[MAX_DECK], n = 0;
             for (int i = 0; i < deckCount; ++i) if (card_upgradable(deck[i])) candidates[n++] = i;
+            native_sort_card_indices(*this, candidates, n);
             runRng[RNG_NICHE].shuffle(candidates, n);
             for (int i = 0; i < std::min(4, n); ++i) card_apply_upgrade(deck[candidates[i]]);
         }
@@ -2364,21 +2377,9 @@ bool RunContext::use_potion_out_of_combat(int idx) {
             // rolls from CombatPotionGeneration; TryToProcure failure (Sozu)
             // breaks instead of spinning forever.
             while (potionCount < potionSlots) {
-                Rng &prng = runRng[RNG_COMBAT_POTION_GENERATION];
-                const float roll = prng.next_float();
-                const Rarity want = roll <= 0.1f ? Rarity::RARE
-                                    : roll <= 0.35f ? Rarity::UNCOMMON
-                                                    : Rarity::COMMON;
-                int pool[static_cast<int>(PotionId::COUNT)];
-                int n = 0;
-                for (int i = 1; i < static_cast<int>(PotionId::COUNT); ++i) {
-                    const PotionDef &d = potion_def(static_cast<PotionId>(i));
-                    if (!d.ironclad || d.rarity != want ||
-                        !potion_epoch_unlocked(nativeProgress.revealedEpochs, static_cast<PotionId>(i))) continue;
-                    pool[n++] = i;
-                }
-                if (n == 0) break;
-                const PotionId next = static_cast<PotionId>(pool[prng.next_int(0, n - 1)]);
+                const PotionId next = random_potion_out_of_combat(runRng[RNG_COMBAT_POTION_GENERATION],
+                                                                  nativeProgress.revealedEpochs);
+                if (next == PotionId::INVALID) break;
                 const int before = potionCount;
                 add_potion(next);
                 if (potionCount == before) break;
@@ -2757,6 +2758,7 @@ bool RunContext::step(const RunAction &action) {
             } else if (resume != RunScreen::MAP) {
                 screen = resume;
                 if (resume == RunScreen::EVENT) event_resume_after_rewards(*this);
+                if (resume == RunScreen::SHOP) resume_lords_parasol();   // a relic's reward screen closed
             } else if (rewardIsBoss) {
                 rewardIsBoss = false;
                 if (act + 1 < MAX_ACTS) start_act(act + 1);
@@ -2882,7 +2884,7 @@ bool snapshot_character_state(const BattleContext &b) {
     auto count = [](int n, int cap) { return n >= 0 && n <= cap; };
     const int pool = static_cast<int>(b.characterPool);
     if (pool > static_cast<int>(CardPool::QUEST)) return false;
-    if (b.turnFlow.stage < TURN_FLOW_IDLE || b.turnFlow.stage > TURN_FLOW_PAELS_EYE_END || b.turnFlow.relicCursor < 0 || b.turnFlow.relicCursor > b.relicCount ||
+    if (b.turnFlow.stage < TURN_FLOW_IDLE || b.turnFlow.stage > TURN_FLOW_FINISH_START || b.turnFlow.relicCursor < 0 || b.turnFlow.relicCursor > b.relicCount ||
         !count(b.suspendedPlayCount, MAX_PLAY_DEPTH) ||
         !count(b.autoPlayQueueCount, MAX_PILE) || !snapshot_nonnegative(b.pendingDrawRemainder) ||
         !snapshot_bool(b.runningPlayLoop) || b.runningPlayLoop) return false;
@@ -2894,7 +2896,7 @@ bool snapshot_character_state(const BattleContext &b) {
     if(b.manualCardsPlayedThisTurn<0 || b.manualCardsPlayedThisTurn>b.cardsPlayedThisTurn ||
        b.turnFlow.paelsEyeExhaustCount<0 || b.turnFlow.paelsEyeExhaustCount>MAX_HAND ||
        b.turnFlow.paelsEyeExhaustIndex<0 || b.turnFlow.paelsEyeExhaustIndex>b.turnFlow.paelsEyeExhaustCount ||
-       !snapshot_bool(b.turnFlow.paelsEyeExtraTurn))return false;
+       !snapshot_bool(b.turnFlow.paelsEyeExtraTurn)||!snapshot_bool(b.turnFlow.extraTurn))return false;
     for(int i=0;i<b.turnFlow.paelsEyeExhaustCount;++i) {
         if(b.turnFlow.paelsEyeExhaustUids[i]<=0 || b.turnFlow.paelsEyeExhaustUids[i]>=65535)return false;
         for(int j=0;j<i;++j)if(b.turnFlow.paelsEyeExhaustUids[j]==b.turnFlow.paelsEyeExhaustUids[i])return false;
@@ -3290,6 +3292,7 @@ bool snapshot_run(const RunContext &r) {
         return false;
     if (r.furCoatAct < -1 || r.furCoatAct >= MAX_ACTS || r.furCoatCount > 8 || r.furCoatCombats != 0) return false;
     if (!snapshot_bool(r.parasolRemovalPending) || (r.parasolRemovalPending && r.screen != RunScreen::SHOP)) return false;
+    if (r.parasolRelicCursor < -1 || r.parasolRelicCursor > r.shopRelicCount) return false;
     for (int i = 0; i < 8; ++i)
         if (r.furCoatRow[i] < 0 || r.furCoatRow[i] >= MAP_MAX_ROWS || r.furCoatCol[i] < 0 || r.furCoatCol[i] >= MAP_WIDTH ||
             (i >= r.furCoatCount && (r.furCoatRow[i] || r.furCoatCol[i]))) return false;
@@ -3354,7 +3357,7 @@ std::string RunContext::serialize() const {
         std::uint16_t version;
         std::uint16_t reserved;
         std::uint32_t size;
-    } header{0x53545332u, 18u, 0u, static_cast<std::uint32_t>(sizeof(RunContext))};
+    } header{0x53545332u, 20u, 0u, static_cast<std::uint32_t>(sizeof(RunContext))};
     std::string out(sizeof(Header), '\0');
     std::memcpy(&out[0], &header, sizeof(Header));
     const char *bytes = reinterpret_cast<const char *>(this);
@@ -3370,7 +3373,7 @@ bool RunContext::restore(const std::string &blob, RunContext &out) {
     std::memcpy(&magic, blob.data(), 4);
     std::memcpy(&version, blob.data() + 4, 2);
     std::memcpy(&size, blob.data() + 8, 4);
-    if (magic != 0x53545332u || version != 18u) return false;   // v18: Unmovable BlockGainedEntry counters (v17: Fur Coat marked coordinates (v16: Goopy DeckVersion growth, three ancient enchantments, Cook (v15: escaped-creature gold state)
+    if (magic != 0x53545332u || version != 20u) return false;   // v20: relic arrays hold 64 (v19: per-enemy play state holds all 6 enemy slots (v18: Unmovable BlockGainedEntry counters (v17: Fur Coat marked coordinates (v16: Goopy DeckVersion growth, three ancient enchantments, Cook (v15: escaped-creature gold state)
     if (size != sizeof(RunContext) || blob.size() != 12 + sizeof(RunContext)) return false;
     // Validate a temporary object and do not mutate the destination on error.
     RunContext candidate;
