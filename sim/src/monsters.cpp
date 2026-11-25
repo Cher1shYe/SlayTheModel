@@ -131,7 +131,8 @@ static bool rat_can_summon(const BattleContext &bc, const Monster &m) {
         const Monster &o = bc.monsters[i];
         if (o.id == MonsterId::INVALID || !(o.alive || o.reviving)) continue;
         ++listed;
-        if (&o != &m && o.id == MonsterId::TWO_TAILED_RAT && o.move == 4) return false;
+        // Compare by slot: the A2 prediction passes a copy of the rat.
+        if (o.orderKey != m.orderKey && o.id == MonsterId::TWO_TAILED_RAT && o.move == 4) return false;
     }
     return listed < 5;
 }
@@ -620,6 +621,14 @@ int BattleContext::enemy_order(int out[MAX_MONSTERS]) const {
     return n;
 }
 
+int BattleContext::living_enemies(int out[MAX_MONSTERS]) const {
+    int order[MAX_MONSTERS], n = 0;
+    const int total = enemy_order(order);
+    for (int k = 0; k < total; ++k)
+        if (monsters[order[k]].alive && !monsters[order[k]].reviving) out[n++] = order[k];
+    return n;
+}
+
 static bool slot_taken(const BattleContext &bc, int key) {
     for (int i = 0; i < bc.monsterCount; ++i) {
         const Monster &o = bc.monsters[i];
@@ -906,7 +915,7 @@ static void steal_hopper_card(BattleContext &bc, Monster &m) {
         }
     };
 
-    for (int i = 0; i < bc.drawCount; ++i) consider(bc.draw[i], true, i);
+    for (int i = bc.drawCount - 1; i >= 0; --i) consider(bc.draw[i], true, i);  // CardPile.GetCards: top first
     for (int i = 0; i < bc.discardCount; ++i) consider(bc.discard[i], false, i);
     if (candidateCount == 0) return;
     const int choice = bc.cardGenerationRng.next_int(0, candidateCount - 1);
@@ -1426,6 +1435,8 @@ std::vector<std::vector<PredictedMove>> predict_monster_moves(const BattleContex
         for (auto &[m, p] : frontier) {
             Monster after = m;
             perform(bc, after, m.move);
+            // Scratch / Disease Bite / Screech count the rat's summon cooldown down.
+            if (after.id == MonsterId::TWO_TAILED_RAT && m.move >= 1 && m.move <= 3) --after.aux[0];
             std::vector<std::pair<int, double>> reached;
             expand_state(bc, after, slot, after.pendingState, p, reached);
             for (auto [local, q] : reached) {

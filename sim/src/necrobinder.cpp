@@ -72,7 +72,9 @@ bool debuff_delta(PowerId id,int amount){
 }
 void hp_lost_osty(BattleContext &b,int amount){
     const int damage=amount*b.player_power(PowerId::NECRO_MASTERY);
-    if(damage>0)for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.damage_monster(i,damage,true,false,true);
+    if(damage<=0)return;
+    int targets[MAX_MONSTERS];const int n=b.living_enemies(targets);  // HittableEnemies
+    for(int k=0;k<n&&b.outcome==Outcome::UNDECIDED;++k)if(b.monsters[targets[k]].alive)b.damage_monster(targets[k],damage,true,false,true);
 }
 }
 
@@ -109,12 +111,14 @@ int necrobinder_redirect_damage(BattleContext &b,int unblocked,bool powered){
 }
 void necrobinder_attack_osty(BattleContext &b,Card &c,int target,double base,int hits,bool all,bool random){
     if(b.necro.ostyHp<=0)return;
-    bool first[4]{},unblocked[4]{};
+    bool first[MAX_MONSTERS]{},unblocked[MAX_MONSTERS]{};
     const bool previous=b.necro.dealingOstyDamage;b.necro.dealingOstyDamage=true;
     for(int h=0;h<hits&&b.outcome==Outcome::UNDECIDED&&b.necro.ostyHp>0;++h){
-        const int chosen=random?b.random_alive_monster():target;
-        for(int i=0;i<b.monsterCount;++i){
-            if(!all&&i!=chosen)continue;
+        int order[MAX_MONSTERS],count=0;
+        if(all)count=b.living_enemies(order);      // HittableEnemies, fixed before the hit
+        else{order[0]=random?b.random_alive_monster():target;count=order[0]>=0&&order[0]<b.monsterCount;}
+        for(int k=0;k<count;++k){
+            const int i=order[k];
             if(!b.monsters[i].alive||b.necro.ostyHp<=0)continue;
             const Monster &m=b.monsters[i];
             // Card enchantment (Vigorous/Sharp/Corrupted) applies to the card base first.
@@ -176,12 +180,8 @@ void necrobinder_before_hand_draw(BattleContext &b){
     if(b.turn==1&&relic_has(b,RelicId::FUNERARY_MASK))necrobinder_create_souls(b,3);
     for(int i=0,n=b.player_power(PowerId::SENTRY_MODE);i<n;++i){Card c=make_card(CardId::SWEEPING_GAZE,false,b.require_card_uid());b.add_card_to_hand(c);b.notify_card_generated(c);}
     for(int i=0,n=b.player_power(PowerId::CALL_OF_THE_VOID);i<n;++i){
-        CardId candidates[static_cast<int>(CardId::COUNT)];int count=0;
-        for(int j=1;j<static_cast<int>(CardId::COUNT);++j){const auto id=static_cast<CardId>(j);const auto &d=card_def(id);
-            if(d.pool!=b.characterPool)continue;
-            if(d.rarity==Rarity::BASIC||d.rarity==Rarity::ANCIENT||(d.flags&(CF_MULTIPLAYER_ONLY|CF_CANNOT_GENERATE_IN_COMBAT))||!card_native_available(id))continue;
-            candidates[count++]=id;}
-        std::sort(candidates,candidates+count,[](CardId a,CardId d){return card_def(a).nativePoolOrder<card_def(d).nativePoolOrder;});
+        CardId candidates[static_cast<int>(CardId::COUNT)];
+        const int count=b.combat_card_options(b.characterPool,candidates);
         b.cardGenerationRng.shuffle(candidates,count);
         if(count){Card c=make_card(candidates[0],false,b.require_card_uid());c.etherealThisCombat=true;b.add_card_to_hand(c);b.notify_card_generated(c);}
     }
@@ -193,8 +193,8 @@ void necrobinder_after_player_turn_start(BattleContext &b){
 }
 void necrobinder_doom_kill(BattleContext &b,bool playerSide){
     if(playerSide){if(b.player.hp>0&&b.player_power(PowerId::DOOM)>=b.player.hp)b.kill_player();return;}
-    int targets[4],n=0;
-    for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive&&b.monster_power(i,PowerId::DOOM)>=b.monsters[i].hp)targets[n++]=i;
+    int targets[MAX_MONSTERS],n=0;
+    for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive&&!b.monsters[i].reviving&&b.monster_power(i,PowerId::DOOM)>=b.monsters[i].hp)targets[n++]=i;
     for(int j=0;j<n;++j)b.kill_monster(targets[j]);
     if(relic_has(b,RelicId::BOOK_REPAIR_KNIFE)){int fatal=0;for(int j=0;j<n;++j)if(b.can_trigger_fatal(targets[j]))++fatal;b.heal_hp(fatal*3);}
 }
@@ -234,7 +234,8 @@ void necrobinder_after_card_played(BattleContext &b,Card &c){
         ++b.necro.etherealPlayedThisCombat;
         each_card(b,[&](Card &card){if(card.id==CardId::BANSHEES_CRY)card_modify_cost(card,-2,false,0);});
     }
-    bool found=false;for(int i=0;i<b.necro.finishedUidCount;++i)if(b.necro.finishedUidsThisTurn[i]==c.uid)found=true;
+    // Only Fetch asks "was this card already played this turn".
+    bool found=c.id!=CardId::FETCH;for(int i=0;i<b.necro.finishedUidCount;++i)if(b.necro.finishedUidsThisTurn[i]==c.uid)found=true;
     if(!found){if(b.necro.finishedUidCount==160)throw std::overflow_error("Finished card identity capacity");b.necro.finishedUidsThisTurn[b.necro.finishedUidCount++]=c.uid;}
     if(b.activePlay.energySpent>=2){
         for(int i=0;i<b.discardCount;){if(b.discard[i].id!=CardId::RIGHT_HAND_HAND){++i;continue;}
@@ -278,7 +279,7 @@ int necrobinder_resolved_cost(const BattleContext &b,const Card &c,int cost){
 double necrobinder_damage_multiplier(const BattleContext &b,const Card *card,int target,bool powered){
     if(!powered||!card)return 1.0;
     double multiplier=1.0;
-    if(b.player_power(PowerId::LETHALITY)>0&&b.attacksPlayedThisTurn<=1&&(!b.activePlay.active||b.activePlay.nextPlay<=1))multiplier*=1.0+b.player_power(PowerId::LETHALITY)/100.0;
+    if(b.player_power(PowerId::LETHALITY)>0&&b.attacksPlayedThisTurn<=(b.activePlay.active?1:0)&&(!b.activePlay.active||b.activePlay.nextPlay<=1))multiplier*=1.0+b.player_power(PowerId::LETHALITY)/100.0;
     if(card->id==CardId::HANG)multiplier*=std::max(1,b.monster_power(target,PowerId::HANG));
     if(!b.necro.dealingOstyDamage&&target>=0&&target<b.monsterCount&&b.monsters[target].vulnerable>0&&b.monster_power(target,PowerId::DEBILITATE)>0){
         const double vuln=(relic_has(b,RelicId::PAPER_PHROG)?1.75:1.5)+b.player_power(PowerId::CRUELTY)/100.0;
@@ -303,7 +304,7 @@ bool necrobinder_resolve_choice(BattleContext &b,const Card &chosen){
         if(card_def(card->id).cost>=0)card_modify_cost(*card,1,false,0);
         if(card->bonusReplay==255)throw std::overflow_error("Transfigure replay capacity");++card->bonusReplay;}return true;
     case ChoiceOp::NECRO_SEANCE:
-        card=b.find_in_draw(chosen.uid);if(card)*card=make_card(CardId::SOUL,false,b.require_card_uid());return true;
+        card=b.find_in_draw(chosen.uid);if(card){*card=make_card(CardId::SOUL,false,b.require_card_uid());b.notify_card_transformed(*card);}return true;
     default:return false;
     }
 }

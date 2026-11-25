@@ -60,7 +60,7 @@ void relics_resume_lifecycle(RunContext &rc) {
             } guard(rc);
             obtained = rc.add_relic(next);
         }
-        if (!obtained) throw std::logic_error("Large Capsule obtain cannot complete");
+        if (!obtained) throw std::logic_error(std::string("Large Capsule obtain cannot complete: ") + relic_name(next));
         if (rc.cardGrid.kind || rc.deferredCustomRewards) return;
     }
     rc.largeCapsuleCardsPending = false;

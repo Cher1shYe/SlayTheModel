@@ -2,15 +2,23 @@
 #include "sts2/card_candidates.h"
 namespace sts2 {
 namespace {
+// VisualCardPool is a character pool for these cards, so they do not count as colorless.
+bool colored_art(CardId id) {
+    switch(id) {
+    case CardId::CLASH:case CardId::DISTRACTION:case CardId::CALTROPS:case CardId::RIP_AND_TEAR:case CardId::OUTMANEUVER:
+    case CardId::ENTRENCH:case CardId::REBOUND:case CardId::HELLO_WORLD_CARD:case CardId::STACK:case CardId::DUAL_WIELD:return true;
+    default:return false;
+    }
+}
 void choose(BattleContext &b,Card &c,ChoiceOp op,ChoicePile pile,int n,bool optional=false) {
     b.start_choice(op,pile,n,optional,c,false);
     auto &p=b.pending;
     for(int i=0;i<p.count;) {
         const Card &candidate=p.cards[i];
         const auto pool=card_def(candidate.id).pool;
-        bool allowed=op!=ChoiceOp::REGENT_AUTO_SKILL || (card_is_skill(candidate)&&card_is_playable(candidate));
+        bool allowed=op!=ChoiceOp::REGENT_AUTO_SKILL || (card_is_skill(candidate)&&!card_has(candidate,CF_UNPLAYABLE));
         if(op==ChoiceOp::REGENT_CLONE)
-            allowed=pool==CardPool::COLORLESS || pool==CardPool::EVENT || pool==CardPool::TOKEN;
+            allowed=(pool==CardPool::COLORLESS || pool==CardPool::EVENT || pool==CardPool::TOKEN) && !colored_art(candidate.id);
         if(allowed)++i;else {for(int j=i+1;j<p.count;++j)p.cards[j-1]=p.cards[j];--p.count;}
     }
     p.remaining=std::min(p.remaining,p.count);
@@ -82,9 +90,12 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::CRESCENT_SPEAR:
         b.attack_from_card(c,target,v(VarId::CALCULATION_BASE)+v(VarId::EXTRA_DAMAGE)*star_cards(b)+c.bonusDamage);break;
     case CardId::CRUSH_UNDER:case CardId::DYING_STAR:
+    {
+        int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);  // read before the attack
         b.attack_all_from_card(c,damage);
-        for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)
-            temp_strength(b,i,c.id==CardId::CRUSH_UNDER?PowerId::CRUSH_UNDER:PowerId::DYING_STAR,v(VarId::STRENGTH_LOSS));break;
+        for(int k=0;k<count;++k)if(b.monsters[targets[k]].alive)
+            temp_strength(b,targets[k],c.id==CardId::CRUSH_UNDER?PowerId::CRUSH_UNDER:PowerId::DYING_STAR,v(VarId::STRENGTH_LOSS));break;
+    }
     case CardId::DECISIONS_DECISIONS:draw_then(b,c,4);break;
     case CardId::FOREGONE_CONCLUSION:b.add_player_power(PowerId::FOREGONE_CONCLUSION,v(VarId::CARDS),true);break;
     case CardId::FURNACE:b.add_player_power(PowerId::FURNACE,v(VarId::FORGE),true);break;
@@ -93,8 +104,7 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::GLIMMER:draw_then(b,c,3);break;
     case CardId::GLITTERSTREAM: {
         // BlockNextTurn captures today's powered block modifiers.
-        int next=v(VarId::BLOCK_NEXT_TURN)+b.player.dexterity;
-        if(b.player.frail>0)next=static_cast<int>(std::floor(next*0.75));
+        const int next=b.modified_block(v(VarId::BLOCK_NEXT_TURN),true,true,false);
         b.gain_block(card_block(c),true);b.add_player_power(PowerId::BLOCK_NEXT_TURN,std::max(0,next),true);break;
     }
     case CardId::GLOW:regent_gain_stars(b,v(VarId::STARS));draw_then(b,c,2);break;
@@ -111,7 +121,12 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::LUNAR_BLAST:b.attack_from_card(c,target,damage,b.regent.skillsFinishedThisTurn);break;
     case CardId::MANIFEST_AUTHORITY:b.gain_block(card_block(c),true);regent_generate_colorless(b,1,c.upgraded);break;
     case CardId::METEOR_SHOWER:
-        b.attack_all_from_card(c,damage);for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive){b.apply_weak(i,v(VarId::WEAK_POWER));b.apply_vulnerable(i,v(VarId::VULNERABLE_POWER));}break;
+    {
+        b.attack_all_from_card(c,damage);int targets[MAX_MONSTERS];int count=b.living_enemies(targets);
+        for(int k=0;k<count;++k)b.apply_weak(targets[k],v(VarId::WEAK_POWER));
+        count=b.living_enemies(targets);
+        for(int k=0;k<count;++k)b.apply_vulnerable(targets[k],v(VarId::VULNERABLE_POWER));break;
+    }
     case CardId::MONARCHS_GAZE:b.add_player_power(PowerId::MONARCHS_GAZE,v(VarId::STRENGTH_LOSS),true);break;
     case CardId::MONOLOGUE: {
         auto &r=b.regent;if(r.monologueCount==MAX_PILE)throw std::overflow_error("Monologue instances exhausted");
@@ -130,10 +145,8 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::PLOT:break; // Multiplayer-only: no other players in this simulator.
     case CardId::PROPHESIZE:b.draw_cards(v(VarId::CARDS));break;
     case CardId::QUASAR: {
-        Card offers[3];CardId pool[static_cast<int>(CardId::COUNT)];int n=0;
-        for(int i=1;i<static_cast<int>(CardId::COUNT);++i){const auto id=static_cast<CardId>(i);const auto &d=card_def(id);
-            if(d.pool==CardPool::COLORLESS && card_native_available(id) && !(d.flags&(CF_MULTIPLAYER_ONLY|CF_CANNOT_GENERATE_IN_COMBAT)))pool[n++]=id;}
-        native_sort_card_ids(pool,n);
+        Card offers[3];CardId pool[static_cast<int>(CardId::COUNT)];
+        const int n=b.combat_card_options(CardPool::COLORLESS,pool);
         // GetDistinctForCombat: UnstableShuffle the whole pool, take the first three.
         b.cardGenerationRng.shuffle(pool,n);const int offered=std::min(3,n);
         for(int i=0;i<offered;++i)offers[i]=make_card(pool[i],c.upgraded,b.require_card_uid());
@@ -144,7 +157,11 @@ bool regent_effect(BattleContext &b,Card &c,int target) {
     case CardId::REFINE_BLADE:regent_forge(b,v(VarId::FORGE));b.add_player_power(PowerId::ENERGY_NEXT_TURN,v(VarId::ENERGY),true);break;
     case CardId::REFLECT:b.gain_block(card_block(c),true);b.add_player_power(PowerId::REFLECT,1,true);break;
     case CardId::RESONANCE:
-        b.add_player_power(PowerId::STRENGTH,v(VarId::STRENGTH_POWER),true);for(int i=0;i<b.monsterCount;++i)if(b.monsters[i].alive)b.add_monster_power(i,PowerId::STRENGTH,-1,true);break;
+    {
+        b.add_player_power(PowerId::STRENGTH,v(VarId::STRENGTH_POWER),true);
+        int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);
+        for(int k=0;k<count;++k)b.add_monster_power(targets[k],PowerId::STRENGTH,-1,true);break;
+    }
     case CardId::ROYAL_GAMBLE:case CardId::VENERATE:regent_gain_stars(b,v(VarId::STARS));break;
     case CardId::ROYALTIES:b.add_player_power(PowerId::ROYALTIES,v(VarId::GOLD),true);break;
     case CardId::SEEKING_EDGE:b.add_player_power(PowerId::SEEKING_EDGE,1,true);regent_forge(b,v(VarId::FORGE));break;
@@ -210,10 +227,10 @@ void regent_finish_choice(BattleContext &b,ChoiceOp op) {
         if(!selected)continue;
         if(op==ChoiceOp::REGENT_TRANSFORM){
             const CardId id=source.id==CardId::CHARGE?CardId::MINION_DIVE_BOMB:source.id==CardId::GUARDS?CardId::MINION_SACRIFICE:CardId::MINION_STRIKE;
-            *selected=make_card(id,source.upgraded,b.require_card_uid());b.notify_card_generated(*selected);
+            *selected=make_card(id,source.upgraded,b.require_card_uid());b.notify_card_transformed(*selected);
         }else if(op==ChoiceOp::REGENT_CLONE){
             Card original=*selected;
-            for(int n=0;n<card_var(source,VarId::REPEAT);++n){Card copy=original;copy.uid=b.require_card_uid();b.add_card_to_hand(copy);b.notify_card_generated(copy);}
+            for(int n=0;n<card_var(source,VarId::REPEAT);++n){Card copy=original;copy.uid=b.require_card_uid();b.add_card_to_hand(copy);b.notify_card_generated(copy,true,true);}
         }else{
             Card copies[MAX_HAND];const int count=card_var(source,VarId::REPEAT);
             if(count>MAX_HAND)throw std::overflow_error("Regent autoplay repeat capacity exhausted");

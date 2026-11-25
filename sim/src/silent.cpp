@@ -6,7 +6,11 @@
 namespace sts2 {
 namespace {
 bool alive(const BattleContext &b,int i){return i>=0&&i<b.monsterCount&&b.monsters[i].alive;}
-void poison_all(BattleContext &b,int n){if(n>0)for(int i=0;i<b.monsterCount;++i)if(alive(b,i))b.add_monster_power(i,PowerId::POISON,n);}
+void poison_all(BattleContext &b,int n){
+    if(n<=0)return;
+    int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);  // HittableEnemies
+    for(int k=0;k<count;++k)if(alive(b,targets[k]))b.add_monster_power(targets[k],PowerId::POISON,n);
+}
 template<class F>void each_card(BattleContext &b,F fn){
     Card *piles[]={b.hand,b.draw,b.discard,b.exhaust,b.playPile,b.returnNextTurn};
     const int counts[]={b.handCount,b.drawCount,b.discardCount,b.exhaustCount,b.playCount,b.returnNextTurnCount};
@@ -26,9 +30,9 @@ void silent_create_shivs(BattleContext &b,int count,bool upgraded,bool inky){
     if(b.outcome!=Outcome::UNDECIDED)return;
     for(int i=0;i<count;++i){
         Card shiv=make_card(CardId::SHIV,upgraded,b.require_card_uid());
-        silent_card_entered_combat(b,shiv,false);
         if(inky){shiv.enchantment=EnchantmentId::INKY;shiv.enchantmentAmount=1;}
         b.add_card_to_hand(shiv);
+        b.notify_card_generated(shiv);   // Shiv.CreateInHand -> AddGeneratedCardsToCombat
     }
 }
 
@@ -84,7 +88,7 @@ void silent_before_hand_draw(BattleContext &b){
     for(int i=0;i<count;++i){
         for(int n=0;n<b.silent.nightmareAmounts[i];++n){
             Card clone=b.silent.nightmareCards[i];clone.uid=b.require_card_uid();
-            silent_card_entered_combat(b,clone,true);b.add_card_to_hand(clone);
+            b.add_card_to_hand(clone);b.notify_card_generated(clone,true,true);  // AddGeneratedCardToCombat
         }
     }
     if(count){b.silent.nightmareCount=0;remove_power(b,PowerId::NIGHTMARE);}

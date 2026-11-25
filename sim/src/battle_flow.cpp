@@ -85,7 +85,7 @@ void BattleContext::discard_cards(const Card *cards,int count,int drawAfter) {
     if(slyCount)auto_play_cards(sly,slyCount);
 }
 
-void BattleContext::notify_card_generated(const Card &card, bool byPlayer) {
+void BattleContext::notify_card_generated(const Card &card, bool byPlayer, bool isClone) {
     // CardPileCmd.Add -> Hook.AfterCardEnteredCombat mutates the pile instance.
     Card *piles[]={hand,draw,discard,exhaust,playPile,returnNextTurn};
     const int counts[]={handCount,drawCount,discardCount,exhaustCount,playCount,returnNextTurnCount};
@@ -96,13 +96,32 @@ void BattleContext::notify_card_generated(const Card &card, bool byPlayer) {
     // (+3 damage) per WitherUpgradeCount.
     if(entered&&entered->id==CardId::WITHER)entered->bonusDamage+=3*aeonglass_wither_upgrades(*this);
     if(entered) {
-        silent_card_entered_combat(*this,*entered,false);
-        necrobinder_card_entered_combat(*this,*entered,false);
-        regent_card_entered_combat(*this,*entered,false);
+        silent_card_entered_combat(*this,*entered,isClone);
+        necrobinder_card_entered_combat(*this,*entered,isClone);
+        regent_card_entered_combat(*this,*entered,isClone);
+        relics_card_entered_combat(*this,*entered);
     }
     const Card generated=entered?*entered:card;
-    defect_after_card_generated(*this,generated);
-    necrobinder_card_generated(*this,generated);
-    if(byPlayer)regent_card_generated(*this,generated);
+    // These hooks all require creator == owner; enemy-made Status cards do not trigger them.
+    if(byPlayer) {
+        defect_after_card_generated(*this,generated);
+        necrobinder_card_generated(*this,generated);
+        regent_card_generated(*this,generated);
+    }
+}
+
+// CardCmd.Transform in combat records CardGenerated and runs AfterCardEnteredCombat, but not
+// Hook.AfterCardGeneratedForCombat (no Arsenal, Smokestack, Rocket Punch, ...).
+void BattleContext::notify_card_transformed(const Card &card) {
+    Card *piles[]={hand,draw,discard,exhaust,playPile,returnNextTurn};
+    const int counts[]={handCount,drawCount,discardCount,exhaustCount,playCount,returnNextTurnCount};
+    for(int p=0;p<6;++p)for(int i=0;i<counts[p];++i)if(piles[p][i].uid==card.uid) {
+        silent_card_entered_combat(*this,piles[p][i],false);
+        necrobinder_card_entered_combat(*this,piles[p][i],false);
+        regent_card_entered_combat(*this,piles[p][i],false);
+        relics_card_entered_combat(*this,piles[p][i]);
+        ++regent.generatedThisCombat;
+        return;
+    }
 }
 }

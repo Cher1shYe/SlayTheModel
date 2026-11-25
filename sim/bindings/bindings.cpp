@@ -229,7 +229,7 @@ static py::list card_enchantments(const Card *cards, int n) {
 PYBIND11_MODULE(sts2_sim, m) {
     m.doc() = "Native STS2 simulator (sts_lightspeed-style)";
     // Identity of this port, not a claim of complete native-game parity.
-    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v21";
+    m.attr("ENGINE_RULESET_ID") = "native-41cef1ea-port-v30";
     m.attr("TARGET_GAME_DLL_SHA256") = "9cb4f1ad8c9f284aa8fec3122ffd6d780bbf543d875c817abdd12ff63fbf12b4";
     m.attr("NATIVE_PARITY_COMPLETE") = false;
 
@@ -802,6 +802,15 @@ PYBIND11_MODULE(sts2_sim, m) {
             for (int i = 0; i < bc.discardCount; ++i) out.append(static_cast<int>(bc.discard[i].id));
             return out;
         })
+        .def_property_readonly("encounter_id", [](const BattleContext &bc) { return static_cast<int>(bc.encounter); })
+        .def("hidden_draw_order", [](const BattleContext &bc, int count) {
+            // HIDDEN information, for the training-only value input: never feed it to the policy.
+            // Top of the draw pile first; each entry is 2 * card id + upgraded.
+            py::list out;
+            for (int i = bc.drawCount - 1; i >= 0 && static_cast<int>(py::len(out)) < count; --i)
+                out.append(2 * static_cast<int>(bc.draw[i].id) + (bc.draw[i].upgraded ? 1 : 0));
+            return out;
+        }, py::arg("count"))
         .def_property_readonly("draw_count", [](const BattleContext &bc) { return bc.drawCount; })
         .def_property_readonly("discard_count", [](const BattleContext &bc) { return bc.discardCount; })
         .def_property_readonly("exhaust_count", [](const BattleContext &bc) { return bc.exhaustCount; })
@@ -1045,6 +1054,17 @@ PYBIND11_MODULE(sts2_sim, m) {
             const std::string s = blob;
             return RunContext::restore(s, rc);
         })
+        .def("reseed_combat_streams", [](RunContext &rc, std::uint64_t seed) {
+            // Training only (practice fights): call on a state saved just before a combat is
+            // entered. Replaces exactly the streams BattleContext::init copies from RunRngSet,
+            // so the next combat re-deals its hidden randomness through the normal setup.
+            // Room, encounter and reward streams are untouched. No rule changes.
+            for (const int k : {RNG_SHUFFLE, RNG_COMBAT_CARD_GENERATION, RNG_COMBAT_POTION_GENERATION,
+                                RNG_COMBAT_CARD_SELECTION, RNG_COMBAT_ENERGY_COSTS, RNG_COMBAT_TARGETS,
+                                RNG_MONSTER_AI, RNG_NICHE, RNG_COMBAT_ORBS}) {
+                rc.runRng[k] = Rng(seed + static_cast<std::uint64_t>(k + 1) * 0x9E3779B97F4A7C15ull);
+            }
+        }, py::arg("seed"))
         .def("terminal_reward", [](const RunContext &rc) { return rc.terminal_reward(); })
         .def_property_readonly("battle", [](RunContext &rc) -> BattleContext & { return rc.battle; },
                                py::return_value_policy::reference_internal)

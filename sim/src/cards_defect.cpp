@@ -1,5 +1,6 @@
 #include "sts2/defect.h"
 #include "sts2/battle.h"
+#include "sts2/card_candidates.h"
 #include "sts2/relics.h"
 
 namespace sts2 {
@@ -121,7 +122,7 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
     switch (card.id) {
         case CardId::ADAPTIVE_STRIKE: {
             attack(); Card copy = card; copy.uid = bc.require_card_uid(); card_modify_cost(copy, 0, true, 0);
-            bc.add_card_to_discard(copy); bc.notify_card_generated(copy); return true;
+            bc.add_card_to_discard(copy); bc.notify_card_generated(copy, true, true); return true;  // CreateClone
         }
         case CardId::ALL_FOR_ONE: {
             attack(); std::uint16_t ids[MAX_PILE]; int count = 0;
@@ -148,14 +149,14 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
         case CardId::CAPACITOR: defect_add_orb_slots(bc, card_var(card, VarId::REPEAT)); return true;
         case CardId::CHAOS: for (int i = 0; i < card_var(card, VarId::REPEAT); ++i) defect_channel_random(bc); return true;
         case CardId::CHARGE_BATTERY: block(); power(PowerId::ENERGY_NEXT_TURN, VarId::ENERGY); return true;
-        case CardId::CHILL: channels(bc, OrbId::FROST, bc.alive_monster_count()); return true;
+        case CardId::CHILL: {int hittable[MAX_MONSTERS]; channels(bc, OrbId::FROST, bc.living_enemies(hittable)); return true;}
         case CardId::CLAW: attack(); grow_claws(bc, card, card_var(card, VarId::INCREASE)); return true;
         case CardId::COLD_SNAP: attack(); defect_channel(bc, OrbId::FROST); return true;
         case CardId::COMPACT:
             block();
             for (int i = 0; i < bc.handCount; ++i) if (card_type(bc.hand[i]) == CardType::STATUS) {
                 Card replacement = make_card(CardId::FUEL, card.upgraded, bc.require_card_uid());
-                bc.hand[i] = replacement; bc.notify_card_generated(replacement);
+                bc.hand[i] = replacement; bc.notify_card_transformed(replacement);
             }
             return true;
         case CardId::COMPILE_DRIVER: attack(); bc.draw_cards(defect_unique_orbs(bc)); return true;
@@ -246,8 +247,7 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
         case CardId::STRIKE_DEFECT: attack(); return true;
         case CardId::SUBROUTINE: bc.add_player_power(PowerId::SUBROUTINE, 1,true); return true;
         case CardId::SUNDER: {
-            const bool wasAlive = target >= 0 && target < bc.monsterCount && bc.monsters[target].alive && bc.monsters[target].hp > 0;
-            attack(); if (wasAlive && (!bc.monsters[target].alive || bc.monsters[target].hp <= 0)) bc.player.energy += card_var(card, VarId::ENERGY);
+            if (attack()) bc.player.energy += card_var(card, VarId::ENERGY);  // DamageResult.WasTargetKilled
             return true;
         }
         case CardId::SUPERCRITICAL: bc.player.energy += card_var(card, VarId::ENERGY); return true;
@@ -259,23 +259,25 @@ bool defect_effect(BattleContext &bc, Card &card, int target) {
         case CardId::TEMPEST: channels(bc, OrbId::LIGHTNING, bc.xCost + (card.upgraded ? 1 : 0)); return true;
         case CardId::TESLA_COIL:
             attack(); for (int i = 0; i < bc.defect.orbCount; ++i) if (bc.defect.orbs[i].id == OrbId::LIGHTNING)
-                for (int j = 0; j < (card.upgraded ? 2 : 1); ++j) defect_orb_passive(bc, i, target);
+                for (int j = 0; j < (card.upgraded ? 2 : 1) && bc.outcome == Outcome::UNDECIDED &&
+                                target >= 0 && bc.monsters[target].alive; ++j) defect_orb_passive(bc, i, target);
             return true;
         case CardId::THUNDER: power(PowerId::THUNDER, VarId::THUNDER_POWER); return true;
         case CardId::TRASH_TO_TREASURE: bc.add_player_power(PowerId::TRASH_TO_TREASURE, 1,true); return true;
         case CardId::TURBO: bc.player.energy += card_var(card, VarId::ENERGY); generated(bc, CardId::VOID); return true;
         case CardId::UPROAR: {
-            attack(2); Card candidates[MAX_PILE]; int n = 0;
-            for (int i = 0; i < bc.drawCount; ++i) if (card_is_attack(bc.draw[i]) && !card_has(bc.draw[i], CF_UNPLAYABLE)) candidates[n++] = bc.draw[i];
-            if (!n) for (int i = 0; i < bc.drawCount; ++i) if (card_is_attack(bc.draw[i])) candidates[n++] = bc.draw[i];
-            std::stable_sort(candidates, candidates + n, native_card_less); bc.shuffleRng.shuffle(candidates, n);
-            if (n) {bc.activePlay.defect.stage = 1; bc.auto_play_cards(candidates, 1);}
+            attack(2); int picks[MAX_PILE]; int n = 0;
+            for (int i = 0; i < bc.drawCount; ++i) if (card_is_attack(bc.draw[i]) && !card_has(bc.draw[i], CF_UNPLAYABLE)) picks[n++] = i;
+            if (!n) for (int i = 0; i < bc.drawCount; ++i) if (card_is_attack(bc.draw[i])) picks[n++] = i;
+            // StableShuffle: .NET sort of the pile's list (index 0 is the top), then Fisher-Yates.
+            std::reverse(picks, picks + n); native_sort_card_indices(bc.draw, picks, n); bc.shuffleRng.shuffle(picks, n);
+            if (n) {const Card chosen = bc.draw[picks[0]]; bc.activePlay.defect.stage = 1; bc.auto_play_cards(&chosen, 1);}
             return true;
         }
         case CardId::VOLTAIC: channels(bc, OrbId::LIGHTNING, bc.defect.lightningChanneled); return true;
         case CardId::WHITE_NOISE: {
             Card c = defect_random_power(bc);
-            if (c.id != CardId::INVALID) {card_modify_cost(c, 0, true, 2); bc.add_card_to_hand(c); bc.notify_card_generated(c);} return true;
+            if (c.id != CardId::INVALID) {card_modify_cost(c, 0, true, 2 | 4 | 8); bc.add_card_to_hand(c); bc.notify_card_generated(c);} return true;
         }
         case CardId::ZAP: defect_channel(bc, OrbId::LIGHTNING); return true;
         default: return false;

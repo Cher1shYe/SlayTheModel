@@ -107,7 +107,8 @@ void BattleContext::add_player_power(PowerId id, int amount, bool fromCard) {
     if(fromCard && power_is_debuff(id,amount))amount=relics_debuff_amount(*this,id,amount,false,power_visible(id));
     // PowerCmd.Apply: a Debuff applied to a player skips its first duration
     // tick (WeakPower/FrailPower/VulnerablePower.AfterTurnEnd -> TickDownDuration).
-    if (amount > 0 && power_is_debuff(id,amount)) {
+    // Only a NEW power instance skips: stacking goes through PowerCmd.ModifyAmount.
+    if (amount > 0 && previousAmount == 0 && power_is_debuff(id,amount)) {
         if (id == PowerId::WEAK) weakSkipTick = true;
         if (id == PowerId::FRAIL) frailSkipTick = true;
         if (id == PowerId::VULNERABLE) vulnerableSkipTick = true;

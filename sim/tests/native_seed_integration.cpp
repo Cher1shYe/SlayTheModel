@@ -40,7 +40,7 @@ int main() {
     require(same_rng(wide->eventRng, denseRng), "shared event stream after CalculateVars");
     auto restored = std::make_unique<RunContext>();
     const auto snapshot = text->serialize();
-    require(static_cast<unsigned char>(snapshot[4]) == 18, "snapshot version 18");
+    require(static_cast<unsigned char>(snapshot[4]) == 20, "snapshot version 20");
     require(RunContext::restore(snapshot, *restored), "restore native RNG snapshot");
     require(restored->seed == text->seed, "snapshot preserves 64-bit seed");
     for (int stream=0; stream<RNG_COUNT; ++stream)

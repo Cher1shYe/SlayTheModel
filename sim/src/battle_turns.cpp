@@ -8,6 +8,24 @@
 #include "sts2/regent.h"
 #include <algorithm>
 namespace sts2 {
+
+// Cards that auto-play themselves from the exhaust pile (Howl from Beyond, Bombardment).
+static void auto_play_exhausted(BattleContext &b, CardId id) {
+    std::uint16_t uids[MAX_PILE];
+    int n = 0;
+    for (int i = 0; i < b.exhaustCount; ++i)
+        if (b.exhaust[i].id == id) uids[n++] = b.exhaust[i].uid;
+    for (int i = 0; i < n && b.outcome == Outcome::UNDECIDED; ++i) {
+        for (int j = 0; j < b.exhaustCount; ++j) {
+            if (b.exhaust[j].uid != uids[i]) continue;
+            const Card c = b.exhaust[j];
+            for (int k = j; k + 1 < b.exhaustCount; ++k) b.exhaust[k] = b.exhaust[k + 1];
+            --b.exhaustCount;
+            b.auto_play_random(c, false);
+            break;
+        }
+    }
+}
 int &power_ref(Player &,PowerId);
 static void remove_at(Card *cards,int &count,int index){for(int i=index;i+1<count;++i)cards[i]=cards[i+1];--count;}
 
@@ -17,6 +35,7 @@ void BattleContext::start_player_turn(bool extraTurn) {
     boundAfflictedThisTurn = 0;   // CardAfflictedEntry.HappenedThisTurn
     turnFlow.stage = TURN_FLOW_IDLE;
     turnFlow.relicCursor = 0;
+    turnFlow.extraTurn = extraTurn;
     // Creature.BeforeTurnStart: PowerModel.AmountOnTurnStart snapshot.
     turnFlow.drawCardsNextTurnAtStart = player_power(PowerId::DRAW_CARDS_NEXT_TURN);
     // Per-turn character counters reset with the new PlayerCombatState turn.
@@ -24,6 +43,32 @@ void BattleContext::start_player_turn(bool extraTurn) {
     defect_begin_turn(*this);
     necrobinder_player_turn_start(*this);
     regent_reset_turn(*this);
+    // AggressionPower.BeforeSideTurnStart: move Amount random attacks from the
+    // discard pile to hand and upgrade them, before the draw/shuffle.
+    if (player_power(PowerId::AGGRESSION) > 0 && discardCount > 0) {
+        std::uint16_t uids[MAX_PILE];
+        int n = 0;
+        for (int i = 0; i < discardCount; ++i)
+            if (card_is_attack(discard[i])) uids[n++] = discard[i].uid;
+        cardSelectionRng.shuffle(uids, n);
+        const int take = std::min(n, player_power(PowerId::AGGRESSION));
+        for (int k = 0; k < take; ++k) {
+            for (int i = 0; i < discardCount; ++i) {
+                if (discard[i].uid != uids[k]) continue;
+                Card c = discard[i];
+                remove_at(discard, discardCount, i);
+                add_card_to_hand(c);
+                // CardPileCmd.Add, then Upgrade: a card that overflowed the hand is upgraded too.
+                if (Card *moved = find_in_hand(c.uid)) { if (card_upgradable(*moved)) upgrade_card(*moved); }
+                else if (Card *over = find_in_discard(c.uid)) { if (card_upgradable(*over)) upgrade_card(*over); }
+                break;
+            }
+        }
+    }
+    // Hook.BeforeSideTurnStart listener order: the player's powers (Aggression, above), the
+    // player's relics, then enemy powers (Plating). v29.
+    relics_before_side_turn_start(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     // PlatingPower.BeforeSideTurnStart: at the start of round 1 enemies gain
     // block equal to their plating.
     if (combatRound == 1) {
@@ -35,20 +80,6 @@ void BattleContext::start_player_turn(bool extraTurn) {
     // Hook.BeforeSideTurnStart is done; CombatManager now calls PrepareForNextTurn
     // (RollMove) for every enemy, then the AfterSideTurnStart listeners run.
     if (!extraTurn) roll_pending_moves(*this);
-    // RampartPower.AfterSideTurnStart(Player): every Rampart owner supplies
-    // its Amount to all TurretOperator allies.
-    for (int i = 0; i < monsterCount; ++i) {
-        if (extraTurn || !monsters[i].alive ||
-            monsters[i].power[static_cast<int>(PowerId::RAMPART)] <= 0) {
-            continue;
-        }
-        const int amount = monsters[i].power[static_cast<int>(PowerId::RAMPART)];
-        for (int j = 0; j < monsterCount; ++j) {
-            if (monsters[j].alive && monsters[j].id == MonsterId::TURRET_OPERATOR) {
-                monsters[j].block += amount;
-            }
-        }
-    }
     player.tookUnblockedDamageThisTurn = false;
     // Hook.ShouldClearBlock: Barricade and Blur keep the player's block.
     if (player_power(PowerId::BARRICADE) <= 0 && player_power(PowerId::BLUR) <= 0) {
@@ -78,6 +109,9 @@ void BattleContext::start_player_turn(bool extraTurn) {
         add_player_power(PowerId::BLOCK_NEXT_TURN, -b);
         gain_block(b, false, false);
     }
+    // Hook.AfterBlockCleared: Self-Forming Clay (a power natively), then relics in relic-bar order.
+    relics_after_block_cleared(*this);
+    if (outcome != Outcome::UNDECIDED) return;
     int baseEnergy = player.energyPerTurn;
     // WasteAwayPower.ModifyMaxEnergy: max energy - Amount.
     if (player_power(PowerId::WASTE_AWAY) > 0) baseEnergy = std::max(0, baseEnergy - player_power(PowerId::WASTE_AWAY));
@@ -125,35 +159,6 @@ void BattleContext::start_player_turn(bool extraTurn) {
     relics_turn_start(*this);
     if (outcome != Outcome::UNDECIDED) return;
 
-    if (player_power(PowerId::DEMON_FORM) > 0) add_player_power(PowerId::STRENGTH, player_power(PowerId::DEMON_FORM));
-    // Both native hooks run in the order the power instances were acquired.
-    // This is observable with unequal SelfDamage values and one Buffer charge.
-    const auto crimsonTurnStart = [&]() {
-        if (player_power(PowerId::CRIMSON_MANTLE) <= 0 || outcome != Outcome::UNDECIDED) return;
-        damage_player(player.crimsonMantleSelfDamage, true);
-        if (outcome == Outcome::UNDECIDED)
-            gain_block(player_power(PowerId::CRIMSON_MANTLE), false, false);
-    };
-    const auto infernoTurnStart = [&]() {
-        if (player_power(PowerId::INFERNO) > 0 && outcome == Outcome::UNDECIDED)
-            damage_player(player.infernoSelfDamage, true);
-    };
-    if (player.infernoBeforeCrimsonMantle) {
-        infernoTurnStart();
-        crimsonTurnStart();
-    } else {
-        crimsonTurnStart();
-        infernoTurnStart();
-    }
-    if (outcome != Outcome::UNDECIDED) return;
-    for (int i = 0; i < rollingCount && outcome == Outcome::UNDECIDED; ++i) {
-        attack_all(rollingDamage[i], 1, false);
-        rollingDamage[i] += 5;
-        power_ref(player, PowerId::ROLLING_BOULDER) += 5;
-    }
-    if (outcome != Outcome::UNDECIDED) return;
-    if (player_power(PowerId::PREP_TIME) > 0) add_player_power(PowerId::VIGOR, player_power(PowerId::PREP_TIME));
-
     // Cards whose cost was changed "this turn" expire now, wherever they are;
     // free-until-played costs persist until that copy is played.  Hidden Gem's
     // replay is BaseReplayCount (permanent for the combat), not a turn effect.
@@ -185,82 +190,20 @@ void BattleContext::continue_pre_draw() {
     // ThrummingHatchet.BeforeHandDraw: the exact instance played last round
     // returns from whichever pile holds it (normally the discard pile).
     recall_played_last_turn(CardId::THRUMMING_HATCHET);
-    // HowlFromBeyond.BeforeHandDraw: every exhausted copy auto-plays.
-    if (exhaustCount > 0) {
-        std::uint16_t howls[MAX_PILE];
-        int howlN = 0;
-        for (int i = 0; i < exhaustCount; ++i) {
-            if (exhaust[i].id == CardId::HOWL_FROM_BEYOND) howls[howlN++] = exhaust[i].uid;
-        }
-        for (int i = 0; i < howlN && outcome == Outcome::UNDECIDED; ++i) {
-            for (int j = 0; j < exhaustCount; ++j) {
-                if (exhaust[j].uid != howls[i]) continue;
-                Card c = exhaust[j];
-                for (int k = j; k + 1 < exhaustCount; ++k) exhaust[k] = exhaust[k + 1];
-                --exhaustCount;
-                auto_play_random(c, false);
-                break;
-            }
-        }
-    }
-    // AggressionPower.BeforeSideTurnStart: move Amount random attacks from the
-    // discard pile to hand and upgrade them, before the draw/shuffle.
-    if (player_power(PowerId::AGGRESSION) > 0 && discardCount > 0) {
-        int idxs[MAX_PILE];
-        int n = 0;
-        for (int i = 0; i < discardCount; ++i) {
-            if (card_is_attack(discard[i])) idxs[n++] = i;
-        }
-        for (int i = n - 1; i > 0; --i) {
-            const int j = cardSelectionRng.next_int(0, i);
-            std::swap(idxs[i], idxs[j]);
-        }
-        const int take = std::min(n, player_power(PowerId::AGGRESSION));
-        int chosen[MAX_PILE];
-        for (int k = 0; k < take; ++k) chosen[k] = idxs[k];
-        // Sort the chosen indices descending so removals do not shift the rest.
-        for (int a = 1; a < take; ++a) {
-            const int v = chosen[a];
-            int b = a - 1;
-            while (b >= 0 && chosen[b] < v) { chosen[b + 1] = chosen[b]; --b; }
-            chosen[b + 1] = v;
-        }
-        for (int k = 0; k < take; ++k) {
-            Card c = discard[chosen[k]];
-            if (card_upgradable(c)) upgrade_card(c);
-            add_card_to_hand(c);
-        }
-        for (int k = 0; k < take; ++k) {
-            const int idx = chosen[k];
-            for (int j = idx; j + 1 < discardCount; ++j) discard[j] = discard[j + 1];
-            --discardCount;
-        }
-    }
+    recall_played_last_turn(CardId::BOLAS);
     // HelloWorldPower.BeforeHandDraw: add distinct unlocked Ironclad commons
     // before the normal hand draw.
     if (player_power(PowerId::HELLO_WORLD) > 0) {
-        CardId pool[static_cast<int>(CardId::COUNT)];
-        int n = 0;
-        for (int i = 1; i < static_cast<int>(CardId::COUNT); ++i) {
-            const CardDef &d = card_def(static_cast<CardId>(i));
-        if (!card_native_available(static_cast<CardId>(i)) || !card_epoch_unlocked(revealedEpochs, static_cast<CardId>(i))) continue;
-            if (d.pool == CardPool::IRONCLAD && d.rarity == Rarity::COMMON &&
-                !(d.flags & (CF_UNPLAYABLE | CF_MULTIPLAYER_ONLY |
-                             CF_CANNOT_GENERATE_IN_COMBAT))) {
-                pool[n++] = static_cast<CardId>(i);
-            }
-        }
-        CardId picked[16];
-        int pickedN = 0;
-        const int wanted = std::min(player_power(PowerId::HELLO_WORLD),
-                                    static_cast<int>(sizeof(picked) / sizeof(picked[0])));
-        for (int guard = 0; guard < 256 && pickedN < wanted && n > 0; ++guard) {
-            const int idx = cardGenerationRng.next_int(0, n - 1);
-            bool duplicate = false;
-            for (int j = 0; j < pickedN; ++j) duplicate |= picked[j] == pool[idx];
-            if (duplicate) continue;
-            picked[pickedN++] = pool[idx];
-            add_card_to_hand(make_card(pool[idx], false, require_card_uid()));
+        CardId options[static_cast<int>(CardId::COUNT)];
+        int n = combat_card_options(characterPool, options);
+        n = static_cast<int>(std::remove_if(options, options + n, [](CardId id) {
+            return card_def(id).rarity != Rarity::COMMON;
+        }) - options);
+        Card generated[MAX_PILE];
+        const int made = distinct_for_combat(options, n, std::min(player_power(PowerId::HELLO_WORLD), MAX_PILE), generated);
+        for (int k = 0; k < made; ++k) {
+            add_card_to_hand(generated[k]);
+            notify_card_generated(generated[k]);
         }
     }
 
@@ -345,8 +288,12 @@ void BattleContext::resume_turn_flow() {
                 draw_cards(count, true);
                 break;
             }
-            turnFlow.stage = TURN_FLOW_RELIC_APTS;
+            turnFlow.stage = TURN_FLOW_POWER_APTS;
             after_hand_drawn();
+            break;
+        case TURN_FLOW_POWER_APTS:
+            turnFlow.stage = TURN_FLOW_RELIC_APTS;
+            powers_after_player_turn_start();
             break;
         // Hook.AfterPlayerTurnStart, one listener at a time.
         case TURN_FLOW_SILENT_APTS:
@@ -363,22 +310,18 @@ void BattleContext::resume_turn_flow() {
             break;
         case TURN_FLOW_SIDE_START:
         default:
-            turnFlow.stage = TURN_FLOW_IDLE;
-            if(relic_has(*this,RelicId::CROSSBOW)) {
-                Card card=random_card_of_type(CardType::ATTACK,false);
-                card_modify_cost(card,0,true,2|4);add_card_to_hand(card);
-            }
+            turnFlow.stage = TURN_FLOW_AUTO_PRE_PLAY;
+            // Hook.AfterPlayerTurnStartLate (Blood Vial) after every AfterPlayerTurnStart listener.
+            relics_after_player_turn_start_late(*this);
+            if (outcome != Outcome::UNDECIDED) return;
+            // DemonFormPower / PrepTimePower.AfterSideTurnStart run after the hand is drawn.
+            if (player_power(PowerId::DEMON_FORM) > 0) add_player_power(PowerId::STRENGTH, player_power(PowerId::DEMON_FORM));
+            if (player_power(PowerId::PREP_TIME) > 0) add_player_power(PowerId::VIGOR, player_power(PowerId::PREP_TIME));
             // Hook.AfterSideTurnStart(Player), then OrbQueue.AfterTurnStart.
             // Plating decays on its owner's turn start, including extra turns.
             if (turn != 1 && player_power(PowerId::PLATING) > 0)
                 add_player_power(PowerId::PLATING, -1);
             silent_player_turn_start(*this);
-            // DiamondDiadem.AfterSideTurnStart (relics follow the player's powers, so
-            // Blur's own decrement has already run): turn 1 +20 block (Unpowered), Blur 1.
-            if (turn == 1 && relic_has(*this, RelicId::DIAMOND_DIADEM)) {
-                gain_block(20, false, false);
-                add_player_power(PowerId::BLUR, 1);
-            }
             defect_after_side_turn_start(*this);
             necrobinder_after_side_turn_start(*this);
             regent_after_side_turn_start(*this);
@@ -388,9 +331,32 @@ void BattleContext::resume_turn_flow() {
                 add_player_power(PowerId::DRAW_CARDS_NEXT_TURN, -player_power(PowerId::DRAW_CARDS_NEXT_TURN));
             turnFlow.drawCardsNextTurnAtStart = 0;
             if (outcome != Outcome::UNDECIDED) return;
-            defect_player_turn_start(*this);
+            // The player's relics (relic-bar order), then enemy powers.
+            relics_after_side_turn_start(*this);
             if (outcome != Outcome::UNDECIDED) return;
-            relic_persistent_finish_turn_start(*this);
+            // RampartPower.AfterSideTurnStart(Player): every Rampart owner supplies
+            // its Amount to all TurretOperator allies.
+            for (int i = 0; i < monsterCount; ++i) {
+                if (turnFlow.extraTurn || !monsters[i].alive ||
+                    monsters[i].power[static_cast<int>(PowerId::RAMPART)] <= 0) {
+                    continue;
+                }
+                const int amount = monsters[i].power[static_cast<int>(PowerId::RAMPART)];
+                for (int j = 0; j < monsterCount; ++j) {
+                    if (monsters[j].alive && monsters[j].id == MonsterId::TURRET_OPERATOR) {
+                        monsters[j].block += amount;
+                    }
+                }
+            }
+            defect_player_turn_start(*this);  // OrbQueue.AfterTurnStart, after the hook
+            if (outcome != Outcome::UNDECIDED) return;
+            break;
+        case TURN_FLOW_AUTO_PRE_PLAY:
+            turnFlow.stage = TURN_FLOW_FINISH_START;
+            auto_pre_play_phase();
+            break;
+        case TURN_FLOW_FINISH_START:
+            turnFlow.stage = TURN_FLOW_IDLE;
             // RunAutoPrePlayPhase -> Hook.AfterAutoPrePlayPhaseEnteredLate.
             whispering_earring_auto_play();
             return;
@@ -401,33 +367,60 @@ void BattleContext::resume_turn_flow() {
 // Hook.AfterCardDrawn for the hand is done; hand-drawn relic and power effects.
 void BattleContext::after_hand_drawn() {
     relics_hand_drawn(*this);
+}
 
-    // powers that act on the drawn hand
-    if (player_power(PowerId::ENTROPY) > 0) {
-        int n = player_power(PowerId::ENTROPY);
-        while (n-- > 0 && handCount > 0) {
-            const int idx = cardGenerationRng.next_int(0, handCount - 1);
-            transform_card(hand[idx]);
-            notify_card_generated(hand[idx], true);
-        }
+// Hook.AfterPlayerTurnStart for the player's own powers.
+void BattleContext::powers_after_player_turn_start() {
+    // Both native hooks run in the order the power instances were acquired.
+    // This is observable with unequal SelfDamage values and one Buffer charge.
+    const auto crimsonTurnStart = [&]() {
+        if (player_power(PowerId::CRIMSON_MANTLE) <= 0 || outcome != Outcome::UNDECIDED) return;
+        damage_player(player.crimsonMantleSelfDamage, true);
+        if (outcome == Outcome::UNDECIDED)
+            gain_block(player_power(PowerId::CRIMSON_MANTLE), false, false);
+    };
+    const auto infernoTurnStart = [&]() {
+        if (player_power(PowerId::INFERNO) > 0 && outcome == Outcome::UNDECIDED)
+            damage_player(player.infernoSelfDamage, true);
+    };
+    if (player.infernoBeforeCrimsonMantle) {
+        infernoTurnStart();
+        crimsonTurnStart();
+    } else {
+        crimsonTurnStart();
+        infernoTurnStart();
     }
-    if (player_power(PowerId::AGGRESSION) > 0) {
-        int attacks[MAX_PILE];
-        int n = 0;
-        for (int i = 0; i < discardCount; ++i) {
-            if (card_is_attack(discard[i])) attacks[n++] = i;
-        }
-        if (n > 0) {
-            const int idx = attacks[cardSelectionRng.next_int(0, n - 1)];
-            Card c = discard[idx];
-            remove_at(discard, discardCount, idx);
-            upgrade_card(c);
-            add_card_to_hand(c);
-        }
+    for (int i = 0; i < rollingCount && outcome == Outcome::UNDECIDED; ++i) {
+        attack_all(rollingDamage[i], 1, false);
+        rollingDamage[i] += 5;
+        power_ref(player, PowerId::ROLLING_BOULDER) += 5;
     }
+    if (outcome != Outcome::UNDECIDED) return;
+    // EntropyPower: the player chooses Amount hand cards; each transforms on CombatCardSelection.
+    if (player_power(PowerId::ENTROPY) > 0 && handCount > 0) {
+        Card dummy{};
+        dummy.uid = 0xFFFF;
+        start_choice(ChoiceOp::TRANSFORM, ChoicePile::HAND, std::min(player_power(PowerId::ENTROPY), handCount),
+                     false, dummy, false);
+        if (pending.op != ChoiceOp::NONE) pending.hasSource = false;
+    }
+}
+
+// CombatManager.RunAutoPrePlayPhase: Hook.AfterAutoPrePlayPhaseEntered.
+void BattleContext::auto_pre_play_phase() {
+    // RunAutoPrePlayPhase: CheckForEmptyHand comes first.
+    relics_check_empty_hand(*this);
+    if (pending.op != ChoiceOp::NONE) {
+        turnFlow.stage = TURN_FLOW_AUTO_PRE_PLAY;
+        return;
+    }
+    // Bombardment.AfterAutoPrePlayPhaseEnteredEarly.
+    auto_play_exhausted(*this, CardId::BOMBARDMENT);
+    if (outcome != Outcome::UNDECIDED) return;
     if (player_power(PowerId::MAYHEM) > 0) {
         auto_play_from_draw(player_power(PowerId::MAYHEM), false);
     }
+    relics_auto_pre_play(*this);   // powers, then relics, then cards
     // Imbued.AfterAutoPrePlayPhaseEntered (cards follow powers and relics in
     // the listener list): on turn 1 every Imbued card auto-plays from its pile.
     if (turn <= 1) {
@@ -490,6 +483,33 @@ void BattleContext::end_player_turn() {
         turnFlow.stage=TURN_FLOW_IDLE;turnFlow.paelsEyeExhaustCount=turnFlow.paelsEyeExhaustIndex=0;
         std::fill(std::begin(turnFlow.paelsEyeExhaustUids),std::end(turnFlow.paelsEyeExhaustUids),0);
     }
+    // Hook.AfterAutoPostPlayPhaseEntered precedes every end-of-turn effect.
+    if (player_power(PowerId::STAMPEDE) > 0) {
+        int attacks = player_power(PowerId::STAMPEDE);
+        while (attacks-- > 0 && handCount > 0 && outcome == Outcome::UNDECIDED) {
+            int candidates[MAX_HAND];
+            int n = 0;
+            for (int i = 0; i < handCount; ++i)
+                if (card_is_attack(hand[i]) && !card_has(hand[i], CF_UNPLAYABLE)) candidates[n++] = i;
+            if (n == 0) break;
+            const int idx = candidates[shuffleRng.next_int_range(0, n)];  // StampedePower: Rng.Shuffle
+            Card c = hand[idx];
+            remove_at(hand, handCount, idx);
+            // StampedePower -> CardCmd.AutoPlay: the whole play lifecycle
+            // (counters, Rage/after-play hooks, Duplication) must run.
+            auto_play_random(c, false);
+        }
+    }
+    // Card listeners run Hand, Draw, Discard, Exhaust: I Am Invincible before Howl from Beyond.
+    {
+        int copies = 0;
+        for (int i = 0; i < drawCount; ++i) copies += draw[i].id == CardId::I_AM_INVINCIBLE;
+        for (int i = 0; i < copies && outcome == Outcome::UNDECIDED && pending.op == ChoiceOp::NONE &&
+                        drawCount > 0 && draw[drawCount - 1].id == CardId::I_AM_INVINCIBLE; ++i)
+            auto_play_from_draw(1, false);
+    }
+    auto_play_exhausted(*this, CardId::HOWL_FROM_BEYOND);
+    if (outcome != Outcome::UNDECIDED) return;
     // Rounds are the unit ThrummingHatchet's BeforeHandDraw looks back on.
     playedLastTurnCount = 0;
     for (int i = 0; i < playedThisTurnCount && playedLastTurnCount < MAX_PILE; ++i) {
@@ -502,25 +522,12 @@ void BattleContext::end_player_turn() {
     playedThisTurnCount = 0;
     // Hook.BeforeSideTurnEndVeryEarly (Orichalcum) precedes every end-of-turn effect.
     const bool blockWasZeroAtTurnEnd = player.block == 0;
-    // end-of-turn powers
-    if (player_power(PowerId::CONSTRICT) > 0) {
-        damage_player(player_power(PowerId::CONSTRICT));
-        if (outcome != Outcome::UNDECIDED) return;
-    }
-    if (player_power(PowerId::STAMPEDE) > 0) {
-        int attacks = player_power(PowerId::STAMPEDE);
-        while (attacks-- > 0 && handCount > 0 && outcome == Outcome::UNDECIDED) {
-            int candidates[MAX_HAND];
-            int n = 0;
-            for (int i = 0; i < handCount; ++i) if (card_is_attack(hand[i])) candidates[n++] = i;
-            if (n == 0) break;
-            const int idx = candidates[cardSelectionRng.next_int(0, n - 1)];
-            Card c = hand[idx];
-            remove_at(hand, handCount, idx);
-            // StampedePower -> CardCmd.AutoPlay: the whole play lifecycle
-            // (counters, Rage/after-play hooks, Duplication) must run.
-            auto_play_random(c, false);
-        }
+    // Hook.BeforeSideTurnEndEarly: Plating and Regen, before The Bomb and the relics.
+    if (player_power(PowerId::PLATING) > 0)
+        gain_block(player_power(PowerId::PLATING), false, false);
+    if (player_power(PowerId::REGEN) > 0) {
+        heal_hp(player_power(PowerId::REGEN));
+        add_player_power(PowerId::REGEN, -1);
     }
     // Each bomb instance counts down and explodes independently; power duration
     // (Unpowered) ignores strength and vulnerable.
@@ -534,12 +541,6 @@ void BattleContext::end_player_turn() {
         --bombCount;
         attack_all(dmg, 1, false);
         if (outcome != Outcome::UNDECIDED) return;
-    }
-    if (player_power(PowerId::PLATING) > 0)
-        gain_block(player_power(PowerId::PLATING), false, false);
-    if (player_power(PowerId::REGEN) > 0) {
-        heal_hp(player_power(PowerId::REGEN));
-        add_player_power(PowerId::REGEN, -1);
     }
     relics_turn_end(*this, blockWasZeroAtTurnEnd);
     relics_after_turn(*this);
@@ -558,7 +559,12 @@ void BattleContext::end_player_turn() {
     discard_hand();
     if (outcome != Outcome::UNDECIDED) return;
     flush_ethereal_exhaust_hooks();
-    // Hook.AfterSideTurnEnd(Player).
+    // Hook.AfterSideTurnEnd(Player): powers first. Constrict comes after every end-of-turn
+    // block gain, so that block absorbs it.
+    if (player_power(PowerId::CONSTRICT) > 0) {
+        damage_player(player_power(PowerId::CONSTRICT));
+        if (outcome != Outcome::UNDECIDED) return;
+    }
     relics_after_side_turn_end(*this);
     if (outcome != Outcome::UNDECIDED) return;
     silent_player_turn_end(*this);
@@ -584,6 +590,7 @@ void BattleContext::end_player_turn() {
         player.power[static_cast<int>(id)] = 0;
     if (player_power(PowerId::RITUAL) > 0) add_player_power(PowerId::STRENGTH, player_power(PowerId::RITUAL));
     if (player_power(PowerId::RAGE) > 0) add_player_power(PowerId::RAGE, -player_power(PowerId::RAGE));
+    player.power[static_cast<int>(PowerId::REBOUND)] = 0;  // ReboundPower.AfterSideTurnEnd
     // DuplicationPower.AfterTurnEnd(owner side): copies expire at the end of
     // the turn in which they were applied.
     if (player_power(PowerId::DUPLICATION) > 0)

@@ -15,6 +15,9 @@ void defect_channel_random(BattleContext &bc);
 void defect_evoke(BattleContext &bc, int index, bool dequeue = true);
 void defect_orb_passive(BattleContext &bc, int index, int target = -1);
 int defect_unique_orbs(const BattleContext &bc);
+// OrbModel.PassiveVal / EvokeVal: the values the orb shows and applies right now.
+int defect_orb_passive_value(const BattleContext &bc, const OrbState &orb);
+int defect_orb_evoke_value(const BattleContext &bc, const OrbState &orb);
 
 bool defect_effect(BattleContext &bc, Card &card, int target);
 // Called after a choice/draw/child auto-play resumes the owning frame. Returns

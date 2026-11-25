@@ -66,7 +66,8 @@ int main(){
     }
     for(int gold:{0,2,3,4,5,6}) {
         BattleContext b{};b.relicCount=1;b.relics[0]=static_cast<int>(RelicId::SEAL_OF_GOLD);b.gold=gold;b.turn=1;
-        const int energy=relics_energy_for_turn(b,3);
+        b.player.energy=relics_energy_for_turn(b,3);relics_after_side_turn_start(b);  // v29: AfterSideTurnStart
+        const int energy=b.player.energy;
         check("SealOfGold native three-gold boundary",energy==(gold>=3?4:3)&&b.gold==(gold>=3?gold-3:gold));
     }
     for(std::uint64_t seed:{0,42})for(bool empty:{false,true}) {

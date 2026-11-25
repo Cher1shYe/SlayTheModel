@@ -4,11 +4,7 @@
 namespace sts2 {
 
 static void block_card(BattleContext &bc, Card &card) {
-    int b = card_block(card);
-    if (card_is_defend(card) && bc.player_power(PowerId::FASTEN) > 0) {
-        b += bc.player_power(PowerId::FASTEN);
-    }
-    bc.gain_block(b, true);
+    bc.gain_block(card_block(card), true);
 }
 
 static bool hit(BattleContext &bc, Card &card, int target, double base, int hits = 1) {
@@ -60,13 +56,14 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             Card copy = card;
             copy.uid = bc.require_card_uid();
             bc.add_card_to_discard(copy);
+            bc.notify_card_generated(copy);
             return true;
         }
         case CardId::ARMAMENTS:
             block_card(bc, card);
             if (card.upgraded) {
                 for (int i = 0; i < bc.handCount; ++i) {
-                    if (!bc.hand[i].upgraded) bc.upgrade_card(bc.hand[i]);
+                    if (card_upgradable(bc.hand[i])) bc.upgrade_card(bc.hand[i]);
                 }
             } else if (bc.handCount > 0) {
                 bc.start_choice(ChoiceOp::UPGRADE, ChoicePile::HAND, 1, false, card,
@@ -156,9 +153,9 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             const int before[MAX_MONSTERS] = {};
             (void) before;
             hit_all(bc, card, dmg);
-            for (int i = 0; i < bc.monsterCount; ++i) {
-                if (bc.monsters[i].alive) bc.apply_vulnerable(i, card_var(card, VarId::VULNERABLE));
-            }
+            int targets[MAX_MONSTERS];   // PowerCmd.Apply(HittableEnemies)
+            const int n = bc.living_enemies(targets);
+            for (int k = 0; k < n; ++k) bc.apply_vulnerable(targets[k], card_var(card, VarId::VULNERABLE));
             return true;
         }
         case CardId::TREMBLE:
@@ -266,9 +263,18 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         case CardId::HOWL_FROM_BEYOND:
             hit_all(bc, card, dmg);
             return true;
-        case CardId::INFERNAL_BLADE:
-            bc.add_random_card_to_hand(CardType::ATTACK, true);
+        case CardId::INFERNAL_BLADE: {
+            // GetDistinctForCombat(character Attacks, 1), free this turn; no colorless cards.
+            CardId options[static_cast<int>(CardId::COUNT)];
+            const int n = bc.combat_card_options(bc.characterPool, options, static_cast<int>(CardType::ATTACK));
+            Card generated;
+            if (bc.distinct_for_combat(options, n, 1, &generated) == 1) {
+                card_modify_cost(generated, 0, true, 2 | 4 | 8);  // SetToFreeThisTurn
+                bc.add_card_to_hand(generated);
+                bc.notify_card_generated(generated);
+            }
             return true;
+        }
         case CardId::INFERNO_CARD:
             bc.add_player_power(PowerId::INFERNO, card_var(card, VarId::INFERNO_POWER),true);
             if (bc.player_power(PowerId::INFERNO) > 0) ++bc.player.infernoSelfDamage;
@@ -281,11 +287,16 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             return true;
         case CardId::PILLAGE:
             hit(bc, card, target, dmg);
-            while (bc.handCount < MAX_HAND) {
-                const int before = bc.handCount;
+            // Keep drawing while the card just drawn is an Attack. It counts even when a draw
+            // hook plays it at once (Hellraiser), so read it before the draw.
+            while (bc.handCount < MAX_HAND && bc.outcome == Outcome::UNDECIDED) {
+                if (bc.player_power(PowerId::NO_DRAW) > 0 || relic_has(bc, RelicId::FIDDLE)) break;
+                if (bc.drawCount == 0) bc.shuffle_discard_into_draw();
+                if (bc.drawCount == 0 || bc.pending.op != ChoiceOp::NONE) break;
+                const bool attack = card_is_attack(bc.draw[bc.drawCount - 1]);
+                const int before = bc.cardsDrawnThisTurn;
                 bc.draw_cards(1);
-                if (bc.handCount == before) break;
-                if (!card_is_attack(bc.hand[bc.handCount - 1])) break;
+                if (bc.cardsDrawnThisTurn == before || !attack) break;
             }
             return true;
         case CardId::RAGE_CARD:
@@ -496,11 +507,16 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
             }
             if (bc.outcome == Outcome::UNDECIDED) {
                 Card generated[MAX_HAND];
+                CardId options[static_cast<int>(CardId::COUNT)];
+                const int optionCount = bc.combat_card_options(bc.characterPool, options);
                 for (int i = 0; i < count; ++i) {
-                    generated[i] = bc.random_character_card_excluding(nullptr, 0);
+                    generated[i] = bc.next_for_combat(options, optionCount);  // Stoke: GetForCombat
                     if (card.upgraded) bc.upgrade_card(generated[i]);
                 }
-                for (int i = 0; i < count; ++i) bc.add_card_to_hand(generated[i]);
+                for (int i = 0; i < count; ++i) {
+                    bc.add_card_to_hand(generated[i]);
+                    bc.notify_card_generated(generated[i]);
+                }
             }
             return true;
         }

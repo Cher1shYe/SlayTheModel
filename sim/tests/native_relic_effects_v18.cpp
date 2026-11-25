@@ -91,8 +91,11 @@ void parrying_shield_after_turn_end() {
 void bread_energy() {
     auto r = fight({RelicId::BREAD});
     BattleContext &b = r->battle;
-    b.turn = 1; assert(relics_energy_for_turn(b, 3) == 1);
-    b.turn = 2; assert(relics_energy_for_turn(b, 3) == 4);
+    // v29: ModifyMaxEnergy (+1 except turn 1) at the reset; turn-1 LoseEnergy(2) at AfterSideTurnStart.
+    b.turn = 1; b.player.energy = relics_energy_for_turn(b, 3); assert(b.player.energy == 3);
+    relics_after_side_turn_start(b); assert(b.player.energy == 1);
+    b.turn = 2; b.player.energy = relics_energy_for_turn(b, 3); assert(b.player.energy == 4);
+    relics_after_side_turn_start(b); assert(b.player.energy == 4);
 }
 
 void belt_buckle_and_fairy() {
@@ -122,9 +125,12 @@ void booming_conch() {
     auto r = fight({RelicId::BOOMING_CONCH}, Encounter::SETUP_PHROG_PARASITE_ELITE);
     BattleContext &b = r->battle;
     assert(b.turn == 1);
-    assert(relics_energy_for_turn(b, 3) == 4 && relics_modify_draw(b, 5) == 7);
+    b.player.energy = relics_energy_for_turn(b, 3); relics_after_side_turn_start(b);   // v29: energy at AfterSideTurnStart
+    assert(b.player.energy == 4 && relics_modify_draw(b, 5) == 7);
     auto n = fight({RelicId::BOOMING_CONCH});
-    assert(relics_energy_for_turn(n->battle, 3) == 3 && relics_modify_draw(n->battle, 5) == 5);
+    BattleContext &c = n->battle;
+    c.player.energy = relics_energy_for_turn(c, 3); relics_after_side_turn_start(c);
+    assert(c.player.energy == 3 && relics_modify_draw(c, 5) == 5);
 }
 
 void scarf_and_gauntlets() {
@@ -228,10 +234,10 @@ void lords_parasol() {
     r->enter_map_point(r->map.startIdx);
     assert(r->screen == RunScreen::SHOP && r->gold == gold && !r->mawBankPurchased);
     for (int i = 0; i < r->shopCount; ++i) assert(r->shopSold[i]);
-    for (int i = 0; i < r->shopRelicCount; ++i) assert(r->shopRelicSold[i]);
-    const int deckAfterBuying = r->deckCount;
-    assert(deckAfterBuying >= deck + r->shopCount);
-    // Choices opened by bought relics (e.g. Gnarled Hammer) come first; then the removal.
+    const int deckAfterCards = r->deckCount;
+    assert(deckAfterCards >= deck + r->shopCount);
+    // Choices opened by bought relics (e.g. Gnarled Hammer) come first -- v29: the remaining relics
+    // and the potions are bought only after each choice -- then the removal.
     for (int guard = 0; guard < 16 && r->cardGrid.kind && r->cardGrid.service != 5; ++guard) {
         assert(!has(*r, RunActionType::LEAVE_SHOP));
         if (r->cardGrid.preview) {
@@ -243,6 +249,8 @@ void lords_parasol() {
             select_card_grid(*r, i);
         assert(confirm_card_grid(*r));
     }
+    for (int i = 0; i < r->shopRelicCount; ++i) assert(r->shopRelicSold[i]);
+    const int deckAfterBuying = r->deckCount;
     // The removal is mandatory and free.
     assert(r->parasolRemovalPending == false && r->cardGrid.kind == 6 && r->cardGrid.service == 5);
     assert(!has(*r, RunActionType::CANCEL_GRID_SELECTION) && !has(*r, RunActionType::LEAVE_SHOP));

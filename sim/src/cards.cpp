@@ -70,13 +70,13 @@ int card_cost(const Card &c) {
 }
 
 void card_modify_cost(Card &c,int amount,bool absolute,std::uint8_t expiration,bool reduceOnly) {
-    if((expiration & ~6u)!=0) throw std::invalid_argument("Unknown native cost expiration");
+    if((expiration & ~14u)!=0) throw std::invalid_argument("Unknown native cost expiration");
     if(!absolute && amount==0) return;
     if(absolute && amount==0 && card_def(c.id).cost<0) return;
     // A combat-long, unconditional absolute modifier overrides every earlier
     // entry for the rest of the combat, so dropping them is exact (keeps
     // per-draw Snecko re-rolls within capacity).
-    if(absolute && !reduceOnly && expiration==0) {
+    if(absolute && !reduceOnly && (expiration & 6)==0) {
         for(int i=0;i<c.costModifierCount;++i)c.costModifiers[i]=CardCostModifier{};
         c.costModifierCount=0;
     }
@@ -228,5 +228,9 @@ bool card_is_defend(const Card &c) { return card_has(c, CF_DEFEND); }
 
 const char *card_name(CardId id) { return card_def(id).name; }
 const char *card_key(CardId id) { return card_def(id).key; }
+const char *card_native_entry(CardId id) {
+    const CardDef &d = card_def(id);
+    return d.nativeEntry && *d.nativeEntry ? d.nativeEntry : d.key;
+}
 
 }  // namespace sts2

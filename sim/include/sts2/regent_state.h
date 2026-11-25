@@ -12,7 +12,7 @@ struct RegentState {
     int stars=0;
     int starsGainedThisTurn=0;
     int generatedThisCombat=0;
-    int hitsGivenThisTurn[4]{};
+    int hitsGivenThisTurn[MAX_MONSTERS]{};
     int cardsFinishedThisTurn=0;
     int skillsFinishedThisTurn=0;
     int voidFormManualPlays=0;

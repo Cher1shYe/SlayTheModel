@@ -7,9 +7,7 @@ int var(const Card &c, VarId v) { return card_var(c,v); }
 bool alive(const BattleContext &b,int i) { return i>=0&&i<b.monsterCount&&b.monsters[i].alive; }
 void poison(BattleContext &b,int i,int n) { if(alive(b,i)&&n>0)b.add_monster_power(i,PowerId::POISON,n,true); }
 void block(BattleContext &b,Card &c) {
-    int amount=card_block(c);
-    if(card_is_defend(c))amount+=b.player_power(PowerId::FASTEN);
-    b.gain_block(amount,true);
+    b.gain_block(card_block(c),true);
 }
 void choose_discard(BattleContext &b,const Card &c,int n) {
     if(b.handCount<=0||n<=0)return;
@@ -52,7 +50,7 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         for(int i=0;i<var(c,VarId::REPEAT);++i){const int t=b.random_alive_monster();if(t>=0)poison(b,t,var(c,VarId::POISON_POWER));}return true;
     case CardId::BUBBLE_BUBBLE:if(alive(b,target)&&b.monster_power(target,PowerId::POISON)>0)poison(b,target,var(c,VarId::POISON_POWER));return true;
     case CardId::BULLET_TIME:
-        for(int i=0;i<b.handCount;++i)if(card_def(b.hand[i].id).cost>=0)card_modify_cost(b.hand[i],0,true,2);
+        for(int i=0;i<b.handCount;++i)if(card_def(b.hand[i].id).cost>=0)card_modify_cost(b.hand[i],0,true,2 | 4 | 8);  // SetToFreeThisTurn
         power(PowerId::NO_DRAW,1);return true;
     case CardId::BURST:power(PowerId::BURST,var(c,VarId::SKILLS));return true;
     case CardId::CALCULATED_GAMBLE:discard_whole_hand(b,b.handCount);return true;
@@ -74,7 +72,9 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         int pending=1;
         while(pending>0&&b.outcome==Outcome::UNDECIDED&&b.alive_monster_count()>0){
             --pending;
-            for(int i=0;i<b.monsterCount&&b.outcome==Outcome::UNDECIDED;++i)if(alive(b,i)){
+            int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);  // HittableEnemies
+            for(int k=0;k<count&&b.outcome==Outcome::UNDECIDED;++k){
+                const int i=targets[k];if(!alive(b,i))continue;
                 const auto result=b.damage_monster(i,b.calc_player_damage(b.enchant_card_damage(c,damage)+vigor,i,true,&c),true,true);
                 if(!firstSeen[i])firstUnblocked[i]=result.unblocked>0;
                 firstSeen[i]=true;if(result.wasKilled)++pending;
@@ -106,8 +106,11 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         else if(n==0)b.pending=PendingChoice();return true;
     }
     case CardId::HAZE:
-        for(int i=0;i<b.monsterCount;++i)poison(b,i,var(c,VarId::POISON_POWER));
-        for(int i=0;i<b.monsterCount;++i)if(alive(b,i))b.apply_weak(i,var(c,VarId::WEAK_POWER));return true;
+    {
+        int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);  // HittableEnemies
+        for(int k=0;k<count;++k)poison(b,targets[k],var(c,VarId::POISON_POWER));
+        for(int k=0;k<count;++k)if(alive(b,targets[k]))b.apply_weak(targets[k],var(c,VarId::WEAK_POWER));return true;
+    }
     case CardId::HIDDEN_DAGGERS:
         b.activePlay.silent.stage=4;choose_discard(b,c,var(c,VarId::CARDS));
         return true;
@@ -130,8 +133,12 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         else if(b.handCount>1)b.start_choice(ChoiceOp::SILENT_NIGHTMARE,ChoicePile::HAND,1,false,c,b.card_will_exhaust(c));return true;
     case CardId::NOXIOUS_FUMES:power(PowerId::NOXIOUS_FUMES,var(c,VarId::POISON_PER_TURN));return true;
     case CardId::OUTBREAK:
-        for(int i=0;i<b.monsterCount;++i)poison(b,i,var(c,VarId::POISON_POWER));
-        for(int i=0;i<b.monsterCount;++i)if(alive(b,i))silent_trigger_poison(b,i);return true;
+    {
+        int targets[MAX_MONSTERS];int count=b.living_enemies(targets);  // HittableEnemies
+        for(int k=0;k<count;++k)poison(b,targets[k],var(c,VarId::POISON_POWER));
+        count=b.living_enemies(targets);                                // read again for the second loop
+        for(int k=0;k<count;++k)if(alive(b,targets[k]))silent_trigger_poison(b,targets[k]);return true;
+    }
     case CardId::PHANTOM_BLADES:{
         power(PowerId::PHANTOM_BLADES,var(c,VarId::PHANTOM_BLADES_POWER));
         Card *piles[]={b.hand,b.draw,b.discard,b.exhaust,b.playPile,b.returnNextTurn};
@@ -139,13 +146,17 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
         for(int p=0;p<6;++p)for(int i=0;i<counts[p];++i)if(piles[p][i].id==CardId::SHIV)piles[p][i].retainThisCombat=true;return true;
     }
     case CardId::PIERCING_WAIL:
-        for(int i=0;i<b.monsterCount;++i)if(alive(b,i)){
+    {
+        int targets[MAX_MONSTERS];const int count=b.living_enemies(targets);  // HittableEnemies
+        for(int k=0;k<count;++k)if(alive(b,targets[k])){
+            const int i=targets[k];
             // The outer debuff passes Artifact before BeforeApplied applies
             // negative Strength (StrengthPower itself is always a Buff).
             const int n=var(c,VarId::STRENGTH_LOSS),before=b.monster_power(i,PowerId::PIERCING_WAIL);
             b.add_monster_power(i,PowerId::PIERCING_WAIL,n,true);
             b.add_monster_power(i,PowerId::STRENGTH,-(b.monster_power(i,PowerId::PIERCING_WAIL)-before),true);
         }return true;
+    }
     case CardId::POISONED_STAB:hit(damage);poison(b,target,var(c,VarId::POISON_POWER));return true;
     case CardId::POUNCE:hit(damage);power(PowerId::FREE_SKILL,1);return true;
     case CardId::PRECISE_CUT:hit(var(c,VarId::CALCULATION_BASE)-var(c,VarId::EXTRA_DAMAGE)*b.handCount+c.bonusDamage);return true;

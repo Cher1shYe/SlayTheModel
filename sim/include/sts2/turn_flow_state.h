@@ -14,6 +14,9 @@ enum TurnFlowStage : int {
     TURN_FLOW_RELIC_APTS = 8,
     TURN_FLOW_PAELS_EYE_END = 9,
     TURN_FLOW_SIDE_START = 6,     // Hook.AfterSideTurnStart(Player)
+    TURN_FLOW_POWER_APTS = 10,    // AfterPlayerTurnStart of the player's powers (they precede relics)
+    TURN_FLOW_AUTO_PRE_PLAY = 11, // Hook.AfterAutoPrePlayPhaseEntered (Mayhem, Imbued)
+    TURN_FLOW_FINISH_START = 12,  // AfterAutoPrePlayPhaseEnteredLate (Whispering Earring)
 };
 struct TurnFlowState {
     int stage=0;
@@ -24,5 +27,8 @@ struct TurnFlowState {
     bool paelsEyeExtraTurn=false;
     // PowerModel.AmountOnTurnStart for DrawCardsNextTurnPower.
     int drawCardsNextTurnAtStart=0;
+    // This setup is an extra turn (Pael's Eye, Ambergris): enemy AfterSideTurnStart powers such as
+    // Rampart skip it. Kept here because Rampart now runs after the relics (v29).
+    bool extraTurn=false;
 };
 }

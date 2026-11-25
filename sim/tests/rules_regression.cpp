@@ -496,13 +496,14 @@ void audit_round4_round5() {
         b.monsters[0].vulnerable = 1;
         check("r5_08_cruelty_additive", b.calc_player_damage(10, 0), 20);
     }
-    // R5-09 Howl From Beyond fires for every exhausted copy before the draw.
+    // R5-09 Howl From Beyond fires for every exhausted copy when the player's turn ends
+    // (AfterAutoPostPlayPhaseEntered).
     {
         auto b = audit_base();
         b.exhaust[b.exhaustCount++] = audit_card(b, CardId::HOWL_FROM_BEYOND);
         b.exhaust[b.exhaustCount++] = audit_card(b, CardId::HOWL_FROM_BEYOND);
         const int hp = b.monsters[0].hp;
-        b.start_player_turn();
+        b.end_player_turn();
         check("r5_09_howl_all_copies", hp - b.monsters[0].hp, 36);
     }
     // Native v0.111.0 Drum of Battle grants 2 Energy when exhausted.
@@ -2621,7 +2622,9 @@ int main() {
             make_card(CardId::STRIKE_IRONCLAD, false, b.nextUid++);
         Card fury = make_card(CardId::NEOWS_FURY, false, b.nextUid++);
         b.play_card_effect(fury, 0);
-        check("r7_neows_fury_returns_discard_card", b.handCount, 1);
+        // The player chooses (and may decline) the discard cards to return.
+        check("r7_neows_fury_offers_discard_card", b.pending.op == ChoiceOp::DISCARD_TO_HAND && b.pending.optional &&
+              b.pending.count == 1, 1);
     }
     {
         auto b = audit_base();

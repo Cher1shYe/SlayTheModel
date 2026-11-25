@@ -1319,7 +1319,7 @@ int main() {
         check(a.spoils_quest_active() && a.spoilsQuestRow == a.map.mapLength - 7 && a.spoilsQuestCol == 3,
               "quest on the Treasure");
         const auto obs = public_observation(a);
-        check(PUBLIC_OBS_VERSION == 18, "public observation version 18");
+        check(PUBLIC_OBS_VERSION == 19, "public observation version 19");
         // v17 appends six Neow fields; v18 appends ten decision fields.
         const int questMarker = PUBLIC_RUN_DIM - 10 - 6 - 3;
         check(obs[questMarker] == 1.0f && obs[questMarker + 1] > 0.0f && obs[questMarker + 2] == 0.5f,

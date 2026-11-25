@@ -4,7 +4,7 @@
 namespace sts2 {
 // Each nested card play retains its own BeforeCardPlayed snapshot.
 struct NecrobinderPlayState {
-    int oblivion[4]{};
+    int oblivion[MAX_MONSTERS]{};
     int stage = 0;
     int damageTotal = 0;
 };

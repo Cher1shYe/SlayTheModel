@@ -11,10 +11,9 @@ namespace sts2 {
 
 constexpr int MAX_HAND = 10;
 constexpr int MAX_PILE = 160;
-constexpr int MAX_MONSTERS = 6;  // native encounters have up to 6 enemy slots (Ovicopter, Living Fog)
 constexpr int MAX_POTIONS = 12;
 constexpr int BASE_POTION_SLOTS = 3;
-constexpr int MAX_RELICS = 32;
+constexpr int MAX_RELICS = 64;   // v28: native has no relic cap; 32 disabled relic-granting options in long runs
 
 enum class ChoiceOp : std::uint8_t {
     NONE,
@@ -252,6 +251,8 @@ struct BattleContext {
     int spawnSeq = 0;
     // Enemy indices in native list order (orderKey, then index); returns the count.
     int enemy_order(int out[MAX_MONSTERS]) const;
+    // Living, non-reviving enemies in native list order (one AttackCommand hit's target list).
+    int living_enemies(int out[MAX_MONSTERS]) const;
 
     Card hand[MAX_HAND]{};
     int handCount = 0;
@@ -461,6 +462,8 @@ struct BattleContext {
     void resume_turn_flow();
     void continue_pre_draw();
     void after_hand_drawn();
+    void powers_after_player_turn_start();
+    void auto_pre_play_phase();
     // Returns false when the enemy turn is suspended for a player choice made during it
     // (Knowledge Demon); resolve_choice resumes it.
     bool monster_turn();
@@ -518,7 +521,10 @@ struct BattleContext {
     void resolve_monster_death(int index);
     void kill_player();
     // byPlayer: the generation's creator is the player (CardPileCmd creator).
-    void notify_card_generated(const Card &card, bool byPlayer = true);
+    void notify_card_generated(const Card &card, bool byPlayer = true, bool isClone = false);
+    void notify_card_transformed(const Card &card);
+    // Hook.ModifyBlock; -1 when no block is gained at all. commit=false leaves relic state alone.
+    int modified_block(int amount, bool fromCard, bool powered, bool commit);
     bool start_queued_auto_play();
     void restore_suspended_play();
 
@@ -585,14 +591,12 @@ struct BattleContext {
     Card *find_in_draw(std::uint16_t uid);
 
     Card random_card_of_type(CardType type, bool include_colorless = true);
-    Card random_colorless_card();
-    Card random_character_card_excluding(const CardId *excluded, int excludedCount);
-    Card random_colorless_card_excluding(const CardId *excluded, int excludedCount);
-    Card random_attack();
-    Card random_skill();
-    Card random_power();
-    void add_random_card_to_hand(CardType type, bool free = false, bool colorless = false,
-                                 bool upgraded = false);
+    // CardFactory.FilterForCombat over a pool's unlocked cards, in native pool order.
+    int combat_card_options(CardPool pool, CardId *out, int type = -1) const;
+    // GetDistinctForCombat: TakeRandom shuffles every option, then takes count.
+    int distinct_for_combat(CardId *options, int n, int count, Card *out);
+    // One GetForCombat draw (NextItem); INVALID card and no RNG when there are no options.
+    Card next_for_combat(const CardId *options, int n);
     void upgrade_card(Card &c);
     void transform_card(Card &c);
     void play_top_card(bool exhaustIt);

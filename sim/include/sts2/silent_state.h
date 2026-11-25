@@ -6,7 +6,7 @@ namespace sts2 {
 struct SilentPlayState {
     int afterimage = 0;
     int serpentForm = 0;
-    int strangle[4]{};
+    int strangle[MAX_MONSTERS]{};
     int stage = 0;
     int amount = 0;
     int drawn = 0;
