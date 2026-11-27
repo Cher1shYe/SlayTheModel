@@ -327,7 +327,8 @@ int regent_star_cost(const BattleContext &b,const Card &card){
     for(int i=0;i<card.costModifierCount;++i)if(card.costModifiers[i].expiration&8)return 0;
     if(regent_void_form_free(b,card))return 0;
     // BrilliantScarf.TryModifyStarCost shares its energy rule.
-    if(relic_has(b,RelicId::BRILLIANT_SCARF)&&b.cardsPlayedThisTurn==4)return 0;
+    // Counts only non-auto plays, like the energy rule (v31, DEVLOG 58: used every play).
+    if(relic_has(b,RelicId::BRILLIANT_SCARF)&&b.manualCardsPlayedThisTurn==4)return 0;
     return cost;
 }
 

@@ -634,6 +634,9 @@ struct BattleContext {
     void check_outcome();
     void clear_player_powers_after_death();
     int energy_cost_in_combat(const Card &card) const;
+    // CardModel.TargetType as it is right now: Shiv with Fan of Knives and Sovereign Blade with
+    // Seeking Edge target all enemies (no target choice); otherwise card_target (v31, DEVLOG 58).
+    TargetType card_target_now(const Card &card) const;
     // CardModel.CanPlay for a hand card (any valid target): the legal-play filter.
     bool hand_card_playable_now(int handIdx) const;
     // WhisperingEarring.AfterAutoPrePlayPhaseEnteredLate (turn 1).

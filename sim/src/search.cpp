@@ -58,7 +58,7 @@ Action greedy_action(const BattleContext &bc, Rng &rng, double epsilon) {
         if (a.type != ActionType::PLAY_CARD || a.target >= bc.monsterCount) continue;
         const Card &c = bc.hand[a.hand];
         if (!card_is_attack(c)) continue;
-        if (card_target(c) == TargetType::ENEMY) {
+        if (bc.card_target_now(c) == TargetType::ENEMY) {
             int dmg = bc.calc_player_damage(card_damage(c), a.target);
             const Monster &m = bc.monsters[a.target];
             if (m.alive && dmg >= m.hp + m.block) return a;

@@ -790,7 +790,8 @@ void BattleContext::discard_hand() {
     const bool retainAll = player_power(PowerId::RETAIN_HAND) > 0 ||
                            player_power(PowerId::EQUILIBRIUM) > 0 ||
                            player_power(PowerId::WELL_LAID_PLANS) > 0 ||
-                           relic_has(*this, RelicId::RUNIC_PYRAMID);
+                           relic_has(*this, RelicId::RUNIC_PYRAMID) ||
+                           (turn == 1 && relic_has(*this, RelicId::RINGING_TRIANGLE));
     // CombatManager.FlushPlayerHand walks the hand front to back: retained
     // cards keep their order and the rest enter the discard pile in hand order.
     Card cards[MAX_HAND];

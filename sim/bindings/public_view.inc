@@ -58,7 +58,7 @@ static py::dict public_card_view(const Card &c, const char *pile, int position,
     out["maxUpgrade"] = def.maxUpgradeLevel;
     out["type"] = static_cast<int>(card_type(c));
     out["rarity"] = static_cast<int>(def.rarity);
-    out["target"] = static_cast<int>(card_target(c));
+    out["target"] = static_cast<int>(battle ? battle->card_target_now(c) : card_target(c));
     out["costX"] = card_cost(c) < 0;
     out["cost"] = card_cost(c) < 0 ? -1 : battle ? battle->energy_cost_in_combat(c) : card_cost(c);
     out["baseCost"] = c.costThisTurn ? c.storedCost : c.costForTurn;

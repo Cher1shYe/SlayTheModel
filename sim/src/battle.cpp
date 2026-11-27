@@ -551,7 +551,7 @@ void BattleContext::draw_cards(int count, bool fromHandDraw) {
         }
         // ConfusedPower.AfterCardDrawn (Snecko Eye): every drawn card with a
         // non-X canonical cost gets a random cost for the whole combat.
-        if (relic_has(*this, RelicId::SNECKO_EYE) || relic_has(*this, RelicId::FAKE_SNECKO_EYE)) {
+        if (player_power(PowerId::CONFUSED) > 0) {
             const CardDef &d = card_def(c.id);
             const int canonical = c.upgraded ? d.costUp : d.cost;
             if (canonical >= 0)  // EnergyCost.SetThisCombat(random 0..3)
@@ -1787,7 +1787,7 @@ std::vector<Action> BattleContext::legal_actions() const {
     for (int i = 0; i < handCount; ++i) {
         const Card &c = hand[i];
         if (!hand_card_playable_now(i)) continue;
-        if (card_target(c) == TargetType::ENEMY) {
+        if (card_target_now(c) == TargetType::ENEMY) {
             for (int m = 0; m < monsterCount; ++m) {
                 // A dead creature (hp 0, waiting to revive or reattach) is not targetable.
                 if (!monsters[m].alive || monsters[m].reviving) continue;
@@ -1940,7 +1940,7 @@ bool BattleContext::step_action(const Action &action) {
         if (turn_affliction(c) == 1 && cardsPlayedThisTurn > 0) return false;
         if (turn_affliction(c) == 3) return false;
         if (hook_blocks_play(c)) return false;
-        if (card_target(c) == TargetType::ENEMY) {
+        if (card_target_now(c) == TargetType::ENEMY) {
             if (action.target >= monsterCount || !monsters[action.target].alive) return false;
         }
         const bool played = play_card(action.hand, action.target);
@@ -1999,7 +1999,7 @@ bool BattleContext::hand_card_playable_now(int handIdx) const {
     if (energy_cost_in_combat(c) > player.energy) return false;
     // PlayerCombatState.HasEnoughResourcesFor: StarCostTooHigh.
     if (regent_star_cost(self, c) > regent.stars) return false;
-    if (card_target(c) == TargetType::ENEMY) {
+    if (self.card_target_now(c) == TargetType::ENEMY) {
         for (int m = 0; m < monsterCount; ++m)
             if (monsters[m].alive && !monsters[m].reviving) return true;  // a dead/reviving creature is not targetable
         return false;
@@ -2023,7 +2023,7 @@ void BattleContext::whispering_earring_auto_play() {
         const int cost = energy_cost_in_combat(card);
         const int spend = xCostCard ? player.energy : std::max(0, cost);
         int target = -1;
-        if (card_target(card) == TargetType::ENEMY) {
+        if (card_target_now(card) == TargetType::ENEMY) {
             int order[MAX_MONSTERS];
             const int total = enemy_order(order);
             for (int k = 0; k < total && target < 0; ++k)
@@ -2085,8 +2085,8 @@ bool BattleContext::play_card(int handIdx, int target) {
 
 void BattleContext::begin_play(const Card &cardIn, int target, bool autoPlay, bool forceExhaust,
                                int energySpent, int starsSpent) {
-    if (card_target(cardIn) == TargetType::ENEMY ||
-        card_target(cardIn) == TargetType::RANDOM_ENEMY) {
+    if (card_target_now(cardIn) == TargetType::ENEMY ||
+        card_target_now(cardIn) == TargetType::RANDOM_ENEMY) {
         face_surrounded_target(target);
     }
     activePlay = ActivePlay();
@@ -2551,6 +2551,12 @@ void BattleContext::play_card_effect(Card &card, int target) {
     } else if (card_block(card) > 0) {
         gain_block(card_block(card), true);
     }
+}
+
+TargetType BattleContext::card_target_now(const Card &c) const {
+    if (c.id == CardId::SHIV && player_power(PowerId::FAN_OF_KNIVES) > 0) return TargetType::ALL_ENEMIES;
+    if (c.id == CardId::SOVEREIGN_BLADE && player_power(PowerId::SEEKING_EDGE) > 0) return TargetType::ALL_ENEMIES;
+    return card_target(c);
 }
 
 bool BattleContext::card_will_exhaust(const Card &c) const {

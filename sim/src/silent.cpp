@@ -170,7 +170,7 @@ double silent_damage_multiplier(const BattleContext &b,int target,bool powered){
 }
 double silent_block_multiplier(const BattleContext &b){return std::pow(2.0,b.player_power(PowerId::SHADOWMELD));}
 bool silent_card_playable(const BattleContext &b,const Card &c){return c.id!=CardId::GRAND_FINALE||b.drawCount==0;}
-TargetType silent_card_target(const BattleContext &b,const Card &c){return c.id==CardId::SHIV&&b.player_power(PowerId::FAN_OF_KNIVES)>0?TargetType::ALL_ENEMIES:card_target(c);}
+TargetType silent_card_target(const BattleContext &b,const Card &c){return b.card_target_now(c);}
 int silent_extra_play_count(BattleContext &b,const Card &c){
     if(card_is_skill(c)&&b.player_power(PowerId::BURST)>0){b.add_player_power(PowerId::BURST,-1);return 1;}return 0;
 }

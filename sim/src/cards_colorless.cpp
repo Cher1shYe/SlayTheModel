@@ -348,7 +348,8 @@ bool colorless_effect(BattleContext &bc, Card &card, int target) {
             bc.attack_from_card(card, target, dmg);
             return true;
         case CardId::VOLLEY:
-            if (bc.xCost > 0) bc.attack_random_from_card(card, dmg, bc.xCost);
+            // X = 0 still runs the AttackCommand and spends Vigor (v31, DEVLOG 58).
+            bc.attack_random_from_card(card, dmg, bc.xCost);
             return true;
 
         // ---- rare ----

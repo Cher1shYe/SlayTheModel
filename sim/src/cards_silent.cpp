@@ -91,7 +91,8 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
     case CardId::EXPOSE:
         if(alive(b,target)){b.monsters[target].block=0;b.monsters[target].power[static_cast<int>(PowerId::ARTIFACT)]=0;b.apply_vulnerable(target,var(c,VarId::POWER));}return true;
     case CardId::FADE:power(PowerId::DEXTERITY,var(c,VarId::DEXTERITY_POWER));power(PowerId::FADE,var(c,VarId::DEXTERITY_POWER));return true;
-    case CardId::FAN_OF_KNIVES:if(b.player_power(PowerId::FAN_OF_KNIVES)==0)power(PowerId::FAN_OF_KNIVES,1);silent_create_shivs(b,var(c,VarId::SHIVS));return true;
+    // Single-stack powers still add to Amount on a repeat (PowerCmd.ModifyAmount; v31, DEVLOG 58).
+    case CardId::FAN_OF_KNIVES:power(PowerId::FAN_OF_KNIVES,1);silent_create_shivs(b,var(c,VarId::SHIVS));return true;
     case CardId::FINISHER:hit(damage,b.silent.attacksFinishedThisTurn);return true;
     case CardId::FLANKING:if(alive(b,target))b.add_monster_power(target,PowerId::FLANKING,2,true);return true;
     case CardId::FLECHETTES:{int n=0;for(int i=0;i<b.handCount;++i)n+=card_is_skill(b.hand[i]);hit(damage,n);return true;}
@@ -123,7 +124,7 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
     case CardId::LEADING_STRIKE:hit(damage);silent_create_shivs(b,var(c,VarId::SHIVS));return true;
     case CardId::LEG_SWEEP:block(b,c);if(alive(b,target))b.apply_weak(target,var(c,VarId::WEAK_POWER));return true;
     case CardId::MALAISE:{const int n=b.xCost+(c.upgraded?1:0);if(alive(b,target)){b.add_monster_power(target,PowerId::STRENGTH,-n,true);b.apply_weak(target,n);}return true;}
-    case CardId::MASTER_PLANNER:if(b.player_power(PowerId::MASTER_PLANNER)==0)power(PowerId::MASTER_PLANNER,1);return true;
+    case CardId::MASTER_PLANNER:power(PowerId::MASTER_PLANNER,1);return true;
     case CardId::MEMENTO_MORI:hit(var(c,VarId::CALCULATION_BASE)+var(c,VarId::EXTRA_DAMAGE)*b.silent.discardedThisTurn+c.bonusDamage);return true;
     case CardId::MIRAGE:{int n=0;for(int i=0;i<b.monsterCount;++i)if(alive(b,i))n+=b.monster_power(i,PowerId::POISON);b.gain_block(n,true);return true;}
     case CardId::MURDER:hit(var(c,VarId::CALCULATION_BASE)+var(c,VarId::EXTRA_DAMAGE)*b.silent.drawnThisCombat+c.bonusDamage);return true;
@@ -180,7 +181,7 @@ bool silent_effect(BattleContext &b,Card &c,int target) {
     case CardId::TOOLS_OF_THE_TRADE:power(PowerId::TOOLS_OF_THE_TRADE,1);return true;
     case CardId::TRACKING:power(PowerId::TRACKING,50);return true;
     case CardId::UP_MY_SLEEVE:silent_create_shivs(b,var(c,VarId::CARDS));card_modify_cost(c,-1,false,0);return true;
-    case CardId::WELL_LAID_PLANS:if(b.player_power(PowerId::WELL_LAID_PLANS)==0)power(PowerId::WELL_LAID_PLANS,1);return true;
+    case CardId::WELL_LAID_PLANS:power(PowerId::WELL_LAID_PLANS,1);return true;
     case CardId::WRAITH_FORM:power(PowerId::INTANGIBLE,var(c,VarId::INTANGIBLE_POWER));power(PowerId::WRAITH_FORM,var(c,VarId::WRAITH_FORM_POWER));return true;
     case CardId::SHIV:
         if(b.player_power(PowerId::FAN_OF_KNIVES)>0)all(damage);else hit(damage);

@@ -135,6 +135,22 @@ int relic_merchant_cost(Rarity r) {
     }
 }
 
+// Hook.ModifyMerchantCardCreationResults: Molten / Toxic / Frozen Egg upgrade a stocked card of
+// their type (EggRelicHelper.UpgradeValidCards), Fresnel Lens adds Nimble 2 (v31, DEVLOG 58; the
+// eggs used to upgrade only on purchase, so the shop showed the card unupgraded).
+// MerchantInventory.UpdateEntries re-runs the hook on every entry after each purchase, so an egg
+// bought in this shop upgrades the cards still on sale (eggOnly: Nimble is not stacked again).
+void merchant_card_hooks(const RunContext &rc, Card &card, bool eggOnly = false) {
+    const CardType type = card_type(card);
+    if (card_upgradable(card) &&
+        ((type == CardType::ATTACK && run_has_relic(rc, RelicId::MOLTEN_EGG)) ||
+         (type == CardType::SKILL && run_has_relic(rc, RelicId::TOXIC_EGG)) ||
+         (type == CardType::POWER && run_has_relic(rc, RelicId::FROZEN_EGG))))
+        card_apply_upgrade(card);
+    if (!eggOnly && run_has_relic(rc, RelicId::FRESNEL_LENS))
+        card_apply_enchantment(card, EnchantmentId::NIMBLE, 2);
+}
+
 int apply_merchant_discount(const RunContext &rc, int price) {
     // MerchantEntry.Cost applies decimal multipliers and truncates once.
     // Integer fractions avoid floating point rounding at exact boundaries.
@@ -238,8 +254,7 @@ void refill_shop_card(RunContext &rc, int index) {
     }
     (void)rewards.next_float();  // CardFactory.RollForUpgrade
     rc.shopCards[index] = rc.make_run_card(id, false);
-    if (run_has_relic(rc, RelicId::FRESNEL_LENS))
-        card_apply_enchantment(rc.shopCards[index], EnchantmentId::NIMBLE, 2);
+    merchant_card_hooks(rc, rc.shopCards[index]);
     rc.shopBasePrices[index] = shop_price_value(id, colorless, shops);
     rc.shopPrices[index] = apply_merchant_discount(rc, rc.shopBasePrices[index]);
     rc.shopSold[index] = false;
@@ -427,6 +442,9 @@ bool can_obtain_relic(const RunContext &r, RelicId id, int claimCredit = 0) {
                 return false;
             break;
         }
+        case RelicId::ARCHAIC_TOOTH:   // the transformed Break goes through Bing Bong's copy
+            if (run_has_relic(r, RelicId::BING_BONG) && r.deckCount + 1 > MAX_DECK) return false;
+            break;
         case RelicId::LEAFY_POULTICE: {
             if (!run_has_relic(r, RelicId::BING_BONG)) break;
             bool strike = false, defend = false;
@@ -1414,8 +1432,7 @@ void RunContext::roll_shop() {
         int price = shop_price_value(id, false, shops);
         if (i == saleIndex) price = shop_price_value(id, false, shops) / 2;
         shopCards[shopCount] = make_run_card(id, false);
-        if (run_has_relic(*this, RelicId::FRESNEL_LENS))
-            card_apply_enchantment(shopCards[shopCount], EnchantmentId::NIMBLE, 2);
+        merchant_card_hooks(*this, shopCards[shopCount]);
         shopBasePrices[shopCount] = price;
         shopPrices[shopCount] = apply_merchant_discount(*this, price);
         shopSold[shopCount] = false;
@@ -1440,8 +1457,7 @@ void RunContext::roll_shop() {
         used[usedN++] = id;
         (void)rewards.next_float();
         shopCards[shopCount] = make_run_card(id, false);
-        if (run_has_relic(*this, RelicId::FRESNEL_LENS))
-            card_apply_enchantment(shopCards[shopCount], EnchantmentId::NIMBLE, 2);
+        merchant_card_hooks(*this, shopCards[shopCount]);
         shopBasePrices[shopCount] = shop_price_value(id, true, shops);
         shopPrices[shopCount] = apply_merchant_discount(*this, shopBasePrices[shopCount]);
         shopSold[shopCount] = false;
@@ -2617,6 +2633,8 @@ bool RunContext::step(const RunAction &action) {
             if (!add_relic(acquired)) return false;
             shopRelicSold[action.index] = true;
             apply_new_shop_discount(*this, acquired);
+            for (int i = 0; i < shopCount; ++i)
+                if (!shopSold[i]) merchant_card_hooks(*this, shopCards[i], true);
             if (run_has_relic(*this, RelicId::THE_COURIER)) {
                 refill_shop_relic(*this, action.index);
             }

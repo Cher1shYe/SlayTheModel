@@ -331,7 +331,7 @@ CombatObservation combat_entity_observation(const BattleContext &bc) {
                 if (a.hand < bc.handCount) {
                     t1 = handEntity[a.hand];
                     cost = bc.energy_cost_in_combat(bc.hand[a.hand]) / 3.0f;
-                    if (card_target(bc.hand[a.hand]) == TargetType::ENEMY && a.target < bc.monsterCount) {
+                    if (bc.card_target_now(bc.hand[a.hand]) == TargetType::ENEMY && a.target < bc.monsterCount) {
                         t2 = monsterEntity[a.target];
                         enemyTarget = 1.0f;
                     }
