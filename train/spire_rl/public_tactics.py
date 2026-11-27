@@ -730,6 +730,8 @@ class _Play:
                 self.damage.get(o, 0) - self.random_damage < e["hp"] + e["block"] <= self.damage.get(o, 0) + self.random_damage
                 for o, e in self.hittable.items()):
             self.end_unknown = True                       # whether a random hit kills is a coin flip
+        if self.power("COLOSSUS_POWER") and mid in APPLIES_VULNERABLE:
+            self.end_unknown = True                       # ColossusPower halves a now-Vulnerable enemy's hits (DEVLOG 58)
         if self.power("VICIOUS_POWER") and mid in APPLIES_VULNERABLE:
             self.hand_change = True                       # ViciousPower: draw on applying Vulnerable
         if card["type"] == "Attack" and (self.power("CALAMITY_POWER") or self.power("JUGGLING_POWER")):

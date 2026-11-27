@@ -30,13 +30,45 @@ from . import net as N
 from .rollout import HIDDEN_CARDS, Pool, unpack
 
 
+def _cpus() -> int:
+    """CPUs this process may use (affinity, not the host count where available)."""
+    try:
+        return len(os.sched_getaffinity(0))
+    except AttributeError:
+        return os.cpu_count() or 4
+
+
+# Presets (docs/runbook.md). ``--size`` fixes the network and its learning rate (scaled as
+# 3e-5 x 768 / width); ``--machine`` sets only speed / memory knobs, which never change the
+# gradient of an update. Any flag given explicitly overrides the preset.
+SIZES = {
+    "large":  dict(dim=768, ctx_layers=12, combat_layers=12, heads=12, lr=3e-5),    # 218M (runs 1-3)
+    "medium": dict(dim=512, ctx_layers=8, combat_layers=8, heads=8, lr=4.5e-5),     # 69M
+    "small":  dict(dim=384, ctx_layers=6, combat_layers=6, heads=6, lr=6e-5),       # 32M
+    "tiny":   dict(dim=256, ctx_layers=4, combat_layers=4, heads=4, lr=9e-5),       # 11M
+}
+MACHINES = {
+    # laptop RTX 5090, 24 GB, 8 CPU threads (DEVLOG 57): micro 256 spilled to system memory
+    "5090": dict(workers=6, games=16, micro=128, micro_tokens=16000, infer_batch=512),
+    # A100 40 or 80 GB: same rows per chunk as run 1, a token cap that fits 40 GB
+    "a100": dict(workers=max(1, _cpus() - 2), games=32, micro=256, micro_tokens=32000, infer_batch=512),
+}
+
+
 def parse(argv=None):
+    pre = argparse.ArgumentParser(add_help=False)
+    pre.add_argument("--size", choices=sorted(SIZES))
+    pre.add_argument("--machine", choices=sorted(MACHINES))
+    known, _ = pre.parse_known_args(argv)
     a = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    a.add_argument("--size", choices=sorted(SIZES), help="network preset: " + ", ".join(
+        f"{k} (width {v['dim']}, {v['ctx_layers']}+{v['combat_layers']} layers, lr {v['lr']:g})" for k, v in SIZES.items()))
+    a.add_argument("--machine", choices=sorted(MACHINES), help="speed/memory preset for the GPU machine")
     a.add_argument("--run", required=True, type=Path, help="run directory (checkpoints, log)")
     a.add_argument("--hours", type=float, default=0.0, help="stop after this much wall time (0 = no limit)")
     a.add_argument("--max-updates", type=int, default=0)
     a.add_argument("--ascension", type=int, default=10)
-    a.add_argument("--workers", type=int, default=max(1, (os.cpu_count() or 4) - 2))
+    a.add_argument("--workers", type=int, default=max(1, _cpus() - 2))
     a.add_argument("--games", type=int, default=32, help="games per worker")
     a.add_argument("--seed", type=int, default=1)
     # network (plan 6.2: 768 wide, 12 + 12 layers, 217M)
@@ -82,6 +114,10 @@ def parse(argv=None):
     a.add_argument("--value-hidden", action="store_true", help="value also sees the draw order (training only)")
     a.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     a.add_argument("--bench", action="store_true", help="measure sampling and update speed, then exit")
+    if known.size:
+        a.set_defaults(**SIZES[known.size])
+    if known.machine:
+        a.set_defaults(**MACHINES[known.machine])
     return a.parse_args(argv)
 
 
@@ -305,7 +341,8 @@ class Trainer:
         if ck["public_feature_version"] != public_obs.FEATURE_VERSION or ck["public_catalog_sha256"] != public_obs.CATALOG_SHA256:
             raise SystemExit(f"{latest}: observation version differs from the code; start a new --run")
         if {"value_hidden": False, **ck["config"]} != N.asdict(self.net.cfg):   # older runs lack the key
-            raise SystemExit(f"{latest}: network config {ck['config']} differs from the arguments")
+            raise SystemExit(f"{latest}: network config {ck['config']} differs from the arguments "
+                             f"(was --size different from the first start? see sessions.jsonl in the run directory)")
         self.net.load_state_dict(ck["state"])
         self.ema.load_state_dict(ck["ema"])
         self.opt.load_state_dict(ck["opt"])
@@ -563,6 +600,11 @@ class Trainer:
         pool = Pool(a.workers, a.games, a.seed + 7919 * self.update, a.ascension, a.reward or None,
                     a.practice, a.value_hidden)
         print(f"net {N.count_params(self.net) / 1e6:.1f}M params on {self.dev}; {a.workers} workers x {a.games} games")
+        from .sim import sim
+        with open(a.run / "sessions.jsonl", "a") as f:     # one line per start: what was run, from which update
+            f.write(json.dumps({"start": time.strftime("%Y-%m-%d %H:%M:%S"), "update": self.update,
+                                "ruleset": sim.ENGINE_RULESET_ID, "params_m": round(N.count_params(self.net) / 1e6, 1),
+                                "args": {k: (str(v) if isinstance(v, Path) else v) for k, v in vars(a).items()}}) + "\n")
         session0, last_save = time.time(), time.time()
         log = open(a.run / "log.jsonl", "a")
         try:

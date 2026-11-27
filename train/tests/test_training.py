@@ -398,3 +398,16 @@ def test_flat_credit_mode_still_runs(tmp_path):
               "--infer-batch", "16", "--device", "cpu", "--credit", "flat", "--max-updates", "1"])
     log = [json.loads(x) for x in (tmp_path / "flat" / "log.jsonl").read_text().splitlines()]
     assert len(log) == 1 and log[0]["policy_loss"] is not None
+
+
+def test_size_and_machine_presets():
+    """docs/runbook.md: --size fixes the network and LR; --machine only speed/memory; explicit flags win."""
+    from spire_rl import ppo
+    a = ppo.parse(["--run", "x", "--size", "small", "--machine", "5090"])
+    assert (a.dim, a.ctx_layers, a.combat_layers, a.heads, a.lr) == (384, 6, 6, 6, 6e-5)
+    assert (a.workers, a.games, a.micro, a.micro_tokens) == (6, 16, 128, 16000)
+    b = ppo.parse(["--run", "x", "--size", "large", "--machine", "a100", "--micro", "64", "--lr", "1e-5"])
+    assert (b.dim, b.micro, b.micro_tokens, b.lr) == (768, 64, 32000, 1e-5)
+    c = ppo.parse(["--run", "x"])                    # no preset: the run 1-3 defaults
+    assert (c.dim, c.ctx_layers, c.micro, c.micro_tokens, c.lr) == (768, 12, 256, 0, 3e-5)
+    assert ppo.SIZES["large"] == {k: getattr(c, k) for k in ppo.SIZES["large"]}

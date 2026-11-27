@@ -1512,3 +1512,81 @@ ruleset **`native-41cef1ea-port-v17`**；数据布局没有变化，快照仍为
 **测试**：`native_relic_order` 新增一组，触发这 5 件遗物，检查玩家生成牌计数各加 1。C++ 64/64；训练 Python 104 通过 + 1 跳过；parity 93 + 109。
 
 **待办（下次）**：剩余约 220 件逐行核对，按 DEVLOG 54–56 出现过的问题类型列清单：目标范围（可命中 vs 活着）、伤害 / 格挡是否受力量敏捷影响（Powered / Unpowered）、减益是否走正常施加（Artifact）、生成牌通知、插入位置（顶 / 随机 / 底）、随机数流与次序、触发条件（回合数、房间类型、计数）。先做战斗内的遗物。
+
+## 57. 5090 第三轮日志：训练机是 24 GB 笔记本 5090，micro 256 放不下（2026-11-25，America/Los_Angeles；代码未改）
+
+**第三轮**（用户提供，训练机上目录名是 `runs/5090-train4`，本机存为 `runs/5090-train3/log.jsonl`）：v30 代码、217M（打印 218.1M）、`--micro 256`，9 小时 15 次更新、98 万决策；全部 `died`，0 异常、0 stall / cap。
+
+**训练机显存是 24 GB，不是 32 GB**（用户同学核实：游戏本 5090；日志 `gpu_memory_gib.total` = 23.86 GiB）。第三轮操作手册的阈值（“`peak_reserved` 明显低于 32 GiB”“逼近 30”）是按台式机 32 GB 写的，错了，已改。
+
+**已确认：显存溢出到系统内存**。
+- 更新 1–7：`peak_allocated` 20.0–22.5 GiB（实际在用的张量已经接近 24 GB），`peak_reserved` 59.6–69.4 GiB，`free_after` 0。保留量超过显卡总量两倍多，只可能是 Windows 的 CUDA Sysmem Fallback 把显存借到了系统内存。网络更新每次 2,695–3,129 秒。
+- 06:02 一次 `CUDACachingAllocator ... OOM`（申请 196 MiB，free 0）：共享内存也用尽；PyTorch 释放缓存后重试成功，训练没有中断。之后 `peak_reserved` 回到 25.3–25.8 GiB，更新降到 1,279–1,570 秒——**仍高于 23.86 的总量，仍在溢出**，所以仍是第一轮（约 430 秒/次，同样 65,568 样本 × 2 遍）的 3 倍多。
+- 估算对得上：217M 的权重、梯度、Adam、EMA 共约 4.4 GB；micro 256、每行约 110 个实体、24 层 768 宽，保存给反向的激活约 16–18 GB；合计约 22 GB，就是日志里的 `peak_allocated`。micro 减半，激活大约减半。
+
+**学习效果按每次更新算正常**：平均层数 6.77（第一轮更新 15 为 6.67、第二轮 6.80）；熵 1.60 → 1.26；KL 0.002–0.007，无早停；`value_ev` 0.80（第二轮同期 0.45），`value_ev_combat` 0.86，`value_ev_macro` 0 → 0.25 持续上升（DEVLOG 51、52 的改动起作用）。整局精英 195 场赢 5，Boss 1 场；练习战精英胜率 0 → 4%。
+
+**24 GB 的配置**（不改训练语义，同一小批的梯度之和不变）：`--micro 128 --micro-tokens 16000`（128 行 × 约 111 实体 ≈ 14,200，上限给长局面留余地）。预计 `peak_allocated` 约 13 GiB；能否回到第一轮约 430 秒/次**未实测**，要先跑 `--bench --bench-micro 64,128` 看。建议同时把 NVIDIA 控制面板的 CUDA Sysmem Fallback Policy 设为 Prefer No Sysmem Fallback：再不够就直接报错（`run` 的 `finally` 会存盘），而不是悄悄慢 3–6 倍。
+
+**不用从零开始**：`--micro` / `--micro-tokens` 不进检查点配置检查，也不改变梯度，所以训练机上的 `runs/5090-train4` 可以直接用新的 micro 续训（手册里的目录名已改成训练机上的 `runs/5090-train4`）。
+
+## 58. ruleset v31：全部 299 件遗物逐行核对（2026-11-25，America/Los_Angeles；快照 v20 不变，`FEATURE_VERSION=12` 不变）
+
+**范围与方法**：原生注册表里的 299 件遗物，每件都把反编译类（`Models/Relics/<类名>.cs`，所有覆写的钩子）和模拟器里所有用到这件遗物的代码并排读一遍，核对触发时机、条件、目标范围、数值、随机数流、是否走正常的能力施加 / 生成牌 / 加入牌组流程、是否在观察里出现原生没有的东西。新工具：
+- `sim/tools/item_side_by_side.py relic|card|potion <名字>`：打印原生类（去掉样板代码）、注册表数值，以及模拟器里每处 `RelicId::X` / `CardId::X` / `PotionId::X` 的上下文和所在函数。以后游戏更新时，按更新日志改动的物品逐个用它重查。
+- `sim/tools/item_audit_mark.py`：把结论写进 **`docs/item-audit.json`**（每件一条：状态、日期、ruleset、备注）。状态：`ok`（逐行一致）、`fixed`（不一致，已改）、`not-implemented`、`out-of-scope`。
+
+**结果**：252 件一致，10 件修正，35 件是其他职业的初始 / 专属遗物（铁甲拿不到，模拟器未实现，以后重放静默 / 储君对局前要补），2 件不适用（已弃用遗物；Twisted Funnel 是静默专属但已实现，未逐行复查）。Fur Coat、Lord's Parasol 等 DEVLOG 54–56 已逐行核过的照记。
+
+**修正**（每件都是读原生源码确认的；新测试 `sim/tests/native_relic_audit_v31.cpp`，每个用例选旧代码结果不同的情况）：
+1. **Tungsten Rod / Beating Remnant**：原生 `Hook.ModifyHpLost` 按遗物栏顺序结算，两者不交换（25 点伤害：跳动残骸在前 → 19，钨棒在前 → 20）；模拟器原来总是钨棒在前。Python A4 预览本来就按遗物栏顺序，所以以前这里预览和模拟器会差 1。
+2. **Molten / Toxic / Frozen Egg**：原生 `MerchantCardEntry.Populate` 调 `Hook.ModifyMerchantCardCreationResults`，商店里对应类型的牌**上架时就是升级版**；在商店里买下蛋后 `UpdateEntries` 会让店里剩下的牌也变成升级版。模拟器原来只在买下时升级——最终牌组一样，但网络看到的商店牌面和原生不同。
+3. **Ringing Triangle**：原生是第一回合 `ShouldFlush = false`，不是能力。模拟器原来给玩家加 1 层 RetainHand 能力：观察里多出一个原生没有的能力图标；而且和卡牌给的 RetainHand 叠成 2 层，第二回合也会保留手牌。
+4. **Snecko Eye / Fake Snecko Eye**：原生开战时给玩家上 `ConfusedPower`（可见的减益，抽到的牌随机费用）。模拟器原来直接判断遗物，观察里没有这个能力。现在开战施加 Confused 1，随机费用改为看玩家是否有 Confused。
+5. **Pael's Legion**：原生在“第一次用牌加格挡的那次出牌”结束（`AfterCardPlayed`）时才进入 2 回合冷却，这次出牌里的每次加格挡都翻倍；模拟器原来第一次加格挡就进入冷却，同一张牌的第二次加格挡不翻倍。出牌中途停在选择上（如 True Grit+）时存读档正常（测试覆盖）。
+6. **Brilliant Scarf**：能量费用一支本来就只数手动出牌；储君的星星费用一支原来数了自动出牌，已改成一致（铁甲没有星星，无实际影响）。
+
+**核对中看过、确认一致的易错点**（记下来以免以后重复怀疑）：Belt Buckle 移除敏捷、临时力量回合末移除这类“负数力量 / 敏捷”在原生里算减益、会被人工制品挡掉，但 v0.111 单人模式下玩家拿不到人工制品（全部来源都是怪物），所以模拟器直接改数值不影响结果；变形卡牌在原生里也算“加入牌组”（触发五轮书、蛋、Lucky Fysh、Bing Bong），模拟器的变形路径都走 `add_card_to_deck`，一致（`transform_random_cards` 是没有调用者的旧函数）；Pael's Eye 只数手动出牌（原生 `!IsAutoPlay`），一致。
+
+**更正一处误判**：一开始以为微型加农炮漏了“造成攻击伤害的技能牌”（Flechettes、Lunar Blast），是用简单文本搜索判断牌的类型，查注册表后这两张都是攻击牌；v0.111 里所有非攻击牌造成的伤害都带 Unpowered，所以模拟器的“只对攻击牌”与原生等价。已撤回那处修改，台账记为一致。
+
+**顺手修的预览漏洞**（与遗物无关，B 预览审计里发现）：玩家已有 Colossus（受易伤敌人的伤害减半）时，打出 Bash 等上易伤的牌会改变敌人本回合对玩家的伤害，“出牌后结束回合掉血”原来按出牌前的意图给了确定值，现在标未知（`public_tactics.py`，编码不变，`FEATURE_VERSION` 不升）。
+
+**验证**：C++ 65/65（新增 `native_relic_audit_v31`）；训练 Python 104 通过 + 1 跳过；parity 93 + 109；注册表、怪物数值审计通过；B 预览审计两组（含改动遗物与 Colossus、Bash 等牌）共 15,964 次比对、7,432 次结束回合，0 差异；整局冒烟（塞遗物与牌）400 局 0 失败、训练分布 400 局 0 失败。这些都是读反编译源码加定点测试，**不是原生执行对拍**。
+
+**对训练的影响**：规则变化都很小（Rod/Remnant 顺序、蛋的商店显示、Ringing Triangle、Snecko 的 Confused 显示、Legion 多次格挡），不改编码。第三轮（训练机上 `runs/5090-train4`）可以换上 v31 后接着跑；换代码后要按 2.2 第 1 步重新编译。
+
+## 59. ruleset v31（续）：全部 595 张卡牌、65 种药水逐行核对（2026-11-25，America/Los_Angeles；快照 v20、`FEATURE_VERSION=12` 不变）
+
+**范围与方法**：同第 58 节，逐张把原生类（`OnPlay` 和所有覆写的钩子，数值以注册表为准）与模拟器所有处理代码并排读，结论记进 `docs/item-audit.json`。另外专门查了“走通用兜底的牌”：模拟器里没有专门处理的牌按“普通伤害 / 格挡”结算，列出全部 31 张逐一确认（3 张无色普通攻防牌 + 巨石，其余是诅咒、状态、任务牌，效果都在钩子里，已在各自位置核对）。
+
+**结果**：
+- 卡牌 595 张：551 张一致，7 张修正，37 张是多人模式专属（`MultiplayerOnly`，单人卡池里不会出现）。铁甲、无色、诅咒、状态、事件、衍生牌与静默 / 故障机器人 / 储君 / 亡灵法师四个职业全部覆盖（铁甲可经 Prismatic Gem、Splash、Kaleidoscope、Sea Glass 拿到其他职业的牌）。Mad Science 的各个附加效果只沿用 v27 的核对，没有逐个重推。
+- 药水 65 种：52 种一致，无新问题（v24 已逐个改过）；10 种是其他职业的药水（未实现，铁甲拿不到），2 种其他职业药水已实现但未复查，1 种已弃用。
+
+**修正**（新测试都在 `sim/tests/native_relic_audit_v31.cpp`）：
+1. **X = 0 的攻击仍然消耗活力（Vigor）**：原生 `AttackCommand.Execute` 在 0 段攻击时照样跑 `BeforeAttack` / `AfterAttack`，Vigor 在 AfterAttack 被扣掉。模拟器的旋风斩、Volley 在 X = 0、Fiend Fire 在手牌为空时直接跳过攻击，活力会留给下一次攻击（例如 Akabeko 的 8 点）。其他职业的同类牌本来就是对的。
+2. **单层能力重复获得也累加层数**：原生 `PowerCmd.Apply` 对已有能力一律 `ModifyAmount`，`PowerStackType.Single` 只影响界面是否显示数字。模拟器 Fan of Knives、Master Planner、Well-Laid Plans 写成“已有就不再加”，以及第 58 节新加的 Snecko 的 Confused；现在都照原生累加（两件 Snecko 遗物 → Confused 2）。这些能力都只判断 > 0，所以只影响观察里的层数。
+3. **动态目标类型**：原生 Shiv 在有 Fan of Knives 时、Sovereign Blade 在有 Seeking Edge 时，`TargetType` 变成“全体敌人”，不需要选目标。模拟器的合法动作、牌面导出和候选编码用的是静态目标，所以会多出“对每个敌人各一个出牌动作”，牌面也显示成单体（B 预览因此把全体伤害算成单体）。新增 `BattleContext::card_target_now`，合法动作、出牌校验、牌面 `target`、候选目标编码都改用它。
+4. **Primal Force**：变出的巨石原来走“生成牌”通知（会触发其他职业响应生成牌的能力），原生是变形（记生成历史、触发进入战斗，但不触发 `AfterCardGeneratedForCombat`）；改用变形通知。v27 改过其他变形，这一处漏了。
+5. **Archaic Tooth**（遗物，审卡牌时发现，第 58 节当时误判为一致）：原生是 `CardCmd.Transform(Bash → Break)`：删掉 Bash、新建 Break（Bash 升过级就升级、复制附魔），再从牌组末尾加入并走加入牌组的钩子（蛋、Fresnel Lens、Lucky Fysh、五轮书、Bing Bong）。模拟器原来是原地改牌的 ID（位置、UID 不变，不触发任何钩子）。Bing Bong 时多占一格的容量检查也补上了。
+
+**审计中顺手确认的易错点**：玩家拿不到人工制品（只有怪物有），所以负力量 / 负敏捷被人工制品挡掉的情况对玩家不存在；Pael's Eye 只数手动出牌（原生 `!IsAutoPlay`）；Mad Science 外所有“非攻击牌造成的伤害”都带 Unpowered，Miniature Cannon / Strike Dummy 只认攻击牌与原生等价；`transform_random_cards` 没有调用者。
+
+**整局冒烟里的一处失败（判断为测试脚本问题，未改）**：种子 2175（塞遗物模式）报“Large Capsule obtain cannot complete: Pendulum”。冒烟脚本在有卡牌选择挂起时直接 `add_relic(Pendulum)`，遗物进了待领取队列但没从遗物袋里拿走，随后 Large Capsule 从袋里又抽到它、因为“已在待领取队列”而失败。正常游戏里遗物都是先从袋中取出再进队列，不会出现。
+
+**验证**：C++ 65/65；训练 Python 104 通过 + 1 跳过；parity 93 + 109；注册表、怪物数值审计通过；卡牌编码审计 1,148 个变体 0 问题；B 预览审计（含 Fan of Knives、旋风斩、Fiend Fire、Colossus、Bash 与改动遗物）8,611 次比对、2,938 次结束回合 0 差异，原有那组 8,195 / 4,015 次 0 差异；整局冒烟塞遗物 400 局、训练分布 400 局均 0 失败。这些仍是读反编译源码加定点测试，**不是原生执行对拍**。
+
+**台账**：`docs/item-audit.json` 现在覆盖全部 299 件遗物、595 张卡牌、65 种药水。以后游戏更新：按更新日志列出的物品，用 `python sim/tools/item_side_by_side.py <relic|card|potion> <名字>` 重看，再用 `item_audit_mark.py` 更新结论。
+
+## 60. 新训练手册 `docs/runbook.md`、`--size` / `--machine` 预设、网络大小对比计划（2026-11-26，America/Los_Angeles；模拟器与观察不变）
+
+**为什么**：217M 在 24 GB 的 5090 上每次更新约 7 分钟（溢出时 25–50 分钟），一次 12 小时只有约 70 次更新；AlphaDefect 约 2,000 万参数、3 天约 5.4 万次更新。用户要自己出钱用 A100，要求不白花，决定先在免费的 5090 上对比 small（32M）和 large（218M），每次不超过 12 小时，再按实测转 A100（plan 6.3）。用户还要求一份精神不好时也能照做的手册，旧的“第三轮操作手册”和 A100 段清掉。
+
+**改动**：
+- `ppo.py` 两个预设。`--size large|medium|small|tiny`：宽 768/512/384/256、两部分各 12/8/6/4 层、头数同层数，本机实测 218.1M / 69.4M / 31.8M / 11.4M 参数；学习率按宽度反比换算（3e-5 × 768 / 宽度），没调过。`--machine 5090|a100`：只设 `--workers`、`--games`、`--micro`、`--micro-tokens`、`--infer-batch`（5090：6 × 16、128、16000；A100：可用 CPU − 2 × 32、256、32000），不改梯度。命令里直接写的参数覆盖预设；不加预设时仍是第 1–3 轮的默认值。默认采样进程数改用进程可用的 CPU（`sched_getaffinity`），不再用整机核数。
+- 每次启动在运行目录追加一行 `sessions.jsonl`（时间、起始更新、ruleset、参数量、全部参数），发回日志时能看出每段是用什么命令跑的。网络配置不符时的报错提示去看它。
+- `docs/runbook.md`：唯一的训练手册。6 步：更新编译测试 → 四种大小测速 → small 12 小时 → large 12 小时 → 评估 → A100 测速再训练。每步写清命令、正常的样子、要发回来的东西，另附日志看哪几项、出问题怎么办、参数表。`AGENTS.md` 2.2 改成指向它，删掉原 2.2 / 2.3 的长手册；README、plan 的引用同步。
+- 对比的两边都用默认 `--ent-updates 3000`（第三轮的 450 是按大网络 12 小时的更新数定的；对比要两边一样）。
+
+**验证（本机 CPU）**：small 预设训练 1 次更新、存盘、续跑到第 2 次；用 `--size` 不写（默认 large）续跑同一目录被拒绝并提示看 `sessions.jsonl`；`evaluate.py` 读 small 的 `ema.pt` 跑 8 局正常。新增 `test_size_and_machine_presets`；训练 Python 105 通过 + 1 跳过。**GPU 上的速度和显存都没测过**，这正是手册第 2 步要测的；small 的瓶颈可能转到 CPU（5090 训练机只有 8 线程）。

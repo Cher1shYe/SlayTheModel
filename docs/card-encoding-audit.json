@@ -1,6 +1,6 @@
 {
   "schema": "sts2.card-encoding-audit/1",
-  "ruleset": "native-41cef1ea-port-v30",
+  "ruleset": "native-41cef1ea-port-v31",
   "native_cards": 596,
   "compared_variants": 1148,
   "issues": [],

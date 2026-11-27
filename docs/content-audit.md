@@ -226,3 +226,8 @@
 | v29 | 遗物按原生时机与遗物栏顺序结算（回合开始各阶段、出牌后、消耗后、回合结束前）；Bag of Marbles 等目标与 Artifact；Lord's Parasol 逐件等待 | DEVLOG 54 |
 
 默认全解锁时铁甲能通过 Kaleidoscope 拿到其他职业的牌，所以这四个职业也会进训练。
+
+
+## 逐件核对台账（2026-11-25，ruleset v31）
+
+全部 299 件遗物、595 张卡牌、65 种药水已逐行对照原生反编译源码，逐件结论在 [`item-audit.json`](item-audit.json)（状态：ok / fixed / not-implemented / out-of-scope，含日期、ruleset、备注），过程与修正见 DEVLOG 58–59。工具：`sim/tools/item_side_by_side.py`（并排显示原生类与模拟器代码）、`sim/tools/item_audit_mark.py`（更新台账）。这是读源码核对，不是原生执行对拍。

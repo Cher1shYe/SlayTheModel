@@ -328,8 +328,17 @@ void relics_combat_start(BattleContext &bc) {
                     bc.relicAux[i] = 1;
                 }
                 break;
+            case RelicId::SNECKO_EYE:
+            case RelicId::FAKE_SNECKO_EYE:
+                // SneckoEye / FakeSneckoEye.BeforeCombatStart: PowerCmd.Apply<ConfusedPower>(1), a visible
+                // Single-stack Debuff; the power randomizes drawn costs (v31, DEVLOG 58: the relic was
+                // checked directly and the player never showed Confused). Both relics: Confused 2.
+                bc.add_player_power(PowerId::CONFUSED, 1);   // Single stack type, but a second relic adds to Amount
+                break;
             case RelicId::RINGING_TRIANGLE:
-                gain_power(bc, PowerId::RETAIN_HAND, 1);
+                // RingingTriangle.ShouldFlush: checked at the turn-1 flush (battle_turns.cpp), not a
+                // power (v31, DEVLOG 58: the old RetainHand 1 showed a power native does not have and
+                // stacked with a card's RetainHand into a second retained turn).
                 break;
             case RelicId::SWORD_OF_JADE:
                 bc.add_player_power(PowerId::STRENGTH, 3);
@@ -689,11 +698,16 @@ int relics_modify_damage(BattleContext &bc, int dmg, int target, const Card *car
     return (dmg + relics_damage_additive(bc, *card)) * relics_damage_multiplier(bc, *card);
 }
 
+// Hook.ModifyHpLost(AfterOsty) visits the relics in relic-bar order, so Tungsten Rod (-1) and
+// Beating Remnant (cap 20 - HP lost this turn) do not commute: 25 damage is 20 with the Rod
+// first and 19 with the Remnant first (v31, DEVLOG 58; was always Rod first).
 int relics_modify_hp_loss(BattleContext &bc, int amount) {
     int out = amount;
-    if (relic_has(bc, RelicId::TUNGSTEN_ROD)) out = std::max(0, out - 1);
-    if (relic_has(bc, RelicId::BEATING_REMNANT)) {
-        out = std::min(out, std::max(0, 20 - bc.hpLostThisTurn));
+    for (int i = 0; i < bc.relicCount; ++i) {
+        if (bc.relicMelted[i]) continue;
+        const auto id = static_cast<RelicId>(bc.relics[i]);
+        if (id == RelicId::TUNGSTEN_ROD) out = std::max(0, out - 1);
+        else if (id == RelicId::BEATING_REMNANT) out = std::min(out, std::max(0, 20 - bc.hpLostThisTurn));
     }
     return out;
 }
@@ -736,8 +750,16 @@ int relics_modify_block_gain(BattleContext &bc, int amount, bool fromCard, bool 
         if (commit && relic_aux(bc, RelicId::VAMBRACE) == 0) set_aux(bc, RelicId::VAMBRACE, 1);
         out *= 2;
     }
-    if (relic_has(bc, RelicId::PAELS_LEGION) && relic_aux(bc, RelicId::PAELS_LEGION) <= 0) {
-        if (commit) set_aux(bc, RelicId::PAELS_LEGION, 2);
+    // PaelsLegion: x2 while Cooldown <= 0; AfterModifyingBlockAmount remembers the first card play
+    // that gained block (aux -1, aux2 = its card UID) and that play's AfterCardPlayed starts the
+    // 2-turn cooldown, so every block gain of that play is doubled (v31, DEVLOG 58: the cooldown
+    // started at the first gain, so a second gain in the same play was not doubled).
+    const int legion = aux_index(bc, RelicId::PAELS_LEGION);
+    if (legion >= 0 && bc.relicAux[legion] <= 0) {
+        if (commit && bc.relicAux[legion] == 0 && bc.activePlay.active) {
+            bc.relicAux[legion] = -1;
+            bc.relicAux2[legion] = bc.activePlay.card.uid;
+        }
         out *= 2;
     }
     return out;
@@ -800,6 +822,14 @@ void relics_card_played(BattleContext &bc, const Card &card) {
     // random target.
     // Bookkeeping that is not order-sensitive.
     if(relic_aux(bc,RelicId::UNSETTLING_LAMP)==card.uid) set_aux(bc,RelicId::UNSETTLING_LAMP,-1);
+    // PaelsLegion.AfterCardPlayed: the affected play ends -> Cooldown = 2.
+    {
+        const int legion = aux_index(bc, RelicId::PAELS_LEGION);
+        if (legion >= 0 && bc.relicAux[legion] == -1 && bc.relicAux2[legion] == card.uid) {
+            bc.relicAux[legion] = 2;
+            bc.relicAux2[legion] = 0;
+        }
+    }
     // Vambrace.AfterCardPlayed: the triggering card's doubling window ends.
     if (relic_has(bc, RelicId::VAMBRACE) && relic_aux(bc, RelicId::VAMBRACE) == 1) {
         set_aux(bc, RelicId::VAMBRACE, 2);
@@ -1460,11 +1490,23 @@ void relics_on_obtain(RunContext &rc, RelicId id) {
             break;
         }
         case RelicId::ARCHAIC_TOOTH: {
-            // Transcendence: the starter card becomes its ancient card
-            // (Ironclad: Bash -> Break), preserving upgrade state.
+            // ArchaicTooth.AfterObtained: CardCmd.Transform(first Bash, a new Break that is upgraded
+            // if the Bash was and carries a clone of its enchantment). Transform removes the Bash
+            // and appends the Break through the deck-add hooks (eggs, Fresnel Lens, Lucky Fysh,
+            // Book of Five Rings, Bing Bong). v31, DEVLOG 58: was an in-place id swap (kept the
+            // deck position and the UID, skipped every hook).
             for (int i = 0; i < rc.deckCount; ++i) {
                 if (rc.deck[i].id != CardId::BASH) continue;
-                rc.deck[i].id = CardId::BREAK;
+                const Card bash = rc.deck[i];
+                Card ancient = rc.make_run_card(CardId::BREAK, false);
+                if (bash.upgraded && card_upgradable(ancient)) card_apply_upgrade(ancient);
+                ancient.enchantment = bash.enchantment;              // MutableClone of the enchantment
+                ancient.enchantmentAmount = bash.enchantmentAmount;
+                ancient.momentumExtraDamage = bash.momentumExtraDamage;
+                ancient.enchantmentDisabled = bash.enchantmentDisabled;
+                for (int j = i; j + 1 < rc.deckCount; ++j) rc.deck[j] = rc.deck[j + 1];
+                rc.deck[--rc.deckCount] = Card{};
+                if (!rc.add_card_to_deck(ancient)) throw std::logic_error("Archaic Tooth deck capacity");
                 break;
             }
             break;

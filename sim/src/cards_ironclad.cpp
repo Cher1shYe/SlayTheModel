@@ -362,7 +362,8 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
         case CardId::WHIRLWIND:
             // Whirlwind.cs builds one WithHitCount(X) AttackCommand, so Vigor
             // applies once for the whole command, not once per hit.
-            if (bc.xCost > 0) hit_all(bc, card, dmg, bc.xCost);
+            // X = 0 still runs the AttackCommand (BeforeAttack/AfterAttack): it spends Vigor (v31, DEVLOG 58).
+            hit_all(bc, card, dmg, bc.xCost);
             return true;
 
         // ---- rare ----
@@ -436,9 +437,8 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                 if (bc.outcome != Outcome::UNDECIDED) break;
             }
             // One AttackCommand with HitCount(cardCount): Vigor applies once.
-            if (count > 0 && bc.outcome == Outcome::UNDECIDED) {
-                hit(bc, card, target, dmg, count);
-            }
+            // An empty hand still runs the 0-hit AttackCommand, which spends Vigor (v31, DEVLOG 58).
+            if (bc.outcome == Outcome::UNDECIDED) hit(bc, card, target, dmg, count);
             return true;
         }
         case CardId::HELLRAISER_CARD:
@@ -481,7 +481,9 @@ bool ironclad_effect(BattleContext &bc, Card &card, int target) {
                 for (int i = 0; i < bc.handCount; ++i) {
                     if (bc.hand[i].uid != attacks[k]) continue;
                     bc.hand[i] = make_card(CardId::GIANT_ROCK, card.upgraded, bc.require_card_uid());
-                    bc.notify_card_generated(bc.hand[i], true);
+                    // A transform: CardGenerated + AfterCardEnteredCombat, not AfterCardGeneratedForCombat
+                    // (v31, DEVLOG 58: was the generated-card notification).
+                    bc.notify_card_transformed(bc.hand[i]);
                     break;
                 }
             return true;

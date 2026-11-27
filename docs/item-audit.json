@@ -1,0 +1,4921 @@
+{
+ "schema": "item-audit/1",
+ "native": "v0.111.0 / 41cef1ea",
+ "items": {
+  "relic": {
+   "AKABEKO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ALCHEMICAL_COFFER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "AMETHYST_AUBERGINE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ANCHOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ARCANE_SCROLL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ARCHAIC_TOOTH": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "was an in-place Bash->Break id swap; now CardCmd.Transform: Bash removed, new Break (upgrade + enchantment clone) appended through the deck-add hooks"
+   },
+   "ART_OF_WAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ASTROLABE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BAG_OF_MARBLES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BAG_OF_PREPARATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BEATING_REMNANT": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "HP-loss modifiers now in relic-bar order (Remnant before Rod: 25 -> 19, was always 20)"
+   },
+   "BEAUTIFUL_BRACELET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BELLOWS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BELT_BUCKLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "Dexterity removal bypasses Artifact, but no player Artifact source exists in v0.111 single player"
+   },
+   "BIG_HAT": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "BIG_MUSHROOM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BIIIG_HUG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "line-checked and fixed in DEVLOG 54-56 (v29/v30)"
+   },
+   "BING_BONG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BLACK_BLOOD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BLACK_STAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BLESSED_ANTLER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BLOOD_SOAKED_ROSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BLOOD_VIAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BONE_FLUTE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "BONE_TEA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BOOKMARK": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "BOOK_OF_FIVE_RINGS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BOOK_REPAIR_KNIFE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "BOOMING_CONCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BOUND_PHYLACTERY": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "BOWLER_HAT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BREAD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BRILLIANT_SCARF": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "star-cost (Regent) branch counted auto-plays; now manual plays like the energy branch. Energy branch was already right"
+   },
+   "BRIMSTONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BRONZE_SCALES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BURNING_BLOOD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BURNING_STICKS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "BYRDPIP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CALLING_BELL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CANDELABRA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CAPTAINS_WHEEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CAULDRON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CENTENNIAL_PUZZLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CHANDELIER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CHARONS_ASHES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CHEMICAL_X": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CHOICES_PARADOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CHOSEN_CHEESE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CIRCLET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "no effect (stackable fallback)"
+   },
+   "CLAWS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CLOAK_CLASP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CRACKED_CORE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "CROSSBOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "CURSED_PEARL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DARKSTONE_PERIAPT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DATA_DISK": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "DAUGHTER_OF_THE_WIND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DELICATE_FROND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DEMON_TONGUE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DEPRECATED_RELIC": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "deprecated pool"
+   },
+   "DIAMOND_DIADEM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DINGY_RUG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DISTINGUISHED_CAPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DIVINE_DESTINY": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "DIVINE_RIGHT": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "DOLLYS_MIRROR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DOWSING_ROD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DRAGON_FRUIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DREAM_CATCHER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DRIFTWOOD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "DUSTY_TOME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ECTOPLASM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ELECTRIC_SHRYMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "EMBER_TEA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "EMOTION_CHIP": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "EMPTY_CAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ETERNAL_FEATHER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_ANCHOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_BLOOD_VIAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_HAPPY_FLOWER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_LEES_WAFFLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_MANGO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_MERCHANTS_RUG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_ORICHALCUM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_SNECKO_EYE": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "now applies the visible ConfusedPower at combat start (both relics: Confused 2); costs randomize while the player has Confused (was a relic check, no power in the observation)"
+   },
+   "FAKE_STRIKE_DUMMY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FAKE_VENERABLE_TEA_SET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FENCING_MANUAL": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "FESTIVE_POPPER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FIDDLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FISHING_ROD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FORGOTTEN_SOUL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FRAGRANT_MUSHROOM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FRESNEL_LENS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "FROZEN_EGG": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "shop cards now upgraded on stocking and after buying an egg in the shop (Hook.ModifyMerchantCardCreationResults / UpdateEntries); was upgraded only on purchase"
+   },
+   "FUNERARY_MASK": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "FUR_COAT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "line-checked and fixed in DEVLOG 54-56 (v29/v30)"
+   },
+   "GALACTIC_DUST": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "GAMBLING_CHIP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GAME_PIECE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GHOST_SEED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GIRYA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GLASS_EYE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GLITTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GNARLED_HAMMER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GOLDEN_COMPASS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GOLDEN_PEARL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GOLD_PLATED_CABLES": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "GORGET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "GREMLIN_HORN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "HAND_DRILL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "HAPPY_FLOWER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "HEFTY_TABLET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "HELICAL_DART": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "HISTORY_COURSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "HORN_CLEAT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ICE_CREAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "INFUSED_CORE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "INTIMIDATING_HELMET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "IRON_CLUB": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "IVORY_TILE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "JEWELED_MASK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "JEWELRY_BOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "JOSS_PAPER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "JUZU_BRACELET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "KALEIDOSCOPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "KIFUDA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "KUNAI": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "KUSARIGAMA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LANTERN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LARGE_CAPSULE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LASTING_CANDY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LAVA_LAMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LAVA_ROCK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LEAD_PAPERWEIGHT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LEAFY_POULTICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LEES_WAFFLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LETTER_OPENER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LIZARD_TAIL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LOOMING_FRUIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LORDS_PARASOL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "line-checked and fixed in DEVLOG 54-56 (v29/v30)"
+   },
+   "LOST_COFFER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LOST_WISP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LUCKY_FYSH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "LUNAR_PASTRY": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "MANGO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MASSIVE_SCROLL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MAW_BANK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MEAL_TICKET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MEAT_CLEAVER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MEAT_ON_THE_BONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MEMBERSHIP_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MERCURY_HOURGLASS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "METRONOME": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "MINIATURE_CANNON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "native has no card-type check, but only Attack cards deal powered attack damage in v0.111 (every non-Attack card damage is Unpowered); the Attack check is equivalent"
+   },
+   "MINIATURE_TENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MINI_REGENT": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "MOLTEN_EGG": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "shop cards now upgraded on stocking and after buying an egg in the shop (Hook.ModifyMerchantCardCreationResults / UpdateEntries); was upgraded only on purchase"
+   },
+   "MR_STRUGGLES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MUMMIFIED_HAND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "MUSIC_BOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "line-checked and fixed in DEVLOG 54-56 (v29/v30)"
+   },
+   "MYSTIC_LIGHTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NEOWS_BONES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NEOWS_SACRIFICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NEOWS_TALISMAN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NEOWS_TORMENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NEW_LEAF": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NINJA_SCROLL": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "NUNCHAKU": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NUTRITIOUS_OYSTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "NUTRITIOUS_SOUP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ODDLY_SMOOTH_STONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "OLD_COIN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ORANGE_DOUGH": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "ORICHALCUM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ORNAMENTAL_FAN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ORRERY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_BLOOD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_CLAW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_EYE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_FLESH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_GROWTH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_HORN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_LEGION": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "cooldown now starts at the affected card play's AfterCardPlayed; every block gain of that play is doubled (was: only the first gain)"
+   },
+   "PAELS_TEARS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_TOOTH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAELS_WING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PANDORAS_BOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PANTOGRAPH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PAPER_KRANE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "PAPER_PHROG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PARRYING_SHIELD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PEAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PENDULUM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PEN_NIB": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PERMAFROST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PETRIFIED_TOAD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PHIAL_HOLSTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PHILOSOPHERS_STONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PHYLACTERY_UNBOUND": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "PLANISPHERE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "POCKETWATCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "POLLINOUS_CORE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "POMANDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "POTION_BELT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "POWER_CELL": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "PRAYER_WHEEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PRECARIOUS_SHEARS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PRECISE_SCISSORS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PRESERVED_FOG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PRISMATIC_GEM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PUMPKIN_CANDLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "PUNCH_DAGGER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RADIANT_PEARL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "line-checked and fixed in DEVLOG 54-56 (v29/v30)"
+   },
+   "RAINBOW_RING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RAZOR_TOOTH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RED_MASK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RED_SKULL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "REGALITE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "REGAL_PILLOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "REPTILE_TRINKET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RINGING_TRIANGLE": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "was a RetainHand power (visible in observation, stacked with card RetainHand into a 2nd retained turn); now ShouldFlush check on turn 1"
+   },
+   "RING_OF_THE_DRAKE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "RING_OF_THE_SNAKE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "RIPPLE_BASIN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ROYAL_POISON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "ROYAL_STAMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RUINED_HELMET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "RUNIC_CAPACITOR": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "RUNIC_PYRAMID": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SAI": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SAND_CASTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SCREAMING_FLAGON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SCROLL_BOXES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SEAL_OF_GOLD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SEA_GLASS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SELF_FORMING_CLAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SERE_TALON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SHOVEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SHURIKEN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SIGNET_RING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SILKEN_TRESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SILVER_CRUCIBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SLING_OF_COURAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SMALL_CAPSULE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SNECKO_EYE": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "now applies the visible ConfusedPower at combat start (both relics: Confused 2); costs randomize while the player has Confused (was a relic check, no power in the observation)"
+   },
+   "SNECKO_SKULL": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "SOZU": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SPARKLING_ROUGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SPIKED_GAUNTLETS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STONE_CALENDAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STONE_CRACKER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STONE_HUMIDIFIER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STORYBOOK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STRAWBERRY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STRIKE_DUMMY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "STURDY_CLAMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SWORD_OF_JADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SWORD_OF_STONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "SYMBIOTIC_VIRUS": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "TANXS_WHISTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TEA_OF_DISCOURTESY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "THE_ABACUS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "THE_BOOT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "THE_COURIER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "THROWING_AXE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TINGSHA": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "TINY_MAILBOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TOASTY_MITTENS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TOOLBOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TOUCH_OF_OROBAS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TOUGH_BANDAGES": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "TOXIC_EGG": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "shop cards now upgraded on stocking and after buying an egg in the shop (Hook.ModifyMerchantCardCreationResults / UpdateEntries); was upgraded only on purchase"
+   },
+   "TOY_BOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TRI_BOOMERANG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TUNGSTEN_ROD": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "HP-loss modifiers now in relic-bar order (Remnant before Rod: 25 -> 19, was always 20)"
+   },
+   "TUNING_FORK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "TWISTED_FUNNEL": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "Silent pool, implemented (v29 Artifact fix) but not re-audited line by line"
+   },
+   "UNCEASING_TOP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "UNDYING_SIGIL": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "UNSETTLING_LAMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VAJRA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VAMBRACE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VELVET_CHOKER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VENERABLE_TEA_SET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VERY_HOT_COCOA": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VEXING_PUZZLEBOX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "VITRUVIAN_MINION": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30",
+    "note": "other character's pool or starter; Ironclad cannot obtain it (needed before replaying Silent/Regent runs)"
+   },
+   "WAR_HAMMER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WAR_PAINT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WHETSTONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WHISPERING_EARRING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WHITE_BEAST_STATUE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WHITE_STAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WINGED_BOOTS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WING_CHARM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WONGOS_MYSTERY_TICKET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "WONGO_CUSTOMER_APPRECIATION_BADGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   },
+   "YUMMY_COOKIE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v30"
+   }
+  },
+  "card": {
+   "ABRASIVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ABUNDANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ACCELERANT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ACCURACY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ACROBATICS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ADAPTIVE_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ADRENALINE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "AFTERIMAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "AFTERLIFE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "AGGRESSION_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ALCHEMIZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ALIGNMENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ALL_FOR_ONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ANGER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ANOINTED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ANTICIPATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "APOTHEOSIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "APPARITION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ARMAMENTS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ARSENAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ASCENDERS_BANE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ASHEN_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ASSASSINATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ASTRAL_PULSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "AUTOMATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BACKFLIP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BACKSTAB": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BAD_LUCK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BALL_LIGHTNING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BANSHEES_CRY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BARRAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BARRICADE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BATTLE_TRANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BEACON_OF_HOPE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "BEAM_CELL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BEAT_DOWN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BEAT_INTO_SHAPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BECKON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BEGONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BELIEVE_IN_YOU": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "BIASED_COGNITION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BIG_BANG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLACK_HOLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLADE_DANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLADE_OF_INK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLADE_SYMPHONY": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "BLAZE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "BLIGHT_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLOODLETTING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLOOD_WALL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLUDGEON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLUR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BODYGUARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BODY_SLAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BOLAS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BOMBARDMENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BONE_SHARDS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BOOST_AWAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BOOT_SEQUENCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BORROWED_TIME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BOUNCING_FLASK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BRAND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BREAK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BREAKTHROUGH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BRIGHTEST_FLAME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BUBBLE_BUBBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BUFFER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BULK_UP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BULLET_TIME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BULLY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BULWARK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BUNDLE_OF_JOY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BURN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BURNING_PACT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BURST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BURY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BYRDONIS_EGG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BYRD_SWOOP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CACOPHONY": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "CALAMITY_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CALCIFY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CALCULATED_GAMBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CALL_OF_THE_VOID": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CALTROPS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CAPACITOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CAPTURE_SPIRIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CASCADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CATASTROPHE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CELESTIAL_MIGHT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CHAOS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CHARGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CHARGE_BATTERY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CHILD_OF_THE_STARS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CHILL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CINDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLAW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLEANSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLOAK_AND_DAGGER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLOAK_OF_STARS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLUMSY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COLD_SNAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COLLISION_COURSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COLOSSUS_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COMET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COMPACT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COMPILE_DRIVER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CONCOCT": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "CONFLAGRATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CONQUEROR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CONSTELLATION": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "CONSUMING_SHADOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CONVERGENCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COOLANT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COOLHEADED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COORDINATE_CARD": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "CORROSIVE_WAVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CORRUPTION_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COSMIC_INDIFFERENCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COUNTDOWN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CRASH_LANDING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CREATIVE_AI": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CRESCENT_SPEAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CRIMSON_MANTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CRUELTY_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CRUSH_UNDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CURSE_OF_THE_BELL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DAGGER_SPRAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DAGGER_THROW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DANSE_MACABRE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DARKNESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DARK_EMBRACE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DARK_SHACKLES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DAZED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEADLY_POISON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEATHBRINGER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEATHS_DOOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEATH_MARCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEBILITATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEBRIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEBT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DECAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DECISIONS_DECISIONS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFEND_DEFECT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFEND_IRONCLAD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFEND_NECROBINDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFEND_REGENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFEND_SILENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFILE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFLECT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFRAGMENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEFY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DELAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEMESNE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEMONIC_SHIELD": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "DEMON_FORM_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEVASTATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEVOUR_LIFE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DIRGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DISCOVERY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DISINTEGRATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DISMANTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DISTRACTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DODGE_AND_ROLL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DOMINATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DOUBLE_ENERGY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DOUBT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DOWSING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DRAIN_POWER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DRAMATIC_ENTRANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DREDGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DRUM_OF_BATTLE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DUALCAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DUAL_WIELD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DYING_STAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ECHOING_SLASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ECHO_FORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EIDOLON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "END_OF_DAYS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENERGY_SURGE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "ENFEEBLING_TOUCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENLIGHTENMENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENTHRALLED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENTRENCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENTROPY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENVENOM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EQUILIBRIUM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ERADICATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ESCAPE_PLAN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ETERNAL_ARMOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EVIL_EYE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EXPECT_A_FIGHT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EXPERTISE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EXPOSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "EXTERMINATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FADE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "FALLING_STAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FAN_OF_KNIVES": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a repeat play now adds to the Single-stack power's Amount as natively (was capped at 1; observation-only, the power checks > 0)"
+   },
+   "FASTEN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FEAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FEED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FEEDING_FRENZY_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FEEL_NO_PAIN_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FERAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FETCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FIEND_FIRE": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a 0-hit play (X = 0, or Fiend Fire with an empty hand) still runs the AttackCommand and spends Vigor; the sim skipped it (other characters' X attacks were already right)"
+   },
+   "FIGHT_ME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FIGHT_THROUGH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FINESSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FINISHER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FISTICUFFS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLAK_CANNON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLAME_BARRIER_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLANKING": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "FLASH_OF_STEEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLATTEN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLECHETTES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLICK_FLACK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOCUSED_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOLLY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOOTWORK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FORBIDDEN_GRIMOIRE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOREGONE_CONCLUSION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FORGOTTEN_RITUAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FRANTIC_ESCAPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FRIENDSHIP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FTL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FUEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FURNACE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FUSION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GAMMA_BLAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GANG_UP": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "GATHER_LIGHT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GENESIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GENETIC_ALGORITHM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GIANT_ROCK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLACIER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLASSWORK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLIMMER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLIMPSE_BEYOND": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "GLITTERSTREAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GOLD_AXE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GO_FOR_THE_EYES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GRAND_FINALE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GRAVEBLAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GRAVE_WARDEN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GREED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GUARDS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GUIDING_STAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GUILTY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GUNK_UP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAILSTORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAMMER_TIME": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "HAND_OF_GREED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAND_TRICK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HANG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAUNT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAVOC": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HAZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEADBUTT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEAVENLY_DRILL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEGEMONY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEIRLOOM_HAMMER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HELIX_DRILL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HELLO_WORLD_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HELLRAISER_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEMOKINESIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HIBERNATE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "HIDDEN_CACHE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HIDDEN_DAGGERS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HIDDEN_GEM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HIGH_FIVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HOLOGRAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HOTFIX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HOWL_FROM_BEYOND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HUDDLE_UP": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "HYPERBEAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ICE_LANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "IGNITION": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "IMITATION_LEARNING": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "IMPATIENCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "IMPERVIOUS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INFECTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INFERNAL_BLADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INFERNO_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INFINITE_BLADES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INFLAME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INJURY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "INTERCEPT_CARD": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "INVOKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "IRON_WAVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ITERATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "I_AM_INVINCIBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "JACKPOT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "JACK_OF_ALL_TRADES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "JUGGERNAUT_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "JUGGLING_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KINGLY_KICK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KINGLY_PUNCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KNIFE_TRAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KNOCKDOWN": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "KNOCKOUT_BLOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KNOW_THY_PLACE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LANTERN_KEY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LARGESSE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "LEADING_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LEAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LEGION_OF_BONE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "LEG_SWEEP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LETHALITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LIFT": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "LIGHTNING_ROD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LOOP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LUMINESCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LUNAR_BLAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MACHINE_LEARNING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MAD_SCIENCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "Tinker Time card (Defect event); rider table checked in v27, not re-derived rider by rider"
+   },
+   "MAKE_IT_SO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MALAISE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MANGLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MANIFEST_AUTHORITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MASTER_OF_STRATEGY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MASTER_PLANNER": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a repeat play now adds to the Single-stack power's Amount as natively (was capped at 1; observation-only, the power checks > 0)"
+   },
+   "MAUL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MAYHEM_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MELANCHOLY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MEMENTO_MORI": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "METAMORPHOSIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "METEOR_SHOWER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "METEOR_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MIDNIGHT": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "MIMIC": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "MIND_BLAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MIND_ROT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MINION_DIVE_BOMB": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MINION_SACRIFICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MINION_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MIRAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MISERY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MODDED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MOLTEN_FIST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MOMENTUM_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MONARCHS_GAZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MONOLOGUE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MULTI_CAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MURDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NECRO_MASTERY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NEGATIVE_PULSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NEOWS_FURY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NEUROSURGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NEUTRALIZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NEUTRON_AEGIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NIGHTMARE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NORMALITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NOSTALGIA_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NOT_YET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NOXIOUS_FUMES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NO_ESCAPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "NULL_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OBLIVION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OFFERING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OMNISLICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ONE_FOR_ALL": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "ONE_TWO_PUNCH_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ORBIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OUTBREAK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OUTMANEUVER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OUTRAGE": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "OVERCLOCK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PACTS_END": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PAGESTORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PALE_BLUE_DOT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PANACHE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PANIC_BUTTON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PARRY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PARSE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PARTICLE_WALL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PATTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PECK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PERFECTED_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PHANTOM_BLADES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PHOTON_CUT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PIERCING_WAIL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PILLAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PILLAR_OF_CREATION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PINPOINT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PLOT": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "POISONED_STAB": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POMMEL_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POOR_SLEEP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POUNCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PRECISE_CUT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PREDATOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PREPARED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PREP_TIME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PRIMAL_FORCE": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "Giant Rocks now use the transform notification (CardGenerated + AfterCardEnteredCombat, not AfterCardGeneratedForCombat); was the generated-card path"
+   },
+   "PRODUCTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PROLONG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PROPHESIZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PROTECTOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PROWESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PULL_AGGRO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PULL_FROM_BELOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PURITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PUTREFY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "PYRE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "QUADCAST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "QUASAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RADIATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RAGE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RAINBOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RALLY": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "RAMPAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RATTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REANIMATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REAPER_FORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REAVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REBOOT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REBOUND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REFINE_BLADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REFLECT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REFLEX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REFRACT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REGRET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RELAX": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RESONANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RESTLESSNESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RICOCHET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RIGHT_HAND_HAND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RIP_AND_TEAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ROCKET_PUNCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ROLLING_BOULDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ROYALTIES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ROYAL_GAMBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RUPTURE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SACRIFICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SALVO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SCAVENGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SCOURGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SCRAPE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SCRAWL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SCULPTING_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SEANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SECOND_WIND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SECRET_TECHNIQUE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SECRET_WEAPON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SEEKER_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SEEKING_EDGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SENTRY_MODE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SERPENT_FORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SETUP_STRIKE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SEVEN_STARS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SEVERANCE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHADOWMELD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHADOW_SHIELD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHADOW_STEP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHAME": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHARED_FATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHATTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHINING_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHIV": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHOCKWAVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHROUD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHRUG_IT_OFF": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SIC_EM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SIDESTEP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SIGNAL_BOOST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SKEWER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SKIM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SLEIGHT_OF_FLESH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SLICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SLIMED": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SLOTH_STATUS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SMOKESTACK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SNAKEBITE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SNAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SNEAKY": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "SOLAR_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOOT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOUL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOULBOUND": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "SOUL_STORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOVEREIGN_BLADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPECTRUM_SHIFT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPEEDSTER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPINNER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPIRIT_OF_ASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPITE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPLASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPOILS_MAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPOILS_OF_BATTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPORE_MIND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPUR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SQUASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SQUEEZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STACK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STAMPEDE_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STARDUST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STOKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STOMP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STONE_ARMOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STORM_OF_STEEL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRANGLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRATAGEM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRIKE_DEFECT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRIKE_IRONCLAD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRIKE_NECROBINDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRIKE_REGENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STRIKE_SILENT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUBROUTINE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUCKER_PUNCH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUMMON_FORTH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUNDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUPERCRITICAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUPERMASSIVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SUPPRESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SURVIVOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SWEEPING_BEAM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SWEEPING_GAZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SWORD_BOOMERANG": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SWORD_SAGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SYNCHRONIZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SYNTHESIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TACTICIAN": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TAG_TEAM": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "TANK_CARD": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "TAUNT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TEAR_ASUNDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TEMPEST": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TERRAFORMING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TESLA_COIL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_BALL": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "THE_BOMB_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_GAMBIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_HUNT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_SCYTHE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_SEALED_THRONE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THE_SMITH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THINKING_AHEAD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THRASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THRUMMING_HATCHET": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THUNDER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "THUNDERCLAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TIMES_UP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TOOLS_OF_THE_TRADE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TORIC_TOUGHNESS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TOXIC": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TRACKING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TRANSFIGURE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TRASH_TO_TREASURE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TREMBLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TRUE_GRIT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TURBO": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TUTOR": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "TWIN_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TYRANNY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ULTIMATE_DEFEND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ULTIMATE_STRIKE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UNDEATH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UNDERWORLD": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "multiplayer-only (CardMultiplayerConstraint.MultiplayerOnly): never in a single-player pool"
+   },
+   "UNLEASH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UNMOVABLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UNRELENTING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UNTOUCHABLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UPPERCUT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UPROAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "UP_MY_SLEEVE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VEILPIERCER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VENERATE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VICIOUS_CARD": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VOID": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VOID_FORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VOLLEY": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a 0-hit play (X = 0, or Fiend Fire with an empty hand) still runs the AttackCommand and spends Vigor; the sim skipped it (other characters' X attacks were already right)"
+   },
+   "VOLTAIC": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WASTE_AWAY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WELL_LAID_PLANS": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a repeat play now adds to the Single-stack power's Amount as natively (was capped at 1; observation-only, the power checks > 0)"
+   },
+   "WHIRLWIND": {
+    "status": "fixed",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "a 0-hit play (X = 0, or Fiend Fire with an empty hand) still runs the AttackCommand and spends Vigor; the sim skipped it (other characters' X attacks were already right)"
+   },
+   "WHISTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WHITE_NOISE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WISH": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WISP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WITHER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WOUND": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WRAITH_FORM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WRITHE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WROUGHT_IN_WAR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ZAP": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   }
+  },
+  "potion": {
+   "AMBERGRIS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ASHWATER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ATTACK_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BEETLE_JUICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLESSING_OF_THE_FORGE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLOCK_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BLOOD_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "BONE_BREW": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "BOTTLED_POTENTIAL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "CLARITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COLORLESS_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "COSMIC_CONCOCTION": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's pool; implemented but not re-audited"
+   },
+   "CUNNING_POTION": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "CURE_ALL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DEPRECATED_POTION": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "deprecated pool"
+   },
+   "DEXTERITY_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DISTILLED_CHAOS": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DROPLET_OF_PRECOGNITION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "DUPLICATOR": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENERGY_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ENTROPIC_BREW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "ESSENCE_OF_DARKNESS": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "EXPLOSIVE_AMPOULE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FAIRY_IN_ABOTTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FIRE_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FLEX_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOCUS_POTION": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "FORTIFIER": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FOUL_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FRUIT_JUICE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "FYSH_OIL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GAMBLERS_BREW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GHOST_IN_AJAR": {
+    "status": "out-of-scope",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's pool; implemented but not re-audited"
+   },
+   "GIGANTIFICATION_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "GLOWWATER_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "HEART_OF_IRON": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "KINGS_COURAGE": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "LIQUID_BRONZE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LIQUID_MEMORIES": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "LUCKY_TONIC": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "MAZALETHS_GIFT": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "OROBIC_ACID": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POISON_POTION": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "POTION_OF_BINDING": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POTION_OF_CAPACITY": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "POTION_OF_DOOM": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "POTION_SHAPED_ROCK": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POT_OF_GHOULS": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "POWDERED_DEMISE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "POWER_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "RADIANT_TINCTURE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "REGEN_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHACKLING_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SHIP_IN_ABOTTLE": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SKILL_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SNECKO_OIL": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SOLDIERS_STEW": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SPEED_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STABLE_SERUM": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "STAR_POTION": {
+    "status": "not-implemented",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31",
+    "note": "other character's potion pool; Ironclad cannot obtain it"
+   },
+   "STRENGTH_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "SWIFT_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "TOUCH_OF_INSANITY": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "VULNERABLE_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   },
+   "WEAK_POTION": {
+    "status": "ok",
+    "date": "2026-11-25",
+    "ruleset": "native-41cef1ea-port-v31"
+   }
+  }
+ }
+}

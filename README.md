@@ -9,7 +9,7 @@ Both backends connect to the shared `spire.public/1` observation and action cont
 | Path | Contents |
 | --- | --- |
 | `sim/` | C++ simulator and its Python extension `sts2_sim`; C++ tests and native reference fixtures |
-| `train/` | Python package `spire_rl`: public observation encoding, network, AI driver layer, PPO training with practice fights (`python -m spire_rl.ppo`) and fixed-seed evaluation (`python -m spire_rl.evaluate`); see AGENTS.md 2.2–2.3 |
+| `train/` | Python package `spire_rl`: public observation encoding, network, AI driver layer, PPO training with practice fights (`python -m spire_rl.ppo`) and fixed-seed evaluation (`python -m spire_rl.evaluate`); see [docs/runbook.md](docs/runbook.md) |
 | `parity/` | Headless host that runs the real game DLL, for whole-run comparison with the simulator |
 | `docs/` | Development log, plan, observation design |
 
